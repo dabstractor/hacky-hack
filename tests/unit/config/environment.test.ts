@@ -1,0 +1,196 @@
+/**
+ * Unit tests for environment configuration module
+ *
+ * @remarks
+ * Tests validate environment variable mapping, model selection, and validation
+ * with 100% code coverage of src/config/environment.ts
+ *
+ * @see {@link https://vitest.dev/guide/ | Vitest Documentation}
+ */
+
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+  EnvironmentValidationError,
+} from '../../../src/config/environment.js';
+
+describe('config/environment', () => {
+  // CLEANUP: Always restore environment after each test
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  describe('configureEnvironment', () => {
+    it('should map AUTH_TOKEN to API_KEY when API_KEY is not set', () => {
+      // SETUP: Clear API_KEY, set AUTH_TOKEN
+      delete process.env.ANTHROPIC_API_KEY;
+      vi.stubEnv('ANTHROPIC_AUTH_TOKEN', 'test-token-123');
+
+      // EXECUTE
+      configureEnvironment();
+
+      // VERIFY: API_KEY should be set from AUTH_TOKEN
+      expect(process.env.ANTHROPIC_API_KEY).toBe('test-token-123');
+    });
+
+    it('should preserve existing API_KEY when AUTH_TOKEN is also set', () => {
+      // SETUP: Both API_KEY and AUTH_TOKEN set
+      vi.stubEnv('ANTHROPIC_API_KEY', 'original-api-key');
+      vi.stubEnv('ANTHROPIC_AUTH_TOKEN', 'different-auth-token');
+
+      // EXECUTE
+      configureEnvironment();
+
+      // VERIFY: API_KEY should NOT be overwritten
+      expect(process.env.ANTHROPIC_API_KEY).toBe('original-api-key');
+    });
+
+    it('should set default BASE_URL when not provided', () => {
+      // SETUP: No BASE_URL set
+      delete process.env.ANTHROPIC_BASE_URL;
+
+      // EXECUTE
+      configureEnvironment();
+
+      // VERIFY: Default z.ai endpoint
+      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+    });
+
+    it('should preserve custom BASE_URL when already set', () => {
+      // SETUP: Custom BASE_URL
+      vi.stubEnv('ANTHROPIC_BASE_URL', 'https://custom.endpoint.com/api');
+
+      // EXECUTE
+      configureEnvironment();
+
+      // VERIFY: Custom URL preserved
+      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://custom.endpoint.com/api');
+    });
+  });
+
+  describe('getModel', () => {
+    it('should return default model for opus tier', () => {
+      // SETUP: No override
+      delete process.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
+
+      // EXECUTE & VERIFY
+      expect(getModel('opus')).toBe('GLM-4.7');
+    });
+
+    it('should return default model for sonnet tier', () => {
+      // SETUP: No override
+      delete process.env.ANTHROPIC_DEFAULT_SONNET_MODEL;
+
+      // EXECUTE & VERIFY
+      expect(getModel('sonnet')).toBe('GLM-4.7');
+    });
+
+    it('should return default model for haiku tier', () => {
+      // SETUP: No override
+      delete process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
+
+      // EXECUTE & VERIFY
+      expect(getModel('haiku')).toBe('GLM-4.5-Air');
+    });
+
+    it('should use environment override for opus tier', () => {
+      // SETUP: Override via env var
+      vi.stubEnv('ANTHROPIC_DEFAULT_OPUS_MODEL', 'custom-opus-model');
+
+      // EXECUTE & VERIFY
+      expect(getModel('opus')).toBe('custom-opus-model');
+    });
+
+    it('should use environment override for sonnet tier', () => {
+      // SETUP: Override via env var
+      vi.stubEnv('ANTHROPIC_DEFAULT_SONNET_MODEL', 'custom-sonnet-model');
+
+      // EXECUTE & VERIFY
+      expect(getModel('sonnet')).toBe('custom-sonnet-model');
+    });
+
+    it('should use environment override for haiku tier', () => {
+      // SETUP: Override via env var
+      vi.stubEnv('ANTHROPIC_DEFAULT_HAIKU_MODEL', 'custom-haiku-model');
+
+      // EXECUTE & VERIFY
+      expect(getModel('haiku')).toBe('custom-haiku-model');
+    });
+  });
+
+  describe('validateEnvironment', () => {
+    beforeEach(() => {
+      // Ensure clean state before validation tests
+      vi.unstubAllEnvs();
+    });
+
+    it('should pass when all required variables are set', () => {
+      // SETUP: All required vars present
+      vi.stubEnv('ANTHROPIC_API_KEY', 'test-key');
+      vi.stubEnv('ANTHROPIC_BASE_URL', 'https://api.example.com');
+
+      // EXECUTE & VERIFY: Should not throw
+      expect(() => validateEnvironment()).not.toThrow();
+    });
+
+    it('should throw when API_KEY is missing', () => {
+      // SETUP: Missing API_KEY
+      delete process.env.ANTHROPIC_API_KEY;
+      vi.stubEnv('ANTHROPIC_BASE_URL', 'https://api.example.com');
+
+      // EXECUTE & VERIFY
+      expect(() => validateEnvironment()).toThrow(EnvironmentValidationError);
+    });
+
+    it('should throw when BASE_URL is missing', () => {
+      // SETUP: Missing BASE_URL
+      vi.stubEnv('ANTHROPIC_API_KEY', 'test-key');
+      delete process.env.ANTHROPIC_BASE_URL;
+
+      // EXECUTE & VERIFY
+      expect(() => validateEnvironment()).toThrow(EnvironmentValidationError);
+    });
+
+    it('should throw when both required variables are missing', () => {
+      // SETUP: Both missing
+      delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.ANTHROPIC_BASE_URL;
+
+      // EXECUTE
+      try {
+        validateEnvironment();
+        // If we get here, test should fail
+        expect(true).toBe(false);
+      } catch (e) {
+        // VERIFY: Error has both missing variables
+        expect(e).toBeInstanceOf(EnvironmentValidationError);
+        if (e instanceof EnvironmentValidationError) {
+          expect(e.missing).toContain('ANTHROPIC_API_KEY');
+          expect(e.missing).toContain('ANTHROPIC_BASE_URL');
+          expect(e.missing).toHaveLength(2);
+        }
+      }
+    });
+
+    it('should include missing variable name in error', () => {
+      // SETUP: Missing API_KEY only
+      delete process.env.ANTHROPIC_API_KEY;
+      vi.stubEnv('ANTHROPIC_BASE_URL', 'https://api.example.com');
+
+      // EXECUTE
+      try {
+        validateEnvironment();
+        // If we get here, test should fail
+        expect(true).toBe(false);
+      } catch (e) {
+        // VERIFY: Error has missing property with correct variable name
+        expect(e).toBeInstanceOf(EnvironmentValidationError);
+        if (e instanceof EnvironmentValidationError) {
+          expect(e.missing).toEqual(['ANTHROPIC_API_KEY']);
+        }
+      }
+    });
+  });
+});

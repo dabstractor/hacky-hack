@@ -10,7 +10,10 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "watch": "nodemon --exec tsx src/index.ts"
+    "watch": "nodemon --exec tsx src/index.ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "typescript",
@@ -25,8 +28,10 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@vitest/coverage-v8": "^1.6.1",
     "nodemon": "^3.0.2",
     "tsx": "^4.7.0",
-    "typescript": "^5.2.0"
+    "typescript": "^5.2.0",
+    "vitest": "^1.6.1"
   }
 }

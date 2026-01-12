@@ -34,3 +34,12 @@ plan//**/artifacts/
 
 # TypeScript build artifacts
 *.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Vitest
+.vitest/
+
+# Compiled test files (keep .ts source only)
+tests/**/*.{js,d.ts}
