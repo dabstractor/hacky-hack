@@ -69,7 +69,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Implement Environment Configuration",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Create the environment configuration service that maps shell variables to SDK expectations and validates runtime requirements.",
               "subtasks": [
                 {
@@ -98,7 +98,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S3",
                   "title": "Validate z.ai API compatibility",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T2.S2"

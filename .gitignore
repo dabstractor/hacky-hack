@@ -43,3 +43,6 @@ coverage/
 
 # Compiled test files (keep .ts source only)
 tests/**/*.{js,d.ts}
+
+# Shell scripts (temporary/validation tools - prefer TypeScript equivalents)
+/scripts/
