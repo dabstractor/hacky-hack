@@ -153,3 +153,101 @@ To implement this PRD, the following self-bootstrapping sequence is recommended:
 3.  **Prompts:** Port the HEREDOC prompts into a template engine (e.g., Jinja2).
 4.  **Agent Interface:** Build the wrapper to send these prompts to the LLM.
 5.  **CLI:** Build the entry point to trigger the pipeline.
+
+## 9. Technical Specification (Groundswell Implementation)
+
+This section details the implementation strategy leveraging the local [Groundswell](~/projects/groundswell) library.
+
+### 9.1 Technology Stack
+- **Runtime**: Node.js 20+ / TypeScript 5.2+
+- **Core Framework**: Groundswell (local library at `~/projects/groundswell`)
+- **LLM Provider**: z.ai (Anthropic compatible API)
+- **State Management**: Groundswell `@ObservedState` & `Workflow` persistence
+
+### 9.2 Environment Configuration
+The system must execute within the environment defined in `~/.config/zsh/functions.zsh`. The application must properly map the shell environment variables to the Groundswell/Anthropic configuration.
+
+*   **API Connection**:
+    *   Map `ANTHROPIC_AUTH_TOKEN` (from shell) to `ANTHROPIC_API_KEY` (expected by SDK).
+    *   Ensure `ANTHROPIC_BASE_URL` is set to `https://api.z.ai/api/anthropic` (or inherited from env).
+*   **Model Selection**:
+    *   Use `ANTHROPIC_DEFAULT_SONNET_MODEL` (e.g., `GLM-4.7`) as the default for complex reasoning (Architect/Researcher).
+    *   Use `ANTHROPIC_DEFAULT_HAIKU_MODEL` (e.g., `GLM-4.5-Air`) for faster/lighter tasks.
+    *   These values should be read from the environment at runtime, not hardcoded.
+
+### 9.3 System Components (Groundswell Mapping)
+
+#### 9.3.1 Pipeline Controller (`MainWorkflow`)
+The entry point will be a class extending `Workflow` that manages the high-level lifecycle.
+
+```typescript
+import { Workflow, Step, ObservedState, Task } from 'groundswell';
+
+class PRPPipeline extends Workflow {
+  @ObservedState() sessionPath: string;
+  @ObservedState() taskState: TaskRegistry;
+
+  @Step()
+  async initializeSession() {
+    // Hash PRD, check for deltas, setup plan/ directory
+  }
+
+  @Task()
+  async executePhase() {
+    // Triggers the main loop
+  }
+}
+```
+
+#### 9.3.2 Task Orchestrator
+Leverage Groundswell's hierarchical `@Task` feature.
+*   **Recursive Workflow**: Instead of a flat loop, the `TaskExecutor` can be a recursive workflow where each Phase/Milestone/Task is a sub-workflow.
+*   **Concurrency**: Use `@Task({ concurrent: true })` for "Parallel Research" where applicable (e.g., researching next tasks while current one executes).
+
+#### 9.3.3 Agent Runtime & Personas
+Agents will be instantiated using Groundswell's `createAgent` factory or by extending the `Agent` class.
+*   **Tooling**: Use `MCPHandler` to register local system tools.
+    *   `BashTool`: For executing validation scripts and git commands.
+    *   `FileTool`: For reading/writing PRPs and code.
+    *   `WebSearchTool`: For external documentation.
+
+#### 9.3.4 Prompt Engineering (From PROMPTS.md)
+The critical prompts from `PROMPTS.md` must be ported to a structured format compatible with Groundswell's `Prompt` object.
+
+*   **Templates**: Convert raw HEREDOC prompts into TypeScript template literals or external text files loaded at runtime.
+*   **Structured Output**: For the **Architect Agent**, use Zod schemas to enforce the strict JSON output format required for `tasks.json`.
+
+```typescript
+// Example Architect Prompt Definition
+const architectPrompt = createPrompt({
+  name: 'architect_breakdown',
+  user: prdContent,
+  system: TASK_BREAKDOWN_SYSTEM_PROMPT, // Ported from PROMPTS.md
+  responseFormat: z.object({
+    backlog: z.array(z.object({
+      type: z.literal('Phase'),
+      // ... full schema definition
+    }))
+  })
+});
+```
+
+### 9.4 Implementation Roadmap
+
+1.  **Project Setup**:
+    *   Initialize TypeScript project.
+    *   Link `groundswell` (`npm link ~/projects/groundswell`).
+    *   Implement `ConfigService` to normalize z.ai env vars.
+
+2.  **Core Workflows**:
+    *   Implement `SessionManager` (Filesystem operations).
+    *   Implement `ArchitectAgent` (using `PROMPTS.md` logic).
+
+3.  **Execution Engine**:
+    *   Implement `PRPGenerator` (Researcher).
+    *   Implement `CodeExecutor` (Coder).
+    *   Integrate `Groundswell`'s caching to save money/time on repeated architectural queries.
+
+4.  **Validation & QA**:
+    *   Implement `QAAgent` (Bug Hunter).
+    *   Wrap validation scripts in a `ValidationWorkflow` step.
