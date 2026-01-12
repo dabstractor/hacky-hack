@@ -22,6 +22,7 @@
 ### Common Hierarchy Models
 
 #### 1. Linear Hierarchy (Most Common)
+
 ```
 Project/Epic
   └── Phase/Sprint
@@ -32,6 +33,7 @@ Project/Epic
 ```
 
 #### 2. Agile Hierarchy (Scrum/Kanban)
+
 ```
 Project
   └── Epic
@@ -41,6 +43,7 @@ Project
 ```
 
 #### 3. Phase-Based Hierarchy (Waterfall/Hybrid)
+
 ```
 Project
   └── Phase (Planning, Execution, Delivery)
@@ -53,6 +56,7 @@ Project
 ### Data Modeling Approaches
 
 #### Adjacency List Model (Simple)
+
 ```sql
 CREATE TABLE tasks (
   id UUID PRIMARY KEY,
@@ -66,6 +70,7 @@ CREATE TABLE tasks (
 **Cons:** Recursive queries for hierarchies, harder to enforce depth
 
 #### Closure Table Model (Performance)
+
 ```sql
 CREATE TABLE tasks (
   id UUID PRIMARY KEY,
@@ -84,6 +89,7 @@ CREATE TABLE task_closure (
 **Cons:** More complex writes, extra storage
 
 #### Nested Set Model (Read-Heavy)
+
 ```sql
 CREATE TABLE tasks (
   id UUID PRIMARY KEY,
@@ -97,6 +103,7 @@ CREATE TABLE tasks (
 **Cons:** Complex writes, locking issues
 
 #### Materialized Path (Hybrid)
+
 ```typescript
 interface Task {
   id: string;
@@ -114,31 +121,34 @@ interface Task {
 ## Status Enum Patterns
 
 ### Pattern 1: Basic Kanban (4 States)
+
 ```typescript
 enum TaskStatus {
   BACKLOG = 'backlog',
   TODO = 'todo',
   IN_PROGRESS = 'in_progress',
-  DONE = 'done'
+  DONE = 'done',
 }
 ```
 
 **Used by:** Simple Kanban boards, personal task managers
 
 ### Pattern 2: GitHub-Style (5 States)
+
 ```typescript
 enum TaskStatus {
   OPEN = 'open',
   IN_PROGRESS = 'in_progress',
   IN_REVIEW = 'in_review',
   DONE = 'done',
-  CLOSED = 'closed'
+  CLOSED = 'closed',
 }
 ```
 
 **Used by:** GitHub Issues, GitLab Issues
 
 ### Pattern 3: Extended Workflow (8 States)
+
 ```typescript
 enum TaskStatus {
   BACKLOG = 'backlog',
@@ -148,13 +158,14 @@ enum TaskStatus {
   BLOCKED = 'blocked',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
-  ARCHIVED = 'archived'
+  ARCHIVED = 'archived',
 }
 ```
 
 **Used by:** Jira, Azure DevOps, complex project management tools
 
 ### Pattern 4: Full Lifecycle (10+ States)
+
 ```typescript
 enum TaskStatus {
   DRAFT = 'draft',
@@ -168,20 +179,21 @@ enum TaskStatus {
   COMPLETED = 'completed',
   DEPLOYED = 'deployed',
   CANCELLED = 'cancelled',
-  ARCHIVED = 'archived'
+  ARCHIVED = 'archived',
 }
 ```
 
 **Used by:** Enterprise systems, formal project management environments
 
 ### Pattern 5: State Machine Pattern (with transitions)
+
 ```typescript
 enum TaskStatus {
   TODO = 'todo',
   IN_PROGRESS = 'in_progress',
   IN_REVIEW = 'in_review',
   DONE = 'done',
-  BLOCKED = 'blocked'
+  BLOCKED = 'blocked',
 }
 
 interface StatusTransition {
@@ -199,13 +211,14 @@ const validTransitions: StatusTransition[] = [
   { from: TaskStatus.IN_REVIEW, to: TaskStatus.IN_PROGRESS },
   { from: TaskStatus.BLOCKED, to: TaskStatus.TODO },
   { from: TaskStatus.BLOCKED, to: TaskStatus.IN_PROGRESS },
-  { from: TaskStatus.DONE, to: TaskStatus.IN_PROGRESS } // Reopen
+  { from: TaskStatus.DONE, to: TaskStatus.IN_PROGRESS }, // Reopen
 ];
 ```
 
 **Used by:** Systems requiring workflow validation, enterprise applications
 
 ### Status Metadata Pattern
+
 ```typescript
 interface TaskStatusWithMetadata {
   status: TaskStatus;
@@ -221,7 +234,7 @@ const statusConfig: Record<TaskStatus, TaskStatusWithMetadata> = {
     category: 'active',
     color: '#E3E4E6',
     order: 1,
-    transitions: [TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED]
+    transitions: [TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED],
   },
   // ... more statuses
 };
@@ -232,6 +245,7 @@ const statusConfig: Record<TaskStatus, TaskStatusWithMetadata> = {
 ## Dependency Tracking Patterns
 
 ### Pattern 1: Simple Parent-Child (Hierarchy)
+
 ```typescript
 interface Task {
   id: string;
@@ -242,22 +256,28 @@ interface Task {
 ```
 
 ### Pattern 2: Blocking/Blocked By (Predecessor-Successor)
+
 ```typescript
 interface Task {
   id: string;
-  blockedBy: Task[];      // Tasks that must complete first
-  blocking: Task[];        // Tasks waiting on this one
+  blockedBy: Task[]; // Tasks that must complete first
+  blocking: Task[]; // Tasks waiting on this one
 }
 
 interface TaskDependency {
   predecessorId: string;
   successorId: string;
-  type: 'finish_to_start' | 'start_to_start' | 'finish_to_finish' | 'start_to_finish';
+  type:
+    | 'finish_to_start'
+    | 'start_to_start'
+    | 'finish_to_finish'
+    | 'start_to_finish';
   lag?: number; // days/minutes
 }
 ```
 
 ### Pattern 3: Related Links (General Relationships)
+
 ```typescript
 enum DependencyType {
   BLOCKED_BY = 'blocked_by',
@@ -267,7 +287,7 @@ enum DependencyType {
   IS_DUPLICATED_BY = 'is_duplicated_by',
   DEPENDS_ON = 'depends_on',
   CHILD_OF = 'child_of',
-  PARENT_OF = 'parent_of'
+  PARENT_OF = 'parent_of',
 }
 
 interface TaskLink {
@@ -281,11 +301,12 @@ interface TaskLink {
 ```
 
 ### Pattern 4: Dependency Graph (Directed Acyclic Graph)
+
 ```typescript
 interface TaskNode {
   id: string;
-  dependencies: string[];  // Array of task IDs
-  dependents: string[];    // Array of task IDs
+  dependencies: string[]; // Array of task IDs
+  dependents: string[]; // Array of task IDs
 }
 
 class DependencyGraph {
@@ -314,6 +335,7 @@ class DependencyGraph {
 ```
 
 ### Pattern 5: Database Schema for Dependencies
+
 ```sql
 -- Simple junction table
 CREATE TABLE task_dependencies (
@@ -346,6 +368,7 @@ CREATE INDEX idx_task_deps_succ ON task_dependencies(successor_id);
 ### Cycle Detection Algorithms
 
 #### Topological Sort (Kahn's Algorithm)
+
 ```typescript
 function detectCycles(graph: Map<string, string[]>): string[] | null {
   const inDegree = new Map<string, number>();
@@ -372,7 +395,7 @@ function detectCycles(graph: Map<string, string[]>): string[] | null {
     const node = queue.shift()!;
     visited.push(node);
 
-    for (const neighbor of (graph.get(node) || [])) {
+    for (const neighbor of graph.get(node) || []) {
       const newDegree = (inDegree.get(neighbor) || 0) - 1;
       inDegree.set(neighbor, newDegree);
       if (newDegree === 0) queue.push(neighbor);
@@ -389,6 +412,7 @@ function detectCycles(graph: Map<string, string[]>): string[] | null {
 ## Story Points & Estimation Patterns
 
 ### Pattern 1: Fibonacci Sequence
+
 ```typescript
 enum StoryPoints {
   ZERO = 0,
@@ -400,13 +424,14 @@ enum StoryPoints {
   THIRTEEN = 13,
   TWENTY_ONE = 21,
   THIRTY_FOUR = 34,
-  ONE_HUNDRED = 100 // Epic/unknown large tasks
+  ONE_HUNDRED = 100, // Epic/unknown large tasks
 }
 ```
 
 **Rationale:** Reflects increasing uncertainty in larger estimates
 
 ### Pattern 2: Powers of Two
+
 ```typescript
 enum StoryPoints {
   ONE = 1,
@@ -414,21 +439,22 @@ enum StoryPoints {
   FOUR = 4,
   EIGHT = 8,
   SIXTEEN = 16,
-  THIRTY_TWO = 32
+  THIRTY_TWO = 32,
 }
 ```
 
 **Rationale:** Simpler than Fibonacci, still exponential
 
 ### Pattern 3: T-Shirt Sizing
+
 ```typescript
 enum TShirtSize {
   EXTRA_SMALL = 'xs', // < 2 hours
-  SMALL = 's',        // 2-4 hours
-  MEDIUM = 'm',       // 4-8 hours
-  LARGE = 'l',        // 1-2 days
+  SMALL = 's', // 2-4 hours
+  MEDIUM = 'm', // 4-8 hours
+  LARGE = 'l', // 1-2 days
   EXTRA_LARGE = 'xl', // 2-3 days
-  DOUBLE_XL = 'xxl'   // > 3 days (break down)
+  DOUBLE_XL = 'xxl', // > 3 days (break down)
 }
 
 interface SizeMapping {
@@ -439,6 +465,7 @@ interface SizeMapping {
 ```
 
 ### Pattern 4: Time-Based Estimation
+
 ```typescript
 interface TimeEstimate {
   minutes?: number;
@@ -465,6 +492,7 @@ interface TaskEstimate {
 ```
 
 ### Pattern 5: Velocity Tracking
+
 ```typescript
 interface SprintEstimate {
   sprintId: string;
@@ -485,6 +513,7 @@ interface TeamVelocity {
 ```
 
 ### Pattern 6: Complex Estimation with Uncertainty
+
 ```typescript
 interface Estimation {
   storyPoints?: number;
@@ -506,6 +535,7 @@ function calculatePERT(est: TimeEstimate): number {
 ```
 
 ### Pattern 7: Database Schema for Estimations
+
 ```sql
 CREATE TABLE task_estimations (
   task_id UUID PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
@@ -541,6 +571,7 @@ CREATE TABLE sprint_velocities (
 ### Modern TypeScript/JavaScript Project Management Tools
 
 #### 1. Plane
+
 - **URL:** https://github.com/makeplane/plane
 - **Description:** Modern open-source project management tool with GitHub-like issues
 - **Tech Stack:** TypeScript, Next.js, Django, PostgreSQL
@@ -554,6 +585,7 @@ CREATE TABLE sprint_velocities (
   - Estimations support
 
 #### 2. Focalboard
+
 - **URL:** https://github.com/mattermost/focalboard
 - **Description:** Kanban-style project management by Mattermost
 - **Tech Stack:** TypeScript, React, Go
@@ -565,6 +597,7 @@ CREATE TABLE sprint_velocities (
   - Due dates and task relationships
 
 #### 3. AppFlowy
+
 - **URL:** https://github.com/AppFlowy-IO/AppFlowy
 - **Description:** Open-source Notion alternative
 - **Tech Stack:** Rust, Flutter, Dart
@@ -575,6 +608,7 @@ CREATE TABLE sprint_velocities (
   - Relations between database entries
 
 #### 4. Vikunja
+
 - **URL:** https://github.com/go-vikunja/vikunja
 - **Description:** Todo-app style task management
 - **Tech Stack:** Go, Vue.js
@@ -587,6 +621,7 @@ CREATE TABLE sprint_velocities (
 ### Established Project Management Systems
 
 #### 5. Taiga
+
 - **URL:** https://github.com/kaleidos-ventures/taiga
 - **Description:** Agile project management for Scrum and Kanban
 - **Tech Stack:** Python, Django, AngularJS, PostgreSQL
@@ -598,6 +633,7 @@ CREATE TABLE sprint_velocities (
   - GitHub integration
 
 #### 6. Redmine
+
 - **URL:** https://github.com/redmine/redmine
 - **Description:** Classic project management with issue tracking
 - **Tech Stack:** Ruby on Rails, MySQL/PostgreSQL
@@ -610,6 +646,7 @@ CREATE TABLE sprint_velocities (
   - Wiki, forums, documents
 
 #### 7. OpenProject
+
 - **URL:** https://github.com/opf/openproject
 - **Description:** Comprehensive project management suite
 - **Tech Stack:** Ruby on Rails, Angular, PostgreSQL
@@ -622,6 +659,7 @@ CREATE TABLE sprint_velocities (
   - Git integration
 
 #### 8. Tuleap
+
 - **URL:** https://github.com/Enalean/tuleap
 - **Description:** Enterprise-grade project management
 - **Tech Stack:** PHP, PHPSymfony, Node.js
@@ -635,6 +673,7 @@ CREATE TABLE sprint_velocities (
 ### Modern Issue Trackers
 
 #### 9. Linear
+
 - **URL:** https://github.com/linear-org/linear
 - **Description:** Modern issue tracking (SaaS, but open-source SDKs)
 - **Tech Stack:** React, TypeScript
@@ -646,6 +685,7 @@ CREATE TABLE sprint_velocities (
   - Labels and priorities
 
 #### 10. Chisel
+
 - **URL:** https://github.com/chiselstrike/chisel
 - **Description:** GitHub-like project management
 - **Tech Stack:** TypeScript
@@ -657,6 +697,7 @@ CREATE TABLE sprint_velocities (
 ### Specialized Tools
 
 #### 11. Leantime
+
 - **URL:** https://github.com/Leantime/leantime
 - **Description:** Strategic project management with idea management
 - **Tech Stack:** PHP, MySQL, Bootstrap
@@ -667,6 +708,7 @@ CREATE TABLE sprint_velocities (
   - Research boards
 
 #### 12. Pagure
+
 - **URL:** https://github.com/pagure/pagure
 - **Description:** Git-centered forge with issue tracking
 - **Tech Stack:** Python, Flask
@@ -767,7 +809,7 @@ enum TaskStatus {
   BLOCKED = 'blocked',
   DONE = 'done',
   CANCELLED = 'cancelled',
-  ARCHIVED = 'archived'
+  ARCHIVED = 'archived',
 }
 
 enum TaskPriority {
@@ -775,7 +817,7 @@ enum TaskPriority {
   HIGH = 'high',
   MEDIUM = 'medium',
   LOW = 'low',
-  NO_PRIORITY = 'none'
+  NO_PRIORITY = 'none',
 }
 
 enum PhaseStatus {
@@ -783,7 +825,7 @@ enum PhaseStatus {
   IN_PROGRESS = 'in_progress',
   ON_HOLD = 'on_hold',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 // Dependency type
@@ -797,9 +839,9 @@ interface TaskDependency {
 
 enum DependencyType {
   FINISH_TO_START = 'finish_to_start', // Predecessor must finish before successor starts
-  START_TO_START = 'start_to_start',   // Predecessor must start before successor starts
+  START_TO_START = 'start_to_start', // Predecessor must start before successor starts
   FINISH_TO_FINISH = 'finish_to_finish', // Predecessor must finish before successor finishes
-  START_TO_FINISH = 'start_to_finish'  // Predecessor must start before successor finishes
+  START_TO_FINISH = 'start_to_finish', // Predecessor must start before successor finishes
 }
 ```
 
@@ -1142,23 +1184,27 @@ Based on research findings, for the Groundswell task system:
 ## References & URLs
 
 ### Modern Tools
+
 - **Plane:** https://github.com/makeplane/plane
 - **Focalboard:** https://github.com/mattermost/focalboard
 - **AppFlowy:** https://github.com/AppFlowy-IO/AppFlowy
 - **Vikunja:** https://github.com/go-vikunja/vikunja
 
 ### Established Systems
+
 - **Taiga:** https://github.com/kaleidos-ventures/taiga
 - **Redmine:** https://github.com/redmine/redmine
 - **OpenProject:** https://github.com/opf/openproject
 - **Tuleap:** https://github.com/Enalean/tuleap
 
 ### Specialized Tools
+
 - **Leantime:** https://github.com/Leantime/leantime
 - **Pagure:** https://github.com/pagure/pagure
 - **Trac (Classic):** https://github.com/edgewall/trac
 
 ### Research Resources
+
 - **GitHub Issue Architecture:** https://github.blog/engineering/architecture/
 - **Jira REST API Docs:** https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/
 - **Project Management Patterns:** https://martinfowler.com/tags/project%20management.html

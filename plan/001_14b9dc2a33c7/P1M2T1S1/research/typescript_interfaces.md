@@ -44,6 +44,7 @@ type TaskWithMetadata = Task & { createdAt: Date; updatedAt: Date };
 **2. Use Strict Property Declaration Order**
 
 Organize interface properties in this order:
+
 1. Required primitive properties
 2. Optional primitive properties
 3. Required object/array properties
@@ -83,10 +84,7 @@ interface TaskRepository {
   dispose(): void;
 }
 
-function withTaskRepository<T>(
-  repo: TaskRepository,
-  callback: () => T
-): T {
+function withTaskRepository<T>(repo: TaskRepository, callback: () => T): T {
   try {
     return callback();
   } finally {
@@ -139,7 +137,12 @@ Discriminated unions (also called tagged unions) are the most powerful pattern f
 // Discriminator field - usually 'kind', 'type', or 'tag'
 type Task =
   | { kind: 'simple'; id: string; title: string; status: TaskStatus }
-  | { kind: 'recurring'; id: string; title: string; recurrence: RecurrencePattern }
+  | {
+      kind: 'recurring';
+      id: string;
+      title: string;
+      recurrence: RecurrencePattern;
+    }
   | { kind: 'grouped'; id: string; title: string; subtasks: readonly Task[] };
 
 // Type narrowing works automatically
@@ -174,10 +177,22 @@ interface BaseTask {
 
 // Discriminated union with base
 type Task =
-  | BaseTask & { kind: 'one-time'; dueDate: Date; completedAt?: Date }
-  | BaseTask & { kind: 'recurring'; recurrence: RecurrencePattern; nextOccurrence: Date }
-  | BaseTask & { kind: 'milestone'; targetDate: Date; dependencies: readonly string[] }
-  | BaseTask & { kind: 'parent'; children: readonly Task[]; completionThreshold: number };
+  | (BaseTask & { kind: 'one-time'; dueDate: Date; completedAt?: Date })
+  | (BaseTask & {
+      kind: 'recurring';
+      recurrence: RecurrencePattern;
+      nextOccurrence: Date;
+    })
+  | (BaseTask & {
+      kind: 'milestone';
+      targetDate: Date;
+      dependencies: readonly string[];
+    })
+  | (BaseTask & {
+      kind: 'parent';
+      children: readonly Task[];
+      completionThreshold: number;
+    });
 
 // Helper type for extracting specific task kinds
 type OneTimeTask = Extract<Task, { kind: 'one-time' }>;
@@ -373,8 +388,8 @@ type ImmutableTask = Readonly<Task>;
 interface ImmutableTask {
   readonly id: string;
   readonly title: string;
-  readonly subtasks: SubTask[];  // ⚠️ Array contents still mutable
-  readonly metadata: Metadata;    // ⚠️ Object properties still mutable
+  readonly subtasks: SubTask[]; // ⚠️ Array contents still mutable
+  readonly metadata: Metadata; // ⚠️ Object properties still mutable
 }
 ```
 
@@ -423,7 +438,7 @@ task.metadata.tags.push('tag');
 
 ```typescript
 interface TaskList {
-  readonly tasks: readonly Task[];  // Preferred syntax
+  readonly tasks: readonly Task[]; // Preferred syntax
   // or
   readonly tasks: ReadonlyArray<Task>;
 }
@@ -432,14 +447,14 @@ interface TaskList {
 function addTask(list: TaskList, task: Task): TaskList {
   return {
     ...list,
-    tasks: [...list.tasks, task],  // ✅ Creates new array
+    tasks: [...list.tasks, task], // ✅ Creates new array
   };
 }
 
 // Type narrowing for mutable arrays
 function processTasks(tasks: readonly Task[]): void {
   // ❌ Cannot mutate
-  tasks.push({});  // Error: Property 'push' does not exist on type 'readonly Task[]'
+  tasks.push({}); // Error: Property 'push' does not exist on type 'readonly Task[]'
 
   // ✅ Can read
   tasks.forEach(t => console.log(t.title));
@@ -535,7 +550,7 @@ const task = new ImmutableTaskBuilder()
 
 **1. Basic Interface Documentation**
 
-```typescript
+````typescript
 /**
  * Represents a task in the task management system.
  *
@@ -584,11 +599,11 @@ interface Task {
    */
   status: TaskStatus;
 }
-```
+````
 
 **2. Enum and Union Type Documentation**
 
-```typescript
+````typescript
 /**
  * Possible states for a task in its lifecycle.
  *
@@ -624,11 +639,11 @@ type TaskStatus =
  * ```
  */
 type TaskPriority = 1 | 2 | 3 | 4 | 5;
-```
+````
 
 **3. Generic Type Documentation**
 
-```typescript
+````typescript
 /**
  * Base interface for all repository types.
  *
@@ -694,16 +709,13 @@ interface Repository<T extends { readonly id: string }> {
    * @returns The updated entity.
    * @throws {NotFoundError} If no entity exists with the given ID.
    */
-  update<K extends keyof T>(
-    id: string,
-    updates: Pick<T, K>
-  ): Promise<T>;
+  update<K extends keyof T>(id: string, updates: Pick<T, K>): Promise<T>;
 }
-```
+````
 
 **4. Method and Parameter Documentation**
 
-```typescript
+````typescript
 interface TaskService {
   /**
    * Creates a new task with the provided configuration.
@@ -780,11 +792,11 @@ interface TaskService {
    */
   find(criteria: TaskSearchCriteria): Promise<readonly Task[]>;
 }
-```
+````
 
 **5. Type Guards and Predicate Documentation**
 
-```typescript
+````typescript
 /**
  * Checks if a task is completable based on its current state.
  *
@@ -828,11 +840,11 @@ function isTaskCompletable(task: Task): task is CompletableTask {
 function isParentTask(task: Task): task is ParentTask {
   return 'subtasks' in task && task.subtasks.length > 0;
 }
-```
+````
 
 **6. Callback and Event Documentation**
 
-```typescript
+````typescript
 /**
  * Callback function invoked when a task changes status.
  *
@@ -886,11 +898,11 @@ type StatusChangeCallback = (
  * ```
  */
 on(event: 'status-change', callback: StatusChangeCallback): () => void;
-```
+````
 
 **7. @see and @deprecated Tags**
 
-```typescript
+````typescript
 /**
  * @deprecated Use {@link TaskService.create} instead.
  * This method will be removed in version 3.0.
@@ -932,7 +944,7 @@ function createTask(config: TaskConfig): Promise<Task> {
  * ```
  */
 function getTasksByUser(userId: string): Promise<readonly Task[]>;
-```
+````
 
 ---
 
@@ -987,6 +999,7 @@ class DatabaseTaskRepository implements TaskRepository {
 ```
 
 **Rationale against "I" prefix:**
+
 - TypeScript has structural typing, not nominal typing
 - The prefix doesn't provide additional type safety
 - Makes code more verbose without adding clarity
@@ -1084,9 +1097,9 @@ enum TaskPriority {
 }
 
 // ❌ Avoid mixing conventions
-enum taskStatus {}  // Bad - interface should be PascalCase
+enum taskStatus {} // Bad - interface should be PascalCase
 enum TaskStatus {
-  pending  // Bad - inconsistent with PascalCase type
+  pending, // Bad - inconsistent with PascalCase type
 }
 ```
 
@@ -1149,10 +1162,10 @@ interface Task {
   validator: (task: Task) => ValidationResult;
 
   // ❌ Avoid these patterns
-  Id: string;  // Don't use PascalCase for properties
-  _id: string;  // Don't use underscore prefix (unless private field)
-  completed: boolean;  // Prefer 'isCompleted' for clarity
-  deps: Dependency[];  // Don't abbreviate unnecessarily
+  Id: string; // Don't use PascalCase for properties
+  _id: string; // Don't use underscore prefix (unless private field)
+  completed: boolean; // Prefer 'isCompleted' for clarity
+  deps: Dependency[]; // Don't abbreviate unnecessarily
 }
 ```
 
@@ -1228,10 +1241,10 @@ interface TaskRepo {
 
 // ❌ Don't mix patterns
 interface TaskRepo {
-  find(): readonly Task[];       // abbreviated
-  createTask(): Task;            // full word
-  updateTask(): Task;            // inconsistent with create
-  rem(): void;                   // abbreviated
+  find(): readonly Task[]; // abbreviated
+  createTask(): Task; // full word
+  updateTask(): Task; // inconsistent with create
+  rem(): void; // abbreviated
 }
 
 // ✅ Consistent naming across related types
@@ -1253,7 +1266,7 @@ interface TaskTransformer {}
 
 Here's a comprehensive example bringing together all the best practices:
 
-```typescript
+````typescript
 /**
  * Type definitions and interfaces for the Task Management System.
  * Demonstrates TypeScript best practices for hierarchical models.
@@ -1574,10 +1587,7 @@ interface TaskService {
    * @param options - Delete options.
    * @throws {NotFoundError} If task doesn't exist.
    */
-  delete(
-    id: EntityId,
-    options?: { permanent?: boolean }
-  ): Promise<void>;
+  delete(id: EntityId, options?: { permanent?: boolean }): Promise<void>;
 
   /**
    * Changes the status of a task.
@@ -1650,7 +1660,7 @@ type AnySimpleTask = ExtractByKind<Task, 'simple'>;
 type AnyRecurringTask = ExtractByKind<Task, 'recurring'>;
 type AnyMilestoneTask = ExtractByKind<Task, 'milestone'>;
 type AnyParentTask = ExtractByKind<Task, 'parent'>;
-```
+````
 
 ---
 
@@ -1761,4 +1771,4 @@ type AnyParentTask = ExtractByKind<Task, 'parent'>;
 
 ---
 
-*This research document was compiled to inform the design of hierarchical task models for the hacky-hack project, focusing on TypeScript 5.2+ features and modern best practices.*
+_This research document was compiled to inform the design of hierarchical task models for the hacky-hack project, focusing on TypeScript 5.2+ features and modern best practices._

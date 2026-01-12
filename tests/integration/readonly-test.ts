@@ -7,7 +7,7 @@ const subtask: Subtask = {
   status: 'Planned',
   story_points: 2,
   dependencies: [],
-  context_scope: 'Test'
+  context_scope: 'Test',
 };
 
 // This should cause a TypeScript error (commented out to allow test run)

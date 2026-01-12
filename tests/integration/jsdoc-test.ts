@@ -9,7 +9,9 @@ const subtask: Subtask = {
   status: 'Planned',
   story_points: 1,
   dependencies: [],
-  context_scope: 'Test'
+  context_scope: 'Test',
 };
 
-console.log('JSDoc parse test: TypeScript compiled successfully with JSDoc comments');
+console.log(
+  'JSDoc parse test: TypeScript compiled successfully with JSDoc comments'
+);

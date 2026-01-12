@@ -12,6 +12,7 @@
 **Feature Goal**: Create comprehensive TypeScript type definitions for the PRP Pipeline's four-level task hierarchy (Phase > Milestone > Task > Subtask) with proper JSDoc documentation, establishing the foundation for all subsequent task management functionality.
 
 **Deliverable**: `src/core/models.ts` with complete type definitions including:
+
 - `Status` enum (6 states: Planned, Researching, Implementing, Complete, Failed, Obsolete)
 - `ItemType` enum (4 types: Phase, Milestone, Task, Subtask)
 - `Subtask`, `Task`, `Milestone`, `Phase`, and `Backlog` interfaces
@@ -19,6 +20,7 @@
 - All exports properly typed with zero compilation errors
 
 **Success Definition**:
+
 - All 6 enum values and 5 interfaces are defined and exported
 - TypeScript compiles without errors (`tsc --noEmit`)
 - All interfaces follow the existing codebase JSDoc patterns
@@ -35,12 +37,14 @@
 **Use Case**: Before implementing task iteration, dependency resolution, or status tracking (P1.M2.T1.S3, P3.M2), the developer needs type-safe interfaces that define the shape of task data throughout the system.
 
 **User Journey**:
+
 1. Developer imports types from `src/core/models.js`
 2. Uses `Backlog` interface to validate `tasks.json` structure
 3. Uses `Status` enum for status transitions in task orchestration
 4. Uses `ItemType` enum for type narrowing when processing different hierarchy levels
 
 **Pain Points Addressed**:
+
 - **No shared type definitions**: Without interfaces, each module would define its own incompatible types
 - **Unclear hierarchy**: Lacking explicit interfaces makes the Phase > Milestone > Task > Subtask relationship implicit
 - **No documentation**: JSDoc comments provide IDE autocomplete and inline documentation
@@ -67,19 +71,25 @@ Create a TypeScript module that defines the complete type hierarchy for task man
 
 ```typescript
 // 1. Status Enum (6 values)
-type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete'
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed'
+  | 'Obsolete';
 
 // 2. ItemType Enum (4 values)
-type ItemType = 'Phase' | 'Milestone' | 'Task' | 'Subtask'
+type ItemType = 'Phase' | 'Milestone' | 'Task' | 'Subtask';
 
 // 3. Subtask Interface (leaf nodes)
 interface Subtask {
-  readonly id: string;           // Format: P1.M1.T1.S1
+  readonly id: string; // Format: P1.M1.T1.S1
   readonly type: 'Subtask';
   readonly title: string;
   readonly status: Status;
   readonly story_points: number;
-  readonly dependencies: string[];  // Array of subtask IDs
+  readonly dependencies: string[]; // Array of subtask IDs
   readonly context_scope: string;
 }
 
@@ -142,6 +152,7 @@ interface Backlog {
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: Yes - this PRP provides:
+
 - Exact file location and module structure
 - Complete interface definitions with all property names and types
 - JSDoc patterns to follow from existing codebase
@@ -292,7 +303,7 @@ readonly dependencies: Subtask[];  // WRONG - causes circular reference issues
 
 ### Data Models and Structure
 
-```typescript
+````typescript
 /**
  * Type definitions for task hierarchy models
  *
@@ -700,7 +711,7 @@ export interface Backlog {
    */
   readonly backlog: Phase[];
 }
-```
+````
 
 ### Implementation Tasks (ordered by dependencies)
 
@@ -785,7 +796,7 @@ Task 10: VERIFY module can be imported
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // CRITICAL PATTERNS - Follow these for consistency
 // ============================================================================
@@ -902,7 +913,7 @@ readonly dependencies: Subtask[];   // WRONG - causes circular reference
 // GOTCHA: Use readonly modifier consistently
 readonly id: string;   // CORRECT - prevents mutation
 id: string;            // WRONG - allows accidental mutation
-```
+````
 
 ### Integration Points
 
@@ -1309,5 +1320,6 @@ npx tsc --noEmit tests/integration/jsdoc-test.ts
 - Use `readonly` modifier consistently to prevent issues with future immutability requirements
 
 **Minor Deduction**:
+
 - The next subtask (P1.M2.T1.S2) will create Zod schemas matching these interfaces - if interface design has issues, they'll surface during Zod schema creation
 - This is acceptable as it's part of the iterative refinement process

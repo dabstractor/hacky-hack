@@ -8,7 +8,7 @@ const phase: Phase = {
   title: 'Phase 1',
   status: 'Planned',
   description: 'Test',
-  milestones: []
+  milestones: [],
 };
 
 const backlog: Backlog = { backlog: [phase] };
@@ -18,5 +18,7 @@ const status: Status = 'Complete';
 const itemType: ItemType = 'Subtask';
 
 console.log('Module imports successfully!');
-console.log('All types are accessible (TypeScript types are compile-time only)');
+console.log(
+  'All types are accessible (TypeScript types are compile-time only)'
+);
 console.log('Backlog has', backlog.backlog.length, 'phase(s)');

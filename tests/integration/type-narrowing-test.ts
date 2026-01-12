@@ -1,4 +1,10 @@
-import { Phase, Milestone, Task, Subtask, ItemType } from '../../src/core/models.js';
+import {
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  ItemType,
+} from '../../src/core/models.js';
 
 function processItem(item: Phase | Milestone | Task | Subtask): string {
   // Type narrowing using the 'type' discriminator
@@ -24,7 +30,7 @@ const phase: Phase = {
   title: 'Phase 1',
   status: 'Planned',
   description: 'Test',
-  milestones: []
+  milestones: [],
 };
 
 console.log('Type narrowing test:', processItem(phase));

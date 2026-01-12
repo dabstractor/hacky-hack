@@ -22,7 +22,7 @@ for (const phase of backlog.backlog) {
           type: subtask.type,
           title: subtask.title,
           status: subtask.status,
-          story_points: subtask.story_points
+          story_points: subtask.story_points,
         });
         break;
       }

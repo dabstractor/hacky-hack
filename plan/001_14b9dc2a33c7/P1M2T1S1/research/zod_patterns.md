@@ -22,7 +22,7 @@
 Define the Zod schema first, then infer the TypeScript type:
 
 ```typescript
-import * as z from "zod/v4";
+import * as z from 'zod/v4';
 
 // Define schema first
 const UserSchema = z.object({
@@ -30,7 +30,7 @@ const UserSchema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
   age: z.number().min(18).optional(),
-  role: z.enum(["admin", "user", "guest"]),
+  role: z.enum(['admin', 'user', 'guest']),
 });
 
 // Infer TypeScript type from schema
@@ -39,9 +39,9 @@ type User = z.infer<typeof UserSchema>;
 // Usage
 const user: User = {
   id: 1,
-  username: "johndoe",
-  email: "john@example.com",
-  role: "admin",
+  username: 'johndoe',
+  email: 'john@example.com',
+  role: 'admin',
 };
 
 const validatedUser = UserSchema.parse(user);
@@ -50,6 +50,7 @@ const validatedUser = UserSchema.parse(user);
 **Documentation:** [Zod Official Docs - Basic Usage](https://zod.dev/api)
 
 **Best Practices:**
+
 - Always use schema-first approach to ensure type safety
 - Use `.optional()` for nullable/optional fields
 - Use built-in validators like `.email()`, `.url()`, `.min()` for common patterns
@@ -83,6 +84,7 @@ const UserProfileSchema: z.ZodType<UserProfile> = z.object({
 ```
 
 **Use Cases:**
+
 - Migrating existing TypeScript codebases to Zod
 - Working with external type definitions
 - Maintaining compatibility with existing interfaces
@@ -127,7 +129,7 @@ const UserSafeSchema = BaseUserSchema.omit({
 
 ```typescript
 // Simple enum with string values
-const StatusEnum = z.enum(["pending", "active", "inactive", "suspended"]);
+const StatusEnum = z.enum(['pending', 'active', 'inactive', 'suspended']);
 
 type Status = z.infer<typeof StatusEnum>;
 // Type: "pending" | "active" | "inactive" | "suspended"
@@ -136,15 +138,15 @@ type Status = z.infer<typeof StatusEnum>;
 StatusEnum.options; // ["pending", "active", "inactive", "suspended"]
 
 // Parse and validate
-StatusEnum.parse("active"); // ✅ passes
-StatusEnum.parse("unknown"); // ❌ throws ZodError
+StatusEnum.parse('active'); // ✅ passes
+StatusEnum.parse('unknown'); // ❌ throws ZodError
 ```
 
 ### Pattern: Const Assertions for Type Safety
 
 ```typescript
 // Define values with const assertion
-const HTTP_STATUS = ["200", "201", "204", "400", "401", "404", "500"] as const;
+const HTTP_STATUS = ['200', '201', '204', '400', '401', '404', '500'] as const;
 
 // Create enum from const array
 const HttpStatusEnum = z.enum(HTTP_STATUS);
@@ -158,16 +160,16 @@ type HttpStatus = z.infer<typeof HttpStatusEnum>;
 ### Pattern: Enum Extraction and Exclusion
 
 ```typescript
-const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"] as const;
+const foods = ['Pasta', 'Pizza', 'Tacos', 'Burgers', 'Salad'] as const;
 const FoodEnum = z.enum(foods);
 
 // Extract subset of enum values
-const ItalianEnum = FoodEnum.extract(["Pasta", "Pizza"]);
+const ItalianEnum = FoodEnum.extract(['Pasta', 'Pizza']);
 type ItalianFood = z.infer<typeof ItalianEnum>;
 // Type: "Pasta" | "Pizza"
 
 // Exclude specific enum values
-const UnhealthyEnum = FoodEnum.exclude(["Salad"]);
+const UnhealthyEnum = FoodEnum.exclude(['Salad']);
 type UnhealthyFood = z.infer<typeof UnhealthyEnum>;
 // Type: "Pasta" | "Pizza" | "Tacos" | "Burgers"
 ```
@@ -175,17 +177,16 @@ type UnhealthyFood = z.infer<typeof UnhealthyEnum>;
 ### Pattern: Custom Error Messages for Enums
 
 ```typescript
-const PriorityEnum = z.enum(
-  ["low", "medium", "high", "critical"],
-  {
-    required_error: "Priority is required",
-    invalid_type_error: "Priority must be a string",
-  }
-);
+const PriorityEnum = z.enum(['low', 'medium', 'high', 'critical'], {
+  required_error: 'Priority is required',
+  invalid_type_error: 'Priority must be a string',
+});
 
 // With custom error map
-const StatusEnum = z.enum(["draft", "published", "archived"], {
-  errorMap: () => ({ message: "Invalid status. Must be: draft, published, or archived" }),
+const StatusEnum = z.enum(['draft', 'published', 'archived'], {
+  errorMap: () => ({
+    message: 'Invalid status. Must be: draft, published, or archived',
+  }),
 });
 ```
 
@@ -194,9 +195,9 @@ const StatusEnum = z.enum(["draft", "published", "archived"], {
 ```typescript
 // TypeScript native enum
 enum Color {
-  Red = "RED",
-  Green = "GREEN",
-  Blue = "BLUE",
+  Red = 'RED',
+  Green = 'GREEN',
+  Blue = 'BLUE',
 }
 
 // Zod schema for native enum
@@ -236,13 +237,13 @@ const CategorySchema: z.ZodType<Category> = z.lazy(() =>
 
 // Usage
 const testCategory: Category = {
-  name: "Technology",
+  name: 'Technology',
   subcategories: [
     {
-      name: "Programming",
+      name: 'Programming',
       subcategories: [
-        { name: "JavaScript", subcategories: [] },
-        { name: "Python", subcategories: [] },
+        { name: 'JavaScript', subcategories: [] },
+        { name: 'Python', subcategories: [] },
       ],
     },
   ],
@@ -297,7 +298,7 @@ LinkedListSchema.parse(linkedList); // ✅ validates
 ```typescript
 interface FileSystemNode {
   name: string;
-  type: "file" | "directory";
+  type: 'file' | 'directory';
   children?: FileSystemNode[];
   metadata: {
     created: Date;
@@ -309,7 +310,7 @@ interface FileSystemNode {
 const FileSystemNodeSchema: z.ZodType<FileSystemNode> = z.lazy(() =>
   z.object({
     name: z.string(),
-    type: z.enum(["file", "directory"]),
+    type: z.enum(['file', 'directory']),
     children: z.array(z.lazy(() => FileSystemNodeSchema)).optional(),
     metadata: z.object({
       created: z.date(),
@@ -372,7 +373,10 @@ const EmployeeSchema: z.ZodType<Employee> = z.lazy(() =>
 ### Pattern: Depth-Limited Recursion
 
 ```typescript
-function createCategorySchema(maxDepth: number, currentDepth = 0): z.ZodType<Category> {
+function createCategorySchema(
+  maxDepth: number,
+  currentDepth = 0
+): z.ZodType<Category> {
   if (currentDepth >= maxDepth) {
     return z.object({
       name: z.string(),
@@ -398,19 +402,19 @@ const CategorySchemaSafe = createCategorySchema(10); // Max 10 levels deep
 ```typescript
 // Define schemas with a common discriminator property
 const DogSchema = z.object({
-  type: z.literal("dog"),
+  type: z.literal('dog'),
   bark: z.boolean(),
   breed: z.string(),
 });
 
 const CatSchema = z.object({
-  type: z.literal("cat"),
+  type: z.literal('cat'),
   meow: z.boolean(),
   color: z.string(),
 });
 
 // Create discriminated union
-const PetSchema = z.discriminatedUnion("type", [DogSchema, CatSchema]);
+const PetSchema = z.discriminatedUnion('type', [DogSchema, CatSchema]);
 
 type Pet = z.infer<typeof PetSchema>;
 // Type:
@@ -418,8 +422,8 @@ type Pet = z.infer<typeof PetSchema>;
 // { type: "cat"; meow: boolean; color: string; }
 
 // Usage
-const myDog = PetSchema.parse({ type: "dog", bark: true, breed: "Labrador" });
-const myCat = PetSchema.parse({ type: "cat", meow: true, color: "orange" });
+const myDog = PetSchema.parse({ type: 'dog', bark: true, breed: 'Labrador' });
+const myCat = PetSchema.parse({ type: 'cat', meow: true, color: 'orange' });
 ```
 
 ### Pattern: API Response Discrimination
@@ -427,7 +431,7 @@ const myCat = PetSchema.parse({ type: "cat", meow: true, color: "orange" });
 ```typescript
 // Success response
 const SuccessResponse = z.object({
-  status: z.literal("success"),
+  status: z.literal('success'),
   data: z.object({
     id: z.string(),
     name: z.string(),
@@ -436,7 +440,7 @@ const SuccessResponse = z.object({
 
 // Error response
 const ErrorResponse = z.object({
-  status: z.literal("error"),
+  status: z.literal('error'),
   error: z.object({
     code: z.string(),
     message: z.string(),
@@ -444,13 +448,16 @@ const ErrorResponse = z.object({
 });
 
 // API response union
-const ApiResponse = z.discriminatedUnion("status", [SuccessResponse, ErrorResponse]);
+const ApiResponse = z.discriminatedUnion('status', [
+  SuccessResponse,
+  ErrorResponse,
+]);
 
 type ApiResponse = z.infer<typeof ApiResponse>;
 
 // Type narrowing in practice
 function handleResponse(response: ApiResponse) {
-  if (response.status === "success") {
+  if (response.status === 'success') {
     // TypeScript knows response.data exists
     console.log(response.data.name);
   } else {
@@ -465,13 +472,13 @@ function handleResponse(response: ApiResponse) {
 ### Pattern: Multiple Discriminator Types
 
 ```typescript
-const schema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("1"), val: z.literal(1) }),
+const schema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('1'), val: z.literal(1) }),
   z.object({ type: z.literal(1), val: z.literal(2) }),
   z.object({ type: z.literal(BigInt(1)), val: z.literal(3) }),
-  z.object({ type: z.literal("true"), val: z.literal(4) }),
+  z.object({ type: z.literal('true'), val: z.literal(4) }),
   z.object({ type: z.literal(true), val: z.literal(5) }),
-  z.object({ type: z.literal("null"), val: z.literal(6) }),
+  z.object({ type: z.literal('null'), val: z.literal(6) }),
   z.object({ type: z.literal(null), val: z.literal(7) }),
 ]);
 ```
@@ -480,17 +487,17 @@ const schema = z.discriminatedUnion("type", [
 
 ```typescript
 const TextContent = z.object({
-  kind: z.literal("text"),
+  kind: z.literal('text'),
   text: z.string(),
 });
 
 const ImageContent = z.object({
-  kind: z.literal("image"),
+  kind: z.literal('image'),
   url: z.string(),
   alt: z.string(),
 });
 
-const ContentBlock = z.discriminatedUnion("kind", [TextContent, ImageContent]);
+const ContentBlock = z.discriminatedUnion('kind', [TextContent, ImageContent]);
 
 const Message = z.object({
   id: z.string(),
@@ -504,33 +511,33 @@ const Message = z.object({
 ```typescript
 // User events
 const UserLoggedIn = z.object({
-  event: z.literal("USER_LOGGED_IN"),
+  event: z.literal('USER_LOGGED_IN'),
   userId: z.string(),
   timestamp: z.date(),
 });
 
 const UserLoggedOut = z.object({
-  event: z.literal("USER_LOGGED_OUT"),
+  event: z.literal('USER_LOGGED_OUT'),
   userId: z.string(),
   timestamp: z.date(),
 });
 
 // System events
 const SystemError = z.object({
-  event: z.literal("SYSTEM_ERROR"),
+  event: z.literal('SYSTEM_ERROR'),
   code: z.string(),
   message: z.string(),
   timestamp: z.date(),
 });
 
 const SystemMaintenance = z.object({
-  event: z.literal("SYSTEM_MAINTENANCE"),
+  event: z.literal('SYSTEM_MAINTENANCE'),
   startTime: z.date(),
   endTime: z.date(),
 });
 
 // Event union
-const AppEvent = z.discriminatedUnion("event", [
+const AppEvent = z.discriminatedUnion('event', [
   UserLoggedIn,
   UserLoggedOut,
   SystemError,
@@ -542,16 +549,16 @@ type AppEvent = z.infer<typeof AppEvent>;
 // Event handler with type narrowing
 function handleEvent(event: AppEvent) {
   switch (event.event) {
-    case "USER_LOGGED_IN":
+    case 'USER_LOGGED_IN':
       console.log(`User ${event.userId} logged in at ${event.timestamp}`);
       break;
-    case "USER_LOGGED_OUT":
+    case 'USER_LOGGED_OUT':
       console.log(`User ${event.userId} logged out at ${event.timestamp}`);
       break;
-    case "SYSTEM_ERROR":
+    case 'SYSTEM_ERROR':
       console.error(`Error ${event.code}: ${event.message}`);
       break;
-    case "SYSTEM_MAINTENANCE":
+    case 'SYSTEM_MAINTENANCE':
       console.log(`Maintenance from ${event.startTime} to ${event.endTime}`);
       break;
   }
@@ -568,20 +575,20 @@ const basePersonSchema = z.object({
 });
 
 const Employee = basePersonSchema.extend({
-  type: z.literal("employee"),
+  type: z.literal('employee'),
   employeeId: z.string(),
   department: z.string(),
   salary: z.number(),
 });
 
 const Contractor = basePersonSchema.extend({
-  type: z.literal("contractor"),
+  type: z.literal('contractor'),
   contractorId: z.string(),
   company: z.string(),
   hourlyRate: z.number(),
 });
 
-const Person = z.discriminatedUnion("type", [Employee, Contractor]);
+const Person = z.discriminatedUnion('type', [Employee, Contractor]);
 ```
 
 ### Best Practices for Discriminated Unions
@@ -612,15 +619,15 @@ type User = z.infer<typeof UserSchema>;
 // Use the type in your code
 const user: User = {
   id: 1,
-  username: "johndoe",
-  email: "john@example.com",
+  username: 'johndoe',
+  email: 'john@example.com',
 };
 ```
 
 ### Input vs Output Types (Transform Schemas)
 
 ```typescript
-const StringToNumberSchema = z.string().transform((val) => val.length);
+const StringToNumberSchema = z.string().transform(val => val.length);
 
 // Input type (what goes in)
 type Input = z.input<typeof StringToNumberSchema>;
@@ -631,10 +638,10 @@ type Output = z.output<typeof StringToNumberSchema>;
 // Type: number (also equivalent to z.infer<>)
 
 // Example with complex transform
-const DateSchema = z.string().transform((str) => new Date(str));
+const DateSchema = z.string().transform(str => new Date(str));
 
-type DateInput = z.input<typeof DateSchema>;      // string
-type DateOutput = z.output<typeof DateSchema>;    // Date
+type DateInput = z.input<typeof DateSchema>; // string
+type DateOutput = z.output<typeof DateSchema>; // Date
 ```
 
 ### Pattern: Array Element Type Inference
@@ -653,9 +660,9 @@ type ItemArray = z.infer<typeof ItemSchema>[];
 ### Pattern: Union Type Inference
 
 ```typescript
-const StatusSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("success"), data: z.string() }),
-  z.object({ type: z.literal("error"), error: z.string() }),
+const StatusSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('success'), data: z.string() }),
+  z.object({ type: z.literal('error'), error: z.string() }),
 ]);
 
 type Status = z.infer<typeof StatusSchema>;
@@ -669,9 +676,9 @@ type Status = z.infer<typeof StatusSchema>;
 ```typescript
 const UserSchema = z.object({
   name: z.string(),
-  age: z.number().optional(),      // T | undefined
-  phone: z.string().nullable(),    // T | null
-  address: z.string().nullish(),   // T | null | undefined
+  age: z.number().optional(), // T | undefined
+  phone: z.string().nullable(), // T | null
+  address: z.string().nullish(), // T | null | undefined
 });
 
 type User = z.infer<typeof UserSchema>;
@@ -686,7 +693,10 @@ type User = z.infer<typeof UserSchema>;
 ### Pattern: Record Type Inference
 
 ```typescript
-const MetadataSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]));
+const MetadataSchema = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean()])
+);
 
 type Metadata = z.infer<typeof MetadataSchema>;
 // Type: Record<string, string | number | boolean>
@@ -725,7 +735,7 @@ const UserSchema = z.object({
 type User = z.infer<typeof UserSchema>;
 
 // Extract specific keys
-type UserName = User["name"];  // string
+type UserName = User['name']; // string
 
 // Make partial
 type PartialUser = Partial<User>;
@@ -734,10 +744,10 @@ type PartialUser = Partial<User>;
 type RequiredUser = Required<User>;
 
 // Pick specific fields
-type UserPublic = Pick<User, "name" | "email">;
+type UserPublic = Pick<User, 'name' | 'email'>;
 
 // Omit specific fields
-type UserSafe = Omit<User, "id" | "createdAt">;
+type UserSafe = Omit<User, 'id' | 'createdAt'>;
 ```
 
 ### Best Practices for Type Inference
@@ -762,14 +772,14 @@ const UserSchema = z.object({
 
 try {
   const user = UserSchema.parse({
-    username: "jo",  // Too short
-    email: "invalid-email",
+    username: 'jo', // Too short
+    email: 'invalid-email',
   });
 } catch (error) {
   if (error instanceof z.ZodError) {
-    console.log("Validation failed:");
-    error.issues.forEach((issue) => {
-      console.log(`- ${issue.path.join(".")}: ${issue.message}`);
+    console.log('Validation failed:');
+    error.issues.forEach(issue => {
+      console.log(`- ${issue.path.join('.')}: ${issue.message}`);
     });
   }
 }
@@ -786,8 +796,8 @@ try {
 
 ```typescript
 const result = UserSchema.safeParse({
-  username: "jo",
-  email: "invalid",
+  username: 'jo',
+  email: 'invalid',
 });
 
 if (!result.success) {
@@ -820,30 +830,35 @@ if (!result.success) {
 
 ```typescript
 // Inline custom error message
-const PasswordSchema = z.string().min(8, "Password must be at least 8 characters");
+const PasswordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters');
 
 // Custom error with errorMap
 const UsernameSchema = z.string().min(3).max(20, {
-  message: "Username must be between 3 and 20 characters",
+  message: 'Username must be between 3 and 20 characters',
 });
 
 // Custom error with errorMap function
 const EmailSchema = z.string().email({
-  errorMap: () => ({ message: "Please provide a valid email address" }),
+  errorMap: () => ({ message: 'Please provide a valid email address' }),
 });
 
 // Object-level custom errors
-const UserSchema = z.object({
-  username: z.string().min(3, "Username too short"),
-  email: z.string().email("Invalid email format"),
-}, {
-  errorMap: (issue, ctx) => {
-    if (issue.code === z.ZodIssueCode.invalid_type) {
-      return { message: "Expected an object with username and email" };
-    }
-    return { message: ctx.defaultError };
+const UserSchema = z.object(
+  {
+    username: z.string().min(3, 'Username too short'),
+    email: z.string().email('Invalid email format'),
   },
-});
+  {
+    errorMap: (issue, ctx) => {
+      if (issue.code === z.ZodIssueCode.invalid_type) {
+        return { message: 'Expected an object with username and email' };
+      }
+      return { message: ctx.defaultError };
+    },
+  }
+);
 ```
 
 **Source:** [Zod Error Tests](file:///home/dustin/projects/hacky-hack/node_modules/zod/src/v3/tests/error.test.ts)
@@ -851,35 +866,31 @@ const UserSchema = z.object({
 ### Pattern: Refinement with Custom Errors
 
 ```typescript
-const AgeSchema = z.number()
-  .min(18, "Must be at least 18 years old")
-  .max(120, "Must be less than 120 years old")
-  .refine(
-    (age) => age % 1 === 0,
-    "Age must be a whole number"
-  );
+const AgeSchema = z
+  .number()
+  .min(18, 'Must be at least 18 years old')
+  .max(120, 'Must be less than 120 years old')
+  .refine(age => age % 1 === 0, 'Age must be a whole number');
 
 // With refinement params
-const PasswordSchema = z.string()
+const PasswordSchema = z
+  .string()
   .min(8)
-  .refine(
-    (password) => /[A-Z]/.test(password),
-    {
-      message: "Password must contain at least one uppercase letter",
-      params: { code: "UPPERCASE_REQUIRED" },
-    }
-  );
+  .refine(password => /[A-Z]/.test(password), {
+    message: 'Password must contain at least one uppercase letter',
+    params: { code: 'UPPERCASE_REQUIRED' },
+  });
 ```
 
 ### Pattern: Advanced Error Formatting
 
 ```typescript
 function formatZodError(error: z.ZodError): string {
-  const formatted = error.issues.map((issue) => {
-    const path = issue.path.length > 0 ? issue.path.join(".") : "root";
+  const formatted = error.issues.map(issue => {
+    const path = issue.path.length > 0 ? issue.path.join('.') : 'root';
     return `${path}: ${issue.message}`;
   });
-  return formatted.join("\n");
+  return formatted.join('\n');
 }
 
 // Usage
@@ -904,8 +915,8 @@ interface ApiError {
 function formatApiError(error: z.ZodError): ApiError {
   return {
     success: false,
-    errors: error.issues.map((issue) => ({
-      field: issue.path.join(".") || "unknown",
+    errors: error.issues.map(issue => ({
+      field: issue.path.join('.') || 'unknown',
       message: issue.message,
       code: issue.code,
     })),
@@ -928,21 +939,19 @@ function validateBody(schema: z.ZodType) {
 ### Pattern: Async Validation
 
 ```typescript
-const UniqueUsernameSchema = z.string()
+const UniqueUsernameSchema = z
+  .string()
   .min(3)
-  .refine(
-    async (username) => {
-      // Check database for existing username
-      const existing = await db.user.findUnique({
-        where: { username },
-      });
-      return !existing;
-    },
-    "Username already taken"
-  );
+  .refine(async username => {
+    // Check database for existing username
+    const existing = await db.user.findUnique({
+      where: { username },
+    });
+    return !existing;
+  }, 'Username already taken');
 
 // Parse async
-const result = await UniqueUsernameSchema.safeParseAsync("john");
+const result = await UniqueUsernameSchema.safeParseAsync('john');
 
 if (!result.success) {
   console.log(result.error.issues[0].message);
@@ -961,10 +970,10 @@ const UserSchema = z.object({
 });
 
 const result = UserSchema.safeParse({
-  username: "jo",
-  email: "not-an-email",
+  username: 'jo',
+  email: 'not-an-email',
   age: 15,
-  password: "short",
+  password: 'short',
 });
 
 if (!result.success) {
@@ -972,8 +981,8 @@ if (!result.success) {
   console.log(`Found ${result.error.issues.length} validation errors`);
   // Found 4 validation errors
 
-  result.error.issues.forEach((issue) => {
-    console.log(`- ${issue.path.join(".")}: ${issue.message}`);
+  result.error.issues.forEach(issue => {
+    console.log(`- ${issue.path.join('.')}: ${issue.message}`);
   });
 }
 ```
@@ -983,13 +992,10 @@ if (!result.success) {
 ```typescript
 const Schema = z.object({
   // If this fails, stop validating other fields
-  apiToken: z.string().refine(
-    (token) => token.startsWith("sk-"),
-    {
-      fatal: true,
-      message: "Invalid API token format",
-    }
-  ),
+  apiToken: z.string().refine(token => token.startsWith('sk-'), {
+    fatal: true,
+    message: 'Invalid API token format',
+  }),
   // These won't be validated if apiToken fails
   username: z.string().min(3),
   email: z.string().email(),
@@ -1001,7 +1007,7 @@ const Schema = z.object({
 ```typescript
 const ConfigSchema = z.object({
   port: z.number().default(3000),
-  host: z.string().default("localhost"),
+  host: z.string().default('localhost'),
   debug: z.boolean().default(false),
 });
 
@@ -1018,11 +1024,11 @@ if (result.success) {
 ```typescript
 const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
   if (issue.code === z.ZodIssueCode.invalid_type) {
-    if (issue.expected === "string") {
-      return { message: "This field must be a text string" };
+    if (issue.expected === 'string') {
+      return { message: 'This field must be a text string' };
     }
-    if (issue.expected === "number") {
-      return { message: "This field must be a number" };
+    if (issue.expected === 'number') {
+      return { message: 'This field must be a number' };
     }
   }
   if (issue.code === z.ZodIssueCode.too_small) {
@@ -1032,7 +1038,7 @@ const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
 };
 
 const Schema = z.string().min(5);
-const result = Schema.safeParse("abc", { errorMap: customErrorMap });
+const result = Schema.safeParse('abc', { errorMap: customErrorMap });
 
 if (!result.success) {
   console.log(result.error.issues[0].message);

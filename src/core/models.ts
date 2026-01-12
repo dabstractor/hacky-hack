@@ -27,6 +27,8 @@
  * ```
  */
 
+import { z } from 'zod';
+
 /**
  * Lifecycle status of a work item in the PRP Pipeline
  *
@@ -59,6 +61,30 @@ export type Status =
   | 'Obsolete';
 
 /**
+ * Zod schema for Status enum validation
+ *
+ * @remarks
+ * Validates that a value is one of the valid Status values.
+ * Use this for runtime validation of status fields.
+ *
+ * @example
+ * ```typescript
+ * import { StatusEnum } from './core/models.js';
+ *
+ * const result = StatusEnum.safeParse('Planned');
+ * // result.success === true
+ * ```
+ */
+export const StatusEnum = z.enum([
+  'Planned',
+  'Researching',
+  'Implementing',
+  'Complete',
+  'Failed',
+  'Obsolete',
+]);
+
+/**
  * Type discriminator for the four levels of task hierarchy
  *
  * @remarks
@@ -74,6 +100,23 @@ export type Status =
  * ```
  */
 export type ItemType = 'Phase' | 'Milestone' | 'Task' | 'Subtask';
+
+/**
+ * Zod schema for ItemType enum validation
+ *
+ * @remarks
+ * Validates that a value is one of the valid ItemType values.
+ * Use this for runtime validation of type fields.
+ *
+ * @example
+ * ```typescript
+ * import { ItemTypeEnum } from './core/models.js';
+ *
+ * const result = ItemTypeEnum.safeParse('Subtask');
+ * // result.success === true
+ * ```
+ */
+export const ItemTypeEnum = z.enum(['Phase', 'Milestone', 'Task', 'Subtask']);
 
 /**
  * Leaf node in the task hierarchy - the smallest unit of work
@@ -168,6 +211,48 @@ export interface Subtask {
 }
 
 /**
+ * Zod schema for Subtask validation
+ *
+ * @remarks
+ * Validates Subtask objects with all field constraints including story points
+ * range (Fibonacci: 1-21) and ID format validation.
+ *
+ * @example
+ * ```typescript
+ * import { SubtaskSchema } from './core/models.js';
+ *
+ * const result = SubtaskSchema.safeParse({
+ *   id: 'P1.M1.T1.S1',
+ *   type: 'Subtask',
+ *   title: 'Create Zod schemas',
+ *   status: 'Planned',
+ *   story_points: 2,
+ *   dependencies: [],
+ *   context_scope: 'src/core/models.ts only'
+ * });
+ * // result.success === true
+ * ```
+ */
+export const SubtaskSchema: z.ZodType<Subtask> = z.object({
+  id: z
+    .string()
+    .regex(
+      /^P\d+\.M\d+\.T\d+\.S\d+$/,
+      'Invalid subtask ID format (expected P{N}.M{N}.T{N}.S{N})'
+    ),
+  type: z.literal('Subtask'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  status: StatusEnum,
+  story_points: z
+    .number({ invalid_type_error: 'Story points must be a number' })
+    .int('Story points must be an integer')
+    .min(1, 'Story points must be at least 1')
+    .max(21, 'Story points cannot exceed 21'),
+  dependencies: z.array(z.string()).min(0),
+  context_scope: z.string().min(1, 'Context scope is required'),
+});
+
+/**
  * Container for related subtasks forming a coherent unit of work
  *
  * @remarks
@@ -237,6 +322,42 @@ export interface Task {
 }
 
 /**
+ * Zod schema for Task validation
+ *
+ * @remarks
+ * Validates Task objects with recursive Subtask array validation.
+ * Note that Tasks contain Subtasks, not other Tasks.
+ *
+ * @example
+ * ```typescript
+ * import { TaskSchema } from './core/models.js';
+ *
+ * const result = TaskSchema.safeParse({
+ *   id: 'P1.M1.T1',
+ *   type: 'Task',
+ *   title: 'Define Task Models',
+ *   status: 'Planned',
+ *   description: 'Create TypeScript interfaces',
+ *   subtasks: []
+ * });
+ * // result.success === true
+ * ```
+ */
+export const TaskSchema: z.ZodType<Task> = z.object({
+  id: z
+    .string()
+    .regex(
+      /^P\d+\.M\d+\.T\d+$/,
+      'Invalid task ID format (expected P{N}.M{N}.T{N})'
+    ),
+  type: z.literal('Task'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  status: StatusEnum,
+  description: z.string().min(1, 'Description is required'),
+  subtasks: z.array(SubtaskSchema),
+});
+
+/**
  * Significant checkpoint or deliverable within a phase
  *
  * @remarks
@@ -293,6 +414,44 @@ export interface Milestone {
    */
   readonly tasks: Task[];
 }
+
+/**
+ * Zod schema for Milestone validation
+ *
+ * @remarks
+ * Validates Milestone objects with recursive Task array validation.
+ * Uses z.lazy() to handle the recursive reference to TaskSchema.
+ *
+ * @example
+ * ```typescript
+ * import { MilestoneSchema } from './core/models.js';
+ *
+ * const result = MilestoneSchema.safeParse({
+ *   id: 'P1.M1',
+ *   type: 'Milestone',
+ *   title: 'Project Initialization',
+ *   status: 'Complete',
+ *   description: 'Foundation setup and environment configuration',
+ *   tasks: []
+ * });
+ * // result.success === true
+ * ```
+ */
+export const MilestoneSchema: z.ZodType<Milestone> = z.lazy(() =>
+  z.object({
+    id: z
+      .string()
+      .regex(
+        /^P\d+\.M\d+$/,
+        'Invalid milestone ID format (expected P{N}.M{N})'
+      ),
+    type: z.literal('Milestone'),
+    title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+    status: StatusEnum,
+    description: z.string().min(1, 'Description is required'),
+    tasks: z.array(z.lazy(() => TaskSchema)),
+  })
+);
 
 /**
  * Top-level container representing a major development phase
@@ -354,6 +513,39 @@ export interface Phase {
 }
 
 /**
+ * Zod schema for Phase validation
+ *
+ * @remarks
+ * Validates Phase objects with recursive Milestone array validation.
+ * Uses z.lazy() to handle the recursive reference to MilestoneSchema.
+ *
+ * @example
+ * ```typescript
+ * import { PhaseSchema } from './core/models.js';
+ *
+ * const result = PhaseSchema.safeParse({
+ *   id: 'P1',
+ *   type: 'Phase',
+ *   title: 'Phase 1: Foundation',
+ *   status: 'Planned',
+ *   description: 'Project initialization',
+ *   milestones: []
+ * });
+ * // result.success === true
+ * ```
+ */
+export const PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
+  z.object({
+    id: z.string().regex(/^P\d+$/, 'Invalid phase ID format (expected P{N})'),
+    type: z.literal('Phase'),
+    title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+    status: StatusEnum,
+    description: z.string().min(1, 'Description is required'),
+    milestones: z.array(z.lazy(() => MilestoneSchema)),
+  })
+);
+
+/**
  * Root container for the entire task backlog
  *
  * @remarks
@@ -405,3 +597,33 @@ export interface Backlog {
    */
   readonly backlog: Phase[];
 }
+
+/**
+ * Zod schema for Backlog validation
+ *
+ * @remarks
+ * Validates Backlog objects containing an array of Phase objects.
+ * This is the root schema for the entire task hierarchy.
+ *
+ * @example
+ * ```typescript
+ * import { BacklogSchema } from './core/models.js';
+ *
+ * const result = BacklogSchema.safeParse({
+ *   backlog: [
+ *     {
+ *       id: 'P1',
+ *       type: 'Phase',
+ *       title: 'Phase 1: Foundation',
+ *       status: 'Planned',
+ *       description: 'Project setup',
+ *       milestones: []
+ *     }
+ *   ]
+ * });
+ * // result.success === true
+ * ```
+ */
+export const BacklogSchema: z.ZodType<Backlog> = z.object({
+  backlog: z.array(PhaseSchema),
+});

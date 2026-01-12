@@ -5,7 +5,7 @@ import {
   Task,
   Subtask,
   Status,
-  ItemType
+  ItemType,
 } from '../../src/core/models.js';
 
 // Verify Status type works
@@ -28,7 +28,7 @@ const subtask: Subtask = {
   status: 'Planned',
   story_points: 2,
   dependencies: ['P1.M1.T1.S0'],
-  context_scope: 'Test scope'
+  context_scope: 'Test scope',
 };
 
 // Verify Task interface
@@ -38,7 +38,7 @@ const task: Task = {
   title: 'Test Task',
   status: 'Planned',
   description: 'Test description',
-  subtasks: [subtask]
+  subtasks: [subtask],
 };
 
 // Verify Milestone interface
@@ -48,7 +48,7 @@ const milestone: Milestone = {
   title: 'Test Milestone',
   status: 'Planned',
   description: 'Test description',
-  tasks: [task]
+  tasks: [task],
 };
 
 // Verify Phase interface
@@ -58,12 +58,12 @@ const phase: Phase = {
   title: 'Test Phase',
   status: 'Planned',
   description: 'Test description',
-  milestones: [milestone]
+  milestones: [milestone],
 };
 
 // Verify Backlog interface
 const backlog: Backlog = {
-  backlog: [phase]
+  backlog: [phase],
 };
 
 console.log('All type validations passed!');

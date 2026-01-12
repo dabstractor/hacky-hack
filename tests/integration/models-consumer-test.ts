@@ -6,11 +6,11 @@ const phase: Phase = {
   title: 'Phase 1',
   status: 'Planned',
   description: 'Test phase',
-  milestones: []
+  milestones: [],
 };
 
 const backlog: Backlog = {
-  backlog: [phase]
+  backlog: [phase],
 };
 
 console.log('Consumer test passed!');
