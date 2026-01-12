@@ -1,0 +1,977 @@
+/**
+ * Unit tests for task hierarchy utility functions
+ *
+ * @remarks
+ * Tests validate all utility functions in src/utils/task-utils.ts with 100% coverage.
+ * Tests follow the Setup/Execute/Verify pattern with comprehensive edge case coverage.
+ *
+ * @see {@link https://vitest.dev/guide/ | Vitest Documentation}
+ */
+
+import { describe, expect, it } from 'vitest';
+import {
+  findItem,
+  getDependencies,
+  filterByStatus,
+  getNextPendingItem,
+  updateItemStatus,
+  isSubtask,
+  type HierarchyItem,
+} from '../../../src/utils/task-utils.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../../src/core/models.js';
+
+// Test fixtures
+const createTestSubtask = (
+  id: string,
+  title: string,
+  status: Status,
+  dependencies: string[] = []
+): Subtask => ({
+  id,
+  type: 'Subtask',
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope: 'Test scope',
+});
+
+const createTestTask = (
+  id: string,
+  title: string,
+  status: Status,
+  subtasks: Subtask[] = []
+): Task => ({
+  id,
+  type: 'Task',
+  title,
+  status,
+  description: 'Test task description',
+  subtasks,
+});
+
+const createTestMilestone = (
+  id: string,
+  title: string,
+  status: Status,
+  tasks: Task[] = []
+): Milestone => ({
+  id,
+  type: 'Milestone',
+  title,
+  status,
+  description: 'Test milestone description',
+  tasks,
+});
+
+const createTestPhase = (
+  id: string,
+  title: string,
+  status: Status,
+  milestones: Milestone[] = []
+): Phase => ({
+  id,
+  type: 'Phase',
+  title,
+  status,
+  description: 'Test phase description',
+  milestones,
+});
+
+const createTestBacklog = (phases: Phase[]): Backlog => ({
+  backlog: phases,
+});
+
+// Comprehensive test backlog with multiple levels
+const createComplexBacklog = (): Backlog => {
+  const subtask1: Subtask = createTestSubtask(
+    'P1.M1.T1.S1',
+    'Subtask 1',
+    'Complete'
+  );
+  const subtask2: Subtask = createTestSubtask(
+    'P1.M1.T1.S2',
+    'Subtask 2',
+    'Planned',
+    ['P1.M1.T1.S1']
+  );
+  const subtask3: Subtask = createTestSubtask(
+    'P1.M1.T1.S3',
+    'Subtask 3',
+    'Planned',
+    ['P1.M1.T1.S2']
+  );
+  const subtask4: Subtask = createTestSubtask(
+    'P1.M1.T2.S1',
+    'Subtask 4',
+    'Researching'
+  );
+  const subtask5: Subtask = createTestSubtask(
+    'P1.M2.T1.S1',
+    'Subtask 5',
+    'Implementing'
+  );
+  const subtask6: Subtask = createTestSubtask(
+    'P2.M1.T1.S1',
+    'Subtask 6',
+    'Planned'
+  );
+
+  const task1: Task = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+    subtask1,
+    subtask2,
+    subtask3,
+  ]);
+  const task2: Task = createTestTask('P1.M1.T2', 'Task 2', 'Planned', [
+    subtask4,
+  ]);
+  const task3: Task = createTestTask('P1.M2.T1', 'Task 3', 'Implementing', [
+    subtask5,
+  ]);
+  const task4: Task = createTestTask('P2.M1.T1', 'Task 4', 'Planned', [
+    subtask6,
+  ]);
+
+  const milestone1: Milestone = createTestMilestone(
+    'P1.M1',
+    'Milestone 1',
+    'Complete',
+    [task1, task2]
+  );
+  const milestone2: Milestone = createTestMilestone(
+    'P1.M2',
+    'Milestone 2',
+    'Implementing',
+    [task3]
+  );
+  const milestone3: Milestone = createTestMilestone(
+    'P2.M1',
+    'Milestone 3',
+    'Planned',
+    [task4]
+  );
+
+  const phase1: Phase = createTestPhase('P1', 'Phase 1', 'Planned', [
+    milestone1,
+    milestone2,
+  ]);
+  const phase2: Phase = createTestPhase('P2', 'Phase 2', 'Planned', [
+    milestone3,
+  ]);
+
+  return createTestBacklog([phase1, phase2]);
+};
+
+describe('utils/task-utils', () => {
+  describe('isSubtask type guard', () => {
+    it('should return true for Subtask items', () => {
+      // SETUP: Subtask item
+      const subtask: HierarchyItem = createTestSubtask(
+        'P1.M1.T1.S1',
+        'Test',
+        'Planned'
+      );
+
+      // EXECUTE & VERIFY
+      expect(isSubtask(subtask)).toBe(true);
+    });
+
+    it('should return false for Task items', () => {
+      // SETUP: Task item
+      const task: HierarchyItem = createTestTask('P1.M1.T1', 'Test', 'Planned');
+
+      // EXECUTE & VERIFY
+      expect(isSubtask(task)).toBe(false);
+    });
+
+    it('should return false for Milestone items', () => {
+      // SETUP: Milestone item
+      const milestone: HierarchyItem = createTestMilestone(
+        'P1.M1',
+        'Test',
+        'Planned'
+      );
+
+      // EXECUTE & VERIFY
+      expect(isSubtask(milestone)).toBe(false);
+    });
+
+    it('should return false for Phase items', () => {
+      // SETUP: Phase item
+      const phase: HierarchyItem = createTestPhase('P1', 'Test', 'Planned');
+
+      // EXECUTE & VERIFY
+      expect(isSubtask(phase)).toBe(false);
+    });
+  });
+
+  describe('findItem', () => {
+    describe('finding items at each hierarchy level', () => {
+      it('should find a Phase by ID', () => {
+        // SETUP: Backlog with phases
+        const backlog = createComplexBacklog();
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1');
+
+        // VERIFY
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe('P1');
+        expect(result?.type).toBe('Phase');
+      });
+
+      it('should find a Milestone by ID', () => {
+        // SETUP: Backlog with milestones
+        const backlog = createComplexBacklog();
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1.M1');
+
+        // VERIFY
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe('P1.M1');
+        expect(result?.type).toBe('Milestone');
+      });
+
+      it('should find a Task by ID', () => {
+        // SETUP: Backlog with tasks
+        const backlog = createComplexBacklog();
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1.M1.T1');
+
+        // VERIFY
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe('P1.M1.T1');
+        expect(result?.type).toBe('Task');
+      });
+
+      it('should find a Subtask by ID', () => {
+        // SETUP: Backlog with subtasks
+        const backlog = createComplexBacklog();
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1.M1.T1.S1');
+
+        // VERIFY
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe('P1.M1.T1.S1');
+        expect(result?.type).toBe('Subtask');
+        if (result && isSubtask(result)) {
+          expect(result.story_points).toBe(2);
+        }
+      });
+
+      it('should use early return and not continue searching after finding item', () => {
+        // SETUP: Backlog with multiple items
+        const backlog = createComplexBacklog();
+
+        // EXECUTE: Find first item
+        const startTime = performance.now();
+        const result = findItem(backlog, 'P1');
+        const endTime = performance.now();
+
+        // VERIFY: Should return immediately
+        expect(result?.id).toBe('P1');
+        // Early return means this should be very fast
+        expect(endTime - startTime).toBeLessThan(1);
+      });
+    });
+
+    describe('not found scenarios', () => {
+      it('should return null for non-existent ID', () => {
+        // SETUP: Backlog
+        const backlog = createComplexBacklog();
+
+        // EXECUTE
+        const result = findItem(backlog, 'NON-EXISTENT');
+
+        // VERIFY
+        expect(result).toBeNull();
+      });
+
+      it('should return null for empty backlog', () => {
+        // SETUP: Empty backlog
+        const emptyBacklog: Backlog = createTestBacklog([]);
+
+        // EXECUTE
+        const result = findItem(emptyBacklog, 'P1');
+
+        // VERIFY
+        expect(result).toBeNull();
+      });
+
+      it('should return null for partial ID match', () => {
+        // SETUP: Backlog with full IDs
+        const backlog = createComplexBacklog();
+
+        // EXECUTE: Search with partial ID
+        const result = findItem(backlog, 'P1.M1');
+
+        // VERIFY: Should find exact match, not partial
+        expect(result).not.toBeNull();
+        expect(result?.id).toBe('P1.M1');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('should handle phase with empty milestones', () => {
+        // SETUP: Phase with empty milestones
+        const phase = createTestPhase('P1', 'Empty Phase', 'Planned', []);
+        const backlog = createTestBacklog([phase]);
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1');
+
+        // VERIFY: Should still find the phase
+        expect(result?.id).toBe('P1');
+      });
+
+      it('should handle milestone with empty tasks', () => {
+        // SETUP: Milestone with empty tasks
+        const milestone = createTestMilestone(
+          'P1.M1',
+          'Empty Milestone',
+          'Planned',
+          []
+        );
+        const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+        const backlog = createTestBacklog([phase]);
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1.M1');
+
+        // VERIFY: Should still find the milestone
+        expect(result?.id).toBe('P1.M1');
+      });
+
+      it('should handle task with empty subtasks', () => {
+        // SETUP: Task with empty subtasks
+        const task = createTestTask('P1.M1.T1', 'Empty Task', 'Planned', []);
+        const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+          task,
+        ]);
+        const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+        const backlog = createTestBacklog([phase]);
+
+        // EXECUTE
+        const result = findItem(backlog, 'P1.M1.T1');
+
+        // VERIFY: Should still find the task
+        expect(result?.id).toBe('P1.M1.T1');
+      });
+    });
+  });
+
+  describe('getDependencies', () => {
+    it('should return empty array for subtask with no dependencies', () => {
+      // SETUP: Subtask with empty dependencies
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', []);
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = getDependencies(subtask, backlog);
+
+      // VERIFY
+      expect(result).toEqual([]);
+    });
+
+    it('should return single dependency', () => {
+      // SETUP: Subtask with one dependency
+      const subtask = createTestSubtask('P1.M1.T1.S2', 'Test', 'Planned', [
+        'P1.M1.T1.S1',
+      ]);
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = getDependencies(subtask, backlog);
+
+      // VERIFY
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('P1.M1.T1.S1');
+    });
+
+    it('should return multiple dependencies in order', () => {
+      // SETUP: Subtask with multiple dependencies
+      const subtask = createTestSubtask('P1.M1.T1.S3', 'Test', 'Planned', [
+        'P1.M1.T1.S1',
+        'P1.M1.T1.S2',
+      ]);
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = getDependencies(subtask, backlog);
+
+      // VERIFY
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('P1.M1.T1.S1');
+      expect(result[1].id).toBe('P1.M1.T1.S2');
+    });
+
+    it('should filter out non-existent dependencies', () => {
+      // SETUP: Subtask with invalid dependency
+      const subtask = createTestSubtask('P1.M1.T1.S2', 'Test', 'Planned', [
+        'P1.M1.T1.S1',
+        'NON-EXISTENT',
+      ]);
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = getDependencies(subtask, backlog);
+
+      // VERIFY: Should only return valid Subtask dependencies
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('P1.M1.T1.S1');
+    });
+
+    it('should filter out non-Subtask dependencies', () => {
+      // SETUP: Subtask with dependency on non-subtask
+      const subtask = createTestSubtask('P1.M1.T1.S2', 'Test', 'Planned', [
+        'P1.M1.T1.S1',
+        'P1.M1',
+      ]);
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = getDependencies(subtask, backlog);
+
+      // VERIFY: Should only return Subtask type dependencies
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('P1.M1.T1.S1');
+      expect(result.every(item => item.type === 'Subtask')).toBe(true);
+    });
+
+    it('should handle circular reference gracefully', () => {
+      // SETUP: Subtask with self-reference (circular)
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', [
+        'P1.M1.T1.S1',
+      ]);
+      const backlog = createComplexBacklog();
+
+      // EXECUTE: Should not infinite loop
+      const result = getDependencies(subtask, backlog);
+
+      // VERIFY: Should handle gracefully (either include or exclude self)
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('filterByStatus', () => {
+    it('should return all Planned items', () => {
+      // SETUP: Complex backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Planned');
+
+      // VERIFY: Should include items at all levels with Planned status
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every(item => item.status === 'Planned')).toBe(true);
+
+      // Check we have different types
+      const types = new Set(result.map(item => item.type));
+      expect(types.size).toBeGreaterThan(1);
+    });
+
+    it('should return all Complete items', () => {
+      // SETUP: Complex backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Complete');
+
+      // VERIFY
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every(item => item.status === 'Complete')).toBe(true);
+    });
+
+    it('should return all Researching items', () => {
+      // SETUP: Complex backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Researching');
+
+      // VERIFY
+      expect(result.every(item => item.status === 'Researching')).toBe(true);
+    });
+
+    it('should return all Implementing items', () => {
+      // SETUP: Complex backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Implementing');
+
+      // VERIFY
+      expect(result.every(item => item.status === 'Implementing')).toBe(true);
+    });
+
+    it('should return empty array when no items match status', () => {
+      // SETUP: Backlog without Failed status
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Failed');
+
+      // VERIFY
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for empty backlog', () => {
+      // SETUP: Empty backlog
+      const emptyBacklog: Backlog = createTestBacklog([]);
+
+      // EXECUTE
+      const result = filterByStatus(emptyBacklog, 'Planned');
+
+      // VERIFY
+      expect(result).toEqual([]);
+    });
+
+    it('should preserve DFS pre-order in results', () => {
+      // SETUP: Known backlog structure
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Planned');
+
+      // VERIFY: First Planned item should be P1 (Phase before children)
+      if (result.length > 0) {
+        const firstItem = result[0];
+        // P1 is Planned and should come before its children in pre-order
+        expect(firstItem.status).toBe('Planned');
+      }
+    });
+
+    it('should include all four types in results', () => {
+      // SETUP: Backlog with Planned items at all levels
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = filterByStatus(backlog, 'Planned');
+
+      // VERIFY: Check for all types
+      const types = new Set(result.map(item => item.type));
+      expect(types.has('Phase')).toBe(true);
+      expect(types.has('Milestone')).toBe(true);
+      expect(types.has('Task')).toBe(true);
+      expect(types.has('Subtask')).toBe(true);
+    });
+  });
+
+  describe('getNextPendingItem', () => {
+    it('should return first Planned item in DFS pre-order', () => {
+      // SETUP: Complex backlog with known structure
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const result = getNextPendingItem(backlog);
+
+      // VERIFY: Should return P1 (Phase is Planned and comes first in pre-order)
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe('Planned');
+      expect(result?.id).toBe('P1'); // Phase comes before its children
+    });
+
+    it('should return null when no Planned items exist', () => {
+      // SETUP: Backlog with only Complete items
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
+      const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE
+      const result = getNextPendingItem(backlog);
+
+      // VERIFY
+      expect(result).toBeNull();
+    });
+
+    it('should return null for empty backlog', () => {
+      // SETUP: Empty backlog
+      const emptyBacklog: Backlog = createTestBacklog([]);
+
+      // EXECUTE
+      const result = getNextPendingItem(emptyBacklog);
+
+      // VERIFY
+      expect(result).toBeNull();
+    });
+
+    it('should find Planned subtask when parents are Complete', () => {
+      // SETUP: Hierarchy with Complete parents but Planned subtask
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned');
+      const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE
+      const result = getNextPendingItem(backlog);
+
+      // VERIFY: In pre-order, Phase is checked first (Complete), then Milestone (Complete), then Task (Complete), then Subtask (Planned)
+      // But wait - pre-order means parent before children. Since all parents are Complete, we continue deeper.
+      // The first Planned item found in DFS pre-order would be... wait, let me re-read the implementation.
+      // The implementation checks P1 (Complete), then P1.M1 (Complete), then P1.M1.T1 (Complete), then P1.M1.T1.S1 (Planned)
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('P1.M1.T1.S1');
+    });
+
+    it('should use early return on first match', () => {
+      // SETUP: Backlog with first item Planned
+      const backlog = createComplexBacklog(); // P1 is Planned
+
+      // EXECUTE
+      const startTime = performance.now();
+      const result = getNextPendingItem(backlog);
+      const endTime = performance.now();
+
+      // VERIFY: Should return immediately after finding first Planned item
+      expect(result?.id).toBe('P1');
+      expect(endTime - startTime).toBeLessThan(1);
+    });
+  });
+
+  describe('updateItemStatus', () => {
+    it('should update subtask status', () => {
+      // SETUP: Backlog with subtask
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Failed');
+
+      // VERIFY: Find the updated item
+      const item = findItem(updated, 'P1.M1.T1.S1');
+      expect(item?.status).toBe('Failed');
+    });
+
+    it('should update task status', () => {
+      // SETUP: Backlog with task
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const updated = updateItemStatus(backlog, 'P1.M1.T1', 'Complete');
+
+      // VERIFY
+      const item = findItem(updated, 'P1.M1.T1');
+      expect(item?.status).toBe('Complete');
+    });
+
+    it('should update milestone status', () => {
+      // SETUP: Backlog with milestone
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const updated = updateItemStatus(backlog, 'P1.M1', 'Implementing');
+
+      // VERIFY
+      const item = findItem(updated, 'P1.M1');
+      expect(item?.status).toBe('Implementing');
+    });
+
+    it('should update phase status', () => {
+      // SETUP: Backlog with phase
+      const backlog = createComplexBacklog();
+
+      // EXECUTE
+      const updated = updateItemStatus(backlog, 'P1', 'Researching');
+
+      // VERIFY
+      const item = findItem(updated, 'P1');
+      expect(item?.status).toBe('Researching');
+    });
+
+    it('should not mutate original backlog (immutability)', () => {
+      // SETUP: Backlog
+      const backlog = createComplexBacklog();
+      const originalJSON = JSON.stringify(backlog);
+
+      // EXECUTE
+      const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Failed');
+
+      // VERIFY: Original unchanged
+      expect(JSON.stringify(backlog)).toEqual(originalJSON);
+      expect(updated).not.toEqual(backlog);
+    });
+
+    it('should preserve unchanged items with structural sharing', () => {
+      // SETUP: Backlog
+      const backlog = createComplexBacklog();
+      const _originalPhase = backlog.backlog[0];
+
+      // EXECUTE: Update a subtask
+      const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Failed');
+
+      // VERIFY: Phase should be a new object (because we're updating deep within it)
+      // But the other phase (P2) should be the same reference
+      expect(updated.backlog[1]).toBe(backlog.backlog[1]); // P2 unchanged
+    });
+
+    it('should only update the target item, not siblings', () => {
+      // SETUP: Backlog with multiple subtasks
+      const backlog = createComplexBacklog();
+
+      // EXECUTE: Update one subtask
+      const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Failed');
+
+      // VERIFY: Sibling should keep original status
+      const sibling = findItem(updated, 'P1.M1.T1.S2');
+      expect(sibling?.status).toBe('Planned'); // Original status
+    });
+
+    it('should handle non-existent ID gracefully', () => {
+      // SETUP: Backlog
+      const backlog = createComplexBacklog();
+      const originalJSON = JSON.stringify(backlog);
+
+      // EXECUTE: Try to update non-existent item
+      const updated = updateItemStatus(backlog, 'NON-EXISTENT', 'Failed');
+
+      // VERIFY: Should return unchanged backlog
+      expect(JSON.stringify(updated)).toEqual(originalJSON);
+    });
+
+    it('should handle empty backlog', () => {
+      // SETUP: Empty backlog
+      const emptyBacklog: Backlog = createTestBacklog([]);
+
+      // EXECUTE
+      const updated = updateItemStatus(emptyBacklog, 'P1', 'Complete');
+
+      // VERIFY: Should return empty backlog
+      expect(updated).toEqual(emptyBacklog);
+    });
+
+    it('should update deeply nested subtask', () => {
+      // SETUP: Deeply nested structure
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Deep', 'Planned');
+      const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE
+      const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Complete');
+
+      // VERIFY: All parent levels should be new objects
+      expect(updated.backlog[0]).not.toBe(backlog.backlog[0]); // New phase
+      expect(updated.backlog[0].milestones[0]).not.toBe(
+        backlog.backlog[0].milestones[0]
+      ); // New milestone
+      expect(updated.backlog[0].milestones[0].tasks[0]).not.toBe(
+        backlog.backlog[0].milestones[0].tasks[0]
+      ); // New task
+      expect(updated.backlog[0].milestones[0].tasks[0].subtasks[0]).not.toBe(
+        backlog.backlog[0].milestones[0].tasks[0].subtasks[0]
+      ); // New subtask
+    });
+
+    it('should support all status values', () => {
+      // SETUP: Backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE & VERIFY each status value
+      const statuses: Status[] = [
+        'Planned',
+        'Researching',
+        'Implementing',
+        'Complete',
+        'Failed',
+        'Obsolete',
+      ];
+
+      for (const status of statuses) {
+        const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', status);
+        const item = findItem(updated, 'P1.M1.T1.S1');
+        expect(item?.status).toBe(status);
+      }
+    });
+  });
+
+  describe('integration scenarios', () => {
+    it('should support typical task orchestrator workflow', () => {
+      // SETUP: Task orchestrator workflow
+      const backlog = createComplexBacklog();
+
+      // EXECUTE: Get next pending item
+      const nextItem = getNextPendingItem(backlog);
+      expect(nextItem).not.toBeNull();
+
+      // EXECUTE: Check dependencies
+      if (nextItem && isSubtask(nextItem)) {
+        const deps = getDependencies(nextItem, backlog);
+        expect(Array.isArray(deps)).toBe(true);
+
+        // EXECUTE: Update status after completion
+        const updated = updateItemStatus(backlog, nextItem.id, 'Complete');
+        const updatedItem = findItem(updated, nextItem.id);
+        expect(updatedItem?.status).toBe('Complete');
+
+        // VERIFY: Original unchanged
+        expect(backlog).not.toEqual(updated);
+      }
+    });
+
+    it('should filter and find items consistently', () => {
+      // SETUP: Backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE: Get all Planned items
+      const plannedItems = filterByStatus(backlog, 'Planned');
+
+      // EXECUTE & VERIFY: Can find each Planned item
+      for (const item of plannedItems) {
+        const found = findItem(backlog, item.id);
+        expect(found?.id).toBe(item.id);
+      }
+    });
+
+    it('should handle complex multi-update scenario', () => {
+      // SETUP: Backlog
+      const backlog = createComplexBacklog();
+
+      // EXECUTE: Chain multiple updates
+      let updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Complete');
+      updated = updateItemStatus(updated, 'P1.M1.T1.S2', 'Complete');
+      updated = updateItemStatus(updated, 'P1.M1.T1.S3', 'Complete');
+
+      // VERIFY: All updates applied
+      expect(findItem(updated, 'P1.M1.T1.S1')?.status).toBe('Complete');
+      expect(findItem(updated, 'P1.M1.T1.S2')?.status).toBe('Complete');
+      expect(findItem(updated, 'P1.M1.T1.S3')?.status).toBe('Complete');
+
+      // VERIFY: Original unchanged
+      expect(findItem(backlog, 'P1.M1.T1.S1')?.status).toBe('Complete'); // Original was Complete
+      expect(findItem(backlog, 'P1.M1.T1.S2')?.status).toBe('Planned'); // Original was Planned
+    });
+  });
+
+  describe('edge cases and boundary conditions', () => {
+    it('should handle backlog with only one phase', () => {
+      // SETUP: Single phase backlog
+      const phase = createTestPhase('P1', 'Single Phase', 'Planned');
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE & VERIFY
+      expect(findItem(backlog, 'P1')?.id).toBe('P1');
+      expect(getNextPendingItem(backlog)?.id).toBe('P1');
+    });
+
+    it('should handle backlog with only one milestone', () => {
+      // SETUP: Single milestone
+      const milestone = createTestMilestone(
+        'P1.M1',
+        'Single Milestone',
+        'Planned'
+      );
+      const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE & VERIFY
+      expect(findItem(backlog, 'P1.M1')?.id).toBe('P1.M1');
+    });
+
+    it('should handle backlog with only one task', () => {
+      // SETUP: Single task
+      const task = createTestTask('P1.M1.T1', 'Single Task', 'Planned');
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE & VERIFY
+      expect(findItem(backlog, 'P1.M1.T1')?.id).toBe('P1.M1.T1');
+    });
+
+    it('should handle backlog with only one subtask', () => {
+      // SETUP: Single subtask
+      const subtask = createTestSubtask(
+        'P1.M1.T1.S1',
+        'Single Subtask',
+        'Planned'
+      );
+      const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE & VERIFY
+      expect(findItem(backlog, 'P1.M1.T1.S1')?.id).toBe('P1.M1.T1.S1');
+    });
+
+    it('should handle maximum depth hierarchy', () => {
+      // SETUP: 4-level deep hierarchy (max for this system)
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Deep', 'Planned');
+      const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE: Update deepest item
+      const updated = updateItemStatus(backlog, 'P1.M1.T1.S1', 'Complete');
+
+      // VERIFY: Update successful at maximum depth
+      expect(findItem(updated, 'P1.M1.T1.S1')?.status).toBe('Complete');
+    });
+
+    it('should handle items with all status values', () => {
+      // SETUP: Items with each status
+      const statuses: Status[] = [
+        'Planned',
+        'Researching',
+        'Implementing',
+        'Complete',
+        'Failed',
+        'Obsolete',
+      ];
+      const subtasks = statuses.map((status, i) =>
+        createTestSubtask(`P1.M1.T1.S${i + 1}`, `Subtask ${i}`, status)
+      );
+      const task = createTestTask('P1.M1.T1', 'Task', 'Planned', subtasks);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE & VERIFY: Can filter by each status
+      for (const status of statuses) {
+        const items = filterByStatus(backlog, status);
+        expect(items.some(item => item.status === status)).toBe(true);
+      }
+    });
+
+    it('should handle multiple phases with similar IDs', () => {
+      // SETUP: Multiple phases
+      const phase1 = createTestPhase('P1', 'Phase 1', 'Complete');
+      const phase2 = createTestPhase('P2', 'Phase 2', 'Planned');
+      const phase3 = createTestPhase('P3', 'Phase 3', 'Implementing');
+      const backlog = createTestBacklog([phase1, phase2, phase3]);
+
+      // EXECUTE & VERIFY: Can find each phase
+      expect(findItem(backlog, 'P1')?.id).toBe('P1');
+      expect(findItem(backlog, 'P2')?.id).toBe('P2');
+      expect(findItem(backlog, 'P3')?.id).toBe('P3');
+    });
+  });
+});

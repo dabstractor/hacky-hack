@@ -151,7 +151,7 @@
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Define Task Data Models",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Create TypeScript interfaces and Zod schemas for the task hierarchy (Phase > Milestone > Task > Subtask).",
               "subtasks": [
                 {
@@ -180,7 +180,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
                   "title": "Create task hierarchy helper utilities",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T1.S2"
