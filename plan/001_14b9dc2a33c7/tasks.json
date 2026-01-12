@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Milestone 1.1: Project Initialization",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Initialize the TypeScript project, link Groundswell library, and establish build infrastructure.",
           "tasks": [
             {
@@ -111,7 +111,7 @@
               "type": "Task",
               "id": "P1.M1.T3",
               "title": "Set Up Build and Development Tooling",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Configure build tooling, linting, and development workflow for efficient iteration.",
               "subtasks": [
                 {
@@ -129,7 +129,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S2",
                   "title": "Create entry point and hello-world workflow",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S1"

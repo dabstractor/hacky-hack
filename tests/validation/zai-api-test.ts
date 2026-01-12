@@ -51,6 +51,24 @@ interface TestResult {
   details?: Record<string, unknown>;
 }
 
+interface AnthropicMessageResponse {
+  id?: string;
+  type?: string;
+  role?: string;
+  content?: unknown[];
+  model?: string;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+  };
+}
+
+function isAnthropicMessageResponse(
+  value: unknown
+): value is AnthropicMessageResponse {
+  return typeof value === 'object' && value !== null;
+}
+
 class ZAiValidator {
   private baseURL: string = '';
   private apiKey: string = '';
@@ -310,7 +328,7 @@ class ZAiValidator {
 
       info(`HTTP Status: ${response.status}`);
 
-      const responseBody = await response.json();
+      const responseBody: unknown = await response.json();
       info('Response body:');
       info(
         JSON.stringify(responseBody, null, 2)
@@ -333,71 +351,82 @@ class ZAiValidator {
       // Validate response structure
       const checks: boolean[] = [];
 
-      if (responseBody.id) {
-        success('Response contains "id" field (Anthropic-compatible)');
-        checks.push(true);
-      } else {
-        warn('Response missing "id" field');
-        checks.push(false);
-      }
+      if (isAnthropicMessageResponse(responseBody)) {
+        if (responseBody.id) {
+          success('Response contains "id" field (Anthropic-compatible)');
+          checks.push(true);
+        } else {
+          warn('Response missing "id" field');
+          checks.push(false);
+        }
 
-      if (responseBody.type === 'message') {
-        success('Response type is "message"');
-        checks.push(true);
-      } else {
-        warn(`Response type is "${responseBody.type}", expected "message"`);
-        checks.push(false);
-      }
+        if (responseBody.type === 'message') {
+          success('Response type is "message"');
+          checks.push(true);
+        } else {
+          warn(
+            `Response type is "${String(responseBody.type ?? 'undefined')}", expected "message"`
+          );
+          checks.push(false);
+        }
 
-      if (responseBody.role === 'assistant') {
-        success('Response role is "assistant"');
-        checks.push(true);
-      } else {
-        warn(`Response role is "${responseBody.role}", expected "assistant"`);
-        checks.push(false);
-      }
+        if (responseBody.role === 'assistant') {
+          success('Response role is "assistant"');
+          checks.push(true);
+        } else {
+          warn(
+            `Response role is "${String(responseBody.role ?? 'undefined')}", expected "assistant"`
+          );
+          checks.push(false);
+        }
 
-      if (responseBody.content && Array.isArray(responseBody.content)) {
-        success('Response contains "content" array');
-        checks.push(true);
+        if (responseBody.content && Array.isArray(responseBody.content)) {
+          success('Response contains "content" array');
+          checks.push(true);
 
-        // Extract text content
-        const textContent = responseBody.content
-          .filter(
-            (c: unknown) =>
-              typeof c === 'object' &&
-              c !== null &&
-              'type' in c &&
-              c.type === 'text'
-          )
-          .map((c: unknown) =>
-            typeof c === 'object' && c !== null && 'text' in c ? c.text : ''
-          )
-          .join('');
+          // Extract text content
+          const textContent = responseBody.content
+            .filter(
+              (c: unknown) =>
+                typeof c === 'object' &&
+                c !== null &&
+                'type' in c &&
+                c.type === 'text'
+            )
+            .map((c: unknown) =>
+              typeof c === 'object' && c !== null && 'text' in c
+                ? String(c.text)
+                : ''
+            )
+            .join('');
 
-        if (textContent) {
-          success(`Assistant response: "${textContent}"`);
+          if (textContent) {
+            success(`Assistant response: "${textContent}"`);
+          }
+        } else {
+          warn('Response missing or invalid "content" field');
+          checks.push(false);
+        }
+
+        if (responseBody.model) {
+          success(`Response model: ${responseBody.model}`);
+          checks.push(true);
+        } else {
+          warn('Response missing "model" field');
+          checks.push(false);
+        }
+
+        if (responseBody.usage) {
+          success('Response contains "usage" field');
+          info(`  Input tokens: ${responseBody.usage.input_tokens ?? 'N/A'}`);
+          info(`  Output tokens: ${responseBody.usage.output_tokens ?? 'N/A'}`);
+          checks.push(true);
+        } else {
+          warn('Response missing "usage" field');
+          checks.push(false);
         }
       } else {
-        warn('Response missing or invalid "content" field');
-        checks.push(false);
-      }
-
-      if (responseBody.model) {
-        success(`Response model: ${responseBody.model}`);
-        checks.push(true);
-      } else {
-        warn('Response missing "model" field');
-        checks.push(false);
-      }
-
-      if (responseBody.usage) {
-        success('Response contains "usage" field');
-        info(`  Input tokens: ${responseBody.usage.input_tokens || 'N/A'}`);
-        info(`  Output tokens: ${responseBody.usage.output_tokens || 'N/A'}`);
-        checks.push(true);
-      } else {
-        warn('Response missing "usage" field');
+        fail('Response body is not a valid object');
         checks.push(false);
       }
 

@@ -12,10 +12,13 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    environment: 'node', // Backend code, not DOM
-    globals: true, // Auto-import describe, it, expect, etc.
+    environment: 'node',
+    globals: true,
     include: ['tests/**/*.{test,spec}.ts'],
     exclude: ['**/dist/**', '**/node_modules/**'],
+    deps: {
+      interopDefault: true,
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -30,6 +33,9 @@ export default defineConfig({
         },
       },
     },
+  },
+  esbuild: {
+    target: 'esnext',
   },
   resolve: {
     alias: {
