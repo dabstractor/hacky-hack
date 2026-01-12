@@ -158,7 +158,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Create TypeScript interfaces for task hierarchy",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T3.S2"
