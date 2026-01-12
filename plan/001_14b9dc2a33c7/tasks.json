@@ -45,7 +45,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
                   "title": "Link Groundswell library locally",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2"
