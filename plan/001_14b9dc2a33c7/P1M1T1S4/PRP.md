@@ -9,6 +9,7 @@
 **Deliverable**: A complete directory structure with `src/`, `tests/`, `docs/` directories and their subdirectories, plus an updated `.gitignore` file.
 
 **Success Definition**:
+
 - All required directories exist with proper subdirectory structure
 - `.gitignore` contains patterns for build artifacts, dependencies, and session artifacts
 - `npm run build` succeeds (compiles empty directories successfully)
@@ -22,12 +23,14 @@
 **Use Case**: Creating the foundational directory structure that all subsequent implementation tasks depend on.
 
 **User Journey**:
+
 1. Create directory structure using `mkdir -p` commands
 2. Update `.gitignore` with additional patterns
 3. Verify structure with `tree` command
 4. Validate TypeScript compilation works with empty directories
 
 **Pain Points Addressed**:
+
 - `tsconfig.json` already specifies `rootDir: "./src"` and `include: ["src/**/*"]` - creating matching structure prevents compilation errors
 - Future subtasks depend on these directories existing (e.g., P1.M1.T2.S1 creates `src/config/environment.ts`)
 - Proper `.gitignore` prevents committing build artifacts and session data
@@ -45,6 +48,7 @@
 Create the following directory structure and update `.gitignore`:
 
 **Directory Structure:**
+
 ```
 src/
   core/       # Core system components (SessionManager, TaskRegistry, etc.)
@@ -59,6 +63,7 @@ docs/         # User-facing documentation (API.md, architecture.md, etc.)
 ```
 
 **Additional `.gitignore` Patterns:**
+
 - `plan//**/artifacts/` - Temporary implementation artifacts
 - TypeScript build artifacts (`*.tsbuildinfo`)
 - Session-specific patterns if needed
@@ -80,6 +85,7 @@ docs/         # User-facing documentation (API.md, architecture.md, etc.)
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Yes** - This PRP includes:
+
 - Exact directory structure with specific paths
 - Existing `.gitignore` content to preserve
 - Specific patterns to add (not generic advice)
@@ -208,6 +214,7 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
 ```
 
 **Responsibility of Files:**
+
 - `src/core/` - Core system components (SessionManager, TaskRegistry, PipelineController, TaskOrchestrator)
 - `src/agents/` - Agent implementations (ArchitectAgent, ResearcherAgent, CoderAgent, QAAgent)
 - `src/workflows/` - Groundswell workflow implementations (PRPPipeline, PhaseWorkflow, TaskWorkflow, DeltaWorkflow)

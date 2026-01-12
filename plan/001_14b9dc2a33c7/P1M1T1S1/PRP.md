@@ -12,6 +12,7 @@
 **Feature Goal**: Create a complete, production-ready `package.json` file that establishes the Node.js 20+ / TypeScript 5.2+ foundation for the PRP Pipeline project.
 
 **Deliverable**: A `package.json` file in the project root (`/home/dustin/projects/hacky-hack/package.json`) containing:
+
 - All required dependencies (zod for schema validation)
 - All development dependencies (TypeScript 5.2+, tsx, nodemon)
 - Proper npm scripts for build, dev, and watch workflows
@@ -19,6 +20,7 @@
 - ESM configuration (`"type": "module"`)
 
 **Success Definition**:
+
 - `npm install` completes successfully without errors
 - All npm scripts execute without errors
 - Node.js version is properly enforced (>=20.0.0)
@@ -34,6 +36,7 @@
 **Use Case**: Initial project setup requires establishing the package management infrastructure before any TypeScript code can be written or executed.
 
 **User Journey**:
+
 1. Developer clones the repository
 2. Runs `npm install` to install dependencies
 3. Uses `npm run dev` to start development with hot-reload
@@ -41,6 +44,7 @@
 5. Uses `npm run watch` for development with automatic recompilation
 
 **Pain Points Addressed**:
+
 - Eliminates manual dependency installation
 - Provides consistent development environment across team members
 - Enforces Node.js 20+ requirement to prevent compatibility issues
@@ -90,6 +94,7 @@ Create a `package.json` file with the following configuration:
 ```
 
 **Why zod?**
+
 - Required for Zod schemas in Architect Agent prompt (line 226 of PRD.md)
 - Validates structured LLM output (task hierarchy JSON)
 - Runtime type validation for all agent communications
@@ -108,6 +113,7 @@ Create a `package.json` file with the following configuration:
 ```
 
 **Version Justification:**
+
 - `typescript@^5.2.0`: Minimum required per PRD.md (line 162). Allows 5.2.x and compatible minor updates.
 - `@types/node@^20.10.0`: Matches Node.js 20+ requirement. Version 20.10.0+ includes latest type definitions.
 - `tsx@^4.7.0`: Fastest TypeScript execution using esbuild (50ms startup vs 500ms for ts-node)
@@ -126,6 +132,7 @@ Create a `package.json` file with the following configuration:
 ```
 
 **Script Descriptions:**
+
 - `build`: Compiles TypeScript to JavaScript (requires tsconfig.json from P1.M1.T1.S2)
 - `dev`: Executes entry point directly with tsx (fast iteration)
 - `watch`: Runs tsx with nodemon for automatic restart on file changes
@@ -148,6 +155,7 @@ Create a `package.json` file with the following configuration:
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact npm commands to run
 - Specific version requirements with justification
 - Complete package.json content
@@ -356,12 +364,7 @@ Task 6: VERIFY zod import
     "dev": "tsx src/index.ts",
     "watch": "nodemon --exec tsx src/index.ts"
   },
-  "keywords": [
-    "typescript",
-    "agent",
-    "pipeline",
-    "autonomous"
-  ],
+  "keywords": ["typescript", "agent", "pipeline", "autonomous"],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -595,16 +598,19 @@ npm pkg get engines.node
 ## Next Steps (After This Task)
 
 **P1.M1.T1.S2**: Create TypeScript configuration (tsconfig.json)
+
 - Requires package.json from this task
 - Will configure TypeScript 5.2+ for Node.js 20+ ESM
 - Will enable experimental decorators for Groundswell
 
 **P1.M1.T1.S3**: Link Groundswell library locally
+
 - Requires package.json from this task
 - Will use `npm link ~/projects/groundswell`
 - Groundswell dependency NOT added in this task
 
 **P1.M1.T1.S4**: Set up project directory structure
+
 - Requires package.json and tsconfig.json from previous tasks
 - Will create src/, tests/, plan/ directories
 - Will establish module structure
@@ -614,11 +620,13 @@ npm pkg get engines.node
 ## Additional Research References
 
 **Stored Research Documents** (for further reading):
+
 - `/home/dustin/projects/hacky-hack/package-json-typescript-best-practices.md` - Comprehensive npm package.json guide
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/research/typescript_5.2_plus_research.md` - TypeScript 5.2+ features
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/nodejs_typescript_research.md` - Node.js 20+ considerations
 
 **Quick Reference URLs**:
+
 - [npm package.json docs](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
 - [TypeScript 5.2 release notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html)
 - [Node.js 20 release notes](https://nodejs.org/en/blog/release/v20.0.0)

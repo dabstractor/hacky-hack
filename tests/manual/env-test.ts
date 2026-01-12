@@ -5,7 +5,12 @@
  * Run with: npx tsx tests/manual/env-test.ts
  */
 
-import { configureEnvironment, getModel, validateEnvironment, EnvironmentValidationError } from '../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+  EnvironmentValidationError,
+} from '../../src/config/environment.js';
 
 console.log('=== Environment Configuration Manual Test ===\n');
 
@@ -15,17 +20,36 @@ const initialAuthToken = process.env.ANTHROPIC_AUTH_TOKEN;
 const initialBaseURL = process.env.ANTHROPIC_BASE_URL;
 
 console.log('--- Before configureEnvironment ---');
-console.log('ANTHROPIC_API_KEY:', initialApiKey ? `${initialApiKey.slice(0, 10)}...` : '(not set)');
-console.log('ANTHROPIC_AUTH_TOKEN:', initialAuthToken ? `${initialAuthToken.slice(0, 10)}...` : '(not set)');
+console.log(
+  'ANTHROPIC_API_KEY:',
+  initialApiKey ? `${initialApiKey.slice(0, 10)}...` : '(not set)'
+);
+console.log(
+  'ANTHROPIC_AUTH_TOKEN:',
+  initialAuthToken ? `${initialAuthToken.slice(0, 10)}...` : '(not set)'
+);
 console.log('ANTHROPIC_BASE_URL:', initialBaseURL || '(not set)');
 
 // Configure environment
 configureEnvironment();
 
 console.log('\n--- After configureEnvironment ---');
-console.log('ANTHROPIC_API_KEY:', process.env.ANTHROPIC_API_KEY ? `${process.env.ANTHROPIC_API_KEY.slice(0, 10)}...` : '(not set)');
-console.log('ANTHROPIC_AUTH_TOKEN:', process.env.ANTHROPIC_AUTH_TOKEN ? `${process.env.ANTHROPIC_AUTH_TOKEN.slice(0, 10)}...` : '(not set)');
-console.log('ANTHROPIC_BASE_URL:', process.env.ANTHROPIC_BASE_URL || '(not set)');
+console.log(
+  'ANTHROPIC_API_KEY:',
+  process.env.ANTHROPIC_API_KEY
+    ? `${process.env.ANTHROPIC_API_KEY.slice(0, 10)}...`
+    : '(not set)'
+);
+console.log(
+  'ANTHROPIC_AUTH_TOKEN:',
+  process.env.ANTHROPIC_AUTH_TOKEN
+    ? `${process.env.ANTHROPIC_AUTH_TOKEN.slice(0, 10)}...`
+    : '(not set)'
+);
+console.log(
+  'ANTHROPIC_BASE_URL:',
+  process.env.ANTHROPIC_BASE_URL || '(not set)'
+);
 
 // Test mapping behavior
 console.log('\n--- Mapping Test ---');

@@ -29,6 +29,7 @@
 ### How It Works
 
 NodeNext resolution uses Node.js's hybrid module system, where:
+
 - **Package mode** is determined by the nearest `package.json` with a `type` field
 - **File extensions** are required for ESM imports (`.js`, `.mjs`, or `.mts`)
 - **Conditional exports** from `package.json` are respected
@@ -61,6 +62,7 @@ NodeNext resolution uses Node.js's hybrid module system, where:
 ```
 
 **Critical requirements**:
+
 - `module: "NodeNext"` must be paired with `moduleResolution: "NodeNext"`
 - `target: "ES2022"` or later for full ESM support
 - `esModuleInterop: true` for interoperability with CommonJS packages
@@ -103,30 +105,32 @@ import { Builder } from 'groundswell/builders';
 import { LLMAdapter } from 'groundswell/adapters/llm';
 
 // ❌ INCORRECT - Missing extension for relative paths (not applicable for package imports)
-import { helper } from './utils';  // Error in ESM
-import { helper } from './utils.js';  // Correct for relative imports
+import { helper } from './utils'; // Error in ESM
+import { helper } from './utils.js'; // Correct for relative imports
 
 // ❌ INCORRECT - Require statements (CommonJS)
-const { Workflow } = require('groundswell');  // Won't work in ESM
+const { Workflow } = require('groundswell'); // Won't work in ESM
 ```
 
 ### Package Import Rules
 
 1. **No file extensions for package imports**:
+
    ```typescript
-   import { Workflow } from 'groundswell';  // ✅ Correct
-   import { Workflow } from 'groundswell/index.js';  // ❌ Unnecessary
+   import { Workflow } from 'groundswell'; // ✅ Correct
+   import { Workflow } from 'groundswell/index.js'; // ❌ Unnecessary
    ```
 
 2. **Subpath imports must be defined in exports**:
+
    ```typescript
-   import { Builder } from 'groundswell/builders';  // Only if package.json exports allow it
+   import { Builder } from 'groundswell/builders'; // Only if package.json exports allow it
    ```
 
 3. **Type-only imports** (for types only):
    ```typescript
    import type { WorkflowConfig } from 'groundswell';
-   import { Workflow } from 'groundswell';  // Runtime import
+   import { Workflow } from 'groundswell'; // Runtime import
    ```
 
 ### Relative Path Extensions
@@ -135,9 +139,9 @@ When using relative paths within the same package, file extensions are **require
 
 ```typescript
 // Within the same package
-import { localHelper } from './utils/helper.js';  // ✅ Required .js extension
-import { localHelper } from './utils/helper';     // ❌ Error in ESM
-import { localHelper } from './utils/helper.ts';  // ❌ Wrong extension (use .js)
+import { localHelper } from './utils/helper.js'; // ✅ Required .js extension
+import { localHelper } from './utils/helper'; // ❌ Error in ESM
+import { localHelper } from './utils/helper.ts'; // ❌ Wrong extension (use .js)
 ```
 
 **Why `.js` instead of `.ts`?**
@@ -150,6 +154,7 @@ TypeScript compiles `.ts` to `.js`, so import paths reference the **output** fil
 ### Overview
 
 The `exports` field in `package.json` controls:
+
 - Which files can be imported from a package
 - How they can be imported (conditional exports)
 - Type definition locations for TypeScript
@@ -185,6 +190,7 @@ Conditional exports allow different entry points based on import type:
 ```
 
 **Conditional export keys**:
+
 - `types`: TypeScript type definitions (highest priority for TypeScript)
 - `import`: ESM imports (import statements)
 - `require`: CommonJS imports (require())
@@ -214,6 +220,7 @@ Define specific entry points for deep imports:
 ```
 
 **Usage**:
+
 ```typescript
 import { Agent } from 'groundswell/core';
 import { WorkflowBuilder } from 'groundswell/builders';
@@ -266,10 +273,7 @@ For the `groundswell` package in a monorepo:
       "types": "./dist/types.d.ts"
     }
   },
-  "files": [
-    "dist",
-    "README.md"
-  ]
+  "files": ["dist", "README.md"]
 }
 ```
 
@@ -298,19 +302,20 @@ The `type` field in `package.json` determines how Node.js and TypeScript treat `
 
 ```json
 {
-  "type": "module"    // Treat .js as ESM
+  "type": "module" // Treat .js as ESM
 }
 ```
 
 ```json
 {
-  "type": "commonjs"  // Treat .js as CommonJS (legacy)
+  "type": "commonjs" // Treat .js as CommonJS (legacy)
 }
 ```
 
 ### Impact on Module Resolution
 
 **When `type: "module"`**:
+
 - `.js` files are treated as ESM
 - `.mjs` files are always ESM
 - `.cjs` files are always CommonJS
@@ -319,6 +324,7 @@ The `type` field in `package.json` determines how Node.js and TypeScript treat `
 - `__dirname` and `__filename` are not available (use `import.meta.url`)
 
 **When `type: "commonjs"` or omitted**:
+
 - `.js` files are treated as CommonJS
 - `.cjs` files are always CommonJS
 - `.mjs` files are always ESM
@@ -327,6 +333,7 @@ The `type` field in `package.json` determines how Node.js and TypeScript treat `
 ### Package.json Type Configuration
 
 **Root package (hacky-hack)**:
+
 ```json
 {
   "name": "hacky-hack",
@@ -339,6 +346,7 @@ The `type` field in `package.json` determines how Node.js and TypeScript treat `
 ```
 
 **Local package (groundswell)**:
+
 ```json
 {
   "name": "groundswell",
@@ -349,18 +357,19 @@ The `type` field in `package.json` determines how Node.js and TypeScript treat `
 
 ### TypeScript File Extensions
 
-| Source File | Output File | Module Type | Import Syntax |
-|------------|-------------|-------------|---------------|
-| `.ts` | `.js` | Inherits from `type` field | `from './file.js'` |
-| `.mts` | `.mjs` | Always ESM | `from './file.mjs'` |
-| `.cts` | `.cjs` | Always CommonJS | `from './file.cjs'` |
-| `.d.ts` | N/A | Type declaration | N/A |
-| `.d.mts` | N/A | ESM types | N/A |
-| `.d.cts` | N/A | CommonJS types | N/A |
+| Source File | Output File | Module Type                | Import Syntax       |
+| ----------- | ----------- | -------------------------- | ------------------- |
+| `.ts`       | `.js`       | Inherits from `type` field | `from './file.js'`  |
+| `.mts`      | `.mjs`      | Always ESM                 | `from './file.mjs'` |
+| `.cts`      | `.cjs`      | Always CommonJS            | `from './file.cjs'` |
+| `.d.ts`     | N/A         | Type declaration           | N/A                 |
+| `.d.mts`    | N/A         | ESM types                  | N/A                 |
+| `.d.cts`    | N/A         | CommonJS types             | N/A                 |
 
 ### Best Practice
 
 **Use `.ts` source files** and let the `type` field control the output:
+
 - ESM packages: `type: "module"` + `.ts` sources → `.js` ESM output
 - CommonJS packages: `type: "commonjs"` + `.ts` sources → `.js` CommonJS output
 
@@ -393,14 +402,13 @@ When building a monorepo with local packages:
 #### 1. Package Linking
 
 **Using npm workspaces** (recommended):
+
 ```json
 // root package.json
 {
   "name": "hacky-hack",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": ["packages/*"]
 }
 ```
 
@@ -413,6 +421,7 @@ When building a monorepo with local packages:
 ```
 
 **Using npm link**:
+
 ```bash
 cd packages/groundswell
 npm link
@@ -424,6 +433,7 @@ npm link groundswell
 #### 2. Build Order
 
 Build dependencies first:
+
 ```bash
 # 1. Build local package
 cd packages/groundswell
@@ -469,9 +479,7 @@ Use TypeScript project references for proper incremental compilation:
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "references": [
-    { "path": "../groundswell" }
-  ],
+  "references": [{ "path": "../groundswell" }],
   "include": ["src/**/*"]
 }
 ```
@@ -491,6 +499,7 @@ TypeScript generates `.d.ts` files automatically. Ensure they're emitted:
 ```
 
 **Output structure**:
+
 ```
 dist/
 ├── index.js          ← JavaScript output
@@ -533,6 +542,7 @@ npm run dev
 ```
 
 **Or use a tool like `tsc-alias`** for path preservation:
+
 ```bash
 npm install --save-dev tsc-alias
 ```
@@ -565,6 +575,7 @@ Before using local packages in production:
 ### Example 1: Simple Local Package Import
 
 **Project structure**:
+
 ```
 hacky-hack/
 ├── packages/
@@ -582,6 +593,7 @@ hacky-hack/
 ```
 
 **groundswell/package.json**:
+
 ```json
 {
   "name": "groundswell",
@@ -599,6 +611,7 @@ hacky-hack/
 ```
 
 **groundswell/src/index.ts**:
+
 ```typescript
 export class Workflow {
   constructor(public name: string) {}
@@ -610,6 +623,7 @@ export class Workflow {
 ```
 
 **app/src/main.ts**:
+
 ```typescript
 import { Workflow } from 'groundswell';
 
@@ -618,6 +632,7 @@ workflow.execute();
 ```
 
 **Build and run**:
+
 ```bash
 cd packages/groundswell
 npm run build
@@ -630,6 +645,7 @@ node dist/main.js
 ### Example 2: Subpath Exports
 
 **groundswell/package.json**:
+
 ```json
 {
   "exports": {
@@ -641,6 +657,7 @@ node dist/main.js
 ```
 
 **app/src/main.ts**:
+
 ```typescript
 import { Workflow } from 'groundswell';
 import { Agent } from 'groundswell/core';
@@ -650,6 +667,7 @@ import { Builder } from 'groundswell/builders';
 ### Example 3: Type-Only Imports
 
 **groundswell/types.ts**:
+
 ```typescript
 export interface WorkflowConfig {
   name: string;
@@ -658,6 +676,7 @@ export interface WorkflowConfig {
 ```
 
 **app/src/main.ts**:
+
 ```typescript
 import type { WorkflowConfig } from 'groundswell/types';
 import { Workflow } from 'groundswell';
@@ -669,6 +688,7 @@ const workflow = new Workflow(config);
 ### Example 4: Mixed Relative and Package Imports
 
 **app/src/index.ts**:
+
 ```typescript
 // Package import (no extension)
 import { Workflow } from 'groundswell';

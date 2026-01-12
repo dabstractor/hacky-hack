@@ -31,6 +31,7 @@ The `type` field is critical for modern TypeScript/Node.js projects to enable ES
 - Files ending in `.cjs` are always CommonJS
 
 **Official Documentation:**
+
 - [Node.js ECMAScript Modules - package.json "type" field](https://nodejs.org/api/esm.html#packages)
 - [npm package.json type field](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#type)
 
@@ -48,12 +49,14 @@ Specify Node.js and npm version requirements:
 ```
 
 **Best Practices:**
+
 - Use Node.js 20 LTS (or 18 LTS) as minimum for modern TypeScript projects
 - Specify `>=` for flexibility while ensuring minimum requirements
 - Consider your dependencies' minimum versions
 - Node.js 20 LTS is actively maintained until April 2026
 
 **Official Documentation:**
+
 - [npm package.json engines field](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#engines)
 - [Node.js Releases](https://nodejs.org/en/about/previous-releases)
 
@@ -79,6 +82,7 @@ The modern way to define package entry points with TypeScript support:
 ```
 
 **Conditional Exports Best Practices:**
+
 - Always include `types` condition for TypeScript support
 - Support both ESM (`import`) and CJS (`require`) for compatibility
 - Use conditional exports for better tree-shaking
@@ -87,6 +91,7 @@ The modern way to define package entry points with TypeScript support:
 - Use subpath exports for internal modules (e.g., `./utils`)
 
 **Subpath Exports Example:**
+
 ```json
 {
   "exports": {
@@ -104,6 +109,7 @@ The modern way to define package entry points with TypeScript support:
 ```
 
 **Official Documentation:**
+
 - [Node.js Conditional Exports](https://nodejs.org/api/packages.html#conditional-exports)
 - [Node.js Packages exports field](https://nodejs.org/api/packages.html#exports)
 - [TypeScript Module Resolution - package.json exports](https://www.typescriptlang.org/docs/handbook/modules/reference.html#module-resolution)
@@ -115,21 +121,19 @@ Control which files are published to npm:
 
 ```json
 {
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ]
+  "files": ["dist", "README.md", "LICENSE"]
 }
 ```
 
 **Best Practices:**
+
 - Only include production files (typically compiled output)
 - Exclude source files, tests, and configuration
 - Reduces package size significantly
 - Use `.npmignore` for more complex exclusion patterns
 
 **Official Documentation:**
+
 - [npm package.json files field](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#files)
 
 ### Other Important Fields
@@ -152,6 +156,7 @@ Control which files are published to npm:
 ```
 
 **Official Documentation:**
+
 - [npm package.json standard fields](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
 
 ---
@@ -198,6 +203,7 @@ Your `package.json` should work in tandem with `tsconfig.json`:
 ```
 
 **Official Documentation:**
+
 - [TypeScript Compiler Options - Module](https://www.typescriptlang.org/tsconfig#module)
 - [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/modules/reference.html#module-resolution)
 - [TypeScript tsconfig.json](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
@@ -213,6 +219,7 @@ For TypeScript projects, always specify the types entry point:
 ```
 
 **Official Documentation:**
+
 - [TypeScript - package.json types field](https://www.typescriptlang.org/docs/handbook/modules/reference.html#types)
 
 ---
@@ -265,21 +272,25 @@ For TypeScript projects, always specify the types entry point:
 ```
 
 **Dependencies**:
+
 - Use caret ranges (`^`) for libraries and applications
 - Allows automatic updates for compatible versions
 - Lock files (`package-lock.json` or `yarn.lock`) ensure exact versions in production
 
 **DevDependencies**:
+
 - Use caret ranges for development tools
 - TypeScript compiler often uses exact versions in production apps
 - Build tools and linters can use ranges
 
 **PeerDependencies**:
+
 - Specify compatible version ranges for libraries that require specific peer packages
 - Use `peerDependenciesMeta` for optional peer dependencies
 - Don't bundle peer dependencies
 
 **Official Documentation:**
+
 - [npm package.json dependencies](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#dependencies)
 - [npm Semantic Versioning](https://docs.npmjs.com/cli/v10/about-semantic-versioning)
 - [npm Semantic Versioning Calculator](https://semver.npmjs.com/)
@@ -297,6 +308,7 @@ For TypeScript compiler, many teams prefer exact versions:
 ```
 
 **Reasons for exact TypeScript versions:**
+
 - Compiler changes can affect type checking behavior
 - Ensures consistent builds across environments
 - Prevents unexpected breaking changes from minor version updates
@@ -305,6 +317,7 @@ For TypeScript compiler, many teams prefer exact versions:
 ### Lock Files
 
 **Always commit lock files:**
+
 - `package-lock.json` (npm)
 - `yarn.lock` (Yarn)
 - `pnpm-lock.yaml` (pnpm)
@@ -312,6 +325,7 @@ For TypeScript compiler, many teams prefer exact versions:
 Lock files ensure all developers and CI/CD environments use identical dependency versions.
 
 **Official Documentation:**
+
 - [npm package-lock.json](https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json)
 
 ---
@@ -348,31 +362,37 @@ Lock files ensure all developers and CI/CD environments use identical dependency
 ### Script Categories
 
 **Build Scripts:**
+
 - `build` - Compile TypeScript to JavaScript
 - `build:watch` - Watch mode for development
 - `prebuild` - Runs before build (cleanup, etc.)
 
 **Type Checking:**
+
 - `type-check` - Fast type checking without emitting files
 - Useful for CI/CD pipelines
 
 **Linting and Formatting:**
+
 - `lint` - Check code quality with ESLint
 - `lint:fix` - Auto-fix linting issues
 - `format` - Format code with Prettier
 - `format:check` - Check formatting without changing files
 
 **Testing:**
+
 - `test` - Run test suite
 - `test:watch` - Watch mode for TDD
 - `test:coverage` - Generate coverage reports
 - `test:ci` - Optimized for CI/CD environments
 
 **Git Hooks:**
+
 - `prepare` - Set up Husky git hooks
 - `pre-commit` - Run lint-staged before commits
 
 **CI/CD:**
+
 - `ci` - Complete validation pipeline (type-check, lint, test, build)
 
 ### Lifecycle Scripts
@@ -390,6 +410,7 @@ Lock files ensure all developers and CI/CD environments use identical dependency
 ```
 
 **Official Documentation:**
+
 - [npm scripts](https://docs.npmjs.com/cli/v10/using-npm/scripts)
 - [npm Lifecycle Scripts](https://docs.npmjs.com/cli/v10/using-npm/scripts#life-cycle-operation-order)
 
@@ -412,12 +433,14 @@ Node.js 20 has enhanced support for ES modules:
 ```
 
 **Node.js 20+ Features:**
+
 - Improved ESM compatibility
 - Better performance for conditional exports
 - Stable `import.meta.resolve()`
 - Enhanced module resolution
 
 **Official Documentation:**
+
 - [Node.js 20 Release Notes - ES Modules](https://nodejs.org/en/blog/release/v20.0.0)
 - [Node.js ES Modules](https://nodejs.org/api/esm.html)
 
@@ -434,6 +457,7 @@ Node.js 20.12 introduced an experimental permission model:
 ```
 
 **Official Documentation:**
+
 - [Node.js Permission Model](https://nodejs.org/api/permissions.html)
 
 ### Test Runner (Node.js 20+)
@@ -450,6 +474,7 @@ Node.js 20+ includes a built-in test runner:
 ```
 
 **Official Documentation:**
+
 - [Node.js Test Runner](https://nodejs.org/api/test.html)
 
 ### package.json Imports Field
@@ -472,12 +497,14 @@ Node.js 20+ supports subpath imports for local modules:
 ```
 
 Usage in TypeScript:
+
 ```typescript
 import { helper } from '#utils';
 import { config } from '#config';
 ```
 
 **Official Documentation:**
+
 - [Node.js Subpath Imports](https://nodejs.org/api/packages.html#subpath-imports)
 - [TypeScript Module Resolution - path mapping](https://www.typescriptlang.org/docs/handbook/modules/reference.html#module-resolution)
 
@@ -499,6 +526,7 @@ Node.js 20 synchronizes `require()` and `import()` behavior:
 ```
 
 **Official Documentation:**
+
 - [Node.js Package Exports](https://nodejs.org/api/packages.html#package-entry-points)
 
 ---
@@ -534,11 +562,7 @@ Here's a comprehensive `package.json` example for a modern TypeScript library in
       "import": "./src/internal/index.js"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "LICENSE"],
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
@@ -590,12 +614,7 @@ Here's a comprehensive `package.json` example for a modern TypeScript library in
       "optional": true
     }
   },
-  "keywords": [
-    "typescript",
-    "nodejs",
-    "library",
-    "esm"
-  ],
+  "keywords": ["typescript", "nodejs", "library", "esm"],
   "author": "Your Name <email@example.com>",
   "license": "MIT",
   "repository": {

@@ -239,6 +239,7 @@ ai-sdk-project/
 ```
 
 **Key Takeaways:**
+
 - API routes in `app/api/` (Next.js App Router pattern)
 - Components separate from utilities
 - Environment variables in `.env.local`
@@ -932,10 +933,7 @@ export class Logger {
 // src/utils/validation.ts
 import { z } from 'zod';
 
-export function validate<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
-): T {
+export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {
     throw new Error(`Validation error: ${result.error.message}`);

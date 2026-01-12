@@ -14,6 +14,7 @@
 **Deliverable**: `src/config/environment.ts` with three exported functions: `configureEnvironment()`, `getModel()`, and `validateEnvironment()`, fully typed with TypeScript interfaces and JSDoc documentation.
 
 **Success Definition**:
+
 - All three functions are implemented and exported
 - `ANTHROPIC_AUTH_TOKEN` is correctly mapped to `ANTHROPIC_API_KEY`
 - Model tier selection returns correct model names (GLM-4.7, GLM-4.5-Air)
@@ -31,12 +32,14 @@
 **Use Case**: Before creating any Groundswell agents, the developer needs to configure the environment to ensure proper API authentication and model selection for the z.ai API endpoint.
 
 **User Journey**:
+
 1. Developer imports `configureEnvironment` from `src/config/environment.js`
 2. Calls `configureEnvironment()` at application startup
 3. Optionally calls `validateEnvironment()` to verify required variables
 4. Uses `getModel('opus' | 'sonnet' | 'haiku')` to get model names for agent creation
 
 **Pain Points Addressed**:
+
 - **Variable name mismatch**: Shell uses `ANTHROPIC_AUTH_TOKEN` but SDK expects `ANTHROPIC_API_KEY`
 - **Scattered configuration**: Model names and API endpoint scattered across multiple locations
 - **Missing validation**: No type-safe way to verify environment is properly configured
@@ -83,6 +86,7 @@ Create a TypeScript module that:
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: Yes - this PRP provides:
+
 - Exact file location and expected structure
 - Complete function signatures with TypeScript types
 - Specific environment variable mappings and values
@@ -249,7 +253,7 @@ export class EnvironmentValidationError extends Error {
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE src/config/types.ts
   - IMPLEMENT: ModelTier type alias, EnvironmentConfig interface, EnvironmentValidationError class
   - PATTERN: Use TypeScript 'readonly' modifier for immutable properties
@@ -325,11 +329,11 @@ Task 7: CREATE manual verification script (optional)
   - PURPOSE: Verify environment mapping works correctly
   - CONTENT: Log before/after state of process.env variables
   - RUN: npx tsx tests/manual/env-test.ts
-```
+````
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // CRITICAL PATTERNS - Follow these for consistency
 // ============================================================================
@@ -381,13 +385,13 @@ if (missing.length > 0) {
 
 // GOTCHA: ESM import syntax
 // Imports MUST include .js extension (TypeScript adds this during build)
-import { configureEnvironment } from './config/environment.js';  // CORRECT
+import { configureEnvironment } from './config/environment.js'; // CORRECT
 
 // GOTCHA: Const assertions for literal types
 // 'as const' preserves literal types instead of widening to string
-const MODELS = { opus: 'GLM-4.7' } as const;  // Type is { readonly opus: "GLM-4.7" }
-const MODELS = { opus: 'GLM-4.7' };           // Type is { opus: string }
-```
+const MODELS = { opus: 'GLM-4.7' } as const; // Type is { readonly opus: "GLM-4.7" }
+const MODELS = { opus: 'GLM-4.7' }; // Type is { opus: string }
+````
 
 ### Integration Points
 
@@ -594,6 +598,7 @@ npx tsx -e "import('./src/config/environment.js').then(m => { console.log('Modul
 **8/10** - One-pass implementation success likelihood
 
 **Confidence Rationale**:
+
 - ✅ Complete environment variable mapping specified with exact values
 - ✅ Function signatures fully specified with TypeScript types
 - ✅ JSDoc patterns and examples provided
@@ -602,6 +607,7 @@ npx tsx -e "import('./src/config/environment.js').then(m => { console.log('Modul
 - ⚠️ Minor deduction: Depends on `src/config/` directory existing from P1.M1.T1.S4 (should be verified before starting)
 
 **Risk Mitigation**:
+
 - Verify `src/config/` directory exists before starting implementation
 - Run `npx tsc --noEmit` before making any changes to establish baseline
 - Test environment mapping manually before writing production code

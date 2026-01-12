@@ -17,7 +17,11 @@
 // IMPORTS
 // ============================================================================
 
-import { configureEnvironment, validateEnvironment, getModel } from '../config/environment.js';
+import {
+  configureEnvironment,
+  validateEnvironment,
+  getModel,
+} from '../config/environment.js';
 
 // ============================================================================
 // LOGGING UTILITIES
@@ -34,10 +38,12 @@ const colors = {
 
 const log = {
   info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
+  success: (msg: string) =>
+    console.log(`${colors.green}✓${colors.reset} ${msg}`),
   error: (msg: string) => console.error(`${colors.red}✗${colors.reset} ${msg}`),
   warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  section: (msg: string) => console.log(`\n${colors.bright}${msg}${colors.reset}`),
+  section: (msg: string) =>
+    console.log(`\n${colors.bright}${msg}${colors.reset}`),
 };
 
 // ============================================================================
@@ -96,7 +102,11 @@ let baseURL: string;
 // FETCH WITH TIMEOUT
 // ============================================================================
 
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -164,24 +174,38 @@ async function testEndpointAvailability(): Promise<ValidationResult> {
   try {
     // Test 1: GET request to BASE_URL (root endpoint)
     log.info(`Testing root endpoint: ${baseURL}`);
-    const rootResponse = await fetchWithTimeout(baseURL, {
-      method: 'GET',
-    }, 10000);
+    const rootResponse = await fetchWithTimeout(
+      baseURL,
+      {
+        method: 'GET',
+      },
+      10000
+    );
 
     log.info(`Root endpoint status: ${rootResponse.status}`);
 
     // Test 2: HEAD request to /v1/messages
     const messagesEndpoint = `${baseURL}/v1/messages`;
     log.info(`Testing messages endpoint: ${messagesEndpoint}`);
-    const messagesResponse = await fetchWithTimeout(messagesEndpoint, {
-      method: 'HEAD',
-    }, 10000);
+    const messagesResponse = await fetchWithTimeout(
+      messagesEndpoint,
+      {
+        method: 'HEAD',
+      },
+      10000
+    );
 
     log.info(`Messages endpoint status: ${messagesResponse.status}`);
 
     // Check if endpoints are reachable (allow 405 Method Not Allowed for HEAD requests)
-    const rootReachable = rootResponse.ok || rootResponse.status === 401 || rootResponse.status === 405;
-    const messagesReachable = messagesResponse.ok || messagesResponse.status === 401 || messagesResponse.status === 405;
+    const rootReachable =
+      rootResponse.ok ||
+      rootResponse.status === 401 ||
+      rootResponse.status === 405;
+    const messagesReachable =
+      messagesResponse.ok ||
+      messagesResponse.status === 401 ||
+      messagesResponse.status === 405;
 
     if (rootReachable && messagesReachable) {
       // Convert Headers to a plain object for logging
@@ -201,7 +225,9 @@ async function testEndpointAvailability(): Promise<ValidationResult> {
       };
     }
 
-    throw new Error(`Endpoints not reachable. Root: ${rootResponse.status}, Messages: ${messagesResponse.status}`);
+    throw new Error(
+      `Endpoints not reachable. Root: ${rootResponse.status}, Messages: ${messagesResponse.status}`
+    );
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     log.error(errorMsg);
@@ -228,23 +254,29 @@ async function testAuthentication(): Promise<ValidationResult> {
     const payload = {
       model,
       max_tokens: 10,
-      messages: [{
-        role: 'user',
-        content: 'Respond with just "OK"',
-      }],
+      messages: [
+        {
+          role: 'user',
+          content: 'Respond with just "OK"',
+        },
+      ],
     };
 
     log.info(`Sending authentication test to: ${url}`);
 
-    const response = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+    const response = await fetchWithTimeout(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    }, 30000);
+      30000
+    );
 
     log.info(`Response status: ${response.status}`);
 
@@ -289,24 +321,30 @@ async function testMessageCompletion(): Promise<ValidationResult> {
     const payload = {
       model,
       max_tokens: 10,
-      messages: [{
-        role: 'user',
-        content: 'Respond with just "OK"',
-      }],
+      messages: [
+        {
+          role: 'user',
+          content: 'Respond with just "OK"',
+        },
+      ],
     };
 
     log.info(`Sending message completion request to: ${url}`);
     log.info(`Model: ${model}`);
 
-    const response = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+    const response = await fetchWithTimeout(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    }, 30000);
+      30000
+    );
 
     log.info(`Response status: ${response.status}`);
 
@@ -324,7 +362,9 @@ async function testMessageCompletion(): Promise<ValidationResult> {
 
     // Validate response structure
     if (!isValidMessageResponse(data)) {
-      throw new Error('Response structure does not match expected Anthropic format');
+      throw new Error(
+        'Response structure does not match expected Anthropic format'
+      );
     }
 
     // Validate required fields
@@ -403,7 +443,9 @@ async function main(): Promise<void> {
     log.info('Testing endpoint availability...');
     const endpointResult = await testEndpointAvailability();
     if (!endpointResult.passed) {
-      throw new Error(`Endpoint availability test failed: ${endpointResult.error}`);
+      throw new Error(
+        `Endpoint availability test failed: ${endpointResult.error}`
+      );
     }
     log.success(`Endpoint available (${endpointResult.duration}ms)\n`);
 
@@ -419,7 +461,9 @@ async function main(): Promise<void> {
     log.info('Testing message completion...');
     const completionResult = await testMessageCompletion();
     if (!completionResult.passed) {
-      throw new Error(`Message completion test failed: ${completionResult.error}`);
+      throw new Error(
+        `Message completion test failed: ${completionResult.error}`
+      );
     }
     log.success(`Message completion working (${completionResult.duration}ms)`);
 
@@ -444,12 +488,12 @@ async function main(): Promise<void> {
 // PROCESS ERROR HANDLERS
 // ============================================================================
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
   log.error(`Unhandled rejection: ${reason}`);
   process.exit(1);
 });
 
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   log.error(`Uncaught exception: ${error.message}`);
   process.exit(1);
 });

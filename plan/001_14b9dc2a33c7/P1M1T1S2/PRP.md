@@ -12,12 +12,14 @@
 **Feature Goal**: Create a production-ready `tsconfig.json` that enables TypeScript 5.2+ compilation with Node.js 20+ ESM support and Groundswell decorator compatibility.
 
 **Deliverable**: A `tsconfig.json` file in the project root (`/home/dustin/projects/hacky-hack/tsconfig.json`) containing:
+
 - ES2022 target with NodeNext module resolution
 - Groundswell decorator support (experimentalDecorators, emitDecoratorMetadata)
 - Strict mode enabled for maximum type safety
 - Proper output and root directory configuration
 
 **Success Definition**:
+
 - `tsc --noEmit` runs without errors
 - `tsc --showConfig` displays the expected configuration
 - TypeScript can compile .ts files when src/ directory is created in next task
@@ -31,12 +33,14 @@
 **Use Case**: After package.json is created (P1.M1.T1.S1), the TypeScript compiler must be configured before any TypeScript code can be compiled or type-checked.
 
 **User Journey**:
+
 1. Developer completes P1.M1.T1.S1 (package.json with TypeScript 5.2+)
 2. Developer creates tsconfig.json with proper configuration
 3. Developer validates with `tsc --noEmit`
 4. TypeScript compilation is ready for future source files
 
 **Pain Points Addressed**:
+
 - Enables type checking for all TypeScript code
 - Configures Groundswell decorators for workflow classes
 - Establishes ESM module resolution for Node.js 20+
@@ -84,21 +88,21 @@ Create a `tsconfig.json` file with the following configuration:
 
 ### Compiler Options Explained
 
-| Option | Value | Purpose |
-|--------|-------|---------|
-| `target` | `"ES2022"` | JavaScript language target (class fields, private methods, top-level await) |
-| `module` | `"NodeNext"` | ESM module format for Node.js 20+ |
-| `moduleResolution` | `"NodeNext"` | Hybrid CJS/ESM resolution respecting package.json `"type"` |
-| `lib` | `["ES2022"]` | Type definitions for ES2022 APIs |
-| `strict` | `true` | Enable all strict type-checking options |
-| `esModuleInterop` | `true` | Better CommonJS/ESM interoperability |
-| `skipLibCheck` | `true` | Skip type checking of declaration files (faster builds) |
-| `forceConsistentCasingInFileNames` | `true` | Prevent case-related import issues |
-| `outDir` | `"./dist"` | Output directory for compiled JavaScript |
-| `rootDir` | `"./src"` | Root directory of TypeScript source files |
-| `resolveJsonModule` | `true` | Enable importing JSON files |
-| `experimentalDecorators` | `true` | Required for Groundswell decorators |
-| `emitDecoratorMetadata` | `true` | Required for Groundswell decorator metadata |
+| Option                             | Value        | Purpose                                                                     |
+| ---------------------------------- | ------------ | --------------------------------------------------------------------------- |
+| `target`                           | `"ES2022"`   | JavaScript language target (class fields, private methods, top-level await) |
+| `module`                           | `"NodeNext"` | ESM module format for Node.js 20+                                           |
+| `moduleResolution`                 | `"NodeNext"` | Hybrid CJS/ESM resolution respecting package.json `"type"`                  |
+| `lib`                              | `["ES2022"]` | Type definitions for ES2022 APIs                                            |
+| `strict`                           | `true`       | Enable all strict type-checking options                                     |
+| `esModuleInterop`                  | `true`       | Better CommonJS/ESM interoperability                                        |
+| `skipLibCheck`                     | `true`       | Skip type checking of declaration files (faster builds)                     |
+| `forceConsistentCasingInFileNames` | `true`       | Prevent case-related import issues                                          |
+| `outDir`                           | `"./dist"`   | Output directory for compiled JavaScript                                    |
+| `rootDir`                          | `"./src"`    | Root directory of TypeScript source files                                   |
+| `resolveJsonModule`                | `true`       | Enable importing JSON files                                                 |
+| `experimentalDecorators`           | `true`       | Required for Groundswell decorators                                         |
+| `emitDecoratorMetadata`            | `true`       | Required for Groundswell decorator metadata                                 |
 
 ### Success Criteria
 
@@ -116,6 +120,7 @@ Create a `tsconfig.json` file with the following configuration:
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact tsconfig.json content with all options
 - Validation commands to verify success
 - Research references for all decisions
@@ -588,7 +593,7 @@ rm src/test-config.ts
 - [ ] `outDir` is set to "./dist"
 - [ ] `rootDir` is set to "./src"
 - [ ] `resolveJsonModule` is set to true
-- [ ] `include` contains "src/**/*"
+- [ ] `include` contains "src/\*_/_"
 - [ ] `exclude` contains "node_modules" and "dist"
 
 ### Code Quality Validation
@@ -624,16 +629,19 @@ rm src/test-config.ts
 ## Next Steps (After This Task)
 
 **P1.M1.T1.S3**: Link Groundswell library locally
+
 - Requires tsconfig.json from this task
 - Will use `npm link ~/projects/groundswell`
 - Will install reflect-metadata for decorator metadata
 
 **P1.M1.T1.S4**: Set up project directory structure
+
 - Requires tsconfig.json from this task
 - Will create src/, tests/, and other directories
 - rootDir in tsconfig points to ./src
 
 **P1.M1.T3.S2**: Create entry point and hello-world workflow
+
 - Requires tsconfig.json for type checking
 - Will create src/index.ts (first TypeScript file)
 
@@ -642,12 +650,14 @@ rm src/test-config.ts
 ## Additional Research References
 
 **Stored Research Documents** (for further reading):
+
 - `plan/001_14b9dc2a33c7/P1M1T1S2/research/tsconfig_best_practices.md` - tsconfig best practices summary
 - `plan/001_14b9dc2a33c7/P1M1T1S2/research/tsconfig_validation_research.md` - Validation commands and patterns
 - `plan/001_14b9dc2a33c7/docs/typescript_5.2_plus_research.md` - Comprehensive TypeScript 5.2+ features
 - `plan/001_14b9dc2a33c7/architecture/groundswell_api.md` - Groundswell library API reference
 
 **Quick Reference URLs**:
+
 - [TypeScript Compiler Options](https://www.typescriptlang.org/tsconfig)
 - [TypeScript 5.2 Release Notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html)
 - [TypeScript Decorators](https://www.typescriptlang.org/docs/handbook/decorators.html)

@@ -5,6 +5,7 @@
 ## Critical Compiler Options for Groundswell Project
 
 ### Required Options
+
 ```json
 {
   "compilerOptions": {
@@ -25,20 +26,24 @@
 ### Groundswell Decorator Requirements
 
 Groundswell uses these decorators:
+
 - `@Step(opts)` - Mark methods as workflow steps
 - `@Task(opts)` - Mark methods that return child workflows
 - `@ObservedState(meta)` - Mark fields for state snapshots
 
 These require:
+
 - `experimentalDecorators: true`
 - `emitDecoratorMetadata: true`
 
 ### Runtime Dependency
+
 ```bash
 npm install reflect-metadata
 ```
 
 Entry point must import:
+
 ```typescript
 import 'reflect-metadata';
 ```
@@ -46,11 +51,13 @@ import 'reflect-metadata';
 ## Module Resolution: NodeNext
 
 ### Key Points
+
 - Respects `package.json "type": "module"`
 - Requires `.js` extensions in ESM imports
 - Converts `.ts` → `.js` during emit
 
 ### Extension Requirements
+
 ```typescript
 // Source file: src/utils/helper.ts
 
@@ -64,6 +71,7 @@ import { foo } from './utils/helper';
 ## Strict Mode Settings
 
 ### Recommended Configuration
+
 ```json
 {
   "strict": true,
@@ -77,9 +85,11 @@ import { foo } from './utils/helper';
 ## Common Gotchas
 
 ### 1. Extension Mismatch
+
 ESM requires file extensions in imports.
 
 ### 2. Decorator Import Order
+
 ```typescript
 // MUST be first import
 import 'reflect-metadata';
@@ -89,6 +99,7 @@ import { something } from './module';
 ```
 
 ### 3. package.json Type Field
+
 Must have `"type": "module"` for ESM.
 
 ## External References

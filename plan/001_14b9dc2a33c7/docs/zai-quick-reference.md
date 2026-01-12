@@ -25,7 +25,11 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="GLM-4.5-Air"
 ### TypeScript Configuration
 
 ```typescript
-import { configureEnvironment, getModel, validateEnvironment } from './config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+} from './config/environment.js';
 
 // Step 1: Configure environment
 configureEnvironment();
@@ -42,11 +46,13 @@ const model = getModel('sonnet'); // Returns 'GLM-4.7'
 ## API Endpoints
 
 ### Base URL
+
 ```
 https://api.z.ai/api/anthropic
 ```
 
 ### Messages Endpoint
+
 ```
 POST https://api.z.ai/api/anthropic/v1/messages
 ```
@@ -78,16 +84,14 @@ curl -X POST https://api.z.ai/api/anthropic/v1/messages \
 const response = await fetch('https://api.z.ai/api/anthropic/v1/messages', {
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${process.env.ANTHROPIC_API_KEY}`,
+    Authorization: `Bearer ${process.env.ANTHROPIC_API_KEY}`,
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     model: 'GLM-4.7',
     max_tokens: 1024,
-    messages: [
-      { role: 'user', content: 'Your message here' }
-    ]
-  })
+    messages: [{ role: 'user', content: 'Your message here' }],
+  }),
 });
 
 const data = await response.json();
@@ -97,10 +101,10 @@ const data = await response.json();
 
 ## Available Models
 
-| Model | Tier | Use Case |
-|-------|------|----------|
-| `GLM-4.7` | Opus/Sonnet | Complex reasoning, default |
-| `GLM-4.5-Air` | Haiku | Fast tasks, simple operations |
+| Model         | Tier        | Use Case                      |
+| ------------- | ----------- | ----------------------------- |
+| `GLM-4.7`     | Opus/Sonnet | Complex reasoning, default    |
+| `GLM-4.5-Air` | Haiku       | Fast tasks, simple operations |
 
 ---
 
@@ -132,16 +136,19 @@ const agent = createAgent({
 ## Validation
 
 ### Quick Test (Bash)
+
 ```bash
 ./scripts/validate-zai-api.sh
 ```
 
 ### Full Test (TypeScript)
+
 ```bash
 npx tsx tests/validation/zai-api-test.ts
 ```
 
 ### Manual Test
+
 ```bash
 # Test endpoint
 curl -I https://api.z.ai/api/anthropic
@@ -158,40 +165,44 @@ curl -X POST https://api.z.ai/api/anthropic/v1/messages \
 ## Troubleshooting
 
 ### "ANTHROPIC_API_KEY not found"
+
 **Solution:** Call `configureEnvironment()` before creating agents
 
 ### "Model not found: GLM-4.7"
+
 **Solution:** Verify model name, check z.ai documentation for available models
 
 ### "API timeout"
+
 **Solution:** Check network connectivity, verify API key, check firewall/proxy
 
 ### "Response format unexpected"
+
 **Solution:** Log response and compare with Anthropic API documentation
 
 ---
 
 ## File Locations
 
-| File | Purpose |
-|------|---------|
-| `src/config/constants.ts` | Base URL, model names, env var names |
-| `src/config/environment.ts` | Environment mapping, model selection |
-| `src/config/types.ts` | TypeScript interfaces |
-| `docs/zai-api-research.md` | Detailed research documentation |
-| `scripts/validate-zai-api.sh` | Bash validation script |
-| `tests/validation/zai-api-test.ts` | TypeScript validation script |
-| `tests/manual/env-test.ts` | Manual environment test |
+| File                               | Purpose                              |
+| ---------------------------------- | ------------------------------------ |
+| `src/config/constants.ts`          | Base URL, model names, env var names |
+| `src/config/environment.ts`        | Environment mapping, model selection |
+| `src/config/types.ts`              | TypeScript interfaces                |
+| `docs/zai-api-research.md`         | Detailed research documentation      |
+| `scripts/validate-zai-api.sh`      | Bash validation script               |
+| `tests/validation/zai-api-test.ts` | TypeScript validation script         |
+| `tests/manual/env-test.ts`         | Manual environment test              |
 
 ---
 
 ## Differences from Anthropic API
 
-| Aspect | Anthropic | z.ai |
-|--------|-----------|------|
-| Base URL | `https://api.anthropic.com` | `https://api.z.ai/api/anthropic` |
-| Models | `claude-opus-4-*`, `claude-sonnet-4-*` | `GLM-4.7`, `GLM-4.5-Air` |
-| Shell Env Var | `ANTHROPIC_API_KEY` | `ANTHROPIC_AUTH_TOKEN` (mapped to `API_KEY`) |
+| Aspect        | Anthropic                              | z.ai                                         |
+| ------------- | -------------------------------------- | -------------------------------------------- |
+| Base URL      | `https://api.anthropic.com`            | `https://api.z.ai/api/anthropic`             |
+| Models        | `claude-opus-4-*`, `claude-sonnet-4-*` | `GLM-4.7`, `GLM-4.5-Air`                     |
+| Shell Env Var | `ANTHROPIC_API_KEY`                    | `ANTHROPIC_AUTH_TOKEN` (mapped to `API_KEY`) |
 
 ---
 

@@ -6,7 +6,12 @@
  * Run with: npx tsx tests/validation/zai-api-test.ts
  */
 
-import { configureEnvironment, getModel, validateEnvironment, EnvironmentValidationError } from '../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+  EnvironmentValidationError,
+} from '../../src/config/environment.js';
 
 // ANSI color codes for terminal output
 const colors = {
@@ -122,7 +127,9 @@ class ZAiValidator {
         duration: Date.now() - startTime,
       };
     } catch (error) {
-      fail(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+      fail(
+        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+      );
       return {
         name: 'Environment Configuration',
         passed: false,
@@ -187,7 +194,9 @@ class ZAiValidator {
         },
       };
     } catch (error) {
-      fail(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+      fail(
+        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+      );
       return {
         name: 'Model Selection',
         passed: false,
@@ -241,7 +250,9 @@ class ZAiValidator {
       if (error instanceof Error && error.name === 'AbortError') {
         fail('Request timeout (10s)');
       } else {
-        fail(`Connection error: ${error instanceof Error ? error.message : String(error)}`);
+        fail(
+          `Connection error: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
       log('', 'reset');
       return {
@@ -277,7 +288,12 @@ class ZAiValidator {
       };
 
       info('Request body:');
-      info(JSON.stringify(requestBody, null, 2).split('\n').map(l => `  ${l}`).join('\n'));
+      info(
+        JSON.stringify(requestBody, null, 2)
+          .split('\n')
+          .map(l => `  ${l}`)
+          .join('\n')
+      );
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -285,7 +301,7 @@ class ZAiValidator {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
@@ -296,7 +312,12 @@ class ZAiValidator {
 
       const responseBody = await response.json();
       info('Response body:');
-      info(JSON.stringify(responseBody, null, 2).split('\n').map(l => `  ${l}`).join('\n'));
+      info(
+        JSON.stringify(responseBody, null, 2)
+          .split('\n')
+          .map(l => `  ${l}`)
+          .join('\n')
+      );
 
       if (!response.ok) {
         fail(`API request failed with HTTP ${response.status}`);
@@ -342,8 +363,16 @@ class ZAiValidator {
 
         // Extract text content
         const textContent = responseBody.content
-          .filter((c: unknown) => typeof c === 'object' && c !== null && 'type' in c && c.type === 'text')
-          .map((c: unknown) => typeof c === 'object' && c !== null && 'text' in c ? c.text : '')
+          .filter(
+            (c: unknown) =>
+              typeof c === 'object' &&
+              c !== null &&
+              'type' in c &&
+              c.type === 'text'
+          )
+          .map((c: unknown) =>
+            typeof c === 'object' && c !== null && 'text' in c ? c.text : ''
+          )
           .join('');
 
         if (textContent) {
@@ -380,7 +409,9 @@ class ZAiValidator {
         details: { response: responseBody },
       };
     } catch (error) {
-      fail(`Request failed: ${error instanceof Error ? error.message : String(error)}`);
+      fail(
+        `Request failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       log('', 'reset');
       return {
         name: 'Message API (GLM-4.7)',
@@ -408,7 +439,7 @@ class ZAiValidator {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'anthropic-version': '2023-06-01',
         },
@@ -442,7 +473,9 @@ class ZAiValidator {
         };
       }
     } catch (error) {
-      warn(`Request failed: ${error instanceof Error ? error.message : String(error)}`);
+      warn(
+        `Request failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       info('This may indicate z.ai does not support this header');
       log('', 'reset');
       return {
@@ -470,7 +503,7 @@ class ZAiValidator {
       const response = await fetch(`${this.baseURL}/v1/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -480,7 +513,11 @@ class ZAiValidator {
         }),
       });
 
-      if (response.status === 400 || response.status === 404 || response.status === 500) {
+      if (
+        response.status === 400 ||
+        response.status === 404 ||
+        response.status === 500
+      ) {
         success(`Invalid model returns error (HTTP ${response.status})`);
         checks.push(true);
       } else {
@@ -488,7 +525,9 @@ class ZAiValidator {
         checks.push(false);
       }
     } catch (error) {
-      warn(`Error testing invalid model: ${error instanceof Error ? error.message : String(error)}`);
+      warn(
+        `Error testing invalid model: ${error instanceof Error ? error.message : String(error)}`
+      );
       checks.push(false);
     }
 
@@ -499,7 +538,7 @@ class ZAiValidator {
       const response = await fetch(`${this.baseURL}/v1/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer invalid-key-12345',
+          Authorization: 'Bearer invalid-key-12345',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -517,7 +556,9 @@ class ZAiValidator {
         checks.push(false);
       }
     } catch (error) {
-      warn(`Error testing invalid API key: ${error instanceof Error ? error.message : String(error)}`);
+      warn(
+        `Error testing invalid API key: ${error instanceof Error ? error.message : String(error)}`
+      );
       checks.push(false);
     }
 
@@ -540,7 +581,10 @@ class ZAiValidator {
     this.results.push(envResult);
 
     if (!envResult.passed) {
-      log('\n❌ Environment configuration failed. Aborting remaining tests.\n', 'red');
+      log(
+        '\n❌ Environment configuration failed. Aborting remaining tests.\n',
+        'red'
+      );
       this.printSummary(overallStart);
       process.exit(1);
     }
@@ -554,7 +598,10 @@ class ZAiValidator {
     this.results.push(connectivityResult);
 
     if (!connectivityResult.passed) {
-      log('\n❌ Endpoint connectivity failed. Aborting remaining tests.\n', 'red');
+      log(
+        '\n❌ Endpoint connectivity failed. Aborting remaining tests.\n',
+        'red'
+      );
       this.printSummary(overallStart);
       process.exit(1);
     }

@@ -1,7 +1,6 @@
 ---
-name: "Environment Validation Tests PRP"
+name: 'Environment Validation Tests PRP'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: A passing Vitest test suite file at `tests/unit/config/environment.test.ts` with complete coverage of the environment configuration module.
 
 **Success Definition**:
+
 - All tests pass: `npm run test` exits with code 0
 - 100% code coverage of `src/config/environment.ts`: `npm run test:coverage` shows 100% for statements, branches, functions, and lines
 - Tests validate all three exported functions: `configureEnvironment()`, `getModel()`, `validateEnvironment()`
@@ -23,6 +23,7 @@ description: |
 **Use Case**: When developing new features or refactoring, developers run tests to verify environment configuration still works correctly. Tests also serve as documentation for expected behavior.
 
 **User Journey**:
+
 1. Developer makes changes to environment-related code
 2. Developer runs `npm run test` to verify changes don't break existing behavior
 3. If tests fail, developer reviews test output to identify what broke
@@ -30,6 +31,7 @@ description: |
 5. Optionally, developer runs `npm run test:coverage` to verify coverage remains at 100%
 
 **Pain Points Addressed**:
+
 - Currently no automated tests for environment configuration - only manual console-based scripts
 - No confidence that environment variable mapping works correctly across different scenarios
 - No validation that error handling is robust
@@ -308,8 +310,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    environment: 'node',        // Backend code, not DOM
-    globals: true,              // Auto-import describe, it, expect, etc.
+    environment: 'node', // Backend code, not DOM
+    globals: true, // Auto-import describe, it, expect, etc.
     include: ['tests/**/*.{test,spec}.{ts,js}'],
     coverage: {
       provider: 'v8',
@@ -336,7 +338,12 @@ export default defineConfig({
 // ===== TEST FILE STRUCTURE PATTERN =====
 // File: tests/unit/config/environment.test.ts
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { configureEnvironment, getModel, validateEnvironment, EnvironmentValidationError } from '../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+  EnvironmentValidationError,
+} from '../../src/config/environment.js';
 
 describe('config/environment', () => {
   // CLEANUP: Always restore environment after each test
@@ -377,7 +384,9 @@ describe('config/environment', () => {
       configureEnvironment();
 
       // VERIFY: Default z.ai endpoint
-      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+      expect(process.env.ANTHROPIC_BASE_URL).toBe(
+        'https://api.z.ai/api/anthropic'
+      );
     });
 
     it('should preserve custom BASE_URL when already set', () => {
@@ -388,7 +397,9 @@ describe('config/environment', () => {
       configureEnvironment();
 
       // VERIFY: Custom URL preserved
-      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://custom.endpoint.com/api');
+      expect(process.env.ANTHROPIC_BASE_URL).toBe(
+        'https://custom.endpoint.com/api'
+      );
     });
   });
 
@@ -481,7 +492,9 @@ describe('config/environment', () => {
       delete process.env.ANTHROPIC_BASE_URL;
 
       // EXECUTE
-      const error = expect(() => validateEnvironment()).toThrow(EnvironmentValidationError);
+      const error = expect(() => validateEnvironment()).toThrow(
+        EnvironmentValidationError
+      );
 
       // VERIFY: Error contains both missing variables
       try {

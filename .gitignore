@@ -41,6 +41,9 @@ coverage/
 # Vitest
 .vitest/
 
+# ESLint cache
+.eslintcache
+
 # Compiled test files (keep .ts source only)
 tests/**/*.{js,d.ts}
 

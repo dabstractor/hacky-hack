@@ -3,6 +3,7 @@
 Research findings on common issues, error patterns, and solutions when using `npm link` with TypeScript projects.
 
 ## Table of Contents
+
 1. [Type Resolution Issues](#type-resolution-issues)
 2. [Module Resolution Errors](#module-resolution-errors)
 3. [Build Issues with tsc](#build-issues-with-tsc)
@@ -16,11 +17,13 @@ Research findings on common issues, error patterns, and solutions when using `np
 ### Issue 1.1: TypeScript Cannot Find Types from Linked Packages
 
 **Symptoms:**
+
 ```
 error TS2307: Cannot find module '@my-org/my-package' or its corresponding type declarations
 ```
 
 **Root Causes:**
+
 - TypeScript's module resolution doesn't follow symlinks properly
 - The `package.json` `types` or `typings` field is missing or incorrect
 - Type declarations (`.d.ts`) aren't being generated in the linked package
@@ -28,6 +31,7 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
 **Solutions:**
 
 1. **Ensure the linked package exports types correctly:**
+
    ```json
    // linked-package/package.json
    {
@@ -45,6 +49,7 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
    ```
 
 2. **Build the linked package before linking:**
+
    ```bash
    cd /path/to/linked-package
    npm run build
@@ -52,6 +57,7 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
    ```
 
 3. **Configure TypeScript to preserve symlinks:**
+
    ```json
    // consuming project tsconfig.json
    {
@@ -63,12 +69,11 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
    ```
 
 4. **Use project references (recommended for monorepo-like development):**
+
    ```json
    // tsconfig.json (consuming project)
    {
-     "references": [
-       { "path": "../linked-package" }
-     ]
+     "references": [{ "path": "../linked-package" }]
    }
    ```
 
@@ -86,6 +91,7 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
 ### Issue 1.2: Type Mismatches Between Linked and Installed Versions
 
 **Symptoms:**
+
 - Type errors suggesting properties don't exist
 - Incompatible type errors when using linked package types
 - Duplicate identifier errors
@@ -93,6 +99,7 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
 **Solutions:**
 
 1. **Ensure `declaration: true` in linked package:**
+
    ```json
    {
      "compilerOptions": {
@@ -104,6 +111,7 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
    ```
 
 2. **Clean and rebuild after type changes:**
+
    ```bash
    # In linked package
    rm -rf dist && npm run build
@@ -122,14 +130,16 @@ error TS2307: Cannot find module '@my-org/my-package' or its corresponding type 
 ### Issue 1.3: Type Declarations Not Found in Subpaths
 
 **Symptoms:**
+
 ```typescript
-import { SubModule } from '@my-pkg/sub-module'
+import { SubModule } from '@my-pkg/sub-module';
 // Error: Cannot find module '@my-pkg/sub-module'
 ```
 
 **Solution:**
 
 Use proper `exports` field configuration:
+
 ```json
 {
   "exports": {
@@ -152,6 +162,7 @@ Use proper `exports` field configuration:
 ### Issue 2.1: Module Not Found Errors
 
 **Common Error Messages:**
+
 ```
 Error: Cannot find module 'my-linked-package'
 Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'my-linked-package' imported from /path/to/project
@@ -159,6 +170,7 @@ TS2307: Cannot find module 'my-linked-package' or its corresponding type declara
 ```
 
 **Root Causes:**
+
 - npm link not properly executed
 - Node.js module resolution not following symlinks
 - Case sensitivity issues
@@ -167,6 +179,7 @@ TS2307: Cannot find module 'my-linked-package' or its corresponding type declara
 **Solutions:**
 
 1. **Proper npm link workflow:**
+
    ```bash
    # Step 1: Create global link in the package directory
    cd /path/to/linked-package
@@ -182,6 +195,7 @@ TS2307: Cannot find module 'my-linked-package' or its corresponding type declara
    ```
 
 2. **Check package name consistency:**
+
    ```bash
    # Verify package name matches exactly
    cat /path/to/linked-package/package.json | grep '"name"'
@@ -200,18 +214,21 @@ TS2307: Cannot find module 'my-linked-package' or its corresponding type declara
 ### Issue 2.2: Dual Package Hazard (CommonJS vs ESM)
 
 **Symptoms:**
+
 ```
 TypeError: Cannot read property 'default' of undefined
 SyntaxError: Cannot use import statement outside a module
 ```
 
 **Root Causes:**
+
 - Linked package is CommonJS but consuming project uses ESM (or vice versa)
 - Different `module` type in package.json
 
 **Solutions:**
 
 1. **Align module types:**
+
    ```json
    // Both packages should have consistent module settings
    {
@@ -245,6 +262,7 @@ SyntaxError: Cannot use import statement outside a module
 ### Issue 2.3: Path Resolution Issues with Workspace Tools
 
 **Common Tools with Issues:**
+
 - ts-node
 - tsx
 - tsx/esbuild
@@ -255,6 +273,7 @@ SyntaxError: Cannot use import statement outside a module
 **Solutions:**
 
 1. **For ts-node:**
+
    ```javascript
    // tsconfig.json
    {
@@ -269,6 +288,7 @@ SyntaxError: Cannot use import statement outside a module
    ```
 
 2. **For tsx:**
+
    ```bash
    # May need to use NODE_OPTIONS
    NODE_OPTIONS="--loader tsx" node src/index.ts
@@ -279,12 +299,10 @@ SyntaxError: Cannot use import statement outside a module
    // jest.config.js
    module.exports = {
      moduleNameMapper: {
-       '^@my-pkg/(.*)$': '<rootDir>/../linked-package/src/$1'
+       '^@my-pkg/(.*)$': '<rootDir>/../linked-package/src/$1',
      },
-     transformIgnorePatterns: [
-       'node_modules/(?!(my-linked-package)/)'
-     ]
-   }
+     transformIgnorePatterns: ['node_modules/(?!(my-linked-package)/)'],
+   };
    ```
 
 ---
@@ -294,6 +312,7 @@ SyntaxError: Cannot use import statement outside a module
 ### Issue 3.1: Incremental Compilation Cache Issues
 
 **Symptoms:**
+
 - Changes in linked package not reflected in consuming project
 - Old type information persisting after rebuild
 - Need to delete `node_modules` and reinstall to see changes
@@ -301,6 +320,7 @@ SyntaxError: Cannot use import statement outside a module
 **Solutions:**
 
 1. **Disable incremental compilation for linked packages:**
+
    ```json
    {
      "compilerOptions": {
@@ -311,6 +331,7 @@ SyntaxError: Cannot use import statement outside a module
    ```
 
 2. **Use build mode for project references:**
+
    ```bash
    # Build all referenced projects
    tsc --build
@@ -333,6 +354,7 @@ SyntaxError: Cannot use import statement outside a module
 ### Issue 3.2: Declaration File Generation Issues
 
 **Symptoms:**
+
 ```
 error TS5060: Cannot write file '...' because it would overwrite input file
 error TS6305: Output file '...' has not been built from source file
@@ -341,6 +363,7 @@ error TS6305: Output file '...' has not been built from source file
 **Solutions:**
 
 1. **Configure proper outDir separation:**
+
    ```json
    {
      "compilerOptions": {
@@ -352,6 +375,7 @@ error TS6305: Output file '...' has not been built from source file
    ```
 
 2. **Ensure clean build process:**
+
    ```bash
    # Add to package.json scripts
    {
@@ -376,6 +400,7 @@ error TS6305: Output file '...' has not been built from source file
 ### Issue 3.3: Transitive Dependency Resolution
 
 **Symptoms:**
+
 - Missing types for dependencies of linked packages
 - Version conflicts between shared dependencies
 - `Cannot find module` for peer dependencies
@@ -383,6 +408,7 @@ error TS6305: Output file '...' has not been built from source file
 **Solutions:**
 
 1. **Install dependencies in linked package:**
+
    ```bash
    cd /path/to/linked-package
    npm install
@@ -392,6 +418,7 @@ error TS6305: Output file '...' has not been built from source file
    ```
 
 2. **Use npm link for all transitive dependencies:**
+
    ```bash
    # Link dependency chain
    cd /path/to/dep-package
@@ -421,12 +448,14 @@ error TS6305: Output file '...' has not been built from source file
 ### Issue 4.1: VSCode TypeScript Language Server Not Recognizing Linked Packages
 
 **Symptoms:**
+
 - Red squiggly under imports from linked packages
 - "Cannot find module" errors in VSCode but not in CLI tsc
 - IntelliSense not working for linked package types
 - "Go to Definition" doesn't work
 
 **Root Causes:**
+
 - VSCode's TypeScript service (tsserver) using different tsconfig
 - Symlinks not resolved by VSCode's file watcher
 - Cached type information in tsserver
@@ -434,6 +463,7 @@ error TS6305: Output file '...' has not been built from source file
 **Solutions:**
 
 1. **Select the correct TypeScript version:**
+
    ```json
    // .vscode/settings.json
    {
@@ -444,11 +474,13 @@ error TS6305: Output file '...' has not been built from source file
    ```
 
 2. **Restart TypeScript server:**
+
    ```
    Command Palette (Ctrl+Shift+P) -> "TypeScript: Restart TS Server"
    ```
 
 3. **Configure VSCode to watch symlinks:**
+
    ```json
    // .vscode/settings.json
    {
@@ -474,6 +506,7 @@ error TS6305: Output file '...' has not been built from source file
 ### Issue 4.2: Hot Module Replacement (HMR) Not Working with Linked Packages
 
 **Symptoms:**
+
 - Changes in linked package don't trigger dev server reload
 - Need to restart dev server after linked package changes
 - Stale code in browser despite rebuild
@@ -481,59 +514,62 @@ error TS6305: Output file '...' has not been built from source file
 **Solutions:**
 
 1. **Configure Vite:**
+
    ```javascript
    // vite.config.ts
-   import { defineConfig } from 'vite'
+   import { defineConfig } from 'vite';
 
    export default defineConfig({
      resolve: {
-       preserveSymlinks: true
+       preserveSymlinks: true,
      },
      optimizeDeps: {
-       exclude: ['linked-package-name']
+       exclude: ['linked-package-name'],
      },
      server: {
        watch: {
-         followSymlinks: true
-       }
-     }
-   })
+         followSymlinks: true,
+       },
+     },
+   });
    ```
 
 2. **Configure webpack:**
+
    ```javascript
    // webpack.config.js
    module.exports = {
      resolve: {
        symlinks: false, // Don't resolve symlinks to real path
        alias: {
-         'linked-package': path.resolve(__dirname, '../linked-package/src')
-       }
+         'linked-package': path.resolve(__dirname, '../linked-package/src'),
+       },
      },
      watchOptions: {
        ignored: /node_modules/,
-       followSymlinks: true
-     }
-   }
+       followSymlinks: true,
+     },
+   };
    ```
 
 3. **Configure Next.js:**
    ```javascript
    // next.config.js
    module.exports = {
-     webpack: (config) => {
-       config.resolve.symlinks = false
-       return config
+     webpack: config => {
+       config.resolve.symlinks = false;
+       return config;
      },
      experimental: {
-       externalDir: true
-     }
-   }
+       externalDir: true,
+     },
+   };
    ```
 
 ### Issue 4.3: Debugging Source Maps Issues
 
 **Symptoms:**
+
 - Breakpoints not hitting in linked package source
 - Stack traces showing compiled code instead of TypeScript
 - Source maps not loading for linked packages
@@ -541,6 +577,7 @@ error TS6305: Output file '...' has not been built from source file
 **Solutions:**
 
 1. **Generate source maps in linked package:**
+
    ```json
    {
      "compilerOptions": {
@@ -552,6 +589,7 @@ error TS6305: Output file '...' has not been built from source file
    ```
 
 2. **Configure VSCode launch.json:**
+
    ```json
    {
      "version": "0.2.0",
@@ -585,6 +623,7 @@ error TS6305: Output file '...' has not been built from source file
 ## 5. Reference Links
 
 ### Official Documentation
+
 - **TypeScript Module Resolution**: https://www.typescriptlang.org/docs/handbook/module-resolution.html
 - **TypeScript Project References**: https://www.typescriptlang.org/docs/handbook/project-references.html
 - **npm link Documentation**: https://docs.npmjs.com/cli/v10/commands/npm-link
@@ -592,6 +631,7 @@ error TS6305: Output file '...' has not been built from source file
 - **Node.js Symlinks**: https://nodejs.org/api/fs.html#fs_symlink_target_type_callback
 
 ### TypeScript GitHub Issues (Highly Relevant)
+
 - **Symlink resolution issues**: https://github.com/microsoft/TypeScript/issues/33079
 - **Project references with npm link**: https://github.com/microsoft/TypeScript/issues/37378
 - **preserveSymlinks not working**: https://github.com/microsoft/TypeScript/issues/32684
@@ -599,6 +639,7 @@ error TS6305: Output file '...' has not been built from source file
 - **Composite project symlink issues**: https://github.com/microsoft/TypeScript/issues/47148
 
 ### StackOverflow Questions
+
 - **TypeScript not finding types from npm link**: https://stackoverflow.com/questions/65876459/npm-link-typescript-cannot-find-module
 - **VSCode not recognizing npm linked packages**: https://stackoverflow.com/questions/58697269/vscode-and-npm-linked-packages
 - **tsc compilation errors with linked packages**: https://stackoverflow.com/questions/68054172/npm-link-with-typescript-and-exports
@@ -606,22 +647,26 @@ error TS6305: Output file '...' has not been built from source file
 - **Source maps not working with linked packages**: https://stackoverflow.com/questions/60123449/debug-npm-linked-package-with-vscode
 
 ### npm Issues
+
 - **npm link with TypeScript**: https://github.com/npm/cli/issues/2615
 - **Symlink resolution in workspaces**: https://github.com/npm/cli/issues/3795
 - **npm link and peer dependencies**: https://github.com/npm/cli/issues/1262
 
 ### VSCode Issues
+
 - **tsserver symlink resolution**: https://github.com/microsoft/vscode/issues/98127
 - **npm link IntelliSense**: https://github.com/microsoft/vscode/issues/104545
 - **tsserver cache with symlinks**: https://github.com/microsoft/vscode/issues/118045
 
 ### Build Tool Issues
+
 - **Vite symlink issues**: https://github.com/vitejs/vite/issues/2395
 - **webpack symlink resolution**: https://github.com/webpack/webpack/issues/8976
 - **Jest with npm link**: https://github.com/facebook/jest/issues/7966
 - **ts-node with linked packages**: https://github.com/TypeStrong/ts-node/issues/1580
 
 ### Community Resources
+
 - **pnpm link (alternative to npm link)**: https://pnpm.io/cli/link
 - **Yarn link documentation**: https://yarnpkg.com/cli/link
 - **Turborepo workspace setup**: https://turbo.build/repo/docs/handbook/mechanics/monorepos-are-hard
@@ -635,30 +680,35 @@ error TS6305: Output file '...' has not been built from source file
 When encountering npm link issues with TypeScript, follow this checklist:
 
 ### Initial Setup
+
 - [ ] Both packages have valid `package.json` with correct `name` field
 - [ ] Linked package has been built (`npm run build` completed successfully)
 - [ ] Linked package has `types` or `typings` field pointing to `.d.ts` file
 - [ ] TypeScript version is compatible across packages
 
 ### Linking Process
+
 - [ ] `npm link` executed in linked package directory
 - [ ] `npm link <package-name>` executed in consuming project
 - [ ] Symlink created in `node_modules` (verify with `ls -la node_modules/`)
 - [ ] Package name in import matches `package.json` name exactly
 
 ### TypeScript Configuration
+
 - [ ] `preserveSymlinks: true` in consuming project's `tsconfig.json`
 - [ ] `moduleResolution` set to `"node"` or `"node16"` or `"nodenext"`
 - [ ] `baseUrl` and `paths` configured if needed
 - [ ] Project references configured for monorepo setup
 
 ### Build Verification
+
 - [ ] `tsc --noCache` runs without errors
 - [ ] `tsc --traceResolution` shows proper module resolution
 - [ ] Declaration files (`.d.ts`) exist in linked package's output
 - [ ] Build artifacts are up-to-date in linked package
 
 ### IDE/Editor Setup
+
 - [ ] TypeScript server restarted after linking
 - [ ] VSCode using workspace TypeScript version
 - [ ] Source maps generated for debugging
@@ -697,10 +747,7 @@ packages:
 // tsconfig.json (root)
 {
   "files": [],
-   "references": [
-    { "path": "./packages/shared" },
-    { "path": "./packages/app" }
-  ]
+  "references": [{ "path": "./packages/shared" }, { "path": "./packages/app" }]
 }
 ```
 
@@ -729,9 +776,7 @@ packages:
 // package.json
 {
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": ["packages/*"]
 }
 ```
 
@@ -767,5 +812,5 @@ npm list typescript
 
 ---
 
-*Document last updated: 2025-01-12*
-*Research compiled for Groundswell Project (001_14b9dc2a33c7)*
+_Document last updated: 2025-01-12_
+_Research compiled for Groundswell Project (001_14b9dc2a33c7)_

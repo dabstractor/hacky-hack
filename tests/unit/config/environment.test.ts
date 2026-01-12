@@ -55,7 +55,9 @@ describe('config/environment', () => {
       configureEnvironment();
 
       // VERIFY: Default z.ai endpoint
-      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+      expect(process.env.ANTHROPIC_BASE_URL).toBe(
+        'https://api.z.ai/api/anthropic'
+      );
     });
 
     it('should preserve custom BASE_URL when already set', () => {
@@ -66,7 +68,9 @@ describe('config/environment', () => {
       configureEnvironment();
 
       // VERIFY: Custom URL preserved
-      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://custom.endpoint.com/api');
+      expect(process.env.ANTHROPIC_BASE_URL).toBe(
+        'https://custom.endpoint.com/api'
+      );
     });
   });
 

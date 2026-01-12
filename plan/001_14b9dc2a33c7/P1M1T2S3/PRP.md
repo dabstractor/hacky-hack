@@ -13,6 +13,7 @@
 **Feature Goal**: Create an executable TypeScript validation script that empirically tests z.ai API compatibility with the Anthropic API format, confirming endpoint availability, authentication, and basic message completion functionality.
 
 **Deliverable**: `src/scripts/validate-api.ts` - An executable TypeScript script that:
+
 - Tests GET endpoint availability at `/api/anthropic` (if exists)
 - Tests POST `/api/anthropic/v1/messages` with minimal payload
 - Verifies GLM-4.7 model accepts requests
@@ -20,6 +21,7 @@
 - Exits with code 1 if any test fails
 
 **Success Definition**:
+
 - Script executes successfully with valid `ANTHROPIC_API_KEY` and `BASE_URL`
 - All API endpoints respond with valid HTTP status codes
 - GLM-4.7 model accepts and responds to message requests
@@ -34,12 +36,14 @@
 **Target User**: Developer setting up the PRP pipeline who needs to verify that z.ai API credentials and endpoint configuration are working correctly before proceeding with agent implementation.
 
 **Use Case**: After configuring environment variables (P1.M1.T2.S1), the developer needs to validate that:
+
 1. The z.ai API endpoint is reachable
 2. Authentication is working with the configured API key
 3. The GLM-4.7 model responds to basic message requests
 4. Response format matches Anthropic API expectations
 
 **User Journey**:
+
 1. Developer sets `ANTHROPIC_API_KEY` (via `ANTHROPIC_AUTH_TOKEN` mapping)
 2. Developer runs `npx tsx src/scripts/validate-api.ts`
 3. Script displays progress with colored output (blue info, green success, red error)
@@ -47,6 +51,7 @@
 5. Developer can proceed with confidence to Groundswell agent implementation
 
 **Pain Points Addressed**:
+
 - **Uncertain API compatibility**: z.ai is a proxy endpoint; actual compatibility is unknown until tested
 - **Hard to debug auth failures**: Without detailed logging, authentication issues are opaque
 - **No feedback on response format**: Need to see actual response structure to integrate correctly
@@ -69,20 +74,24 @@
 Create a TypeScript CLI script that performs the following validations:
 
 ### 1. Environment Configuration Validation
+
 - Load and validate environment variables using existing `configureEnvironment()` and `validateEnvironment()`
 - Display configured values (API key redacted, base URL, model)
 
 ### 2. Endpoint Availability Test
+
 - Test GET request to `BASE_URL` (root endpoint)
 - Test HEAD request to `BASE_URL/v1/messages` (endpoint existence check)
 - Report HTTP status codes and response headers
 
 ### 3. Authentication Test
+
 - Send minimal POST request to `BASE_URL/v1/messages`
 - Verify authentication headers are accepted
 - Detect and report 401/403 authentication failures
 
 ### 4. Message Completion Test
+
 - Send minimal message payload to GLM-4.7 model
 - Verify response structure (id, content, role, stop_reason)
 - Log response format (headers, body, usage statistics)
@@ -107,6 +116,7 @@ Create a TypeScript CLI script that performs the following validations:
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file location and shebang pattern
 - Complete script structure with logging utilities
 - Specific API endpoint URLs and expected behavior
@@ -387,7 +397,7 @@ Task 10: MANUAL TEST with valid API key
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // CRITICAL PATTERNS - Follow these for consistency
 // ============================================================================
@@ -557,7 +567,7 @@ process.on('SIGINT', () => {
 
 // PATTERN 11: Top-level await to run main
 await main();
-```
+````
 
 ### Integration Points
 
@@ -756,14 +766,17 @@ npx tsx src/scripts/validate-api.ts
 ## Next Steps (After This Task)
 
 **P1.M1.T3.S1**: Configure ESLint and Prettier
+
 - Use validation script patterns for consistent code style
 - Add linting for the new `src/scripts/` directory
 
 **P2.M1.T1**: Create Agent Factory
+
 - Verified API compatibility enables Groundswell agent creation
 - Use `getModel()` function for agent model selection
 
 **P3.M4.T2**: Create CLI Entry Point
+
 - Validation script can be integrated as a pre-flight check
 - Add `validate:api` to npm scripts for easy access
 
@@ -772,11 +785,13 @@ npx tsx src/scripts/validate-api.ts
 ## Additional Research References
 
 **Stored Research Documents** (for further reading):
+
 - `/home/dustin/projects/hacky-hack/docs/zai-api-research.md` - Comprehensive z.ai API research
 - `/home/dustin/projects/hacky-hack/docs/zai-quick-reference.md` - Quick reference guide
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/nodejs_typescript_research.md` - Node.js 20+ considerations
 
 **Quick Reference URLs**:
+
 - [Node.js Fetch API](https://nodejs.org/api/globals.html#fetch)
 - [Anthropic Messages API](https://docs.anthropic.com/claude/reference/messages_post)
 - [tsx documentation](https://tsx.is/)
@@ -789,6 +804,7 @@ npx tsx src/scripts/validate-api.ts
 **Estimated Complexity**: Low-Medium (straightforward validation script with well-defined requirements)
 
 **Confidence Rationale**:
+
 - Complete implementation specification with code examples
 - Specific API endpoints and expected behavior documented
 - Error handling patterns clearly defined
@@ -796,6 +812,7 @@ npx tsx src/scripts/validate-api.ts
 - Only uncertainty is actual z.ai API response format (which the script will reveal)
 
 **Risk Mitigation**:
+
 - Log full response format to identify any z.ai-specific differences
 - Test with minimal payload first before complex requests
 - Provide clear error messages for each failure mode

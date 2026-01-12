@@ -9,6 +9,7 @@ This document consolidates all known information about z.ai API compatibility wi
 ## 1. Base URL Structure
 
 ### Official Endpoint
+
 ```
 https://api.z.ai/api/anthropic
 ```
@@ -16,6 +17,7 @@ https://api.z.ai/api/anthropic
 **Source:** `/home/dustin/projects/hacky-hack/src/config/constants.ts` (line 22)
 
 **Comparison:**
+
 - **Anthropic Official:** `https://api.anthropic.com`
 - **z.ai Proxy:** `https://api.z.ai/api/anthropic`
 
@@ -40,7 +42,7 @@ z.ai expects the same authentication headers as the Anthropic SDK:
 
 ```typescript
 // Standard Anthropic-compatible authentication
-ANTHROPIC_API_KEY: "<your-api-key>"
+ANTHROPIC_API_KEY: '<your-api-key>';
 ```
 
 ### Environment Variable Mapping
@@ -48,6 +50,7 @@ ANTHROPIC_API_KEY: "<your-api-key>"
 **Critical Implementation Detail:** Your shell environment uses `ANTHROPIC_AUTH_TOKEN`, but the Anthropic SDK expects `ANTHROPIC_API_KEY`.
 
 **Mapping Implementation:**
+
 ```typescript
 // From src/config/environment.ts (lines 55-64)
 export function configureEnvironment(): void {
@@ -97,6 +100,7 @@ curl -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
 ```
 
 **Expected Headers:**
+
 - `Authorization: Bearer <token>`
 - `Content-Type: application/json`
 - Potentially: `anthropic-version: 2023-06-01` (standard Anthropic header, not yet verified for z.ai)
@@ -107,10 +111,10 @@ curl -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
 
 ### Documented Models
 
-| Model Name | Tier | Use Case | Source |
-|------------|------|----------|--------|
-| `GLM-4.7` | Sonnet/Opus | Complex reasoning, Architect, Researcher | constants.ts:45-47 |
-| `GLM-4.5-Air` | Haiku | Fast tasks, simple operations | constants.ts:49 |
+| Model Name    | Tier        | Use Case                                 | Source             |
+| ------------- | ----------- | ---------------------------------------- | ------------------ |
+| `GLM-4.7`     | Sonnet/Opus | Complex reasoning, Architect, Researcher | constants.ts:45-47 |
+| `GLM-4.5-Air` | Haiku       | Fast tasks, simple operations            | constants.ts:49    |
 
 ### Model Configuration
 
@@ -139,6 +143,7 @@ export const MODEL_ENV_VARS = {
 ```
 
 **Usage:**
+
 ```typescript
 export function getModel(tier: ModelTier): string {
   const envVar = MODEL_ENV_VARS[tier];
@@ -155,6 +160,7 @@ export function getModel(tier: ModelTier): string {
 Based on standard Anthropic Messages API structure (assumed compatible):
 
 #### Request Format
+
 ```json
 {
   "model": "GLM-4.7",
@@ -172,6 +178,7 @@ Based on standard Anthropic Messages API structure (assumed compatible):
 ```
 
 #### Response Format (Expected)
+
 ```json
 {
   "id": "msg-<id>",
@@ -200,44 +207,54 @@ Based on standard Anthropic Messages API structure (assumed compatible):
 ## 6. Known Gotchas and Differences
 
 ### 6.1 Environment Variable Naming
+
 **Issue:** Shell uses `ANTHROPIC_AUTH_TOKEN`, SDK expects `ANTHROPIC_API_KEY`
 
 **Solution:** Must map in application code before initializing agents:
+
 ```typescript
 configureEnvironment(); // Must call first
 ```
 
 ### 6.2 Base URL Differences
+
 **Issue:** z.ai uses a different base URL than official Anthropic API
 
 **Comparison:**
+
 - Anthropic: `https://api.anthropic.com`
 - z.ai: `https://api.z.ai/api/anthropic`
 
 **Impact:** Must explicitly set `ANTHROPIC_BASE_URL` environment variable or configure in code.
 
 ### 6.3 Model Name Differences
+
 **Issue:** z.ai uses GLM model names, not Claude model names
 
 **Comparison:**
+
 - Anthropic: `claude-opus-4-20250514`, `claude-sonnet-4-20250514`
 - z.ai: `GLM-4.7`, `GLM-4.5-Air`
 
 **Impact:** Cannot use standard Anthropic model names. Must use z.ai specific model identifiers.
 
 ### 6.4 Unknown Headers
+
 **Status Uncertain:** Whether z.ai requires the `anthropic-version` header
 
 **Standard Anthropic:** `anthropic-version: 2023-06-01`
 **z.ai:** Not documented - needs testing
 
 ### 6.5 Streaming Behavior
+
 **Status Unknown:** Whether z.ai supports streaming responses (SSE) and the exact format
 
 **Action Required:** Test streaming endpoint if needed for your application.
 
 ### 6.6 Timeout Configuration
+
 Your environment configures a 50-minute timeout:
+
 ```bash
 API_TIMEOUT_MS=3000000  # 50 minutes
 ```
@@ -252,7 +269,11 @@ API_TIMEOUT_MS=3000000  # 50 minutes
 
 ```typescript
 // Import configuration module
-import { configureEnvironment, getModel, validateEnvironment } from './config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+} from './config/environment.js';
 
 // Step 1: Configure environment (maps AUTH_TOKEN -> API_KEY)
 configureEnvironment();
@@ -284,7 +305,7 @@ configureEnvironment();
 const architectAgent = createAgent({
   name: 'ArchitectAgent',
   system: ARCHITECT_SYSTEM_PROMPT,
-  model: getModel('sonnet'),  // Uses GLM-4.7
+  model: getModel('sonnet'), // Uses GLM-4.7
   enableCache: true,
   enableReflection: true,
   maxTokens: 4096,
@@ -303,7 +324,7 @@ async function testZAiAPI() {
   const response = await fetch('https://api.z.ai/api/anthropic/v1/messages', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.ANTHROPIC_API_KEY}`,
+      Authorization: `Bearer ${process.env.ANTHROPIC_API_KEY}`,
       'Content-Type': 'application/json',
       // Optionally add:
       // 'anthropic-version': '2023-06-01',
@@ -314,10 +335,10 @@ async function testZAiAPI() {
       messages: [
         {
           role: 'user',
-          content: 'Hello, z.ai!'
-        }
-      ]
-    })
+          content: 'Hello, z.ai!',
+        },
+      ],
+    }),
   });
 
   if (!response.ok) {
@@ -398,17 +419,20 @@ echo "=== Validation Complete ==="
 ## 8. Validation Checklist
 
 ### Pre-Flight Checks
+
 - [ ] Node.js 20+ installed (`node --version`)
 - [ ] TypeScript 5.2+ installed (`tsc --version`)
 - [ ] Groundswell library linked (`npm link ~/projects/groundswell`)
 
 ### Environment Validation
+
 - [ ] `ANTHROPIC_AUTH_TOKEN` is set in shell
 - [ ] `ANTHROPIC_API_KEY` is mapped (via `configureEnvironment()`)
 - [ ] `ANTHROPIC_BASE_URL` is set to `https://api.z.ai/api/anthropic`
 - [ ] Model names resolve: `GLM-4.7`, `GLM-4.5-Air`
 
 ### API Validation
+
 - [ ] Test endpoint availability: `curl -I https://api.z.ai/api/anthropic`
 - [ ] Test authentication with curl command (above)
 - [ ] Test message completion with GLM-4.7
@@ -418,6 +442,7 @@ echo "=== Validation Complete ==="
 - [ ] Test error handling (invalid API key, invalid model)
 
 ### Integration Validation
+
 - [ ] Test Groundswell agent creation with z.ai
 - [ ] Test simple prompt execution
 - [ ] Test complex multi-turn conversation
@@ -443,13 +468,13 @@ validateEnvironment();
 
 ```typescript
 // For complex reasoning tasks (Architect, Researcher)
-const opusModel = getModel('opus');    // GLM-4.7
+const opusModel = getModel('opus'); // GLM-4.7
 
 // For standard agent tasks (default)
 const sonnetModel = getModel('sonnet'); // GLM-4.7
 
 // For quick, simple tasks
-const haikuModel = getModel('haiku');  // GLM-4.5-Air
+const haikuModel = getModel('haiku'); // GLM-4.5-Air
 ```
 
 ### 9.3 Security Considerations
@@ -511,22 +536,29 @@ The following aspects of z.ai API compatibility are **NOT YET VERIFIED** and req
 ## 12. Troubleshooting Guide
 
 ### Issue: "ANTHROPIC_API_KEY not found"
+
 **Solution:** Ensure `configureEnvironment()` is called before creating agents
 
 ### Issue: "Model not found: GLM-4.7"
+
 **Solution:** Verify z.ai supports this model name, check documentation for current model list
 
 ### Issue: "z.ai API timeout"
+
 **Solution:**
+
 - Check network connectivity to `https://api.z.ai`
 - Verify API token validity
 - Consider reducing `API_TIMEOUT_MS` if requests hang
 
 ### Issue: "Response format unexpected"
+
 **Solution:** Log actual response from z.ai and compare with Anthropic documentation
 
 ### Issue: "Groundswell module not found"
+
 **Solution:**
+
 ```bash
 cd ~/projects/groundswell
 npm link
@@ -539,21 +571,25 @@ npm link groundswell
 ## 13. References
 
 ### Internal Documentation
+
 - **Environment Config:** `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/environment_config.md`
 - **Groundswell API:** `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/groundswell_api.md`
 - **PRD:** `/home/dustin/projects/hacky-hack/PRD.md`
 
 ### Source Files
+
 - **Constants:** `/home/dustin/projects/hacky-hack/src/config/constants.ts`
 - **Environment Module:** `/home/dustin/projects/hacky-hack/src/config/environment.ts`
 - **Types:** `/home/dustin/projects/hacky-hack/src/config/types.ts`
 
 ### Test Files
+
 - **Unit Tests:** `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
 - **Integration Tests:** `/home/dustin/projects/hacky-hack/tests/integration/mapping-test.ts`
 - **Manual Tests:** `/home/dustin/projects/hacky-hack/tests/manual/env-test.ts`
 
 ### External Documentation (To Be Verified)
+
 - **Anthropic API Docs:** https://docs.anthropic.com/
 - **z.ai Documentation:** (URL to be determined - requires web search)
 - **Groundswell:** Local library at `~/projects/groundswell`

@@ -2,7 +2,11 @@
  * Integration test: Verify module can be imported with correct ESM syntax
  */
 
-import { configureEnvironment, getModel, validateEnvironment } from '../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+} from '../../src/config/environment.js';
 
 console.log('Import successful!');
 console.log('Functions exported:', {

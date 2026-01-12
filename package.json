@@ -14,7 +14,13 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "validate:api": "tsx src/scripts/validate-api.ts"
+    "validate:api": "tsx src/scripts/validate-api.ts",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "validate": "npm run lint && npm run format:check",
+    "prebuild": "npm run validate"
   },
   "keywords": [
     "typescript",
@@ -29,8 +35,14 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-prettier": "^5.5.4",
     "nodemon": "^3.0.2",
+    "prettier": "^3.7.4",
     "tsx": "^4.7.0",
     "typescript": "^5.2.0",
     "vitest": "^1.6.1"

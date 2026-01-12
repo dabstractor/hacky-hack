@@ -8,12 +8,14 @@ description: |
 **Feature Goal**: Establish local development linkage to the Groundswell library at `~/projects/groundswell`, enabling TypeScript imports and compilation with full type support.
 
 **Deliverable**:
+
 1. Groundswell library linked via `npm link` with verifiable symlink in `node_modules/groundswell`
 2. Groundswell added to `package.json` dependencies
 3. TypeScript compilation succeeds with Groundswell imports
 4. Test file (`src/test-groundswell-import.ts`) validates import functionality
 
 **Success Definition**:
+
 - `ls -la node_modules/groundswell` shows symlink pointing to `~/projects/groundswell`
 - `npm list groundswell` shows groundswell@0.0.1 linked
 - `npm run build` (TypeScript compilation) succeeds without errors
@@ -26,12 +28,14 @@ description: |
 **Use Case**: Developer needs to import and use Groundswell classes (Workflow, Agent, Prompt, MCPHandler) in the TypeScript codebase
 
 **User Journey**:
+
 1. Developer runs `npm link` commands
 2. Developer verifies symlink exists in node_modules
 3. Developer adds test import to validate TypeScript compilation
 4. Developer runs build to confirm everything works
 
 **Pain Points Addressed**:
+
 - Resolves module not found errors for Groundswell imports
 - Enables full TypeScript type checking for Groundswell APIs
 - Allows local development with live Groundswell changes

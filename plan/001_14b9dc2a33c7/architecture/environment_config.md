@@ -9,48 +9,51 @@
 
 ### Authentication
 
-| Variable Name | Value | Purpose |
-|---------------|-------|---------|
-| `ANTHROPIC_AUTH_TOKEN` | *[Token exists]* | Authentication token (shell environment) |
-| `ANTHROPIC_API_KEY` | *[Mapped from AUTH_TOKEN]* | Expected by Anthropic SDK |
+| Variable Name          | Value                      | Purpose                                  |
+| ---------------------- | -------------------------- | ---------------------------------------- |
+| `ANTHROPIC_AUTH_TOKEN` | _[Token exists]_           | Authentication token (shell environment) |
+| `ANTHROPIC_API_KEY`    | _[Mapped from AUTH_TOKEN]_ | Expected by Anthropic SDK                |
 
 **CRITICAL:** The shell uses `ANTHROPIC_AUTH_TOKEN`, but the Anthropic SDK expects `ANTHROPIC_API_KEY`. The application must map between these.
 
 ### API Configuration
 
-| Variable Name | Value | Purpose |
-|---------------|-------|---------|
-| `ANTHROPIC_BASE_URL` | `https://api.z.ai/api/anthropic` | z.ai API endpoint |
-| `API_TIMEOUT_MS` | `3000000` | Request timeout (50 minutes) |
+| Variable Name        | Value                            | Purpose                      |
+| -------------------- | -------------------------------- | ---------------------------- |
+| `ANTHROPIC_BASE_URL` | `https://api.z.ai/api/anthropic` | z.ai API endpoint            |
+| `API_TIMEOUT_MS`     | `3000000`                        | Request timeout (50 minutes) |
 
 ### Model Selection
 
-| Variable Name | Value | Purpose |
-|---------------|-------|---------|
-| `ANTHROPIC_DEFAULT_OPUS_MODEL` | `GLM-4.7` | Highest quality model |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | `GLM-4.7` | Balanced model (default) |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `GLM-4.5-Air` | Fast/lightweight model |
+| Variable Name                    | Value         | Purpose                  |
+| -------------------------------- | ------------- | ------------------------ |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | `GLM-4.7`     | Highest quality model    |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | `GLM-4.7`     | Balanced model (default) |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | `GLM-4.5-Air` | Fast/lightweight model   |
 
 ### Shell Functions
 
-| Function | Purpose |
-|----------|---------|
-| `gle()` | Exports GLM configuration to current shell |
+| Function   | Purpose                                    |
+| ---------- | ------------------------------------------ |
+| `gle()`    | Exports GLM configuration to current shell |
 | `glaude()` | Runs claude with GLM environment variables |
 
 ## Runtime Requirements
 
 ### Node.js
+
 - **Minimum Version:** 20+
 - **Current Status:** Not yet verified in project
 - **Action Required:** Verify installation with `node --version`
 
 ### TypeScript
+
 - **Minimum Version:** 5.2+
 - **Current Status:** Not yet verified in project
 - **Action Required:** Verify installation with `tsc --version`
 
 ### Dependencies
+
 - **Groundswell:** Local library at `~/projects/groundswell`
 - **Installation Method:** `npm link ~/projects/groundswell`
 
@@ -90,7 +93,7 @@ configureEnvironment();
 const architectAgent = createAgent({
   name: 'ArchitectAgent',
   system: ARCHITECT_SYSTEM_PROMPT,
-  model: getModel().sonnet,  // Uses GLM-4.7
+  model: getModel().sonnet, // Uses GLM-4.7
   enableCache: true,
   enableReflection: true,
   env: {
@@ -103,6 +106,7 @@ const architectAgent = createAgent({
 ## z.ai API Compatibility
 
 ### Expected Behavior
+
 - **Endpoint:** `https://api.z.ai/api/anthropic`
 - **Path Structure:** `/api/anthropic` suggests Anthropic API compatibility
 - **Authentication:** Bearer token via `ANTHROPIC_AUTH_TOKEN`
@@ -124,10 +128,10 @@ curl -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN" \
 
 ### Known Models
 
-| Model Name | Tier | Use Case |
-|------------|------|----------|
-| `GLM-4.7` | Sonnet/Opus | Complex reasoning, Architect, Researcher |
-| `GLM-4.5-Air` | Haiku | Fast tasks, simple operations |
+| Model Name    | Tier        | Use Case                                 |
+| ------------- | ----------- | ---------------------------------------- |
+| `GLM-4.7`     | Sonnet/Opus | Complex reasoning, Architect, Researcher |
+| `GLM-4.5-Air` | Haiku       | Fast tasks, simple operations            |
 
 ## Development Workflow
 
@@ -203,6 +207,7 @@ main().catch(console.error);
 ## Validation Checklist
 
 ### Pre-Implementation Validation
+
 - [ ] Verify Node.js 20+ is installed (`node --version`)
 - [ ] Verify TypeScript 5.2+ is installed (`tsc --version`)
 - [ ] Test z.ai API endpoint availability
@@ -211,6 +216,7 @@ main().catch(console.error);
 - [ ] Verify shell configuration contains `_glm_config()` function
 
 ### Runtime Validation
+
 - [ ] Confirm `ANTHROPIC_AUTH_TOKEN` is mapped to `ANTHROPIC_API_KEY`
 - [ ] Confirm `ANTHROPIC_BASE_URL` is set correctly
 - [ ] Confirm model names resolve correctly (GLM-4.7, GLM-4.5-Air)
@@ -218,6 +224,7 @@ main().catch(console.error);
 - [ ] Test simple prompt execution with z.ai API
 
 ### Post-Implementation Validation
+
 - [ ] Verify session directories are created correctly
 - [ ] Verify `tasks.json` is written atomically
 - [ ] Verify git commits are created successfully
@@ -227,22 +234,29 @@ main().catch(console.error);
 ## Troubleshooting
 
 ### Issue: "ANTHROPIC_API_KEY not found"
+
 **Solution:** Ensure environment mapping is called before creating agents:
+
 ```typescript
 configureEnvironment(); // Must be called first
 ```
 
 ### Issue: "z.ai API timeout"
+
 **Solution:** The configured timeout is 50 minutes (3000000ms). If requests timeout earlier, check:
+
 - Network connectivity to `https://api.z.ai`
 - Firewall/proxy settings
 - API token validity
 
 ### Issue: "Model not found: GLM-4.7"
+
 **Solution:** Verify z.ai supports the model names defined in shell configuration. Check z.ai documentation for available models.
 
 ### Issue: "Groundswell module not found"
+
 **Solution:** Ensure the library is linked:
+
 ```bash
 cd ~/projects/groundswell
 npm link
@@ -253,11 +267,13 @@ npm link groundswell
 ## Security Considerations
 
 ### Token Exposure
+
 - **CRITICAL:** Never log or expose `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY`
 - Use `@ObservedState({ redact: true })` for any stored credentials
 - Ensure `tasks.json` does not contain sensitive data
 
 ### Environment Variable Handling
+
 ```typescript
 // GOOD - Redacted in state snapshots
 @ObservedState({ redact: true })
@@ -268,6 +284,7 @@ apiKey: string = process.env.ANTHROPIC_API_KEY;  // No redaction
 ```
 
 ### Git Ignore Patterns
+
 ```
 # .gitignore
 .env

@@ -6,6 +6,7 @@
 ## Validation Commands
 
 ### Basic Syntax Validation
+
 ```bash
 # Show effective configuration
 tsc --showConfig
@@ -15,6 +16,7 @@ node -e "JSON.parse(require('fs').readFileSync('tsconfig.json', 'utf8'))"
 ```
 
 ### Type Checking
+
 ```bash
 # Check without emitting
 tsc --noEmit
@@ -27,6 +29,7 @@ tsc --noEmit --verbose
 ```
 
 ### Compiler Option Verification
+
 ```bash
 # Check specific options
 tsc --showConfig | jq '.compilerOptions.strict'

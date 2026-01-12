@@ -14,7 +14,7 @@ console.log('Test 1: AUTH_TOKEN -> API_KEY mapping');
 delete process.env.ANTHROPIC_API_KEY;
 process.env.ANTHROPIC_AUTH_TOKEN = 'test-token-12345';
 
-import('../../src/config/environment.js').then(m => {
+void import('../../src/config/environment.js').then(m => {
   m.configureEnvironment();
   if (process.env.ANTHROPIC_API_KEY === 'test-token-12345') {
     console.log('✓ Test 1 passed: API_KEY set from AUTH_TOKEN');
@@ -26,7 +26,7 @@ import('../../src/config/environment.js').then(m => {
   console.log('\nTest 2: Existing API_KEY preserved');
   process.env.ANTHROPIC_API_KEY = 'original-key';
   process.env.ANTHROPIC_AUTH_TOKEN = 'different-key';
-  
+
   // Reset and configure again
   m.configureEnvironment();
   if (process.env.ANTHROPIC_API_KEY === 'original-key') {

@@ -26,6 +26,7 @@
 ### TypeScript 5.2 Release (August 2023)
 
 #### 1. Decorators (Standard ECMAScript Stage 3 Proposal)
+
 - **Implementation:** Full support for ECMAScript decorators
 - **Use Case:** Class and method decorators for metadata, logging, dependency injection
 - **Syntax:** `@decorator` syntax on classes, methods, fields, getters, setters
@@ -34,13 +35,14 @@
 **Official Docs:** https://www.typescriptlang.org/docs/handbook/decorators.html
 
 #### 2. Using Declarations and Explicit Resource Management
+
 - **Feature:** `using` and `await using` declarations for automatic resource disposal
 - **Use Case:** Managing file handles, database connections, subscriptions
 - **Interface:** `Symbol.dispose` and `Symbol.asyncDispose`
 - **Example:**
   ```typescript
   {
-    using file = await openFile("example.txt");
+    using file = await openFile('example.txt');
     // file automatically disposed at end of block
   }
   ```
@@ -48,6 +50,7 @@
 **Release Notes:** https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html#using-declarations-and-explicit-resource-management
 
 #### 3. Type-Only Import Attributes with `type`
+
 - **Feature:** `import type { X }` and `import { type X }` syntax
 - **Benefit:** Clearer intent for type-only imports
 - **Difference:** `import type` is always erased, `import { type X }` can be used with value imports
@@ -55,15 +58,17 @@
 **Docs:** https://www.typescriptlang.org/docs/handbook/modules/reference.html#type-only-imports
 
 #### 4. Array.prototype.find/filter Type Guard Support
+
 - **Feature:** Better type narrowing for array methods
 - **Example:**
   ```typescript
-  const numbers: (string | number)[] = [1, "two", 3];
-  const found = numbers.find((n): n is number => typeof n === "number");
+  const numbers: (string | number)[] = [1, 'two', 3];
+  const found = numbers.find((n): n is number => typeof n === 'number');
   // found is typed as number | undefined
   ```
 
 #### 5. Decorator Metadata (Reflection API)
+
 - **Feature:** `emitDecoratorMetadata` for runtime type information
 - **Use Case:** Frameworks needing runtime type reflection (e.g., routing, validation)
 - **Caveat:** Requires experimental flags and has limitations
@@ -75,6 +80,7 @@
 ## TypeScript 5.3 Features
 
 ### Import Attributes
+
 - **Feature:** `import { X } from "./module.json" with { type: "json" }`
 - **Use Case:** Explicit module type for CSS, JSON, WASM modules
 - **Benefit:** Better tooling support and explicit type assertions
@@ -82,19 +88,23 @@
 **Release Notes:** https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-3.html#import-attributes
 
 ### Resolution Customization Flags
+
 - **Feature:** `moduleResolution: "bundler"` option
 - **Use Case:** Modern bundlers (Vite, esbuild, webpack 5)
 - **Benefit:** Simplified resolution without package.json exports field complexity
 
 ### `switch` Statement & Expression Completions
+
 - **Feature:** Auto-completion for all switch cases
 - **Benefit:** Better developer experience for enum-based switches
 
 ### Narrowing Through Type Parameters
+
 - **Feature:** Improved type inference for generic functions
 - **Benefit:** Better type safety in generic utilities
 
 ### `@overload` Support in TypeScript Files
+
 - **Feature:** Better JSDoc `@overload` support in .ts files
 - **Benefit:** Cleaner API documentation without multiple function signatures
 
@@ -103,10 +113,12 @@
 ## TypeScript 5.4 Features
 
 ### Preserved Narrowing in Closures Following Last Assignments
+
 - **Feature:** Better type narrowing in callback functions
 - **Benefit:** Fewer type assertions needed in event handlers
 
 ### No Infer For Type Parameters
+
 - **Feature:** `NoInfer<T>` utility type
 - **Use Case:** Prevent inference of specific generic parameters
 - **Example:**
@@ -115,10 +127,12 @@
   ```
 
 ### Object Method Snippet Completions
+
 - **Feature:** Auto-complete object methods with boilerplate
 - **Benefit:** Faster development
 
 ### Related To
+
 - **Feature:** `tsconfig.json` `relatedTo` option
 - **Use Case:** Include related files in project references
 
@@ -129,24 +143,29 @@
 ## TypeScript 5.5 Features (May 2024)
 
 ### Regular Expression Syntax Checking
+
 - **Feature:** Compile-time validation of regex patterns
 - **Benefit:** Catch invalid regex before runtime
 - **Example:** Detects invalid escape sequences, invalid flags
 
 ### Declaration `Isolated` Declarations
+
 - **Feature:** `isolatedDeclarations` compiler option
 - **Benefit:** Faster builds in large monorepos
 - **Use Case:** Generate .d.ts files without full type checking
 
 ### Regular Expression Mode-Aware Checks
+
 - **Feature:** ESLint-style rules for regex (e.g., require unicode flag)
 - **Configuration:** Via `tsconfig.json`
 
 ### [`in` Operator Normalization](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-5.html#in-operator-normalization)
+
 - **Feature:** Better type narrowing for `in` operator
 - **Benefit:** Improved type guards for property checking
 
 ### TypeScript 5.5 Performance Improvements
+
 - Faster type checking
 - Reduced memory usage
 - Better watch mode performance
@@ -158,22 +177,27 @@
 ## TypeScript 5.6 Features (September 2024)
 
 ### Boolean Parameter Predicates
+
 - **Feature:** Improved type narrowing for boolean predicates
 - **Benefit:** Better type inference in filter/map operations
 
 ### Iterator Helper Type Improvements
+
 - **Feature:** Better types for array iterator methods
 - **Benefit:** Improved autocomplete for functional programming patterns
 
 ### Arithmetic Operations Strictness
+
 - **Feature:** Stricter checking for arithmetic on possibly-undefined values
 - **Configuration:** `strictNullChecks` enhancement
 
 ### Syntax Errors in Unused Code
+
 - **Feature:** Check syntax even in unused branches
 - **Benefit:** Catch errors earlier in development
 
 ### TypeScript 5.6 Performance
+
 - Further build time improvements
 - Better incremental compilation
 
@@ -256,18 +280,19 @@
 ### Runtime Compatibility
 
 | TypeScript Version | Minimum Node.js | Recommended Node.js |
-|-------------------|-----------------|---------------------|
-| 5.2.x             | 14.17           | 18.x, 20.x          |
-| 5.3.x             | 14.17           | 18.x, 20.x          |
-| 5.4.x             | 14.17           | 18.x, 20.x          |
-| 5.5.x             | 14.17           | 20.x+               |
-| 5.6.x             | 14.17           | 20.x+               |
+| ------------------ | --------------- | ------------------- |
+| 5.2.x              | 14.17           | 18.x, 20.x          |
+| 5.3.x              | 14.17           | 18.x, 20.x          |
+| 5.4.x              | 14.17           | 18.x, 20.x          |
+| 5.5.x              | 14.17           | 20.x+               |
+| 5.6.x              | 14.17           | 20.x+               |
 
 **Source:** npm package metadata for `typescript@5.6.3`
 
 ### Node.js 20 Specific Considerations
 
 #### 1. Native ESM Support
+
 ```json
 // package.json
 {
@@ -276,6 +301,7 @@
 ```
 
 #### 2. TypeScript Configuration for ESM
+
 ```json
 {
   "compilerOptions": {
@@ -287,11 +313,13 @@
 ```
 
 #### 3. File Extensions
+
 - Use `.mts` for TypeScript ESM modules (compiles to `.mjs`)
 - Use `.cts` for TypeScript CommonJS modules (compiles to `.cjs`)
 - Use `.ts` and rely on `package.json` `"type"` field
 
 #### 4. Node.js Built-ins with TypeScript
+
 ```typescript
 // @types/node should match Node.js version
 import { readFileSync } from 'node:fs';
@@ -302,6 +330,7 @@ import { fileURLToPath } from 'node:url';
 **Best Practices:** https://nodejs.org/api/esm.html
 
 #### 5. Subpath Imports
+
 ```json
 // package.json
 {
@@ -386,9 +415,7 @@ project/
     "declaration": true,
     "declarationMap": true
   },
-  "references": [
-    { "path": "../shared" }
-  ]
+  "references": [{ "path": "../shared" }]
 }
 ```
 
@@ -431,9 +458,9 @@ project/
    - **Action:** Update import assertions
      ```typescript
      // Old
-     import data from "./data.json" assert { type: "json" };
+     import data from './data.json' assert { type: 'json' };
      // New
-     import data from "./data.json" with { type: "json" };
+     import data from './data.json' with { type: 'json' };
      ```
 
 ### From TypeScript 5.2 to 5.3
@@ -516,12 +543,14 @@ project/
 ## Quick Reference: Migrating to TypeScript 5.6
 
 ### Installation
+
 ```bash
 npm install typescript@^5.6.3 --save-dev
 npm install @types/node@^20 --save-dev
 ```
 
 ### Minimal tsconfig.json for Node.js 20+
+
 ```json
 {
   "compilerOptions": {
@@ -540,6 +569,7 @@ npm install @types/node@^20 --save-dev
 ```
 
 ### Package.json for ESM
+
 ```json
 {
   "type": "module",
@@ -570,6 +600,7 @@ Based on the PRD requirements for Node.js 20+ / TypeScript 5.2+:
 10. **Configure `verbatimModuleSyntax`** for explicit type-only imports
 
 ### Recommended tsconfig.json for Groundswell Project
+
 ```json
 {
   "compilerOptions": {

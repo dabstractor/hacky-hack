@@ -50,11 +50,13 @@ npm link
 ```
 
 This command:
+
 1. Creates a global symlink in your system's global node_modules directory
 2. Points to your local package directory
 3. Makes the package available for linking in other projects
 
 **Example output:**
+
 ```
 /Users/your-username/.nvm/versions/v20.11.0/lib/node_modules/my-local-package -> /path/to/my-local-package
 ```
@@ -111,6 +113,7 @@ npm unlink -g
 **Problem:** ESM uses different resolution rules than CommonJS, causing import failures.
 
 **Symptoms:**
+
 ```
 Error: Cannot find module 'my-local-package'
 Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'my-local-package' imported from...
@@ -119,6 +122,7 @@ Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'my-local-package' imported fr
 **Solutions:**
 
 1. **Add `exports` field to package.json:**
+
 ```json
 {
   "name": "my-local-package",
@@ -134,11 +138,13 @@ Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'my-local-package' imported fr
 ```
 
 2. **Use Node.js `--preserve-symlinks` flag:**
+
 ```bash
 node --preserve-symlinks --loader ts-node/esm src/index.ts
 ```
 
 Or in package.json:
+
 ```json
 {
   "scripts": {
@@ -152,6 +158,7 @@ Or in package.json:
 **Problem:** TypeScript `tsconfig.json` paths don't resolve through symlinks.
 
 **Symptoms:**
+
 ```
 TS2307: Cannot find module 'my-local-package' or its corresponding type declarations.
 ```
@@ -159,6 +166,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 **Solutions:**
 
 1. **Configure TypeScript to follow symlinks:**
+
 ```json
 {
   "compilerOptions": {
@@ -170,6 +178,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 ```
 
 2. **Add path mapping if needed:**
+
 ```json
 {
   "compilerOptions": {
@@ -186,6 +195,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 **Problem:** Different versions of dependencies in linked vs. installed packages causing module instance mismatches.
 
 **Symptoms:**
+
 - Two copies of the same dependency loaded
 - Singleton patterns breaking
 - Type mismatches between packages
@@ -193,6 +203,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 **Solutions:**
 
 1. **Ensure peer dependencies are properly declared:**
+
 ```json
 {
   "peerDependencies": {
@@ -203,6 +214,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 ```
 
 2. **Use npm link with --save to update package.json:**
+
 ```bash
 npm link my-local-package --save
 ```
@@ -214,6 +226,7 @@ npm link my-local-package --save
 **Solutions:**
 
 1. **Ensure `main` and `types` fields point to compiled output:**
+
 ```json
 {
   "main": "./dist/index.js",
@@ -223,6 +236,7 @@ npm link my-local-package --save
 ```
 
 2. **Add prelink script to build automatically:**
+
 ```json
 {
   "scripts": {
@@ -238,24 +252,26 @@ npm link my-local-package --save
 **Solutions:**
 
 1. **Use build watch mode in linked package:**
+
 ```bash
 cd my-local-package
 npm run build:watch
 ```
 
 2. **Configure tools like Vite or webpack to watch linked packages:**
+
 ```javascript
 // vite.config.js
 export default {
   optimizeDeps: {
-    exclude: ['my-local-package']
+    exclude: ['my-local-package'],
   },
   server: {
     watch: {
-      ignored: ['!**/node_modules/my-local-package/**']
-    }
-  }
-}
+      ignored: ['!**/node_modules/my-local-package/**'],
+    },
+  },
+};
 ```
 
 ---
@@ -379,6 +395,7 @@ npm run dev
 ### Issue 1: EACCES Permission Errors
 
 **Symptoms:**
+
 ```
 npm ERR! Error: EACCES: permission denied
 ```
@@ -386,6 +403,7 @@ npm ERR! Error: EACCES: permission denied
 **Solutions:**
 
 1. **Fix npm permissions (Unix/Mac):**
+
 ```bash
 # Get npm prefix
 npm config get prefix
@@ -395,6 +413,7 @@ sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
 ```
 
 2. **Use Node Version Manager (Recommended):**
+
 ```bash
 # Install nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -405,6 +424,7 @@ nvm use 20
 ```
 
 3. **Use sudo (not recommended, avoid if possible):**
+
 ```bash
 sudo npm link
 ```
@@ -412,18 +432,21 @@ sudo npm link
 ### Issue 2: Link Not Working After Creation
 
 **Symptoms:**
+
 - Package appears linked but imports fail
 - `npm list` shows the package but it's not actually linked
 
 **Solutions:**
 
 1. **Verify global link exists:**
+
 ```bash
 npm list -g --depth=0
 ls -la $(npm root -g)/my-local-package
 ```
 
 2. **Recreate links:**
+
 ```bash
 # Remove existing links
 npm unlink -g my-local-package
@@ -439,6 +462,7 @@ npm link my-local-package
 ```
 
 3. **Clear npm cache:**
+
 ```bash
 npm cache clean --force
 ```
@@ -446,24 +470,28 @@ npm cache clean --force
 ### Issue 3: Changes Not Reflected
 
 **Symptoms:**
+
 - Changes in linked package don't appear in consuming project
 - Old code continues to run
 
 **Solutions:**
 
 1. **Ensure package is built:**
+
 ```bash
 cd my-local-package
 npm run build
 ```
 
 2. **Restart development server:**
+
 ```bash
 # Stop and restart dev server
 npm run dev
 ```
 
 3. **Clear build cache:**
+
 ```bash
 # In consuming project
 rm -rf node_modules/.cache
@@ -472,6 +500,7 @@ npm run build
 ```
 
 4. **Verify symlink still points correctly:**
+
 ```bash
 ls -la node_modules/my-local-package
 ```
@@ -479,6 +508,7 @@ ls -la node_modules/my-local-package
 ### Issue 4: TypeScript Declaration Files Not Found
 
 **Symptoms:**
+
 ```
 TS2307: Cannot find module 'my-local-package' or its corresponding type declarations.
 ```
@@ -486,6 +516,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 **Solutions:**
 
 1. **Verify types field in package.json:**
+
 ```json
 {
   "types": "./dist/index.d.ts"
@@ -493,6 +524,7 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 ```
 
 2. **Ensure declaration files are built:**
+
 ```bash
 # Check tsconfig.json
 cat tsconfig.json | grep declaration
@@ -507,6 +539,7 @@ cat tsconfig.json | grep declaration
 ```
 
 3. **Rebuild with declarations:**
+
 ```bash
 npm run build
 ```
@@ -514,6 +547,7 @@ npm run build
 ### Issue 5: Windows Symlink Issues
 
 **Symptoms:**
+
 ```
 Error: EPERM: operation not permitted, symlink
 ```
@@ -529,11 +563,13 @@ Error: EPERM: operation not permitted, symlink
    - Enable "Developer Mode"
 
 3. **Use Windows symlinks with --force:**
+
 ```bash
 npm link --force
 ```
 
 4. **Use junction points instead:**
+
 ```bash
 # Create junction manually
 mklink /J node_modules\my-local-package C:\path\to\my-local-package
@@ -542,6 +578,7 @@ mklink /J node_modules\my-local-package C:\path\to\my-local-package
 ### Issue 6: Package Resolution in Monorepos
 
 **Symptoms:**
+
 - Multiple versions of the same package
 - Circular dependencies
 - Wrong package instance loaded
@@ -549,20 +586,21 @@ mklink /J node_modules\my-local-package C:\path\to\my-local-package
 **Solutions:**
 
 1. **Use workspace protocol (npm 7+):**
+
 ```json
 {
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": ["packages/*"]
 }
 ```
 
 2. **Use local file path:**
+
 ```bash
 npm install ../my-local-package
 ```
 
 3. **Configure TypeScript to resolve workspaces:**
+
 ```json
 {
   "compilerOptions": {
@@ -577,6 +615,7 @@ npm install ../my-local-package
 ### Issue 7: ESM Import Errors
 
 **Symptoms:**
+
 ```
 SyntaxError: Cannot use import statement outside a module
 Warning: To load an ES module, set "type": "module" in the package.json
@@ -585,6 +624,7 @@ Warning: To load an ES module, set "type": "module" in the package.json
 **Solutions:**
 
 1. **Set package type:**
+
 ```json
 {
   "type": "module"
@@ -592,12 +632,14 @@ Warning: To load an ES module, set "type": "module" in the package.json
 ```
 
 2. **Use .mjs extension:**
+
 ```bash
 # Rename files to .mjs
 mv index.js index.mjs
 ```
 
 3. **Use conditional exports:**
+
 ```json
 {
   "exports": {
@@ -610,23 +652,27 @@ mv index.js index.mjs
 ### Issue 8: Node Module Resolution with Symlinks
 
 **Symptoms:**
+
 - `__dirname` and `__filename` resolve incorrectly
 - Relative imports break
 
 **Solutions:**
 
 1. **Use --preserve-symlinks flag:**
+
 ```bash
 node --preserve-symlinks index.js
 ```
 
-2. **Use import.meta.url instead of __dirname:**
+2. **Use import.meta.url instead of \_\_dirname:**
+
 ```javascript
 // ESM alternative to __dirname
 const __dirname = new URL('.', import.meta.url).pathname;
 ```
 
 3. **Configure Node.js options:**
+
 ```json
 {
   "scripts": {
@@ -686,6 +732,7 @@ const __dirname = new URL('.', import.meta.url).pathname;
 ## Best Practices Summary
 
 ### Do's:
+
 - Always build TypeScript packages before linking
 - Use the `exports` field for modern package configuration
 - Verify symlinks after linking
@@ -696,6 +743,7 @@ const __dirname = new URL('.', import.meta.url).pathname;
 - Document linking steps in project README
 
 ### Don'ts:
+
 - Don't forget to rebuild after changes
 - Don't use sudo for npm (use nvm instead)
 - Don't link packages with conflicting dependencies

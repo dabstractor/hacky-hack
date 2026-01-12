@@ -22,11 +22,13 @@
 **Feature:** Node.js 20 includes a stable, built-in test runner that eliminates the need for external testing frameworks in many cases.
 
 **Relevance to TypeScript:**
+
 - Works seamlessly with TypeScript when using loaders like `tsx`
 - Provides mocking, coverage, and watching capabilities
 - Faster than Jest for simple test cases
 
 **Example Usage:**
+
 ```typescript
 import { test, describe, mock } from 'node:test';
 import assert from 'node:assert';
@@ -52,11 +54,13 @@ describe('UserService', () => {
 **Relevance to TypeScript:** Critical for agentic systems that execute code with filesystem access.
 
 **Usage:**
+
 ```bash
 node --experimental-permission --allow-fs-read=./src ./dist/index.js
 ```
 
 **In TypeScript projects:**
+
 ```typescript
 // Check permissions in code
 if (process.permission.has('fs.read', './src')) {
@@ -73,6 +77,7 @@ if (process.permission.has('fs.read', './src')) {
 **Relevance to TypeScript:** Distribute compiled TypeScript apps without requiring Node.js installation.
 
 **Workflow:**
+
 ```bash
 # Compile TypeScript
 tsc
@@ -82,6 +87,7 @@ node --experimental-sea-config sea-config.json
 ```
 
 **Configuration (`sea-config.json`):**
+
 ```json
 {
   "main": "./dist/index.js",
@@ -98,6 +104,7 @@ node --experimental-sea-config sea-config.json
 **Relevance to TypeScript:** Type-safe JSON imports and module loading.
 
 **Example:**
+
 ```typescript
 // Import JSON with type assertion
 import config from './config.json' with { type: 'json' };
@@ -107,6 +114,7 @@ import data from './data.csv' with { type: 'json' };
 ```
 
 **TypeScript Configuration:**
+
 ```json
 {
   "compilerOptions": {
@@ -126,6 +134,7 @@ import data from './data.csv' with { type: 'json' };
 **Relevance to TypeScript:** Real-time communication without external dependencies.
 
 **Example:**
+
 ```typescript
 import { WebSocket } from 'ws';
 
@@ -142,6 +151,7 @@ ws.on('open', () => {
 **Feature:** Performance improvements through V8 engine enhancements.
 
 **Benefits for TypeScript:**
+
 - Faster compilation and execution
 - Better memory management
 - Improved garbage collection
@@ -157,11 +167,13 @@ ws.on('open', () => {
 **Why:** Fastest TypeScript execution using esbuild, zero-config, built-in watch mode.
 
 **Installation:**
+
 ```bash
 npm install -D tsx
 ```
 
 **Usage:**
+
 ```bash
 # Run TypeScript file
 tsx src/index.ts
@@ -174,6 +186,7 @@ tsx --test
 ```
 
 **Package.json scripts:**
+
 ```json
 {
   "scripts": {
@@ -192,11 +205,13 @@ tsx --test
 **Why:** Traditional TypeScript execution, slower but widely compatible.
 
 **Installation:**
+
 ```bash
 npm install -D ts-node @types/node
 ```
 
 **Usage:**
+
 ```bash
 ts-node src/index.ts
 ```
@@ -210,16 +225,19 @@ ts-node src/index.ts
 **Why:** Extremely fast compilation using SWC or esbuild.
 
 **Installation (swc-node):**
+
 ```bash
 npm install -D @swc-node/register
 ```
 
 **Usage:**
+
 ```bash
 node --loader @swc-node/register src/index.ts
 ```
 
 **Performance comparison:**
+
 - `tsx`: ~50ms startup (esbuild-based)
 - `swc-node`: ~30ms startup (SWC-based)
 - `ts-node`: ~500ms startup (tsc-based)
@@ -233,11 +251,13 @@ node --loader @swc-node/register src/index.ts
 **Why:** Zero-config TypeScript bundler using esbuild, supports ESM/CJS dual package.
 
 **Installation:**
+
 ```bash
 npm install -D tsup
 ```
 
 **Configuration (`tsup.config.ts`):**
+
 ```typescript
 import { defineConfig } from 'tsup';
 
@@ -252,6 +272,7 @@ export default defineConfig({
 ```
 
 **Package.json:**
+
 ```json
 {
   "scripts": {
@@ -267,6 +288,7 @@ export default defineConfig({
 **Why:** Fastest bundler, minimal configuration.
 
 **Usage:**
+
 ```bash
 esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js
 ```
@@ -278,11 +300,13 @@ esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/ind
 **Why:** Opinionated TypeScript build tool with smart defaults.
 
 **Installation:**
+
 ```bash
 npm install -D unbuild
 ```
 
 **Configuration (`build.config.ts`):**
+
 ```typescript
 export default {
   entries: ['src/index'],
@@ -299,22 +323,26 @@ export default {
 #### **Watch Mode Replacements for nodemon**
 
 **Option 1: tsx watch (Recommended)**
+
 ```bash
 tsx watch src/index.ts
 ```
 
 **Option 2: tsx-dev**
+
 ```bash
 npm install -D tsx-dev
 tsx-dev src/index.ts
 ```
 
 **Option 3: nodemon + tsx**
+
 ```bash
 nodemon --exec tsx src/index.ts
 ```
 
 **Configuration (`nodemon.json`):**
+
 ```json
 {
   "watch": ["src"],
@@ -330,11 +358,13 @@ nodemon --exec tsx src/index.ts
 #### **Built-in `node:test` (Recommended for Node.js 20+)**
 
 **Benefits:**
+
 - No external dependencies
 - Native TypeScript support with loaders
 - Built-in coverage with `--experimental-test-coverage`
 
 **Example:**
+
 ```typescript
 import { test, describe, mock } from 'node:test';
 import assert from 'node:assert';
@@ -345,6 +375,7 @@ test('math addition', () => {
 ```
 
 **Run with coverage:**
+
 ```bash
 node --experimental-test-coverage --test
 ```
@@ -356,11 +387,13 @@ node --experimental-test-coverage --test
 **Why:** Jest-compatible, faster, ESM-first.
 
 **Installation:**
+
 ```bash
 npm install -D vitest
 ```
 
 **Configuration (`vitest.config.ts`):**
+
 ```typescript
 import { defineConfig } from 'vitest/config';
 
@@ -378,11 +411,13 @@ export default defineConfig({
 **Why:** Widely adopted, extensive ecosystem.
 
 **Installation:**
+
 ```bash
 npm install -D jest @types/jest ts-jest
 ```
 
 **Configuration (`jest.config.js`):**
+
 ```javascript
 module.exports = {
   preset: 'ts-jest',
@@ -477,12 +512,14 @@ module.exports = {
 **CRITICAL:** Node.js ESM requires file extensions in import statements.
 
 **Incorrect:**
+
 ```typescript
 import { UserService } from './UserService';
 import config from './config';
 ```
 
 **Correct:**
+
 ```typescript
 import { UserService } from './UserService.js';
 import config from './config.json' with { type: 'json' };
@@ -511,12 +548,14 @@ async function processWithTool() {
 **Replace `__dirname` and `__filename`:**
 
 **Old (CommonJS):**
+
 ```typescript
 const __filename = __filename;
 const __dirname = __dirname;
 ```
 
 **New (ESM):**
+
 ```typescript
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
@@ -526,6 +565,7 @@ const __dirname = dirname(__filename);
 ```
 
 **Or use this utility:**
+
 ```typescript
 // utils/path.ts
 import { fileURLToPath } from 'node:url';
@@ -544,6 +584,7 @@ const __dirname = getDirname(import.meta);
 ### 3.6 Subpath Exports and Imports
 
 **Package.json exports:**
+
 ```json
 {
   "exports": {
@@ -559,6 +600,7 @@ const __dirname = getDirname(import.meta);
 ```
 
 **Usage in code:**
+
 ```typescript
 // Public export
 import { Agent } from 'prp-pipeline/agents';
@@ -574,12 +616,14 @@ import { config } from '#config.js';
 ### 4.1 V8 11.3 Performance Benefits
 
 **Key Improvements:**
+
 - **Maglev JIT Compiler:** New compilation tier between Ignition (baseline) and TurboFan (optimizing)
 - **Faster async/await:** Reduced overhead for promise chains
 - **Better regular expression performance**
 - **Improved memory footprint**
 
 **Impact on TypeScript Projects:**
+
 - 10-20% faster startup times
 - Reduced memory usage for large codebases
 - Better performance for I/O-bound operations
@@ -589,6 +633,7 @@ import { config } from '#config.js';
 ### 4.2 Module Loading Optimization
 
 **Use Native ESM Over CommonJS:**
+
 ```typescript
 // Faster
 import { fastify } from 'fastify';
@@ -598,6 +643,7 @@ const { fastify } = require('fastify');
 ```
 
 **Enable Synthetic Default Imports:**
+
 ```json
 {
   "compilerOptions": {
@@ -612,6 +658,7 @@ const { fastify } = require('fastify');
 ### 4.3 Lazy Loading Strategies
 
 **Dynamic Imports for Heavy Dependencies:**
+
 ```typescript
 // Agent Runtime - Lazy load expensive LLM libraries
 async function createAgent(model: string) {
@@ -624,6 +671,7 @@ async function createAgent(model: string) {
 ```
 
 **Re-export Pattern:**
+
 ```typescript
 // Instead of importing everything at once
 export * from './agents/ArchitectAgent.js';
@@ -638,6 +686,7 @@ import { ArchitectAgent } from './agents/index.js';
 ### 4.4 TypeScript Compiler Optimization
 
 **Enable Incremental Compilation:**
+
 ```json
 {
   "compilerOptions": {
@@ -648,6 +697,7 @@ import { ArchitectAgent } from './agents/index.js';
 ```
 
 **Use Project References for Monorepos:**
+
 ```json
 {
   "compilerOptions": {
@@ -661,6 +711,7 @@ import { ArchitectAgent } from './agents/index.js';
 ```
 
 **Skip Type Checking in Development:**
+
 ```json
 {
   "scripts": {
@@ -675,6 +726,7 @@ import { ArchitectAgent } from './agents/index.js';
 ### 4.5 Build-Time Optimization
 
 **Use esbuild or swc for Faster Builds:**
+
 ```bash
 # Instead of tsc (slow)
 tsc
@@ -684,6 +736,7 @@ esbuild src/*.ts --bundle --platform=node --outdir=dist
 ```
 
 **Parallel Compilation:**
+
 ```bash
 # Use tsparticles for parallel compilation
 npx tsc -p tsconfig.json --incremental
@@ -704,13 +757,16 @@ class AgentRuntime {
   private emitter = new EventEmitter();
 
   execute() {
-    const handler = () => { /* ... */ };
+    const handler = () => {
+      /* ... */
+    };
     this.emitter.once('event', handler);
   }
 }
 ```
 
 **Stream Large Files:**
+
 ```typescript
 // Bad: Load entire file into memory
 const content = await fs.readFile('large-file.json');
@@ -724,7 +780,7 @@ async function* processLargeFile(path: string) {
   const fileStream = createReadStream(path);
   const rl = createInterface({
     input: fileStream,
-    crlfDelay: Infinity
+    crlfDelay: Infinity,
   });
 
   for await (const line of rl) {
@@ -744,7 +800,7 @@ async function* processLargeFile(path: string) {
 import { parentPort } from 'worker_threads';
 import { build } from './build.js';
 
-parentPort?.on('message', (config) => {
+parentPort?.on('message', config => {
   build(config).then(result => {
     parentPort?.postMessage({ type: 'done', result });
   });
@@ -853,15 +909,8 @@ parentPort?.on('message', (config) => {
     // Advanced
     "allowImportingTsExtensions": false
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
@@ -978,6 +1027,7 @@ coverage/
 **Primary URL:** https://nodejs.org/en/blog/release/v20.0.0
 
 **Key Sections:**
+
 - [V8 11.3](https://nodejs.org/en/blog/release/v20.0.0#v8-11-3)
 - [Permission Model](https://nodejs.org/en/blog/release/v20.0.0#permission-model)
 - [Single Executable Applications](https://nodejs.org/en/blog/release/v20.0.0#single-executable-applications)
@@ -993,6 +1043,7 @@ coverage/
 **Primary URL:** https://nodejs.org/api/esm.html
 
 **Key Sections:**
+
 - [Introduction to ESM](https://nodejs.org/api/esm.html#introduction)
 - [Packages](https://nodejs.org/api/esm.html#packages)
 - [Import Attributes](https://nodejs.org/api/esm.html#import-attributes)
@@ -1010,6 +1061,7 @@ coverage/
 **TypeScript Handbook:** https://www.typescriptlang.org/docs/handbook/modules/theory.html
 
 **Key TypeScript Documentation:**
+
 - [Module Resolution](https://www.typescriptlang.org/docs/handbook/modules/reference.html#module-resolution-strategies)
 - [NodeNext Module Resolution](https://www.typescriptlang.org/docs/handbook/modules/reference.html#nodenext)
 - [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
@@ -1021,6 +1073,7 @@ coverage/
 **Primary URL:** https://nodejs.org/api/test.html
 
 **Key Sections:**
+
 - [Getting Started](https://nodejs.org/api/test.html#getting-started)
 - [Mocking](https://nodejs.org/api/test.html#mocking)
 - [Coverage](https://nodejs.org/api/test.html#collecting-code-coverage)
@@ -1080,6 +1133,7 @@ coverage/
 ### 8.1 Step-by-Step Migration
 
 **Step 1: Update package.json**
+
 ```json
 {
   "type": "module"
@@ -1087,6 +1141,7 @@ coverage/
 ```
 
 **Step 2: Update import statements**
+
 ```typescript
 // Before
 const fs = require('fs');
@@ -1098,6 +1153,7 @@ import { promisify } from 'node:util';
 ```
 
 **Step 3: Add file extensions**
+
 ```typescript
 // Before
 import { config } from './config';
@@ -1107,6 +1163,7 @@ import { config } from './config.js';
 ```
 
 **Step 4: Replace CommonJS globals**
+
 ```typescript
 // Before
 const __dirname = __dirname;
@@ -1126,19 +1183,23 @@ const __dirname = dirname(__filename);
 ### 9.1 Recommended Stack
 
 **Core:**
+
 - Node.js 20 LTS
 - TypeScript 5.3+
 - tsx (development execution)
 
 **Building:**
+
 - tsup (for dual-package publishing)
 - or esbuild (for internal tools)
 
 **Testing:**
+
 - Native `node:test` (simple tests)
 - Vitest (if mocking is complex)
 
 **Linting:**
+
 - ESLint + @typescript-eslint
 - Prettier for formatting
 

@@ -7,17 +7,20 @@
 ## Core Exports
 
 ### Main Classes
+
 - `Workflow` - Base class for all workflow implementations
 - `Agent` - LLM execution wrapper around Anthropic SDK
 - `Prompt<T>` - Immutable type-safe prompt definitions
 - `MCPHandler` - Tool and MCP server management
 
 ### Factory Functions
+
 - `createWorkflow(config, executor)` - Create functional workflows
 - `createAgent(config)` - Create agent instances
 - `createPrompt(config)` - Create prompt instances
 
 ### Decorators
+
 - `@Step(opts)` - Mark methods as workflow steps
 - `@Task(opts)` - Mark methods that return child workflows
 - `@ObservedState(meta)` - Mark fields for state snapshots
@@ -64,7 +67,7 @@ class PRPPipeline extends Workflow {
 ```typescript
 const workflow = createWorkflow(
   { name: 'DataPipeline', enableReflection: true },
-  async (ctx) => {
+  async ctx => {
     const loaded = await ctx.step('load', async () => fetchData());
     const processed = await ctx.step('process', async () => transform(loaded));
     return processed;
@@ -75,6 +78,7 @@ const workflow = createWorkflow(
 ### Decorator Options
 
 **@Step:**
+
 ```typescript
 @Step({
   name: 'CustomName',          // Custom step name
@@ -87,6 +91,7 @@ async myStep() { /* ... */ }
 ```
 
 **@Task:**
+
 ```typescript
 @Task({
   name: 'CustomTaskName',      // Custom task name
@@ -98,6 +103,7 @@ async createChildren(): Promise<ChildWorkflow[]> {
 ```
 
 **@ObservedState:**
+
 ```typescript
 @ObservedState({ redact: true })   // Shows as '***' in snapshots
 apiKey: string = 'secret';
@@ -116,7 +122,7 @@ import { createAgent } from 'groundswell';
 const agent = createAgent({
   name: 'PRPAgent',
   system: 'You are a PRP pipeline expert...',
-  model: 'claude-sonnet-4-20250514',  // Or 'GLM-4.7' for z.ai
+  model: 'claude-sonnet-4-20250514', // Or 'GLM-4.7' for z.ai
   enableCache: true,
   enableReflection: true,
   maxTokens: 4096,
@@ -124,8 +130,12 @@ const agent = createAgent({
   mcps: [customMCPServer],
   tools: [customTools],
   hooks: {
-    onPreToolUse: (ctx) => { /* ... */ },
-    onPostToolUse: (ctx) => { /* ... */ },
+    onPreToolUse: ctx => {
+      /* ... */
+    },
+    onPostToolUse: ctx => {
+      /* ... */
+    },
   },
   env: {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -135,19 +145,19 @@ const agent = createAgent({
 
 ### Agent Configuration Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `name` | string | Agent identifier for logging |
-| `system` | string | System prompt for the agent |
-| `model` | string | Model identifier (e.g., `GLM-4.7`) |
-| `enableCache` | boolean | Enable LLM response caching (default: true) |
-| `enableReflection` | boolean | Enable error recovery with analysis |
-| `maxTokens` | number | Maximum tokens in response |
-| `temperature` | number | Sampling temperature (0-1) |
-| `mcps` | MCP[] | Array of MCP servers |
-| `tools` | Tool[] | Array of tool definitions |
-| `hooks` | object | Lifecycle hooks |
-| `env` | object | Environment variable overrides |
+| Option             | Type    | Description                                 |
+| ------------------ | ------- | ------------------------------------------- |
+| `name`             | string  | Agent identifier for logging                |
+| `system`           | string  | System prompt for the agent                 |
+| `model`            | string  | Model identifier (e.g., `GLM-4.7`)          |
+| `enableCache`      | boolean | Enable LLM response caching (default: true) |
+| `enableReflection` | boolean | Enable error recovery with analysis         |
+| `maxTokens`        | number  | Maximum tokens in response                  |
+| `temperature`      | number  | Sampling temperature (0-1)                  |
+| `mcps`             | MCP[]   | Array of MCP servers                        |
+| `tools`            | Tool[]  | Array of tool definitions                   |
+| `hooks`            | object  | Lifecycle hooks                             |
+| `env`              | object  | Environment variable overrides              |
 
 ## MCP Integration (Tools)
 
@@ -183,7 +193,7 @@ mcpHandler.registerServer({
 });
 
 // Register tool executor
-mcpHandler.registerToolExecutor('bash', 'execute_bash', async (input) => {
+mcpHandler.registerToolExecutor('bash', 'execute_bash', async input => {
   const { command, cwd } = input as { command: string; cwd?: string };
   return executeBashCommand(command, cwd);
 });
@@ -208,6 +218,7 @@ class MyWorkflow extends Workflow {
 ### Tool Categories for PRP Pipeline
 
 **Required Tools:**
+
 1. **BashTool** - Execute shell commands (git, npm, tests)
 2. **FileTool** - Read/write files (PRP generation, code editing)
 3. **GrepTool** - Search codebases (pattern matching)
@@ -230,12 +241,14 @@ const analysisPrompt = createPrompt({
     focusAreas: ['auth', 'data_validation', 'dependencies'],
   },
   responseFormat: z.object({
-    vulnerabilities: z.array(z.object({
-      severity: z.enum(['low', 'medium', 'high', 'critical']),
-      description: z.string(),
-      location: z.string(),
-      recommendation: z.string(),
-    })),
+    vulnerabilities: z.array(
+      z.object({
+        severity: z.enum(['low', 'medium', 'high', 'critical']),
+        description: z.string(),
+        location: z.string(),
+        recommendation: z.string(),
+      })
+    ),
     score: z.number().min(0).max(100),
     summary: z.string(),
   }),
@@ -263,13 +276,13 @@ const result = await agent.prompt(analysisPrompt);
 
 ### Prompt Configuration Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `user` | string | User prompt template |
-| `system` | string | System prompt |
-| `data` | object | Data to inject into template |
-| `responseFormat` | ZodSchema | Schema for structured output |
-| `enableReflection` | boolean | Enable reflection for this prompt |
+| Option             | Type      | Description                       |
+| ------------------ | --------- | --------------------------------- |
+| `user`             | string    | User prompt template              |
+| `system`           | string    | System prompt                     |
+| `data`             | object    | Data to inject into template      |
+| `responseFormat`   | ZodSchema | Schema for structured output      |
+| `enableReflection` | boolean   | Enable reflection for this prompt |
 
 ## State Management
 
@@ -281,10 +294,10 @@ class PRPPipeline extends Workflow {
   publicData: string = 'visible-value';
 
   @ObservedState({ redact: true })
-  apiKey: string = 'secret';  // Shows as '***' in snapshots
+  apiKey: string = 'secret'; // Shows as '***' in snapshots
 
   @ObservedState({ hidden: true })
-  internalState: object = {};  // Excluded from snapshots
+  internalState: object = {}; // Excluded from snapshots
 
   @Step({ snapshotState: true })
   async processData() {
@@ -323,7 +336,7 @@ export ANTHROPIC_DEFAULT_MODEL="GLM-4.7"
 const agent = createAgent({
   name: 'CustomAgent',
   env: {
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_AUTH_TOKEN,  // Map from shell env
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_AUTH_TOKEN, // Map from shell env
     ANTHROPIC_BASE_URL: 'https://api.z.ai/api/anthropic',
   },
 });
@@ -354,6 +367,7 @@ class ChildWorkflow extends Workflow {
 ### Event System
 
 Groundswell emits events for:
+
 - Step start/end
 - Task start/end
 - Errors and failures
@@ -363,6 +377,7 @@ Groundswell emits events for:
 ### Caching
 
 LLM responses are cached using SHA-256 keys:
+
 - Deterministic prompts return cached responses
 - Saves cost and latency
 - Automatic cache invalidation on prompt changes
@@ -370,6 +385,7 @@ LLM responses are cached using SHA-256 keys:
 ### Reflection
 
 Multi-level error recovery:
+
 1. **Automatic Retry:** Retry failed LLM calls
 2. **Error Analysis:** Agent analyzes failure
 3. **Corrective Action:** Agent attempts fix
@@ -409,11 +425,7 @@ const coderAgent = createAgent({
   name: 'CoderAgent',
   system: CODER_SYSTEM_PROMPT,
   model: 'GLM-4.7',
-  mcps: [
-    new BashMCP(),
-    new FilesystemMCP(),
-    new GitMCP(),
-  ],
+  mcps: [new BashMCP(), new FilesystemMCP(), new GitMCP()],
 });
 ```
 
