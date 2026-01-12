@@ -200,7 +200,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Create session management interfaces",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S3"
