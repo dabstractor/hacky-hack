@@ -21,6 +21,13 @@
  */
 
 import { configureEnvironment, getModel } from '../config/environment.js';
+import { createAgent, type Agent } from 'groundswell';
+import {
+  TASK_BREAKDOWN_PROMPT,
+  PRP_BLUEPRINT_PROMPT,
+  PRP_BUILDER_PROMPT,
+  BUG_HUNT_PROMPT,
+} from './prompts.js';
 // PATTERN: Configure environment at module load time (intentional side effect)
 // CRITICAL: This must execute before any agent creation
 configureEnvironment();
@@ -131,6 +138,110 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
       ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL ?? '',
     },
   };
+}
+
+/**
+ * Create an Architect agent for PRD analysis and task breakdown
+ *
+ * @remarks
+ * Uses the TASK_BREAKDOWN_PROMPT system prompt for analyzing PRDs
+ * and generating structured task hierarchies.
+ *
+ * @returns Configured Groundswell Agent instance
+ *
+ * @example
+ * ```ts
+ * import { createArchitectAgent } from './agents/agent-factory.js';
+ *
+ * const architect = createArchitectAgent();
+ * const result = await architect.prompt(prdAnalysisPrompt);
+ * ```
+ */
+export function createArchitectAgent(): Agent {
+  const baseConfig = createBaseConfig('architect');
+  const config = {
+    ...baseConfig,
+    system: TASK_BREAKDOWN_PROMPT,
+  };
+  return createAgent(config);
+}
+
+/**
+ * Create a Researcher agent for PRP generation and research
+ *
+ * @remarks
+ * Uses the PRP_BLUEPRINT_PROMPT system prompt for researching codebase
+ * patterns and generating comprehensive Product Requirement Prompts.
+ *
+ * @returns Configured Groundswell Agent instance
+ *
+ * @example
+ * ```ts
+ * import { createResearcherAgent } from './agents/agent-factory.js';
+ *
+ * const researcher = createResearcherAgent();
+ * const prp = await researcher.prompt(workItemPrompt);
+ * ```
+ */
+export function createResearcherAgent(): Agent {
+  const baseConfig = createBaseConfig('researcher');
+  const config = {
+    ...baseConfig,
+    system: PRP_BLUEPRINT_PROMPT,
+  };
+  return createAgent(config);
+}
+
+/**
+ * Create a Coder agent for code implementation from PRPs
+ *
+ * @remarks
+ * Uses the PRP_BUILDER_PROMPT system prompt for implementing
+ * features based on Product Requirement Prompt specifications.
+ *
+ * @returns Configured Groundswell Agent instance
+ *
+ * @example
+ * ```ts
+ * import { createCoderAgent } from './agents/agent-factory.js';
+ *
+ * const coder = createCoderAgent();
+ * const result = await coder.prompt(prpExecutionPrompt);
+ * ```
+ */
+export function createCoderAgent(): Agent {
+  const baseConfig = createBaseConfig('coder');
+  const config = {
+    ...baseConfig,
+    system: PRP_BUILDER_PROMPT,
+  };
+  return createAgent(config);
+}
+
+/**
+ * Create a QA agent for validation and bug hunting
+ *
+ * @remarks
+ * Uses the BUG_HUNT_PROMPT system prompt for comprehensive
+ * end-to-end validation and creative bug finding.
+ *
+ * @returns Configured Groundswell Agent instance
+ *
+ * @example
+ * ```ts
+ * import { createQAAgent } from './agents/agent-factory.js';
+ *
+ * const qa = createQAAgent();
+ * const bugReport = await qa.prompt(validationPrompt);
+ * ```
+ */
+export function createQAAgent(): Agent {
+  const baseConfig = createBaseConfig('qa');
+  const config = {
+    ...baseConfig,
+    system: BUG_HUNT_PROMPT,
+  };
+  return createAgent(config);
 }
 
 // PATTERN: Re-export types for convenience
