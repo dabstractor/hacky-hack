@@ -661,14 +661,14 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "Milestone 3.3: Agent Runtime Wrapper",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Create the runtime that executes PRPs using agents and handles progressive validation.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Implement PRP Execution Runtime",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Build the runtime that generates PRPs, executes them with agents, and runs validation gates.",
               "subtasks": [
                 {
@@ -695,7 +695,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S3",
                   "title": "Integrate PRP generation and execution",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M3.T1.S2"
@@ -724,7 +724,7 @@
                   "type": "Subtask",
                   "id": "P3.M4.T1.S1",
                   "title": "Create PRPPipeline workflow class",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - Workflow class with @Step(), @ObservedState(). From PRD section 9.3.1 - PRPPipeline extends Workflow.\n2. INPUT: All components from previous milestones (SessionManager, TaskOrchestrator, PRPRuntime).\n3. LOGIC: Create src/workflows/prp-pipeline.ts:\n   - Import { Workflow, Step, ObservedState } from 'groundswell'\n   - Export class PRPPipeline extends Workflow\n   - @ObservedState() sessionManager: SessionManager\n   - @ObservedState() taskOrchestrator: TaskOrchestrator\n   - @ObservedState() runtime: PRPRuntime\n   - @ObservedState() currentPhase: string = 'init'\n   - @ObservedState() totalTasks: number = 0\n   - @ObservedState() completedTasks: number = 0\n   - Constructor accepts prdPath: string, scope?: Scope\n   - @Step({ trackTiming: true, snapshotState: true }) async initializeSession(): Promise<void> - Initialize SessionManager, detect existing or new session\n   - @Step({ trackTiming: true }) async decomposePRD(): Promise<void> - Use Architect agent to generate backlog if new session\n   - @Step({ trackTiming: true }) async executeBacklog(): Promise<void> - Run TaskOrchestrator until complete or stopped\n   - @Step({ trackTiming: true }) async runQACycle(): Promise<void> - Run QA agent bug hunt if all tasks complete\n   - Override async run(): Promise<PipelineResult> - Orchestrate all steps, return summary\n4. OUTPUT: Complete PRPPipeline workflow class with all lifecycle steps."

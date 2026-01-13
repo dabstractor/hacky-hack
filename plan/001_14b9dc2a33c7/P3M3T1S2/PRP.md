@@ -7,6 +7,7 @@
 **Feature Goal**: Create `PRPExecutor` class that executes PRP documents via the Coder Agent with Progressive Validation (4-level gates), automatic fix-and-retry on validation failures, and structured execution results.
 
 **Deliverable**: `src/agents/prp-executor.ts` containing `PRPExecutor` class with:
+
 - `execute(prp: PRPDocument, prpPath: string): Promise<ExecutionResult>` method
 - Progressive validation gate execution (Level 1 → Level 2 → Level 3 → Level 4)
 - Fix-and-retry logic on validation failures (up to 2 retry attempts)
@@ -14,6 +15,7 @@
 - Structured `ExecutionResult` with validation results and artifacts
 
 **Success Definition**:
+
 - `PRPExecutor.execute()` successfully runs PRP through all 4 validation levels
 - Validation failures trigger automatic fix-and-retry with Coder Agent
 - Returns structured `ExecutionResult` with success status, validation gate results, and artifacts
@@ -29,6 +31,7 @@
 **Use Case**: The Task Orchestrator delegates PRP execution to `PRPExecutor` when processing a Subtask. The executor coordinates Coder Agent execution, runs progressive validation gates, handles fix-and-retry on failures, and returns structured execution results for downstream processing.
 
 **User Journey**:
+
 1. Task Orchestrator selects next Subtask from execution queue
 2. PRPGenerator creates PRPDocument and writes to `{sessionPath}/prps/{taskId}.md`
 3. Task Orchestrator creates `PRPExecutor` instance
@@ -41,6 +44,7 @@
 10. Task Orchestrator uses result to update subtask status and continue pipeline
 
 **Pain Points Addressed**:
+
 - Eliminates manual PRP execution bottleneck
 - Provides consistent, structured PRP execution with validation
 - Enables automatic error recovery through fix-and-retry
@@ -60,6 +64,7 @@
 ### System Behavior
 
 The `PRPExecutor` class:
+
 1. Accepts a `PRPDocument` and its file path as input
 2. Creates a Coder Agent via `createCoderAgent()`
 3. Injects the PRP file path into `PRP_BUILDER_PROMPT` with placeholder substitution
@@ -102,6 +107,7 @@ The `PRPExecutor` class:
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Yes** - This PRP provides:
+
 - Exact file paths to all dependencies (Coder Agent, BashMCP, models)
 - Complete code patterns for agent creation and prompt construction
 - Groundswell API usage with specific method signatures
@@ -246,7 +252,10 @@ const injectedPrompt = PRP_BUILDER_PROMPT.replace('$PRP_FILE_PATH', prpPath);
 // CRITICAL: BashMCP tool name is 'bash__execute_bash' (with double underscore)
 // The execute_bash() method is on the BashMCP class instance
 const bashMCP = new BashMCP();
-const result = await bashMCP.execute_bash({ command: 'npm test', cwd: process.cwd() });
+const result = await bashMCP.execute_bash({
+  command: 'npm test',
+  cwd: process.cwd(),
+});
 
 // PATTERN: ValidationGate.command can be null
 // Always check if command exists before executing
@@ -256,7 +265,9 @@ if (gate.command && !gate.manual) {
 
 // PATTERN: ValidationGate.level is union type 1 | 2 | 3 | 4
 // Use === for comparison, not >=
-if (gate.level === 1) { /* Level 1: Syntax */ }
+if (gate.level === 1) {
+  /* Level 1: Syntax */
+}
 
 // PATTERN: Fix-and-retry with exponential backoff
 // Max 2 retries (1 initial + 2 retries = 3 total attempts)
@@ -387,14 +398,19 @@ Task 8: CREATE tests/integration/prp-executor-integration.test.ts
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // File: src/agents/prp-executor.ts
 
 // CRITICAL: Import patterns - use .js extensions for ES modules
 import { createCoderAgent } from './agent-factory.js';
 import { PRP_BUILDER_PROMPT } from './prompts.js';
 import type { Agent } from 'groundswell';
-import type { PRPDocument, ValidationGate, Task, Subtask } from '../core/models.js';
+import type {
+  PRPDocument,
+  ValidationGate,
+  Task,
+  Subtask,
+} from '../core/models.js';
 import { BashMCP } from '../tools/bash-mcp.js';
 import type { BashToolResult } from '../tools/bash-mcp.js';
 
@@ -434,7 +450,9 @@ export class PRPExecutionError extends Error {
   ) {
     super(
       `Failed to execute PRP for ${taskId} at ${prpPath}: ${
-        originalError instanceof Error ? originalError.message : String(originalError)
+        originalError instanceof Error
+          ? originalError.message
+          : String(originalError)
       }`
     );
     this.name = 'PRPExecutionError';
@@ -499,7 +517,10 @@ export class PRPExecutor {
     const maxFixAttempts = 2;
 
     // STEP 1: Inject PRP path into prompt
-    const injectedPrompt = PRP_BUILDER_PROMPT.replace(/\$PRP_FILE_PATH/g, prpPath);
+    const injectedPrompt = PRP_BUILDER_PROMPT.replace(
+      /\$PRP_FILE_PATH/g,
+      prpPath
+    );
 
     try {
       // STEP 2: Execute Coder Agent
@@ -516,7 +537,7 @@ export class PRPExecutor {
           validationResults: [],
           artifacts: [],
           error: coderResult.message,
-          fixAttempts: 0
+          fixAttempts: 0,
         };
       }
 
@@ -557,8 +578,10 @@ export class PRPExecutor {
         success: allPassed,
         validationResults,
         artifacts: [], // TODO: Extract artifacts from Coder Agent output
-        error: allPassed ? undefined : 'Validation failed after all fix attempts',
-        fixAttempts
+        error: allPassed
+          ? undefined
+          : 'Validation failed after all fix attempts',
+        fixAttempts,
       };
     } catch (error) {
       return {
@@ -566,7 +589,7 @@ export class PRPExecutor {
         validationResults: [],
         artifacts: [],
         error: error instanceof Error ? error.message : String(error),
-        fixAttempts
+        fixAttempts,
       };
     }
   }
@@ -582,7 +605,9 @@ export class PRPExecutor {
     const results: ValidationGateResult[] = [];
 
     // Sort gates by level to ensure sequential execution
-    const sortedGates = [...prp.validationGates].sort((a, b) => a.level - b.level);
+    const sortedGates = [...prp.validationGates].sort(
+      (a, b) => a.level - b.level
+    );
 
     for (const gate of sortedGates) {
       // Skip manual gates or gates with no command
@@ -595,7 +620,7 @@ export class PRPExecutor {
           stdout: '',
           stderr: '',
           exitCode: null,
-          skipped: true
+          skipped: true,
         });
         continue;
       }
@@ -604,7 +629,7 @@ export class PRPExecutor {
       const result = await this.#bashMCP.execute_bash({
         command: gate.command,
         cwd: this.sessionPath,
-        timeout: 120000 // 2 minute timeout for validation commands
+        timeout: 120000, // 2 minute timeout for validation commands
       });
 
       const gateResult: ValidationGateResult = {
@@ -615,7 +640,7 @@ export class PRPExecutor {
         stdout: result.stdout,
         stderr: result.stderr,
         exitCode: result.exitCode ?? null,
-        skipped: false
+        skipped: false,
       };
 
       results.push(gateResult);
@@ -651,13 +676,16 @@ export class PRPExecutor {
     // Build error context
     const errorContext = failedGates
       .filter(g => !g.success && !g.skipped)
-      .map(g => `
+      .map(
+        g => `
 Level ${g.level}: ${g.description}
 Command: ${g.command}
 Exit Code: ${g.exitCode}
 Output: ${g.stdout}
 Error: ${g.stderr}
-      `).join('\n');
+      `
+      )
+      .join('\n');
 
     // Create fix prompt
     const fixPrompt = `
@@ -701,7 +729,7 @@ Output your result in the same JSON format:
       // If parsing fails, assume error
       return {
         result: 'error',
-        message: `Failed to parse Coder Agent response: ${response}`
+        message: `Failed to parse Coder Agent response: ${response}`,
       };
     }
   }
@@ -719,7 +747,7 @@ Output your result in the same JSON format:
 
 // PATTERN: Export type for convenience
 export type { PRPDocument, ValidationGate };
-```
+````
 
 ### Integration Points
 

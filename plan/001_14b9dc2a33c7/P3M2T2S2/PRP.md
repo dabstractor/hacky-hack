@@ -99,6 +99,7 @@ Modify TaskOrchestrator to support scope-based execution with mid-execution reco
    - Return `false` when queue empty
 
 5. **New `setScope()` Method** - Reconfigure queue mid-execution:
+
    ```typescript
    async setScope(scope: Scope): Promise<void>
    ```

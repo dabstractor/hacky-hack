@@ -265,7 +265,12 @@ describe('agents/prp-executor', () => {
             return { success: true, stdout: '', stderr: '', exitCode: 0 };
           } else if (callCount === 2) {
             // Level 2: Fail -> triggers fix attempt
-            return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
+            return {
+              success: false,
+              stdout: '',
+              stderr: 'Test failed',
+              exitCode: 1,
+            };
           }
           // Second validation run (after fix)
           // All remaining gates pass
@@ -299,7 +304,12 @@ describe('agents/prp-executor', () => {
 
         // Mock bashMCP.execute_bash to always fail at Level 2
         mockExecuteBash.mockImplementation(async () => {
-          return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
+          return {
+            success: false,
+            stdout: '',
+            stderr: 'Test failed',
+            exitCode: 1,
+          };
         });
 
         const executor = new PRPExecutor(sessionPath);

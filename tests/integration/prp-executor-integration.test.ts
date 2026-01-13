@@ -41,33 +41,32 @@ const createMockPRPDocument = (
   objective: 'Implement feature X',
   context: '## Context\nFull context here',
   implementationSteps: ['Step 1: Create file', 'Step 2: Implement logic'],
-  validationGates:
-    validationGates ?? [
-      {
-        level: 1,
-        description: 'Syntax check',
-        command: 'echo "Syntax check passed"',
-        manual: false,
-      },
-      {
-        level: 2,
-        description: 'Unit tests',
-        command: 'echo "Unit tests passed"',
-        manual: false,
-      },
-      {
-        level: 3,
-        description: 'Integration tests',
-        command: 'echo "Integration tests passed"',
-        manual: false,
-      },
-      {
-        level: 4,
-        description: 'Manual review',
-        command: null,
-        manual: true,
-      },
-    ],
+  validationGates: validationGates ?? [
+    {
+      level: 1,
+      description: 'Syntax check',
+      command: 'echo "Syntax check passed"',
+      manual: false,
+    },
+    {
+      level: 2,
+      description: 'Unit tests',
+      command: 'echo "Unit tests passed"',
+      manual: false,
+    },
+    {
+      level: 3,
+      description: 'Integration tests',
+      command: 'echo "Integration tests passed"',
+      manual: false,
+    },
+    {
+      level: 4,
+      description: 'Manual review',
+      command: null,
+      manual: true,
+    },
+  ],
   successCriteria: [
     { description: 'Feature works as expected', satisfied: false },
     { description: 'Tests pass', satisfied: false },
@@ -133,67 +132,68 @@ describe('integration: agents/prp-executor', () => {
     it(
       'should handle validation gate failure with real BashMCP',
       async () => {
-      // SETUP
-      const customValidationGates: PRPDocument['validationGates'] = [
-        {
-          level: 1,
-          description: 'Syntax check',
-          command: 'echo "Level 1 passed"',
-          manual: false,
-        },
-        {
-          level: 2,
-          description: 'Failing test',
-          command: 'false', // Unix command that exits with code 1
-          manual: false,
-        },
-        {
-          level: 3,
-          description: 'Integration tests',
-          command: 'echo "Should not reach here"',
-          manual: false,
-        },
-        {
-          level: 4,
-          description: 'Manual review',
-          command: null,
-          manual: true,
-        },
-      ];
-      const prp = createMockPRPDocument('P1.M2.T2.S2', customValidationGates);
-      const prpPath = '/tmp/test-session/prps/P1M2T2S2.md';
+        // SETUP
+        const customValidationGates: PRPDocument['validationGates'] = [
+          {
+            level: 1,
+            description: 'Syntax check',
+            command: 'echo "Level 1 passed"',
+            manual: false,
+          },
+          {
+            level: 2,
+            description: 'Failing test',
+            command: 'false', // Unix command that exits with code 1
+            manual: false,
+          },
+          {
+            level: 3,
+            description: 'Integration tests',
+            command: 'echo "Should not reach here"',
+            manual: false,
+          },
+          {
+            level: 4,
+            description: 'Manual review',
+            command: null,
+            manual: true,
+          },
+        ];
+        const prp = createMockPRPDocument('P1.M2.T2.S2', customValidationGates);
+        const prpPath = '/tmp/test-session/prps/P1M2T2S2.md';
 
-      // Mock Coder Agent
-      mockAgent.prompt.mockResolvedValue(
-        JSON.stringify({
-          result: 'success',
-          message: 'Implementation complete',
-        })
-      );
+        // Mock Coder Agent
+        mockAgent.prompt.mockResolvedValue(
+          JSON.stringify({
+            result: 'success',
+            message: 'Implementation complete',
+          })
+        );
 
-      const executor = new PRPExecutor(sessionPath);
+        const executor = new PRPExecutor(sessionPath);
 
-      // EXECUTE
-      const result = await executor.execute(prp, prpPath);
+        // EXECUTE
+        const result = await executor.execute(prp, prpPath);
 
-      // VERIFY: Level 2 failed and stopped execution
-      expect(result.success).toBe(false);
-      expect(result.fixAttempts).toBe(2); // Max retries
+        // VERIFY: Level 2 failed and stopped execution
+        expect(result.success).toBe(false);
+        expect(result.fixAttempts).toBe(2); // Max retries
 
-      const level1Result = result.validationResults.find(r => r.level === 1);
-      const level2Result = result.validationResults.find(r => r.level === 2);
+        const level1Result = result.validationResults.find(r => r.level === 1);
+        const level2Result = result.validationResults.find(r => r.level === 2);
 
-      expect(level1Result?.success).toBe(true);
-      expect(level2Result?.success).toBe(false);
-      expect(level2Result?.exitCode).toBe(1);
+        expect(level1Result?.success).toBe(true);
+        expect(level2Result?.success).toBe(false);
+        expect(level2Result?.exitCode).toBe(1);
 
-      // Level 3 should not have executed (stopped on Level 2 failure)
-      const level3Result = result.validationResults.find(
-        r => r.level === 3 && !r.skipped
-      );
-      expect(level3Result).toBeUndefined();
-    },
-    { timeout: 10000 });
+        // Level 3 should not have executed (stopped on Level 2 failure)
+        const level3Result = result.validationResults.find(
+          r => r.level === 3 && !r.skipped
+        );
+        expect(level3Result).toBeUndefined();
+      },
+      { timeout: 10000 }
+    );
 
     it('should skip manual validation gates with real BashMCP', async () => {
       // SETUP
