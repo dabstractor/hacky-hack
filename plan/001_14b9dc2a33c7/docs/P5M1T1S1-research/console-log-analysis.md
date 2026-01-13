@@ -9,6 +9,7 @@ Found **1,458 total occurrences** of console methods across **134 files**.
 ### 1. Direct Console Methods (Legacy Pattern)
 
 Used throughout the codebase for:
+
 - User-facing output in CLI (index.ts)
 - Error handling and debug info
 - Progress tracking
@@ -16,7 +17,9 @@ Used throughout the codebase for:
 
 ```typescript
 // Progress tracking
-console.log(`📊 Tasks: ${result.completedTasks}/${result.totalTasks} completed`);
+console.log(
+  `📊 Tasks: ${result.completedTasks}/${result.totalTasks} completed`
+);
 
 // Error details
 console.error(`[TaskOrchestrator] Failed to execute task: ${error}`);
@@ -28,6 +31,7 @@ console.log(`[TaskOrchestrator] ResearchQueue initialized with maxSize=3`);
 ### 2. Groundswell Workflow Logger (Modern Pattern)
 
 Used in workflow classes:
+
 ```typescript
 this.logger.info('[PRPPipeline] Starting workflow');
 this.logger.warn('[PRPPipeline] Warning message');
@@ -47,6 +51,7 @@ this.logger.error('[PRPPipeline] Error occurred');
 ## Information Being Logged
 
 **Primary Categories**:
+
 - **User Progress**: Task completion, phase transitions, pipeline status
 - **Error Information**: Failed tasks, exceptions, stack traces (when verbose)
 - **Debug Info**: Verbose logging for development

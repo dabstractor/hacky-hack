@@ -5,6 +5,7 @@
 ### Pino
 
 **Pros**:
+
 - Extremely fast performance (claimed to be 5-10x faster than Winston)
 - Minimal memory footprint
 - Native TypeScript support with excellent type definitions
@@ -15,6 +16,7 @@
 - Transport system for flexible output destinations
 
 **Cons**:
+
 - Less plugin ecosystem compared to Winston
 - Steeper learning curve for advanced features
 - Less human-friendly formatting out of the box
@@ -23,6 +25,7 @@
 ### Winston
 
 **Pros**:
+
 - Mature ecosystem with extensive plugins
 - Flexible transport system (file, console, cloud services, etc.)
 - Human-friendly built-in formatters
@@ -31,6 +34,7 @@
 - Rich filtering and routing capabilities
 
 **Cons**:
+
 - Slower performance due to more complex architecture
 - Heavier memory footprint
 - Some legacy baggage in the codebase
@@ -39,12 +43,14 @@
 ## TypeScript Support
 
 ### Pino
+
 - **Excellent TypeScript support** with comprehensive type definitions
 - Strongly typed methods: `logger.info()`, `logger.error()`, etc.
 - Custom serializers with proper typing
 - Transport types available
 
 ### Winston
+
 - **Good TypeScript support** but more configuration required
 - Custom types needed for transports
 - More boilerplate for type safety
@@ -79,6 +85,7 @@
 ## Redaction/Sensitive Data Masking
 
 ### Pino Redaction
+
 ```typescript
 import { pino } from 'pino';
 
@@ -91,29 +98,31 @@ const logger = pino({
     'authorization',
     '*.password',
     '*.token',
-  ]
+  ],
 });
 ```
 
 ### Winston Redaction
+
 ```typescript
 import winston from 'winston';
 
 const logger = winston.createLogger({
   format: winston.format.combine(
-    winston.format((info) => {
+    winston.format(info => {
       // Custom redaction function required
       const redactedInfo = redactSensitiveFields(info);
       return redactedInfo;
     })(),
     winston.format.json()
-  )
+  ),
 });
 ```
 
 ## JSON vs Pretty Output
 
 ### Pino
+
 ```typescript
 // JSON output (default)
 const jsonLogger = pino();
@@ -125,9 +134,9 @@ const prettyLogger = pino({
     options: {
       colorize: true,
       translateTime: 'SYS:standard',
-      ignore: 'pid,hostname'
-    }
-  }
+      ignore: 'pid,hostname',
+    },
+  },
 });
 ```
 

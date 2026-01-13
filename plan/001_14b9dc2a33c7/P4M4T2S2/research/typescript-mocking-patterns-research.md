@@ -1124,7 +1124,11 @@ describe('gitCommit', () => {
       expect(result.success).toBe(true);
       expect(result.commitHash).toBe('abc123def456');
       expect(result.error).toBeUndefined();
-      expect(mockGitInstance.commit).toHaveBeenCalledWith('Test commit', [], {});
+      expect(mockGitInstance.commit).toHaveBeenCalledWith(
+        'Test commit',
+        [],
+        {}
+      );
     });
 
     it('should create empty commit when allowEmpty=true', async () => {
@@ -1202,7 +1206,9 @@ describe('gitCommit', () => {
 
       // VERIFY
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Cannot commit with unresolved merge conflicts');
+      expect(result.error).toContain(
+        'Cannot commit with unresolved merge conflicts'
+      );
     });
 
     it('should handle generic GitError', async () => {
@@ -1305,8 +1311,9 @@ describe('mock validation patterns', () => {
     await copyFile('./source.txt', './dest.txt');
 
     // VERIFY: Check call order
-    expect(mockReadFile.mock.invocationCallOrder[0])
-      .toBeLessThan(mockWriteFile.mock.invocationCallOrder[0]);
+    expect(mockReadFile.mock.invocationCallOrder[0]).toBeLessThan(
+      mockWriteFile.mock.invocationCallOrder[0]
+    );
 
     // VERIFY: Check call counts
     expect(mockReadFile).toHaveBeenCalledTimes(1);
@@ -1401,10 +1408,7 @@ describe('execution flow testing', () => {
     await processFile('./input.txt', './output.txt');
 
     // VERIFY: Execution order is correct
-    expect(executionOrder).toEqual([
-      'read:./input.txt',
-      'write:./output.txt',
-    ]);
+    expect(executionOrder).toEqual(['read:./input.txt', 'write:./output.txt']);
   });
 
   it('should test parallel operations with Promise.all', async () => {
@@ -1417,9 +1421,7 @@ describe('execution flow testing', () => {
 
     // EXECUTE
     const paths = ['./file1.txt', './file2.txt', './file3.txt'];
-    const results = await Promise.all(
-      paths.map(path => readFile(path))
-    );
+    const results = await Promise.all(paths.map(path => readFile(path)));
 
     // VERIFY
     expect(results).toEqual(mockResults);
@@ -1545,9 +1547,7 @@ import * as fs from 'node:fs/promises';
 describe('file operations', () => {
   it('should call readFile with correct args', async () => {
     // SETUP: Spy only on readFile, keep other functions real
-    const spy = vi
-      .spyOn(fs, 'readFile')
-      .mockResolvedValue('mock content');
+    const spy = vi.spyOn(fs, 'readFile').mockResolvedValue('mock content');
 
     // EXECUTE
     await processFile('./test.txt');
@@ -1563,15 +1563,15 @@ describe('file operations', () => {
 
 ### 6.3 Key Differences Summary
 
-| Aspect | vi.mock() | vi.spyOn() |
-|--------|-----------|------------|
-| **Scope** | Module-level | Function/method-level |
-| **Hoisting** | Hoisted to top | Not hoisted |
-| **Placement** | Before imports | Anywhere in test |
-| **Use case** | Replace entire module | Mock specific function |
-| **Persistence** | Persists until test file ends | Persists until restored |
-| **Type safety** | May require vi.mocked() | Maintains types automatically |
-| **Partial mocking** | Requires importActual | Native support |
+| Aspect              | vi.mock()                     | vi.spyOn()                    |
+| ------------------- | ----------------------------- | ----------------------------- |
+| **Scope**           | Module-level                  | Function/method-level         |
+| **Hoisting**        | Hoisted to top                | Not hoisted                   |
+| **Placement**       | Before imports                | Anywhere in test              |
+| **Use case**        | Replace entire module         | Mock specific function        |
+| **Persistence**     | Persists until test file ends | Persists until restored       |
+| **Type safety**     | May require vi.mocked()       | Maintains types automatically |
+| **Partial mocking** | Requires importActual         | Native support                |
 
 ### 6.4 Combining Both Patterns
 
@@ -1761,21 +1761,25 @@ describe('tests', () => {
 ### 8.1 Official Documentation
 
 **Vitest:**
+
 - Main Guide: https://vitest.dev/guide/
 - Mocking API: https://vitest.dev/api/mocking.html
 - Coverage: https://vitest.dev/guide/coverage.html
 - Configuration: https://vitest.dev/config/
 
 **TypeScript:**
+
 - Handbook: https://www.typescriptlang.org/docs/handbook/intro.html
 - Type Testing: https://github.com/Microsoft/TypeScript/wiki/Testing
 
 **Testing Best Practices:**
+
 - JavaScript Testing Best Practices: https://github.com/goldbergyoni/javascript-testing-best-practices
 
 ### 8.2 Project-Specific Resources
 
 **Existing Tests (Excellent Examples):**
+
 - `/home/dustin/projects/hacky-hack/tests/integration/tools.test.ts` - MCP tool integration testing
 - `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts` - Agent factory testing
 - `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts` - Complex state management
@@ -1783,28 +1787,33 @@ describe('tests', () => {
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/git-mcp.test.ts` - Git operations mocking
 
 **Source Files:**
+
 - `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts` - Agent creation patterns
 - `/home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.ts` - File system MCP implementation
 - `/home/dustin/projects/hacky-hack/src/tools/git-mcp.ts` - Git MCP implementation
 - `/home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts` - Bash MCP implementation
 
 **Research Documents:**
+
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P4M4T2S2/research/mcp_integration_testing.md` - MCP testing guide
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P4M4T1S2/research/fs-mocking-research.md` - File system mocking deep dive
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P4M4T2S2/research/simple_git_mocking.md` - Git mocking guide
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-typescript-testing-research.md` - Vitest/TypeScript patterns
 
 **Configuration:**
+
 - `/home/dustin/projects/husty-hack/vitest.config.ts` - Vitest configuration
 - `/home/dustin/projects/hacky-hack/package.json` - Test scripts
 
 ### 8.3 External Libraries
 
 **Groundswell Framework:**
+
 - Repository: https://github.com/groundswell-ai/groundswell
 - Local Path: `~/projects/groundswell`
 
 **Testing Dependencies:**
+
 - `vitest@1.6.1` - Test framework
 - `@vitest/coverage-v8@1.6.1` - Coverage provider
 - `typescript@5.2.0` - Type checking

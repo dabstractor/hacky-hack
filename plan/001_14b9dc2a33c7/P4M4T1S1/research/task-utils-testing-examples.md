@@ -1,4 +1,5 @@
 # task-utils.ts Testing Examples
+
 **Work Item:** P4.M4.T1.S1 - Specific test examples for task-utils.ts functions
 
 ---
@@ -14,7 +15,14 @@ This document provides concrete testing examples for each function in `/home/dus
 ### Factory Functions
 
 ```typescript
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../../src/core/models.js';
 
 const createTestSubtask = (
   id: string,
@@ -84,25 +92,52 @@ const createTestBacklog = (phases: Phase[]): Backlog => ({
 const createComplexBacklog = (): Backlog => {
   // Subtasks with various statuses
   const subtask1 = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete');
-  const subtask2 = createTestSubSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', ['P1.M1.T1.S1']);
-  const subtask3 = createTestSubtask('P1.M1.T1.S3', 'Subtask 3', 'Planned', ['P1.M1.T1.S2']);
+  const subtask2 = createTestSubSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', [
+    'P1.M1.T1.S1',
+  ]);
+  const subtask3 = createTestSubtask('P1.M1.T1.S3', 'Subtask 3', 'Planned', [
+    'P1.M1.T1.S2',
+  ]);
   const subtask4 = createTestSubtask('P1.M1.T2.S1', 'Subtask 4', 'Researching');
-  const subtask5 = createTestSubtask('P1.M2.T1.S1', 'Subtask 5', 'Implementing');
+  const subtask5 = createTestSubtask(
+    'P1.M2.T1.S1',
+    'Subtask 5',
+    'Implementing'
+  );
   const subtask6 = createTestSubtask('P2.M1.T1.S1', 'Subtask 6', 'Planned');
 
   // Tasks
-  const task1 = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [subtask1, subtask2, subtask3]);
+  const task1 = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+    subtask1,
+    subtask2,
+    subtask3,
+  ]);
   const task2 = createTestTask('P1.M1.T2', 'Task 2', 'Planned', [subtask4]);
-  const task3 = createTestTask('P1.M2.T1', 'Task 3', 'Implementing', [subtask5]);
+  const task3 = createTestTask('P1.M2.T1', 'Task 3', 'Implementing', [
+    subtask5,
+  ]);
   const task4 = createTestTask('P2.M1.T1', 'Task 4', 'Planned', [subtask6]);
 
   // Milestones
-  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [task1, task2]);
-  const milestone2 = createTestMilestone('P1.M2', 'Milestone 2', 'Implementing', [task3]);
-  const milestone3 = createTestMilestone('P2.M1', 'Milestone 3', 'Planned', [task4]);
+  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [
+    task1,
+    task2,
+  ]);
+  const milestone2 = createTestMilestone(
+    'P1.M2',
+    'Milestone 2',
+    'Implementing',
+    [task3]
+  );
+  const milestone3 = createTestMilestone('P2.M1', 'Milestone 3', 'Planned', [
+    task4,
+  ]);
 
   // Phases
-  const phase1 = createTestPhase('P1', 'Phase 1', 'Planned', [milestone1, milestone2]);
+  const phase1 = createTestPhase('P1', 'Phase 1', 'Planned', [
+    milestone1,
+    milestone2,
+  ]);
   const phase2 = createTestPhase('P2', 'Phase 2', 'Planned', [milestone3]);
 
   return createTestBacklog([phase1, phase2]);
@@ -114,6 +149,7 @@ const createComplexBacklog = (): Backlog => {
 ## Function: isSubtask (Type Guard)
 
 ### Implementation
+
 ```typescript
 export function isSubtask(item: HierarchyItem): item is Subtask {
   return item.type === 'Subtask';
@@ -168,7 +204,11 @@ describe('isSubtask type guard', () => {
 
   it('should enable type narrowing', () => {
     // SETUP
-    const item: HierarchyItem = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned');
+    const item: HierarchyItem = createTestSubtask(
+      'P1.M1.T1.S1',
+      'Test',
+      'Planned'
+    );
 
     // EXECUTE
     if (isSubtask(item)) {
@@ -184,6 +224,7 @@ describe('isSubtask type guard', () => {
 ```
 
 ### Coverage Goals
+
 - Lines: 100% (only 2 lines: function and return)
 - Branches: 100% (all 4 item types tested)
 - Functions: 100% (function called in all tests)
@@ -193,6 +234,7 @@ describe('isSubtask type guard', () => {
 ## Function: findItem (Recursive DFS)
 
 ### Implementation
+
 ```typescript
 export function findItem(backlog: Backlog, id: string): HierarchyItem | null {
   for (const phase of backlog.backlog) {
@@ -342,7 +384,12 @@ describe('findItem', () => {
 
     it('should handle milestone with empty tasks', () => {
       // SETUP
-      const milestone = createTestMilestone('P1.M1', 'Empty Milestone', 'Planned', []);
+      const milestone = createTestMilestone(
+        'P1.M1',
+        'Empty Milestone',
+        'Planned',
+        []
+      );
       const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
       const backlog = createTestBacklog([phase]);
 
@@ -356,7 +403,9 @@ describe('findItem', () => {
     it('should handle task with empty subtasks', () => {
       // SETUP
       const task = createTestTask('P1.M1.T1', 'Empty Task', 'Planned', []);
-      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
       const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
       const backlog = createTestBacklog([phase]);
 
@@ -382,7 +431,9 @@ describe('findItem', () => {
       // SETUP: Create maximum depth (4 levels)
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Deep', 'Planned');
       const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
-      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
       const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
       const backlog = createTestBacklog([phase]);
 
@@ -397,6 +448,7 @@ describe('findItem', () => {
 ```
 
 ### Coverage Goals
+
 - Statements: 100% (all loops and conditionals)
 - Branches: 100% (all if statements and loop iterations)
 - Functions: 100% (all code paths executed)
@@ -407,6 +459,7 @@ describe('findItem', () => {
 ## Function: getDependencies
 
 ### Implementation
+
 ```typescript
 export function getDependencies(task: Subtask, backlog: Backlog): Subtask[] {
   const results: Subtask[] = [];
@@ -442,7 +495,7 @@ describe('getDependencies', () => {
   it('should return single dependency', () => {
     // SETUP
     const subtask = createTestSubtask('P1.M1.T1.S2', 'Test', 'Planned', [
-      'P1.M1.T1.S1'
+      'P1.M1.T1.S1',
     ]);
     const backlog = createComplexBacklog();
 
@@ -458,7 +511,7 @@ describe('getDependencies', () => {
     // SETUP
     const subtask = createTestSubtask('P1.M1.T1.S3', 'Test', 'Planned', [
       'P1.M1.T1.S1',
-      'P1.M1.T1.S2'
+      'P1.M1.T1.S2',
     ]);
     const backlog = createComplexBacklog();
 
@@ -475,7 +528,7 @@ describe('getDependencies', () => {
     // SETUP
     const subtask = createTestSubtask('P1.M1.T1.S2', 'Test', 'Planned', [
       'P1.M1.T1.S1',
-      'NON-EXISTENT'
+      'NON-EXISTENT',
     ]);
     const backlog = createComplexBacklog();
 
@@ -490,8 +543,8 @@ describe('getDependencies', () => {
   it('should filter out non-Subtask dependencies', () => {
     // SETUP: Subtask with dependency on a Milestone
     const subtask = createTestSubtask('P1.M1.T1.S2', 'Test', 'Planned', [
-      'P1.M1.T1.S1',  // Valid Subtask
-      'P1.M1'         // Milestone, not Subtask
+      'P1.M1.T1.S1', // Valid Subtask
+      'P1.M1', // Milestone, not Subtask
     ]);
     const backlog = createComplexBacklog();
 
@@ -507,7 +560,7 @@ describe('getDependencies', () => {
   it('should handle circular reference gracefully', () => {
     // SETUP: Subtask with self-reference (circular)
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', [
-      'P1.M1.T1.S1'  // Self-reference
+      'P1.M1.T1.S1', // Self-reference
     ]);
     const backlog = createComplexBacklog();
 
@@ -521,11 +574,21 @@ describe('getDependencies', () => {
   it('should handle dependency chain', () => {
     // SETUP: Chain of dependencies: S3 depends on S2, S2 depends on S1
     const subtask1 = createTestSubtask('P1.M1.T1.S1', 'First', 'Complete', []);
-    const subtask2 = createTestSubtask('P1.M1.T1.S2', 'Second', 'Planned', ['P1.M1.T1.S1']);
-    const subtask3 = createTestSubtask('P1.M1.T1.S3', 'Third', 'Planned', ['P1.M1.T1.S2']);
+    const subtask2 = createTestSubtask('P1.M1.T1.S2', 'Second', 'Planned', [
+      'P1.M1.T1.S1',
+    ]);
+    const subtask3 = createTestSubtask('P1.M1.T1.S3', 'Third', 'Planned', [
+      'P1.M1.T1.S2',
+    ]);
 
-    const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask1, subtask2, subtask3]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+    const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [
+      subtask1,
+      subtask2,
+      subtask3,
+    ]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -540,6 +603,7 @@ describe('getDependencies', () => {
 ```
 
 ### Coverage Goals
+
 - Statements: 100% (for loop, if statement, push)
 - Branches: 100% (if statement both true/false)
 - Functions: 100% (all code paths)
@@ -550,8 +614,12 @@ describe('getDependencies', () => {
 ## Function: filterByStatus
 
 ### Implementation
+
 ```typescript
-export function filterByStatus(backlog: Backlog, status: Status): HierarchyItem[] {
+export function filterByStatus(
+  backlog: Backlog,
+  status: Status
+): HierarchyItem[] {
   const results: HierarchyItem[] = [];
 
   for (const phase of backlog.backlog) {
@@ -682,8 +750,12 @@ describe('filterByStatus', () => {
   it('should handle all status values', () => {
     // SETUP: Items with each status
     const statuses: Status[] = [
-      'Planned', 'Researching', 'Implementing',
-      'Complete', 'Failed', 'Obsolete'
+      'Planned',
+      'Researching',
+      'Implementing',
+      'Complete',
+      'Failed',
+      'Obsolete',
     ];
 
     const subtasks = statuses.map((status, i) =>
@@ -691,7 +763,9 @@ describe('filterByStatus', () => {
     );
 
     const task = createTestTask('P1.M1.T1', 'Task', 'Planned', subtasks);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -705,6 +779,7 @@ describe('filterByStatus', () => {
 ```
 
 ### Coverage Goals
+
 - Statements: 100% (all loops and if statements)
 - Branches: 100% (all if conditions)
 - Functions: 100% (all code paths)
@@ -715,6 +790,7 @@ describe('filterByStatus', () => {
 ## Function: getNextPendingItem
 
 ### Implementation
+
 ```typescript
 export function getNextPendingItem(backlog: Backlog): HierarchyItem | null {
   for (const phase of backlog.backlog) {
@@ -758,7 +834,9 @@ describe('getNextPendingItem', () => {
     // SETUP: Backlog with only Complete items
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
     const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -784,7 +862,9 @@ describe('getNextPendingItem', () => {
     // SETUP: Hierarchy with Complete parents but Planned subtask
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned');
     const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -814,7 +894,9 @@ describe('getNextPendingItem', () => {
     // SETUP
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
     const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -829,7 +911,9 @@ describe('getNextPendingItem', () => {
     // SETUP
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
     const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -843,6 +927,7 @@ describe('getNextPendingItem', () => {
 ```
 
 ### Coverage Goals
+
 - Statements: 100% (all loops and early returns)
 - Branches: 100% (all if conditions)
 - Functions: 100% (all return paths)
@@ -853,6 +938,7 @@ describe('getNextPendingItem', () => {
 ## Function: updateItemStatus
 
 ### Implementation (simplified for clarity)
+
 ```typescript
 export function updateItemStatus(
   backlog: Backlog,
@@ -868,7 +954,7 @@ export function updateItemStatus(
 
       // Search deeper if target might be in this phase
       // ... (implementation continues)
-    })
+    }),
   };
 }
 ```
@@ -973,7 +1059,9 @@ describe('updateItemStatus', () => {
       // SETUP: Deeply nested structure
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Deep', 'Planned');
       const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
-      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
       const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
       const backlog = createTestBacklog([phase]);
 
@@ -1060,7 +1148,9 @@ describe('updateItemStatus', () => {
       // SETUP: 4-level deep hierarchy (max for this system)
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Deep', 'Planned');
       const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
-      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
       const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
       const backlog = createTestBacklog([phase]);
 
@@ -1096,6 +1186,7 @@ describe('updateItemStatus', () => {
 ```
 
 ### Coverage Goals
+
 - Statements: 100% (all map operations, conditionals, spread operators)
 - Branches: 100% (all if statements and ternaries)
 - Functions: 100% (all code paths)
@@ -1181,6 +1272,7 @@ This document provides comprehensive test examples for all functions in `task-ut
 6. **updateItemStatus** - Immutability testing with deep copy verification
 
 All examples follow the AAA pattern (Arrange, Act, Assert) and demonstrate:
+
 - 100% code coverage strategies
 - Immutability verification
 - Performance testing

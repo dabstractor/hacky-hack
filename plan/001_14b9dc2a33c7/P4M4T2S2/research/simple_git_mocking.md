@@ -98,17 +98,17 @@ describe('git.status() mocking', () => {
       files: [
         {
           path: 'src/index.ts',
-          index: 'M',        // Staged changes
-          working_dir: 'M',  // Working tree changes
+          index: 'M', // Staged changes
+          working_dir: 'M', // Working tree changes
         },
         {
           path: 'src/utils.ts',
-          index: ' ',        // No staged changes
-          working_dir: 'M',  // Working tree changes
+          index: ' ', // No staged changes
+          working_dir: 'M', // Working tree changes
         },
         {
           path: 'newfile.txt',
-          index: '?',        // Untracked
+          index: '?', // Untracked
           working_dir: '?',
         },
       ],
@@ -145,20 +145,20 @@ describe('git.status() mocking', () => {
 
 ```typescript
 // Index column (staged changes)
-' '  // No change
-'M'  // Modified
-'A'  // Added
-'D'  // Deleted
-'R'  // Renamed
-'C'  // Copied
-'U'  // Unmerged (conflict)
+' '; // No change
+'M'; // Modified
+'A'; // Added
+'D'; // Deleted
+'R'; // Renamed
+'C'; // Copied
+'U'; // Unmerged (conflict)
 
 // Working_dir column (unstaged changes)
-' '  // No change
-'M'  // Modified
-'D'  // Deleted
-'U'  // Unmerged (conflict)
-'?'  // Untracked
+' '; // No change
+'M'; // Modified
+'D'; // Deleted
+'U'; // Unmerged (conflict)
+'?'; // Untracked
 ```
 
 ### 2.3 Mocking git.diff()
@@ -171,14 +171,14 @@ describe('git.diff() mocking', () => {
     // Mock unstaged changes
     mockGitInstance.diff.mockResolvedValue(
       'diff --git a/file.txt b/file.txt\n' +
-      'index 1234567..abcdefg 100644\n' +
-      '--- a/file.txt\n' +
-      '+++ b/file.txt\n' +
-      '@@ -1,3 +1,4 @@\n' +
-      ' line 1\n' +
-      '-old line\n' +
-      '+new line\n' +
-      ' line 3'
+        'index 1234567..abcdefg 100644\n' +
+        '--- a/file.txt\n' +
+        '+++ b/file.txt\n' +
+        '@@ -1,3 +1,4 @@\n' +
+        ' line 1\n' +
+        '-old line\n' +
+        '+new line\n' +
+        ' line 3'
     );
 
     const result = await gitDiff({ path: './test-repo' });
@@ -190,8 +190,7 @@ describe('git.diff() mocking', () => {
 
   it('should handle staged diff with --cached', async () => {
     mockGitInstance.diff.mockResolvedValue(
-      'diff --cached a/file.txt b/file.txt\n' +
-      '-old\n+new'
+      'diff --cached a/file.txt b/file.txt\n' + '-old\n+new'
     );
 
     const result = await gitDiff({
@@ -290,7 +289,7 @@ await git.add(['--', '--force', 'file.txt']); // Adds file named "--force"
 describe('git.commit() mocking', () => {
   it('should return commit hash on success', async () => {
     mockGitInstance.commit.mockResolvedValue({
-      commit: 'abc123def456789',  // Full SHA
+      commit: 'abc123def456789', // Full SHA
       branch: 'main',
       author: {
         email: 'test@example.com',
@@ -324,11 +323,9 @@ describe('git.commit() mocking', () => {
       allowEmpty: true,
     });
 
-    expect(mockGitInstance.commit).toHaveBeenCalledWith(
-      'Empty commit',
-      [],
-      { '--allow-empty': true }
-    );
+    expect(mockGitInstance.commit).toHaveBeenCalledWith('Empty commit', [], {
+      '--allow-empty': true,
+    });
   });
 
   it('should validate message is not empty', async () => {
@@ -406,9 +403,12 @@ describe('GitError handling', () => {
   });
 
   it('should handle "nothing to commit" error', async () => {
-    const gitError = Object.assign(new Error('nothing to commit, working tree clean'), {
-      name: 'GitError',
-    }) as GitError;
+    const gitError = Object.assign(
+      new Error('nothing to commit, working tree clean'),
+      {
+        name: 'GitError',
+      }
+    ) as GitError;
 
     mockGitInstance.commit.mockRejectedValue(gitError);
 
@@ -517,7 +517,7 @@ describe('with path validation mocks', () => {
   });
 
   it('should validate repository path', async () => {
-    mockExistsSync.mockImplementation((path) => {
+    mockExistsSync.mockImplementation(path => {
       // Path exists but .git doesn't
       return typeof path === 'string' && !path.endsWith('.git');
     });
@@ -544,7 +544,7 @@ describe('edge cases without repository', () => {
   });
 
   it('should handle special characters in paths', async () => {
-    mockRealpathSync.mockImplementation((path) => {
+    mockRealpathSync.mockImplementation(path => {
       if (typeof path === 'string' && path.includes('..')) {
         throw new Error('Invalid path');
       }
@@ -792,7 +792,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Mock dependencies
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),
-  realpathSync: vi.fn((path) => path),
+  realpathSync: vi.fn(path => path),
 }));
 
 vi.mock('simple-git', () => ({
@@ -825,7 +825,7 @@ const mockGitInstance = {
 describe('Git MCP Tools', () => {
   beforeEach(() => {
     mockExistsSync.mockReturnValue(true);
-    mockRealpathSync.mockImplementation((path) => path as string);
+    mockRealpathSync.mockImplementation(path => path as string);
   });
 
   afterEach(() => {
@@ -889,7 +889,8 @@ describe('gitStatusTool schema', () => {
   it('should have path property defined', () => {
     expect(gitStatusTool.input_schema.properties.path).toEqual({
       type: 'string',
-      description: 'Path to git repository (optional, defaults to current directory)',
+      description:
+        'Path to git repository (optional, defaults to current directory)',
     });
   });
 
@@ -970,9 +971,7 @@ describe('complete git commit flow', () => {
     // Setup: Working tree has changes
     mockGitInstance.status.mockResolvedValue({
       current: 'feature-branch',
-      files: [
-        { path: 'feature.ts', index: '?', working_dir: '?' },
-      ],
+      files: [{ path: 'feature.ts', index: '?', working_dir: '?' }],
       isClean: () => false,
     } as never);
 
@@ -993,9 +992,7 @@ describe('complete git commit flow', () => {
     // Step 3: Verify staged
     mockGitInstance.status.mockResolvedValue({
       current: 'feature-branch',
-      files: [
-        { path: 'feature.ts', index: 'A', working_dir: ' ' },
-      ],
+      files: [{ path: 'feature.ts', index: 'A', working_dir: ' ' }],
       isClean: () => false,
     } as never);
 
@@ -1143,11 +1140,11 @@ describe('concurrent operations', () => {
 
 ### Version Compatibility
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| simple-git | 3.30.0 | Promise-based API, TypeScript support |
-| vitest | 1.6.1 | Fast unit test framework |
-| typescript | 5.2.0 | Full type support |
+| Package    | Version | Notes                                 |
+| ---------- | ------- | ------------------------------------- |
+| simple-git | 3.30.0  | Promise-based API, TypeScript support |
+| vitest     | 1.6.1   | Fast unit test framework              |
+| typescript | 5.2.0   | Full type support                     |
 
 ---
 

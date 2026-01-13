@@ -1,4 +1,5 @@
 # Vitest Testing Quick Reference Guide
+
 **Work Item:** P4.M4.T1.S1 - Quick reference for common testing patterns
 
 ---
@@ -34,9 +35,9 @@ describe('functionName', () => {
 
 ```typescript
 // Equality
-expect(actual).toBe(expected);           // Strict equality (===)
-expect(actual).toEqual(expected);        // Deep equality
-expect(actual).toStrictEqual(expected);  // Deep equality + strict types
+expect(actual).toBe(expected); // Strict equality (===)
+expect(actual).toEqual(expected); // Deep equality
+expect(actual).toStrictEqual(expected); // Deep equality + strict types
 
 // Negation
 expect(actual).not.toBe(expected);
@@ -376,8 +377,12 @@ it('should find items at each hierarchy level', () => {
 it('should support all status values', () => {
   const backlog = createComplexBacklog();
   const statuses: Status[] = [
-    'Planned', 'Researching', 'Implementing',
-    'Complete', 'Failed', 'Obsolete'
+    'Planned',
+    'Researching',
+    'Implementing',
+    'Complete',
+    'Failed',
+    'Obsolete',
   ];
 
   for (const status of statuses) {
@@ -432,7 +437,9 @@ import { functionToTest } from '../../../src/module.js';
 import type { TypeNeeded } from '../../../src/models.js';
 
 // Factory functions
-const createTestInput = () => ({ /* ... */ });
+const createTestInput = () => ({
+  /* ... */
+});
 
 describe('module name', () => {
   beforeEach(() => {

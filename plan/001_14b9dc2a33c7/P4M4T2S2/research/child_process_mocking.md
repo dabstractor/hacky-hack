@@ -21,6 +21,7 @@
 ## Overview
 
 Testing code that spawns child processes requires careful mocking to avoid:
+
 - Real process execution during tests
 - Race conditions from async event emissions
 - Flaky tests from timing dependencies
@@ -53,6 +54,7 @@ const mockSpawn = vi.mocked(spawn);
 ```
 
 **Key Benefits**:
+
 - Single source of truth for the mock
 - All code paths use the same mock
 - Prevents real `spawn()` calls during tests
@@ -136,6 +138,7 @@ describe('executeBashCommand', () => {
 ```
 
 **Best Practices**:
+
 - Use TypeScript for type safety
 - Provide sensible defaults
 - Make behavior configurable via options
@@ -217,10 +220,18 @@ it('should handle spawn errors (command not found)', async () => {
 The `ChildProcess` object emits several critical events:
 
 ```typescript
-child.stdout.on('data', (data: Buffer) => { /* ... */ });
-child.stderr.on('data', (data: Buffer) => { /* ... */ });
-child.on('close', (exitCode: number) => { /* ... */ });
-child.on('error', (error: Error) => { /* ... */ });
+child.stdout.on('data', (data: Buffer) => {
+  /* ... */
+});
+child.stderr.on('data', (data: Buffer) => {
+  /* ... */
+});
+child.on('close', (exitCode: number) => {
+  /* ... */
+});
+child.on('error', (error: Error) => {
+  /* ... */
+});
 ```
 
 ### 1. Mocking Data Events
@@ -252,6 +263,7 @@ function createMockChild(options: { stdout?: string; stderr?: string } = {}) {
 ```
 
 **Key Points**:
+
 - Always use `Buffer.from()` to match real behavior
 - Add small delays (5ms) to simulate async I/O
 - Emit data in chunks for realistic testing
@@ -278,6 +290,7 @@ function createMockChild(options: { exitCode?: number } = {}) {
 ```
 
 **Timing Strategy**:
+
 - Data events: 5ms delay
 - Close event: 10ms delay (after data)
 - Ensures proper event ordering
@@ -323,6 +336,7 @@ it('should handle async child process error events', async () => {
 ```
 
 **Common Error Types to Test**:
+
 - `ENOENT`: Command not found
 - `EACCES`: Permission denied
 - `EMFILE`: Too many open files
@@ -386,6 +400,7 @@ it('should handle data events after kill (should ignore)', async () => {
 ```
 
 **Implementation Requirement**:
+
 ```typescript
 // In production code
 if (child.stdout) {
@@ -445,6 +460,7 @@ it('should handle timeout correctly', async () => {
 ```
 
 **Best Practices**:
+
 - Use short timeouts (50-100ms) for fast tests
 - Always cleanup by triggering close event
 - Verify correct signal (SIGTERM, then SIGKILL)
@@ -498,6 +514,7 @@ it('should send SIGKILL if SIGTERM does not kill process', async () => {
 ```
 
 **Implementation Pattern**:
+
 ```typescript
 // Production code
 const timeoutId = setTimeout(() => {
@@ -541,6 +558,7 @@ it('should include timeout error in result', async () => {
 ```
 
 **Pitfalls of Fake Timers**:
+
 - Don't test real async behavior
 - Can miss race conditions
 - Complex to set up correctly
@@ -575,6 +593,7 @@ describe('executeBashCommand', () => {
 **Problem**: Tests pass with synchronous mocks but fail with real async events.
 
 **Bad Example**:
+
 ```typescript
 // BAD - Immediate synchronous callback
 stdout: {
@@ -585,6 +604,7 @@ stdout: {
 ```
 
 **Good Example**:
+
 ```typescript
 // GOOD - Async callback with delay
 stdout: {
@@ -616,6 +636,7 @@ expect(result.stdout).toBe('');
 ```
 
 **Implementation Must-Have**:
+
 ```typescript
 child.stdout.on('data', (data: Buffer) => {
   if (killed) return; // Critical check
@@ -628,6 +649,7 @@ child.stdout.on('data', (data: Buffer) => {
 ### 4. Not Testing All Error Paths
 
 **Common Missed Scenarios**:
+
 - Spawn throws synchronously (command not found)
 - Child emits async 'error' event
 - Non-Error objects thrown
@@ -862,24 +884,24 @@ describe('executeBashCommand', () => {
 ```typescript
 describe('executeBashCommand', () => {
   describe('successful execution', () => {
-    it('should execute simple command successfully', async () => { });
-    it('should use default timeout of 30000ms', async () => { });
-    it('should capture stdout correctly', async () => { });
+    it('should execute simple command successfully', async () => {});
+    it('should use default timeout of 30000ms', async () => {});
+    it('should capture stdout correctly', async () => {});
   });
 
   describe('failed execution', () => {
-    it('should return failure for non-zero exit code', async () => { });
-    it('should capture stderr for failed commands', async () => { });
+    it('should return failure for non-zero exit code', async () => {});
+    it('should capture stderr for failed commands', async () => {});
   });
 
   describe('timeout handling', () => {
-    it('should handle timeout correctly', async () => { });
-    it('should send SIGKILL if SIGTERM does not kill process', async () => { });
+    it('should handle timeout correctly', async () => {});
+    it('should send SIGKILL if SIGTERM does not kill process', async () => {});
   });
 
   describe('spawn error handling', () => {
-    it('should handle spawn errors (command not found)', async () => { });
-    it('should handle async child process error events', async () => { });
+    it('should handle spawn errors (command not found)', async () => {});
+    it('should handle async child process error events', async () => {});
   });
 });
 ```
@@ -952,7 +974,10 @@ vi.mock('node:fs', () => ({
 
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
-import { executeBashCommand, type BashToolInput } from '../../../src/tools/bash-mcp.js';
+import {
+  executeBashCommand,
+  type BashToolInput,
+} from '../../../src/tools/bash-mcp.js';
 
 const mockSpawn = vi.mocked(spawn);
 const mockExistsSync = vi.mocked(existsSync);
@@ -1023,17 +1048,19 @@ function createMockChild(
 ## Summary of Key Recommendations
 
 ### Do's:
+
 1. **Mock at module level** using `vi.mock()`
 2. **Create mock factories** for consistent test objects
 3. **Simulate async timing** with `setTimeout`
 4. **Test all error paths**: spawn errors, async errors, non-Error objects
 5. **Verify spawn arguments** including security settings
-4. **Use real timers** for timeout testing
-5. **Clean up mocks** in `afterEach`
-6. **Test data-after-kill** scenarios
-7. **Use typed mocks** with `vi.mocked()`
+6. **Use real timers** for timeout testing
+7. **Clean up mocks** in `afterEach`
+8. **Test data-after-kill** scenarios
+9. **Use typed mocks** with `vi.mocked()`
 
 ### Don'ts:
+
 1. **Don't use real `spawn()`** in tests
 2. **Don't make callbacks synchronous**
 3. **Don't forget to clear mocks**
@@ -1047,26 +1074,31 @@ function createMockChild(
 ## References and Sources
 
 ### Official Documentation
+
 - [Vitest Mocking Guide](https://vitest.dev/guide/mocking.html) - Official Vitest mocking documentation
 - [Node.js child_process Documentation](https://nodejs.org/api/child_process.html) - Child process API reference
 - [Node.js Testing Best Practices](https://nodejs.org/en/guides/testing/) - Official testing guidelines
 
 ### Testing Patterns
+
 - [Testing Node.js Applications](https://nodejs.dev/learn) - Comprehensive testing guide
 - [Unit Testing Async Code](https://jestjs.io/docs/asynchronous) - Patterns applicable to Vitest
 - [Mock Functions in Vitest](https://vitest.dev/api/#vi-fn) - vi.fn() reference
 
 ### Specific Examples
+
 - **hacky-hack project**: `/home/dustin/projects/hacky-hack/tests/unit/tools/bash-mcp.test.ts`
   - Production-ready implementation with 100% coverage
   - Real-world timeout handling tests
   - Comprehensive error path testing
 
 ### Community Resources
+
 - [Vitest GitHub Discussions](https://github.com/vitest-dev/vitest/discussions) - Community Q&A
 - [Node.js Testing Working Group](https://github.com/nodejs/testing) - Best practices discussions
 
 ### Security Considerations
+
 - [Node.js Security Best Practices](https://nodejs.org/en/docs/guides/security/)
 - Always test `shell: false` to prevent shell injection
 - Verify command parsing to prevent argument injection
@@ -1078,13 +1110,13 @@ function createMockChild(
 ```typescript
 // Standard exit codes for testing
 const EXIT_CODES = {
-  SUCCESS: 0,          // Command succeeded
-  GENERAL_ERROR: 1,    // Catch-all for errors
-  MISUSE: 2,           // Shell builtin misuse
+  SUCCESS: 0, // Command succeeded
+  GENERAL_ERROR: 1, // Catch-all for errors
+  MISUSE: 2, // Shell builtin misuse
   CANNOT_EXECUTE: 126, // Command found but not executable
   COMMAND_NOT_FOUND: 127, // Command not found
-  SIGTERM: 143,        // Killed by SIGTERM (128 + 15)
-  SIGKILL: 137,        // Killed by SIGKILL (128 + 9)
+  SIGTERM: 143, // Killed by SIGTERM (128 + 15)
+  SIGKILL: 137, // Killed by SIGKILL (128 + 9)
 };
 ```
 

@@ -615,9 +615,7 @@ describe('Git workflow integration', () => {
     // SETUP
     mockGitInstance.status.mockResolvedValue({
       current: 'main',
-      files: [
-        { path: 'test.txt', index: ' ', working_dir: 'M' },
-      ],
+      files: [{ path: 'test.txt', index: ' ', working_dir: 'M' }],
       isClean: () => false,
     } as never);
 
@@ -768,7 +766,11 @@ export class MyMCP extends MCPHandler {
       tools: [myTool],
     });
 
-    this.registerToolExecutor('my_server', 'tool_name', myExecutor as ToolExecutor);
+    this.registerToolExecutor(
+      'my_server',
+      'tool_name',
+      myExecutor as ToolExecutor
+    );
   }
 }
 ```
@@ -1057,9 +1059,7 @@ it('should work', async () => {
 it('should parse git status correctly', async () => {
   mockGitInstance.status.mockResolvedValue({
     current: 'main',
-    files: [
-      { path: 'test.txt', index: 'M', working_dir: ' ' },
-    ],
+    files: [{ path: 'test.txt', index: 'M', working_dir: ' ' }],
     isClean: () => false,
   } as never);
 
@@ -1087,6 +1087,7 @@ it('should parse git status correctly', async () => {
 **Current Implementation Status:**
 
 Based on existing test files:
+
 - `tests/unit/tools/bash-mcp.test.ts` - 100% coverage
 - `tests/unit/tools/git-mcp.test.ts` - 100% coverage
 - `tests/unit/tools/filesystem-mcp.test.ts` - 100% coverage
@@ -1139,12 +1140,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-      ],
+      exclude: ['node_modules/', 'tests/', '**/*.test.ts', '**/*.spec.ts'],
     },
   },
 });
@@ -1190,7 +1186,12 @@ vi.mock('dependency', () => ({
   function: vi.fn(),
 }));
 
-import { ToolMCP, executeTool, toolSchema, type ToolInput } from '../../../src/tools/tool-name.js';
+import {
+  ToolMCP,
+  executeTool,
+  toolSchema,
+  type ToolInput,
+} from '../../../src/tools/tool-name.js';
 
 describe('tools/tool-name', () => {
   afterEach(() => {
@@ -1222,7 +1223,9 @@ describe('tools/tool-name', () => {
     describe('successful operations', () => {
       it('should execute with valid input', async () => {
         // SETUP
-        const input: ToolInput = { /* valid input */ };
+        const input: ToolInput = {
+          /* valid input */
+        };
         mockFunction.mockResolvedValue('result');
 
         // EXECUTE
@@ -1241,7 +1244,9 @@ describe('tools/tool-name', () => {
         mockFunction.mockRejectedValue(error);
 
         // EXECUTE
-        const result = await executeTool({ /* input */ });
+        const result = await executeTool({
+          /* input */
+        });
 
         // VERIFY
         expect(result.success).toBe(false);
@@ -1252,7 +1257,9 @@ describe('tools/tool-name', () => {
     describe('edge cases', () => {
       it('should handle edge case', async () => {
         // SETUP
-        const input: ToolInput = { /* edge case input */ };
+        const input: ToolInput = {
+          /* edge case input */
+        };
 
         // EXECUTE
         const result = await executeTool(input);

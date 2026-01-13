@@ -1,4 +1,5 @@
 # Vitest and TypeScript Testing Patterns Research Report
+
 **Work Item:** P4.M4.T1.S1 - Test task hierarchy models and utilities
 **Date:** 2026-01-13
 **Researcher:** Claude Code
@@ -32,18 +33,18 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    environment: 'node',           // Node.js environment for backend utilities
-    globals: true,                  // Global test APIs (no imports needed)
+    environment: 'node', // Node.js environment for backend utilities
+    globals: true, // Global test APIs (no imports needed)
     include: ['tests/**/*.{test,spec}.ts'],
     exclude: ['**/dist/**', '**/node_modules/**'],
     coverage: {
-      provider: 'v8',               // V8 coverage provider (faster than Istanbul)
+      provider: 'v8', // V8 coverage provider (faster than Istanbul)
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
       exclude: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**'],
       thresholds: {
         global: {
-          statements: 100,          // 100% coverage required
+          statements: 100, // 100% coverage required
           branches: 100,
           functions: 100,
           lines: 100,
@@ -58,11 +59,11 @@ export default defineConfig({
 
 ```json
 {
-  "test": "vitest",                           // Watch mode
-  "test:run": "vitest run",                   // Single run
-  "test:watch": "vitest watch",               // Explicit watch mode
-  "test:coverage": "vitest run --coverage",   // With coverage report
-  "test:bail": "vitest run --bail=1"          // Stop on first failure
+  "test": "vitest", // Watch mode
+  "test:run": "vitest run", // Single run
+  "test:watch": "vitest watch", // Explicit watch mode
+  "test:coverage": "vitest run --coverage", // With coverage report
+  "test:bail": "vitest run --bail=1" // Stop on first failure
 }
 ```
 
@@ -125,6 +126,7 @@ describe('filterProtectedFiles', () => {
 ### 2.2 Recursive Functions
 
 Recursive functions require testing of:
+
 1. Base cases (termination conditions)
 2. Recursive cases (typical scenarios)
 3. Edge cases (empty inputs, single elements)
@@ -221,14 +223,14 @@ describe('immutable function', () => {
 
     // VERIFY: Original unchanged
     expect(JSON.stringify(original)).toEqual(originalJSON);
-    expect(result).not.toBe(original);  // Different reference
-    expect(result.data).not.toBe(original.data);  // Deep copy
+    expect(result).not.toBe(original); // Different reference
+    expect(result.data).not.toBe(original.data); // Deep copy
   });
 
   it('should preserve unchanged items with structural sharing', () => {
     // SETUP: Complex nested structure
     const original = createComplexStructure();
-    const unchangedItem = original.items[1];  // Item that won't change
+    const unchangedItem = original.items[1]; // Item that won't change
 
     // EXECUTE: Update only item[0]
     const updated = updateFunction(original, 'items[0]', 'newValue');
@@ -313,13 +315,13 @@ const mockGitCommit = vi.mocked(gitCommit);
 
 describe('function with dependencies', () => {
   beforeEach(() => {
-    vi.clearAllMocks();  // Reset mocks before each test
+    vi.clearAllMocks(); // Reset mocks before each test
   });
 
   it('should call gitStatus before committing', async () => {
     // SETUP: Configure mock return values
     mockGitStatus.mockResolvedValue([
-      { path: 'src/test.ts', status: 'modified' }
+      { path: 'src/test.ts', status: 'modified' },
     ]);
 
     // EXECUTE
@@ -372,9 +374,9 @@ const mockWriteFile = writeFile as any;
 
 ```typescript
 // Equality
-expect(value).toBe(expected);           // Strict equality (===)
-expect(value).toEqual(expected);        // Deep equality
-expect(value).toStrictEqual(expected);  // Deep equality with strict type checking
+expect(value).toBe(expected); // Strict equality (===)
+expect(value).toEqual(expected); // Deep equality
+expect(value).toStrictEqual(expected); // Deep equality with strict type checking
 
 // Truthiness
 expect(value).toBeTruthy();
@@ -386,7 +388,7 @@ expect(value).toBeUndefined();
 // Numbers
 expect(value).toBeGreaterThan(5);
 expect(value).toBeLessThan(10);
-expect(value).toBeCloseTo(3.14, 2);  // Precision
+expect(value).toBeCloseTo(3.14, 2); // Precision
 
 // Strings
 expect(value).toMatch(/regex/);
@@ -482,9 +484,16 @@ const createTestBacklog = (phases: Phase[]): Backlog => ({
 // Complex fixture
 const createComplexBacklog = (): Backlog => {
   const subtask1 = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete');
-  const subtask2 = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', ['P1.M1.T1.S1']);
-  const task1 = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [subtask1, subtask2]);
-  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [task1]);
+  const subtask2 = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', [
+    'P1.M1.T1.S1',
+  ]);
+  const task1 = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+    subtask1,
+    subtask2,
+  ]);
+  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [
+    task1,
+  ]);
   const phase1 = createTestPhase('P1', 'Phase 1', 'Planned', [milestone1]);
 
   return createTestBacklog([phase1]);
@@ -510,6 +519,7 @@ describe('with test fixtures', () => {
 ### 5.1 Coverage Thresholds
 
 The project requires **100% coverage** for:
+
 - Statements
 - Branches
 - Functions
@@ -530,6 +540,7 @@ npm run test:coverage
 ### 5.3 Coverage Reports
 
 Coverage reports are generated in:
+
 - **Console**: Terminal output with percentage breakdown
 - **HTML**: Detailed report in `coverage/index.html`
 - **JSON**: Machine-readable data for CI/CD integration
@@ -537,16 +548,20 @@ Coverage reports are generated in:
 ### 5.4 What Counts Toward Coverage
 
 **Statements:** Each executable line of code
+
 ```typescript
-const x = 1;  // Covered if executed in test
-if (x) {      // Covered if both branches executed
+const x = 1; // Covered if executed in test
+if (x) {
+  // Covered if both branches executed
   return true;
 }
 ```
 
 **Branches:** Each possible path through conditional logic
+
 ```typescript
-if (condition) {  // 2 branches: true and false
+if (condition) {
+  // 2 branches: true and false
   return A;
 } else {
   return B;
@@ -554,17 +569,20 @@ if (condition) {  // 2 branches: true and false
 ```
 
 **Functions:** Each function declaration
+
 ```typescript
-function myFunction() {  // Covered if called in test
+function myFunction() {
+  // Covered if called in test
   return 1;
 }
 ```
 
 **Lines:** Each line of executable code
+
 ```typescript
 // Each line with code counts
-const x = 1;      // Line 1
-return x;         // Line 2
+const x = 1; // Line 1
+return x; // Line 2
 ```
 
 ### 5.5 Achieving 100% Coverage
@@ -722,7 +740,7 @@ describe('getDependencies', () => {
   it('should filter out non-Subtask dependencies', () => {
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', [
       'P1.M1.T1.S2',
-      'P1.M1',  // Milestone, not Subtask
+      'P1.M1', // Milestone, not Subtask
     ]);
     const backlog = createComplexBacklog();
 
@@ -784,7 +802,9 @@ describe('getNextPendingItem', () => {
   it('should return null when no Planned items', () => {
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
     const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -795,7 +815,9 @@ describe('getNextPendingItem', () => {
     // Hierarchy: Phase(Complete) > Milestone(Complete) > Task(Complete) > Subtask(Planned)
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned');
     const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -846,7 +868,9 @@ describe('updateItemStatus', () => {
     it('should create new objects along entire path', () => {
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Deep', 'Planned');
       const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
-      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [task]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
       const phase = createTestPhase('P1', 'Phase', 'Planned', [milestone]);
       const backlog = createTestBacklog([phase]);
 
@@ -854,7 +878,9 @@ describe('updateItemStatus', () => {
 
       // All parent levels should be new objects
       expect(updated.backlog[0]).not.toBe(backlog.backlog[0]);
-      expect(updated.backlog[0].milestones[0]).not.toBe(backlog.backlog[0].milestones[0]);
+      expect(updated.backlog[0].milestones[0]).not.toBe(
+        backlog.backlog[0].milestones[0]
+      );
       expect(updated.backlog[0].milestones[0].tasks[0]).not.toBe(
         backlog.backlog[0].milestones[0].tasks[0]
       );
@@ -868,7 +894,12 @@ describe('updateItemStatus', () => {
     it('should support all valid status values', () => {
       const backlog = createComplexBacklog();
       const statuses: Status[] = [
-        'Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete'
+        'Planned',
+        'Researching',
+        'Implementing',
+        'Complete',
+        'Failed',
+        'Obsolete',
       ];
 
       for (const status of statuses) {
@@ -945,7 +976,9 @@ vi.mock('../../../src/dependency.js', () => ({
 }));
 
 // 3. Factory functions
-const createTestInput = () => ({ /* ... */ });
+const createTestInput = () => ({
+  /* ... */
+});
 
 // 4. Test suites
 describe('module name', () => {
@@ -973,16 +1006,16 @@ describe('module name', () => {
 ```typescript
 // Good: Descriptive and clear
 describe('updateItemStatus', () => {
-  it('should not mutate original backlog', () => { });
-  it('should preserve structural sharing for unchanged branches', () => { });
-  it('should handle non-existent ID gracefully', () => { });
+  it('should not mutate original backlog', () => {});
+  it('should preserve structural sharing for unchanged branches', () => {});
+  it('should handle non-existent ID gracefully', () => {});
 });
 
 // Avoid: Vague or implementation-focused
 describe('updateItemStatus', () => {
-  it('should work', () => { });  // Too vague
-  it('should set status property', () => { });  // Implementation detail
-  it('should call map function', () => { });  // Implementation detail
+  it('should work', () => {}); // Too vague
+  it('should set status property', () => {}); // Implementation detail
+  it('should call map function', () => {}); // Implementation detail
 });
 ```
 
@@ -1055,13 +1088,13 @@ describe('with mocks', () => {
 
 ```typescript
 // Bad: Using toBe for objects
-expect({ a: 1 }).toBe({ a: 1 });  // Fails (different references)
+expect({ a: 1 }).toBe({ a: 1 }); // Fails (different references)
 
 // Good: Using toEqual for objects
-expect({ a: 1 }).toEqual({ a: 1 });  // Passes (deep equality)
+expect({ a: 1 }).toEqual({ a: 1 }); // Passes (deep equality)
 
 // Good: Using toBe for primitives
-expect(1).toBe(1);  // Passes
+expect(1).toBe(1); // Passes
 ```
 
 ### 8.4 Testing Private Functions
@@ -1071,8 +1104,12 @@ expect(1).toBe(1);  // Passes
 ```typescript
 // Bad: Testing private functions
 class MyClass {
-  private helper() { return 1; }
-  public api() { return this.helper(); }
+  private helper() {
+    return 1;
+  }
+  public api() {
+    return this.helper();
+  }
 }
 
 // Solution: Test public API only
@@ -1127,6 +1164,7 @@ it('should use early exit and not traverse entire structure', () => {
 ### 10.1 Official Documentation
 
 **Vitest Documentation:**
+
 - Main Guide: https://vitest.dev/guide/
 - API Reference: https://vitest.dev/api/
 - Coverage: https://vitest.dev/guide/coverage.html
@@ -1134,27 +1172,32 @@ it('should use early exit and not traverse entire structure', () => {
 - Configuring Vitest: https://vitest.dev/config/
 
 **TypeScript Testing:**
+
 - TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/intro.html
 - Type Testing: https://github.com/Microsoft/TypeScript/wiki/Testing
 
 ### 10.2 Project-Specific Resources
 
 **Existing Test Examples:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/core/task-utils.test.ts` - Comprehensive utility function tests
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts` - Mocking and async patterns
 - `/home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts` - File system mocking
 - `/home/dustin/projects/hacky-hack/tests/unit/core/models.test.ts` - Schema validation tests
 
 **Configuration:**
+
 - `/home/dustin/projects/hacky-hack/vitest.config.ts` - Vitest configuration
 - `/home/dustin/projects/hacky-hack/package.json` - Test scripts
 
 **Source Under Test:**
+
 - `/home/dustin/projects/hacky-hack/src/utils/task-utils.ts` - Task hierarchy utilities
 
 ### 10.3 Testing Best Practices
 
 **General Principles:**
+
 1. **AAA Pattern:** Arrange (setup), Act (execute), Assert (verify)
 2. **One Assertion Per Test:** Focus on single behavior
 3. **Descriptive Names:** Test names should read like requirements
@@ -1163,6 +1206,7 @@ it('should use early exit and not traverse entire structure', () => {
 6. **100% Coverage:** Required by project standards
 
 **Code Coverage Tools:**
+
 ```bash
 # View HTML report
 open coverage/index.html
@@ -1226,28 +1270,28 @@ it('should call dependency', () => {
 
 ```typescript
 // Equality
-toBe(), toEqual(), toStrictEqual()
+(toBe(), toEqual(), toStrictEqual());
 
 // Truthiness
-toBeTruthy(), toBeFalsy(), toBeNull(), toBeUndefined()
+(toBeTruthy(), toBeFalsy(), toBeNull(), toBeUndefined());
 
 // Numbers
-toBeGreaterThan(), toBeLessThan(), toBeCloseTo()
+(toBeGreaterThan(), toBeLessThan(), toBeCloseTo());
 
 // Strings
-toMatch(), toContain()
+(toMatch(), toContain());
 
 // Arrays
-toHaveLength(), toContain(), toContainEqual()
+(toHaveLength(), toContain(), toContainEqual());
 
 // Objects
-toHaveProperty(), toMatchObject()
+(toHaveProperty(), toMatchObject());
 
 // Async
-resolves.to, rejects.toThrow()
+(resolves.to, rejects.toThrow());
 
 // Exceptions
-toThrow(), toThrow(Error), toThrow('message')
+(toThrow(), toThrow(Error), toThrow('message'));
 ```
 
 ### 11.3 Mock Functions

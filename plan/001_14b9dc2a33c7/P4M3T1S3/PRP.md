@@ -40,6 +40,7 @@
 **Target User**: PRPPipeline (internal orchestration layer)
 
 **Use Case**: After all tasks complete (or in bug-hunt mode), the pipeline needs automated QA to:
+
 1. Detect bugs via BugHuntWorkflow
 2. Fix bugs via FixCycleWorkflow
 3. Report results via TEST_RESULTS.md and console summary
@@ -1079,7 +1080,8 @@ describe('PRPPipeline - Mode-Based QA Integration', () => {
     it('should run QA in bug-hunt mode regardless of task status', async () => {
       pipeline.mode = 'bug-hunt';
       // Set tasks as incomplete
-      mockSessionManager.currentSession.taskRegistry.backlog[0].phases[0].milestones[0].tasks[0].status = 'Planned';
+      mockSessionManager.currentSession.taskRegistry.backlog[0].phases[0].milestones[0].tasks[0].status =
+        'Planned';
 
       // Should attempt to run QA (will fail at BugHuntWorkflow instantiation, but that's OK for this test)
       // The key is it doesn't skip due to incomplete tasks

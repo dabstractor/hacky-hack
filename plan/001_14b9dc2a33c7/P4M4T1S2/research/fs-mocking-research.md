@@ -1,6 +1,7 @@
 # Best Practices for Mocking fs/promises in TypeScript using Vitest
 
 ## Table of Contents
+
 1. [Mocking fs.promises Functions](#1-mocking-fspromises-functions)
 2. [Mocking Synchronous fs Operations](#2-mocking-synchronous-fs-operations)
 3. [Testing Atomic Write Patterns](#3-testing-atomic-write-patterns)
@@ -18,9 +19,9 @@ The most common approach for mocking `fs/promises` in Vitest:
 
 ```typescript
 // fileUtils.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as fs from 'node:fs/promises'
-import { readAndProcessFile } from './fileUtils'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as fs from 'node:fs/promises';
+import { readAndProcessFile } from './fileUtils';
 
 // Mock at the top level - must be before imports
 vi.mock('node:fs/promises', () => ({
@@ -30,38 +31,35 @@ vi.mock('node:fs/promises', () => ({
   stat: vi.fn(),
   unlink: vi.fn(),
   rename: vi.fn(),
-}))
+}));
 
 describe('File operations with mocked fs.promises', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('should read a file successfully', async () => {
-    const mockContent = 'file content'
-    vi.mocked(fs.readFile).mockResolvedValueOnce(mockContent)
+    const mockContent = 'file content';
+    vi.mocked(fs.readFile).mockResolvedValueOnce(mockContent);
 
-    const result = await readAndProcessFile('test.txt')
+    const result = await readAndProcessFile('test.txt');
 
-    expect(fs.readFile).toHaveBeenCalledWith('test.txt', 'utf-8')
-    expect(result).toBe(mockContent)
-  })
+    expect(fs.readFile).toHaveBeenCalledWith('test.txt', 'utf-8');
+    expect(result).toBe(mockContent);
+  });
 
   it('should write to a file', async () => {
-    vi.mocked(fs.writeFile).mockResolvedValueOnce(undefined)
+    vi.mocked(fs.writeFile).mockResolvedValueOnce(undefined);
 
-    await writeToFile('output.txt', 'content')
+    await writeToFile('output.txt', 'content');
 
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      'output.txt',
-      'content',
-      'utf-8'
-    )
-  })
-})
+    expect(fs.writeFile).toHaveBeenCalledWith('output.txt', 'content', 'utf-8');
+  });
+});
 ```
 
 **Best Practices:**
+
 - Always use `vi.mocked()` for proper TypeScript type inference
 - Place `vi.mock()` calls at the top level, before imports
 - Use `mockResolvedValueOnce()` for single-call scenarios
@@ -72,28 +70,26 @@ describe('File operations with mocked fs.promises', () => {
 When you only need to mock specific functions while keeping others real:
 
 ```typescript
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import * as fs from 'node:fs/promises'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as fs from 'node:fs/promises';
 
 describe('Selective mocking with spyOn', () => {
-  let readFileSpy: vi.SpyInstance
+  let readFileSpy: vi.SpyInstance;
 
   beforeEach(() => {
-    readFileSpy = vi
-      .spyOn(fs, 'readFile')
-      .mockResolvedValue('mocked content')
-  })
+    readFileSpy = vi.spyOn(fs, 'readFile').mockResolvedValue('mocked content');
+  });
 
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
   it('should use mocked readFile', async () => {
-    const content = await fs.readFile('test.txt', 'utf-8')
-    expect(content).toBe('mocked content')
-    expect(readFileSpy).toHaveBeenCalled()
-  })
-})
+    const content = await fs.readFile('test.txt', 'utf-8');
+    expect(content).toBe('mocked content');
+    expect(readFileSpy).toHaveBeenCalled();
+  });
+});
 ```
 
 ### 1.3 Mocking Complex Return Values
@@ -119,14 +115,14 @@ it('should mock fs.stat with Stats object', async () => {
     nlink: 1,
     rdev: 0,
     uid: 501,
-  }
+  };
 
-  vi.mocked(fs.stat).mockResolvedValueOnce(mockStats as any)
+  vi.mocked(fs.stat).mockResolvedValueOnce(mockStats as any);
 
-  const stats = await fs.stat('file.txt')
-  expect(stats.isFile()).toBe(true)
-  expect(stats.size).toBe(1024)
-})
+  const stats = await fs.stat('file.txt');
+  expect(stats.isFile()).toBe(true);
+  expect(stats.size).toBe(1024);
+});
 ```
 
 ### 1.4 Directory Operations Mocking
@@ -134,24 +130,24 @@ it('should mock fs.stat with Stats object', async () => {
 ```typescript
 describe('Directory operations', () => {
   it('should mock mkdir', async () => {
-    vi.mocked(fs.mkdir).mockResolvedValueOnce(undefined)
+    vi.mocked(fs.mkdir).mockResolvedValueOnce(undefined);
 
-    await createDirectory('/path/to/dir')
+    await createDirectory('/path/to/dir');
 
     expect(fs.mkdir).toHaveBeenCalledWith('/path/to/dir', {
       recursive: true,
-    })
-  })
+    });
+  });
 
   it('should mock readdir', async () => {
-    const mockFiles = ['file1.txt', 'file2.txt', 'subdir']
-    vi.mocked(fs.readdir).mockResolvedValueOnce(mockFiles as any)
+    const mockFiles = ['file1.txt', 'file2.txt', 'subdir'];
+    vi.mocked(fs.readdir).mockResolvedValueOnce(mockFiles as any);
 
-    const files = await fs.readdir('/path/to/dir')
+    const files = await fs.readdir('/path/to/dir');
 
-    expect(files).toEqual(mockFiles)
-  })
-})
+    expect(files).toEqual(mockFiles);
+  });
+});
 ```
 
 ---
@@ -161,8 +157,8 @@ describe('Directory operations', () => {
 ### 2.1 Mocking statSync
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as fs from 'node:fs'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as fs from 'node:fs';
 
 vi.mock('node:fs', () => ({
   default: {
@@ -172,12 +168,12 @@ vi.mock('node:fs', () => ({
     existsSync: vi.fn(),
     mkdirSync: vi.fn(),
   },
-}))
+}));
 
 describe('Synchronous fs operations', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('should mock statSync', () => {
     const mockStats = {
@@ -186,30 +182,30 @@ describe('Synchronous fs operations', () => {
       size: 2048,
       mode: 0o644,
       mtime: new Date(),
-    }
+    };
 
-    vi.mocked(fs.statSync).mockReturnValueOnce(mockStats as any)
+    vi.mocked(fs.statSync).mockReturnValueOnce(mockStats as any);
 
-    const stats = fs.statSync('file.txt')
-    expect(stats.isFile()).toBe(true)
-    expect(stats.size).toBe(2048)
-  })
+    const stats = fs.statSync('file.txt');
+    expect(stats.isFile()).toBe(true);
+    expect(stats.size).toBe(2048);
+  });
 
   it('should mock existsSync', () => {
-    vi.mocked(fs.existsSync).mockReturnValueOnce(true)
+    vi.mocked(fs.existsSync).mockReturnValueOnce(true);
 
-    const exists = fs.existsSync('file.txt')
-    expect(exists).toBe(true)
-  })
+    const exists = fs.existsSync('file.txt');
+    expect(exists).toBe(true);
+  });
 
   it('should mock readFileSync', () => {
-    const content = 'sync file content'
-    vi.mocked(fs.readFileSync).mockReturnValueOnce(content as any)
+    const content = 'sync file content';
+    vi.mocked(fs.readFileSync).mockReturnValueOnce(content as any);
 
-    const fileContent = fs.readFileSync('file.txt', 'utf-8')
-    expect(fileContent).toBe(content)
-  })
-})
+    const fileContent = fs.readFileSync('file.txt', 'utf-8');
+    expect(fileContent).toBe(content);
+  });
+});
 ```
 
 ### 2.2 Conditional Mocking Based on Path
@@ -221,15 +217,15 @@ it('should conditionally mock based on path', () => {
       return {
         isFile: () => true,
         size: 999,
-      } as any
+      } as any;
     }
     // Fall back to real implementation for other paths
-    return vi.getActualCurrent(fs.statSync)(path)
-  })
+    return vi.getActualCurrent(fs.statSync)(path);
+  });
 
-  const specialStats = fs.statSync('/special/file.txt')
-  expect(specialStats.size).toBe(999)
-})
+  const specialStats = fs.statSync('/special/file.txt');
+  expect(specialStats.size).toBe(999);
+});
 ```
 
 ### 2.3 Mocking Multiple Synchronous Operations
@@ -237,24 +233,24 @@ it('should conditionally mock based on path', () => {
 ```typescript
 describe('Complex synchronous operations', () => {
   it('should handle multiple sync operations together', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true)
+    vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.statSync).mockReturnValue({
       isFile: () => true,
       size: 1024,
-    } as any)
-    vi.mocked(fs.readFileSync).mockReturnValue('content' as any)
+    } as any);
+    vi.mocked(fs.readFileSync).mockReturnValue('content' as any);
 
-    const filePath = '/path/to/file.txt'
+    const filePath = '/path/to/file.txt';
 
     if (fs.existsSync(filePath)) {
-      const stats = fs.statSync(filePath)
-      const content = fs.readFileSync(filePath, 'utf-8')
+      const stats = fs.statSync(filePath);
+      const content = fs.readFileSync(filePath, 'utf-8');
 
-      expect(stats.isFile()).toBe(true)
-      expect(content).toBe('content')
+      expect(stats.isFile()).toBe(true);
+      expect(content).toBe('content');
     }
-  })
-})
+  });
+});
 ```
 
 ---
@@ -267,50 +263,43 @@ Atomic writes typically use a temporary file followed by a rename operation. Her
 
 ```typescript
 // Implementation to test
-async function atomicWrite(
-  filepath: string,
-  content: string
-): Promise<void> {
-  const tmpPath = `${filepath}.tmp`
-  await fs.writeFile(tmpPath, content, 'utf-8')
-  await fs.rename(tmpPath, filepath)
+async function atomicWrite(filepath: string, content: string): Promise<void> {
+  const tmpPath = `${filepath}.tmp`;
+  await fs.writeFile(tmpPath, content, 'utf-8');
+  await fs.rename(tmpPath, filepath);
 }
 
 // Test
 describe('Atomic write pattern', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('should write to temp file then rename', async () => {
-    const writeFileSpy = vi
-      .spyOn(fs, 'writeFile')
-      .mockResolvedValue(undefined)
-    const renameSpy = vi
-      .spyOn(fs, 'rename')
-      .mockResolvedValue(undefined)
+    const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined);
 
-    await atomicWrite('/target/file.txt', 'content')
+    await atomicWrite('/target/file.txt', 'content');
 
     // Verify temp file was written first
     expect(writeFileSpy).toHaveBeenCalledWith(
       '/target/file.txt.tmp',
       'content',
       'utf-8'
-    )
+    );
 
     // Verify rename happened after write
     expect(renameSpy).toHaveBeenCalledWith(
       '/target/file.txt.tmp',
       '/target/file.txt'
-    )
+    );
 
     // Verify operation order
     expect(writeFileSpy.mock.invocationCallOrder[0]).toBeLessThan(
       renameSpy.mock.invocationCallOrder[0]
-    )
-  })
-})
+    );
+  });
+});
 ```
 
 ### 3.2 Testing Atomic Write Failures
@@ -318,28 +307,26 @@ describe('Atomic write pattern', () => {
 ```typescript
 describe('Atomic write failure scenarios', () => {
   it('should not rename if write fails', async () => {
-    vi.spyOn(fs, 'writeFile').mockRejectedValue(
-      new Error('Write failed')
-    )
-    const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined)
+    vi.spyOn(fs, 'writeFile').mockRejectedValue(new Error('Write failed'));
+    const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined);
 
-    await expect(
-      atomicWrite('/target/file.txt', 'content')
-    ).rejects.toThrow('Write failed')
+    await expect(atomicWrite('/target/file.txt', 'content')).rejects.toThrow(
+      'Write failed'
+    );
 
     // Rename should not have been attempted
-    expect(renameSpy).not.toHaveBeenCalled()
-  })
+    expect(renameSpy).not.toHaveBeenCalled();
+  });
 
   it('should handle rename failure', async () => {
-    vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined)
-    vi.spyOn(fs, 'rename').mockRejectedValue(new Error('Rename failed'))
+    vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    vi.spyOn(fs, 'rename').mockRejectedValue(new Error('Rename failed'));
 
-    await expect(
-      atomicWrite('/target/file.txt', 'content')
-    ).rejects.toThrow('Rename failed')
-  })
-})
+    await expect(atomicWrite('/target/file.txt', 'content')).rejects.toThrow(
+      'Rename failed'
+    );
+  });
+});
 ```
 
 ### 3.3 Testing Cleanup on Failure
@@ -350,36 +337,36 @@ async function atomicWriteWithCleanup(
   filepath: string,
   content: string
 ): Promise<void> {
-  const tmpPath = `${filepath}.tmp`
+  const tmpPath = `${filepath}.tmp`;
   try {
-    await fs.writeFile(tmpPath, content, 'utf-8')
-    await fs.rename(tmpPath, filepath)
+    await fs.writeFile(tmpPath, content, 'utf-8');
+    await fs.rename(tmpPath, filepath);
   } catch (error) {
     // Cleanup temp file on failure
     try {
-      await fs.unlink(tmpPath)
+      await fs.unlink(tmpPath);
     } catch {
       // Ignore cleanup errors
     }
-    throw error
+    throw error;
   }
 }
 
 // Test
 describe('Atomic write with cleanup', () => {
   it('should cleanup temp file on rename failure', async () => {
-    vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined)
-    vi.spyOn(fs, 'rename').mockRejectedValue(new Error('Rename failed'))
-    const unlinkSpy = vi.spyOn(fs, 'unlink').mockResolvedValue(undefined)
+    vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    vi.spyOn(fs, 'rename').mockRejectedValue(new Error('Rename failed'));
+    const unlinkSpy = vi.spyOn(fs, 'unlink').mockResolvedValue(undefined);
 
     await expect(
       atomicWriteWithCleanup('/target/file.txt', 'content')
-    ).rejects.toThrow('Rename failed')
+    ).rejects.toThrow('Rename failed');
 
     // Verify cleanup happened
-    expect(unlinkSpy).toHaveBeenCalledWith('/target/file.txt.tmp')
-  })
-})
+    expect(unlinkSpy).toHaveBeenCalledWith('/target/file.txt.tmp');
+  });
+});
 ```
 
 ### 3.4 Testing Atomic Read-Modify-Write
@@ -390,9 +377,9 @@ async function atomicModify(
   filepath: string,
   modifier: (content: string) => string
 ): Promise<void> {
-  const currentContent = await fs.readFile(filepath, 'utf-8')
-  const newContent = modifier(currentContent)
-  await atomicWrite(filepath, newContent)
+  const currentContent = await fs.readFile(filepath, 'utf-8');
+  const newContent = modifier(currentContent);
+  await atomicWrite(filepath, newContent);
 }
 
 // Test
@@ -400,26 +387,24 @@ describe('Atomic read-modify-write', () => {
   it('should read, modify, and write atomically', async () => {
     const readFileSpy = vi
       .spyOn(fs, 'readFile')
-      .mockResolvedValue('original content')
-    const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined)
-    const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined)
+      .mockResolvedValue('original content');
+    const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined);
 
-    await atomicModify('/target/file.txt', (content) =>
-      content.toUpperCase()
-    )
+    await atomicModify('/target/file.txt', content => content.toUpperCase());
 
-    expect(readFileSpy).toHaveBeenCalledWith('/target/file.txt', 'utf-8')
+    expect(readFileSpy).toHaveBeenCalledWith('/target/file.txt', 'utf-8');
     expect(writeFileSpy).toHaveBeenCalledWith(
       '/target/file.txt.tmp',
       'ORIGINAL CONTENT',
       'utf-8'
-    )
+    );
     expect(renameSpy).toHaveBeenCalledWith(
       '/target/file.txt.tmp',
       '/target/file.txt'
-    )
-  })
-})
+    );
+  });
+});
 ```
 
 ---
@@ -435,14 +420,14 @@ function createFSError(
   message: string,
   path?: string
 ): NodeJS.ErrnoException {
-  const error = new Error(message) as NodeJS.ErrnoException
-  error.code = code
-  error.errno = getErrnoFromCode(code)
-  error.syscall = getSyscallFromCode(code)
+  const error = new Error(message) as NodeJS.ErrnoException;
+  error.code = code;
+  error.errno = getErrnoFromCode(code);
+  error.syscall = getSyscallFromCode(code);
   if (path) {
-    error.path = path
+    error.path = path;
   }
-  return error
+  return error;
 }
 
 function getErrnoFromCode(code: string): number {
@@ -456,8 +441,8 @@ function getErrnoFromCode(code: string): number {
     EROFS: -30,
     EMFILE: -24,
     ELOOP: -40,
-  }
-  return errnoMap[code] || -1
+  };
+  return errnoMap[code] || -1;
 }
 
 function getSyscallFromCode(code: string): string {
@@ -471,8 +456,8 @@ function getSyscallFromCode(code: string): string {
     EROFS: 'write',
     EMFILE: 'open',
     ELOOP: 'open',
-  }
-  return syscallMap[code] || 'unknown'
+  };
+  return syscallMap[code] || 'unknown';
 }
 ```
 
@@ -485,13 +470,13 @@ describe('ENOENT error handling', () => {
       'ENOENT',
       'No such file or directory',
       '/path/to/missing.txt'
-    )
+    );
 
-    vi.mocked(fs.readFile).mockRejectedValueOnce(error)
+    vi.mocked(fs.readFile).mockRejectedValueOnce(error);
 
-    await expect(
-      fs.readFile('/path/to/missing.txt', 'utf-8')
-    ).rejects.toThrow('No such file or directory')
+    await expect(fs.readFile('/path/to/missing.txt', 'utf-8')).rejects.toThrow(
+      'No such file or directory'
+    );
 
     // Verify error properties
     await expect(
@@ -500,17 +485,17 @@ describe('ENOENT error handling', () => {
       code: 'ENOENT',
       errno: -2,
       path: '/path/to/missing.txt',
-    })
-  })
+    });
+  });
 
   it('should handle ENOENT in application code', async () => {
-    const error = createFSError('ENOENT', 'File not found', 'config.json')
-    vi.mocked(fs.readFile).mockRejectedValueOnce(error)
+    const error = createFSError('ENOENT', 'File not found', 'config.json');
+    vi.mocked(fs.readFile).mockRejectedValueOnce(error);
 
-    const result = await loadConfigWithDefault('config.json')
-    expect(result).toEqual({ default: true })
-  })
-})
+    const result = await loadConfigWithDefault('config.json');
+    expect(result).toEqual({ default: true });
+  });
+});
 ```
 
 ### 4.3 EACCES (Permission Denied)
@@ -522,18 +507,18 @@ describe('EACCES error handling', () => {
       'EACCES',
       'Permission denied',
       '/protected/file.txt'
-    )
+    );
 
-    vi.mocked(fs.writeFile).mockRejectedValueOnce(error)
+    vi.mocked(fs.writeFile).mockRejectedValueOnce(error);
 
     await expect(
       fs.writeFile('/protected/file.txt', 'content')
     ).rejects.toMatchObject({
       code: 'EACCES',
       errno: -13,
-    })
-  })
-})
+    });
+  });
+});
 ```
 
 ### 4.4 EEXIST (File Already Exists)
@@ -541,32 +526,26 @@ describe('EACCES error handling', () => {
 ```typescript
 describe('EEXIST error handling', () => {
   it('should handle file exists error', async () => {
-    const error = createFSError(
-      'EEXIST',
-      'File exists',
-      '/path/to/file.txt'
-    )
+    const error = createFSError('EEXIST', 'File exists', '/path/to/file.txt');
 
-    vi.mocked(fs.mkdir).mockRejectedValueOnce(error)
+    vi.mocked(fs.mkdir).mockRejectedValueOnce(error);
 
-    await expect(
-      fs.mkdir('/path/to/file.txt')
-    ).rejects.toMatchObject({
+    await expect(fs.mkdir('/path/to/file.txt')).rejects.toMatchObject({
       code: 'EEXIST',
       errno: -17,
-    })
-  })
+    });
+  });
 
   it('should handle directory creation with existing check', async () => {
     // First call returns true (exists), second call throws
     vi.mocked(fs.stat)
       .mockResolvedValueOnce({ isDirectory: () => true } as any)
-      .mockRejectedValueOnce(createFSError('EEXIST', 'File exists'))
+      .mockRejectedValueOnce(createFSError('EEXIST', 'File exists'));
 
     // Application should handle existing directory
-    await createDirectoryIfNotExists('/existing/dir')
-  })
-})
+    await createDirectoryIfNotExists('/existing/dir');
+  });
+});
 ```
 
 ### 4.5 Multiple Error Scenarios
@@ -590,17 +569,17 @@ describe('Multiple error scenarios', () => {
         shouldRetry: false,
         shouldUseDefault: false,
       },
-    ]
+    ];
 
     for (const test of errorTests) {
-      const error = createFSError(test.code, `Error: ${test.code}`)
-      vi.mocked(fs.readFile).mockRejectedValueOnce(error)
+      const error = createFSError(test.code, `Error: ${test.code}`);
+      vi.mocked(fs.readFile).mockRejectedValueOnce(error);
 
-      const result = await handleFileRead('/path/to/file')
-      expect(result.useDefault).toBe(test.shouldUseDefault)
+      const result = await handleFileRead('/path/to/file');
+      expect(result.useDefault).toBe(test.shouldUseDefault);
     }
-  })
-})
+  });
+});
 ```
 
 ### 4.6 Error Recovery Testing
@@ -610,26 +589,30 @@ describe('Error recovery patterns', () => {
   it('should retry on transient errors', async () => {
     // Fail twice, then succeed
     vi.mocked(fs.readFile)
-      .mockRejectedValueOnce(createFSError('EAGAIN', 'Resource temporarily unavailable'))
-      .mockRejectedValueOnce(createFSError('EAGAIN', 'Resource temporarily unavailable'))
-      .mockResolvedValueOnce('success')
+      .mockRejectedValueOnce(
+        createFSError('EAGAIN', 'Resource temporarily unavailable')
+      )
+      .mockRejectedValueOnce(
+        createFSError('EAGAIN', 'Resource temporarily unavailable')
+      )
+      .mockResolvedValueOnce('success');
 
-    const result = await readFileWithRetry('/path/to/file', { maxRetries: 3 })
-    expect(result).toBe('success')
-    expect(fs.readFile).toHaveBeenCalledTimes(3)
-  })
+    const result = await readFileWithRetry('/path/to/file', { maxRetries: 3 });
+    expect(result).toBe('success');
+    expect(fs.readFile).toHaveBeenCalledTimes(3);
+  });
 
   it('should fail after max retries', async () => {
-    const error = createFSError('EAGAIN', 'Resource temporarily unavailable')
-    vi.mocked(fs.readFile).mockRejectedValue(error)
+    const error = createFSError('EAGAIN', 'Resource temporarily unavailable');
+    vi.mocked(fs.readFile).mockRejectedValue(error);
 
     await expect(
       readFileWithRetry('/path/to/file', { maxRetries: 2 })
-    ).rejects.toThrow('Resource temporarily unavailable')
+    ).rejects.toThrow('Resource temporarily unavailable');
 
-    expect(fs.readFile).toHaveBeenCalledTimes(3) // initial + 2 retries
-  })
-})
+    expect(fs.readFile).toHaveBeenCalledTimes(3); // initial + 2 retries
+  });
+});
 ```
 
 ---
@@ -645,17 +628,17 @@ describe('Error recovery patterns', () => {
 if (process.env.TEST_MODE === 'mocked') {
   vi.mock('node:fs/promises', () => ({
     readFile: vi.fn(),
-  }))
+  }));
 }
 
 // ✅ CORRECT - Always mock at top level
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
-}))
+}));
 
 // Use environment variables to control mock behavior
 if (process.env.TEST_MODE !== 'mocked') {
-  vi.doMock('node:fs/promises', () => require('node:fs/promises'))
+  vi.doMock('node:fs/promises', () => require('node:fs/promises'));
 }
 ```
 
@@ -667,29 +650,29 @@ if (process.env.TEST_MODE !== 'mocked') {
 // ❌ WRONG - No cleanup
 describe('File operations', () => {
   it('test 1', () => {
-    vi.spyOn(fs, 'readFile').mockResolvedValue('data')
-  })
+    vi.spyOn(fs, 'readFile').mockResolvedValue('data');
+  });
 
   it('test 2', () => {
     // This test might use the mock from test 1!
     // Can lead to flaky tests
-  })
-})
+  });
+});
 
 // ✅ CORRECT - Always restore mocks
 describe('File operations', () => {
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
   it('test 1', () => {
-    vi.spyOn(fs, 'readFile').mockResolvedValue('data')
-  })
+    vi.spyOn(fs, 'readFile').mockResolvedValue('data');
+  });
 
   it('test 2', () => {
     // Clean slate - mocks from test 1 are gone
-  })
-})
+  });
+});
 ```
 
 ### 5.3 Type Safety Issues
@@ -698,16 +681,16 @@ describe('File operations', () => {
 
 ```typescript
 // ❌ WRONG - No type safety
-vi.mocked(fs.readFile).mockResolvedValue('any value')
+vi.mocked(fs.readFile).mockResolvedValue('any value');
 
 // ✅ CORRECT - Use proper typing
-const mockContent: string = 'expected content'
-vi.mocked(fs.readFile).mockResolvedValue(mockContent)
+const mockContent: string = 'expected content';
+vi.mocked(fs.readFile).mockResolvedValue(mockContent);
 
 // Or use type assertions carefully
 vi.mocked(fs.readFile).mockResolvedValue(
   'content' as unknown as Promise<Buffer>
-)
+);
 ```
 
 ### 5.4 Not Mocking All Used Functions
@@ -719,7 +702,7 @@ vi.mocked(fs.readFile).mockResolvedValue(
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
   // Forgot to mock writeFile, mkdir, etc.
-}))
+}));
 
 // ✅ CORRECT - Mock all used functions
 vi.mock('node:fs/promises', () => ({
@@ -729,7 +712,7 @@ vi.mock('node:fs/promises', () => ({
   stat: vi.fn(),
   unlink: vi.fn(),
   rename: vi.fn(),
-}))
+}));
 ```
 
 ### 5.5 Ignoring Async Error Handling
@@ -739,25 +722,25 @@ vi.mock('node:fs/promises', () => ({
 ```typescript
 // ❌ WRONG - Only testing success case
 it('should read file', async () => {
-  vi.mocked(fs.readFile).mockResolvedValue('content')
-  const result = await readFile('path')
-  expect(result).toBe('content')
-})
+  vi.mocked(fs.readFile).mockResolvedValue('content');
+  const result = await readFile('path');
+  expect(result).toBe('content');
+});
 
 // ✅ CORRECT - Test both success and failure
 it('should read file successfully', async () => {
-  vi.mocked(fs.readFile).mockResolvedValue('content')
-  const result = await readFile('path')
-  expect(result).toBe('content')
-})
+  vi.mocked(fs.readFile).mockResolvedValue('content');
+  const result = await readFile('path');
+  expect(result).toBe('content');
+});
 
 it('should handle read errors', async () => {
-  const error = createFSError('ENOENT', 'Not found', 'path')
-  vi.mocked(fs.readFile).mockRejectedValue(error)
+  const error = createFSError('ENOENT', 'Not found', 'path');
+  vi.mocked(fs.readFile).mockRejectedValue(error);
   await expect(readFile('path')).rejects.toMatchObject({
     code: 'ENOENT',
-  })
-})
+  });
+});
 ```
 
 ### 5.6 Testing Implementation Details
@@ -767,17 +750,17 @@ it('should handle read errors', async () => {
 ```typescript
 // ❌ WRONG - Testing implementation
 it('should call readFile', () => {
-  vi.mocked(fs.readFile).mockResolvedValue('content')
-  await processFile('path')
-  expect(fs.readFile).toHaveBeenCalledWith('path', 'utf-8') // Too specific
-})
+  vi.mocked(fs.readFile).mockResolvedValue('content');
+  await processFile('path');
+  expect(fs.readFile).toHaveBeenCalledWith('path', 'utf-8'); // Too specific
+});
 
 // ✅ CORRECT - Testing behavior
 it('should process file content', () => {
-  vi.mocked(fs.readFile).mockResolvedValue('content')
-  const result = await processFile('path')
-  expect(result).toEqual({ processed: true, content: 'content' })
-})
+  vi.mocked(fs.readFile).mockResolvedValue('content');
+  const result = await processFile('path');
+  expect(result).toEqual({ processed: true, content: 'content' });
+});
 ```
 
 ### 5.7 Not Cleaning Up Test Files
@@ -788,24 +771,24 @@ it('should process file content', () => {
 // ❌ WRONG - No cleanup
 it('should create test file', async () => {
   // Creates real file!
-  await fs.writeFile('/tmp/test.txt', 'content')
-})
+  await fs.writeFile('/tmp/test.txt', 'content');
+});
 
 // ✅ CORRECT - Always cleanup or use mocks
 it('should create test file with mock', async () => {
-  vi.mocked(fs.writeFile).mockResolvedValue(undefined)
-  await createFile('/tmp/test.txt', 'content')
-  expect(fs.writeFile).toHaveBeenCalled()
-})
+  vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+  await createFile('/tmp/test.txt', 'content');
+  expect(fs.writeFile).toHaveBeenCalled();
+});
 
 // Or cleanup in afterEach
 afterEach(async () => {
   try {
-    await fs.unlink('/tmp/test.txt')
+    await fs.unlink('/tmp/test.txt');
   } catch {
     // File might not exist
   }
-})
+});
 ```
 
 ### 5.8 Race Conditions in Async Tests
@@ -815,15 +798,15 @@ afterEach(async () => {
 ```typescript
 // ❌ WRONG - No proper await
 it('should write files', async () => {
-  writeFileConcurrent(['file1.txt', 'file2.txt'])
+  writeFileConcurrent(['file1.txt', 'file2.txt']);
   // Not waiting for completion!
-})
+});
 
 // ✅ CORRECT - Properly await async operations
 it('should write files', async () => {
-  await writeFileConcurrent(['file1.txt', 'file2.txt'])
-  expect(fs.writeFile).toHaveBeenCalledTimes(2)
-})
+  await writeFileConcurrent(['file1.txt', 'file2.txt']);
+  expect(fs.writeFile).toHaveBeenCalledTimes(2);
+});
 ```
 
 ### 5.9 Not Testing Edge Cases
@@ -833,33 +816,33 @@ it('should write files', async () => {
 ```typescript
 // ❌ WRONG - Only basic tests
 it('should read file', async () => {
-  vi.mocked(fs.readFile).mockResolvedValue('content')
-  await expect(readFile('path')).resolves.toBe('content')
-})
+  vi.mocked(fs.readFile).mockResolvedValue('content');
+  await expect(readFile('path')).resolves.toBe('content');
+});
 
 // ✅ CORRECT - Test edge cases
 describe('readFile edge cases', () => {
   it('should handle empty file', async () => {
-    vi.mocked(fs.readFile).mockResolvedValue('')
-    await expect(readFile('path')).resolves.toBe('')
-  })
+    vi.mocked(fs.readFile).mockResolvedValue('');
+    await expect(readFile('path')).resolves.toBe('');
+  });
 
   it('should handle large file', async () => {
-    const largeContent = 'x'.repeat(10_000_000)
-    vi.mocked(fs.readFile).mockResolvedValue(largeContent)
-    await expect(readFile('path')).resolves.toHaveLength(10_000_000)
-  })
+    const largeContent = 'x'.repeat(10_000_000);
+    vi.mocked(fs.readFile).mockResolvedValue(largeContent);
+    await expect(readFile('path')).resolves.toHaveLength(10_000_000);
+  });
 
   it('should handle special characters', async () => {
-    vi.mocked(fs.readFile).mockResolvedValue('Hello\nWorld\t!')
-    await expect(readFile('path')).resolves.toContain('\n')
-  })
+    vi.mocked(fs.readFile).mockResolvedValue('Hello\nWorld\t!');
+    await expect(readFile('path')).resolves.toContain('\n');
+  });
 
   it('should handle unicode', async () => {
-    vi.mocked(fs.readFile).mockResolvedValue('Hello 世界 🌍')
-    await expect(readFile('path')).resolves.toContain('世界')
-  })
-})
+    vi.mocked(fs.readFile).mockResolvedValue('Hello 世界 🌍');
+    await expect(readFile('path')).resolves.toContain('世界');
+  });
+});
 ```
 
 ### 5.10 Mock Ordering Issues
@@ -869,27 +852,27 @@ describe('readFile edge cases', () => {
 ```typescript
 // ❌ WRONG - Not checking order
 it('should write then rename', async () => {
-  vi.mocked(fs.writeFile).mockResolvedValue(undefined)
-  vi.mocked(fs.rename).mockResolvedValue(undefined)
-  await atomicWrite('file.txt', 'content')
-  expect(fs.writeFile).toHaveBeenCalled()
-  expect(fs.rename).toHaveBeenCalled()
+  vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+  vi.mocked(fs.rename).mockResolvedValue(undefined);
+  await atomicWrite('file.txt', 'content');
+  expect(fs.writeFile).toHaveBeenCalled();
+  expect(fs.rename).toHaveBeenCalled();
   // Order not verified!
-})
+});
 
 // ✅ CORRECT - Verify execution order
 it('should write then rename in correct order', async () => {
-  const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined)
-  const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined)
+  const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+  const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue(undefined);
 
-  await atomicWrite('file.txt', 'content')
+  await atomicWrite('file.txt', 'content');
 
-  expect(writeFileSpy).toHaveBeenCalled()
-  expect(renameSpy).toHaveBeenCalled()
+  expect(writeFileSpy).toHaveBeenCalled();
+  expect(renameSpy).toHaveBeenCalled();
   expect(writeFileSpy.mock.invocationCallOrder[0]).toBeLessThan(
     renameSpy.mock.invocationCallOrder[0]
-  )
-})
+  );
+});
 ```
 
 ---
@@ -982,6 +965,7 @@ it('should write then rename in correct order', async () => {
 ### Code Examples
 
 See the examples in this document for:
+
 - Basic mocking patterns (Section 1)
 - Synchronous operation mocking (Section 2)
 - Atomic write testing (Section 3)
@@ -999,24 +983,24 @@ See the examples in this document for:
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
   writeFile: vi.fn(),
-}))
+}));
 
 // In-test mock with spy
-const spy = vi.spyOn(fs, 'readFile').mockResolvedValue('content')
+const spy = vi.spyOn(fs, 'readFile').mockResolvedValue('content');
 
 // Cleanup
 afterEach(() => {
-  vi.restoreAllMocks()
-})
+  vi.restoreAllMocks();
+});
 
 // Type-safe mock usage
-vi.mocked(fs.readFile).mockResolvedValue('content')
+vi.mocked(fs.readFile).mockResolvedValue('content');
 
 // Error simulation
-const error = new Error('Not found') as NodeJS.ErrnoException
-error.code = 'ENOENT'
-error.errno = -2
-vi.mocked(fs.readFile).mockRejectedValue(error)
+const error = new Error('Not found') as NodeJS.ErrnoException;
+error.code = 'ENOENT';
+error.errno = -2;
+vi.mocked(fs.readFile).mockRejectedValue(error);
 ```
 
 ### Common Test Structure
@@ -1024,40 +1008,40 @@ vi.mocked(fs.readFile).mockRejectedValue(error)
 ```typescript
 describe('Feature', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
   it('should succeed', async () => {
     // Arrange
-    vi.mocked(fs.readFile).mockResolvedValue('content')
+    vi.mocked(fs.readFile).mockResolvedValue('content');
 
     // Act
-    const result = await readFile('path')
+    const result = await readFile('path');
 
     // Assert
-    expect(result).toBe('content')
-  })
+    expect(result).toBe('content');
+  });
 
   it('should handle errors', async () => {
     // Arrange
-    const error = createFSError('ENOENT', 'Not found')
-    vi.mocked(fs.readFile).mockRejectedValue(error)
+    const error = createFSError('ENOENT', 'Not found');
+    vi.mocked(fs.readFile).mockRejectedValue(error);
 
     // Act & Assert
     await expect(readFile('path')).rejects.toMatchObject({
       code: 'ENOENT',
-    })
-  })
-})
+    });
+  });
+});
 ```
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: 2025-01-13*
-*Target Framework: Vitest 1.x+*
-*Language: TypeScript 5.x+*
+_Document Version: 1.0_
+_Last Updated: 2025-01-13_
+_Target Framework: Vitest 1.x+_
+_Language: TypeScript 5.x+_

@@ -163,7 +163,8 @@ function createMockBacklogV1(): Backlog {
                 type: 'Task',
                 title: 'Create Hello World',
                 status: 'Complete' as Status,
-                description: 'Implement a basic hello world function with tests',
+                description:
+                  'Implement a basic hello world function with tests',
                 subtasks: [
                   {
                     id: 'P1.M1.T1.S1',
@@ -228,7 +229,8 @@ function createMockBacklogV2(): Backlog {
                 type: 'Task',
                 title: 'Create Hello World',
                 status: 'Complete' as Status,
-                description: 'Implement a basic hello world function with tests',
+                description:
+                  'Implement a basic hello world function with tests',
                 subtasks: [
                   {
                     id: 'P1.M1.T1.S1',
@@ -289,11 +291,13 @@ function createMockBacklogV2(): Backlog {
 // MOCK FACTORY: createMockChild for ChildProcess
 // =============================================================================
 
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
   return {
@@ -340,7 +344,8 @@ const mockDeltaAnalysis: DeltaAnalysis = {
       impact: 'Story points changed from 1 to 2',
     },
   ],
-  patchInstructions: 'Re-execute P1.M1.T1.S1 with new story points. Implement new task P1.M1.T2.',
+  patchInstructions:
+    'Re-execute P1.M1.T1.S1 with new story points. Implement new task P1.M1.T2.',
   taskIds: ['P1.M1.T1.S1', 'P1.M1.T2'],
 };
 
@@ -372,7 +377,9 @@ describe('E2E Delta Session Tests', () => {
     vi.mocked(existsSync).mockReturnValue(true);
 
     // Setup spawn mock for BashMCP
-    vi.mocked(spawn).mockReturnValue(createMockChild({ stdout: '', exitCode: 0 }) as never);
+    vi.mocked(spawn).mockReturnValue(
+      createMockChild({ stdout: '', exitCode: 0 }) as never
+    );
 
     // Use real timers for async mock behavior
     vi.useRealTimers();
@@ -434,19 +441,24 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    const initializeSpy = vi.spyOn(pipeline1 as any, 'initializeSession')
+    const initializeSpy = vi
+      .spyOn(pipeline1 as any, 'initializeSession')
       .mockResolvedValue(undefined);
-    const decomposeSpy = vi.spyOn(pipeline1 as any, 'decomposePRD')
+    const decomposeSpy = vi
+      .spyOn(pipeline1 as any, 'decomposePRD')
       .mockImplementation(async () => {
         (pipeline1 as any).sessionManager = { currentSession: mockSession1 };
         (pipeline1 as any).totalTasks = 3;
         (pipeline1 as any).completedTasks = 3;
       });
-    const executeSpy = vi.spyOn(pipeline1 as any, 'executeBacklog')
+    const executeSpy = vi
+      .spyOn(pipeline1 as any, 'executeBacklog')
       .mockResolvedValue(undefined);
-    const qaSpy = vi.spyOn(pipeline1 as any, 'runQACycle')
+    const qaSpy = vi
+      .spyOn(pipeline1 as any, 'runQACycle')
       .mockResolvedValue(undefined);
-    const cleanupSpy = vi.spyOn(pipeline1 as any, 'cleanup')
+    const cleanupSpy = vi
+      .spyOn(pipeline1 as any, 'cleanup')
       .mockResolvedValue(undefined);
 
     const result1 = await pipeline1.run();
@@ -468,7 +480,9 @@ describe('E2E Delta Session Tests', () => {
       analyzeDelta: vi.fn().mockResolvedValue(mockDeltaAnalysis),
       run: vi.fn().mockResolvedValue(mockDeltaAnalysis),
     };
-    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(() => mockDeltaWorkflow as never);
+    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(
+      () => mockDeltaWorkflow as never
+    );
 
     vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
       const pathStr = String(path);
@@ -509,9 +523,11 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    const initializeSpy2 = vi.spyOn(pipeline2 as any, 'initializeSession')
+    const initializeSpy2 = vi
+      .spyOn(pipeline2 as any, 'initializeSession')
       .mockResolvedValue(undefined);
-    const decomposeSpy2 = vi.spyOn(pipeline2 as any, 'decomposePRD')
+    const decomposeSpy2 = vi
+      .spyOn(pipeline2 as any, 'decomposePRD')
       .mockImplementation(async () => {
         (pipeline2 as any).sessionManager = {
           currentSession: mockSession2,
@@ -520,15 +536,19 @@ describe('E2E Delta Session Tests', () => {
         (pipeline2 as any).totalTasks = 4;
         (pipeline2 as any).completedTasks = 4;
       });
-    const handleDeltaSpy = vi.spyOn(pipeline2 as any, 'handleDelta')
+    const handleDeltaSpy = vi
+      .spyOn(pipeline2 as any, 'handleDelta')
       .mockImplementation(async () => {
         (pipeline2 as any).sessionManager.currentSession = mockSession2;
       });
-    const executeSpy2 = vi.spyOn(pipeline2 as any, 'executeBacklog')
+    const executeSpy2 = vi
+      .spyOn(pipeline2 as any, 'executeBacklog')
       .mockResolvedValue(undefined);
-    const qaSpy2 = vi.spyOn(pipeline2 as any, 'runQACycle')
+    const qaSpy2 = vi
+      .spyOn(pipeline2 as any, 'runQACycle')
       .mockResolvedValue(undefined);
-    const cleanupSpy2 = vi.spyOn(pipeline2 as any, 'cleanup')
+    const cleanupSpy2 = vi
+      .spyOn(pipeline2 as any, 'cleanup')
       .mockResolvedValue(undefined);
 
     const result2 = await pipeline2.run();
@@ -543,14 +563,20 @@ describe('E2E Delta Session Tests', () => {
     expect(mockSession2.metadata.parentSession).toBe(initialSessionId);
 
     // ASSERT: Verify patched backlog has 4 subtasks (3 original + 1 new)
-    const allSubtasks = deltaBacklog.backlog[0].milestones[0].tasks.flatMap((t: any) => t.subtasks);
+    const allSubtasks = deltaBacklog.backlog[0].milestones[0].tasks.flatMap(
+      (t: any) => t.subtasks
+    );
     expect(allSubtasks).toHaveLength(4);
 
     // ASSERT: Verify original tasks preserved (still Complete)
     const originalSubtaskIds = ['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3'];
-    const preservedTasks = allSubtasks.filter((s: any) => originalSubtaskIds.includes(s.id));
+    const preservedTasks = allSubtasks.filter((s: any) =>
+      originalSubtaskIds.includes(s.id)
+    );
     expect(preservedTasks).toHaveLength(3);
-    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(true);
+    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(
+      true
+    );
 
     // ASSERT: Verify new task exists
     const newTask = allSubtasks.find((s: any) => s.id === 'P1.M1.T2.S1');
@@ -591,7 +617,9 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    vi.spyOn(pipeline1 as any, 'initializeSession').mockResolvedValue(undefined);
+    vi.spyOn(pipeline1 as any, 'initializeSession').mockResolvedValue(
+      undefined
+    );
     vi.spyOn(pipeline1 as any, 'decomposePRD').mockImplementation(async () => {
       (pipeline1 as any).sessionManager = { currentSession: mockSession1 };
       (pipeline1 as any).totalTasks = 3;
@@ -611,7 +639,9 @@ describe('E2E Delta Session Tests', () => {
       analyzeDelta: vi.fn().mockResolvedValue(mockDeltaAnalysis),
       run: vi.fn().mockResolvedValue(mockDeltaAnalysis),
     };
-    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(() => mockDeltaWorkflow as never);
+    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(
+      () => mockDeltaWorkflow as never
+    );
 
     vi.mocked(readFile).mockResolvedValue(mockSimplePRDv2);
 
@@ -631,7 +661,9 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    vi.spyOn(pipeline2 as any, 'initializeSession').mockResolvedValue(undefined);
+    vi.spyOn(pipeline2 as any, 'initializeSession').mockResolvedValue(
+      undefined
+    );
     vi.spyOn(pipeline2 as any, 'decomposePRD').mockImplementation(async () => {
       (pipeline2 as any).sessionManager = {
         currentSession: mockSession2,
@@ -640,7 +672,8 @@ describe('E2E Delta Session Tests', () => {
       (pipeline2 as any).totalTasks = 4;
       (pipeline2 as any).completedTasks = 4;
     });
-    const handleDeltaSpy2 = vi.spyOn(pipeline2 as any, 'handleDelta')
+    const handleDeltaSpy2 = vi
+      .spyOn(pipeline2 as any, 'handleDelta')
       .mockImplementation(async () => {
         (pipeline2 as any).sessionManager.currentSession = mockSession2;
       });
@@ -690,7 +723,9 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    vi.spyOn(pipeline1 as any, 'initializeSession').mockResolvedValue(undefined);
+    vi.spyOn(pipeline1 as any, 'initializeSession').mockResolvedValue(
+      undefined
+    );
     vi.spyOn(pipeline1 as any, 'decomposePRD').mockImplementation(async () => {
       (pipeline1 as any).sessionManager = { currentSession: mockSession1 };
       (pipeline1 as any).totalTasks = 3;
@@ -702,7 +737,8 @@ describe('E2E Delta Session Tests', () => {
 
     await pipeline1.run();
 
-    const initialSubtasks = initialBacklog.backlog[0].milestones[0].tasks[0].subtasks;
+    const initialSubtasks =
+      initialBacklog.backlog[0].milestones[0].tasks[0].subtasks;
 
     // PHASE 2: Delta Run
     writeFileSync(prdPath, mockSimplePRDv2);
@@ -711,7 +747,9 @@ describe('E2E Delta Session Tests', () => {
       analyzeDelta: vi.fn().mockResolvedValue(mockDeltaAnalysis),
       run: vi.fn().mockResolvedValue(mockDeltaAnalysis),
     };
-    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(() => mockDeltaWorkflow as never);
+    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(
+      () => mockDeltaWorkflow as never
+    );
 
     vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
       const pathStr = String(path);
@@ -741,7 +779,9 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    vi.spyOn(pipeline2 as any, 'initializeSession').mockResolvedValue(undefined);
+    vi.spyOn(pipeline2 as any, 'initializeSession').mockResolvedValue(
+      undefined
+    );
     vi.spyOn(pipeline2 as any, 'decomposePRD').mockImplementation(async () => {
       (pipeline2 as any).sessionManager = {
         currentSession: mockSession2,
@@ -760,7 +800,9 @@ describe('E2E Delta Session Tests', () => {
     await pipeline2.run();
 
     // Get delta subtasks
-    const deltaSubtasks = deltaBacklog.backlog[0].milestones[0].tasks.flatMap((t: any) => t.subtasks);
+    const deltaSubtasks = deltaBacklog.backlog[0].milestones[0].tasks.flatMap(
+      (t: any) => t.subtasks
+    );
 
     // ASSERT: Verify original task IDs preserved
     const originalIds = initialSubtasks.map((s: any) => s.id);
@@ -770,8 +812,12 @@ describe('E2E Delta Session Tests', () => {
     });
 
     // ASSERT: Verify original tasks still Complete
-    const preservedTasks = deltaSubtasks.filter((s: any) => originalIds.includes(s.id));
-    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(true);
+    const preservedTasks = deltaSubtasks.filter((s: any) =>
+      originalIds.includes(s.id)
+    );
+    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(
+      true
+    );
   });
 });
 

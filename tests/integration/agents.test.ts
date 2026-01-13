@@ -56,7 +56,12 @@ import { createBugHuntPrompt } from '../../src/agents/prompts/bug-hunt-prompt.js
 import { createDeltaAnalysisPrompt } from '../../src/agents/prompts/delta-analysis-prompt.js';
 
 // Import types and schemas for validation
-import type { Backlog, PRPDocument, TestResults, DeltaAnalysis } from '../../src/core/models.js';
+import type {
+  Backlog,
+  PRPDocument,
+  TestResults,
+  DeltaAnalysis,
+} from '../../src/core/models.js';
 import type { Task, Subtask } from '../../src/core/models.js';
 import {
   BacklogSchema,
@@ -89,7 +94,8 @@ vi.mocked(createAgent).mockReturnValue(mockAgent as never);
 vi.mocked(createPrompt).mockReturnValue(mockPrompt as never);
 
 // Test fixture: Sample PRD content
-const mockPRDContent = '# Test PRD\n\nThis is a test PRD for integration testing.';
+const mockPRDContent =
+  '# Test PRD\n\nThis is a test PRD for integration testing.';
 
 // Test fixture: Sample Subtask
 const mockSubtask: Subtask = {
@@ -157,7 +163,9 @@ describe('createBaseConfig', () => {
 
     // VERIFY: Environment mapping is correct
     expect(config.env.ANTHROPIC_API_KEY).toBe('test-token-123');
-    expect(config.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+    expect(config.env.ANTHROPIC_BASE_URL).toBe(
+      'https://api.z.ai/api/anthropic'
+    );
   });
 
   it('should include all required AgentConfig properties', () => {
@@ -490,7 +498,11 @@ describe('createPRPBlueprintPrompt', () => {
   it('should include codebase path in user prompt when provided', () => {
     // SETUP
     const codebasePath = '/home/dustin/projects/hacky-hack';
-    const prompt = createPRPBlueprintPrompt(mockSubtask, mockBacklog, codebasePath);
+    const prompt = createPRPBlueprintPrompt(
+      mockSubtask,
+      mockBacklog,
+      codebasePath
+    );
 
     // VERIFY: User prompt contains codebase path
     expect(createPrompt).toHaveBeenCalledWith(

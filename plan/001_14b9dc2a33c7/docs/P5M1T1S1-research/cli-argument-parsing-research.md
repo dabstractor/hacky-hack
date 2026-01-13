@@ -21,6 +21,7 @@ The codebase uses **Commander.js** (version 14.0.2) for CLI argument parsing.
 ```
 
 **Type Definition** (lines 48-66):
+
 ```typescript
 export interface CLIArgs {
   // ... other properties
@@ -30,6 +31,7 @@ export interface CLIArgs {
 ```
 
 **Usage Pattern** (from src/index.ts):
+
 ```typescript
 if (args.verbose) {
   console.error('[Entry] Verbose mode enabled');
@@ -46,6 +48,7 @@ The `--machine-readable` flag does **not exist** in this codebase. This needs to
 ### 4. Boolean Flag Pattern
 
 All boolean flags follow this pattern:
+
 ```typescript
 .option('--flag-name', 'Description', false)
 //                                          ^^^^

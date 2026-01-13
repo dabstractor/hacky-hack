@@ -10,6 +10,7 @@
 **Feature Goal**: Create comprehensive integration tests for the three MCP tool classes (BashMCP, FilesystemMCP, GitMCP) that validate the `executeTool()` method returns correctly formatted results while all system operations (child_process.spawn, fs.promises, simple-git) are mocked to prevent real execution.
 
 **Deliverable**: Integration test file `tests/integration/tools.test.ts` with mocked system calls, testing:
+
 - `BashMCP.executeTool('bash__execute_bash')` returns `{ success, stdout, stderr, exitCode, error? }`
 - `BashMCP` handles timeout correctly with SIGTERM then SIGKILL
 - `FilesystemMCP.executeTool('filesystem__file_read')` reads content with encoding
@@ -20,6 +21,7 @@
 - `GitMCP.executeTool('git__git_commit')` creates commits with messages
 
 **Success Definition**:
+
 - All three MCP classes are tested via `executeTool()` method (not direct function calls)
 - All system calls are mocked (child_process, fs.promises, simple-git)
 - Timeout handling is verified for BashMCP
@@ -32,6 +34,7 @@
 **Target User**: PRPPipeline test validation system (automated QA)
 
 **Use Case**: The test suite validates that:
+
 1. MCP tool classes correctly integrate with Groundswell MCPHandler
 2. Tool executors are properly registered and invocable via executeTool()
 3. System operations are safely mocked to prevent side effects
@@ -39,6 +42,7 @@
 5. Timeout and error handling work correctly
 
 **User Journey**:
+
 1. Developer runs `npm test` to execute all tests
 2. Vitest runs integration tests for MCP tools
 3. Mocked system operations prevent real execution
@@ -46,6 +50,7 @@
 5. All tests pass -> validation complete
 
 **Pain Points Addressed**:
+
 - **No Integration Coverage**: Existing unit tests test functions directly, not the MCP class interface
 - **executeTool() Not Tested**: Unit tests don't validate the MCP tool registration and execution path
 - **Mock Verification**: Need to ensure all system operations are properly mocked
@@ -98,16 +103,16 @@
 - [ ] Mock child_process.spawn successfully (vi.mock at module level)
 - [ ] Mock fs.promises (readFile, writeFile, mkdir) successfully
 - [ ] Mock simple-git successfully (with GitError class)
-- [ ] Test BashMCP.executeTool('bash__execute_bash') returns { success, stdout, stderr, exitCode }
+- [ ] Test BashMCP.executeTool('bash\_\_execute_bash') returns { success, stdout, stderr, exitCode }
 - [ ] Test BashMCP handles timeout correctly via executeTool()
-- [ ] Test FilesystemMCP.executeTool('filesystem__file_read') returns { success, content }
-- [ ] Test FilesystemMCP.executeTool('filesystem__file_write') creates directories when createDirs: true
-- [ ] Test FilesystemMCP.executeTool('filesystem__glob_files') returns { success, matches[] }
-- [ ] Test FilesystemMCP.executeTool('filesystem__grep_search') returns { success, matches[] }
-- [ ] Test GitMCP.executeTool('git__git_status') returns { success, branch, staged[], modified[], untracked[] }
-- [ ] Test GitMCP.executeTool('git__git_commit') returns { success, commitHash }
+- [ ] Test FilesystemMCP.executeTool('filesystem\_\_file_read') returns { success, content }
+- [ ] Test FilesystemMCP.executeTool('filesystem\_\_file_write') creates directories when createDirs: true
+- [ ] Test FilesystemMCP.executeTool('filesystem\_\_glob_files') returns { success, matches[] }
+- [ ] Test FilesystemMCP.executeTool('filesystem\_\_grep_search') returns { success, matches[] }
+- [ ] Test GitMCP.executeTool('git\_\_git_status') returns { success, branch, staged[], modified[], untracked[] }
+- [ ] Test GitMCP.executeTool('git\_\_git_commit') returns { success, commitHash }
 - [ ] All tests pass with mocked system calls
-- [ ] Coverage 100% for tools/*.ts files (combined with unit tests)
+- [ ] Coverage 100% for tools/\*.ts files (combined with unit tests)
 
 ---
 
@@ -118,6 +123,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement the MCP tools integration tests successfully?
 
 **Answer**: **YES** - This PRP provides:
+
 - Complete MCP tool implementation references
 - Existing unit test patterns to follow (mock strategies, test organization)
 - Groundswell API documentation for MCPHandler patterns
@@ -959,7 +965,7 @@ ls -la  # Should show no unexpected files created
 ### Technical Validation
 
 - [ ] All tests pass: `npm run test:run -- tests/integration/tools.test.ts`
-- [ ] Coverage 100% for all tools/*.ts: `npm run test:coverage`
+- [ ] Coverage 100% for all tools/\*.ts: `npm run test:coverage`
 - [ ] No type errors: `npx tsc --noEmit tests/integration/tools.test.ts`
 - [ ] No real system operations executed (verified via strace or temp dir test)
 
@@ -1029,6 +1035,7 @@ ls -la  # Should show no unexpected files created
 - ⚠️ Need to ensure all mocks are comprehensive (fast-glob, existsSync, etc.)
 
 **Validation**: This PRP provides:
+
 1. Exact mock patterns from existing unit tests
 2. Specific test cases for all contract requirements
 3. Clear expected outcomes for each test

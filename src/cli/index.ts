@@ -44,6 +44,7 @@ import { existsSync } from 'node:fs';
  * @property continue - Resume from previous session
  * @property dryRun - Show plan without executing
  * @property verbose - Enable debug logging
+ * @property machineReadable - Enable machine-readable JSON output
  */
 export interface CLIArgs {
   /** Path to PRD markdown file */
@@ -63,6 +64,9 @@ export interface CLIArgs {
 
   /** Enable debug logging */
   verbose: boolean;
+
+  /** Enable machine-readable JSON output */
+  machineReadable: boolean;
 }
 
 // ===== MAIN FUNCTION =====
@@ -112,6 +116,7 @@ export function parseCLIArgs(): CLIArgs {
     .option('--continue', 'Resume from previous session', false)
     .option('--dry-run', 'Show plan without executing', false)
     .option('--verbose', 'Enable debug logging', false)
+    .option('--machine-readable', 'Enable machine-readable JSON output', false)
     .parse(process.argv);
 
   // Get typed options

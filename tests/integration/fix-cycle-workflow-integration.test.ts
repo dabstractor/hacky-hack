@@ -73,48 +73,47 @@ const createMockTaskOrchestrator = (
     executeSubtask: executeFn ?? vi.fn().mockResolvedValue(undefined),
   }) as any;
 
-const createMockSessionManager = (
-  backlog?: Backlog
-): SessionManager => ({
-  currentSession: {
-    metadata: {
-      id: '001_test',
-      hash: 'test123',
-      path: 'plan/001_test',
-      createdAt: new Date(),
-      parentSession: null,
+const createMockSessionManager = (backlog?: Backlog): SessionManager =>
+  ({
+    currentSession: {
+      metadata: {
+        id: '001_test',
+        hash: 'test123',
+        path: 'plan/001_test',
+        createdAt: new Date(),
+        parentSession: null,
+      },
+      prdSnapshot: '# Test PRD',
+      taskRegistry:
+        backlog ??
+        ({
+          backlog: [
+            {
+              id: 'P1',
+              type: 'Phase',
+              title: 'Phase 1',
+              status: 'Complete',
+              description: 'Test phase',
+              milestones: [
+                {
+                  id: 'P1.M1',
+                  type: 'Milestone',
+                  title: 'Milestone 1',
+                  status: 'Complete',
+                  description: 'Test milestone',
+                  tasks: [
+                    createTestTask('P1.M1.T1', 'Task 1', 'Complete'),
+                    createTestTask('P1.M1.T2', 'Task 2', 'Complete'),
+                  ],
+                },
+              ],
+            },
+          ],
+        } as Backlog),
+      currentItemId: null,
     },
-    prdSnapshot: '# Test PRD',
-    taskRegistry:
-      backlog ??
-      ({
-        backlog: [
-          {
-            id: 'P1',
-            type: 'Phase',
-            title: 'Phase 1',
-            status: 'Complete',
-            description: 'Test phase',
-            milestones: [
-              {
-                id: 'P1.M1',
-                type: 'Milestone',
-                title: 'Milestone 1',
-                status: 'Complete',
-                description: 'Test milestone',
-                tasks: [
-                  createTestTask('P1.M1.T1', 'Task 1', 'Complete'),
-                  createTestTask('P1.M1.T2', 'Task 2', 'Complete'),
-                ],
-              },
-            ],
-          },
-        ],
-      } as Backlog),
-    currentItemId: null,
-  },
-  updateItemStatus: vi.fn().mockResolvedValue(undefined),
-}) as any;
+    updateItemStatus: vi.fn().mockResolvedValue(undefined),
+  }) as any;
 
 describe('FixCycleWorkflow Integration Tests', () => {
   beforeEach(() => {
@@ -155,12 +154,7 @@ describe('FixCycleWorkflow Integration Tests', () => {
         run: vi
           .fn()
           .mockResolvedValueOnce(
-            createTestResults(
-              false,
-              [],
-              'All bugs fixed - no issues found',
-              []
-            )
+            createTestResults(false, [], 'All bugs fixed - no issues found', [])
           ),
       };
 
@@ -328,12 +322,7 @@ describe('FixCycleWorkflow Integration Tests', () => {
         ),
       ];
 
-      const initialResults = createTestResults(
-        true,
-        bugs,
-        'Found 2 bugs',
-        []
-      );
+      const initialResults = createTestResults(true, bugs, 'Found 2 bugs', []);
 
       // Mock orchestrator where second fix fails
       let callCount = 0;
@@ -352,12 +341,7 @@ describe('FixCycleWorkflow Integration Tests', () => {
         run: vi
           .fn()
           .mockResolvedValueOnce(
-            createTestResults(
-              false,
-              [],
-              'No bugs found - first fix worked',
-              []
-            )
+            createTestResults(false, [], 'No bugs found - first fix worked', [])
           ),
       };
 
@@ -416,9 +400,9 @@ describe('FixCycleWorkflow Integration Tests', () => {
       );
 
       const mockBugHuntInstance = {
-        run: vi.fn().mockResolvedValue(
-          createTestResults(false, [], 'No bugs', [])
-        ),
+        run: vi
+          .fn()
+          .mockResolvedValue(createTestResults(false, [], 'No bugs', [])),
       };
 
       mockBugHuntWorkflow.mockImplementation(() => mockBugHuntInstance);
@@ -461,9 +445,9 @@ describe('FixCycleWorkflow Integration Tests', () => {
       );
 
       const mockBugHuntInstance = {
-        run: vi.fn().mockResolvedValue(
-          createTestResults(false, [], 'No bugs', [])
-        ),
+        run: vi
+          .fn()
+          .mockResolvedValue(createTestResults(false, [], 'No bugs', [])),
       };
 
       mockBugHuntWorkflow.mockImplementation(() => mockBugHuntInstance);
@@ -503,14 +487,20 @@ describe('FixCycleWorkflow Integration Tests', () => {
           .mockResolvedValueOnce(
             createTestResults(
               true,
-              [createTestBug('BUG-002', 'major', 'Another bug', 'Desc', 'Repro')],
+              [
+                createTestBug(
+                  'BUG-002',
+                  'major',
+                  'Another bug',
+                  'Desc',
+                  'Repro'
+                ),
+              ],
               'Found another bug',
               []
             )
           )
-          .mockResolvedValueOnce(
-            createTestResults(false, [], 'No bugs', [])
-          ),
+          .mockResolvedValueOnce(createTestResults(false, [], 'No bugs', [])),
       };
 
       mockBugHuntWorkflow.mockImplementation(() => mockBugHuntInstance);
@@ -555,17 +545,12 @@ describe('FixCycleWorkflow Integration Tests', () => {
         ),
       ];
 
-      const initialResults = createTestResults(
-        true,
-        bugs,
-        'Found 2 bugs',
-        []
-      );
+      const initialResults = createTestResults(true, bugs, 'Found 2 bugs', []);
 
       const mockBugHuntInstance = {
-        run: vi.fn().mockResolvedValue(
-          createTestResults(false, [], 'No bugs', [])
-        ),
+        run: vi
+          .fn()
+          .mockResolvedValue(createTestResults(false, [], 'No bugs', [])),
       };
 
       mockBugHuntWorkflow.mockImplementation(() => mockBugHuntInstance);
@@ -641,9 +626,9 @@ describe('FixCycleWorkflow Integration Tests', () => {
       );
 
       const mockBugHuntInstance = {
-        run: vi.fn().mockResolvedValue(
-          createTestResults(false, [], 'No bugs', [])
-        ),
+        run: vi
+          .fn()
+          .mockResolvedValue(createTestResults(false, [], 'No bugs', [])),
       };
 
       mockBugHuntWorkflow.mockImplementation(() => mockBugHuntInstance);

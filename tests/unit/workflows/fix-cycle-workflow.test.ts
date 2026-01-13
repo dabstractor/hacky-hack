@@ -12,7 +12,12 @@
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { FixCycleWorkflow } from '../../../src/workflows/fix-cycle-workflow.js';
-import type { Task, TestResults, Bug, Backlog } from '../../../src/core/models.js';
+import type {
+  Task,
+  TestResults,
+  Bug,
+  Backlog,
+} from '../../../src/core/models.js';
 import type { TaskOrchestrator } from '../../../src/core/task-orchestrator.js';
 import type { SessionManager } from '../../../src/core/session-manager.js';
 
@@ -75,23 +80,22 @@ const createMockTaskOrchestrator = (): TaskOrchestrator =>
     executeSubtask: vi.fn().mockResolvedValue(undefined),
   }) as any;
 
-const createMockSessionManager = (
-  backlog?: Backlog
-): SessionManager => ({
-  currentSession: {
-    metadata: {
-      id: '001_test',
-      hash: 'test123',
-      path: 'plan/001_test',
-      createdAt: new Date(),
-      parentSession: null,
+const createMockSessionManager = (backlog?: Backlog): SessionManager =>
+  ({
+    currentSession: {
+      metadata: {
+        id: '001_test',
+        hash: 'test123',
+        path: 'plan/001_test',
+        createdAt: new Date(),
+        parentSession: null,
+      },
+      prdSnapshot: '# Test PRD',
+      taskRegistry: backlog ?? { backlog: [] },
+      currentItemId: null,
     },
-    prdSnapshot: '# Test PRD',
-    taskRegistry: backlog ?? { backlog: [] },
-    currentItemId: null,
-  },
-  updateItemStatus: vi.fn().mockResolvedValue(undefined),
-}) as any;
+    updateItemStatus: vi.fn().mockResolvedValue(undefined),
+  }) as any;
 
 describe('FixCycleWorkflow', () => {
   beforeEach(() => {
@@ -261,13 +265,7 @@ describe('FixCycleWorkflow', () => {
             'Critical',
             'Repro'
           ),
-          createTestBug(
-            'BUG-002',
-            'major',
-            'Major bug',
-            'Major',
-            'Repro'
-          ),
+          createTestBug('BUG-002', 'major', 'Major bug', 'Major', 'Repro'),
           createTestBug('BUG-003', 'minor', 'Minor bug', 'Minor', 'Repro'),
           createTestBug(
             'BUG-004',
@@ -345,20 +343,8 @@ describe('FixCycleWorkflow', () => {
       const testResults: TestResults = {
         hasBugs: true,
         bugs: [
-          createTestBug(
-            'BUG-001',
-            'critical',
-            'Bug 1',
-            'Description',
-            'Repro'
-          ),
-          createTestBug(
-            'BUG-002',
-            'major',
-            'Bug 2',
-            'Description',
-            'Repro'
-          ),
+          createTestBug('BUG-001', 'critical', 'Bug 1', 'Description', 'Repro'),
+          createTestBug('BUG-002', 'major', 'Bug 2', 'Description', 'Repro'),
         ],
         summary: 'Found 2 bugs',
         recommendations: [],
@@ -388,20 +374,8 @@ describe('FixCycleWorkflow', () => {
       const testResults: TestResults = {
         hasBugs: true,
         bugs: [
-          createTestBug(
-            'BUG-001',
-            'critical',
-            'Bug 1',
-            'Description',
-            'Repro'
-          ),
-          createTestBug(
-            'BUG-002',
-            'major',
-            'Bug 2',
-            'Description',
-            'Repro'
-          ),
+          createTestBug('BUG-001', 'critical', 'Bug 1', 'Description', 'Repro'),
+          createTestBug('BUG-002', 'major', 'Bug 2', 'Description', 'Repro'),
         ],
         summary: 'Found 2 bugs',
         recommendations: [],

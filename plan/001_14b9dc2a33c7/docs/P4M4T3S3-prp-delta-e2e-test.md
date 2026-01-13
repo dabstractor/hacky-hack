@@ -10,6 +10,7 @@
 **Feature Goal**: Create an end-to-end test file at `tests/e2e/delta.test.ts` that validates the delta session workflow (Initial session → PRD modification → Delta session → Patched backlog) using mocked LLM responses, MCP tools, and temporary test directories. The test must complete in under 30 seconds with comprehensive assertions for parent session references and task preservation.
 
 **Deliverable**: E2E test file `tests/e2e/delta.test.ts` with:
+
 - Two-phase workflow: Initial PRPPipeline run with PRD v1, then modified PRD v2 run
 - Modified PRD fixture (mockSimplePRDv2) with new requirements
 - Mocked DeltaAnalysisWorkflow returning predefined delta changes
@@ -20,6 +21,7 @@
 - Execution time measurement (<30 seconds target)
 
 **Success Definition**:
+
 - E2E test file exists at `tests/e2e/delta.test.ts`
 - Test validates delta session workflow: Initial run → PRD modification → Delta run
 - Initial session created with PRD v1 and tasks completed
@@ -38,12 +40,14 @@
 **Target User**: PRPPipeline developers and CI/CD system (automated validation)
 
 **Use Case**: The delta session E2E test enables:
+
 1. Full workflow validation of delta session creation and handling
 2. Regression detection for delta analysis and task patching logic
 3. Fast feedback during development with mocked dependencies
 4. CI/CD integration for automated delta session validation
 
 **User Journey**:
+
 1. Developer makes changes to delta session handling or task patching logic
 2. E2E test runs in CI/CD or locally
 3. Test creates initial session with PRD v1 and mocks all dependencies
@@ -56,6 +60,7 @@
 10. Developer gets fast feedback (<30 seconds) on delta session health
 
 **Pain Points Addressed**:
+
 - **No Delta Session E2E Test**: Existing tests don't validate complete delta workflow end-to-end
 - **Slow Feedback**: Real LLM calls make delta testing slow and expensive
 - **Flaky Tests**: Session state persistence can cause test pollution between runs
@@ -140,6 +145,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement the delta session E2E test successfully?
 
 **Answer**: **YES** - This PRP provides:
+
 - Complete delta session implementation details from SessionManager
 - Exact file paths and import patterns
 - PRPPipeline delta detection and handling workflow
@@ -431,9 +437,9 @@ tests/
 ```typescript
 // DeltaAnalysis interface (from src/core/models.ts)
 interface DeltaAnalysis {
-  readonly changes: RequirementChange[];  // Individual requirement changes
-  readonly patchInstructions: string;    // Re-execution guide for patched tasks
-  readonly taskIds: string[];            // Task IDs affected by changes
+  readonly changes: RequirementChange[]; // Individual requirement changes
+  readonly patchInstructions: string; // Re-execution guide for patched tasks
+  readonly taskIds: string[]; // Task IDs affected by changes
 }
 
 // RequirementChange interface (from src/core/models.ts)
@@ -446,8 +452,8 @@ interface RequirementChange {
 
 // DeltaSession interface (from src/core/models.ts)
 interface DeltaSession extends SessionState {
-  readonly oldPRD: string;      // Original PRD content
-  readonly newPRD: string;      // Modified PRD content
+  readonly oldPRD: string; // Original PRD content
+  readonly newPRD: string; // Modified PRD content
   readonly diffSummary: string; // Human-readable changes summary
 }
 
@@ -607,7 +613,7 @@ Task 12: VERIFY test coverage
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // =============================================================================
 // MODIFIED PRD FIXTURE (tests/fixtures/simple-prd-v2.ts)
 // =============================================================================
@@ -727,7 +733,13 @@ CONTRACT DEFINITION:
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+} from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -873,7 +885,8 @@ function createMockBacklogV1(): Backlog {
                 type: 'Task',
                 title: 'Create Hello World',
                 status: 'Complete' as Status,
-                description: 'Implement a basic hello world function with tests',
+                description:
+                  'Implement a basic hello world function with tests',
                 subtasks: [
                   {
                     id: 'P1.M1.T1.S1',
@@ -938,7 +951,8 @@ function createMockBacklogV2(): Backlog {
                 type: 'Task',
                 title: 'Create Hello World',
                 status: 'Complete' as Status,
-                description: 'Implement a basic hello world function with tests',
+                description:
+                  'Implement a basic hello world function with tests',
                 subtasks: [
                   {
                     id: 'P1.M1.T1.S1',
@@ -999,11 +1013,13 @@ function createMockBacklogV2(): Backlog {
 // MOCK FACTORY: createMockChild for ChildProcess
 // =============================================================================
 
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
   return {
@@ -1050,7 +1066,8 @@ const mockDeltaAnalysis: DeltaAnalysis = {
       impact: 'Story points changed from 1 to 2',
     },
   ],
-  patchInstructions: 'Re-execute P1.M1.T1.S1 with new story points. Implement new task P1.M1.T2.',
+  patchInstructions:
+    'Re-execute P1.M1.T1.S1 with new story points. Implement new task P1.M1.T2.',
   taskIds: ['P1.M1.T1.S1', 'P1.M1.T2'],
 };
 
@@ -1081,7 +1098,9 @@ describe('E2E Delta Session Tests', () => {
 
     // Setup spawn mock for BashMCP
     const { spawn } = require('node:child_process');
-    vi.mocked(spawn).mockReturnValue(createMockChild({ stdout: '', exitCode: 0 }) as never);
+    vi.mocked(spawn).mockReturnValue(
+      createMockChild({ stdout: '', exitCode: 0 }) as never
+    );
 
     // Use real timers for async mock behavior
     vi.useRealTimers();
@@ -1147,7 +1166,9 @@ describe('E2E Delta Session Tests', () => {
     const mockDeltaWorkflow = {
       analyzeDelta: vi.fn().mockResolvedValue(mockDeltaAnalysis),
     };
-    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(() => mockDeltaWorkflow as never);
+    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(
+      () => mockDeltaWorkflow as never
+    );
 
     // Setup readFile mock to return PRD v2
     vi.mocked(readFile).mockImplementation((path: string) => {
@@ -1175,19 +1196,27 @@ describe('E2E Delta Session Tests', () => {
     const parentSessionPath = join(result2.sessionPath, 'parent_session.txt');
     expect(existsSync(parentSessionPath)).toBe(true);
     const parentSessionId = readFileSync(parentSessionPath, 'utf-8').trim();
-    expect(parentSessionId).toContain(result1.sessionPath.split('/').pop() as string);
+    expect(parentSessionId).toContain(
+      result1.sessionPath.split('/').pop() as string
+    );
 
     // ASSERT: Verify delta session has 4 subtasks (3 original + 1 new)
     const tasksPath2 = join(result2.sessionPath, 'tasks.json');
     const tasksJson2 = JSON.parse(readFileSync(tasksPath2, 'utf-8'));
-    const allSubtasks2 = tasksJson2.backlog[0].milestones[0].tasks.flatMap((t: any) => t.subtasks);
+    const allSubtasks2 = tasksJson2.backlog[0].milestones[0].tasks.flatMap(
+      (t: any) => t.subtasks
+    );
     expect(allSubtasks2).toHaveLength(4);
 
     // ASSERT: Verify original tasks preserved (still Complete)
     const originalSubtaskIds = ['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3'];
-    const preservedTasks = allSubtasks2.filter((s: any) => originalSubtaskIds.includes(s.id));
+    const preservedTasks = allSubtasks2.filter((s: any) =>
+      originalSubtaskIds.includes(s.id)
+    );
     expect(preservedTasks).toHaveLength(3);
-    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(true);
+    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(
+      true
+    );
 
     // ASSERT: Verify new task exists
     const newTask = allSubtasks2.find((s: any) => s.id === 'P1.M1.T2.S1');
@@ -1219,7 +1248,9 @@ describe('E2E Delta Session Tests', () => {
     const mockDeltaWorkflow = {
       analyzeDelta: vi.fn().mockResolvedValue(mockDeltaAnalysis),
     };
-    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(() => mockDeltaWorkflow as never);
+    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(
+      () => mockDeltaWorkflow as never
+    );
 
     vi.mocked(readFile).mockResolvedValue(mockSimplePRDv2);
 
@@ -1255,7 +1286,8 @@ describe('E2E Delta Session Tests', () => {
 
     const tasksPath1 = join(result1.sessionPath, 'tasks.json');
     const tasksJson1 = JSON.parse(readFileSync(tasksPath1, 'utf-8'));
-    const initialSubtasks = tasksJson1.backlog[0].milestones[0].tasks[0].subtasks;
+    const initialSubtasks =
+      tasksJson1.backlog[0].milestones[0].tasks[0].subtasks;
 
     // PHASE 2: Delta Run
     writeFileSync(prdPath, mockSimplePRDv2);
@@ -1264,7 +1296,9 @@ describe('E2E Delta Session Tests', () => {
     const mockDeltaWorkflow = {
       analyzeDelta: vi.fn().mockResolvedValue(mockDeltaAnalysis),
     };
-    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(() => mockDeltaWorkflow as never);
+    vi.mocked(DeltaAnalysisWorkflow).mockImplementation(
+      () => mockDeltaWorkflow as never
+    );
 
     vi.mocked(readFile).mockImplementation((path: string) => {
       if (typeof path === 'string' && path.includes('PRD.md')) {
@@ -1278,7 +1312,9 @@ describe('E2E Delta Session Tests', () => {
 
     const tasksPath2 = join(result2.sessionPath, 'tasks.json');
     const tasksJson2 = JSON.parse(readFileSync(tasksPath2, 'utf-8'));
-    const deltaSubtasks = tasksJson2.backlog[0].milestones[0].tasks.flatMap((t: any) => t.subtasks);
+    const deltaSubtasks = tasksJson2.backlog[0].milestones[0].tasks.flatMap(
+      (t: any) => t.subtasks
+    );
 
     // ASSERT: Verify original task IDs preserved
     const originalIds = initialSubtasks.map((s: any) => s.id);
@@ -1288,8 +1324,12 @@ describe('E2E Delta Session Tests', () => {
     });
 
     // ASSERT: Verify original tasks still Complete
-    const preservedTasks = deltaSubtasks.filter((s: any) => originalIds.includes(s.id));
-    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(true);
+    const preservedTasks = deltaSubtasks.filter((s: any) =>
+      originalIds.includes(s.id)
+    );
+    expect(preservedTasks.every((s: any) => s.status === 'Complete')).toBe(
+      true
+    );
   });
 });
 
@@ -1328,7 +1368,7 @@ describe('E2E Delta Session Tests', () => {
 // 8. EXECUTION TIME MEASUREMENT
 // performance.now() for millisecond precision
 // Total duration (phase 1 + phase 2) asserted <30 seconds
-```
+````
 
 ### Integration Points
 
@@ -1579,6 +1619,7 @@ npm run test:coverage -- tests/e2e/delta.test.ts
 - ✅ Two-phase test pattern clearly defined
 
 **Validation**: This PRP provides:
+
 1. Complete delta session implementation details from SessionManager
 2. Exact PRD v2 fixture content with meaningful changes
 3. Two-phase test execution pattern (initial run + delta run)
@@ -1589,6 +1630,7 @@ npm run test:coverage -- tests/e2e/delta.test.ts
 8. Clear success criteria with validation commands
 
 The risk is minimal because:
+
 1. Creating modified PRD fixture is straightforward (add task + modify existing)
 2. E2E test follows established pattern from P4.M4.T3.S2
 3. All mock patterns copied from existing working tests
@@ -1637,6 +1679,7 @@ The following research findings have been compiled for this PRP:
 ### External Resources
 
 Research findings are based on:
+
 - Official Vitest documentation (https://vitest.dev/guide/mocking.html)
 - Official Vitest API reference (https://vitest.dev/api/)
 - Project-specific test patterns and conventions

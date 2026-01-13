@@ -58,6 +58,7 @@ describe('File operations', () => {
 ```
 
 **Benefits:**
+
 - Complete isolation from real filesystem
 - Consistent mocking across all tests
 - Easy to reset with `vi.clearAllMocks()`
@@ -198,15 +199,15 @@ describe('Error handling', () => {
 
 ### 2.2 Common errno Codes for Filesystem Testing
 
-| Code | errno | Description |
-|------|-------|-------------|
-| `ENOENT` | -2 | No such file or directory |
-| `EACCES` | -13 | Permission denied |
-| `EISDIR` | -21 | Is a directory |
-| `ENOTDIR` | -20 | Not a directory |
-| `EEXIST` | -17 | File exists |
-| `ENOSPC` | -28 | No space left on device |
-| `EROFS` | -30 | Read-only file system |
+| Code      | errno | Description               |
+| --------- | ----- | ------------------------- |
+| `ENOENT`  | -2    | No such file or directory |
+| `EACCES`  | -13   | Permission denied         |
+| `EISDIR`  | -21   | Is a directory            |
+| `ENOTDIR` | -20   | Not a directory           |
+| `EEXIST`  | -17   | File exists               |
+| `ENOSPC`  | -28   | No space left on device   |
+| `EROFS`   | -30   | Read-only file system     |
 
 ### 2.3 Testing Error Propagation
 
@@ -433,7 +434,9 @@ test('should write file atomically (temp file + rename)', async () => {
 
   await atomicWrite(targetPath, 'content');
 
-  expect(mockWriteFile).toHaveBeenCalledWith(tempPath, 'content', { mode: 0o644 });
+  expect(mockWriteFile).toHaveBeenCalledWith(tempPath, 'content', {
+    mode: 0o644,
+  });
   expect(mockRename).toHaveBeenCalledWith(tempPath, targetPath);
 });
 ```
@@ -528,9 +531,21 @@ test('should handle multiple file reads', async () => {
   await loadSession('/plan/001_hash');
 
   expect(mockReadFile).toHaveBeenCalledTimes(3);
-  expect(mockReadFile).toHaveBeenNthCalledWith(1, expect.stringMatching(/prd_snapshot\.md$/), 'utf-8');
-  expect(mockReadFile).toHaveBeenNthCalledWith(2, expect.stringMatching(/parent_session\.txt$/), 'utf-8');
-  expect(mockReadFile).toHaveBeenNthCalledWith(3, expect.stringMatching(/tasks\.json$/), 'utf-8');
+  expect(mockReadFile).toHaveBeenNthCalledWith(
+    1,
+    expect.stringMatching(/prd_snapshot\.md$/),
+    'utf-8'
+  );
+  expect(mockReadFile).toHaveBeenNthCalledWith(
+    2,
+    expect.stringMatching(/parent_session\.txt$/),
+    'utf-8'
+  );
+  expect(mockReadFile).toHaveBeenNthCalledWith(
+    3,
+    expect.stringMatching(/tasks\.json$/),
+    'utf-8'
+  );
 });
 ```
 
@@ -599,11 +614,13 @@ test('reads from memfs', async () => {
 ```
 
 **Pros:**
+
 - Real filesystem behavior without real I/O
 - Supports most fs operations
 - Fast and isolated
 
 **Cons:**
+
 - More setup than simple mocks
 - May not match exact Node.js behavior
 
@@ -620,7 +637,7 @@ beforeEach(() => {
   mock({
     'test-dir': {
       'file.txt': 'test content',
-      'subdir': {
+      subdir: {
         'nested.json': '{"data": true}',
       },
     },
@@ -633,11 +650,13 @@ afterEach(() => {
 ```
 
 **Pros:**
+
 - Simple API
 - Works with both `fs` and `fs/promises`
 - Good for complex directory structures
 
 **Cons:**
+
 - May have compatibility issues with some Node.js versions
 - Less actively maintained than memfs
 
@@ -648,25 +667,27 @@ afterEach(() => {
 **Description:** Vitest's built-in mocking utilities (`vi.mock()`, `vi.spyOn()`, etc.) are sufficient for most cases.
 
 **Pros:**
+
 - No additional dependencies
 - Type-safe with TypeScript
 - Fast and lightweight
 - Integrated with Vitest
 
 **Cons:**
+
 - More manual setup for complex scenarios
 - Need to mock each function individually
 
 ### 6.4 When to Use Each Approach
 
-| Scenario | Recommended Approach |
-|----------|---------------------|
-| Simple file read/write | `vi.mock()` |
-| Testing error handling | `vi.mock()` with custom errors |
-| Complex directory operations | memfs or mock-fs |
-| Testing path resolution | `vi.mock()` with `expect.stringMatching()` |
-| Integration tests | memfs for realistic behavior |
-| Unit tests | `vi.mock()` for speed and isolation |
+| Scenario                     | Recommended Approach                       |
+| ---------------------------- | ------------------------------------------ |
+| Simple file read/write       | `vi.mock()`                                |
+| Testing error handling       | `vi.mock()` with custom errors             |
+| Complex directory operations | memfs or mock-fs                           |
+| Testing path resolution      | `vi.mock()` with `expect.stringMatching()` |
+| Integration tests            | memfs for realistic behavior               |
+| Unit tests                   | `vi.mock()` for speed and isolation        |
 
 ---
 
@@ -722,7 +743,9 @@ describe('SessionManager', () => {
     });
 
     expect(() => new SessionManager('/test/PRD.md')).toThrow(SessionFileError);
-    expect(() => new SessionManager('/test/PRD.md')).toThrow('validate PRD exists');
+    expect(() => new SessionManager('/test/PRD.md')).toThrow(
+      'validate PRD exists'
+    );
   });
 });
 ```
@@ -744,19 +767,26 @@ it('should handle multiple sequential sessions', async () => {
   await manager.initialize();
 
   // Create second session
-  const hash2 = 'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+  const hash2 =
+    'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
   mockHashPRD.mockResolvedValueOnce(hash2);
   mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
-  mockReadFile
-    .mockResolvedValueOnce('# PRD')
-    .mockResolvedValueOnce('# PRD v2');
+  mockReadFile.mockResolvedValueOnce('# PRD').mockResolvedValueOnce('# PRD v2');
   mockStat.mockResolvedValue({});
 
   await manager.createDeltaSession('/test/PRD.md');
 
   // Verify sequence numbers incremented
-  expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(1, '/test/PRD.md', 1);
-  expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(2, '/test/PRD.md', 2);
+  expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
+    1,
+    '/test/PRD.md',
+    1
+  );
+  expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
+    2,
+    '/test/PRD.md',
+    2
+  );
 });
 ```
 
@@ -772,7 +802,9 @@ export class SessionFileError extends Error {
 
   constructor(path: string, operation: string, cause?: Error) {
     const err = cause as NodeJS.ErrnoException;
-    super(`Failed to ${operation} at ${path}: ${err?.message ?? 'unknown error'}`);
+    super(
+      `Failed to ${operation} at ${path}: ${err?.message ?? 'unknown error'}`
+    );
     this.name = 'SessionFileError';
     this.path = path;
     this.operation = operation;

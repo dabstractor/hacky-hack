@@ -10,6 +10,7 @@
 **Feature Goal**: Create an end-to-end test file at `tests/e2e/pipeline.test.ts` that validates the complete PRPPipeline workflow (Initialize → Decompose → Execute → Complete) using mocked LLM responses, MCP tools, and temporary test directories. The test must complete in under 30 seconds with comprehensive assertions.
 
 **Deliverable**: E2E test file `tests/e2e/pipeline.test.ts` with:
+
 - Full pipeline workflow validation using `mockSimplePRD` fixture (from P4.M4.T3.S1)
 - Mocked Architect, Researcher, and Coder agents returning predefined success responses
 - Mocked MCP tools (BashMCP, FilesystemMCP, GitMCP) returning success
@@ -18,6 +19,7 @@
 - Execution time measurement (<30 seconds target)
 
 **Success Definition**:
+
 - E2E test file exists at `tests/e2e/pipeline.test.ts`
 - Test validates complete PRPPipeline workflow: Initialize → Decompose → Execute → Complete
 - All agent calls (Architect, Researcher, Coder) are mocked with predefined responses
@@ -34,12 +36,14 @@
 **Target User**: PRPPipeline developers and CI/CD system (automated validation)
 
 **Use Case**: The E2E pipeline test enables:
+
 1. Full workflow validation of PRPPipeline from start to finish
 2. Regression detection for pipeline changes
 3. Fast feedback during development with mocked dependencies
 4. CI/CD integration for automated pipeline validation
 
 **User Journey**:
+
 1. Developer makes changes to PRPPipeline or related components
 2. E2E test runs in CI/CD or locally
 3. Test creates temporary directory, mocks all dependencies
@@ -49,6 +53,7 @@
 7. Developer gets fast feedback (<30 seconds) on pipeline health
 
 **Pain Points Addressed**:
+
 - **No Full Workflow Test**: Existing tests don't validate complete end-to-end pipeline
 - **Slow Feedback**: Real LLM calls make testing slow and expensive
 - **Flaky Tests**: File system and git operations can cause test pollution
@@ -122,6 +127,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement the E2E pipeline test successfully?
 
 **Answer**: **YES** - This PRP provides:
+
 - Complete mock patterns from existing integration tests
 - Exact file paths and import patterns
 - PRPPipeline constructor parameters and method signatures
@@ -519,7 +525,13 @@ Task 11: VERIFY test coverage
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+} from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -634,11 +646,13 @@ const mockGitInstance = {
 // MOCK FACTORY: createMockChild for ChildProcess
 // =============================================================================
 
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
   return {
@@ -692,7 +706,8 @@ function createMockBacklog(): Backlog {
                 type: 'Task',
                 title: 'Create Hello World',
                 status: 'Complete' as Status,
-                description: 'Implement a basic hello world function with tests',
+                description:
+                  'Implement a basic hello world function with tests',
                 subtasks: [
                   {
                     id: 'P1.M1.T1.S1',
@@ -701,7 +716,8 @@ function createMockBacklog(): Backlog {
                     status: 'Complete' as Status,
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Simple function implementation\n2. INPUT: None\n3. LOGIC: Create src/hello.ts\n4. OUTPUT: src/hello.ts',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Simple function implementation\n2. INPUT: None\n3. LOGIC: Create src/hello.ts\n4. OUTPUT: src/hello.ts',
                   },
                   {
                     id: 'P1.M1.T1.S2',
@@ -710,7 +726,8 @@ function createMockBacklog(): Backlog {
                     status: 'Complete' as Status,
                     story_points: 1,
                     dependencies: ['P1.M1.T1.S1'],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Basic unit test\n2. INPUT: hello function\n3. LOGIC: Create tests/hello.test.ts\n4. OUTPUT: tests/hello.test.ts',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Basic unit test\n2. INPUT: hello function\n3. LOGIC: Create tests/hello.test.ts\n4. OUTPUT: tests/hello.test.ts',
                   },
                   {
                     id: 'P1.M1.T1.S3',
@@ -719,7 +736,8 @@ function createMockBacklog(): Backlog {
                     status: 'Complete' as Status,
                     story_points: 1,
                     dependencies: ['P1.M1.T1.S2'],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test execution\n2. INPUT: hello and test\n3. LOGIC: Run npm test\n4. OUTPUT: Passing test',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test execution\n2. INPUT: hello and test\n3. LOGIC: Run npm test\n4. OUTPUT: Passing test',
                   },
                 ],
               },
@@ -774,7 +792,9 @@ describe('E2E Pipeline Tests', () => {
 
     // Setup spawn mock for BashMCP
     const { spawn } = await import('node:child_process');
-    vi.mocked(spawn).mockReturnValue(createMockChild({ stdout: '', exitCode: 0 }) as never);
+    vi.mocked(spawn).mockReturnValue(
+      createMockChild({ stdout: '', exitCode: 0 }) as never
+    );
 
     // Use real timers for async mock behavior
     vi.useRealTimers();
@@ -1085,6 +1105,7 @@ npm run test:coverage -- tests/e2e/pipeline.test.ts
 - ✅ Gotchas and anti-patterns are well-documented
 
 **Validation**: This PRP provides:
+
 1. Complete mock patterns from existing working tests
 2. Exact file paths and import patterns
 3. PRPPipeline constructor and method signatures
@@ -1094,6 +1115,7 @@ npm run test:coverage -- tests/e2e/pipeline.test.ts
 7. Clear success criteria with validation commands
 
 The risk is minimal because:
+
 1. Creating an E2E test is a straightforward task
 2. All mock patterns are copied from existing working tests
 3. Test fixture provides known input structure
@@ -1137,6 +1159,7 @@ The following research findings have been stored in `plan/001_14b9dc2a33c7/P4M4T
 ### External Resources
 
 Due to rate limiting on web search tools, comprehensive information has been compiled based on:
+
 - Official Vitest documentation (https://vitest.dev/guide/mocking.html)
 - Official Vitest API reference (https://vitest.dev/api/)
 - Project-specific test patterns and conventions

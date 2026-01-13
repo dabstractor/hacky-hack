@@ -10,6 +10,7 @@
 **Feature Goal**: Create a minimal PRD fixture file at `tests/fixtures/simple-prd.md` that enables fast end-to-end pipeline testing with completion time under 5 minutes. The PRD must follow the exact structure from `system_context.md` but with minimal scope (single phase, single milestone, single task, 2-3 simple subtasks).
 
 **Deliverable**: Minimal PRD markdown file `tests/fixtures/simple-prd.md` with:
+
 - Project title: "Test Project"
 - Single Phase: "P1: Test Phase"
 - Single Milestone: "P1.M1: Test Milestone"
@@ -19,6 +20,7 @@
 - Expected completion time: <5 minutes when processed by PRPPipeline
 
 **Success Definition**:
+
 - PRD file exists at `tests/fixtures/simple-prd.md`
 - PRD follows exact structure format from `plan/001_14b9dc2a33c7/architecture/system_context.md`
 - PRD is parsable by ArchitectAgent and generates valid backlog JSON
@@ -31,12 +33,14 @@
 **Target User**: PRPPipeline E2E test validation system (automated QA)
 
 **Use Case**: The minimal test PRD enables:
+
 1. Fast validation of PRPPipeline initialization and backlog generation
 2. Quick testing of task iteration from start to finish
 3. Rapid validation of session management and state persistence
 4. Speed testing of the full pipeline workflow without real complexity
 
 **User Journey**:
+
 1. E2E test reads `tests/fixtures/simple-prd.md`
 2. PRPPipeline processes the PRD (hash check → architect agent → backlog generation)
 3. Pipeline iterates through minimal hierarchy (Phase → Milestone → Task → Subtask)
@@ -46,6 +50,7 @@
 7. Test validates complete pipeline in <5 minutes
 
 **Pain Points Addressed**:
+
 - **No Fast E2E Test**: Existing PRDs are too complex for quick validation (<5 min)
 - **Testing Bottleneck**: Full PRD processing takes too long for rapid iteration
 - **CI/CD Speed**: Need fast feedback for pipeline changes
@@ -117,6 +122,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to create the minimal test PRD fixture successfully?
 
 **Answer**: **YES** - This PRP provides:
+
 - Complete PRD structure specification from system_context.md
 - Full task hierarchy JSON schema reference
 - Existing fixture patterns to follow (mock-delta-data.ts)
@@ -304,7 +310,7 @@ tests/
 
 No new data models - using existing types:
 
-```typescript
+````typescript
 /**
  * Minimal test PRD fixture for fast E2E pipeline testing
  *
@@ -389,7 +395,7 @@ CONTRACT DEFINITION:
 3. LOGIC: Run npm test to verify test passes
 4. OUTPUT: Passing test result
 `;
-```
+````
 
 ### Implementation Tasks (ordered by dependencies)
 
@@ -477,7 +483,7 @@ Task 12: DOCUMENT usage in PRP
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // =============================================================================
 // FIXTURE FILE STRUCTURE
 // =============================================================================
@@ -616,7 +622,7 @@ CONTRACT DEFINITION:
 // 6. TEMPLATE LITERAL
 // Use backticks (\`) not single quotes (')
 // Enables multi-line content without escape characters
-```
+````
 
 ### Integration Points
 
@@ -827,6 +833,7 @@ node /tmp/test-import.mjs
 - ✅ Previous PRP (P4M4T2S2) provides context on test patterns
 
 **Validation**: This PRP provides:
+
 1. Complete PRD structure specification with line references
 2. Existing fixture pattern to follow
 3. Exact content requirements and examples
@@ -835,6 +842,7 @@ node /tmp/test-import.mjs
 6. Clear success criteria
 
 The risk is minimal because:
+
 1. Creating a markdown fixture file is a simple task
 2. Structure is well-defined and documented
 3. No complex logic or external dependencies

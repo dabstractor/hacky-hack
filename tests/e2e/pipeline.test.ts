@@ -11,7 +11,13 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+} from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -129,11 +135,13 @@ const mockGitInstance = {
 // MOCK FACTORY: createMockChild for ChildProcess
 // =============================================================================
 
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
   return {
@@ -187,7 +195,8 @@ function createMockBacklog(): Backlog {
                 type: 'Task',
                 title: 'Create Hello World',
                 status: 'Complete' as Status,
-                description: 'Implement a basic hello world function with tests',
+                description:
+                  'Implement a basic hello world function with tests',
                 subtasks: [],
               },
             ],
@@ -241,7 +250,9 @@ describe('E2E Pipeline Tests', () => {
     vi.mocked(existsSync).mockReturnValue(true);
 
     // Setup spawn mock for BashMCP
-    vi.mocked(spawn).mockReturnValue(createMockChild({ stdout: '', exitCode: 0 }) as never);
+    vi.mocked(spawn).mockReturnValue(
+      createMockChild({ stdout: '', exitCode: 0 }) as never
+    );
 
     // Use real timers for async mock behavior
     vi.useRealTimers();
@@ -373,7 +384,9 @@ describe('E2E Pipeline Tests', () => {
     expect(duration).toBeLessThan(30000);
 
     // LOG timing for reference
-    console.log(`Pipeline execution completed in ${duration.toFixed(0)}ms (< 30000ms target)`);
+    console.log(
+      `Pipeline execution completed in ${duration.toFixed(0)}ms (< 30000ms target)`
+    );
   });
 
   it('should clean up temp directory after test', async () => {

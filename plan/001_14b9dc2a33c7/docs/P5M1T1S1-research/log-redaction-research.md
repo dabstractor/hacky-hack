@@ -9,16 +9,16 @@ const pino = require('pino');
 
 const logger = pino({
   redact: [
-    'password',          // Exact field names to redact
+    'password', // Exact field names to redact
     'token',
     'api_key',
     'secret',
     'authorization',
     'credit_card',
-    '*.password',        // Object paths (wildcard)
-    'request.headers.*'  // Nested wildcards
+    '*.password', // Object paths (wildcard)
+    'request.headers.*', // Nested wildcards
   ],
-  level: 'info'
+  level: 'info',
 });
 ```
 
@@ -32,6 +32,7 @@ const logger = pino({
 ## Sensitive Patterns to Redact
 
 ### Common Field Names
+
 - `password` - User passwords
 - `token` - Authentication tokens
 - `api_key` - API keys
@@ -64,7 +65,7 @@ const logger = pino({
     // Request/response patterns
     'request.body.password',
     'response.data.token',
-  ]
+  ],
 });
 ```
 
@@ -73,14 +74,16 @@ const logger = pino({
 For custom redaction logic:
 
 ```javascript
-const redactor = (value) => {
+const redactor = value => {
   if (typeof value === 'string') {
     // Redact API keys matching pattern
     if (value.match(/sk-[a-zA-Z0-9]{20,}/)) {
       return '[API_KEY]';
     }
     // Redact JWT tokens
-    if (value.match(/Bearer\s+[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/)) {
+    if (
+      value.match(/Bearer\s+[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/)
+    ) {
       return '[BEARER_TOKEN]';
     }
   }
@@ -92,8 +95,8 @@ const logger = pino({
     req: pino.stdSerializers.req,
     res: pino.stdSerializers.res,
     // Custom serializer for specific fields
-    data: (value) => redactor(value),
-  }
+    data: value => redactor(value),
+  },
 });
 ```
 
@@ -105,7 +108,7 @@ Always test redaction to ensure sensitive data is not leaked:
 // Test: Verify password is redacted
 logger.info({
   user: 'john',
-  password: 'secret123'
+  password: 'secret123',
 });
 // Output: {"user":"john","password":"[Redacted]"}
 
@@ -113,15 +116,15 @@ logger.info({
 logger.info({
   user: {
     name: 'john',
-    password: 'secret123'
-  }
+    password: 'secret123',
+  },
 });
 // Output: {"user":{"name":"john","password":"[Redacted]"}}
 
 // Test: Verify non-sensitive fields are not redacted
 logger.info({
   user: 'john',
-  email: 'john@example.com'
+  email: 'john@example.com',
 });
 // Output: {"user":"john","email":"john@example.com"}
 ```

@@ -10,6 +10,7 @@
 **Feature Goal**: Create comprehensive integration tests for the agent factory and prompt system, validating that all agent creators use correct system prompts and that prompt generators return properly typed Groundswell Prompt objects with correct Zod schemas.
 
 **Deliverable**: Integration test file `tests/integration/agents.test.ts` with mocked Groundswell Agent and createAgent, testing:
+
 - `createBaseConfig()` environment variable mapping
 - `createArchitectAgent()` uses `TASK_BREAKDOWN_PROMPT`
 - `createResearcherAgent()` uses `PRP_BLUEPRINT_PROMPT`
@@ -19,6 +20,7 @@
 - `createPRPBlueprintPrompt()` returns `Prompt<PRPDocument>` with PRPDocumentSchema
 
 **Success Definition**:
+
 - All agent creator functions are tested with mocked Groundswell dependencies
 - All system prompt assignments are validated
 - All prompt generators return correctly typed Prompt objects
@@ -31,6 +33,7 @@
 **Target User**: PRPPipeline test validation system (automated QA)
 
 **Use Case**: The test suite validates that:
+
 1. Agent factory correctly configures Groundswell agents with proper personas
 2. Environment variables are correctly mapped for SDK compatibility
 3. System prompts are correctly assigned to each agent type
@@ -38,12 +41,14 @@
 5. Zod schemas are properly associated for structured output
 
 **User Journey**:
+
 1. Developer runs `npm test` to execute all tests
 2. Vitest runs integration tests for agent factory and prompts
 3. Mocked Groundswell agents prevent real LLM calls
 4. All tests pass -> validation complete
 
 **Pain Points Addressed**:
+
 - **No Integration Coverage**: Existing tests are unit-only, don't validate agent factory integration
 - **System Prompt Validation**: Need to verify correct prompts are assigned to each agent
 - **Type Safety Verification**: Need to validate Prompt<T> typing and schema associations
@@ -116,6 +121,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement the agent factory and prompt integration tests successfully?
 
 **Answer**: **YES** - This PRP provides:
+
 - Complete agent factory implementation reference
 - Existing test patterns to follow (agent-factory.test.ts, architect-agent.test.ts)
 - Groundswell API documentation for mocking strategy
@@ -951,6 +957,7 @@ npm run test:run -- tests/unit/agents/agent-factory.test.ts
 - ⚠️ Need to validate schema associations without TypeScript type checking
 
 **Validation**: This PRP provides:
+
 1. Exact mock patterns to use (from architect-agent.test.ts)
 2. Specific test cases for all contract requirements
 3. Clear expected outcomes for each test

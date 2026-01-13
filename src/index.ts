@@ -37,6 +37,7 @@ import { configureEnvironment } from './config/environment.js';
 import { parseCLIArgs, type CLIArgs } from './cli/index.js';
 import { PRPPipeline } from './workflows/prp-pipeline.js';
 import { parseScope, type Scope } from './core/scope-resolver.js';
+import { getLogger, type Logger } from './utils/logger.js';
 
 // ============================================================================
 // GLOBAL ERROR HANDLERS
@@ -91,19 +92,22 @@ async function main(): Promise<number> {
   // Parse CLI arguments first (this may exit on validation failure)
   const args: CLIArgs = parseCLIArgs();
 
-  // Setup global error handlers
+  // Setup global error handlers (preserve console.error for uncaught exceptions)
   setupGlobalHandlers(args.verbose);
 
   // CRITICAL: Configure environment before any API operations
   configureEnvironment();
 
+  // Initialize root logger
+  const logger: Logger = getLogger('App', {
+    verbose: args.verbose,
+    machineReadable: args.machineReadable,
+  });
+
   // Verbose logging
   if (args.verbose) {
-    console.error('[Entry] Verbose mode enabled');
-    console.error(
-      '[Entry] Parsed CLI arguments:',
-      JSON.stringify(args, null, 2)
-    );
+    logger.debug('Verbose mode enabled');
+    logger.debug('Parsed CLI arguments:', args);
   }
 
   // Handle dry-run mode
@@ -126,18 +130,18 @@ async function main(): Promise<number> {
     : undefined;
 
   if (args.verbose && scope) {
-    console.error('[Entry] Parsed scope:', JSON.stringify(scope));
+    logger.debug('Parsed scope:', scope);
   }
 
   // Create pipeline instance
   if (args.verbose) {
-    console.error('[Entry] Creating PRPPipeline instance');
+    logger.debug('Creating PRPPipeline instance');
   }
   const pipeline = new PRPPipeline(args.prd, scope, args.mode);
 
   // Run pipeline
   if (args.verbose) {
-    console.error('[Entry] Starting pipeline execution');
+    logger.debug('Starting pipeline execution');
   }
   const result = await pipeline.run();
 

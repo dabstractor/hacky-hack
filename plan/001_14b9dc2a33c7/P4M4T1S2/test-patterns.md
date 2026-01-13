@@ -54,11 +54,14 @@ vi.mock('../../../src/core/session-utils.js', () => ({
   createSessionDirectory: vi.fn(),
   readTasksJSON: vi.fn(),
   writeTasksJSON: vi.fn(),
-  SessionFileError: class extends Error { /* ... */ },
+  SessionFileError: class extends Error {
+    /* ... */
+  },
 }));
 ```
 
 **Key Points**:
+
 - Mocks are defined at the top level, not inside tests or describe blocks
 - This ensures proper mock hoisting by Vitest
 - Type safety is maintained using `as any` casting for mocked functions
@@ -89,6 +92,7 @@ const createTestBacklog = (phases: any[]): Backlog => ({
 ```
 
 **Benefits**:
+
 - Consistent data structure across tests
 - Easy to create complex hierarchies (Phase → Milestone → Task → Subtask)
 - Reduces test code duplication
@@ -119,6 +123,7 @@ it('should throw SessionFileError on file read failure (ENOENT)', async () => {
 ```
 
 **Key Points**:
+
 - Use `(error as NodeJS.ErrnoException).code` to set error codes
 - Test both the exception type and error properties
 - Test different error codes (ENOENT, EACCES, EEXIST, etc.)
@@ -129,7 +134,9 @@ Atomic write operations are tested by verifying the temp file + rename pattern:
 
 ```typescript
 it('should write tasks.json with atomic write pattern', async () => {
-  const backlog = createTestBacklog([createTestPhase('P1', 'Phase 1', 'Planned')]);
+  const backlog = createTestBacklog([
+    createTestPhase('P1', 'Phase 1', 'Planned'),
+  ]);
 
   await writeTasksJSON('/test/session', backlog);
 
@@ -158,9 +165,13 @@ it('should clean up temp file on rename failure', async () => {
   mockWriteFile.mockResolvedValue(undefined);
   mockRename.mockRejectedValue(new Error('EIO: I/O error'));
 
-  const backlog = createTestBacklog([createTestPhase('P1', 'Phase 1', 'Planned')]);
+  const backlog = createTestBacklog([
+    createTestPhase('P1', 'Phase 1', 'Planned'),
+  ]);
 
-  await expect(writeTasksJSON('/test/session', backlog)).rejects.toThrow(SessionFileError);
+  await expect(writeTasksJSON('/test/session', backlog)).rejects.toThrow(
+    SessionFileError
+  );
 
   // Unlink should be called to clean up temp file
   expect(mockUnlink).toHaveBeenCalled();
@@ -239,7 +250,9 @@ it('should throw SessionFileError on Zod validation error', async () => {
   const invalidSchema = { backlog: [{ id: 'P1' }] }; // Missing required fields
   mockReadFile.mockResolvedValue(JSON.stringify(invalidSchema));
 
-  await expect(readTasksJSON('/test/session')).rejects.toThrow(SessionFileError);
+  await expect(readTasksJSON('/test/session')).rejects.toThrow(
+    SessionFileError
+  );
 });
 ```
 
@@ -336,11 +349,13 @@ it('should load session', () => {
 ## Coverage Results
 
 ### session-utils.ts
+
 - **100% coverage** - All functions, branches, and lines covered
 - All error paths tested
 - All edge cases covered
 
 ### session-manager.ts
+
 - **97.84% coverage** - Nearly complete
 - **Covered**: All public methods, error handling paths, edge cases
 - **Not Covered**:
@@ -352,6 +367,7 @@ it('should load session', () => {
 ## Conclusion
 
 The session management test suite demonstrates best practices for:
+
 - File I/O testing with mocks
 - Class state management testing
 - Error handling and edge case coverage

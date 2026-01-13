@@ -62,6 +62,7 @@ Zod provides a robust validation library with 59+ official test files demonstrat
 ### Zod README Documentation
 
 The official README at `/node_modules/zod/README.md` provides:
+
 - Basic parsing patterns with `.parse()` and `.safeParse()`
 - Error handling with `ZodError` instances
 - Type inference patterns
@@ -88,7 +89,7 @@ describe('MySchema', () => {
   it('should validate correct data', () => {
     const result = MySchema.safeParse({
       name: 'John',
-      age: 25
+      age: 25,
     });
 
     expect(result.success).toBe(true);
@@ -101,7 +102,7 @@ describe('MySchema', () => {
   it('should reject invalid data', () => {
     const result = MySchema.safeParse({
       name: '', // Invalid: empty string
-      age: -5   // Invalid: negative
+      age: -5, // Invalid: negative
     });
 
     expect(result.success).toBe(false);
@@ -113,6 +114,7 @@ describe('MySchema', () => {
 ```
 
 **Why this pattern:**
+
 - No try/catch blocks needed
 - Type-safe discriminated union
 - Clear success/failure assertions
@@ -124,7 +126,7 @@ describe('MySchema', () => {
 it('should provide correct error message for invalid name', () => {
   const result = MySchema.safeParse({
     name: '',
-    age: 25
+    age: 25,
   });
 
   expect(result.success).toBe(false);
@@ -140,21 +142,22 @@ it('should provide correct error message for invalid name', () => {
 ### Pattern 3: Testing Refinements
 
 ```typescript
-const FibonacciSchema = z.number().refine(
-  (val) => [1, 2, 3, 5, 8, 13, 21].includes(val),
-  { message: 'Must be a Fibonacci number' }
-);
+const FibonacciSchema = z
+  .number()
+  .refine(val => [1, 2, 3, 5, 8, 13, 21].includes(val), {
+    message: 'Must be a Fibonacci number',
+  });
 
 describe('Fibonacci validation', () => {
   const validValues = [1, 2, 3, 5, 8, 13, 21];
   const invalidValues = [0, 4, 6, 7, 9, 10, 22, 100];
 
-  test.each(validValues)('should accept %d', (value) => {
+  test.each(validValues)('should accept %d', value => {
     const result = FibonacciSchema.safeParse(value);
     expect(result.success).toBe(true);
   });
 
-  test.each(invalidValues)('should reject %d', (value) => {
+  test.each(invalidValues)('should reject %d', value => {
     const result = FibonacciSchema.safeParse(value);
     expect(result.success).toBe(false);
   });
@@ -199,8 +202,8 @@ describe('Number constraints', () => {
 
   describe('min() and max()', () => {
     it('should enforce boundaries', () => {
-      minMaxSchema.parse(1);   // min inclusive
-      minMaxSchema.parse(21);  // max inclusive
+      minMaxSchema.parse(1); // min inclusive
+      minMaxSchema.parse(21); // max inclusive
       expect(() => minMaxSchema.parse(0)).toThrow();
       expect(() => minMaxSchema.parse(22)).toThrow();
     });
@@ -211,7 +214,8 @@ describe('Number constraints', () => {
 ### 2. Testing String Validation
 
 ```typescript
-const StringSchema = z.string()
+const StringSchema = z
+  .string()
   .min(1, 'Title is required')
   .max(200, 'Title too long');
 
@@ -239,32 +243,27 @@ describe('String validation', () => {
 ### 3. Testing Regex Patterns
 
 ```typescript
-const IdSchema = z.string().regex(
-  /^P\d+\.M\d+\.T\d+\.S\d+$/,
-  'Invalid subtask ID format'
-);
+const IdSchema = z
+  .string()
+  .regex(/^P\d+\.M\d+\.T\d+\.S\d+$/, 'Invalid subtask ID format');
 
 describe('ID format validation', () => {
-  const validIds = [
-    'P1.M1.T1.S1',
-    'P123.M456.T789.S999',
-    'P1.M1.T1.S1'
-  ];
+  const validIds = ['P1.M1.T1.S1', 'P123.M456.T789.S999', 'P1.M1.T1.S1'];
 
   const invalidIds = [
-    'P1.M1.T1',      // Missing S
-    'P.M.T.S',        // Missing numbers
-    'P1.M1.T1.S1.X',  // Extra segment
-    'p1.m1.t1.s1',    // Lowercase
-    'P1-M1-T1-S1',    // Wrong separator
+    'P1.M1.T1', // Missing S
+    'P.M.T.S', // Missing numbers
+    'P1.M1.T1.S1.X', // Extra segment
+    'p1.m1.t1.s1', // Lowercase
+    'P1-M1-T1-S1', // Wrong separator
   ];
 
-  test.each(validIds)('should accept %s', (id) => {
+  test.each(validIds)('should accept %s', id => {
     const result = IdSchema.safeParse(id);
     expect(result.success).toBe(true);
   });
 
-  test.each(invalidIds)('should reject %s', (id) => {
+  test.each(invalidIds)('should reject %s', id => {
     const result = IdSchema.safeParse(id);
     expect(result.success).toBe(false);
   });
@@ -285,7 +284,14 @@ const StatusEnum = z.enum([
 
 describe('Status enum validation', () => {
   it('should accept valid status values', () => {
-    const validStatuses = ['Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete'];
+    const validStatuses = [
+      'Planned',
+      'Researching',
+      'Implementing',
+      'Complete',
+      'Failed',
+      'Obsolete',
+    ];
 
     validStatuses.forEach(status => {
       const result = StatusEnum.safeParse(status);
@@ -297,7 +303,13 @@ describe('Status enum validation', () => {
   });
 
   it('should reject invalid status values', () => {
-    const invalidStatuses = ['Pending', 'In Progress', 'Done', 'planned', 'PLANNED'];
+    const invalidStatuses = [
+      'Pending',
+      'In Progress',
+      'Done',
+      'planned',
+      'PLANNED',
+    ];
 
     invalidStatuses.forEach(status => {
       const result = StatusEnum.safeParse(status);
@@ -374,9 +386,9 @@ const NestedSchema = z.object({
   subtasks: z.array(
     z.object({
       id: z.string(),
-      title: z.string()
+      title: z.string(),
     })
-  )
+  ),
 });
 
 describe('Nested object validation', () => {
@@ -386,8 +398,8 @@ describe('Nested object validation', () => {
       title: 'Phase 1',
       subtasks: [
         { id: 'S1', title: 'Subtask 1' },
-        { id: 'S2', title: 'Subtask 2' }
-      ]
+        { id: 'S2', title: 'Subtask 2' },
+      ],
     });
     expect(result.success).toBe(true);
   });
@@ -397,8 +409,8 @@ describe('Nested object validation', () => {
       id: 'P1',
       title: 'Phase 1',
       subtasks: [
-        { id: 'S1', title: '' } // Invalid: empty title
-      ]
+        { id: 'S1', title: '' }, // Invalid: empty title
+      ],
     });
     expect(result.success).toBe(false);
   });
@@ -411,13 +423,13 @@ describe('Nested object validation', () => {
 const MilestoneSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
     id: z.string().regex(/^P\d+\.M\d+$/),
-    tasks: z.array(z.lazy(() => TaskSchema))
+    tasks: z.array(z.lazy(() => TaskSchema)),
   })
 );
 
 const TaskSchema = z.object({
   id: z.string().regex(/^P\d+\.M\d+\.T\d+$/),
-  title: z.string()
+  title: z.string(),
 });
 
 describe('Recursive schema validation', () => {
@@ -427,9 +439,9 @@ describe('Recursive schema validation', () => {
       tasks: [
         {
           id: 'P1.M1.T1',
-          title: 'Task 1'
-        }
-      ]
+          title: 'Task 1',
+        },
+      ],
     });
     expect(result.success).toBe(true);
   });
@@ -451,22 +463,25 @@ describe('SubtaskSchema - story_points validation', () => {
   describe('Fibonacci sequence validation', () => {
     const validStoryPoints = [1, 2, 3, 5, 8, 13, 21];
 
-    test.each(validStoryPoints)('should accept %d as valid story points', (points) => {
-      const result = SubtaskSchema.safeParse({
-        id: 'P1.M1.T1.S1',
-        type: 'Subtask',
-        title: 'Test Subtask',
-        status: 'Planned',
-        story_points: points,
-        dependencies: [],
-        context_scope: 'Test context'
-      });
+    test.each(validStoryPoints)(
+      'should accept %d as valid story points',
+      points => {
+        const result = SubtaskSchema.safeParse({
+          id: 'P1.M1.T1.S1',
+          type: 'Subtask',
+          title: 'Test Subtask',
+          status: 'Planned',
+          story_points: points,
+          dependencies: [],
+          context_scope: 'Test context',
+        });
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.story_points).toBe(points);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.story_points).toBe(points);
+        }
       }
-    });
+    );
   });
 
   describe('Invalid story points rejection', () => {
@@ -489,14 +504,14 @@ describe('SubtaskSchema - story_points validation', () => {
         status: 'Planned',
         story_points: value,
         dependencies: [],
-        context_scope: 'Test context'
+        context_scope: 'Test context',
       });
 
       expect(result.success).toBe(false);
       if (!result.success) {
         // Verify error is about story_points
-        const hasStoryPointsError = result.error.issues.some(
-          issue => issue.path.includes('story_points')
+        const hasStoryPointsError = result.error.issues.some(issue =>
+          issue.path.includes('story_points')
         );
         expect(hasStoryPointsError).toBe(true);
       }
@@ -512,7 +527,7 @@ describe('SubtaskSchema - story_points validation', () => {
         status: 'Planned',
         story_points: '5' as any,
         dependencies: [],
-        context_scope: 'Test context'
+        context_scope: 'Test context',
       });
 
       expect(result.success).toBe(false);
@@ -528,11 +543,7 @@ describe('SubtaskSchema - story_points validation', () => {
 ```typescript
 describe('ID format validation', () => {
   describe('Subtask ID format (P{N}.M{N}.T{N}.S{N})', () => {
-    const validIds = [
-      'P1.M1.T1.S1',
-      'P123.M456.T789.S999',
-      'P1.M1.T1.S1'
-    ];
+    const validIds = ['P1.M1.T1.S1', 'P123.M456.T789.S999', 'P1.M1.T1.S1'];
 
     const invalidIds = [
       { id: 'P1.M1.T1', reason: 'missing S segment' },
@@ -543,7 +554,7 @@ describe('ID format validation', () => {
       { id: 'P1.M1.T1.S1.5', reason: 'decimal in segment' },
     ];
 
-    test.each(validIds)('should accept %s', (id) => {
+    test.each(validIds)('should accept %s', id => {
       const result = SubtaskSchema.safeParse({
         id,
         type: 'Subtask',
@@ -551,7 +562,7 @@ describe('ID format validation', () => {
         status: 'Planned',
         story_points: 2,
         dependencies: [],
-        context_scope: 'Test'
+        context_scope: 'Test',
       });
       expect(result.success).toBe(true);
     });
@@ -564,7 +575,7 @@ describe('ID format validation', () => {
         status: 'Planned',
         story_points: 2,
         dependencies: [],
-        context_scope: 'Test'
+        context_scope: 'Test',
       });
       expect(result.success).toBe(false);
     });
@@ -582,7 +593,7 @@ describe('ValidationGateSchema', () => {
     level: 1,
     description: 'Syntax & Style validation',
     command: 'npm run lint',
-    manual: false
+    manual: false,
   };
 
   describe('Valid validation gates', () => {
@@ -596,25 +607,25 @@ describe('ValidationGateSchema', () => {
         level: 4,
         description: 'Manual end-to-end testing',
         command: null,
-        manual: true
+        manual: true,
       });
       expect(result.success).toBe(true);
     });
   });
 
   describe('Level validation', () => {
-    it.each([1, 2, 3, 4])('should accept level %d', (level) => {
+    it.each([1, 2, 3, 4])('should accept level %d', level => {
       const result = ValidationGateSchema.safeParse({
         ...validGate,
-        level
+        level,
       });
       expect(result.success).toBe(true);
     });
 
-    it.each([0, 5, -1, 1.5])('should reject level %d', (level) => {
+    it.each([0, 5, -1, 1.5])('should reject level %d', level => {
       const result = ValidationGateSchema.safeParse({
         ...validGate,
-        level: level as any
+        level: level as any,
       });
       expect(result.success).toBe(false);
     });
@@ -624,7 +635,7 @@ describe('ValidationGateSchema', () => {
     it('should accept string commands', () => {
       const result = ValidationGateSchema.safeParse({
         ...validGate,
-        command: 'npm test && npm run lint'
+        command: 'npm test && npm run lint',
       });
       expect(result.success).toBe(true);
     });
@@ -633,7 +644,7 @@ describe('ValidationGateSchema', () => {
       const result = ValidationGateSchema.safeParse({
         ...validGate,
         command: null,
-        manual: true
+        manual: true,
       });
       expect(result.success).toBe(true);
     });
@@ -641,7 +652,7 @@ describe('ValidationGateSchema', () => {
     it('should reject undefined (must be null or string)', () => {
       const result = ValidationGateSchema.safeParse({
         ...validGate,
-        command: undefined as any
+        command: undefined as any,
       });
       expect(result.success).toBe(false);
     });
@@ -665,13 +676,11 @@ describe('PRPDocumentSchema', () => {
         level: 1,
         description: 'Level 1',
         command: 'npm test',
-        manual: false
-      }
+        manual: false,
+      },
     ],
-    successCriteria: [
-      { description: 'Criterion 1', satisfied: false }
-    ],
-    references: ['https://example.com', 'src/file.ts']
+    successCriteria: [{ description: 'Criterion 1', satisfied: false }],
+    references: ['https://example.com', 'src/file.ts'],
   };
 
   describe('Valid documents', () => {
@@ -685,7 +694,7 @@ describe('PRPDocumentSchema', () => {
         ...validDocument,
         validationGates: [],
         successCriteria: [],
-        references: []
+        references: [],
       });
       expect(result.success).toBe(true);
     });
@@ -697,8 +706,8 @@ describe('PRPDocumentSchema', () => {
         ...validDocument,
         validationGates: [
           { level: 1, description: 'Test', command: 'npm test', manual: false },
-          { level: 5, description: 'Invalid', command: 'x', manual: true } // Invalid level
-        ]
+          { level: 5, description: 'Invalid', command: 'x', manual: true }, // Invalid level
+        ],
       });
       expect(result.success).toBe(false);
     });
@@ -707,17 +716,25 @@ describe('PRPDocumentSchema', () => {
       const result = PRPDocumentSchema.safeParse({
         ...validDocument,
         successCriteria: [
-          { description: '', satisfied: false } // Invalid: empty description
-        ]
+          { description: '', satisfied: false }, // Invalid: empty description
+        ],
       });
       expect(result.success).toBe(false);
     });
   });
 
   describe('Required fields', () => {
-    const requiredFields = ['taskId', 'objective', 'context', 'implementationSteps', 'validationGates', 'successCriteria', 'references'] as const;
+    const requiredFields = [
+      'taskId',
+      'objective',
+      'context',
+      'implementationSteps',
+      'validationGates',
+      'successCriteria',
+      'references',
+    ] as const;
 
-    test.each(requiredFields)('should require %s', (field) => {
+    test.each(requiredFields)('should require %s', field => {
       const invalidDoc = { ...validDoc, [field]: undefined };
       const result = PRPDocumentSchema.safeParse(invalidDoc);
       expect(result.success).toBe(false);
@@ -771,7 +788,7 @@ it('should accept 2', () => testValue(2));
 it('should accept 3', () => testValue(3));
 
 // ✅ Good: Parameterized
-test.each([1, 2, 3])('should accept %d', (value) => {
+test.each([1, 2, 3])('should accept %d', value => {
   const result = schema.safeParse(value);
   expect(result.success).toBe(true);
 });
@@ -833,12 +850,12 @@ it('should transform data correctly', () => {
 const SchemaWithDefaults = z.object({
   required: z.string(),
   optional: z.string().optional(),
-  withDefault: z.string().default('default value')
+  withDefault: z.string().default('default value'),
 });
 
 it('should apply default values', () => {
   const result = SchemaWithDefaults.safeParse({
-    required: 'present'
+    required: 'present',
     // optional and withDefault omitted
   });
 
@@ -904,13 +921,13 @@ expect(result.success).toBe(false);
 ```typescript
 // ❌ Missing: what happens with wrong types?
 const result = schema.safeParse({
-  numberField: '123' as any
+  numberField: '123' as any,
 });
 
 // ✅ Test type safety
 it('should reject string numbers', () => {
   const result = schema.safeParse({
-    numberField: '123' as any
+    numberField: '123' as any,
   });
   expect(result.success).toBe(false);
 });
@@ -922,15 +939,15 @@ it('should reject string numbers', () => {
 // ❌ Only tests top-level
 const result = ParentSchema.safeParse({
   field: 'value',
-  nested: {} // not validated
+  nested: {}, // not validated
 });
 
 // ✅ Test deeply
 const result = ParentSchema.safeParse({
   field: 'value',
   nested: {
-    invalidField: 'wrong type'
-  }
+    invalidField: 'wrong type',
+  },
 });
 expect(result.success).toBe(false);
 ```
@@ -955,7 +972,7 @@ describe('SubtaskSchema', () => {
     status: 'Planned' as const,
     story_points: 3,
     dependencies: [],
-    context_scope: 'src/ directory'
+    context_scope: 'src/ directory',
   };
 
   describe('Valid subtasks', () => {
@@ -967,21 +984,25 @@ describe('SubtaskSchema', () => {
     it('should accept subtask with dependencies', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        dependencies: ['P1.M1.T1.S1', 'P1.M1.T1.S2']
+        dependencies: ['P1.M1.T1.S1', 'P1.M1.T1.S2'],
       });
       expect(result.success).toBe(true);
     });
 
-    it.each(['Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete'])(
-      'should accept status: %s',
-      (status) => {
-        const result = SubtaskSchema.safeParse({
-          ...validSubtask,
-          status: status as any
-        });
-        expect(result.success).toBe(true);
-      }
-    );
+    it.each([
+      'Planned',
+      'Researching',
+      'Implementing',
+      'Complete',
+      'Failed',
+      'Obsolete',
+    ])('should accept status: %s', status => {
+      const result = SubtaskSchema.safeParse({
+        ...validSubtask,
+        status: status as any,
+      });
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('ID validation', () => {
@@ -1005,7 +1026,7 @@ describe('SubtaskSchema', () => {
     it('should require non-empty title', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        title: ''
+        title: '',
       });
       expect(result.success).toBe(false);
     });
@@ -1013,7 +1034,7 @@ describe('SubtaskSchema', () => {
     it('should enforce max length of 200', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        title: 'a'.repeat(201)
+        title: 'a'.repeat(201),
       });
       expect(result.success).toBe(false);
     });
@@ -1023,18 +1044,18 @@ describe('SubtaskSchema', () => {
     const validPoints = [1, 2, 3, 5, 8, 13, 21];
     const invalidPoints = [0, 4, 6, 7, 22, -1, 1.5];
 
-    test.each(validPoints)('should accept %d story points', (points) => {
+    test.each(validPoints)('should accept %d story points', points => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        story_points: points
+        story_points: points,
       });
       expect(result.success).toBe(true);
     });
 
-    test.each(invalidPoints)('should reject %d story points', (points) => {
+    test.each(invalidPoints)('should reject %d story points', points => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        story_points: points
+        story_points: points,
       });
       expect(result.success).toBe(false);
     });
@@ -1042,7 +1063,7 @@ describe('SubtaskSchema', () => {
     it('should require integer values', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        story_points: 2.5
+        story_points: 2.5,
       });
       expect(result.success).toBe(false);
     });
@@ -1052,7 +1073,7 @@ describe('SubtaskSchema', () => {
     it('should reject string numbers for story_points', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        story_points: '3' as any
+        story_points: '3' as any,
       });
       expect(result.success).toBe(false);
     });
@@ -1060,7 +1081,7 @@ describe('SubtaskSchema', () => {
     it('should enforce literal type "Subtask"', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        type: 'Task' as any
+        type: 'Task' as any,
       });
       expect(result.success).toBe(false);
     });
@@ -1070,7 +1091,7 @@ describe('SubtaskSchema', () => {
     it('should provide descriptive error for invalid ID', () => {
       const result = SubtaskSchema.safeParse({
         ...validSubtask,
-        id: 'invalid'
+        id: 'invalid',
       });
 
       expect(result.success).toBe(false);
@@ -1089,7 +1110,7 @@ describe('SubtaskSchema', () => {
 
 ```typescript
 const AsyncSchema = z.string().refine(
-  async (val) => {
+  async val => {
     // Simulate async check (e.g., database lookup)
     return val.length > 5;
   },
@@ -1194,7 +1215,11 @@ export function testEachInvalid(
 ### Using the Helpers
 
 ```typescript
-import { expectValid, expectInvalid, getErrorMessage } from '../utils/zod-helpers';
+import {
+  expectValid,
+  expectInvalid,
+  getErrorMessage,
+} from '../utils/zod-helpers';
 import { SubtaskSchema } from '@/core/models';
 
 describe('SubtaskSchema with helpers', () => {
@@ -1206,7 +1231,7 @@ describe('SubtaskSchema with helpers', () => {
       status: 'Planned' as const,
       story_points: 3,
       dependencies: [],
-      context_scope: 'Test'
+      context_scope: 'Test',
     };
 
     expectValid(SubtaskSchema, data);
@@ -1220,7 +1245,7 @@ describe('SubtaskSchema with helpers', () => {
       status: 'Planned' as const,
       story_points: 4, // Invalid: not Fibonacci
       dependencies: [],
-      context_scope: 'Test'
+      context_scope: 'Test',
     };
 
     const error = expectInvalid(SubtaskSchema, data);
@@ -1277,11 +1302,13 @@ tests/
 ## Sources
 
 ### Official Zod Documentation
+
 - [Zod API Documentation](https://zod.dev/api)
 - [Zod GitHub Repository](https://github.com/colinhacks/zod)
 - Zod README: `/node_modules/zod/README.md`
 
 ### Zod Test Suite (59+ test files)
+
 - `/node_modules/zod/src/v3/tests/object.test.ts`
 - `/node_modules/zod/src/v3/tests/number.test.ts`
 - `/node_modules/zod/src/v3/tests/string.test.ts`
@@ -1295,6 +1322,7 @@ tests/
 - And 49+ additional test files
 
 ### Your Codebase
+
 - `/home/dustin/projects/hacky-hack/src/core/models.ts` - Your Zod schemas
 - `/home/dustin/projects/hacky-hack/tests/integration/prp-generator-integration.test.ts` - Existing schema usage examples
 - `/home/dustin/projects/hacky-hack/tests/integration/prp-blueprint-agent.test.ts` - More schema usage examples

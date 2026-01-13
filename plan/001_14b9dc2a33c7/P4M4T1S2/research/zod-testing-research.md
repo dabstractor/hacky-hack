@@ -26,7 +26,7 @@ import { describe, it, expect } from 'vitest';
 const userSchema = z.object({
   email: z.string().email(),
   age: z.number().min(18),
-  name: z.string().min(2)
+  name: z.string().min(2),
 });
 
 describe('User Schema Validation - Success Cases', () => {
@@ -34,7 +34,7 @@ describe('User Schema Validation - Success Cases', () => {
     const validData = {
       email: 'test@example.com',
       age: 25,
-      name: 'John Doe'
+      name: 'John Doe',
     };
     const result = userSchema.safeParse(validData);
     expect(result.success).toBe(true);
@@ -49,7 +49,7 @@ describe('User Schema Validation - Success Cases', () => {
       email: 'test@example.com',
       age: 25,
       name: 'John Doe',
-      extraField: 'preserved'
+      extraField: 'preserved',
     });
     expect(result.success).toBe(true);
   });
@@ -66,7 +66,7 @@ describe('User Schema Validation - Failure Cases', () => {
     const result = userSchema.safeParse({
       email: 'not-an-email',
       age: 25,
-      name: 'John Doe'
+      name: 'John Doe',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -78,7 +78,7 @@ describe('User Schema Validation - Failure Cases', () => {
     const result = userSchema.safeParse({
       email: 'test@example.com',
       age: 15,
-      name: 'John Doe'
+      name: 'John Doe',
     });
     expect(result.success).toBe(false);
   });
@@ -87,7 +87,7 @@ describe('User Schema Validation - Failure Cases', () => {
     const result = userSchema.safeParse({
       email: 'test@example.com',
       age: 25,
-      name: 'J'
+      name: 'J',
     });
     expect(result.success).toBe(false);
   });
@@ -104,7 +104,7 @@ const invalidEmailVariants = [
   ['@missingdomain.com', 'missing local part'],
   ['missing@.com', 'invalid domain'],
   ['spaces in@email.com', 'contains spaces'],
-  ['missingatsign.com', 'missing @ symbol']
+  ['missingatsign.com', 'missing @ symbol'],
 ];
 
 describe.each(invalidEmailVariants)('Email Validation', (email, reason) => {
@@ -112,7 +112,7 @@ describe.each(invalidEmailVariants)('Email Validation', (email, reason) => {
     const result = userSchema.safeParse({
       email,
       age: 25,
-      name: 'John Doe'
+      name: 'John Doe',
     });
     expect(result.success).toBe(false);
   });
@@ -131,16 +131,16 @@ import { z } from 'zod';
 const schema = z.object({
   user: z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
-    email: z.string().email('Must be a valid email address')
+    email: z.string().email('Must be a valid email address'),
   }),
-  age: z.number().min(18, 'Must be 18 or older')
+  age: z.number().min(18, 'Must be 18 or older'),
 });
 
 describe('Error Messages and Paths', () => {
   it('should provide correct error paths for nested fields', () => {
     const result = schema.safeParse({
       user: { name: 'J', email: 'invalid' },
-      age: 15
+      age: 15,
     });
 
     expect(result.success).toBe(false);
@@ -162,7 +162,7 @@ describe('Error Messages and Paths', () => {
   it('should filter errors by specific path', () => {
     const result = schema.safeParse({
       user: { name: 'J', email: 'invalid' },
-      age: 15
+      age: 15,
     });
 
     if (!result.success) {
@@ -177,7 +177,7 @@ describe('Error Messages and Paths', () => {
   it('should access error code for programmatic assertions', () => {
     const result = schema.safeParse({
       user: { name: 'J', email: 'test@example.com' },
-      age: 25
+      age: 25,
     });
 
     if (!result.success) {
@@ -197,7 +197,7 @@ describe('Error Message Snapshots', () => {
   it('should match error snapshot', () => {
     const result = schema.safeParse({
       user: { name: 'J', email: 'bad' },
-      age: 10
+      age: 10,
     });
 
     expect(result.success).toBe(false);
@@ -215,6 +215,7 @@ describe('Error Message Snapshots', () => {
 ### safeParse() - Recommended for Tests
 
 **Why use safeParse():**
+
 - Returns result object without throwing
 - Easy to assert on success/failure
 - Clean test code without try-catch
@@ -225,7 +226,7 @@ describe('Using safeParse() - Recommended', () => {
   it('provides clean assertions for success case', () => {
     const result = schema.safeParse({
       user: { name: 'John', email: 'john@example.com' },
-      age: 25
+      age: 25,
     });
 
     expect(result.success).toBe(true);
@@ -238,7 +239,7 @@ describe('Using safeParse() - Recommended', () => {
   it('provides clean assertions for failure case', () => {
     const result = schema.safeParse({
       user: { name: 'J', email: 'invalid' },
-      age: 15
+      age: 15,
     });
 
     expect(result.success).toBe(false);
@@ -259,6 +260,7 @@ describe('Using safeParse() - Recommended', () => {
 ### parse() - Use for Exception Testing
 
 **When to use parse():**
+
 - Testing that errors are thrown correctly
 - Testing custom error handlers
 - Integration tests where exceptions are expected
@@ -269,7 +271,7 @@ describe('Using parse() - For Exception Testing', () => {
     expect(() => {
       schema.parse({
         user: { name: 'J', email: 'invalid' },
-        age: 15
+        age: 15,
       });
     }).toThrow(z.ZodError);
   });
@@ -278,7 +280,7 @@ describe('Using parse() - For Exception Testing', () => {
     expect(() => {
       schema.parse({
         user: { name: 'J', email: 'test@example.com' },
-        age: 25
+        age: 25,
       });
     }).toThrow('Name must be at least 2 characters');
   });
@@ -341,12 +343,11 @@ describe('Custom Test Helpers', () => {
   });
 
   it('uses helper for failure test', () => {
-    expectValidationFailure(
-      schema,
-      invalidData,
-      3,
-      [['user', 'name'], ['user', 'email'], ['age']]
-    );
+    expectValidationFailure(schema, invalidData, 3, [
+      ['user', 'name'],
+      ['user', 'email'],
+      ['age'],
+    ]);
   });
 });
 ```
@@ -364,17 +365,19 @@ const addressSchema = z.object({
   zipCode: z.string().regex(/^\d{5}$/, 'Invalid ZIP code'),
   country: z.object({
     code: z.string().length(2),
-    name: z.string()
-  })
+    name: z.string(),
+  }),
 });
 
 const companySchema = z.object({
   name: z.string(),
   address: addressSchema,
-  employees: z.array(z.object({
-    id: z.number(),
-    role: z.enum(['admin', 'user', 'guest'])
-  }))
+  employees: z.array(
+    z.object({
+      id: z.number(),
+      role: z.enum(['admin', 'user', 'guest']),
+    })
+  ),
 });
 
 describe('Deeply Nested Schemas', () => {
@@ -387,13 +390,13 @@ describe('Deeply Nested Schemas', () => {
         zipCode: '12345',
         country: {
           code: 'US',
-          name: 'United States'
-        }
+          name: 'United States',
+        },
       },
       employees: [
         { id: 1, role: 'admin' },
-        { id: 2, role: 'user' }
-      ]
+        { id: 2, role: 'user' },
+      ],
     };
 
     const result = companySchema.safeParse(validCompany);
@@ -409,12 +412,10 @@ describe('Deeply Nested Schemas', () => {
         zipCode: 'invalid',
         country: {
           code: 'XXX',
-          name: ''
-        }
+          name: '',
+        },
       },
-      employees: [
-        { id: 1, role: 'invalid_role' }
-      ]
+      employees: [{ id: 1, role: 'invalid_role' }],
     });
 
     expect(result.success).toBe(false);
@@ -437,17 +438,21 @@ const complexSchema = z.object({
   tags: z.array(z.string().min(1)).min(1),
   optionalField: z.string().optional(),
   nullableField: z.string().nullable(),
-  nestedArray: z.array(z.object({
-    value: z.number(),
-    label: z.string()
-  })).optional()
+  nestedArray: z
+    .array(
+      z.object({
+        value: z.number(),
+        label: z.string(),
+      })
+    )
+    .optional(),
 });
 
 describe('Arrays and Optional Fields', () => {
   it('should validate array constraints', () => {
     const result = complexSchema.safeParse({
       tags: [],
-      optionalField: 'present'
+      optionalField: 'present',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -458,7 +463,7 @@ describe('Arrays and Optional Fields', () => {
   it('should accept missing optional field', () => {
     const result = complexSchema.safeParse({
       tags: ['important'],
-      nullableField: null
+      nullableField: null,
     });
     expect(result.success).toBe(true);
   });
@@ -468,9 +473,7 @@ describe('Arrays and Optional Fields', () => {
       tags: ['test'],
       optionalField: null,
       nullableField: 'value',
-      nestedArray: [
-        { value: 'not a number', label: 'test' }
-      ]
+      nestedArray: [{ value: 'not a number', label: 'test' }],
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -487,13 +490,13 @@ const eventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('click'),
     x: z.number(),
-    y: z.number()
+    y: z.number(),
   }),
   z.object({
     type: z.literal('keypress'),
     key: z.string(),
-    timestamp: z.number()
-  })
+    timestamp: z.number(),
+  }),
 ]);
 
 describe('Discriminated Unions', () => {
@@ -514,7 +517,9 @@ describe('Discriminated Unions', () => {
     const result = eventSchema.safeParse(invalidEvent);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0].code).toBe(z.ZodIssueCode.invalid_union_discriminator);
+      expect(result.error.errors[0].code).toBe(
+        z.ZodIssueCode.invalid_union_discriminator
+      );
     }
   });
 });
@@ -527,19 +532,20 @@ describe('Discriminated Unions', () => {
 ### Basic Refinement Testing
 
 ```typescript
-const passwordSchema = z.string()
+const passwordSchema = z
+  .string()
   .min(8, 'Password must be at least 8 characters')
-  .refine((val) => /[A-Z]/.test(val), {
+  .refine(val => /[A-Z]/.test(val), {
     message: 'Must contain at least one uppercase letter',
-    path: ['uppercase']
+    path: ['uppercase'],
   })
-  .refine((val) => /[a-z]/.test(val), {
+  .refine(val => /[a-z]/.test(val), {
     message: 'Must contain at least one lowercase letter',
-    path: ['lowercase']
+    path: ['lowercase'],
   })
-  .refine((val) => /[0-9]/.test(val), {
+  .refine(val => /[0-9]/.test(val), {
     message: 'Must contain at least one number',
-    path: ['number']
+    path: ['number'],
   });
 
 describe('Password Refinement', () => {
@@ -554,11 +560,13 @@ describe('Password Refinement', () => {
     const result = passwordSchema.safeParse('weakpass123');
     expect(result.success).toBe(false);
     if (!result.success) {
-      const uppercaseError = result.error.errors.find(
-        e => e.path.includes('uppercase')
+      const uppercaseError = result.error.errors.find(e =>
+        e.path.includes('uppercase')
       );
       expect(uppercaseError).toBeDefined();
-      expect(uppercaseError?.message).toBe('Must contain at least one uppercase letter');
+      expect(uppercaseError?.message).toBe(
+        'Must contain at least one uppercase letter'
+      );
     }
   });
 
@@ -566,8 +574,8 @@ describe('Password Refinement', () => {
     const result = passwordSchema.safeParse('WEAKPASS123');
     expect(result.success).toBe(false);
     if (!result.success) {
-      const lowercaseError = result.error.errors.find(
-        e => e.path.includes('lowercase')
+      const lowercaseError = result.error.errors.find(e =>
+        e.path.includes('lowercase')
       );
       expect(lowercaseError).toBeDefined();
     }
@@ -577,8 +585,8 @@ describe('Password Refinement', () => {
     const result = passwordSchema.safeParse('StrongPassword');
     expect(result.success).toBe(false);
     if (!result.success) {
-      const numberError = result.error.errors.find(
-        e => e.path.includes('number')
+      const numberError = result.error.errors.find(e =>
+        e.path.includes('number')
       );
       expect(numberError).toBeDefined();
     }
@@ -589,23 +597,19 @@ describe('Password Refinement', () => {
 ### Complex Refinement with Custom Error Objects
 
 ```typescript
-const usernameSchema = z.string()
+const usernameSchema = z
+  .string()
   .min(3)
   .max(20)
-  .refine(
-    (val) => /^[a-zA-Z0-9_-]+$/.test(val),
-    {
-      message: 'Username can only contain letters, numbers, hyphens, and underscores',
-      path: ['format']
-    }
-  )
-  .refine(
-    (val) => !val.startsWith('-') && !val.startsWith('_'),
-    {
-      message: 'Username cannot start with a hyphen or underscore',
-      path: ['startCharacter']
-    }
-  );
+  .refine(val => /^[a-zA-Z0-9_-]+$/.test(val), {
+    message:
+      'Username can only contain letters, numbers, hyphens, and underscores',
+    path: ['format'],
+  })
+  .refine(val => !val.startsWith('-') && !val.startsWith('_'), {
+    message: 'Username cannot start with a hyphen or underscore',
+    path: ['startCharacter'],
+  });
 
 describe('Username Refinement with Custom Paths', () => {
   it('should validate proper username', () => {
@@ -633,43 +637,45 @@ describe('Username Refinement with Custom Paths', () => {
 ### SuperRefinement for Complex Cross-Field Validation
 
 ```typescript
-const dateRangeSchema = z.object({
-  startDate: z.string(),
-  endDate: z.string()
-}).superRefine((data, ctx) => {
-  const start = new Date(data.startDate);
-  const end = new Date(data.endDate);
+const dateRangeSchema = z
+  .object({
+    startDate: z.string(),
+    endDate: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    const start = new Date(data.startDate);
+    const end = new Date(data.endDate);
 
-  if (isNaN(start.getTime())) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.invalid_date,
-      path: ['startDate'],
-      message: 'Invalid start date'
-    });
-  }
+    if (isNaN(start.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_date,
+        path: ['startDate'],
+        message: 'Invalid start date',
+      });
+    }
 
-  if (isNaN(end.getTime())) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.invalid_date,
-      path: ['endDate'],
-      message: 'Invalid end date'
-    });
-  }
+    if (isNaN(end.getTime())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.invalid_date,
+        path: ['endDate'],
+        message: 'Invalid end date',
+      });
+    }
 
-  if (start > end) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['endDate'],
-      message: 'End date must be after start date'
-    });
-  }
-});
+    if (start > end) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endDate'],
+        message: 'End date must be after start date',
+      });
+    }
+  });
 
 describe('SuperRefinement for Cross-Field Validation', () => {
   it('should validate correct date range', () => {
     const result = dateRangeSchema.safeParse({
       startDate: '2024-01-01',
-      endDate: '2024-12-31'
+      endDate: '2024-12-31',
     });
     expect(result.success).toBe(true);
   });
@@ -677,18 +683,20 @@ describe('SuperRefinement for Cross-Field Validation', () => {
   it('should fail when end date is before start date', () => {
     const result = dateRangeSchema.safeParse({
       startDate: '2024-12-31',
-      endDate: '2024-01-01'
+      endDate: '2024-01-01',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0].message).toBe('End date must be after start date');
+      expect(result.error.errors[0].message).toBe(
+        'End date must be after start date'
+      );
     }
   });
 
   it('should accumulate multiple errors', () => {
     const result = dateRangeSchema.safeParse({
       startDate: 'invalid-date',
-      endDate: '2024-01-01'
+      endDate: '2024-01-01',
     });
     expect(result.success).toBe(false);
     expect(result.error.errors.length).toBeGreaterThan(0);
@@ -699,14 +707,16 @@ describe('SuperRefinement for Cross-Field Validation', () => {
 ### Testing Async Refinements
 
 ```typescript
-const uniqueEmailSchema = z.string().email()
+const uniqueEmailSchema = z
+  .string()
+  .email()
   .superRefine(async (email, ctx) => {
     // Simulate async check
     const exists = await checkEmailExists(email);
     if (exists) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Email already registered'
+        message: 'Email already registered',
       });
     }
   });
@@ -723,7 +733,9 @@ describe('Async Refinement Testing', () => {
   });
 
   it('should fail for existing email', async () => {
-    const result = await uniqueEmailSchema.safeParseAsync('existing@example.com');
+    const result = await uniqueEmailSchema.safeParseAsync(
+      'existing@example.com'
+    );
     expect(result.success).toBe(false);
   });
 });
@@ -757,14 +769,14 @@ if (result.success) {
 ```typescript
 const schema = z.object({
   name: z.string(),
-  age: z.number()
+  age: z.number(),
 });
 
 // Zod DOES NOT strip unknown fields by default
 const result = schema.safeParse({
   name: 'John',
   age: 30,
-  unknownField: 'will cause strict() to fail'
+  unknownField: 'will cause strict() to fail',
 });
 
 // Use .strict() to catch unknown fields in tests
@@ -772,7 +784,7 @@ const strictSchema = schema.strict();
 const strictResult = strictSchema.safeParse({
   name: 'John',
   age: 30,
-  unknownField: 'this will fail'
+  unknownField: 'this will fail',
 });
 expect(strictResult.success).toBe(false);
 ```
@@ -783,15 +795,15 @@ expect(strictResult.success).toBe(false);
 
 ```typescript
 const schema = z.object({
-  dateString: z.string().transform((val) => new Date(val)),
-  count: z.string().transform((val) => parseInt(val, 10))
+  dateString: z.string().transform(val => new Date(val)),
+  count: z.string().transform(val => parseInt(val, 10)),
 });
 
 describe('Schema Transformations', () => {
   it('should transform string to date', () => {
     const result = schema.safeParse({
       dateString: '2024-01-01',
-      count: '42'
+      count: '42',
     });
 
     expect(result.success).toBe(true);
@@ -812,7 +824,7 @@ describe('Schema Transformations', () => {
 const schema = z.object({
   optional: z.string().optional(), // accepts undefined
   nullable: z.string().nullable(), // accepts null
-  orDefault: z.string().default('default value')
+  orDefault: z.string().default('default value'),
 });
 
 describe('Optional vs Nullable', () => {
@@ -844,15 +856,19 @@ describe('Edge Case Testing', () => {
   const schema = z.object({
     string: z.string(),
     number: z.number(),
-    array: z.array(z.string())
+    array: z.array(z.string()),
   });
 
   it('should handle null values', () => {
-    expect(schema.safeParse({ string: null, number: 1, array: [] }).success).toBe(false);
+    expect(
+      schema.safeParse({ string: null, number: 1, array: [] }).success
+    ).toBe(false);
   });
 
   it('should handle undefined values', () => {
-    expect(schema.safeParse({ string: undefined, number: 1, array: [] }).success).toBe(false);
+    expect(
+      schema.safeParse({ string: undefined, number: 1, array: [] }).success
+    ).toBe(false);
   });
 
   it('should handle empty strings', () => {
@@ -866,10 +882,18 @@ describe('Edge Case Testing', () => {
   });
 
   it('should handle special float values', () => {
-    const result1 = schema.safeParse({ string: 'test', number: Infinity, array: [] });
+    const result1 = schema.safeParse({
+      string: 'test',
+      number: Infinity,
+      array: [],
+    });
     expect(result1.success).toBe(true);
 
-    const result2 = schema.safeParse({ string: 'test', number: -Infinity, array: [] });
+    const result2 = schema.safeParse({
+      string: 'test',
+      number: -Infinity,
+      array: [],
+    });
     expect(result2.success).toBe(true);
   });
 
@@ -888,7 +912,7 @@ describe('Edge Case Testing', () => {
 // BAD - Shared fixture that gets mutated
 const baseData = {
   name: 'John',
-  email: 'john@example.com'
+  email: 'john@example.com',
 };
 
 it('test 1', () => {
@@ -905,7 +929,7 @@ it('test 2', () => {
 // GOOD - Create fresh data for each test
 const createValidData = () => ({
   name: 'John',
-  email: 'john@example.com'
+  email: 'john@example.com',
 });
 
 it('test 1', () => {
@@ -937,13 +961,13 @@ it('should validate user', () => {
         city: 'Springfield',
         state: 'IL',
         zip: '12345',
-        country: 'US'
-      }
+        country: 'US',
+      },
     },
     preferences: {
       theme: 'dark',
       notifications: true,
-      language: 'en'
+      language: 'en',
     },
     // ... many more fields
   });
@@ -961,15 +985,15 @@ const buildUser = (overrides = {}) => ({
       city: 'Springfield',
       state: 'IL',
       zip: '12345',
-      country: 'US'
-    }
+      country: 'US',
+    },
   },
   preferences: {
     theme: 'dark',
     notifications: true,
-    language: 'en'
+    language: 'en',
   },
-  ...overrides
+  ...overrides,
 });
 
 it('should validate user', () => {
@@ -978,9 +1002,11 @@ it('should validate user', () => {
 });
 
 it('should validate user with custom theme', () => {
-  const result = userSchema.safeParse(buildUser({
-    preferences: { theme: 'light', notifications: true, language: 'en' }
-  }));
+  const result = userSchema.safeParse(
+    buildUser({
+      preferences: { theme: 'light', notifications: true, language: 'en' },
+    })
+  );
   expect(result.success).toBe(true);
 });
 ```
@@ -997,16 +1023,22 @@ import { z } from 'zod';
 
 type SafeParseResult<T> = ReturnType<z.ZodSchema<T>['safeParse']>;
 
-export function assertSuccess<T>(result: SafeParseResult<T>): asserts result is {
+export function assertSuccess<T>(
+  result: SafeParseResult<T>
+): asserts result is {
   success: true;
   data: T;
 } {
   if (!result.success) {
-    throw new Error(`Expected success but got errors: ${JSON.stringify(result.error.errors, null, 2)}`);
+    throw new Error(
+      `Expected success but got errors: ${JSON.stringify(result.error.errors, null, 2)}`
+    );
   }
 }
 
-export function assertFailure<T>(result: SafeParseResult<T>): asserts result is {
+export function assertFailure<T>(
+  result: SafeParseResult<T>
+): asserts result is {
   success: false;
   error: z.ZodError;
 } {
@@ -1015,9 +1047,14 @@ export function assertFailure<T>(result: SafeParseResult<T>): asserts result is 
   }
 }
 
-export function getErrorAtPath(result: SafeParseResult<any>, path: (string | number)[]) {
+export function getErrorAtPath(
+  result: SafeParseResult<any>,
+  path: (string | number)[]
+) {
   if (result.success) return undefined;
-  return result.error.errors.find(e => JSON.stringify(e.path) === JSON.stringify(path));
+  return result.error.errors.find(
+    e => JSON.stringify(e.path) === JSON.stringify(path)
+  );
 }
 
 export function expectErrorsAtPath<T>(
@@ -1042,24 +1079,28 @@ export function expectErrorsAtPath<T>(
 ## Summary Checklist
 
 ### Testing Schema Validation
+
 - [ ] Test valid inputs pass
 - [ ] Test invalid inputs fail with appropriate errors
 - [ ] Use parametrized tests for multiple variants
 - [ ] Test edge cases (null, undefined, empty, min/max)
 
 ### Testing Error Messages
+
 - [ ] Verify error paths are correct
 - [ ] Verify error messages match expectations
 - [ ] Test error codes for programmatic handling
 - [ ] Use snapshots for complex error structures
 
 ### Using safeParse vs parse
+
 - [ ] Use safeParse() for most tests
 - [ ] Use parse() only when testing thrown exceptions
 - [ ] Always type-narrow after safeParse()
 - [ ] Create helper functions for common patterns
 
 ### Testing Nested Schemas
+
 - [ ] Test deeply nested objects
 - [ ] Verify error paths for nested fields
 - [ ] Test array validations
@@ -1067,6 +1108,7 @@ export function expectErrorsAtPath<T>(
 - [ ] Test discriminated unions
 
 ### Testing Refinements
+
 - [ ] Test each refinement independently
 - [ ] Test multiple refinements together
 - [ ] Use custom error paths for better error reporting
@@ -1074,6 +1116,7 @@ export function expectErrorsAtPath<T>(
 - [ ] Test async refinements with async/await
 
 ### Avoiding Pitfalls
+
 - [ ] Always type-narrow after safeParse()
 - [ ] Be aware of strict mode and unknown fields
 - [ ] Test transformations, not just validation
@@ -1087,18 +1130,21 @@ export function expectErrorsAtPath<T>(
 ## Additional Resources
 
 ### Official Zod Documentation
+
 - **GitHub Repository**: https://github.com/colinhacks/zod
 - **Documentation**: https://zod.dev/
 - **Error Handling Guide**: Check the official docs for the latest error handling patterns
 
 ### Related Testing Libraries
+
 - **Vitest**: https://vitest.dev/
 - **Testing Library**: Consider integrating with @testing-library/jest-dom for component testing
 
 ### Community Resources
+
 - **Zod Discord**: Community support for complex validation scenarios
 - **Stack Overflow**: Search for "zod testing typescript vitest"
 
 ---
 
-*Note: This research document was compiled based on best practices as of January 2026. Always refer to the official Zod documentation for the most up-to-date information.*
+_Note: This research document was compiled based on best practices as of January 2026. Always refer to the official Zod documentation for the most up-to-date information._

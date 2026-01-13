@@ -10,6 +10,7 @@
 **Feature Goal**: Create a structured logging utility at `src/utils/logger.ts` using Pino that provides typed log levels (DEBUG, INFO, WARN, ERROR), sensitive data redaction, context-aware logging, JSON output for machine-readable mode, and respects the `--verbose` CLI flag for debug output control.
 
 **Deliverable**: Logger utility module `src/utils/logger.ts` with:
+
 - `LogLevel` enum: DEBUG, INFO, WARN, ERROR
 - `getLogger(context: string): Logger` factory function
 - `Logger` interface with methods: `debug()`, `info()`, `warn()`, `error()`
@@ -20,6 +21,7 @@
 - Debug level controlled by `--verbose` flag
 
 **Success Definition**:
+
 - Logger utility exists at `src/utils/logger.ts`
 - Exports `LogLevel` enum with DEBUG, INFO, WARN, ERROR values
 - Exports `getLogger(context: string): Logger` factory function
@@ -36,6 +38,7 @@
 **Target User**: PRPPipeline developers and operators
 
 **Use Case**: The logger utility enables:
+
 1. Consistent structured logging across the entire pipeline
 2. Debug visibility during development with `--verbose`
 3. Machine-readable JSON logs for log aggregation systems
@@ -43,6 +46,7 @@
 5. Context-aware logging for debugging complex workflows
 
 **User Journey**:
+
 1. Developer imports `getLogger` from `./utils/logger.js`
 2. Developer creates logger with context: `const logger = getLogger('PRPPipeline')`
 3. Developer logs events: `logger.info('Starting workflow', { taskId: 'P1.M1.T1' })`
@@ -52,7 +56,8 @@
 7. Sensitive data is automatically redacted in all output modes
 
 **Pain Points Addressed**:
-- **Inconsistent Logging**: Currently 1,458 console.* calls with inconsistent formats
+
+- **Inconsistent Logging**: Currently 1,458 console.\* calls with inconsistent formats
 - **Sensitive Data Exposure**: No automatic redaction of API keys/tokens
 - **No Machine-Readable Output**: Can't integrate with log aggregation tools
 - **Verbose Mode Scattered**: Debug logging is scattered with conditional checks
@@ -64,7 +69,7 @@
 - **Security**: Automatic sensitive data redaction prevents credential leakage
 - **CI/CD Integration**: JSON output enables log aggregation in production
 - **Developer Experience**: Pretty colored output and context prefixes improve DX
-- **Consistency**: Single logger utility replaces scattered console.* calls
+- **Consistency**: Single logger utility replaces scattered console.\* calls
 - **Foundation**: This logger will be integrated throughout the pipeline in P5.M1.T1.S2
 
 ## What
@@ -142,6 +147,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement the logger utility successfully?
 
 **Answer**: **YES** - This PRP provides:
+
 - Complete CLI flag implementation patterns (--verbose, new --machine-readable)
 - Exact file paths and import patterns for utilities
 - Naming conventions (feature-utils.ts pattern)
@@ -373,10 +379,10 @@ tests/
 ```typescript
 // Log level enum matching Pino's internal levels
 export enum LogLevel {
-  DEBUG = 10,  // Silent by default, enabled with --verbose
-  INFO = 30,   // Always shown
-  WARN = 40,   // Always shown
-  ERROR = 50,  // Always shown
+  DEBUG = 10, // Silent by default, enabled with --verbose
+  INFO = 30, // Always shown
+  WARN = 40, // Always shown
+  ERROR = 50, // Always shown
 }
 
 // Logger interface with typed methods
@@ -384,7 +390,11 @@ export interface Logger {
   debug(message: string, data?: Record<string, unknown>): void;
   info(message: string, data?: Record<string, unknown>): void;
   warn(message: string, data?: Record<string, unknown>): void;
-  error(message: string, error?: Error | unknown, data?: Record<string, unknown>): void;
+  error(
+    message: string,
+    error?: Error | unknown,
+    data?: Record<string, unknown>
+  ): void;
 }
 
 // Internal logger configuration (not exported)
@@ -557,7 +567,7 @@ Task 17: VERIFY formatting and linting
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // =============================================================================
 // MODULE STRUCTURE (src/utils/logger.ts)
 // =============================================================================
@@ -718,36 +728,41 @@ function initializePino(
   const usePretty = !machineReadable && isDevelopment;
 
   // Create Pino instance
-  pinoInstance = pino.pino({
-    level: pino.pino.levels.labels[level], // Convert number to string ('debug', 'info')
-    redact: [
-      'password',
-      'token',
-      'api_key',
-      'secret',
-      'authorization',
-      '*.password',
-      '*.token',
-    ],
-    formatters: {
-      level: (label) => {
-        return { level: label };
+  pinoInstance = pino.pino(
+    {
+      level: pino.pino.levels.labels[level], // Convert number to string ('debug', 'info')
+      redact: [
+        'password',
+        'token',
+        'api_key',
+        'secret',
+        'authorization',
+        '*.password',
+        '*.token',
+      ],
+      formatters: {
+        level: label => {
+          return { level: label };
+        },
+        log: object => {
+          return { ...object, time: new Date().toISOString() };
+        },
       },
-      log: (object) => {
-        return { ...object, time: new Date().toISOString() };
-      },
+      timestamp: pino.stdTimeFunctions.isoTime,
     },
-    timestamp: pino.stdTimeFunctions.isoTime,
-  }, usePretty ? {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'SYS:standard',
-        ignore: 'pid,hostname',
-      },
-    },
-  } : undefined);
+    usePretty
+      ? {
+          transport: {
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'SYS:standard',
+              ignore: 'pid,hostname',
+            },
+          },
+        }
+      : undefined
+  );
 
   return pinoInstance;
 }
@@ -888,7 +903,7 @@ export function resetLogger(): void {
   globalConfig = null;
   pinoInstance = null;
 }
-```
+````
 
 ### Integration Points
 
@@ -1204,7 +1219,7 @@ npm run lint
 - [ ] All logs include level field
 - [ ] All logs include context field
 - [ ] All logs include message field
-- [ ] Sensitive data redaction configured (password, token, api_key, secret, authorization, *.password, *.token)
+- [ ] Sensitive data redaction configured (password, token, api_key, secret, authorization, _.password, _.token)
 - [ ] Pretty colored output used when `--machine-readable` is false (development)
 - [ ] JSON output used when `--machine-readable` is true
 - [ ] DEBUG level logs only shown when `--verbose` is true
@@ -1237,7 +1252,7 @@ npm run lint
 - [ ] File naming matches convention (logger.ts)
 - [ ] TypeScript strict mode compliant
 - [ ] No any types (use proper types)
-- [ ] No console.* in logger implementation (use Pino)
+- [ ] No console.\* in logger implementation (use Pino)
 - [ ] Error handling for invalid inputs
 - [ ] Immutable configuration (no mutation after initialization)
 
@@ -1296,6 +1311,7 @@ npm run lint
 - ✅ Clear success criteria with measurable outcomes
 
 **Validation**: This PRP provides:
+
 1. Complete CLI flag implementation pattern (--machine-readable addition)
 2. Exact utility file structure following git-commit.ts and task-utils.ts patterns
 3. Pino configuration with redaction, formatters, and transport specifics
@@ -1305,6 +1321,7 @@ npm run lint
 7. 100% code coverage requirements and how to achieve them
 
 The risk is minimal because:
+
 1. Creating a logger utility is a well-understood pattern
 2. Pino is a mature library with excellent TypeScript support
 3. Test patterns are established and clear
@@ -1327,7 +1344,7 @@ The following research findings have been compiled for this PRP:
    - `--machine-readable` flag does NOT exist (needs to be added)
 
 2. **Console Usage Analysis** (from codebase exploration)
-   - 1,458 console.* occurrences across 134 files
+   - 1,458 console.\* occurrences across 134 files
    - Current pattern: console.log for user output, console.error for verbose debug
    - No sensitive data currently logged (good security practice)
    - Groundswell's this.logger used in workflow classes
@@ -1337,7 +1354,7 @@ The following research findings have been compiled for this PRP:
    - Named exports only (no default exports)
    - File naming: feature-name-utils.ts (but this logger is just logger.ts)
    - Comprehensive JSDoc documentation with examples
-   - Test files at tests/unit/utils/*.test.ts
+   - Test files at tests/unit/utils/\*.test.ts
 
 4. **Test Patterns** (from codebase exploration)
    - Vitest with describe/it/expect/vi/beforeEach/afterEach
@@ -1362,6 +1379,7 @@ The following research findings have been compiled for this PRP:
 ### External Resources
 
 Research findings are based on:
+
 - Official Pino documentation (https://getpino.io/#/docs/api)
 - Pino redaction guide (https://getpino.io/#/docs/api?id=redaction)
 - Pino Pretty repository (https://github.com/pinojs/pino-pretty)
@@ -1386,6 +1404,7 @@ Research findings are based on:
 This PRP is for **P5.M1.T1.S1: Create logger utility** only.
 
 The next work item **P5.M1.T1.S2: Integrate logger throughout pipeline** will:
+
 1. Replace console.log calls with getLogger() usage
 2. Replace console.error calls with logger.error()
 3. Replace verbose console.error checks with logger.debug()

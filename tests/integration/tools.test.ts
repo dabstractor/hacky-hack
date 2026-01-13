@@ -208,7 +208,9 @@ describe('BashMCP.executeTool', () => {
     const mockChild = createMockChild({ stdout: 'output', exitCode: 0 });
     mockSpawn.mockReturnValue(mockChild);
     mockExistsSync.mockReturnValue(true);
-    mockRealpathSync.mockImplementation((path: unknown) => '/real/path' as string);
+    mockRealpathSync.mockImplementation(
+      (path: unknown) => '/real/path' as string
+    );
 
     // EXECUTE
     const toolResult = await bashMCP.executeTool('bash__execute_bash', {
@@ -690,7 +692,7 @@ describe('GitMCP.executeTool', () => {
 
     it('should validate .git directory exists', async () => {
       // SETUP - Return true for path but false for .git check
-      mockExistsSync.mockImplementation((path) => {
+      mockExistsSync.mockImplementation(path => {
         if (typeof path === 'string' && path.endsWith('.git')) {
           return false;
         }
@@ -728,7 +730,11 @@ describe('GitMCP.executeTool', () => {
       expect(result.success).toBe(true);
       expect(result.commitHash).toBe('abc123def456');
       expect(result.error).toBeUndefined();
-      expect(mockGitInstance.commit).toHaveBeenCalledWith('Test commit', [], {});
+      expect(mockGitInstance.commit).toHaveBeenCalledWith(
+        'Test commit',
+        [],
+        {}
+      );
     });
 
     it('should create commit with allowEmpty option', async () => {
@@ -799,7 +805,9 @@ describe('GitMCP.executeTool', () => {
 
       // VERIFY
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Cannot commit with unresolved merge conflicts');
+      expect(result.error).toContain(
+        'Cannot commit with unresolved merge conflicts'
+      );
     });
   });
 });
