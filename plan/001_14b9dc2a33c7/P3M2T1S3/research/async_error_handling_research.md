@@ -234,10 +234,12 @@ async function ensureFailedStatus(
     if (currentItem.status !== 'Failed') {
       await sessionManager.updateItemStatus(itemId, 'Failed');
     }
-
   } catch (updateError) {
     // Log but don't throw - we're already in an error state
-    console.error(`[Critical] Failed to set Failed status for ${itemId}:`, updateError);
+    console.error(
+      `[Critical] Failed to set Failed status for ${itemId}:`,
+      updateError
+    );
     console.error(`[Critical] Original error:`, error);
   }
 }
@@ -387,9 +389,7 @@ class WorkflowError extends Error {
       /ETIMEDOUT/i,
     ];
 
-    return retryablePatterns.some(pattern =>
-      pattern.test(this.message)
-    );
+    return retryablePatterns.some(pattern => pattern.test(this.message));
   }
 }
 ```
@@ -419,9 +419,7 @@ async function executeParallelWithErrorAggregation(
     work: () => Promise<void>;
   }>
 ): Promise<AggregateError> {
-  const results = await Promise.allSettled(
-    operations.map(op => op.work())
-  );
+  const results = await Promise.allSettled(operations.map(op => op.work()));
 
   const aggregate: AggregateError = {
     total: operations.length,
@@ -437,9 +435,10 @@ async function executeParallelWithErrorAggregation(
       aggregate.failed++;
       aggregate.errors.push({
         itemId: operations[index].itemId,
-        error: result.reason instanceof Error
-          ? result.reason.message
-          : String(result.reason),
+        error:
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason),
       });
     }
   });
@@ -463,37 +462,40 @@ async function executeParallelWithErrorAggregation(
  */
 export function setupGlobalErrorHandlers(sessionManager: SessionManager): void {
   // Handle unhandled promise rejections
-  process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
-    console.error('[FATAL] Unhandled Promise Rejection:', reason);
-    console.error('[FATAL] Promise:', promise);
+  process.on(
+    'unhandledRejection',
+    async (reason: unknown, promise: Promise<unknown>) => {
+      console.error('[FATAL] Unhandled Promise Rejection:', reason);
+      console.error('[FATAL] Promise:', promise);
 
-    // Try to extract item ID from error if available
-    const itemId = extractItemIdFromError(reason);
+      // Try to extract item ID from error if available
+      const itemId = extractItemIdFromError(reason);
 
-    if (itemId) {
-      try {
-        await sessionManager.updateItemStatus(itemId, 'Failed');
-        console.error(`[Recovery] Set Failed status for ${itemId}`);
-      } catch (recoveryError) {
-        console.error('[Recovery Failed]', recoveryError);
+      if (itemId) {
+        try {
+          await sessionManager.updateItemStatus(itemId, 'Failed');
+          console.error(`[Recovery] Set Failed status for ${itemId}`);
+        } catch (recoveryError) {
+          console.error('[Recovery Failed]', recoveryError);
+        }
+      }
+
+      // Log to error tracking service (Sentry, etc.)
+      await logToErrorTracking({
+        type: 'unhandledRejection',
+        reason,
+        promise,
+        timestamp: new Date(),
+      });
+
+      // Decide whether to exit process
+      // In production, you might want to exit to prevent undefined state
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[FATAL] Exiting process due to unhandled rejection');
+        process.exit(1);
       }
     }
-
-    // Log to error tracking service (Sentry, etc.)
-    await logToErrorTracking({
-      type: 'unhandledRejection',
-      reason,
-      promise,
-      timestamp: new Date(),
-    });
-
-    // Decide whether to exit process
-    // In production, you might want to exit to prevent undefined state
-    if (process.env.NODE_ENV === 'production') {
-      console.error('[FATAL] Exiting process due to unhandled rejection');
-      process.exit(1);
-    }
-  });
+  );
 
   // Handle uncaught exceptions
   process.on('uncaughtException', async (error: Error) => {
@@ -581,7 +583,7 @@ async function executeSubtasksParallel(
   sessionManager: SessionManager
 ): Promise<void> {
   // Map each subtask to a promise with isolated error handling
-  const promises = subtasks.map(async (subtask) => {
+  const promises = subtasks.map(async subtask => {
     try {
       await executeSubtask(subtask);
     } catch (error) {
@@ -609,16 +611,13 @@ async function executeSubtasksSequential(
       await executeSubtask(subtask);
     } catch (error) {
       // Propagate error to stop execution
-      throw new WorkflowError(
-        `Sequential execution stopped at ${subtask.id}`,
-        {
-          itemId: subtask.id,
-          itemType: 'Subtask',
-          sessionId: sessionManager.currentSession?.metadata.id || 'unknown',
-          timestamp: new Date(),
-          originalError: error,
-        }
-      );
+      throw new WorkflowError(`Sequential execution stopped at ${subtask.id}`, {
+        itemId: subtask.id,
+        itemType: 'Subtask',
+        sessionId: sessionManager.currentSession?.metadata.id || 'unknown',
+        timestamp: new Date(),
+        originalError: error,
+      });
     }
   }
 }
@@ -682,9 +681,7 @@ type Result<T, E = Error> =
 /**
  * Wraps async operation in Result type
  */
-async function safeAsync<T>(
-  operation: () => Promise<T>
-): Promise<Result<T>> {
+async function safeAsync<T>(operation: () => Promise<T>): Promise<Result<T>> {
   try {
     const data = await operation();
     return { success: true, data };
@@ -775,7 +772,9 @@ async function processExecutionResult(result: ExecutionResult): Promise<void> {
       break;
 
     case 'blocked':
-      console.log(`⊘ ${result.itemId} blocked on: ${result.blockers.join(', ')}`);
+      console.log(
+        `⊘ ${result.itemId} blocked on: ${result.blockers.join(', ')}`
+      );
       break;
   }
 }
@@ -803,12 +802,12 @@ type ErrorStateTransition =
  */
 function isValidTransition(from: Status, to: Status): boolean {
   const validTransitions: Record<Status, Status[]> = {
-    'Planned': ['Implementing', 'Obsolete'],
-    'Researching': ['Implementing', 'Failed'],
-    'Implementing': ['Complete', 'Failed'],
-    'Complete': ['Obsolete'],
-    'Failed': ['Implementing', 'Obsolete'],
-    'Obsolete': [],
+    Planned: ['Implementing', 'Obsolete'],
+    Researching: ['Implementing', 'Failed'],
+    Implementing: ['Complete', 'Failed'],
+    Complete: ['Obsolete'],
+    Failed: ['Implementing', 'Obsolete'],
+    Obsolete: [],
   };
 
   return validTransitions[from]?.includes(to) ?? false;
@@ -920,9 +919,7 @@ function isRetryable(error: unknown): boolean {
       /5\d\d/, // HTTP 5xx errors
     ];
 
-    return retryablePatterns.some(pattern =>
-      pattern.test(error.message)
-    );
+    return retryablePatterns.some(pattern => pattern.test(error.message));
   }
 
   return false;
@@ -991,7 +988,9 @@ class CircuitBreaker {
 
       if (this.successCount >= this.halfOpenAttempts) {
         this.state = 'closed';
-        console.log('[CircuitBreaker] Circuit closed after successful recovery');
+        console.log(
+          '[CircuitBreaker] Circuit closed after successful recovery'
+        );
       }
     }
   }
@@ -1019,19 +1018,23 @@ class CircuitBreaker {
 ### 7.1 Documentation URLs
 
 **TypeScript Official Documentation:**
+
 - [TypeScript Handbook - Error Handling](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
 - [TypeScript Deep Dive - Type Guards](https://basarat.gitbook.io/typescript/type-system/typeguard#type-guards)
 
 **Node.js Error Handling:**
+
 - [Node.js Error Handling Best Practices](https://nodejs.org/api/errors.html)
 - [Node.js Event Loop - Unhandled Rejections](https://nodejs.org/api/process.html#event-unhandledrejection)
 - [Node.js Process Events](https://nodejs.org/api/process.html#process_events)
 
 **Async/Await Patterns:**
+
 - [MDN: Async functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
 - [Promise.allSettled() Documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)
 
 **Observability & Monitoring:**
+
 - [OpenTelemetry TypeScript Documentation](https://opentelemetry.io/docs/instrumentation/js/)
 - [Winston Logger Documentation](https://github.com/winstonjs/winston)
 - [Pino Logger Documentation](https://getpino.io/)
@@ -1046,12 +1049,14 @@ class CircuitBreaker {
 ### 7.3 Relevant Code Locations
 
 **Current Implementation:**
+
 - Task Orchestrator: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 - Session Manager: `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 - Type Models: `/home/dustin/projects/hacky-hack/src/core/models.ts`
 - Task Utilities: `/home/dustin/projects/hacky-hack/src/utils/task-utils.ts`
 
 **Key Observations:**
+
 1. Status type includes `'Failed'` - ✓ Available
 2. Task Orchestrator has no try/catch blocks - ✗ Needs implementation
 3. Session Manager has atomic status updates - ✓ Good foundation

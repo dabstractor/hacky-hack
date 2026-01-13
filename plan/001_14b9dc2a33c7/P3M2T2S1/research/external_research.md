@@ -32,6 +32,7 @@ nx run-many -t build --tags=frontend
 ```
 
 **Key Patterns**:
+
 - `--all` flag for everything
 - Wildcards with `*` for pattern matching
 - Comma-separated values for multiple items
@@ -96,8 +97,17 @@ mycli execute P1.* --exclude P1.M2
 ```typescript
 // Basic type guard
 function isStatus(value: unknown): value is Status {
-  return typeof value === 'string' &&
-    ['Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete'].includes(value as Status);
+  return (
+    typeof value === 'string' &&
+    [
+      'Planned',
+      'Researching',
+      'Implementing',
+      'Complete',
+      'Failed',
+      'Obsolete',
+    ].includes(value as Status)
+  );
 }
 
 // Generic enum type guard
@@ -105,8 +115,10 @@ function isValidEnumValue<T extends Record<string, string | number>>(
   enumObj: T,
   value: unknown
 ): value is T[keyof T] {
-  return typeof value === 'string' &&
-    Object.values(enumObj).includes(value as T[keyof T]);
+  return (
+    typeof value === 'string' &&
+    Object.values(enumObj).includes(value as T[keyof T])
+  );
 }
 
 // Parser with error handling
@@ -145,7 +157,10 @@ function safeParseStatus(input: unknown): Result<Status> {
   } catch (error) {
     return {
       success: false,
-      error: error instanceof ParseError ? error : new ParseError('Status', input, 'Unknown error')
+      error:
+        error instanceof ParseError
+          ? error
+          : new ParseError('Status', input, 'Unknown error'),
     };
   }
 }
@@ -316,10 +331,18 @@ function parseScopePattern(pattern: string): ScopePattern {
     const numValue = value === '*' ? '*' : parseInt(value, 10);
 
     switch (type) {
-      case 'P': result.phase = numValue; break;
-      case 'M': result.milestone = numValue; break;
-      case 'T': result.task = numValue; break;
-      case 'S': result.subtask = numValue; break;
+      case 'P':
+        result.phase = numValue;
+        break;
+      case 'M':
+        result.milestone = numValue;
+        break;
+      case 'T':
+        result.task = numValue;
+        break;
+      case 'S':
+        result.subtask = numValue;
+        break;
     }
   }
 
@@ -332,10 +355,30 @@ function matchesScope(itemId: string, pattern: ScopePattern): boolean {
 
   const [, phase, milestone, task, subtask] = itemParts.map(Number);
 
-  if (pattern.phase !== '*' && pattern.phase !== undefined && pattern.phase !== phase) return false;
-  if (pattern.milestone !== '*' && pattern.milestone !== undefined && pattern.milestone !== milestone) return false;
-  if (pattern.task !== '*' && pattern.task !== undefined && pattern.task !== task) return false;
-  if (pattern.subtask !== '*' && pattern.subtask !== undefined && pattern.subtask !== subtask) return false;
+  if (
+    pattern.phase !== '*' &&
+    pattern.phase !== undefined &&
+    pattern.phase !== phase
+  )
+    return false;
+  if (
+    pattern.milestone !== '*' &&
+    pattern.milestone !== undefined &&
+    pattern.milestone !== milestone
+  )
+    return false;
+  if (
+    pattern.task !== '*' &&
+    pattern.task !== undefined &&
+    pattern.task !== task
+  )
+    return false;
+  if (
+    pattern.subtask !== '*' &&
+    pattern.subtask !== undefined &&
+    pattern.subtask !== subtask
+  )
+    return false;
 
   return true;
 }
@@ -344,6 +387,7 @@ function matchesScope(itemId: string, pattern: ScopePattern): boolean {
 ## 5. Key Best Practices Summary
 
 ### Scope Syntax
+
 - Use dot notation for hierarchy: `P1.M1.T1.S1`
 - Support wildcards: `P1.*.T1.*`
 - Support "all" keyword: `--all` or `all`
@@ -351,6 +395,7 @@ function matchesScope(itemId: string, pattern: ScopePattern): boolean {
 - Support exclude flags: `--exclude`
 
 ### TypeScript Patterns
+
 - Use string literal unions for enums
 - Use Zod for runtime validation
 - Create custom error classes for parsing errors
@@ -358,6 +403,7 @@ function matchesScope(itemId: string, pattern: ScopePattern): boolean {
 - Implement type guards for runtime checks
 
 ### Tree Filtering
+
 - Use generators for memory efficiency
 - Implement early exits in search
 - Support lazy evaluation
@@ -366,21 +412,25 @@ function matchesScope(itemId: string, pattern: ScopePattern): boolean {
 ## 6. URLs and References
 
 **CLI Libraries:**
+
 - Commander.js: https://www.npmjs.com/package/commander
 - Yargs: https://www.npmjs.com/package/yargs
 - Oclif: https://oclif.io/
 
 **Monorepo/Scope Tools:**
+
 - Nx: https://nx.dev
 - Lerna: https://lerna.js.org/
 - Turborepo: https://turbo.build/repo
 
 **Open Source Examples:**
+
 - Plane (Project Management): https://github.com/makeplane/plane
 - Focalboard: https://github.com/mattermost/focalboard
 - Vikunja: https://github.com/go-vikunja/vikunja
 
 **TypeScript Resources:**
+
 - TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/
 - Zod Validation: https://zod.dev/
 - Immer: https://immerjs.github.io/immer/

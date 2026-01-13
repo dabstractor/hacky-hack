@@ -9,6 +9,7 @@
 **Deliverable**: Three new methods in the TaskOrchestrator class (`canExecute()`, `getBlockingDependencies()`, `waitForDependencies()`) and integration with `executeSubtask()` to check dependencies before execution.
 
 **Success Definition**:
+
 - Subtasks only execute when all their dependencies have status `'Complete'`
 - Blocking dependencies are logged with clear identification of which subtasks are blocking
 - Unit tests cover all scenarios including: no dependencies, satisfied dependencies, unsatisfied dependencies, missing dependencies, and circular dependencies
@@ -21,6 +22,7 @@
 **Use Case**: When the TaskOrchestrator processes a subtask, it must verify that all prerequisite subtasks (dependencies) have been successfully completed before allowing execution. This prevents implementation attempts based on incomplete or non-existent code.
 
 **User Journey**:
+
 1. TaskOrchestrator identifies next subtask to execute via DFS traversal
 2. Before execution, `canExecute()` checks if all dependencies are Complete
 3. If blocked, `getBlockingDependencies()` identifies which subtasks are incomplete
@@ -28,6 +30,7 @@
 5. Once dependencies are Complete, subtask can proceed to execution
 
 **Pain Points Addressed**:
+
 - Prevents implementation failures due to missing prerequisite code
 - Eliminates out-of-order execution that would cause cascading failures
 - Provides clear visibility into why execution is blocked
@@ -68,6 +71,7 @@ Implement dependency checking in TaskOrchestrator that validates all subtask dep
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file locations and line numbers for all references
 - Complete code patterns from existing TaskOrchestrator implementation
 - Specific function signatures and return types
@@ -230,6 +234,7 @@ tests/unit/core/task-orchestrator.test.ts
 This PRP uses existing data models - no new models needed.
 
 **Existing Models Used:**
+
 - `Subtask` interface from `src/core/models.ts`
 - `Status` type: `'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete'`
 - `dependencies: string[]` array on Subtask containing dependency IDs
@@ -703,6 +708,7 @@ uv run tsx test-integration.ts
 **8.5/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Comprehensive codebase context with exact file paths and line numbers
 - All existing patterns identified (logging, testing, status management)
 - External research provides algorithmic guidance
@@ -711,11 +717,13 @@ uv run tsx test-integration.ts
 - Comprehensive test scenarios defined
 
 **Risk Factors**:
+
 - Circular dependency detection is non-trivial (marked as BONUS)
 - Async polling in `waitForDependencies()` may need refinement for production use
 - Integration with future scope-based execution (P3.M2.T2) not yet considered
 
 **Mitigation**:
+
 - Circular detection is optional for initial implementation
 - Polling approach is adequate for current single-threaded execution
 - Scope-based execution will build on this foundation in next task

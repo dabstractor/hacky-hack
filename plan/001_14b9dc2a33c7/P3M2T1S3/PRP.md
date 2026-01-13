@@ -7,12 +7,14 @@
 **Feature Goal**: Implement comprehensive status tracking and updates in TaskOrchestrator that logs all status transitions, handles errors by setting Failed status, and tracks the task lifecycle through Planned → Researching → Implementing → Complete/Failed states.
 
 **Deliverable**: Enhanced TaskOrchestrator class with:
+
 1. A public `setStatus()` method wrapping SessionManager.updateItemStatus()
 2. Status transition logging at appropriate execution points
 3. Error handling that sets Failed status on exceptions
 4. Comprehensive logging of all status transitions for observability
 
 **Success Definition**:
+
 - `setStatus()` method wraps SessionManager.updateItemStatus() with automatic backlog refresh
 - Execution methods call `setStatus()` at appropriate times:
   - `executeSubtask()` sets 'Researching' at start, 'Implementing' during work, 'Complete'/'Failed' at end
@@ -26,12 +28,14 @@
 **Target User**: PRP Pipeline developers implementing the Task Execution Engine (P3.M2.T1), specifically the status tracking subsystem that provides observability into task execution lifecycle.
 
 **Use Case**: The TaskOrchestrator needs to track and report task status throughout the execution lifecycle so that:
+
 1. The SessionManager can persist accurate state to tasks.json
 2. The Pipeline Controller can monitor progress and handle failures
 3. Developers can debug issues through comprehensive status transition logs
 4. The system can recover from failures by knowing which items failed
 
 **User Journey**:
+
 ```
 Pipeline Controller calls processNextItem()
     ↓
@@ -47,6 +51,7 @@ Coder agent execution
 ```
 
 **Pain Points Addressed**:
+
 - **No visibility into status changes**: Currently, status updates happen silently without logging
 - **No error state tracking**: Exceptions don't set Failed status, leaving items in inconsistent state
 - **Debugging difficulty**: Without status transition logs, it's hard to track what happened during execution
@@ -63,6 +68,7 @@ Coder agent execution
 ## What
 
 Implement status tracking in TaskOrchestrator that:
+
 1. Provides a public `setStatus()` wrapper for SessionManager.updateItemStatus()
 2. Logs all status transitions with structured information
 3. Handles errors by setting Failed status
@@ -307,11 +313,13 @@ tests/unit/core/task-orchestrator.test.ts
 This PRP uses existing data models - no new models needed.
 
 **Existing Models Used:**
+
 - `Status` type from `src/core/models.ts`: `'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete'`
 - `HierarchyItem` type: `Phase | Milestone | Task | Subtask`
 - SessionManager's `updateItemStatus(itemId: string, status: Status): Promise<Backlog>`
 
 **Status State Machine (for reference):**
+
 ```
 Planned → Researching → Implementing → Complete
                               ↓
@@ -862,6 +870,7 @@ echo "[] All tests pass with >95% coverage"
 **9/10** - Very high confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Complete understanding of existing codebase patterns from previous subtasks
 - All external research completed with actionable findings
 - Clear contract definition from work item specification
@@ -871,11 +880,13 @@ echo "[] All tests pass with >95% coverage"
 - Error handling patterns are well-established
 
 **Risk Factors**:
+
 - Try/catch in executeSubtask() may mask errors if not implemented correctly
 - Status transition logging format must be consistent with existing patterns
 - Test mocking may be complex for error scenarios
 
 **Mitigation**:
+
 - Detailed code examples show exact error handling pattern
 - Log format is specified with examples
 - Test patterns from existing test suite are documented

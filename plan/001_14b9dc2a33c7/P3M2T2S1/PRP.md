@@ -7,6 +7,7 @@
 **Feature Goal**: Implement a comprehensive scope parsing and resolution system that converts user-provided scope strings (like "P1.M1", "P1.M1.T1", "all") into lists of executable backlog items, enabling flexible execution of tasks at any level of the hierarchy.
 
 **Deliverable**: A new `src/core/scope-resolver.ts` module with:
+
 1. `ScopeType` enum: `'phase' | 'milestone' | 'task' | 'subtask' | 'all'`
 2. `Scope` interface: `{ type: ScopeType, id?: string }`
 3. `parseScope(scopeArg: string): Scope` function - Parses scope strings
@@ -14,6 +15,7 @@
 5. Comprehensive test coverage with 100% coverage threshold
 
 **Success Definition**:
+
 - `parseScope()` correctly parses all scope formats: "P1", "P1.M1", "P1.M1.T1", "P1.M1.T1.S1", "all", "--scope=milestone"
 - `resolveScope()` returns correct item lists:
   - 'all' returns all leaf subtasks
@@ -29,12 +31,14 @@
 **Target User**: PRP Pipeline developers implementing the Task Execution Engine (P3.M2.T1), specifically the scope-based execution subsystem that enables flexible task selection.
 
 **Use Case**: The TaskOrchestrator needs to support executing tasks at different scopes so that:
+
 1. Users can execute a single subtask: `--scope P1.M1.T1.S1`
 2. Users can execute all tasks in a milestone: `--scope P1.M1`
 3. Users can execute all pending work: `--scope all`
 4. Pipeline controller can resume execution at specific hierarchy levels
 
 **User Journey**:
+
 ```
 User provides CLI argument: --scope P1.M1
     ↓
@@ -48,6 +52,7 @@ TaskOrchestrator executes each task in sequence
 ```
 
 **Pain Points Addressed**:
+
 - **No scope-based execution**: Currently, no way to execute tasks at specific hierarchy levels
 - **Manual ID management**: Users must know exact subtask IDs to execute work
 - **No batch execution**: Cannot execute all tasks in a milestone or phase at once
@@ -69,15 +74,17 @@ Implement a scope parsing and resolution module that:
 ### Functionality Requirements
 
 1. **`ScopeType` enum** - String literal union type:
+
    ```typescript
    export type ScopeType = 'phase' | 'milestone' | 'task' | 'subtask' | 'all';
    ```
 
 2. **`Scope` interface** - Represents a parsed scope:
+
    ```typescript
    export interface Scope {
      readonly type: ScopeType;
-     readonly id?: string;  // Required for non-'all' scopes
+     readonly id?: string; // Required for non-'all' scopes
    }
    ```
 
@@ -107,15 +114,15 @@ Implement a scope parsing and resolution module that:
 
 ### Scope Input Formats Supported
 
-| Input Format | Resolved Scope | Returns |
-|--------------|----------------|---------|
-| `all` | `{ type: 'all' }` | All leaf subtasks |
-| `P1` | `{ type: 'phase', id: 'P1' }` | Phase P1 and descendants |
-| `P1.M1` | `{ type: 'milestone', id: 'P1.M1' }` | Milestone P1.M1 and descendants |
-| `P1.M1.T1` | `{ type: 'task', id: 'P1.M1.T1' }` | Task P1.M1.T1 and subtasks |
-| `P1.M1.T1.S1` | `{ type: 'subtask', id: 'P1.M1.T1.S1' }` | Single subtask |
-| `--scope=milestone` | Error (ambiguous without ID) | Throws ScopeParseError |
-| `--scope=P1.M1` | `{ type: 'milestone', id: 'P1.M1' }` | Milestone P1.M1 and descendants |
+| Input Format        | Resolved Scope                           | Returns                         |
+| ------------------- | ---------------------------------------- | ------------------------------- |
+| `all`               | `{ type: 'all' }`                        | All leaf subtasks               |
+| `P1`                | `{ type: 'phase', id: 'P1' }`            | Phase P1 and descendants        |
+| `P1.M1`             | `{ type: 'milestone', id: 'P1.M1' }`     | Milestone P1.M1 and descendants |
+| `P1.M1.T1`          | `{ type: 'task', id: 'P1.M1.T1' }`       | Task P1.M1.T1 and subtasks      |
+| `P1.M1.T1.S1`       | `{ type: 'subtask', id: 'P1.M1.T1.S1' }` | Single subtask                  |
+| `--scope=milestone` | Error (ambiguous without ID)             | Throws ScopeParseError          |
+| `--scope=P1.M1`     | `{ type: 'milestone', id: 'P1.M1' }`     | Milestone P1.M1 and descendants |
 
 ### Success Criteria
 
@@ -370,7 +377,7 @@ export type ScopeType = 'phase' | 'milestone' | 'task' | 'subtask' | 'all';
 // Scope: Parsed scope representation
 export interface Scope {
   readonly type: ScopeType;
-  readonly id?: string;  // Required for non-'all' scopes
+  readonly id?: string; // Required for non-'all' scopes
 }
 
 // ScopeParseError: Custom error for parsing failures
@@ -388,6 +395,7 @@ export class ScopeParseError extends Error {
 ```
 
 **Existing Models Used:**
+
 - `Backlog` from `src/core/models.ts`
 - `Phase`, `Milestone`, `Task`, `Subtask` from `src/core/models.ts`
 - `HierarchyItem` from `src/utils/task-utils.ts`
@@ -540,7 +548,13 @@ Task 10: CREATE tests/unit/core/scope-resolver.test.ts - Add integration tests
 export type ScopeType = 'phase' | 'milestone' | 'task' | 'subtask' | 'all';
 
 // Valid scope types const array for type guard validation
-const VALID_SCOPE_TYPES: ScopeType[] = ['phase', 'milestone', 'task', 'subtask', 'all'];
+const VALID_SCOPE_TYPES: ScopeType[] = [
+  'phase',
+  'milestone',
+  'task',
+  'subtask',
+  'all',
+];
 
 // ============================================================================
 // PATTERN 2: Scope Interface
@@ -597,7 +611,9 @@ export class ScopeParseError extends Error {
  * Uses const array for validation (easier to maintain than inline array)
  */
 export function isScopeType(value: unknown): value is ScopeType {
-  return typeof value === 'string' && VALID_SCOPE_TYPES.includes(value as ScopeType);
+  return (
+    typeof value === 'string' && VALID_SCOPE_TYPES.includes(value as ScopeType)
+  );
 }
 
 /**
@@ -665,10 +681,7 @@ export function parseScope(scopeArg: string): Scope {
     case 1: {
       // Phase: P1, P2, etc.
       if (!/^P\d+$/.test(trimmed)) {
-        throw new ScopeParseError(
-          trimmed,
-          'phase format (e.g., "P1")'
-        );
+        throw new ScopeParseError(trimmed, 'phase format (e.g., "P1")');
       }
       return { type: 'phase', id: trimmed };
     }
@@ -676,10 +689,7 @@ export function parseScope(scopeArg: string): Scope {
     case 2: {
       // Milestone: P1.M1, P1.M2, etc.
       if (!/^P\d+\.M\d+$/.test(trimmed)) {
-        throw new ScopeParseError(
-          trimmed,
-          'milestone format (e.g., "P1.M1")'
-        );
+        throw new ScopeParseError(trimmed, 'milestone format (e.g., "P1.M1")');
       }
       return { type: 'milestone', id: trimmed };
     }
@@ -687,10 +697,7 @@ export function parseScope(scopeArg: string): Scope {
     case 3: {
       // Task: P1.M1.T1, P1.M1.T2, etc.
       if (!/^P\d+\.M\d+\.T\d+$/.test(trimmed)) {
-        throw new ScopeParseError(
-          trimmed,
-          'task format (e.g., "P1.M1.T1")'
-        );
+        throw new ScopeParseError(trimmed, 'task format (e.g., "P1.M1.T1")');
       }
       return { type: 'task', id: trimmed };
     }
@@ -998,7 +1005,9 @@ describe('scope-resolver', () => {
 
       it('SHOULD throw ScopeParseError for too many components', () => {
         expect(() => parseScope('P1.M1.T1.S1.X1')).toThrow(ScopeParseError);
-        expect(() => parseScope('P1.M1.T1.S1.X1')).toThrow('valid scope format');
+        expect(() => parseScope('P1.M1.T1.S1.X1')).toThrow(
+          'valid scope format'
+        );
       });
 
       it('SHOULD include expected format in error message', () => {
@@ -1379,6 +1388,7 @@ echo "[] All tests pass with 100% coverage"
 **9/10** - Very high confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Complete understanding of existing hierarchy data structures from models.ts
 - All external research completed with actionable CLI scope parsing patterns
 - Clear contract definition from work item specification
@@ -1389,11 +1399,13 @@ echo "[] All tests pass with 100% coverage"
 - findItem() utility exists to avoid reimplementation
 
 **Risk Factors**:
+
 - Return type ambiguity in contract (ItemType[] vs HierarchyItem[]) - clarified to use HierarchyItem[]
 - "all" scope definition - clarified to return leaf subtasks only
 - Depth-to-scope-type mapping - needs careful implementation
 
 **Mitigation**:
+
 - Detailed implementation specification with exact code patterns
 - Comprehensive test coverage requirements (100%)
 - Factory functions defined for test data

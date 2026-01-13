@@ -119,6 +119,7 @@ it('should find items correctly', () => {
 ### Comprehensive Edge Case Testing
 
 Common edge cases tested in the codebase:
+
 - Empty inputs: `''`, `[]`, `{}`
 - Null/undefined values
 - Invalid formats
@@ -135,6 +136,7 @@ Common edge cases tested in the codebase:
 ## Assertion Patterns
 
 ### Basic Assertions
+
 ```typescript
 expect(result).not.toBeNull();
 expect(result?.id).toBe('expected-id');
@@ -142,12 +144,14 @@ expect(result?.status).toBe('Planned');
 ```
 
 ### Array Validations
+
 ```typescript
 expect(result).toHaveLength(expectedLength);
 expect(result.every(item => item.status === 'Planned')).toBe(true);
 ```
 
 ### Object Matching
+
 ```typescript
 expect(session).toMatchObject({
   metadata: { id: 'expected-id' },
@@ -156,6 +160,7 @@ expect(session).toMatchObject({
 ```
 
 ### Error Testing
+
 ```typescript
 await expect(() => manager.initialize()).rejects.toThrow(SessionFileError);
 ```
@@ -189,6 +194,7 @@ This is a test project.
 ```
 
 **Key Patterns**:
+
 - BDD-style test descriptions (GIVEN/SHOULD)
 - Markdown header parsing with level detection
 - Content extraction between headers
@@ -196,27 +202,30 @@ This is a test project.
 
 ## Test File Locations
 
-| File | Purpose |
-|------|---------|
-| `tests/unit/core/task-utils.test.ts` | Hierarchy traversal utilities |
+| File                                      | Purpose                       |
+| ----------------------------------------- | ----------------------------- |
+| `tests/unit/core/task-utils.test.ts`      | Hierarchy traversal utilities |
 | `tests/unit/core/session-manager.test.ts` | Session management with mocks |
-| `tests/unit/core/prd-differ.test.ts` | PRD parsing utilities |
-| `tests/unit/core/models.test.ts` | Data models validation |
+| `tests/unit/core/prd-differ.test.ts`      | PRD parsing utilities         |
+| `tests/unit/core/models.test.ts`          | Data models validation        |
 
 ## Key Insights for Scope Parser Testing
 
 ### 1. Test Structure
+
 - Top-level describe for scope parser module
 - Nested describes for each parsing function
 - Separate sections for valid/invalid inputs
 - Integration scenarios with Backlog data
 
 ### 2. Factory Functions Needed
+
 - `createValidScope()` - creates valid scope strings
 - `createInvalidScope()` - creates malformed scope strings
 - `createTestBacklogWithScopes()` - creates test Backlog with specific hierarchy
 
 ### 3. Edge Cases to Test
+
 - Empty scope strings
 - Malformed scope syntax
 - Overlapping scopes
@@ -226,6 +235,7 @@ This is a test project.
 - Invalid characters
 
 ### 4. Assertion Patterns
+
 - Scope extraction validation
 - Scope hierarchy validation
 - Context preservation checks

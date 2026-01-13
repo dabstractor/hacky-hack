@@ -69,30 +69,30 @@ Each status transition should include:
 ```typescript
 interface StatusTransitionLog {
   // Component identification
-  component: string;        // e.g., "TaskOrchestrator"
+  component: string; // e.g., "TaskOrchestrator"
 
   // Item identification
-  itemId: string;          // e.g., "P1.M1.T1.S3"
-  itemType: string;        // e.g., "Subtask", "Task", "Milestone", "Phase"
-  itemTitle?: string;      // Human-readable title
+  itemId: string; // e.g., "P1.M1.T1.S3"
+  itemType: string; // e.g., "Subtask", "Task", "Milestone", "Phase"
+  itemTitle?: string; // Human-readable title
 
   // Status transition
   previousStatus?: Status; // Previous state (if known)
-  newStatus: Status;       // New state
-  timestamp: string;       // ISO 8601 timestamp
+  newStatus: Status; // New state
+  timestamp: string; // ISO 8601 timestamp
 
   // Execution context
-  sessionId?: string;      // Session identifier
-  workflowId?: string;     // Workflow identifier
+  sessionId?: string; // Session identifier
+  workflowId?: string; // Workflow identifier
 
   // Additional context
   dependencies?: string[]; // Dependency IDs
-  blockers?: string[];     // Blocking dependency IDs
+  blockers?: string[]; // Blocking dependency IDs
 
   // Metadata
-  duration?: number;       // Execution time in milliseconds
-  error?: string;          // Error message if failed
-  errorCode?: string;      // Error code for categorization
+  duration?: number; // Execution time in milliseconds
+  error?: string; // Error message if failed
+  errorCode?: string; // Error code for categorization
 }
 ```
 
@@ -102,19 +102,19 @@ interface StatusTransitionLog {
 
 ```typescript
 type Status =
-  | 'Planned'        // Initial state
-  | 'Implementing'   // In progress
-  | 'Complete'       // Successfully finished
-  | 'Blocked'        // Waiting for dependencies
-  | 'Failed';        // Execution failed
+  | 'Planned' // Initial state
+  | 'Implementing' // In progress
+  | 'Complete' // Successfully finished
+  | 'Blocked' // Waiting for dependencies
+  | 'Failed'; // Execution failed
 
 // Valid transitions
 const STATUS_TRANSITIONS: Record<Status, Status[]> = {
-  'Planned': ['Implementing', 'Blocked', 'Failed'],
-  'Implementing': ['Complete', 'Failed', 'Blocked'],
-  'Blocked': ['Implementing', 'Failed'],
-  'Complete': [],           // Terminal state
-  'Failed': ['Implementing'], // Retry
+  Planned: ['Implementing', 'Blocked', 'Failed'],
+  Implementing: ['Complete', 'Failed', 'Blocked'],
+  Blocked: ['Implementing', 'Failed'],
+  Complete: [], // Terminal state
+  Failed: ['Implementing'], // Retry
 };
 ```
 
@@ -124,7 +124,7 @@ const STATUS_TRANSITIONS: Record<Status, Status[]> = {
 
 ```typescript
 // Log format
-console.log(`[TaskOrchestrator] Status transition: ${itemId} ${itemType}`)
+console.log(`[TaskOrchestrator] Status transition: ${itemId} ${itemType}`);
 console.log(`  Previous: ${previousStatus} → New: ${newStatus}`);
 console.log(`  Title: ${itemTitle}`);
 console.log(`  Dependencies: ${dependencies.join(', ')}`);
@@ -132,6 +132,7 @@ console.log(`  Duration: ${duration}ms`);
 ```
 
 **Output:**
+
 ```
 [TaskOrchestrator] Status transition: P1.M1.T1.S3 Subtask
   Previous: Planned → New: Implementing
@@ -153,6 +154,7 @@ for (const blocker of blockers) {
 ```
 
 **Output:**
+
 ```
 [TaskOrchestrator] Subtask P1.M1.T1.S3 blocked on dependencies
 [TaskOrchestrator] Blocked on: P1.M1.T1.S1 - Setup project structure (status: Planned)
@@ -170,6 +172,7 @@ console.error(`  Stack Trace: ${error.stack}`);
 ```
 
 **Output:**
+
 ```
 [TaskOrchestrator] Execution failed: P1.M1.T1.S3
   Status: Implementing → Failed
@@ -182,21 +185,21 @@ console.error(`  Stack Trace: ${error.stack}`);
 
 ### 2.5 What Information to Include in Status Transition Logs
 
-| Field | Required | Description | Example |
-|-------|----------|-------------|---------|
-| **Component** | Yes | Logging component name | `TaskOrchestrator` |
-| **Item ID** | Yes | Unique item identifier | `P1.M1.T1.S3` |
-| **Item Type** | Yes | Type of hierarchy item | `Subtask`, `Task`, `Milestone`, `Phase` |
-| **Previous Status** | Conditional | State before transition | `Planned` |
-| **New Status** | Yes | State after transition | `Implementing` |
-| **Timestamp** | Yes | ISO 8601 timestamp | `2026-01-13T10:30:45.123Z` |
-| **Session ID** | Recommended | Session identifier | `session-abc123` |
-| **Duration** | For completion | Execution time in ms | `1234` |
-| **Dependencies** | If applicable | Dependency IDs | `['P1.M1.T1.S1']` |
-| **Blockers** | If blocked | Blocking dependency IDs | `['P1.M1.T1.S1']` |
-| **Error Message** | On failure | Human-readable error | `Failed to connect to database` |
-| **Error Code** | On failure | Categorizable error code | `DB_CONNECTION_ERROR` |
-| **Stack Trace** | On failure | Full stack trace | `Error: ... at ...` |
+| Field               | Required       | Description              | Example                                 |
+| ------------------- | -------------- | ------------------------ | --------------------------------------- |
+| **Component**       | Yes            | Logging component name   | `TaskOrchestrator`                      |
+| **Item ID**         | Yes            | Unique item identifier   | `P1.M1.T1.S3`                           |
+| **Item Type**       | Yes            | Type of hierarchy item   | `Subtask`, `Task`, `Milestone`, `Phase` |
+| **Previous Status** | Conditional    | State before transition  | `Planned`                               |
+| **New Status**      | Yes            | State after transition   | `Implementing`                          |
+| **Timestamp**       | Yes            | ISO 8601 timestamp       | `2026-01-13T10:30:45.123Z`              |
+| **Session ID**      | Recommended    | Session identifier       | `session-abc123`                        |
+| **Duration**        | For completion | Execution time in ms     | `1234`                                  |
+| **Dependencies**    | If applicable  | Dependency IDs           | `['P1.M1.T1.S1']`                       |
+| **Blockers**        | If blocked     | Blocking dependency IDs  | `['P1.M1.T1.S1']`                       |
+| **Error Message**   | On failure     | Human-readable error     | `Failed to connect to database`         |
+| **Error Code**      | On failure     | Categorizable error code | `DB_CONNECTION_ERROR`                   |
+| **Stack Trace**     | On failure     | Full stack trace         | `Error: ... at ...`                     |
 
 ---
 
@@ -260,28 +263,40 @@ console.log('[TaskOrchestrator] Backlog processing complete');
 
 // Item execution
 console.log('[TaskOrchestrator] Executing Phase: P1.M1 - Project Setup');
-console.log('[TaskOrchestrator] Executing Milestone: P1.M1.T1 - Environment Setup');
+console.log(
+  '[TaskOrchestrator] Executing Milestone: P1.M1.T1 - Environment Setup'
+);
 console.log('[TaskOrchestrator] Executing Task: P1.M1.T1.S1 - Initialize Git');
-console.log('[TaskOrchestrator] Executing Subtask: P1.M1.T1.S1.1 - Create .gitignore');
+console.log(
+  '[TaskOrchestrator] Executing Subtask: P1.M1.T1.S1.1 - Create .gitignore'
+);
 
 // Dependency management
 console.log('[TaskOrchestrator] Dependencies complete for P1.M1.T1.S2');
-console.log('[TaskOrchestrator] Waiting for dependencies: P1.M1.T1.S1, P1.M1.T1.S2');
+console.log(
+  '[TaskOrchestrator] Waiting for dependencies: P1.M1.T1.S1, P1.M1.T1.S2'
+);
 ```
 
 #### Warning Logs
 
 ```typescript
-console.warn('[TaskOrchestrator] Subtask P1.M1.T1.S3 has no dependencies (may execute out of order)');
+console.warn(
+  '[TaskOrchestrator] Subtask P1.M1.T1.S3 has no dependencies (may execute out of order)'
+);
 console.warn('[TaskOrchestrator] Dependency P1.M1.T1.S1 not found in backlog');
-console.warn('[TaskOrchestrator] Circular dependency detected: P1.M1.T1.S1 → P1.M1.T1.S2 → P1.M1.T1.S1');
+console.warn(
+  '[TaskOrchestrator] Circular dependency detected: P1.M1.T1.S1 → P1.M1.T1.S2 → P1.M1.T1.S1'
+);
 ```
 
 #### Error Logs
 
 ```typescript
 console.error('[TaskOrchestrator] Failed to execute subtask: P1.M1.T1.S3');
-console.error('[TaskOrchestrator] Timeout waiting for dependencies of P1.M1.T1.S2 after 30000ms');
+console.error(
+  '[TaskOrchestrator] Timeout waiting for dependencies of P1.M1.T1.S2 after 30000ms'
+);
 console.error('[TaskOrchestrator] Cannot refresh backlog: no active session');
 ```
 
@@ -299,6 +314,7 @@ console.log(`  Duration: ${duration}ms`);
 ```
 
 **Output:**
+
 ```
 [TaskOrchestrator] Status transition: P1.M1.T1.S3
   Type: Subtask
@@ -328,17 +344,18 @@ Best practice error messages should include:
 ```typescript
 throw new Error(
   `Cannot ${action}: ${reason}\n` +
-  `  Context: ${context}\n` +
-  `  Solution: ${solution}`
+    `  Context: ${context}\n` +
+    `  Solution: ${solution}`
 );
 ```
 
 **Example:**
+
 ```typescript
 throw new Error(
   `Cannot create TaskOrchestrator: no active session\n` +
-  `  Context: SessionManager.currentSession is null\n` +
-  `  Solution: Call sessionManager.createSession() first`
+    `  Context: SessionManager.currentSession is null\n` +
+    `  Solution: Call sessionManager.createSession() first`
 );
 ```
 
@@ -347,19 +364,20 @@ throw new Error(
 ```typescript
 throw new Error(
   `Timeout ${operation} after ${timeout}ms\n` +
-  `  Target: ${target}\n` +
-  `  Current state: ${currentState}\n` +
-  `  Waiting for: ${waitingFor}`
+    `  Target: ${target}\n` +
+    `  Current state: ${currentState}\n` +
+    `  Waiting for: ${waitingFor}`
 );
 ```
 
 **Example:**
+
 ```typescript
 throw new Error(
   `Timeout waiting for dependencies after 30000ms\n` +
-  `  Target: P1.M1.T1.S3\n` +
-  `  Current state: Blocked\n` +
-  `  Waiting for: P1.M1.T1.S1, P1.M1.T1.S2`
+    `  Target: P1.M1.T1.S3\n` +
+    `  Current state: Blocked\n` +
+    `  Waiting for: P1.M1.T1.S1, P1.M1.T1.S2`
 );
 ```
 
@@ -368,19 +386,20 @@ throw new Error(
 ```typescript
 throw new Error(
   `Validation failed: ${field}\n` +
-  `  Expected: ${expected}\n` +
-  `  Received: ${received}\n` +
-  `  Location: ${location}`
+    `  Expected: ${expected}\n` +
+    `  Received: ${received}\n` +
+    `  Location: ${location}`
 );
 ```
 
 **Example:**
+
 ```typescript
 throw new Error(
   `Validation failed: status transition\n` +
-  `  Expected: One of [Implementing, Complete, Failed]\n` +
-  `  Received: InvalidStatus\n` +
-  `  Location: TaskOrchestrator.#updateStatus()`
+    `  Expected: One of [Implementing, Complete, Failed]\n` +
+    `  Received: InvalidStatus\n` +
+    `  Location: TaskOrchestrator.#updateStatus()`
 );
 ```
 
@@ -390,7 +409,9 @@ throw new Error(
 console.error(`[TaskOrchestrator] Dependency error: ${subtaskId}`);
 console.error(`  Missing dependencies: ${missing.join(', ')}`);
 console.error(`  Circular dependencies: ${circular.join(', ')}`);
-console.error(`  Blocking dependencies: ${blocking.map(b => `${b.id} (${b.status})`).join(', ')}`);
+console.error(
+  `  Blocking dependencies: ${blocking.map(b => `${b.id} (${b.status})`).join(', ')}`
+);
 ```
 
 ### 4.3 Error Code Categorization
@@ -458,6 +479,7 @@ throw new Error(
 ```
 
 **Enhanced version:**
+
 ```typescript
 console.error(`[TaskOrchestrator] Dependency timeout: ${subtask.id}`);
 console.error(`  Timeout: ${timeout}ms`);
@@ -502,19 +524,19 @@ try {
 ```typescript
 interface StructuredLog {
   // Standard fields
-  timestamp: string;      // ISO 8601
-  level: string;          // 'debug' | 'info' | 'warn' | 'error'
-  message: string;        // Human-readable message
-  component: string;      // Component name
+  timestamp: string; // ISO 8601
+  level: string; // 'debug' | 'info' | 'warn' | 'error'
+  message: string; // Human-readable message
+  component: string; // Component name
 
   // Context fields
-  sessionId?: string;     // Session identifier
-  itemId?: string;        // Item identifier
-  itemType?: string;      // Item type
-  workflowId?: string;    // Workflow identifier
+  sessionId?: string; // Session identifier
+  itemId?: string; // Item identifier
+  itemType?: string; // Item type
+  workflowId?: string; // Workflow identifier
 
   // Event-specific fields
-  event?: string;         // Event type
+  event?: string; // Event type
   previousStatus?: string;
   newStatus?: string;
   duration?: number;
@@ -554,12 +576,12 @@ interface StructuredLog {
 
 ### 5.2 Log Levels
 
-| Level | Usage | Example |
-|-------|-------|---------|
-| **debug** | Detailed diagnostic information | `Function execution started` |
-| **info** | Normal operational events | `Status transition: Planned → Implementing` |
-| **warn** | Warning conditions that don't stop execution | `Subtask has no dependencies` |
-| **error** | Error events that might affect execution | `Failed to execute subtask` |
+| Level     | Usage                                        | Example                                     |
+| --------- | -------------------------------------------- | ------------------------------------------- |
+| **debug** | Detailed diagnostic information              | `Function execution started`                |
+| **info**  | Normal operational events                    | `Status transition: Planned → Implementing` |
+| **warn**  | Warning conditions that don't stop execution | `Subtask has no dependencies`               |
+| **error** | Error events that might affect execution     | `Failed to execute subtask`                 |
 
 ### 5.3 Correlation IDs
 
@@ -567,10 +589,10 @@ Include correlation IDs to track related events:
 
 ```typescript
 interface LogContext {
-  correlationId: string;   // Unique request/event ID
-  sessionId: string;       // Session identifier
-  workflowId: string;      // Workflow identifier
-  itemId?: string;         // Specific item identifier
+  correlationId: string; // Unique request/event ID
+  sessionId: string; // Session identifier
+  workflowId: string; // Workflow identifier
+  itemId?: string; // Specific item identifier
 }
 
 // Generate correlation ID
@@ -580,7 +602,9 @@ function generateCorrelationId(): string {
 
 // Usage
 const correlationId = generateCorrelationId();
-console.log(`[TaskOrchestrator] Processing item (correlation: ${correlationId})`);
+console.log(
+  `[TaskOrchestrator] Processing item (correlation: ${correlationId})`
+);
 ```
 
 ### 5.4 Context Enrichment
@@ -592,7 +616,7 @@ interface LogContext {
   // System context
   hostname: string;
   pid: number;
-  environment: string;    // 'development' | 'production'
+  environment: string; // 'development' | 'production'
 
   // Application context
   component: string;
@@ -647,8 +671,8 @@ interface ExecutionMetrics {
   blockedTasks: number;
 
   // Success rate
-  successRate: number;     // percentage
-  failureRate: number;     // percentage
+  successRate: number; // percentage
+  failureRate: number; // percentage
 }
 ```
 
@@ -671,9 +695,9 @@ Implement distributed tracing for workflow execution:
 
 ```typescript
 interface TraceContext {
-  traceId: string;         // Root trace ID
-  spanId: string;          // Current span ID
-  parentSpanId?: string;   // Parent span ID
+  traceId: string; // Root trace ID
+  spanId: string; // Current span ID
+  parentSpanId?: string; // Parent span ID
 }
 
 function createTraceContext(): TraceContext {
@@ -700,15 +724,17 @@ interface StateTransitionEvent {
   itemType: string;
   previousState: string;
   newState: string;
-  trigger: string;         // What caused the transition
+  trigger: string; // What caused the transition
   context?: Record<string, unknown>;
 }
 
 function logStateTransition(event: StateTransitionEvent): void {
-  console.log(JSON.stringify({
-    ...event,
-    component: 'TaskOrchestrator',
-  }));
+  console.log(
+    JSON.stringify({
+      ...event,
+      component: 'TaskOrchestrator',
+    })
+  );
 }
 ```
 
@@ -728,7 +754,9 @@ interface ProgressMetrics {
 }
 
 function logProgress(metrics: ProgressMetrics): void {
-  console.log(`[TaskOrchestrator] Pipeline progress: ${metrics.percentageComplete}%`);
+  console.log(
+    `[TaskOrchestrator] Pipeline progress: ${metrics.percentageComplete}%`
+  );
   console.log(`  Completed: ${metrics.completedItems}/${metrics.totalItems}`);
   console.log(`  In Progress: ${metrics.inProgressItems}`);
   console.log(`  Blocked: ${metrics.blockedItems}`);
@@ -746,12 +774,12 @@ function logProgress(metrics: ProgressMetrics): void {
 
 ### 7.1 Popular Logging Libraries
 
-| Library | Features | Performance | Use Case |
-|---------|----------|-------------|----------|
-| **Winston** | Versatile, multiple transports | Medium | General purpose, production apps |
-| **Pino** | High-performance, low-overhead | Very Fast | High-throughput applications |
-| **Bunyan** | JSON structured logging | Fast | Node.js services |
-| **console.log** | Built-in, no dependencies | N/A | Development, debugging |
+| Library         | Features                       | Performance | Use Case                         |
+| --------------- | ------------------------------ | ----------- | -------------------------------- |
+| **Winston**     | Versatile, multiple transports | Medium      | General purpose, production apps |
+| **Pino**        | High-performance, low-overhead | Very Fast   | High-throughput applications     |
+| **Bunyan**      | JSON structured logging        | Fast        | Node.js services                 |
+| **console.log** | Built-in, no dependencies      | N/A         | Development, debugging           |
 
 ### 7.2 Winston Example
 
@@ -777,9 +805,11 @@ const logger = winston.createLogger({
 
 // Add console transport in development
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
 }
 
 // Usage
@@ -805,7 +835,7 @@ import pino from 'pino';
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
   formatters: {
-    level: (label) => {
+    level: label => {
       return { level: label };
     },
   },
@@ -817,17 +847,23 @@ const logger = pino({
 });
 
 // Usage
-logger.info({
-  itemId: 'P1.M1.T1.S3',
-  itemType: 'Subtask',
-  previousStatus: 'Planned',
-  newStatus: 'Implementing',
-}, 'Status transition');
+logger.info(
+  {
+    itemId: 'P1.M1.T1.S3',
+    itemType: 'Subtask',
+    previousStatus: 'Planned',
+    newStatus: 'Implementing',
+  },
+  'Status transition'
+);
 
-logger.error({
-  itemId: 'P1.M1.T1.S3',
-  err: error,
-}, 'Execution failed');
+logger.error(
+  {
+    itemId: 'P1.M1.T1.S3',
+    err: error,
+  },
+  'Execution failed'
+);
 ```
 
 ### 7.4 Console Logging with Structure
@@ -843,25 +879,33 @@ class Logger {
   }
 
   info(message: string, metadata?: Record<string, unknown>): void {
-    console.log(JSON.stringify({
-      timestamp: new Date().toISOString(),
-      level: 'info',
-      component: this.component,
-      message,
-      ...metadata,
-    }));
+    console.log(
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'info',
+        component: this.component,
+        message,
+        ...metadata,
+      })
+    );
   }
 
-  error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
-    console.error(JSON.stringify({
-      timestamp: new Date().toISOString(),
-      level: 'error',
-      component: this.component,
-      message,
-      error: error?.message,
-      stack: error?.stack,
-      ...metadata,
-    }));
+  error(
+    message: string,
+    error?: Error,
+    metadata?: Record<string, unknown>
+  ): void {
+    console.error(
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'error',
+        component: this.component,
+        message,
+        error: error?.message,
+        stack: error?.stack,
+        ...metadata,
+      })
+    );
   }
 }
 
@@ -1100,31 +1144,31 @@ async waitForDependencies(
 
 ### 10.1 Documentation URLs
 
-| Resource | URL | Purpose |
-|----------|-----|---------|
-| **Winston Documentation** | https://github.com/winstonjs/winston | Popular Node.js logging library |
-| **Pino Documentation** | https://getpino.io/ | High-performance Node.js logger |
-| **Bunyan Documentation** | https://github.com/trentm/node-bunyan | JSON structured logging |
-| **Node.js Console API** | https://nodejs.org/api/console.html | Built-in logging methods |
-| **OpenTelemetry** | https://opentelemetry.io/ | Observability framework |
-| **Twelve-Factor App Logging** | https://12factor.net/logs | Logging best practices |
+| Resource                      | URL                                   | Purpose                         |
+| ----------------------------- | ------------------------------------- | ------------------------------- |
+| **Winston Documentation**     | https://github.com/winstonjs/winston  | Popular Node.js logging library |
+| **Pino Documentation**        | https://getpino.io/                   | High-performance Node.js logger |
+| **Bunyan Documentation**      | https://github.com/trentm/node-bunyan | JSON structured logging         |
+| **Node.js Console API**       | https://nodejs.org/api/console.html   | Built-in logging methods        |
+| **OpenTelemetry**             | https://opentelemetry.io/             | Observability framework         |
+| **Twelve-Factor App Logging** | https://12factor.net/logs             | Logging best practices          |
 
 ### 10.2 Related Research Documents
 
-| Document | Path |
-|----------|------|
-| **ESLint Research** | `/plan/001_14b9dc2a33c7/P1M1T3S1/research/eslint-research.md` |
-| **MCP Patterns Research** | `/plan/001_14b9dc2a33c7/P2M1T2S3/research/mcp-patterns-research.md` |
+| Document                      | Path                                                                         |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| **ESLint Research**           | `/plan/001_14b9dc2a33c7/P1M1T3S1/research/eslint-research.md`                |
+| **MCP Patterns Research**     | `/plan/001_14b9dc2a33c7/P2M1T2S3/research/mcp-patterns-research.md`          |
 | **TypeScript Best Practices** | `/plan/001_14b9dc2a33c7/docs/typescript_project_structure_best_practices.md` |
 
 ### 10.3 Code Examples
 
-| Example | Path |
-|---------|------|
+| Example              | Path                             |
+| -------------------- | -------------------------------- |
 | **TaskOrchestrator** | `/src/core/task-orchestrator.ts` |
-| **SessionManager** | `/src/core/session-manager.ts` |
-| **Task Models** | `/src/core/models.ts` |
-| **Task Utils** | `/src/utils/task-utils.ts` |
+| **SessionManager**   | `/src/core/session-manager.ts`   |
+| **Task Models**      | `/src/core/models.ts`            |
+| **Task Utils**       | `/src/utils/task-utils.ts`       |
 
 ---
 

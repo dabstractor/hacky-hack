@@ -12,6 +12,7 @@
 This research document compiles best practices for status tracking and state management in workflow orchestration systems. It examines patterns from industry-standard systems (Airflow, Temporal, GitHub Actions, Argo Workflows) and provides actionable recommendations for enhancing the TaskOrchestrator with robust state machine patterns, error handling, and observability.
 
 ### Key Findings
+
 - **State Machine Pattern**: Finite state machines with explicit transitions prevent invalid states
 - **Observability**: Structured logging with correlation IDs enables distributed tracing
 - **Error Handling**: Try-catch wrappers with automatic Failed state transitions
@@ -39,6 +40,7 @@ This research document compiles best practices for status tracking and state man
 **Definition**: A finite state machine is a mathematical model of computation that defines a set of states, transitions between those states, and actions associated with those transitions.
 
 **Key Characteristics**:
+
 - **Finite number of states**: Only valid statuses exist
 - **Deterministic transitions**: From state A, only specific transitions to B, C, or D are allowed
 - **Single current state**: An item can only be in one state at a time
@@ -83,22 +85,22 @@ export type Status =
 
 #### Valid State Transitions
 
-| From State | To State | Condition |
-|------------|----------|-----------|
-| Planned | Researching | User initiates research |
-| Planned | Implementing | Skip research phase |
-| Researching | Implementing | Research complete |
-| Researching | Failed | Research encountered unrecoverable error |
-| Implementing | Complete | Execution successful |
-| Implementing | Failed | Execution failed after retries |
-| Failed | Implementing | Retry attempt |
-| Complete | Implementing | Re-execution (rare) |
+| From State   | To State     | Condition                                |
+| ------------ | ------------ | ---------------------------------------- |
+| Planned      | Researching  | User initiates research                  |
+| Planned      | Implementing | Skip research phase                      |
+| Researching  | Implementing | Research complete                        |
+| Researching  | Failed       | Research encountered unrecoverable error |
+| Implementing | Complete     | Execution successful                     |
+| Implementing | Failed       | Execution failed after retries           |
+| Failed       | Implementing | Retry attempt                            |
+| Complete     | Implementing | Re-execution (rare)                      |
 
 ### 1.3 State Machine Implementation Pattern
 
 #### Pattern: State Transition Validator
 
-```typescript
+````typescript
 /**
  * Validates state transitions before execution
  *
@@ -114,10 +116,7 @@ export type Status =
  * }
  * ```
  */
-function isValidTransition(
-  currentStatus: Status,
-  newStatus: Status
-): boolean {
+function isValidTransition(currentStatus: Status, newStatus: Status): boolean {
   // Define valid transitions
   const validTransitions: Record<Status, Status[]> = {
     Planned: ['Researching', 'Implementing', 'Failed'],
@@ -131,11 +130,11 @@ function isValidTransition(
   const allowed = validTransitions[currentStatus] || [];
   return allowed.includes(newStatus);
 }
-```
+````
 
 #### Pattern: State Transition Executor with Validation
 
-```typescript
+````typescript
 /**
  * Executes state transition with validation and logging
  *
@@ -161,7 +160,7 @@ async function transitionStatus<T extends HierarchyItem>(
   if (!isValidTransition(oldStatus, newStatus)) {
     throw new Error(
       `Invalid status transition: ${oldStatus} → ${newStatus} ` +
-      `for item ${item.id}. Reason: ${reason || 'N/A'}`
+        `for item ${item.id}. Reason: ${reason || 'N/A'}`
     );
   }
 
@@ -180,7 +179,7 @@ async function transitionStatus<T extends HierarchyItem>(
 
   return updated as T;
 }
-```
+````
 
 ### 1.4 State Machine Benefits
 
@@ -197,6 +196,7 @@ async function transitionStatus<T extends HierarchyItem>(
 ### 2.1 Structured Logging Principles
 
 **Why Structured Logging?**
+
 - Machine-parseable for monitoring and alerting
 - Consistent schema across all transitions
 - Enables querying and filtering (e.g., "Show all failed transitions")
@@ -204,17 +204,17 @@ async function transitionStatus<T extends HierarchyItem>(
 
 **Key Fields for Status Transition Logs**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| timestamp | ISO 8601 string | Yes | Exact time of transition |
-| itemId | string | Yes | Unique identifier |
-| itemType | string | Yes | Phase, Milestone, Task, Subtask |
-| oldStatus | Status | Yes | Previous state |
-| newStatus | Status | Yes | New state |
-| reason | string | No | Human-readable explanation |
-| correlationId | string | Yes* | Links to parent workflow |
-| duration_ms | number | No | Time spent in previous state |
-| error | object | No | Error details if Failed |
+| Field         | Type            | Required | Description                     |
+| ------------- | --------------- | -------- | ------------------------------- |
+| timestamp     | ISO 8601 string | Yes      | Exact time of transition        |
+| itemId        | string          | Yes      | Unique identifier               |
+| itemType      | string          | Yes      | Phase, Milestone, Task, Subtask |
+| oldStatus     | Status          | Yes      | Previous state                  |
+| newStatus     | Status          | Yes      | New state                       |
+| reason        | string          | No       | Human-readable explanation      |
+| correlationId | string          | Yes\*    | Links to parent workflow        |
+| duration_ms   | number          | No       | Time spent in previous state    |
+| error         | object          | No       | Error details if Failed         |
 
 \* Required for distributed systems, optional for monolithic
 
@@ -283,6 +283,7 @@ function logStatusTransition(event: StatusTransitionEvent): void {
 **Metrics to Track**
 
 1. **Counters**: Number of transitions per status type
+
    ```typescript
    status_transitions_total{
      item_type="Subtask",
@@ -292,6 +293,7 @@ function logStatusTransition(event: StatusTransitionEvent): void {
    ```
 
 2. **Histograms**: Time spent in each status
+
    ```typescript
    status_duration_seconds{
      item_type="Task",
@@ -300,6 +302,7 @@ function logStatusTransition(event: StatusTransitionEvent): void {
    ```
 
 3. **Gauges**: Current distribution of items across statuses
+
    ```typescript
    items_by_status{
      status="Planned"
@@ -332,10 +335,7 @@ class StatusMetricsCollector {
   recordTransition(event: StatusTransitionEvent): void {
     // Increment transition counter
     const key = `${event.itemType}:${event.oldStatus}→${event.newStatus}`;
-    this.transitionCounts.set(
-      key,
-      (this.transitionCounts.get(key) || 0) + 1
-    );
+    this.transitionCounts.set(key, (this.transitionCounts.get(key) || 0) + 1);
 
     // Record duration if provided
     if (event.duration_ms !== undefined) {
@@ -360,7 +360,7 @@ class StatusMetricsCollector {
 
 When a Phase contains Milestones → Tasks → Subtasks, all status transitions should share a correlation ID linking to the parent workflow.
 
-```typescript
+````typescript
 /**
  * Generates correlation ID for workflow tracing
  *
@@ -378,7 +378,7 @@ function generateCorrelationId(itemId: string): string {
   const random = Math.random().toString(36).substring(2, 8);
   return `workflow-${itemId}-${timestamp}-${random}`;
 }
-```
+````
 
 ### 2.5 Logging Best Practices Summary
 
@@ -398,12 +398,14 @@ function generateCorrelationId(itemId: string): string {
 ### 3.1 Async Error Handling Principles
 
 **Challenges with Async Error Handling**:
+
 - Unhandled promise rejections crash Node.js processes
 - Stack traces are lost in async boundaries
 - Error context (what task was running) is unclear
 - Race conditions can cause inconsistent state
 
 **Best Practices**:
+
 1. **Wrap all async operations in try-catch**
 2. **Always update status to Failed on error**
 3. **Log error with full context**
@@ -414,7 +416,7 @@ function generateCorrelationId(itemId: string): string {
 
 #### Pattern: Safe Execution Wrapper with Status Management
 
-```typescript
+````typescript
 /**
  * Wraps async execution with automatic error handling and status updates
  *
@@ -460,7 +462,10 @@ async function safeExecute<T extends HierarchyItem>(
     });
   } catch (error) {
     // Catastrophic failure: cannot even update status
-    console.error(`[TaskOrchestrator] Failed to set Implementing status:`, error);
+    console.error(
+      `[TaskOrchestrator] Failed to set Implementing status:`,
+      error
+    );
     return { success: false, error: error as Error };
   }
 
@@ -481,7 +486,6 @@ async function safeExecute<T extends HierarchyItem>(
       });
 
       return { success: true };
-
     } catch (error) {
       lastError = error as Error;
 
@@ -524,7 +528,7 @@ async function safeExecute<T extends HierarchyItem>(
   // Should never reach here, but TypeScript needs it
   return { success: false, error: lastError };
 }
-```
+````
 
 #### Pattern: Retryable Error Detection
 
@@ -562,7 +566,7 @@ function isRetryableError(error: Error): boolean {
 **Why Enrich Error Context?**
 Stack traces alone don't show what was being processed. Add context for debugging.
 
-```typescript
+````typescript
 /**
  * Enriches error with context about what was being processed
  *
@@ -584,20 +588,15 @@ Stack traces alone don't show what was being processed. Add context for debuggin
  * }
  * ```
  */
-function enrichError(
-  error: Error,
-  context: Record<string, unknown>
-): Error {
-  const enrichedError = new Error(
-    `[${context.itemId}] ${error.message}`
-  );
+function enrichError(error: Error, context: Record<string, unknown>): Error {
+  const enrichedError = new Error(`[${context.itemId}] ${error.message}`);
 
   enrichedError.stack = error.stack;
   (enrichedError as Record<string, unknown>).context = context;
 
   return enrichedError;
 }
-```
+````
 
 ### 3.4 Error Handling Best Practices Summary
 
@@ -619,10 +618,12 @@ function enrichError(
 **Documentation**: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html
 
 **Task States** (simplified):
+
 - `no_status` → `queued` → `running` → `success` / `failed`
 - Also: `upstream_failed`, `skipped`, `up_for_retry`, `up_for_reschedule`
 
 **Status Transition Pattern**:
+
 ```python
 # Airflow's TaskInstance state transitions
 class TaskInstance:
@@ -639,6 +640,7 @@ class TaskInstance:
 ```
 
 **Key Learnings**:
+
 1. **Explicit state management**: Set `state = RUNNING` before execution
 2. **Try-catch around execution**: Always catch and set `FAILED` on error
 3. **Rich state model**: Distinguishes between `failed` and `upstream_failed`
@@ -649,12 +651,15 @@ class TaskInstance:
 **Documentation**: https://docs.temporal.io/concepts/what-is-a-workflow
 
 **Workflow States**:
+
 - `running` → `completed` / `failed` / `canceled` / `continued_as_new`
 
 **Activity States**:
+
 - `scheduled` → `started` → `completed` / `failed`
 
 **Key Pattern - Deterministic Workflow Execution**:
+
 ```typescript
 // Temporal workflow code must be deterministic
 async function sampleWorkflow(task: Task): Promise<void> {
@@ -671,6 +676,7 @@ async function sampleWorkflow(task: Task): Promise<void> {
 ```
 
 **Key Learnings**:
+
 1. **State persistence**: Workflow state is durably stored
 2. **Automatic retry**: Built-in retry policies with backoff
 3. **Activity isolation**: Activities (work units) are separate from workflows (orchestration)
@@ -681,26 +687,30 @@ async function sampleWorkflow(task: Task): Promise<void> {
 **Documentation**: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 
 **Job States**:
+
 - `queued` → `in_progress` → `completed` (with `conclusion: success/failure`)
 
 **Step States**:
+
 - `pending` → `in_progress` → `completed`
 
 **Key Pattern - Status Annotations**:
+
 ```yaml
 # GitHub Actions uses explicit status updates
 steps:
   - name: Run tests
     id: tests
     run: npm test
-    if: success()  # Only run if previous steps succeeded
+    if: success() # Only run if previous steps succeeded
 
   - name: Report failure
-    if: failure()  # Only run if any previous step failed
+    if: failure() # Only run if any previous step failed
     run: echo "Tests failed!"
 ```
 
 **Key Learnings**:
+
 1. **Conditional execution**: `if: success()` / `if: failure()`
 2. **Explicit status checks**: Clear success/failure indicators
 3. **Hierarchical status**: Workflow → Job → Step status propagation
@@ -710,9 +720,11 @@ steps:
 **Documentation**: https://argoproj.github.io/argo-workflows/
 
 **Node Phase States**:
+
 - `Pending` → `Running` → `Succeeded` / `Failed` / `Error` / `Skipped`
 
 **Key Pattern - Pod Status Mapping**:
+
 ```yaml
 # Argo maps Kubernetes pod status to workflow phase
 phase:
@@ -725,20 +737,22 @@ phase:
 ```
 
 **Key Learnings**:
+
 1. **State granularity**: Distinguishes between `Failed` (exit code) and `Error` (system error)
 2. **Resource-aware**: OOM killed = `Error`, not `Failed`
 3. **Retry strategy**: Built-in retry policy per step
 
 ### 4.5 Industry Patterns Summary
 
-| System | States | Error Handling | Retry Strategy |
-|--------|--------|----------------|----------------|
-| Airflow | 11 states | Try-catch with FAILED state | `up_for_retry` state |
-| Temporal | 4 workflow states | Activity-level error handling | Built-in retry policy |
-| GitHub Actions | 3 job states | Conditional execution `if: failure()` | Manual retry |
-| Argo Workflows | 6 phase states | Pod status mapping | Per-step retry policy |
+| System         | States            | Error Handling                        | Retry Strategy        |
+| -------------- | ----------------- | ------------------------------------- | --------------------- |
+| Airflow        | 11 states         | Try-catch with FAILED state           | `up_for_retry` state  |
+| Temporal       | 4 workflow states | Activity-level error handling         | Built-in retry policy |
+| GitHub Actions | 3 job states      | Conditional execution `if: failure()` | Manual retry          |
+| Argo Workflows | 6 phase states    | Pod status mapping                    | Per-step retry policy |
 
 **Common Patterns Across All Systems**:
+
 1. **Explicit RUNNING state**: Set before work begins
 2. **Try-catch wrapper**: Always catch and set FAILED
 3. **Retry state**: Separate state or automatic retry
@@ -753,6 +767,7 @@ phase:
 ### 5.1 Enhanced Status Type for TaskOrchestrator
 
 **Current** (`/home/dustin/projects/hacky-hack/src/core/models.ts:55`):
+
 ```typescript
 export type Status =
   | 'Planned'
@@ -763,6 +778,7 @@ export type Status =
 ```
 
 **Recommended Enhancements**:
+
 ```typescript
 /**
  * Enhanced status type with additional states for better observability
@@ -789,6 +805,7 @@ export type Status =
 ```
 
 **Rationale**:
+
 - **Blocked**: Explicitly show waiting state (vs. silently waiting)
 - **UpForRetry**: Distinguish from Failed (will retry vs. permanently failed)
 - **Skipped**: For conditional execution (e.g., "skip if feature flag disabled")
@@ -936,11 +953,13 @@ async executeSubtask(subtask: Subtask): Promise<ExecutionResult> {
 ### 5.5 Integration with Existing Codebase
 
 **Files to Modify**:
+
 1. `/home/dustin/projects/hacky-hack/src/core/models.ts` - Add new Status values
 2. `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts` - Enhance executeSubtask
 3. `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` - Ensure status persistence
 
 **New Files to Create**:
+
 1. `/home/dustin/projects/hacky-hack/src/core/state-machine.ts` - State transition validator
 2. `/home/dustin/projects/hacky-hack/src/core/status-logger.ts` - Structured logging
 3. `/home/dustin/projects/hacky-hack/src/core/metrics-collector.ts` - Observability metrics
@@ -954,6 +973,7 @@ async executeSubtask(subtask: Subtask): Promise<ExecutionResult> {
 **Problem**: Multiple concurrent processes update the same item's status.
 
 **Example**:
+
 ```typescript
 // ❌ BAD: Race condition
 async function badStatusUpdate(id: string, status: Status) {
@@ -966,12 +986,17 @@ async function badStatusUpdate(id: string, status: Status) {
 ```
 
 **Solution**:
+
 ```typescript
 // ✅ GOOD: Use CAS (Compare-And-Swap) pattern
-async function goodStatusUpdate(id: string, expectedStatus: Status, newStatus: Status) {
+async function goodStatusUpdate(
+  id: string,
+  expectedStatus: Status,
+  newStatus: Status
+) {
   const result = await sessionManager.updateItemStatusIf(
     id,
-    (current) => current === expectedStatus,
+    current => current === expectedStatus,
     newStatus
   );
 
@@ -986,6 +1011,7 @@ async function goodStatusUpdate(id: string, expectedStatus: Status, newStatus: S
 **Problem**: Errors are swallowed and status remains unchanged.
 
 **Example**:
+
 ```typescript
 // ❌ BAD: Error swallowed, status not updated
 async function badExecute(subtask: Subtask) {
@@ -1000,6 +1026,7 @@ async function badExecute(subtask: Subtask) {
 ```
 
 **Solution**:
+
 ```typescript
 // ✅ GOOD: Always update status on error
 async function goodExecute(subtask: Subtask) {
@@ -1020,6 +1047,7 @@ async function goodExecute(subtask: Subtask) {
 **Cause**: Process crash before status update, or exception without status update.
 
 **Solution**:
+
 ```typescript
 // ✅ GOOD: Heartbeat mechanism for long-running tasks
 async function executeWithHeartbeat(subtask: Subtask) {
@@ -1055,6 +1083,7 @@ async function recoverZombieTasks() {
 **Problem**: Logs show "Error: ECONNREFUSED" but not which task failed.
 
 **Solution**:
+
 ```typescript
 // ✅ GOOD: Enrich error with context
 try {
@@ -1091,14 +1120,11 @@ try {
 **Problem**: Infinite retries on non-retryable errors (e.g., validation failure).
 
 **Solution**:
+
 ```typescript
 // ✅ GOOD: Detect retryable vs. fatal errors
 function isRetryableError(error: Error): boolean {
-  const retryablePatterns = [
-    /ETIMEDOUT/,
-    /ECONNRESET/,
-    /rate limit/i,
-  ];
+  const retryablePatterns = [/ETIMEDOUT/, /ECONNRESET/, /rate limit/i];
 
   const fatalPatterns = [
     /validation failed/i,
@@ -1124,50 +1150,56 @@ function isRetryableError(error: Error): boolean {
 
 ### 7.1 Documentation URLs
 
-| System | Documentation URL |
-|--------|-------------------|
-| Apache Airflow | https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html |
-| Temporal | https://docs.temporal.io/concepts/what-is-a-workflow |
-| GitHub Actions | https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions |
-| Argo Workflows | https://argoproj.github.io/argo-workflows/ |
+| System               | Documentation URL                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| Apache Airflow       | https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html                            |
+| Temporal             | https://docs.temporal.io/concepts/what-is-a-workflow                                                     |
+| GitHub Actions       | https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions                    |
+| Argo Workflows       | https://argoproj.github.io/argo-workflows/                                                               |
 | Step Functions (AWS) | https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-state-machine-structure.html |
 
 ### 7.2 Additional Reading
 
 **State Machine Patterns**:
+
 - "Finite State Machines in Production" - Martin Fowler
 - "State Machine Design Patterns" - Refactoring.guru
 
 **Observability Best Practices**:
+
 - "The Three Pillars of Observability" - Logs, Metrics, Traces
 - "Structured Logging Best Practices" - Stripe Engineering Blog
 
 **Error Handling Patterns**:
+
 - "Error Handling in Node.js" - Joyent
 - "Resilience Patterns for Distributed Systems" - Microsoft Azure
 
 ### 7.3 Related Files in This Project
 
-| File | Description |
-|------|-------------|
-| `/home/dustin/projects/hacky-hack/src/core/models.ts` | Type definitions including Status type |
-| `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts` | Task execution orchestration |
-| `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` | Persistent state management |
-| `/home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts` | Unit tests for orchestrator |
+| File                                                                         | Description                            |
+| ---------------------------------------------------------------------------- | -------------------------------------- |
+| `/home/dustin/projects/hacky-hack/src/core/models.ts`                        | Type definitions including Status type |
+| `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`             | Task execution orchestration           |
+| `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`               | Persistent state management            |
+| `/home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts` | Unit tests for orchestrator            |
 
 ### 7.4 Key Code Locations
 
 **Current Status Type**:
+
 - File: `/home/dustin/projects/hacky-hack/src/core/models.ts`
 - Line: 55
 - Current values: `Planned | Researching | Implementing | Complete | Failed`
 
 **Current executeSubtask Implementation**:
+
 - File: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 - Lines: 365-401
 - Current behavior: Basic execution without error handling
 
 **Dependency Resolution**:
+
 - File: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 - Methods: `canExecute()`, `getBlockingDependencies()`, `waitForDependencies()`
 - Lines: 108-210

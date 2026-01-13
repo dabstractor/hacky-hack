@@ -19,12 +19,14 @@ This research document compiles best practices, patterns, and implementation str
 ReAct combines chain-of-thought reasoning with action execution. The agent interleaves reasoning traces with task execution.
 
 **Key Characteristics:**
+
 - Thought → Action → Observation cycle
 - Explicit reasoning before each action
 - Self-correction through observation feedback
 - Suitable for complex, multi-step document generation
 
 **Implementation Pattern:**
+
 ```typescript
 interface ReActAgent {
   thoughts: string[];
@@ -53,12 +55,14 @@ interface ReActAgent {
 ```
 
 **Best Practices:**
+
 - Maintain detailed reasoning traces for debugging
 - Use observations to validate assumptions before proceeding
 - Implement guardrails to prevent infinite loops
 - Limit thought/action cycles (typically 3-5 iterations)
 
 **Use Cases for PRP Generation:**
+
 - Eliciting requirements through iterative questioning
 - Refining ambiguous requirements
 - Validating requirement completeness
@@ -70,12 +74,14 @@ interface ReActAgent {
 Decompose complex tasks into subtasks, plan the execution order, then execute sequentially.
 
 **Key Characteristics:**
+
 - Planning phase: Decompose and sequence
 - Execution phase: Execute without replanning
 - Clear separation between planning and doing
 - Better for predictable, structured outputs
 
 **Implementation Pattern:**
+
 ```typescript
 interface PlanAndExecuteAgent {
   async generatePRP(requirements: RawRequirements): Promise<PRPDocument> {
@@ -100,12 +106,14 @@ interface PlanAndExecuteAgent {
 ```
 
 **Planning Strategies:**
+
 - Hierarchical decomposition (Section → Subsection → Content)
 - Dependency-aware ordering (prerequisites first)
 - Parallel execution for independent sections
 - Incremental refinement (draft → review → finalize)
 
 **Best Practices:**
+
 - Make plans explicit and inspectable
 - Allow for human-in-the-loop review of plans
 - Implement checkpoint/resume for long-running plans
@@ -117,12 +125,14 @@ interface PlanAndExecuteAgent {
 Generate initial output, then iteratively refine through self-critique and external feedback.
 
 **Key Characteristics:**
+
 - Initial draft generation
 - Self-evaluation against criteria
 - Iterative improvement
 - Quality scoring and selection
 
 **Implementation Pattern:**
+
 ```typescript
 interface RefinementAgent {
   async generateWithRefinement(
@@ -149,6 +159,7 @@ interface RefinementAgent {
 ```
 
 **Refinement Criteria for PRPs:**
+
 - Completeness (all sections present)
 - Clarity (unambiguous language)
 - Consistency (no contradictions)
@@ -156,6 +167,7 @@ interface RefinementAgent {
 - Feasibility (technically achievable)
 
 **Best Practices:**
+
 - Define explicit quality rubrics
 - Use different models for generation and evaluation
 - Maintain improvement history for analysis
@@ -167,6 +179,7 @@ interface RefinementAgent {
 Specialized agents collaborate, each handling specific aspects of PRP generation.
 
 **Key Agent Roles:**
+
 - **Requirement Analyzer:** Extracts and structures requirements
 - **Technical Writer:** Drafts formal documentation
 - **Quality Reviewer:** Validates completeness and quality
@@ -174,6 +187,7 @@ Specialized agents collaborate, each handling specific aspects of PRP generation
 - **Orchestrator:** Coordinates agent interactions
 
 **Implementation Pattern:**
+
 ```typescript
 interface MultiAgentSystem {
   agents: Map<string, Agent>;
@@ -193,12 +207,14 @@ interface MultiAgentSystem {
 ```
 
 **Communication Patterns:**
+
 - Sequential pipeline (output of one feeds next)
 - Parallel execution (independent agents work simultaneously)
 - Review cycle (feedback loops between agents)
 - Voting/consensus (multiple agents evaluate same output)
 
 **Best Practices:**
+
 - Clearly define agent responsibilities
 - Use standardized message formats
 - Implement agent handoff protocols
@@ -211,39 +227,41 @@ interface MultiAgentSystem {
 ### 2.1 Structured Output Techniques
 
 **JSON Schema Enforcement:**
+
 ```typescript
 const prpSchema = {
-  type: "object",
+  type: 'object',
   properties: {
-    title: { type: "string" },
-    version: { type: "string" },
+    title: { type: 'string' },
+    version: { type: 'string' },
     sections: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "object",
+        type: 'object',
         properties: {
-          heading: { type: "string" },
-          content: { type: "string" },
+          heading: { type: 'string' },
+          content: { type: 'string' },
           requirements: {
-            type: "array",
+            type: 'array',
             items: {
-              type: "object",
+              type: 'object',
               properties: {
-                id: { type: "string" },
-                priority: { enum: ["must", "should", "could"] },
-                acceptanceCriteria: { type: "string" }
-              }
-            }
-          }
-        }
-      }
-    }
+                id: { type: 'string' },
+                priority: { enum: ['must', 'should', 'could'] },
+                acceptanceCriteria: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    },
   },
-  required: ["title", "sections"]
+  required: ['title', 'sections'],
 };
 ```
 
 **Prompt Template:**
+
 ```
 You are a Product Requirements Document generator. Generate a PRP based on the following input.
 
@@ -265,6 +283,7 @@ Input: {input}
 ### 2.2 Few-Shot Prompting Patterns
 
 **Template-Based Examples:**
+
 ```typescript
 const fewShotPrompt = `
 Generate a Product Requirement Prompt for the following feature.
@@ -292,6 +311,7 @@ Output:
 ```
 
 **Best Practices:**
+
 - Use 3-5 diverse examples
 - Include edge cases in examples
 - Show progressive complexity
@@ -301,6 +321,7 @@ Output:
 ### 2.3 Chain-of-Thought for Complex Requirements
 
 **Structured Reasoning Template:**
+
 ```
 Generate a Product Requirement Prompt by following these steps:
 
@@ -333,6 +354,7 @@ Follow the steps above and provide your reasoning for each step before generatin
 ### 2.4 Context-Aware Prompting
 
 **Dynamic Context Injection:**
+
 ```typescript
 interface ContextBuilder {
   buildPrompt(request: PRPRequest): string {
@@ -359,6 +381,7 @@ Generate a PRP that aligns with the project context above and follows the define
 ### 2.5 Prompt Quality Validation
 
 **Validation Checklist:**
+
 - [ ] Clear task definition
 - [ ] Explicit output format
 - [ ] Relevant context provided
@@ -375,6 +398,7 @@ Generate a PRP that aligns with the project context above and follows the define
 ### 3.1 Context Window Optimization
 
 **Hierarchical Context Strategy:**
+
 ```typescript
 interface ContextManager {
   async buildContext(query: string, windowSize: number): Promise<Context> {
@@ -396,6 +420,7 @@ interface ContextManager {
 ```
 
 **Optimization Techniques:**
+
 - **Semantic chunking:** Break documents into meaningful sections
 - **Relevance scoring:** Rank context by similarity to query
 - **Temporal weighting:** Recent context gets higher priority
@@ -405,6 +430,7 @@ interface ContextManager {
 ### 3.2 Retrieval-Augmented Generation (RAG)
 
 **Vector Database Integration:**
+
 ```typescript
 interface RAGSystem {
   vectorStore: VectorStore;
@@ -437,6 +463,7 @@ Generate a PRP following the patterns in the context above.
 ```
 
 **Best Practices:**
+
 - Use domain-specific embeddings for better retrieval
 - Implement hybrid search (semantic + keyword)
 - Store metadata with embeddings for filtering
@@ -446,6 +473,7 @@ Generate a PRP following the patterns in the context above.
 ### 3.3 Dynamic Context Assembly
 
 **Context Composition Pipeline:**
+
 ```typescript
 interface ContextAssembler {
   components: ContextComponent[];
@@ -475,6 +503,7 @@ interface ContextAssembler {
 ### 3.4 Context Quality Metrics
 
 **Evaluation Criteria:**
+
 - **Relevance:** How closely related to the task?
 - **Completeness:** Are all necessary aspects covered?
 - **Accuracy:** Is the information correct?
@@ -482,6 +511,7 @@ interface ContextAssembler {
 - **Consistency:** Are there contradictions?
 
 **Quality Scoring:**
+
 ```typescript
 interface ContextQuality {
   relevanceScore: number;      // 0-1
@@ -503,6 +533,7 @@ interface ContextQuality {
 ### 4.1 Exponential Backoff with Jitter
 
 **Implementation:**
+
 ```typescript
 class RetryableLLMClient {
   private readonly maxRetries = 3;
@@ -510,10 +541,7 @@ class RetryableLLMClient {
   private readonly maxDelay = 30000; // 30 seconds
   private readonly jitterFactor = 0.1;
 
-  async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    context: string
-  ): Promise<T> {
+  async executeWithRetry<T>(fn: () => Promise<T>, context: string): Promise<T> {
     let lastError: Error;
 
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
@@ -530,7 +558,7 @@ class RetryableLLMClient {
           const delay = this.calculateDelay(attempt);
           console.warn(
             `Attempt ${attempt + 1} failed for ${context}. ` +
-            `Retrying in ${delay}ms...`,
+              `Retrying in ${delay}ms...`,
             { error: error.message }
           );
           await this.sleep(delay);
@@ -551,7 +579,8 @@ class RetryableLLMClient {
     );
 
     // Add jitter to prevent thundering herd
-    const jitter = exponentialDelay * this.jitterFactor * (Math.random() * 2 - 1);
+    const jitter =
+      exponentialDelay * this.jitterFactor * (Math.random() * 2 - 1);
 
     return Math.max(0, exponentialDelay + jitter);
   }
@@ -577,6 +606,7 @@ class RetryableLLMClient {
 ### 4.2 Circuit Breaker Pattern
 
 **Implementation:**
+
 ```typescript
 interface CircuitBreakerConfig {
   failureThreshold: number;
@@ -635,6 +665,7 @@ class LLMCircuitBreaker {
 ### 4.3 Graceful Degradation
 
 **Fallback Strategies:**
+
 ```typescript
 interface FallbackChain {
   async generatePRP(request: PRPRequest): Promise<PRPDocument> {
@@ -665,6 +696,7 @@ interface FallbackChain {
 ### 4.4 Error Recovery and Logging
 
 **Comprehensive Error Handling:**
+
 ```typescript
 interface ErrorContext {
   timestamp: Date;
@@ -688,7 +720,7 @@ class ErrorRecoveryManager {
       input: context.input,
       error,
       attempt: context.attempt || 1,
-      metadata: context.metadata || {}
+      metadata: context.metadata || {},
     };
 
     this.errorLog.push(errorContext);
@@ -722,7 +754,7 @@ class ErrorRecoveryManager {
       errorsByType: this.groupByType(),
       errorsByOperation: this.groupByOperation(),
       recentErrors: this.errorLog.slice(-10),
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
   }
 }
@@ -735,6 +767,7 @@ class ErrorRecoveryManager {
 ### 5.1 Hierarchical Directory Structure
 
 **Recommended Structure:**
+
 ```
 project-root/
 ├── prp-docs/
@@ -764,6 +797,7 @@ project-root/
 ### 5.2 Metadata-Driven Organization
 
 **Document Metadata Schema:**
+
 ```typescript
 interface PRPMetadata {
   id: string;
@@ -807,6 +841,7 @@ interface DocumentIndex {
 ### 5.3 Version Control Integration
 
 **Git-Based Versioning:**
+
 ```typescript
 class PRPVersionManager {
   private repositoryPath: string;
@@ -820,7 +855,7 @@ class PRPVersionManager {
       commitHash,
       timestamp: new Date(),
       message,
-      author: this.getCurrentUser()
+      author: this.getCurrentUser(),
     });
 
     return commitHash;
@@ -850,6 +885,7 @@ class PRPVersionManager {
 ### 5.4 Document Lifecycle Management
 
 **State Machine for Document Status:**
+
 ```typescript
 type DocumentStatus = 'draft' | 'review' | 'published' | 'archived' | 'deprecated';
 
@@ -896,6 +932,7 @@ interface DocumentLifecycle {
 ### 5.5 Storage Optimization
 
 **Compression and Deduplication:**
+
 ```typescript
 interface StorageOptimizer {
   async saveDocument(document: PRPDocument): Promise<void> {
@@ -937,9 +974,10 @@ interface StorageOptimizer {
 ### 5.6 Access Control and Security
 
 **Permission System:**
+
 ```typescript
 interface DocumentPermissions {
-  read: string[];  // User/role IDs
+  read: string[]; // User/role IDs
   write: string[];
   delete: string[];
   approve: string[];
@@ -956,7 +994,11 @@ class AccessControlManager {
     return allowedUsers.includes(userId) || this.hasAdminRole(userId);
   }
 
-  async checkAccess(documentId: string, userId: string, action: string): Promise<void> {
+  async checkAccess(
+    documentId: string,
+    userId: string,
+    action: string
+  ): Promise<void> {
     if (!this.canAccess(documentId, userId, action)) {
       throw new Error(
         `User ${userId} does not have ${action} permission for document ${documentId}`
@@ -964,12 +1006,9 @@ class AccessControlManager {
     }
   }
 
-  grantPermission(
-    documentId: string,
-    userId: string,
-    action: string
-  ): void {
-    const perms = this.permissions.get(documentId) || this.getDefaultPermissions();
+  grantPermission(documentId: string, userId: string, action: string): void {
+    const perms =
+      this.permissions.get(documentId) || this.getDefaultPermissions();
     perms[action as keyof DocumentPermissions].push(userId);
     this.permissions.set(documentId, perms);
   }
@@ -982,12 +1021,12 @@ class AccessControlManager {
 
 ### 6.1 Agent Pattern Selection
 
-| Pattern | Best For | Complexity | Reliability |
-|---------|----------|------------|-------------|
-| ReAct | Complex, iterative tasks | High | Medium |
-| Plan-and-Execute | Structured, predictable outputs | Medium | High |
-| Self-Refinement | Quality-critical documents | Medium | High |
-| Multi-Agent | Large-scale, specialized tasks | Very High | Medium |
+| Pattern          | Best For                        | Complexity | Reliability |
+| ---------------- | ------------------------------- | ---------- | ----------- |
+| ReAct            | Complex, iterative tasks        | High       | Medium      |
+| Plan-and-Execute | Structured, predictable outputs | Medium     | High        |
+| Self-Refinement  | Quality-critical documents      | Medium     | High        |
+| Multi-Agent      | Large-scale, specialized tasks  | Very High  | Medium      |
 
 **Recommendation:** Start with Plan-and-Execute for PRP generation, then add Self-Refinement for quality assurance.
 
@@ -1018,30 +1057,35 @@ class AccessControlManager {
 ## 7. Implementation Roadmap
 
 ### Phase 1: Foundation (Week 1-2)
+
 - [ ] Set up basic directory structure
 - [ ] Implement PRP schema definition
 - [ ] Create prompt templates
 - [ ] Build simple Plan-and-Execute agent
 
 ### Phase 2: Context Management (Week 3-4)
+
 - [ ] Implement RAG system with vector database
 - [ ] Build context assembly pipeline
 - [ ] Add token budgeting
 - [ ] Create context quality metrics
 
 ### Phase 3: Reliability (Week 5-6)
+
 - [ ] Implement retry logic with exponential backoff
 - [ ] Add circuit breaker pattern
 - [ ] Build fallback strategies
 - [ ] Create error logging system
 
 ### Phase 4: Quality Assurance (Week 7-8)
+
 - [ ] Add self-refinement agent
 - [ ] Implement validation rules
 - [ ] Build quality scoring system
 - [ ] Create review workflows
 
 ### Phase 5: Advanced Features (Week 9-10)
+
 - [ ] Implement multi-agent collaboration
 - [ ] Add version control integration
 - [ ] Build access control system
@@ -1052,17 +1096,20 @@ class AccessControlManager {
 ## 8. Tool and Library Recommendations
 
 ### TypeScript/JavaScript
+
 - **LangChain.js:** Agent framework and tooling
 - **Vercel AI SDK:** Stream generation and UI integration
 - **Zod:** Schema validation
 - **Vector databases:** Pinecone, Weaviate, or Chroma
 
 ### Python (for reference)
+
 - **LangChain:** Comprehensive agent framework
 - **LlamaIndex:** RAG and context management
 - **Haystack:** Document retrieval and QA
 
 ### Infrastructure
+
 - **OpenAI API / Anthropic Claude API:** LLM providers
 - **GitHub:** Version control
 - **PostgreSQL / MongoDB:** Metadata storage
@@ -1073,6 +1120,7 @@ class AccessControlManager {
 ## Sources and References
 
 ### Web Search Results
+
 1. **AI Development Trends 2025** - Highlights that 2025 is the "Year of AI Agents" with focus on Agent Workflows
    - Key insight: Transition from text generation to action-oriented agents
 
@@ -1085,6 +1133,7 @@ class AccessControlManager {
    - Computer Use API blurring boundary between text generation and action
 
 ### Additional Resources (Direct Links to Explore)
+
 - **LangChain Documentation:** https://js.langchain.com/
 - **OpenAI API Best Practices:** https://platform.openai.com/docs/guides/production-best-practices
 - **Anthropic Claude API:** https://docs.anthropic.com/
@@ -1093,6 +1142,7 @@ class AccessControlManager {
   - Weaviate: https://weaviate.io/documentation
 
 ### GitHub Repositories to Explore
+
 - **langchain-ai/langchainjs:** TypeScript implementation of LangChain
 - **vercel/ai:** Vercel AI SDK for TypeScript
 - **openai/openai-node:** Official OpenAI Node.js SDK
@@ -1101,6 +1151,7 @@ class AccessControlManager {
 ---
 
 **Next Steps:**
+
 1. Review existing codebase for integration points
 2. Select agent pattern based on project requirements
 3. Set up development environment with chosen libraries

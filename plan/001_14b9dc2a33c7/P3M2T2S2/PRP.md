@@ -7,12 +7,14 @@
 **Feature Goal**: Integrate scope-based execution into TaskOrchestrator, enabling selective execution of task subsets at any hierarchy level (phase, milestone, task, subtask, or all) with mid-execution reconfiguration capability.
 
 **Deliverable**: Modified `src/core/task-orchestrator.ts` with:
+
 1. Optional `scope` parameter in constructor
 2. New `executionQueue` property for scoped execution
 3. Modified `processNextItem()` to pull from queue instead of DFS traversal
 4. New `setScope()` method for mid-execution scope reconfiguration
 
 **Success Definition**:
+
 - Constructor accepts optional `Scope` parameter to limit execution scope
 - `executionQueue` is populated from scope resolution (defaults to all items if no scope)
 - `processNextItem()` pulls from `executionQueue` instead of calling `getNextPendingItem()`
@@ -27,6 +29,7 @@
 **Target User**: PRP Pipeline developers implementing scope-based execution, specifically the Task Execution Engine that needs to execute targeted subsets of the backlog.
 
 **Use Case**: The TaskOrchestrator needs to support executing tasks at different scopes so that:
+
 1. Users can execute a single subtask: `--scope P1.M1.T1.S1`
 2. Users can execute all tasks in a milestone: `--scope P1.M1`
 3. Users can execute all pending work: `--scope all`
@@ -34,6 +37,7 @@
 5. Delta sessions can execute only changed items
 
 **User Journey**:
+
 ```
 User provides CLI argument: --scope P1.M1
     ↓
@@ -49,6 +53,7 @@ Execution limited to items in scope
 ```
 
 **Pain Points Addressed**:
+
 - **No subset execution**: Currently, TaskOrchestrator always executes entire backlog
 - **No resume capability**: Cannot resume from specific hierarchy level after interruption
 - **Inefficient development**: Must run entire backlog to test single subtask
@@ -71,11 +76,13 @@ Modify TaskOrchestrator to support scope-based execution with mid-execution reco
 ### Functionality Requirements
 
 1. **Constructor Enhancement** - Add optional scope parameter:
+
    ```typescript
    constructor(sessionManager: SessionManager, scope?: Scope)
    ```
 
 2. **New Property** - `executionQueue` for scoped execution:
+
    ```typescript
    #executionQueue: HierarchyItem[] = []
    ```
@@ -95,6 +102,7 @@ Modify TaskOrchestrator to support scope-based execution with mid-execution reco
    ```typescript
    async setScope(scope: Scope): Promise<void>
    ```
+
    - Log scope change with old and new scope
    - Resolve new scope
    - Replace `executionQueue` with new items
@@ -103,11 +111,13 @@ Modify TaskOrchestrator to support scope-based execution with mid-execution reco
 ### Scope Integration Contract (from P3.M2.T2.S1)
 
 **Previous PRP Outputs** (assume these exist as specified):
+
 - `Scope` interface: `{ type: ScopeType, id?: string }`
 - `parseScope(scopeArg: string): Scope` function
 - `resolveScope(backlog: Backlog, scope: Scope): HierarchyItem[]` function
 
 **Integration Points**:
+
 - Import `Scope` and `resolveScope` from `scope-resolver.ts`
 - Use `resolveScope()` to populate `executionQueue` in constructor
 - Use `resolveScope()` to repopulate queue in `setScope()`
@@ -493,7 +503,7 @@ Task 12: MODIFY tests/unit/core/task-orchestrator.test.ts - Add integration test
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // PATTERN 1: Scope Imports (Top of file)
 // ============================================================================
@@ -826,7 +836,7 @@ export class TaskOrchestrator {
     });
   });
 }
-```
+````
 
 ### Integration Points
 
@@ -1055,7 +1065,7 @@ echo "[] Coverage = 100%"
 - [ ] Follows existing private field pattern (# prefix)
 - [ ] Follows existing readonly property pattern (sessionManager)
 - [ ] Follows existing logging pattern ([TaskOrchestrator] prefix)
-- [ ] Follows existing async method pattern (setStatus, execute*)
+- [ ] Follows existing async method pattern (setStatus, execute\*)
 - [ ] Follows existing JSDoc pattern with @param, @returns tags
 - [ ] Error handling matches existing patterns
 - [ ] No duplicate code (DRY principle - use resolveScope)
@@ -1102,6 +1112,7 @@ echo "[] Coverage = 100%"
 **9/10** - Very high confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Complete understanding of existing TaskOrchestrator implementation
 - Scope resolver contract fully defined from P3.M2.T2.S1 PRP
 - Clear modification points identified (constructor, processNextItem)
@@ -1112,11 +1123,13 @@ echo "[] Coverage = 100%"
 - Backward compatibility requirements understood
 
 **Risk Factors**:
+
 - P3.M2.T2.S1 must be completed first (scope resolver dependency)
 - Queue rebuild timing during mid-execution scope changes
 - Ensuring existing tests don't break when adding scope parameter
 
 **Mitigation**:
+
 - Detailed implementation specification with exact code patterns
 - Comprehensive test coverage requirements (100%)
 - Clear factory functions for test data
@@ -1131,6 +1144,7 @@ echo "[] Coverage = 100%"
 **Confidence Score**: 9/10
 
 **Validation**: The completed PRP should enable an AI agent unfamiliar with the codebase to:
+
 1. Modify TaskOrchestrator constructor to accept optional scope parameter
 2. Add executionQueue private field and populate it from scope
 3. Modify processNextItem() to use queue instead of DFS traversal
@@ -1139,6 +1153,7 @@ echo "[] Coverage = 100%"
 6. Maintain backward compatibility with existing code
 
 All context needed for implementation is provided including:
+
 - Exact Scope interface from P3.M2.T2.S1
 - Current TaskOrchestrator implementation with line numbers
 - Test patterns to follow

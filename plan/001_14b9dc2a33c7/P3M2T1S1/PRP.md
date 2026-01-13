@@ -69,29 +69,29 @@ Implement a `TaskOrchestrator` class that provides recursive DFS traversal of th
 
 ### Class Properties (Constructor-Initialized)
 
-| Property         | Type                      | Description                                              |
-| ---------------- | ------------------------- | -------------------------------------------------------- |
-| `sessionManager` | `SessionManager`          | Session state manager for persistence                    |
-| `backlog`        | `Backlog`                 | Current task registry (read from SessionManager)         |
+| Property         | Type             | Description                                      |
+| ---------------- | ---------------- | ------------------------------------------------ |
+| `sessionManager` | `SessionManager` | Session state manager for persistence            |
+| `backlog`        | `Backlog`        | Current task registry (read from SessionManager) |
 
 ### Public Methods
 
-| Method            | Signature                                           | Description                                                      |
-| ----------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| `constructor`     | `(sessionManager: SessionManager)`                  | Stores SessionManager reference, initializes backlog from state  |
-| `processNextItem` | `(): Promise<boolean>`                              | Get next pending item, delegate to handler, return true/false    |
-| `executePhase`    | `(phase: Phase): Promise<void>`                     | Set status to Implementing, iterate milestones recursively       |
-| `executeMilestone`| `(milestone: Milestone): Promise<void>`             | Set status to Implementing, iterate tasks recursively            |
-| `executeTask`     | `(task: Task): Promise<void>`                       | Set status to Implementing, iterate subtasks recursively         |
-| `executeSubtask`  | `(subtask: Subtask): Promise<void>`                 | Main execution unit (placeholder for PRP generation in P3.M3.T1)  |
+| Method             | Signature                               | Description                                                      |
+| ------------------ | --------------------------------------- | ---------------------------------------------------------------- |
+| `constructor`      | `(sessionManager: SessionManager)`      | Stores SessionManager reference, initializes backlog from state  |
+| `processNextItem`  | `(): Promise<boolean>`                  | Get next pending item, delegate to handler, return true/false    |
+| `executePhase`     | `(phase: Phase): Promise<void>`         | Set status to Implementing, iterate milestones recursively       |
+| `executeMilestone` | `(milestone: Milestone): Promise<void>` | Set status to Implementing, iterate tasks recursively            |
+| `executeTask`      | `(task: Task): Promise<void>`           | Set status to Implementing, iterate subtasks recursively         |
+| `executeSubtask`   | `(subtask: Subtask): Promise<void>`     | Main execution unit (placeholder for PRP generation in P3.M3.T1) |
 
 ### Private/Protected Methods
 
-| Method            | Signature                                           | Description                                                      |
-| ----------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| `refreshBacklog`  | `(): Promise<void>`                                 | Reload backlog from SessionManager after status updates         |
-| `delegateByType`  | `(item: HierarchyItem): Promise<void>`              | Type-switch dispatch to appropriate execute* method              |
-| `updateStatus`    | `(id: string, status: Status): Promise<Backlog>`    | Wrapper for SessionManager.updateItemStatus() + refresh          |
+| Method           | Signature                                        | Description                                             |
+| ---------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| `refreshBacklog` | `(): Promise<void>`                              | Reload backlog from SessionManager after status updates |
+| `delegateByType` | `(item: HierarchyItem): Promise<void>`           | Type-switch dispatch to appropriate execute\* method    |
+| `updateStatus`   | `(id: string, status: Status): Promise<Backlog>` | Wrapper for SessionManager.updateItemStatus() + refresh |
 
 ### Success Criteria
 
@@ -327,7 +327,13 @@ The TaskOrchestrator uses existing models from `src/core/models.ts`:
 type HierarchyItem = Phase | Milestone | Task | Subtask;
 
 // Status enum (state machine)
-type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete';
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed'
+  | 'Obsolete';
 
 // Hierarchy level interfaces (all use readonly properties)
 interface Subtask {
@@ -479,7 +485,7 @@ Task 11: UPDATE src/core/index.ts (if it exists)
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ===== CLASS STRUCTURE PATTERN =====
 // Follow src/core/session-manager.ts pattern for class structure
 
@@ -685,7 +691,7 @@ while (hasMore) {
 // 4. Verify completion
 console.log('Pipeline complete!');
 */
-```
+````
 
 ### Integration Points
 

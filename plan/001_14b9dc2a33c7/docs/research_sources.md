@@ -8,6 +8,7 @@
 ## Primary Frameworks and Libraries
 
 ### LangChain Ecosystem
+
 - **Main Repository:** https://github.com/langchain-ai/langchainjs
   - Type: Agent Framework
   - Language: TypeScript
@@ -28,6 +29,7 @@
 - **Community:** https://discord.gg/6ADSyUUb6c
 
 ### Vercel AI SDK
+
 - **Main Repository:** https://github.com/vercel/ai
   - Type: AI Framework
   - Language: TypeScript
@@ -42,6 +44,7 @@
 - **Examples:** https://github.com/vercel/ai-starter-kit
 
 ### OpenAI Ecosystem
+
 - **Node.js SDK:** https://github.com/openai/openai-node
   - Type: API Client
   - Language: TypeScript
@@ -61,6 +64,7 @@
 - **Community:** https://community.openai.com/
 
 ### Anthropic Claude
+
 - **Documentation:** https://docs.anthropic.com/
   - API Reference: https://docs.anthropic.com/claude/reference/getting-started-with-the-api
   - Computer Use: https://docs.anthropic.com/docs/build-with-claude/computer-use
@@ -77,6 +81,7 @@
 ## Vector Databases
 
 ### Pinecone
+
 - **Website:** https://www.pinecone.io/
 - **Documentation:** https://docs.pinecone.io/
   - Getting Started: https://docs.pinecone.io/docs/quickstart
@@ -91,6 +96,7 @@
   - Free Tier: Available
 
 ### Weaviate
+
 - **Website:** https://weaviate.io/
 - **Documentation:** https://weaviate.io/documentation
   - Quick Start: https://weaviate.io/developers/weaviate/quickstart
@@ -102,6 +108,7 @@
   - License: BSD-3-Clause
 
 ### Chroma
+
 - **Website:** https://www.trychroma.com/
 - **Documentation:** https://docs.trychroma.com/
   - Getting Started: https://docs.trychroma.com/getting-started
@@ -112,6 +119,7 @@
   - License: Apache-2.0
 
 ### Qdrant
+
 - **Website:** https://qdrant.io/
 - **Documentation:** https://qdrant.tech/documentation/
 - **GitHub:** https://github.com/qdrant/qdrant
@@ -123,6 +131,7 @@
 ## RAG and Data Frameworks
 
 ### LlamaIndex.TS
+
 - **Repository:** https://github.com/run-llama/llamaindex.ts
   - Type: Data Framework
   - Language: TypeScript
@@ -134,6 +143,7 @@
   - RAG: https://ts.llamaindex.ai/tutorials/rag/rag_pipeline
 
 ### LangChain Vector Stores
+
 - **Documentation:** https://js.langchain.com/docs/modules/data_connection/vectorstores/
   - Pinecone: https://js.langchain.com/docs/integrations/vectorstores/pinecone
   - Weaviate: https://js.langchain.com/docs/integrations/vectorstores/weaviate
@@ -144,6 +154,7 @@
 ## Agent Orchestration
 
 ### LangGraph
+
 - **Repository:** https://github.com/langchain-ai/langgraph
   - Type: Agent Orchestration
   - Language: Python/TypeScript
@@ -155,6 +166,7 @@
   - Tutorials: https://langchain-ai.github.io/langgraph/tutorials/
 
 ### Continuedev
+
 - **Repository:** https://github.com/continuedev/continue
   - Type: AI Code Assistant
   - Language: TypeScript/Python
@@ -164,6 +176,7 @@
 - **Website:** https://continue.dev
 
 ### Dify
+
 - **Repository:** https://github.com/langgenius/dify
   - Type: LLM App Platform
   - Language: Python/TypeScript
@@ -174,6 +187,7 @@
 - **Documentation:** https://docs.dify.ai/
 
 ### Fixie
+
 - **Repository:** https://github.com/fixie-ai/fixie
   - Type: Agent Platform
   - Language: TypeScript/Python
@@ -187,6 +201,7 @@
 ## Error Handling and Reliability
 
 ### Rate Limiting
+
 - **Bottleneck:** https://github.com/SGrondin/bottleneck
   - Type: Rate Limiter
   - Language: TypeScript
@@ -195,6 +210,7 @@
   - Documentation: https://github.com/SGrondin/bottleneck#readme
 
 ### Circuit Breakers
+
 - **Opossum:** https://github.com/node-opossum/opossum
   - Type: Circuit Breaker
   - Language: TypeScript
@@ -203,6 +219,7 @@
   - Documentation: https://nodeshift.dev/opossum/
 
 ### Retry Libraries
+
 - **Retry:** https://github.com/tim-kos/node-retry
   - Type: Retry Logic
   - Language: TypeScript
@@ -214,6 +231,7 @@
 ## Document Processing
 
 ### PDF Processing
+
 - **PDF.js:** https://github.com/mozilla/pdf.js
   - Type: PDF Parser
   - Language: TypeScript
@@ -221,6 +239,7 @@
   - Stars: 45k+
 
 ### Document Conversion
+
 - **Mammoth:** https://github.com/mwilliamson/mammoth.js
   - Type: DocX to HTML/Markdown
   - Language: TypeScript
@@ -238,6 +257,7 @@
 ## Learning Resources
 
 ### Prompt Engineering
+
 - **Prompt Engineering Guide:** https://github.com/dair-ai/Prompt-Engineering-Guide
   - Stars: 40k+
   - License: MIT
@@ -247,6 +267,7 @@
 - **Anthropic Prompt Library:** https://docs.anthropic.com/claude/prompt-library
 
 ### Research Papers
+
 - **ReAct Paper:** "ReAct: Synergizing Reasoning and Acting in Language Models"
   - arXiv: https://arxiv.org/abs/2210.03629
   - PDF: https://arxiv.org/pdf/2210.03629.pdf
@@ -258,6 +279,7 @@
   - arXiv: https://arxiv.org/abs/2312.10997
 
 ### Blogs and Articles
+
 - **OpenAI Blog:** https://openai.com/blog
 - **Anthropic Blog:** https://www.anthropic.com/blog
 - **LangChain Blog:** https://blog.langchain.dev/
@@ -268,6 +290,7 @@
 ## TypeScript Resources
 
 ### Type Safety
+
 - **Zod:** https://github.com/colinhacks/zod
   - Type: Schema Validation
   - Language: TypeScript
@@ -276,6 +299,7 @@
   - Documentation: https://zod.dev/
 
 ### TypeScript Best Practices
+
 - **TypeScript Handbook:** https://www.typescriptlang.org/docs/handbook/intro.html
 - **TypeScript Deep Dive:** https://basarat.gitbook.io/typescript/
 
@@ -284,11 +308,13 @@
 ## Monitoring and Observability
 
 ### Application Monitoring
+
 - **Datadog:** https://www.datadoghq.com/
 - **New Relic:** https://newrelic.com/
 - **Prometheus:** https://prometheus.io/
 
 ### LLM Monitoring
+
 - **LangSmith:** https://smith.langchain.com/
 - **Weights & Biases:** https://wandb.ai/
 - **Helicone:** https://www.helicone.ai/
@@ -298,11 +324,13 @@
 ## Development Tools
 
 ### IDE Extensions
+
 - **Continue:** https://marketplace.visualstudio.com/items?itemName=Continue.continue
 - **Codium:** https://www.codium.ai/
 - **Copilot:** https://github.com/features/copilot
 
 ### Testing
+
 - **Vitest:** https://vitest.dev/
 - **Jest:** https://jestjs.io/
 - **MSW:** https://mswjs.io/ (API mocking)
@@ -312,6 +340,7 @@
 ## Deployment Platforms
 
 ### Cloud Platforms
+
 - **Vercel:** https://vercel.com/
 - **Netlify:** https://www.netlify.com/
 - **AWS:** https://aws.amazon.com/
@@ -319,6 +348,7 @@
 - **Azure:** https://azure.microsoft.com/
 
 ### Serverless
+
 - **Vercel Functions:** https://vercel.com/docs/concepts/functions/serverless-functions
 - **AWS Lambda:** https://aws.amazon.com/lambda/
 - **Cloudflare Workers:** https://workers.cloudflare.com/
@@ -328,17 +358,20 @@
 ## Communities and Forums
 
 ### Discord Servers
+
 - **LangChain:** https://discord.gg/6ADSyUUb6c
 - **Vercel:** https://discord.gg/ve7YKfDE
 - **Anthropic:** https://discord.gg/anthropic
 - **OpenAI:** https://discord.com/invite/openai
 
 ### Reddit Communities
+
 - **r/LangChain:** https://www.reddit.com/r/LangChain/
 - **r/OpenAI:** https://www.reddit.com/r/OpenAI/
 - **r/MachineLearning:** https://www.reddit.com/r/MachineLearning/
 
 ### Stack Overflow
+
 - **Tag: langchain:** https://stackoverflow.com/questions/tagged/langchain
 - **Tag: openai-api:** https://stackoverflow.com/questions/tagged/openai-api
 - **Tag: anthropic:** https://stackoverflow.com/questions/tagged/anthropic
@@ -348,11 +381,13 @@
 ## Conferences and Events
 
 ### Upcoming (2025)
+
 - **AI Engineer World's Fair:** https://www.ai.engineering/worlds-fair
 - **LangChain Conference:** https://www.langchain.com/conference
 - **OpenAI DevDay:** https://openai.com/devday
 
 ### Past Events
+
 - **AI Engineer Summit 2024:** https://www.ai.engineering/summit
 - **LangChain Conference 2024:** https://www.langchain.com/conference/2024
 
@@ -361,11 +396,13 @@
 ## Books and Courses
 
 ### Books
+
 - "Prompt Engineering for Generative AI" (2024)
 - "Building AI Applications with LangChain" (2024)
 - "Retrieval-Augmented Generation in Practice" (2024)
 
 ### Courses
+
 - **DeepLearning.AI:** https://www.deeplearning.ai/
   - "LangChain for LLM Application Development"
   - "ChatGPT Prompt Engineering for Developers"
@@ -381,11 +418,13 @@
 ## News and Updates
 
 ### Newsletters
+
 - **TLDR AI:** https://tldr.ai/ai
 - **The Batch (DeepLearning.AI):** https://www.deeplearning.ai/the-batch/
 - **LangChain Newsletter:** https://www.langchain.com/newsletter
 
 ### Twitter/X
+
 - **OpenAI:** https://twitter.com/OpenAI
 - **Anthropic:** https://twitter.com/AnthropicAI
 - **LangChain:** https://twitter.com/LangChainAI
@@ -396,10 +435,12 @@
 ## Standards and Specifications
 
 ### JSON Schema
+
 - **Specification:** https://json-schema.org/
 - **Validation:** https://www.jsonschemavalidator.net/
 
 ### OpenAPI
+
 - **Specification:** https://swagger.io/specification/
 - **Tools:** https://swagger.io/tools/
 
@@ -408,12 +449,14 @@
 ## License Information
 
 ### Open Source Licenses
+
 - **MIT:** Permissive, widely used
 - **Apache-2.0:** Patent protection included
 - **BSD-3-Clause:** Simple, permissive
 - **GPL-2.0:** Copyleft, requires derivative works to be GPL
 
 ### Commercial Licenses
+
 - **OpenAI:** Commercial use requires API subscription
 - **Anthropic:** Commercial use requires API subscription
 - **Pinecone:** Freemium model
@@ -423,6 +466,7 @@
 ## Citation Information
 
 ### Academic Citations
+
 ```bibtex
 @misc{llm_agent_prp_research_2025,
   title={LLM Agent Patterns for Product Requirement Prompt Generation},
@@ -434,6 +478,7 @@
 ```
 
 ### Web Citation
+
 ```markdown
 Research: LLM Agent Patterns for PRP Generation (2025)
 Retrieved from: https://github.com/your-org/research
@@ -445,6 +490,7 @@ Date: 2026-01-13
 ## Version History
 
 ### v1.0 (2026-01-13)
+
 - Initial compilation of sources
 - 50+ URLs collected
 - Organized by category
@@ -455,6 +501,7 @@ Date: 2026-01-13
 ## Contributing Sources
 
 To add new sources:
+
 1. Verify the URL is accessible
 2. Add relevant description
 3. Categorize appropriately
@@ -473,6 +520,7 @@ To add new sources:
 ## Quick Search
 
 ### By Category
+
 - [Frameworks](#primary-frameworks-and-libraries) - LangChain, Vercel AI SDK, OpenAI
 - [Vector DBs](#vector-databases) - Pinecone, Weaviate, Chroma
 - [RAG](#rag-and-data-frameworks) - LlamaIndex, LangChain Vector Stores
@@ -482,6 +530,7 @@ To add new sources:
 - [Communities](#communities-and-forums) - Discord, Reddit, Stack Overflow
 
 ### By Type
+
 - [Repositories](#) - GitHub links
 - [Documentation](#) - Official docs
 - [Papers](#research-papers) - Academic research

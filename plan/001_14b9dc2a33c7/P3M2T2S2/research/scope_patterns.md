@@ -5,6 +5,7 @@
 This document compiles best practices for scope-based task execution and dynamic queue reconfiguration in task orchestration systems. Research includes patterns from build systems (Bazel, npm), workflow orchestrators (Airflow, Temporal), and distributed task queues (Bull, Agenda).
 
 **Key Finding**: Most production systems use a **two-phase approach**:
+
 1. **Planning Phase**: Static scope calculation with dependency resolution
 2. **Execution Phase**: Immutable execution queue with minimal runtime changes
 
@@ -31,12 +32,14 @@ Dynamic reconfiguration is typically handled through **cancellation + replan** r
 **Description**: Calculate execution scope once before execution begins. Scope is immutable during execution.
 
 **Pros**:
+
 - Predictable execution order
 - Easier dependency resolution
 - Simpler state management
 - Better testability
 
 **Cons**:
+
 - Less flexible for interactive use cases
 - Requires full restart to change scope
 
@@ -91,11 +94,13 @@ class TaskOrchestrator {
 **Description**: Calculate next task on-demand based on current scope and state.
 
 **Pros**:
+
 - Interactive scope changes
 - Memory efficient for large backlogs
 - Supports live filtering
 
 **Cons**:
+
 - Complex dependency tracking
 - Potential for infinite loops
 - Harder to reason about
@@ -104,7 +109,12 @@ class TaskOrchestrator {
 
 ```typescript
 class DynamicTaskOrchestrator {
-  private scope: ScopePattern = { phase: '*', milestone: '*', task: '*', subtask: '*' };
+  private scope: ScopePattern = {
+    phase: '*',
+    milestone: '*',
+    task: '*',
+    subtask: '*',
+  };
 
   // ALLOWED to change during execution
   updateScope(newScope: ScopePattern): void {
@@ -133,11 +143,13 @@ class DynamicTaskOrchestrator {
 **Description**: Iterator that applies scope filter to underlying data structure.
 
 **Pros**:
+
 - Clean separation of concerns
 - Memory efficient
 - Composable filters
 
 **Cons**:
+
 - Hard to cache results
 - Repeated filter calculations
 
@@ -187,11 +199,13 @@ class ScopedTaskIterator {
 **Description**: Start with broad scope, progressively narrow during execution.
 
 **Pros**:
+
 - Natural for exploratory workflows
 - Supports "focus mode" interactions
 - Good for debugging
 
 **Cons**:
+
 - Requires careful dependency handling
 - Can skip important tasks
 
@@ -199,7 +213,12 @@ class ScopedTaskIterator {
 
 ```typescript
 class IncrementalOrchestrator {
-  private scope: ScopePattern = { phase: '*', milestone: '*', task: '*', subtask: '*' };
+  private scope: ScopePattern = {
+    phase: '*',
+    milestone: '*',
+    task: '*',
+    subtask: '*',
+  };
   private executed: Set<string> = new Set();
 
   async execute(): Promise<void> {
@@ -235,11 +254,13 @@ class IncrementalOrchestrator {
 **Description**: Queue is immutable. Scope changes require rebuilding queue.
 
 **Pros**:
+
 - Thread-safe by default
 - Easy to reason about
 - Simple rollback
 
 **Cons**:
+
 - O(n) rebuild cost
 - Not suitable for high-frequency changes
 
@@ -258,9 +279,7 @@ class ImmutableQueueOrchestrator {
 
   private buildQueue(scope: ScopePattern): Task[] {
     // Topological sort with scope filter
-    return this.topologicalSort(
-      this.filterByScope(scope)
-    );
+    return this.topologicalSort(this.filterByScope(scope));
   }
 
   async processNext(): Promise<boolean> {
@@ -285,11 +304,13 @@ class ImmutableQueueOrchestrator {
 **Description**: Tasks prioritized by dependencies. New tasks inserted at correct position.
 
 **Pros**:
+
 - Supports dynamic task addition
 - Efficient for incremental updates
 - Natural for dependency-based ordering
 
 **Cons**:
+
 - Complex implementation
 - Potential for priority inversion
 - Harder to predict execution order
@@ -316,8 +337,9 @@ class DynamicQueueOrchestrator {
 
   updateScope(newScope: ScopePattern): void {
     // Remove tasks not in new scope
-    const filtered = Array.from(this.queue)
-      .filter(({ task }) => this.matchesScope(task.id, newScope));
+    const filtered = Array.from(this.queue).filter(({ task }) =>
+      this.matchesScope(task.id, newScope)
+    );
 
     // Rebuild queue
     this.queue = new PriorityQueue<PriorityTask>(
@@ -347,11 +369,13 @@ class DynamicQueueOrchestrator {
 **Description**: Two queues - active (immutable) and staging (mutable). Swap on scope change.
 
 **Pros**:
+
 - Safe atomic transitions
 - Preview changes before applying
 - Easy rollback
 
 **Cons**:
+
 - Double memory usage
 - Stale data during staging
 
@@ -400,11 +424,13 @@ class DoubleBufferedOrchestrator {
 **Description**: Queue as transform stream. Scope changes injected as control signals.
 
 **Pros**:
+
 - Natural async/await flow
 - Backpressure handling
 - Composable with other streams
 
 **Cons**:
+
 - Harder to debug
 - Stream complexity
 - Error propagation challenges
@@ -417,7 +443,7 @@ import { Readable, Transform } from 'stream';
 class StreamOrchestrator {
   private controlStream = new Readable({
     objectMode: true,
-    read() {}
+    read() {},
   });
 
   private taskStream = this.createTaskStream();
@@ -436,7 +462,7 @@ class StreamOrchestrator {
             .then(() => callback())
             .catch(err => callback(err));
         }
-      }
+      },
     });
   }
 
@@ -476,6 +502,7 @@ class NxStyleOrchestrator {
 ```
 
 **Reference**:
+
 - https://nx.dev/reference/nx-json#default-projects-and-tasks
 - https://nx.dev/features/run-tasks#nx-run-many
 
@@ -521,6 +548,7 @@ class BazelStyleOrchestrator {
 ```
 
 **Reference**:
+
 - https://bazel.build/concepts/labels#target-patterns
 - https://bazel.build/docs/user-manual#execution-options
 
@@ -581,6 +609,7 @@ class DiffBasedOrchestrator {
 ```
 
 **Reference**:
+
 - https://git-scm.com/docs/git-checkout
 - Database migration tools (Flyway, Alembic)
 
@@ -593,11 +622,13 @@ class DiffBasedOrchestrator {
 **Description**: Pause execution, reconfigure, resume from last checkpoint.
 
 **Pros**:
+
 - Consistent state
 - Simple to implement
 - Easy to rollback
 
 **Cons**:
+
 - Interrupts workflow
 - Not suitable for long-running tasks
 
@@ -634,7 +665,7 @@ class CheckpointedOrchestrator {
     return {
       executed: Array.from(this.executed),
       currentIndex: this.currentIndex,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 }
@@ -649,11 +680,13 @@ class CheckpointedOrchestrator {
 **Description**: Finish current tasks, then rebuild queue with new scope.
 
 **Pros**:
+
 - No task interruption
 - Clean transition
 - Good for queue-based systems
 
 **Cons**:
+
 - Delay before new scope active
 - Wastes work on deprecated tasks
 
@@ -708,11 +741,13 @@ class DrainRefillOrchestrator {
 **Description**: Old scope finishes, new scope starts in parallel, merge results.
 
 **Pros**:
+
 - No interruption
 - Graceful overlap
 - Supports A/B testing
 
 **Cons**:
+
 - Resource contention
 - Complex result merging
 - Potential for duplicate work
@@ -757,11 +792,13 @@ class DualPhaseOrchestrator {
 **Description**: Cancel pending work, replan with new scope, restart execution.
 
 **Pros**:
+
 - Simple mental model
 - Consistent state
 - Easy to implement
 
 **Cons**:
+
 - Loses in-flight work
 - Not suitable for critical tasks
 
@@ -794,7 +831,7 @@ class CancelReplanOrchestrator {
   private saveCompletedState(): void {
     // Persist completed tasks to session
     this.sessionManager.saveExecutionState({
-      completed: this.getCompletedTasks()
+      completed: this.getCompletedTasks(),
     });
   }
 }
@@ -803,6 +840,7 @@ class CancelReplanOrchestrator {
 **Used By**: Most CI/CD systems (Jenkins, GitHub Actions), Airflow (clear + rerun)
 
 **Reference**:
+
 - https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#clearing-task-instances
 - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepscontinue-on-error
 
@@ -815,6 +853,7 @@ class CancelReplanOrchestrator {
 **Problem**: Scope changes while task is executing, causing inconsistent state.
 
 **Bad Code**:
+
 ```typescript
 // RACE CONDITION
 async executeTask(task: Task): Promise<void> {
@@ -826,6 +865,7 @@ async executeTask(task: Task): Promise<void> {
 ```
 
 **Fix**: Use immutable scope snapshots:
+
 ```typescript
 async executeTask(task: Task): Promise<void> {
   // Capture scope at start
@@ -843,12 +883,14 @@ async executeTask(task: Task): Promise<void> {
 **Problem**: Changing scope removes dependencies that already executed.
 
 **Scenario**:
+
 1. Task A (dependency) executes in scope P1
 2. Scope changes to P2 (excludes A)
 3. Task B (depends on A) can't find A
 4. System breaks
 
 **Fix**: Keep executed tasks regardless of scope:
+
 ```typescript
 class DependencyAwareOrchestrator {
   private executedTasks: Map<string, Task> = new Map();
@@ -877,6 +919,7 @@ class DependencyAwareOrchestrator {
 **Problem**: Scope changes discard in-progress task results.
 
 **Bad Code**:
+
 ```typescript
 // Loses task3 result
 setScope(newScope) {
@@ -885,6 +928,7 @@ setScope(newScope) {
 ```
 
 **Fix**: Preserve execution history:
+
 ```typescript
 setScope(newScope: ScopePattern): void {
   const completed = this.getCompletedTasks();
@@ -905,6 +949,7 @@ setScope(newScope: ScopePattern): void {
 **Problem**: Dynamic scope evaluation creates cycles.
 
 **Scenario**:
+
 1. Task A completes, triggers scope update
 2. Scope update adds Task B (dependency of A)
 3. Task B fails, triggers scope update
@@ -912,6 +957,7 @@ setScope(newScope: ScopePattern): void {
 5. Loop forever
 
 **Fix**: Idempotency checks:
+
 ```typescript
 class IdempotentOrchestrator {
   private scopeHistory: ScopePattern[] = [];
@@ -939,6 +985,7 @@ class IdempotentOrchestrator {
 **Problem**: Incremental scope updates accumulate garbage.
 
 **Bad Code**:
+
 ```typescript
 // Memory leak - never removes old tasks
 updateScope(newScope: ScopePattern): void {
@@ -948,6 +995,7 @@ updateScope(newScope: ScopePattern): void {
 ```
 
 **Fix**: Explicit cleanup:
+
 ```typescript
 updateScope(newScope: ScopePattern): void {
   const newTaskIds = new Set(this.getTasks(newScope).map(t => t.id));
@@ -1003,8 +1051,7 @@ class ImmutableQueueOrchestrator {
   setScope(scope: ScopePattern): void {
     if (this.isExecuting) {
       throw new Error(
-        'Cannot change scope during execution. ' +
-        'Use cancel() first.'
+        'Cannot change scope during execution. ' + 'Use cancel() first.'
       );
     }
 
@@ -1074,7 +1121,7 @@ class ImmutableQueueOrchestrator {
   getProgress(): { completed: number; total: number } {
     return {
       completed: this.executed.size,
-      total: this.queue.length
+      total: this.queue.length,
     };
   }
 
@@ -1128,7 +1175,7 @@ class ImmutableQueueOrchestrator {
       items.set(task.id, {
         task,
         dependencies,
-        depth
+        depth,
       });
     }
 
@@ -1201,7 +1248,7 @@ class DynamicScopeOrchestrator {
     phase: '*',
     milestone: '*',
     task: '*',
-    subtask: '*'
+    subtask: '*',
   };
   private executed = new Set<string>();
   private blocked = new Set<string>();
@@ -1265,9 +1312,9 @@ class DynamicScopeOrchestrator {
       total: candidates.length,
       completed: candidates.filter(t => this.executed.has(t.id)).length,
       blocked: candidates.filter(t => this.blocked.has(t.id)).length,
-      pending: candidates.filter(t =>
-        !this.executed.has(t.id) && !this.blocked.has(t.id)
-      ).length
+      pending: candidates.filter(
+        t => !this.executed.has(t.id) && !this.blocked.has(t.id)
+      ).length,
     };
   }
 
@@ -1406,10 +1453,12 @@ class HybridOrchestrator {
       executing: this.isExecuting,
       draining: this.draining,
       pendingScopeChange: this.pendingScopeChange !== null,
-      progress: this.plan ? {
-        completed: this.plan.queue.filter(i => i.executed).length,
-        total: this.plan.queue.length
-      } : { completed: 0, total: 0 }
+      progress: this.plan
+        ? {
+            completed: this.plan.queue.filter(i => i.executed).length,
+            total: this.plan.queue.length,
+          }
+        : { completed: 0, total: 0 },
     };
   }
 
@@ -1419,7 +1468,9 @@ class HybridOrchestrator {
     if (!this.pendingScopeChange) return;
 
     const newScope = this.pendingScopeChange;
-    console.log(`[Orchestrator] Applying scope change: ${JSON.stringify(newScope)}`);
+    console.log(
+      `[Orchestrator] Applying scope change: ${JSON.stringify(newScope)}`
+    );
 
     // Mark draining
     this.draining = true;
@@ -1449,7 +1500,9 @@ class HybridOrchestrator {
     this.pendingScopeChange = null;
     this.draining = false;
 
-    console.log(`[Orchestrator] Scope change applied. Queue: ${newPlan.queue.length} tasks`);
+    console.log(
+      `[Orchestrator] Scope change applied. Queue: ${newPlan.queue.length} tasks`
+    );
   }
 
   private async buildPlan(scope: ScopePattern): Promise<ExecutionPlan> {
@@ -1458,7 +1511,7 @@ class HybridOrchestrator {
     return {
       scope,
       queue: [],
-      currentIndex: 0
+      currentIndex: 0,
     };
   }
 
@@ -1494,69 +1547,83 @@ interface QueueItem {
 ### Build Systems (Scope/Target Patterns)
 
 **Bazel**
+
 - Target Patterns: https://bazel.build/concepts/labels#target-patterns
 - Query Language: https://bazel.build/docs/query
 - Execution Phases: https://bazel.build/docs/user-manual#execution-options
 - Target Wildcards: https://bazel.build/reference/be/common-definitions#common-target-attributes
 
 **Gradle**
+
 - Task Selection: https://docs.gradle.org/current/userguide/command_line_interface.html#sec:executing_tasks
 - Include/Exclude Patterns: https://docs.gradle.org/current/userguide/task_configuration_avoidance.html
 - Continuous Build: https://docs.gradle.org/current/userguide/continuous_build.html
 
 **Nx (Monorepo)**
+
 - Run Many Tasks: https://nx.dev/features/run-tasks
 - Project Filtering: https://nx.dev/features/nx-json#default-projects-and-tasks
 - Affected Graph: https://nx.dev/features/affected
 
 **Turborepo**
+
 - Task Filtering: https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks
 - Scope Options: https://turbo.build/repo/docs/reference/command-line-reference#--filter
 
 ### Package Managers
 
 **npm/yarn workspaces**
+
 - Workspace Filtering: https://classic.yarnpkg.com/en/docs/workspaces/
 - npm-run-all patterns: https://www.npmjs.com/package/npm-run-all
 
 **Lerna**
+
 - Scope Flag: https://lerna.js.org/docs/features/running-tasks-in-pipeline#--scope-string
 - Filter Dependencies: https://lerna.js.org/docs/features/running-tasks-in-pipeline#--include-filtered-dependencies
 
 ### Workflow Orchestrators
 
 **Airflow**
+
 - Task Instances: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#task-instances
 - Clearing Tasks: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#clearing-task-instances
 - Manual Triggers: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#task-depending-on-past
 
 **Temporal**
+
 - Workflow Updates: https://docs.temporal.io/dev-guide/typescript/update
 - Signals: https://docs.temporal.io/dev-guide/typescript/workflows#signals
 
 **Prefect**
+
 - Task Concurrency: https://docs.prefect.io/latest/concepts/tasks/
 - Dynamic Tasks: https://docs.prefect.io/latest/guides/dynamic-tasks/
 
 ### Task Queues
 
 **Bull (Redis)**
+
 - Queue Management: https://docs.bullmq.io/patterns/priority-queues
 - Job Scheduling: https://docs.bullmq.io/patterns/job-scheduling
 
 **Agenda (MongoDB)**
+
 - Task Scheduling: https://github.com/agenda/agenda#defining-job-processed
 
 ### Best Practices
 
 **Google Cloud (Task Queues)**
+
 - Task Routing: https://cloud.google.com/tasks/docs/reference/rpc/google.cloud.tasks.v2#task
 - Queue Management: https://cloud.google.com/tasks/docs/reference/rpc/google.cloud.tasks.v2#queue
 
 **AWS Step Functions**
+
 - State Machines: https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-state-machine-structure.html
 
 **GitHub Actions**
+
 - Workflow Re-use: https://docs.github.com/en/actions/using-workflows/reusing-workflows
 
 ---
@@ -1625,7 +1692,9 @@ class TaskOrchestrator {
     // Topological sort by dependencies
     this.plannedQueue = this.topologicalSort(tasks);
 
-    console.log(`[Orchestrator] Queue rebuilt: ${this.plannedQueue.length} tasks`);
+    console.log(
+      `[Orchestrator] Queue rebuilt: ${this.plannedQueue.length} tasks`
+    );
   }
 }
 ```

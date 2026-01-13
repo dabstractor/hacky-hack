@@ -675,7 +675,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Create PRP Generator",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.2 - Researcher Agent generates PRP.md with curated context, implementation steps, validation gates.\n2. INPUT: Subtask to generate PRP for. Backlog for context. Researcher agent. createPRPBlueprintPrompt().\n3. LOGIC: Create src/agents/prp-generator.ts:\n   - Export class PRPGenerator with researcherAgent (Agent), sessionPath (string)\n   - async generate(task: Task | Subtask, backlog: Backlog): Promise<PRPDocument>\n   - Call createPRPBlueprintPrompt(task, backlog, process.cwd())\n   - Execute researcherAgent.prompt(prompt)\n   - Write PRP to {sessionPath}/prps/{taskId}.md\n   - Return PRPDocument for execution\n   - Handle errors with retry logic (up to 3 attempts)\n4. OUTPUT: PRPGenerator that creates detailed PRPs and saves to disk."
@@ -684,7 +684,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S2",
                   "title": "Create PRP Executor",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M3.T1.S1"

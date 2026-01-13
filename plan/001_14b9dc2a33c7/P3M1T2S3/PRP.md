@@ -7,6 +7,7 @@
 **Deliverable**: Complete `createDeltaSession()` async method in `src/core/session-manager.ts` with comprehensive test coverage in `tests/unit/core/session-manager.test.ts`.
 
 **Success Definition**:
+
 - Method creates new session directory with incremented sequence number
 - Delta session stores old PRD, new PRD, and diff summary
 - Parent session reference is persisted to `parent_session.txt`
@@ -20,12 +21,14 @@
 **Target User**: PRP Pipeline system (internal component used by Task Orchestrator)
 
 **Use Case**: When a user modifies the PRD after development has started, the pipeline needs to create a delta session that:
+
 1. Detects PRD changes via hash comparison
 2. Creates a new linked session without losing completed work
 3. Computes structured diff of what changed
 4. Enables selective re-execution of affected tasks only
 
 **User Journey**:
+
 ```
 1. Pipeline detects PRD hash mismatch via hasSessionChanged()
 2. Pipeline calls createDeltaSession('/path/to/modified/PRD.md')
@@ -37,6 +40,7 @@
 ```
 
 **Pain Points Addressed**:
+
 - **Lost work on PRD changes**: Without delta sessions, modifying the PRD would require starting from scratch
 - **Inefficient re-execution**: Delta sessions enable selective re-execution based on actual changes
 - **No audit trail**: Delta sessions provide complete history of requirement evolution
@@ -93,6 +97,7 @@ Implement `createDeltaSession(newPRDPath: string): Promise<DeltaSession>` method
 **No Prior Knowledge Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Complete existing SessionManager implementation patterns
 - Exact DeltaSession interface definition
 - All utility function signatures and usage patterns
@@ -201,15 +206,15 @@ hacky-hack/
 
 // CRITICAL: Always resolve() paths to absolute before file operations
 import { resolve } from 'node:path';
-const absPath = resolve(newPRDPath);  // Always resolve first
+const absPath = resolve(newPRDPath); // Always resolve first
 
 // CRITICAL: SessionFileError requires (path, operation, cause?) parameters
 // BAD: throw new SessionFileError(path)
 // GOOD: throw new SessionFileError(absPath, 'validate new PRD exists', error as Error)
 
 // CRITICAL: hashPRD() returns 64-char hash, slice for session hash
-const fullHash = await hashPRD(newPRDPath);  // 64 characters
-const sessionHash = fullHash.slice(0, 12);   // First 12 for session ID
+const fullHash = await hashPRD(newPRDPath); // 64 characters
+const sessionHash = fullHash.slice(0, 12); // First 12 for session ID
 
 // CRITICAL: Sequence number parsing from session ID
 // Session ID format: "{sequence}_{hash}" e.g., "001_14b9dc2a33c7"
@@ -218,13 +223,13 @@ const newSeq = currentSeq + 1;
 
 // CRITICAL: DeltaSession extends SessionState - includes all base fields
 const deltaSession: DeltaSession = {
-  metadata,           // From SessionState
+  metadata, // From SessionState
   prdSnapshot: newPRD, // From SessionState (new PRD becomes snapshot)
   taskRegistry: { backlog: [] }, // From SessionState (empty until Architect)
-  currentItemId: null,  // From SessionState
-  oldPRD,             // DeltaSession-specific
-  newPRD,             // DeltaSession-specific
-  diffSummary,        // DeltaSession-specific
+  currentItemId: null, // From SessionState
+  oldPRD, // DeltaSession-specific
+  newPRD, // DeltaSession-specific
+  diffSummary, // DeltaSession-specific
 };
 
 // CRITICAL: Use readonly properties for immutability
@@ -234,7 +239,7 @@ const metadata: SessionMetadata = {
   path: sessionPath,
   createdAt: new Date(),
   parentSession: this.#currentSession.metadata.id,
-};  // All readonly
+}; // All readonly
 
 // CRITICAL: Vitest mock patterns - mock before imports
 vi.mock('node:fs/promises', () => ({
@@ -249,7 +254,13 @@ const mockReadFile = readFile as any;
 
 // CRITICAL: Test file follows factory function pattern
 const createTestSubtask = (id, title, status, dependencies = []) => ({
-  id, type: 'Subtask', title, status, story_points: 2, dependencies, context_scope: 'Test'
+  id,
+  type: 'Subtask',
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope: 'Test',
 });
 ```
 
@@ -264,9 +275,9 @@ The `DeltaSession` interface is already defined in `src/core/models.ts`:
 ```typescript
 // From src/core/models.ts lines 847-888
 export interface DeltaSession extends SessionState {
-  readonly oldPRD: string;        // Original PRD from parent session
-  readonly newPRD: string;        // Modified PRD content
-  readonly diffSummary: string;   // Human-readable diff summary
+  readonly oldPRD: string; // Original PRD from parent session
+  readonly newPRD: string; // Modified PRD content
+  readonly diffSummary: string; // Human-readable diff summary
 }
 
 // SessionState base interface (lines 762-807)
@@ -279,11 +290,11 @@ export interface SessionState {
 
 // SessionMetadata for parent reference (lines 663-716)
 export interface SessionMetadata {
-  readonly id: string;                    // Format: "{sequence}_{hash}"
-  readonly hash: string;                  // First 12 chars of SHA-256
-  readonly path: string;                  // Session directory path
-  readonly createdAt: Date;               // Session creation timestamp
-  readonly parentSession: string | null;  // Parent session ID for delta sessions
+  readonly id: string; // Format: "{sequence}_{hash}"
+  readonly hash: string; // First 12 chars of SHA-256
+  readonly path: string; // Session directory path
+  readonly createdAt: Date; // Session creation timestamp
+  readonly parentSession: string | null; // Parent session ID for delta sessions
 }
 ```
 
@@ -382,7 +393,7 @@ try {
 
 // PATTERN 3: PRD hashing (from line 318-319)
 const newHash = await hashPRD(newPRDPath);
-const sessionHash = newHash.slice(0, 12);  // First 12 chars only
+const sessionHash = newHash.slice(0, 12); // First 12 chars only
 
 // PATTERN 4: Reading PRD contents (from line 322-323)
 const oldPRD = this.#currentSession.prdSnapshot;
@@ -393,10 +404,7 @@ const diffResult = diffPRDs(oldPRD, newPRD);
 const diffSummary = diffResult.summaryText;
 
 // PATTERN 6: Sequence number calculation (from line 330-334)
-const currentSeq = parseInt(
-  this.#currentSession.metadata.id.split('_')[0],
-  10
-);
+const currentSeq = parseInt(this.#currentSession.metadata.id.split('_')[0], 10);
 const newSeq = currentSeq + 1;
 
 // PATTERN 7: Session directory creation (from line 335)
@@ -423,7 +431,7 @@ const metadata: SessionMetadata = {
 const deltaSession: DeltaSession = {
   metadata,
   prdSnapshot: newPRD,
-  taskRegistry: { backlog: [] },  // Empty until Architect Agent
+  taskRegistry: { backlog: [] }, // Empty until Architect Agent
   currentItemId: null,
   oldPRD,
   newPRD,
@@ -639,6 +647,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
 ## Anti-Patterns to Avoid
 
 - **Don't mutate existing objects**: Always create new objects with spread operator
+
   ```typescript
   // BAD
   this.#currentSession.metadata.parentSession = 'new_parent';
@@ -646,11 +655,12 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
   // GOOD
   this.#currentSession = {
     ...this.#currentSession,
-    metadata: { ...this.#currentSession.metadata, parentSession: 'new_parent' }
+    metadata: { ...this.#currentSession.metadata, parentSession: 'new_parent' },
   };
   ```
 
 - **Don't skip error handling**: All file operations need try/catch
+
   ```typescript
   // BAD
   const content = await readFile(path);
@@ -664,6 +674,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
   ```
 
 - **Don't use relative paths**: Always resolve to absolute paths
+
   ```typescript
   // BAD
   await readFile(newPRDPath);
@@ -674,6 +685,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
   ```
 
 - **Don't forget to slice hash**: hashPRD() returns 64 chars, session needs 12
+
   ```typescript
   // BAD
   const sessionHash = await hashPRD(path);
@@ -684,6 +696,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
   ```
 
 - **Don't use sync operations**: Always use async versions from fs/promises
+
   ```typescript
   // BAD
   import { readFileSync } from 'fs';
@@ -695,6 +708,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
   ```
 
 - **Don't catch all errors**: Be specific about error types
+
   ```typescript
   // BAD
   try { ... } catch (e) { /* ignore */ }
@@ -707,9 +721,10 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
   ```
 
 - **Don't forget to update internal state**: Must update #currentSession
+
   ```typescript
   // BAD
-  return deltaSession;  // #currentSession still points to old session
+  return deltaSession; // #currentSession still points to old session
 
   // GOOD
   this.#currentSession = deltaSession;
@@ -723,6 +738,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
 **8/10** for one-pass implementation success
 
 **Justification**:
+
 - ✅ Complete existing implementation patterns available in codebase
 - ✅ All dependencies (diffPRDs, hashPRD, createSessionDirectory) already implemented
 - ✅ Clear DeltaSession interface definition
@@ -733,6 +749,7 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
 - ⚠️ Error handling requires careful attention to edge cases
 
 **Risk Mitigation**:
+
 - Comprehensive test coverage for all branches
 - Step-by-step validation levels catch issues early
 - Existing patterns guide implementation decisions
@@ -743,12 +760,14 @@ cat /tmp/test-plan/002_yyyyyyyyyyy/parent_session.txt
 ## References
 
 ### Internal Documentation
+
 - **PRD**: `plan/001_14b9dc2a33c7/prd_snapshot.md` - Full PRD with delta workflow specification
 - **SessionManager**: `src/core/session-manager.ts` - Complete class implementation
 - **PRD Differ**: `src/core/prd-differ.ts` - diffPRDs() function documentation
 - **Models**: `src/core/models.ts` - DeltaSession interface (lines 847-888)
 
 ### External Resources
+
 - **TypeScript Async Functions**: https://www.typescriptlang.org/docs/handbook/2/functions.html#async-functions
 - **Node.js fs/promises**: https://nodejs.org/api/fs.html#fspromisesapi
 - **Vitest Testing**: https://vitest.dev/guide/

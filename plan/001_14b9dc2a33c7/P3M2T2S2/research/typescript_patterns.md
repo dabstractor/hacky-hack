@@ -31,11 +31,13 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Simple, straightforward syntax
 - IDE autocomplete shows defaults inline
 - Clear parameter documentation in constructor signature
 
 **Cons:**
+
 - Parameter ordering matters (required first, then optional)
 - Becomes unwieldy with 4+ parameters
 - Can't skip optional parameters (must pass `undefined` to use default)
@@ -73,10 +75,7 @@ export class TaskOrchestrator {
   readonly enableDeps: boolean;
   readonly logLevel: OrchestratorConfig['logLevel'];
 
-  constructor(
-    sessionManager: SessionManager,
-    config: OrchestratorConfig = {}
-  ) {
+  constructor(sessionManager: SessionManager, config: OrchestratorConfig = {}) {
     this.sessionManager = sessionManager;
     this.maxRetries = config.maxRetries ?? 3;
     this.timeout = config.timeout ?? 5000;
@@ -87,21 +86,24 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Parameter ordering doesn't matter
 - Self-documenting (property names describe purpose)
 - Easy to extend with new options
 - Named parameters in callsite
 
 **Cons:**
+
 - More verbose
 - Requires interface definition
 - Slightly more complex validation
 
 **Usage:**
+
 ```typescript
 const orchestrator = new TaskOrchestrator(sessionManager, {
   timeout: 10000,
-  logLevel: 'debug'
+  logLevel: 'debug',
   // maxRetries and enableDeps use defaults
 });
 ```
@@ -121,11 +123,13 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Most concise syntax
 - Automatically creates properties from parameters
 - Reduces boilerplate
 
 **Cons:**
+
 - No place for validation logic
 - All-or-nothing (can't mix with regular properties easily)
 - Can make constructors less readable
@@ -151,11 +155,13 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Simplest access pattern
 - Minimal overhead
 - Easy to debug
 
 **Cons:**
+
 - No control over external mutations
 - Can't add validation/logging later without breaking API
 - Violates encapsulation
@@ -194,12 +200,14 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - External read access only
 - Clear ownership semantics
 - Can add validation/logging later without breaking API
 - TypeScript enforces visibility
 
 **Cons:**
+
 - Getter returns reference (still mutable if object)
 - More verbose than public properties
 
@@ -217,6 +225,7 @@ get backlog(): Backlog {
 ```
 
 **RECOMMENDATION for TaskOrchestrator:**
+
 - Use `readonly` public property for `sessionManager` (dependency injection, immutable ref)
 - Use private field with getter for `backlog` (internal state managed by orchestrator)
 - Return defensive copy only if mutations are a concern (consider performance impact)
@@ -257,11 +266,13 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Validation on write
 - Side effects (logging, persistence, etc.)
 - Maintains API stability if implementation changes
 
 **Cons:**
+
 - Can hide expensive operations behind simple assignment
 - May surprise users if setter has side effects
 - More complex than direct property access
@@ -271,6 +282,7 @@ export class TaskOrchestrator {
 ### 2.4 Current TaskOrchestrator Pattern Analysis
 
 **Current Implementation:**
+
 ```typescript
 export class TaskOrchestrator {
   readonly sessionManager: SessionManager;
@@ -291,6 +303,7 @@ export class TaskOrchestrator {
 ```
 
 **Strengths:**
+
 - ✅ `readonly sessionManager` prevents external reassignment
 - ✅ `#backlog` private field prevents direct property replacement
 - ✅ `get backlog()` provides read access
@@ -298,10 +311,12 @@ export class TaskOrchestrator {
 - ✅ Clear separation: reading via getter, mutating via method
 
 **Weaknesses:**
+
 - ⚠️ Getter returns backlog reference (external code can mutate nested properties)
 - ⚠️ No validation on backlog access
 
 **Recommended Enhancement:**
+
 ```typescript
 export class TaskOrchestrator {
   readonly sessionManager: SessionManager;
@@ -353,20 +368,19 @@ export class TaskOrchestrator {
 
   // Usage
   configure() {
-    return this
-      .setMaxRetries(5)
-      .setTimeout(10000)
-      .setLogLevel('debug');
+    return this.setMaxRetries(5).setTimeout(10000).setLogLevel('debug');
   }
 }
 ```
 
 **Pros:**
+
 - Concise, readable API
 - Easy to chain multiple configuration calls
 - Common in TypeScript ecosystem
 
 **Cons:**
+
 - Can make debugging harder (intermediate state not observable)
 - Encourages mutable state
 - Not suitable for mid-execution reconfiguration (racing concerns)
@@ -390,7 +404,10 @@ export class TaskOrchestrator {
    */
   updateRuntimeConfig(
     updates: Partial<RuntimeConfig>,
-    options: { validate: boolean; persist: boolean } = { validate: true, persist: true }
+    options: { validate: boolean; persist: boolean } = {
+      validate: true,
+      persist: true,
+    }
   ): void {
     const oldConfig = { ...this.#currentConfig };
 
@@ -406,7 +423,7 @@ export class TaskOrchestrator {
     this.#configHistory.push({
       timestamp: Date.now(),
       oldConfig,
-      newConfig: { ...this.#currentConfig }
+      newConfig: { ...this.#currentConfig },
     });
 
     // Side effects
@@ -416,7 +433,7 @@ export class TaskOrchestrator {
 
     // Log transition
     console.log(`Config updated:`, {
-      changes: this.#diffConfig(oldConfig, this.#currentConfig)
+      changes: this.#diffConfig(oldConfig, this.#currentConfig),
     });
   }
 
@@ -436,6 +453,7 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Clear intent (method name describes action)
 - Validation logic encapsulated
 - Side effects are explicit
@@ -443,6 +461,7 @@ export class TaskOrchestrator {
 - No racing concerns (synchronous update)
 
 **Cons:**
+
 - More verbose than fluent pattern
 - Requires careful state management
 
@@ -508,12 +527,14 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Decouples configuration from execution
 - Can handle bursts of updates efficiently
 - Easy to add event persistence/replay
 - No racing concerns (queue serializes updates)
 
 **Cons:**
+
 - More complex implementation
 - Async state updates add complexity
 - May introduce latency
@@ -523,11 +544,13 @@ export class TaskOrchestrator {
 ### 3.4 Current TaskOrchestrator Analysis
 
 **Current State Update Methods:**
+
 - `setStatus(itemId, status, reason)` - Updates item status with logging
 - `#updateStatus(id, status)` - Internal method, persists and refreshes backlog
 - `#refreshBacklog()` - Reloads backlog from session manager
 
 **Strengths:**
+
 - ✅ Public `setStatus()` has clear intent
 - ✅ Logging with old→new transition and optional reason
 - ✅ Persistence through SessionManager
@@ -535,6 +558,7 @@ export class TaskOrchestrator {
 - ✅ Follows explicit method pattern (not fluent)
 
 **Recommended Enhancements:**
+
 ```typescript
 export class TaskOrchestrator {
   #statusHistory: StatusChange[] = [];
@@ -563,7 +587,7 @@ export class TaskOrchestrator {
       oldStatus,
       newStatus: status,
       reason,
-      timestamp
+      timestamp,
     });
 
     // Log and persist
@@ -579,12 +603,12 @@ export class TaskOrchestrator {
   #isValidStatusTransition(from: Status, to: Status): boolean {
     // Define allowed transitions
     const transitions: Record<Status, Status[]> = {
-      'Planned': ['Researching', 'Implementing', 'Obsolete', 'Failed'],
-      'Researching': ['Implementing', 'Failed', 'Obsolete'],
-      'Implementing': ['Complete', 'Failed', 'Obsolete'],
-      'Complete': ['Researching', 'Implementing', 'Obsolete'], // Can reopen
-      'Failed': ['Planned', 'Researching', 'Obsolete'],
-      'Obsolete': ['Planned', 'Researching', 'Implementing'] // Can reopen
+      Planned: ['Researching', 'Implementing', 'Obsolete', 'Failed'],
+      Researching: ['Implementing', 'Failed', 'Obsolete'],
+      Implementing: ['Complete', 'Failed', 'Obsolete'],
+      Complete: ['Researching', 'Implementing', 'Obsolete'], // Can reopen
+      Failed: ['Planned', 'Researching', 'Obsolete'],
+      Obsolete: ['Planned', 'Researching', 'Implementing'], // Can reopen
     };
 
     return transitions[from]?.includes(to) ?? false;
@@ -632,10 +656,12 @@ export class TaskQueue<T> {
 ```
 
 **Pros:**
+
 - Simple implementation
 - O(1) enqueue, O(n) dequeue (acceptable for small queues)
 
 **Cons:**
+
 - O(n) dequeue is inefficient for large queues
 - No prioritization
 - No filtering/querying
@@ -658,7 +684,7 @@ export class PriorityQueue<T> {
     this.#queue.push({
       item,
       priority,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Sort by priority (desc), then timestamp (asc)
@@ -685,10 +711,12 @@ export class PriorityQueue<T> {
 ```
 
 **Pros:**
+
 - Handles prioritization
 - FIFO within same priority
 
 **Cons:**
+
 - O(n log n) sort on each enqueue (inefficient)
 - Better to use binary heap for production
 
@@ -714,7 +742,10 @@ export class TaskOrchestrator {
     if (nextItem.type === 'Subtask') {
       if (!this.canExecute(nextItem)) {
         const blockers = this.getBlockingDependencies(nextItem);
-        console.log(`Skipping ${nextItem.id}, blocked on:`, blockers.map(b => b.id));
+        console.log(
+          `Skipping ${nextItem.id}, blocked on:`,
+          blockers.map(b => b.id)
+        );
         // Try next item instead of blocking
         return this.processNextItem();
       }
@@ -754,7 +785,7 @@ export class EventQueue<T> {
       type,
       payload,
       timestamp: Date.now(),
-      sequence: this.#sequence++
+      sequence: this.#sequence++,
     };
 
     this.#events.push(event);
@@ -766,9 +797,7 @@ export class EventQueue<T> {
   }
 
   getHistory(type?: string): StateEvent<T>[] {
-    return type
-      ? this.#events.filter(e => e.type === type)
-      : [...this.#events];
+    return type ? this.#events.filter(e => e.type === type) : [...this.#events];
   }
 
   /**
@@ -787,17 +816,20 @@ export class EventQueue<T> {
 ```
 
 **Pros:**
+
 - Event sourcing (full audit trail)
 - Can replay events for debugging/testing
 - Decouples state changes from side effects
 - Easy to add event persistence
 
 **Cons:**
+
 - More complex implementation
 - Async handling adds complexity
 - Memory usage grows with event history
 
 **RECOMMENDATION:** Consider event queue for TaskOrchestrator if you need:
+
 - Audit trail of all status changes
 - Ability to replay/recover from failures
 - Multiple subscribers to state changes
@@ -806,17 +838,20 @@ export class EventQueue<T> {
 ### 4.4 Current TaskOrchestrator Queue Analysis
 
 **Current Implementation:**
+
 - Uses `getNextPendingItem()` from task-utils for DFS traversal
 - No explicit queue class (implicit queue in backlog structure)
 - Single-threaded processing via `processNextItem()` loop
 - Dependency checking with `canExecute()` and `getBlockingDependencies()`
 
 **Strengths:**
+
 - ✅ DFS traversal respects hierarchy (parent before children)
 - ✅ Dependency checking prevents invalid execution order
 - ✅ Simple, predictable processing model
 
 **Weaknesses:**
+
 - ⚠️ Blocking on dependencies (skips but doesn't queue blocked items)
 - ⚠️ No retry mechanism for failed items
 - ⚠️ No prioritization beyond DFS order
@@ -895,11 +930,13 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Fast (no object allocation)
 - Simple syntax
 - Low memory overhead
 
 **Cons:**
+
 - Hard to track changes
 - Can cause unexpected side effects
 - Difficult to debug
@@ -935,14 +972,15 @@ export class TaskOrchestrator {
           ...milestone,
           tasks: milestone.tasks.map(task => ({
             ...task,
-            subtasks: task.subtasks.map(subtask =>
-              subtask.id === itemId
-                ? { ...subtask, status } // New object
-                : subtask // Keep existing
-            )
-          }))
-        }))
-      }))
+            subtasks: task.subtasks.map(
+              subtask =>
+                subtask.id === itemId
+                  ? { ...subtask, status } // New object
+                  : subtask // Keep existing
+            ),
+          })),
+        })),
+      })),
     };
 
     this.#backlog = updatedBacklog;
@@ -951,6 +989,7 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Predictable state changes
 - Easy to track changes (reference equality)
 - No shared state corruption
@@ -958,6 +997,7 @@ export class TaskOrchestrator {
 - Better for concurrent access
 
 **Cons:**
+
 - Verbose nested spread operators
 - Performance overhead (object allocation)
 - Can be inefficient for deeply nested structures
@@ -987,6 +1027,7 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - Mutable-like syntax (cleaner than spread)
 - Actually immutable (structural sharing)
 - Efficient (only copies changed paths)
@@ -994,6 +1035,7 @@ export class TaskOrchestrator {
 - Supports deep updates
 
 **Cons:**
+
 - External dependency
 - Slight overhead over manual mutations
 - Learning curve for advanced features
@@ -1018,11 +1060,13 @@ export class TaskOrchestrator {
 ```
 
 **Pros:**
+
 - No external dependencies
 - Simple API
 - True deep copy
 
 **Cons:**
+
 - Slow (copies entire object tree)
 - Not efficient for large objects
 - Loses reference equality everywhere
@@ -1030,22 +1074,26 @@ export class TaskOrchestrator {
 ### 5.5 Current TaskOrchestrator Immutability Analysis
 
 **Current Implementation:**
+
 - Mutable state updates (directly modifies backlog via SessionManager)
 - Reloads backlog after each update (`#refreshBacklog()`)
 - SessionManager handles persistence and mutations
 - Local `#backlog` property is reassigned on refresh
 
 **Strengths:**
+
 - Simple, efficient updates
 - SessionManager is single source of truth
 - Reload pattern ensures local state stays fresh
 
 **Weaknesses:**
+
 - Local `#backlog` can become stale if not refreshed
 - Multiple references to same backlog can cause confusion
 - No clear ownership model
 
 **Recommended Approach:**
+
 1. **Keep current mutable pattern for simplicity**
 2. **Use Immer if immutability becomes important**
 3. **Document state ownership clearly**
@@ -1157,7 +1205,9 @@ export class TaskOrchestrator {
     this.sessionManager = sessionManager;
   }
 
-  static async create(sessionManager: SessionManager): Promise<TaskOrchestrator> {
+  static async create(
+    sessionManager: SessionManager
+  ): Promise<TaskOrchestrator> {
     const orchestrator = new TaskOrchestrator(sessionManager);
     await orchestrator.initialize();
     return orchestrator;
@@ -1223,6 +1273,7 @@ export class TaskOrchestrator {
 ```
 
 **Rationale:**
+
 - Single required dependency
 - No configuration complexity yet
 - Easy to extend with config object later if needed
@@ -1252,6 +1303,7 @@ export class TaskOrchestrator {
 ```
 
 **Rationale:**
+
 - Maintains current API
 - Clear ownership (SessionManager owns backlog state)
 - Defensive copy available if mutations are a concern
@@ -1289,6 +1341,7 @@ export class TaskOrchestrator {
 ```
 
 **Rationale:**
+
 - Current pattern is well-designed
 - Add validation for state transitions
 - Add history for debugging/audit
@@ -1315,7 +1368,10 @@ export class TaskOrchestrator {
     if (nextItem.type === 'Subtask') {
       if (!this.canExecute(nextItem)) {
         const blockers = this.getBlockingDependencies(nextItem);
-        console.log(`Skipping ${nextItem.id}, blocked on:`, blockers.map(b => b.id));
+        console.log(
+          `Skipping ${nextItem.id}, blocked on:`,
+          blockers.map(b => b.id)
+        );
         return this.processNextItem(); // Try next item
       }
     }
@@ -1329,6 +1385,7 @@ export class TaskOrchestrator {
 ```
 
 **Rationale:**
+
 - DFS traversal respects hierarchy
 - Dependency checking prevents invalid execution
 - Recursive skipping handles blocked items
@@ -1375,6 +1432,7 @@ export class TaskOrchestrator {
 ```
 
 **Rationale:**
+
 - SessionManager owns state (clear responsibility)
 - Mutable updates are efficient and simple
 - Reload pattern ensures consistency
@@ -1404,6 +1462,7 @@ export class TaskOrchestrator {
 ## 8. URLs and References
 
 ### Official TypeScript Documentation
+
 - **Classes Handbook:** https://www.typescriptlang.org/docs/handbook/2/classes.html
 - **Parameter Properties:** https://www.typescriptlang.org/docs/handbook/2/parameter-properties.html
 - **Accessors (Getters/Setters):** https://www.typescriptlang.org/docs/handbook/2/accessors.html
@@ -1411,22 +1470,26 @@ export class TaskOrchestrator {
 - **Decorators:** https://www.typescriptlang.org/docs/handbook/decorators.html
 
 ### State Management Libraries
+
 - **Immer (Immutable updates with mutable syntax):** https://immerjs.github.io/immer/
 - **Redux (State management patterns):** https://redux.js.org/
 - **Zustand (Lightweight state management):** https://zustand-demo.pmnd.rs/
 - **MobX (Reactive state management):** https://mobx.js.org/
 
 ### Best Practices
+
 - **Node.js Best Practices:** https://github.com/goldbergyoni/nodebestpractices
 - **TypeScript Deep Dive:** https://basarat.gitbook.io/typescript/
 - **Effective TypeScript:** https://effectivetypescript.com/
 
 ### Queue/Data Structure Libraries
+
 - **typescript-collections:** https://github.com/lucasviola/Typescript-Collections
 - **bucket.js (Priority queue):** https://github.com/nickpoorman/bucket
 - **tinyqueue (Priority queue):** https://github.com/mourner/tinyqueue
 
 ### Testing Patterns
+
 - **Testing Library:** https://testing-library.com/
 - **Jest:** https://jestjs.io/
 - **MSW (Mock Service Worker):** https://mswjs.io/

@@ -9,18 +9,20 @@ This document details the existing parsing patterns in the codebase that should 
 ### Regex-Based Parsing (from src/core/prd-differ.ts)
 
 #### Markdown Header Parsing (Lines 192, 323-324)
-```typescript
+
+````typescript
 // Markdown header parsing pattern
 const headerMatch = lines[i].match(/^(#{1,6})\s+(.+)$/);
 
 // Code block detection pattern
 const hasCodeBlocks = /```/.test(content);
 const hasTables = /\|.*\|/.test(content);
-```
+````
 
 ### ID Format Validation Patterns (from src/core/models.ts)
 
 #### Task ID Validation (Lines 237-241, 348-351)
+
 ```typescript
 // Subtask ID format validation
 id: z.string().regex(
@@ -50,7 +52,8 @@ id: z.string().regex(
 ### Text Normalization Patterns (from src/core/prd-differ.ts)
 
 #### normalizeMarkdown Function (Lines 278-301)
-```typescript
+
+````typescript
 export function normalizeMarkdown(text: string): string {
   const lines = text.split('\n');
   const normalized: string[] = [];
@@ -65,17 +68,13 @@ export function normalizeMarkdown(text: string): string {
       normalized.push(line);
     } else {
       // Normalize outside code blocks
-      normalized.push(
-        line
-          .trimEnd()
-          .replace(/  +/g, ' ')
-      );
+      normalized.push(line.trimEnd().replace(/  +/g, ' '));
     }
   }
 
   return normalized.join('\n').replace(/\r\n/g, '\n');
 }
-```
+````
 
 **Key Pattern**: Split-Process-Join - Split text into lines, process each line, join back
 
@@ -105,6 +104,7 @@ export const StatusEnum = z.enum([
 ```
 
 **Best Practice**: Use string literal unions with Zod enums for:
+
 - Type safety at compile time
 - Runtime validation
 - Serialization compatibility
@@ -134,6 +134,7 @@ export class EnvironmentValidationError extends Error {
 ```
 
 **Pattern**: Custom error classes with:
+
 - Descriptive error messages
 - Typed properties for context
 - Proper error name assignment
@@ -142,12 +143,12 @@ export class EnvironmentValidationError extends Error {
 
 ```typescript
 export const SubtaskSchema: z.ZodType<Subtask> = z.object({
-  id: z.string()
-    .regex(/^P\d+\.M\d+\.T\d+\.S\d+$/, 'Invalid subtask ID format'),
+  id: z.string().regex(/^P\d+\.M\d+\.T\d+\.S\d+$/, 'Invalid subtask ID format'),
   type: z.literal('Subtask'),
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
   status: StatusEnum,
-  story_points: z.number()
+  story_points: z
+    .number()
     .int('Story points must be an integer')
     .min(1, 'Story points must be at least 1')
     .max(21, 'Story points cannot exceed 21'),
@@ -157,6 +158,7 @@ export const SubtaskSchema: z.ZodType<Subtask> = z.object({
 ```
 
 **Pattern**: Comprehensive validation with:
+
 - Regex patterns for format validation
 - Descriptive error messages
 - Type constraints (min, max)
@@ -164,17 +166,18 @@ export const SubtaskSchema: z.ZodType<Subtask> = z.object({
 
 ## Naming Conventions Used
 
-| Purpose | Convention | Example |
-|---------|------------|---------|
-| Parser functions | `parse{Noun}()` | `parsePRDSections()`, `parseScope()` |
-| Validation schemas | `{Type}Schema`, `{Type}Enum` | `StatusEnum`, `SubtaskSchema` |
-| Type guards | `is{Type}()` | `isSubtask()`, `isValidScope()` |
-| Custom errors | `{Context}Error` | `EnvironmentValidationError` |
-| Error messages | `"Invalid {field} format (expected {pattern})"` | Specific and helpful |
+| Purpose            | Convention                                      | Example                              |
+| ------------------ | ----------------------------------------------- | ------------------------------------ |
+| Parser functions   | `parse{Noun}()`                                 | `parsePRDSections()`, `parseScope()` |
+| Validation schemas | `{Type}Schema`, `{Type}Enum`                    | `StatusEnum`, `SubtaskSchema`        |
+| Type guards        | `is{Type}()`                                    | `isSubtask()`, `isValidScope()`      |
+| Custom errors      | `{Context}Error`                                | `EnvironmentValidationError`         |
+| Error messages     | `"Invalid {field} format (expected {pattern})"` | Specific and helpful                 |
 
 ## CLI-Related Dependencies
 
 **Finding**: The codebase uses NO CLI parsing libraries currently.
+
 - No commander, yargs, or other CLI frameworks in package.json
 - CLI arguments are handled through process.argv directly
 - Main entry point: src/index.ts (simple script runner)
