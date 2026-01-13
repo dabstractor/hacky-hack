@@ -810,14 +810,14 @@
           "type": "Milestone",
           "id": "P4.M1",
           "title": "Milestone 4.1: Delta Session Implementation",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Implement the delta workflow that handles PRD changes without losing completed work.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M1.T1",
               "title": "Implement Delta PRD Analysis",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create the workflow that analyzes PRD changes and patches the task backlog.",
               "subtasks": [
                 {
@@ -844,7 +844,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S3",
                   "title": "Integrate delta workflow with pipeline",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M1.T1.S2"
@@ -873,7 +873,7 @@
                   "type": "Subtask",
                   "id": "P4.M2.T1.S1",
                   "title": "Create research queue manager",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.2 - While Task N implements, spin up background thread to research Task N+1.\n2. INPUT: TaskOrchestrator execution queue. PRPGenerator.\n3. LOGIC: Create src/core/research-queue.ts:\n   - Export class ResearchQueue with maxSize: number = 3 (max concurrent research tasks)\n   - Property queue: Task[] = [], researching: Map<string, Promise<PRPDocument>>\n   - async enqueue(task: Task): Promise<void> - Add to queue\n   - async processNext(backlog: Backlog): Promise<void> - If queue not empty and under maxSize, start generating PRP for next task\n   - isResearching(taskId: string): boolean - Check if task is currently being researched\n   - getPRP(taskId: string): PRPDocument | null - Retrieve completed PRP from cache\n   - async waitForPRP(taskId: string): Promise<PRPDocument> - Block until PRP ready\n4. OUTPUT: Research queue that manages parallel PRP generation."

@@ -47,14 +47,41 @@ vi.mock('../../../src/agents/prompts.js', () => ({
   TASK_BREAKDOWN_PROMPT: 'Mock TASK_BREAKDOWN_PROMPT',
 }));
 
+// Mock DeltaAnalysisWorkflow
+vi.mock('../../../src/workflows/delta-analysis-workflow.js', () => ({
+  DeltaAnalysisWorkflow: vi.fn().mockImplementation(() => ({
+    run: vi.fn().mockResolvedValue({
+      changes: [],
+      patchInstructions: 'No changes',
+      taskIds: [],
+    }),
+  })),
+}));
+
+// Mock TaskPatcher
+vi.mock('../../../src/core/task-patcher.js', () => ({
+  patchBacklog: vi.fn().mockImplementation((backlog: Backlog) => backlog),
+}));
+
+// Mock TaskUtils
+vi.mock('../../../src/utils/task-utils.js', () => ({
+  filterByStatus: vi.fn().mockReturnValue([]),
+}));
+
 // Import mocked modules
 import { readFile } from 'node:fs/promises';
 import { createArchitectAgent } from '../../../src/agents/agent-factory.js';
 import { SessionManager as SessionManagerClass } from '../../../src/core/session-manager.js';
+import { DeltaAnalysisWorkflow } from '../../../src/workflows/delta-analysis-workflow.js';
+import { patchBacklog } from '../../../src/core/task-patcher.js';
+import { filterByStatus } from '../../../src/utils/task-utils.js';
 
 // Cast mocked functions
 const mockReadFile = readFile as any;
 const mockCreateArchitectAgent = createArchitectAgent as any;
+const MockDeltaAnalysisWorkflow = DeltaAnalysisWorkflow as any;
+const mockPatchBacklog = patchBacklog as any;
+const mockFilterByStatus = filterByStatus as any;
 // Get reference to mocked constructor for test setup
 const MockSessionManagerClass = SessionManagerClass as any;
 
@@ -134,11 +161,17 @@ const createTestSession = (backlog: Backlog): SessionState => ({
 });
 
 // Create mock SessionManager factory
-function createMockSessionManager(session: SessionState | null) {
+function createMockSessionManager(
+  session: SessionState | null,
+  hasSessionChanged = false
+) {
   const mock = {
     currentSession: session,
     initialize: vi.fn().mockResolvedValue(session),
     saveBacklog: vi.fn().mockResolvedValue(undefined),
+    hasSessionChanged: vi.fn().mockReturnValue(hasSessionChanged),
+    createDeltaSession: vi.fn().mockResolvedValue(session),
+    prdPath: '/test/prd.md',
   };
   // Set the mock instance to be returned by SessionManager constructor
   MockSessionManagerClass.mockImplementation(() => mock);
@@ -390,7 +423,7 @@ describe('PRPPipeline', () => {
     it('should call all workflow steps in order', async () => {
       // SETUP
       const mockSession = createTestSession(createTestBacklog([]));
-      const mockManager = createMockSessionManager(mockSession);
+      createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
       (mockOrchestrator as any).processNextItem = vi
@@ -420,7 +453,7 @@ describe('PRPPipeline', () => {
     it('should return PipelineResult with success true on completion', async () => {
       // SETUP
       const mockSession = createTestSession(createTestBacklog([]));
-      const mockManager = createMockSessionManager(mockSession);
+      createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
       (mockOrchestrator as any).processNextItem = vi
@@ -480,7 +513,7 @@ describe('PRPPipeline', () => {
         ]),
       ]);
       const mockSession = createTestSession(backlog);
-      const mockManager = createMockSessionManager(mockSession);
+      createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
       (mockOrchestrator as any).processNextItem = vi
@@ -544,7 +577,7 @@ describe('PRPPipeline', () => {
         ]),
       ]);
       const mockSession = createTestSession(backlog);
-      const mockManager = createMockSessionManager(mockSession);
+      createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
       (mockOrchestrator as any).processNextItem = vi
@@ -603,7 +636,7 @@ describe('PRPPipeline', () => {
       // Cleanup: Remove our test listener
       const listeners = (process as any)._events?.SIGINT;
       if (
-        listeners &&
+        listeners != null &&
         typeof listeners.length === 'number' &&
         listeners.length > originalListeners
       ) {
@@ -626,7 +659,7 @@ describe('PRPPipeline', () => {
       // Cleanup: Remove our test listener
       const listeners = (process as any)._events?.SIGTERM;
       if (
-        listeners &&
+        listeners != null &&
         typeof listeners.length === 'number' &&
         listeners.length > originalListeners
       ) {
@@ -775,6 +808,275 @@ describe('PRPPipeline', () => {
       // Cleanup
       process.removeAllListeners('SIGINT');
       warnSpy.mockRestore();
+    });
+  });
+
+  describe('delta workflow integration', () => {
+    describe('initializeSession', () => {
+      it('should call handleDelta when hasSessionChanged returns true', async () => {
+        // SETUP
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+        const mockManager = createMockSessionManager(mockSession, true); // hasSessionChanged = true
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // Spy on handleDelta method
+        const handleDeltaSpy = vi
+          .spyOn(pipeline, 'handleDelta')
+          .mockResolvedValue(undefined);
+
+        // EXECUTE
+        await pipeline.initializeSession();
+
+        // VERIFY
+        expect(mockManager.hasSessionChanged).toHaveBeenCalled();
+        expect(handleDeltaSpy).toHaveBeenCalled();
+        expect(pipeline.currentPhase).toBe('session_initialized');
+
+        handleDeltaSpy.mockRestore();
+      });
+
+      it('should not call handleDelta when hasSessionChanged returns false', async () => {
+        // SETUP
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+        const mockManager = createMockSessionManager(mockSession, false); // hasSessionChanged = false
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // Spy on handleDelta method
+        const handleDeltaSpy = vi
+          .spyOn(pipeline, 'handleDelta')
+          .mockResolvedValue(undefined);
+
+        // EXECUTE
+        await pipeline.initializeSession();
+
+        // VERIFY
+        expect(mockManager.hasSessionChanged).toHaveBeenCalled();
+        expect(handleDeltaSpy).not.toHaveBeenCalled();
+        expect(pipeline.currentPhase).toBe('session_initialized');
+
+        handleDeltaSpy.mockRestore();
+      });
+    });
+
+    describe('handleDelta', () => {
+      beforeEach(() => {
+        // Setup default mocks for handleDelta tests
+        mockReadFile.mockResolvedValue('# Updated PRD');
+        mockFilterByStatus.mockReturnValue([]);
+        mockPatchBacklog.mockImplementation((backlog: Backlog) => backlog);
+      });
+
+      it('should load old PRD from session snapshot', async () => {
+        // SETUP
+        const oldPRD = '# Original PRD\nOld content here';
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+        mockSession.prdSnapshot = oldPRD;
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE
+        await pipeline.handleDelta();
+
+        // VERIFY - old PRD should be from session snapshot
+        expect(MockDeltaAnalysisWorkflow).toHaveBeenCalledWith(
+          oldPRD,
+          expect.any(String),
+          expect.any(Array)
+        );
+      });
+
+      it('should load new PRD from disk via readFile', async () => {
+        // SETUP
+        const newPRD = '# Updated PRD\nNew content here';
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+        mockManager.prdPath = '/test/prd.md';
+
+        mockReadFile.mockResolvedValue(newPRD);
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE
+        await pipeline.handleDelta();
+
+        // VERIFY
+        expect(mockReadFile).toHaveBeenCalledWith('/test/prd.md', 'utf-8');
+        expect(MockDeltaAnalysisWorkflow).toHaveBeenCalledWith(
+          expect.any(String),
+          newPRD,
+          expect.any(Array)
+        );
+      });
+
+      it('should extract completed task IDs via filterByStatus', async () => {
+        // SETUP
+        const backlog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Complete', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Complete', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const mockSession = createTestSession(backlog);
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        const completedItems = [
+          backlog.backlog[0],
+          backlog.backlog[0].milestones[0],
+          backlog.backlog[0].milestones[0].tasks[0],
+          backlog.backlog[0].milestones[0].tasks[0].subtasks[0],
+        ];
+        mockFilterByStatus.mockReturnValue(completedItems);
+
+        // EXECUTE
+        await pipeline.handleDelta();
+
+        // VERIFY
+        expect(mockFilterByStatus).toHaveBeenCalledWith(backlog, 'Complete');
+        // Implementation filters to only Task and Subtask types (not Phase/Milestone)
+        expect(MockDeltaAnalysisWorkflow).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.any(String),
+          ['P1.M1.T1', 'P1.M1.T1.S1']
+        );
+      });
+
+      it('should run DeltaAnalysisWorkflow and get result', async () => {
+        // SETUP
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+
+        const mockDelta = {
+          changes: [
+            {
+              itemId: 'P1.M1.T1.S1',
+              type: 'modified' as const,
+              description: 'Added new requirement',
+              impact: 'Update implementation',
+            },
+          ],
+          patchInstructions: 'Re-execute P1.M1.T1.S1',
+          taskIds: ['P1.M1.T1.S1'],
+        };
+
+        const mockWorkflow = {
+          run: vi.fn().mockResolvedValue(mockDelta),
+        };
+        MockDeltaAnalysisWorkflow.mockImplementation(() => mockWorkflow);
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE
+        await pipeline.handleDelta();
+
+        // VERIFY
+        expect(mockWorkflow.run).toHaveBeenCalled();
+        expect(mockPatchBacklog).toHaveBeenCalledWith(backlog, mockDelta);
+      });
+
+      it('should create delta session and save patched backlog', async () => {
+        // SETUP
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+
+        const patchedBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned'),
+        ]);
+        mockPatchBacklog.mockReturnValue(patchedBacklog);
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE
+        await pipeline.handleDelta();
+
+        // VERIFY
+        expect(mockManager.createDeltaSession).toHaveBeenCalledWith(
+          mockManager.prdPath
+        );
+        expect(mockManager.saveBacklog).toHaveBeenCalledWith(patchedBacklog);
+      });
+
+      it('should update phase to delta_handling then session_initialized', async () => {
+        // SETUP
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE
+        await pipeline.handleDelta();
+
+        // VERIFY - phase should end as session_initialized
+        expect(pipeline.currentPhase).toBe('session_initialized');
+      });
+
+      it('should throw if no session loaded', async () => {
+        // SETUP
+        const mockManager = createMockSessionManager(null, true);
+        mockManager.currentSession = null;
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE & VERIFY
+        await expect(pipeline.handleDelta()).rejects.toThrow(
+          'Cannot handle delta: no session loaded'
+        );
+      });
+
+      it('should throw if readFile fails', async () => {
+        // SETUP
+        const backlog = createTestBacklog([]);
+        const mockSession = createTestSession(backlog);
+
+        const mockManager = createMockSessionManager(mockSession, true);
+        mockManager.currentSession = mockSession;
+
+        mockReadFile.mockRejectedValue(new Error('File not found'));
+
+        const pipeline = new PRPPipeline('./test.md');
+        (pipeline as any).sessionManager = mockManager;
+
+        // EXECUTE & VERIFY
+        await expect(pipeline.handleDelta()).rejects.toThrow(
+          'Failed to load new PRD'
+        );
+      });
     });
   });
 });

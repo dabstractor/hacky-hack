@@ -23,13 +23,17 @@
  */
 
 import { Workflow, Step } from 'groundswell';
+import { readFile } from 'node:fs/promises';
 import type { SessionManager } from '../core/session-manager.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
 import type { PRPRuntime } from '../agents/prp-runtime.js';
-import type { Backlog, Status } from '../core/models.js';
+import type { Backlog, Status, DeltaAnalysis } from '../core/models.js';
 import type { Scope } from '../core/scope-resolver.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
+import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
+import { patchBacklog } from '../core/task-patcher.js';
+import { filterByStatus } from '../utils/task-utils.js';
 
 /**
  * Result returned by PRPPipeline.run()
@@ -265,6 +269,14 @@ export class PRPPipeline extends Workflow {
         this.#scope
       );
 
+      // Check for PRD changes and handle delta if needed
+      if (this.sessionManager.hasSessionChanged()) {
+        this.logger.info(
+          '[PRPPipeline] PRD has changed, initializing delta session'
+        );
+        await this.handleDelta();
+      }
+
       // Update phase
       this.currentPhase = 'session_initialized';
 
@@ -273,6 +285,116 @@ export class PRPPipeline extends Workflow {
       this.logger.error(
         `[PRPPipeline] Session initialization failed: ${error}`
       );
+      throw error;
+    }
+  }
+
+  /**
+   * Handle PRD changes via delta workflow
+   *
+   * @remarks
+   * Executes delta analysis and task patching to create a delta session
+   * that preserves completed work while re-executing affected tasks.
+   *
+   * Steps:
+   * 1. Load old PRD from session snapshot
+   * 2. Load new PRD from disk
+   * 3. Extract completed task IDs
+   * 4. Run DeltaAnalysisWorkflow
+   * 5. Apply patches via TaskPatcher
+   * 6. Create delta session
+   * 7. Log delta summary
+   */
+  @Step({ trackTiming: true, name: 'handleDelta' })
+  async handleDelta(): Promise<void> {
+    this.currentPhase = 'delta_handling';
+
+    try {
+      // Get current session state
+      const currentSession = this.sessionManager.currentSession;
+      if (!currentSession) {
+        throw new Error('Cannot handle delta: no session loaded');
+      }
+
+      // Step 1: Get old PRD from session snapshot
+      const oldPRD = currentSession.prdSnapshot;
+      if (!oldPRD) {
+        throw new Error('Cannot handle delta: no PRD snapshot in session');
+      }
+
+      // Step 2: Load new PRD from disk
+      let newPRD: string;
+      try {
+        newPRD = await readFile(this.sessionManager.prdPath, 'utf-8');
+      } catch (error) {
+        throw new Error(
+          `Failed to load new PRD from ${this.sessionManager.prdPath}: ${error}`
+        );
+      }
+
+      // Step 3: Extract completed task IDs
+      const backlog = currentSession.taskRegistry;
+      const completedItems = filterByStatus(backlog, 'Complete');
+      const completedTaskIds = completedItems
+        .filter(item => item.type === 'Task' || item.type === 'Subtask')
+        .map(item => item.id);
+
+      this.logger.info(
+        `[PRPPipeline] Found ${completedTaskIds.length} completed tasks`
+      );
+
+      // Step 4: Run DeltaAnalysisWorkflow
+      this.logger.info('[PRPPipeline] Running delta analysis...');
+      const workflow = new DeltaAnalysisWorkflow(
+        oldPRD,
+        newPRD,
+        completedTaskIds
+      );
+      const delta: DeltaAnalysis = await workflow.run();
+
+      this.logger.info(
+        `[PRPPipeline] Delta analysis found ${delta.changes.length} changes`
+      );
+      this.logger.info(
+        `[PRPPipeline] Tasks to re-execute: ${delta.taskIds.join(', ')}`
+      );
+
+      // Step 5: Apply patches to backlog
+      this.logger.info('[PRPPipeline] Patching backlog...');
+      const patchedBacklog = patchBacklog(backlog, delta);
+
+      // Step 6: Create delta session
+      this.logger.info('[PRPPipeline] Creating delta session...');
+      await this.sessionManager.createDeltaSession(this.sessionManager.prdPath);
+
+      // Step 7: Save patched backlog to delta session
+      await this.sessionManager.saveBacklog(patchedBacklog);
+
+      // Log delta summary
+      const deltaSession = this.sessionManager.currentSession;
+      this.logger.info('[PRPPipeline] ===== Delta Summary =====');
+      this.logger.info(
+        `[PRPPipeline] Delta session: ${deltaSession?.metadata.id}`
+      );
+      this.logger.info(
+        `[PRPPipeline] Parent session: ${deltaSession?.metadata.parentSession}`
+      );
+      this.logger.info(`[PRPPipeline] Changes found: ${delta.changes.length}`);
+      this.logger.info(
+        `[PRPPipeline] Tasks to re-execute: ${delta.taskIds.length}`
+      );
+      this.logger.info(
+        `[PRPPipeline] Affected tasks: ${delta.taskIds.join(', ')}`
+      );
+      this.logger.info(
+        `[PRPPipeline] Patch instructions: ${delta.patchInstructions}`
+      );
+      this.logger.info('[PRPPipeline] ===== End Delta Summary =====');
+
+      // Update phase
+      this.currentPhase = 'session_initialized';
+    } catch (error) {
+      this.logger.error(`[PRPPipeline] Delta handling failed: ${error}`);
       throw error;
     }
   }
