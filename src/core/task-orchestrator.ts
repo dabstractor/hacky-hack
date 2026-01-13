@@ -34,6 +34,8 @@ import type {
 } from './models.js';
 import type { HierarchyItem } from '../utils/task-utils.js';
 import { getDependencies } from '../utils/task-utils.js';
+import type { Scope } from './scope-resolver.js';
+import { resolveScope } from './scope-resolver.js';
 
 /**
  * Task Orchestrator for PRP Pipeline backlog processing
@@ -59,13 +61,25 @@ export class TaskOrchestrator {
   /** Current task registry (read from SessionManager) */
   #backlog: Backlog;
 
+  /** Scope for limiting execution (undefined = all items) */
+  #scope: Scope | undefined;
+
+  /** Queue of items to execute (populated from scope) */
+  #executionQueue: HierarchyItem[];
+
   /**
    * Creates a new TaskOrchestrator instance
    *
    * @param sessionManager - Session state manager for persistence
+   * @param scope - Optional scope to limit execution (defaults to all items)
    * @throws {Error} If sessionManager.currentSession is null
+   *
+   * @remarks
+   * When scope is provided, only items matching the scope will be executed.
+   * When scope is undefined, all items in the backlog will be executed.
+   * The execution queue is populated by resolving the scope against the backlog.
    */
-  constructor(sessionManager: SessionManager) {
+  constructor(sessionManager: SessionManager, scope?: Scope) {
     this.sessionManager = sessionManager;
 
     // Load initial backlog from session state
@@ -75,6 +89,36 @@ export class TaskOrchestrator {
     }
 
     this.#backlog = currentSession.taskRegistry;
+
+    // Store scope and build execution queue
+    this.#scope = scope;
+    this.#executionQueue = this.#buildQueue(scope);
+  }
+
+  /**
+   * Builds the execution queue from scope
+   *
+   * @param scope - Optional scope to resolve (defaults to 'all')
+   * @returns Array of items to execute
+   *
+   * @remarks
+   * Uses resolveScope() from scope-resolver.ts to convert scope to item list.
+   * Returns all leaf subtasks when scope is undefined or 'all'.
+   * Returns empty array for non-existent scope IDs (valid - no items to execute).
+   */
+  #buildQueue(scope?: Scope): HierarchyItem[] {
+    // Default to 'all' scope if not provided
+    const scopeToResolve = scope ?? { type: 'all' };
+
+    // Resolve scope to list of items
+    const items = resolveScope(this.#backlog, scopeToResolve);
+
+    // Log queue size for visibility
+    console.log(
+      `[TaskOrchestrator] Execution queue built: ${items.length} items for scope ${JSON.stringify(scopeToResolve)}`
+    );
+
+    return items;
   }
 
   /**
@@ -84,6 +128,20 @@ export class TaskOrchestrator {
    */
   get backlog(): Backlog {
     return this.#backlog;
+  }
+
+  /**
+   * Gets the current execution queue (read-only access for testing)
+   *
+   * @returns Copy of execution queue (external code can't mutate internal state)
+   *
+   * @remarks
+   * Returns a shallow copy to prevent external mutation of the internal queue.
+   * Mainly intended for testing - production code uses processNextItem() instead.
+   */
+  get executionQueue(): HierarchyItem[] {
+    // Return shallow copy to prevent external mutation
+    return [...this.#executionQueue];
   }
 
   /**
@@ -295,6 +353,43 @@ export class TaskOrchestrator {
     await this.#refreshBacklog();
 
     return updated;
+  }
+
+  /**
+   * Changes the execution scope and rebuilds the queue
+   *
+   * @param scope - New scope to execute
+   *
+   * @remarks
+   * Reconfigures the orchestrator to execute a different set of items.
+   * Logs the scope change for debugging and audit trail.
+   * The current item (if any) will complete before the new scope takes effect.
+   *
+   * @example
+   * ```typescript
+   * // Start with all items
+   * const orchestrator = new TaskOrchestrator(sessionManager);
+   *
+   * // Later, narrow scope to specific milestone
+   * await orchestrator.setScope({ type: 'milestone', id: 'P1.M1' });
+   * ```
+   */
+  public async setScope(scope: Scope): Promise<void> {
+    // Log old scope for debugging
+    const oldScope = this.#scope
+      ? JSON.stringify(this.#scope)
+      : 'undefined (all)';
+    const newScope = JSON.stringify(scope);
+
+    console.log(`[TaskOrchestrator] Scope change: ${oldScope} → ${newScope}`);
+
+    // Store new scope and rebuild queue
+    this.#scope = scope;
+    this.#executionQueue = this.#buildQueue(scope);
+
+    console.log(
+      `[TaskOrchestrator] Execution queue rebuilt: ${this.#executionQueue.length} items`
+    );
   }
 
   /**
@@ -511,42 +606,47 @@ export class TaskOrchestrator {
   }
 
   /**
-   * Processes the next pending item using DFS pre-order traversal
+   * Processes the next item from the execution queue
    *
-   * @returns true if item was processed, false if backlog is complete
+   * @returns true if item was processed, false if queue is empty
    *
    * @remarks
-   * This is the main entry point for backlog processing:
-   * 1. Gets next pending item using DFS pre-order traversal
-   * 2. Returns false if no items pending (backlog complete)
-   * 3. Delegates to type-specific handler
-   * 4. Refreshes backlog after status update
-   * 5. Returns true (item processed, more may remain)
+   * This is the main entry point for backlog processing with scope support:
+   * 1. Check if executionQueue has items
+   * 2. Shift next item from queue (FIFO order)
+   * 3. Return false if queue empty
+   * 4. Log item being processed
+   * 5. Delegate to type-specific handler
+   * 6. Refresh backlog after status update
+   * 7. Return true (item processed, more may remain)
    *
    * The Pipeline Controller calls this method repeatedly until it returns false.
    *
+   * When scope is provided, only items in the scope are processed.
+   * When scope is undefined, all items are processed.
+   *
    * @example
    * ```typescript
-   * const orchestrator = new TaskOrchestrator(sessionManager);
+   * const orchestrator = new TaskOrchestrator(sessionManager, { type: 'milestone', id: 'P1.M1' });
    * let hasMore = true;
    * while (hasMore) {
    *   hasMore = await orchestrator.processNextItem();
    * }
-   * console.log('Pipeline complete!');
+   * console.log('Milestone P1.M1 complete!');
    * ```
    */
   async processNextItem(): Promise<boolean> {
-    // Import getNextPendingItem from task-utils
-    const { getNextPendingItem } = await import('../utils/task-utils.js');
-
-    // 1. Get next pending item using DFS pre-order traversal
-    const nextItem = getNextPendingItem(this.#backlog);
-
-    // 2. Base case: no more items to process
-    if (nextItem === null) {
-      console.log('[TaskOrchestrator] Backlog processing complete');
+    // 1. Check if execution queue has items
+    if (this.#executionQueue.length === 0) {
+      console.log(
+        '[TaskOrchestrator] Execution queue empty - processing complete'
+      );
       return false;
     }
+
+    // 2. Shift next item from queue (FIFO order)
+    const nextItem = this.#executionQueue.shift()!;
+    // Non-null assertion safe: we checked length > 0 above
 
     // 3. Log item being processed
     console.log(

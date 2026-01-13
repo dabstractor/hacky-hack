@@ -15,6 +15,8 @@ import { TaskOrchestrator } from '../../../src/core/task-orchestrator.js';
 import type { SessionManager } from '../../../src/core/session-manager.js';
 import type { Backlog } from '../../../src/core/models.js';
 import { Status } from '../../../src/core/models.js';
+import type { Scope } from '../../../src/core/scope-resolver.js';
+import type { HierarchyItem } from '../../../src/utils/task-utils.js';
 
 // Mock the task-utils module - use importOriginal to get real getDependencies implementation
 vi.mock('../../../src/utils/task-utils.js', async importOriginal => {
@@ -26,11 +28,22 @@ vi.mock('../../../src/utils/task-utils.js', async importOriginal => {
   };
 });
 
-// Import mocked function
-import { getNextPendingItem } from '../../../src/utils/task-utils.js';
+// Mock the scope-resolver module
+vi.mock('../../../src/core/scope-resolver.js', () => ({
+  resolveScope: vi.fn(),
+  parseScope: vi.fn(),
+}));
 
-// Cast mocked function
+// Import mocked functions
+import { getNextPendingItem } from '../../../src/utils/task-utils.js';
+import { resolveScope } from '../../../src/core/scope-resolver.js';
+
+// Cast mocked functions
 const mockGetNextPendingItem = getNextPendingItem as any;
+const mockResolveScope = resolveScope as any;
+
+// Set default mock for resolveScope to return empty array (for backward compatibility)
+mockResolveScope.mockReturnValue([]);
 
 // Factory functions for test data
 const createTestSubtask = (
@@ -618,7 +631,7 @@ describe('TaskOrchestrator', () => {
   });
 
   describe('processNextItem', () => {
-    it('should call getNextPendingItem from task-utils', async () => {
+    it('should use resolveScope from scope-resolver to populate queue', async () => {
       // SETUP
       const testBacklog = createTestBacklog([
         createTestPhase('P1', 'Phase 1', 'Planned'),
@@ -636,16 +649,18 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(phase);
+      mockResolveScope.mockReturnValue([phase] as HierarchyItem[]);
 
       // EXECUTE
+      const orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
 
-      // VERIFY
-      expect(mockGetNextPendingItem).toHaveBeenCalledWith(testBacklog);
+      // VERIFY: resolveScope was called in constructor with 'all' scope
+      expect(mockResolveScope).toHaveBeenCalledWith(testBacklog, {
+        type: 'all',
+      });
     });
 
     it('should return true when item found and processed', async () => {
@@ -666,12 +681,12 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(phase);
+      mockResolveScope.mockReturnValue([phase] as HierarchyItem[]);
 
       // EXECUTE
+      const orchestrator = new TaskOrchestrator(mockManager);
       const result = await orchestrator.processNextItem();
 
       // VERIFY
@@ -694,9 +709,9 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
+      mockResolveScope.mockReturnValue([]);
 
-      mockGetNextPendingItem.mockReturnValue(null);
+      const orchestrator = new TaskOrchestrator(mockManager);
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -706,7 +721,7 @@ describe('TaskOrchestrator', () => {
       // VERIFY
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Backlog processing complete'
+        '[TaskOrchestrator] Execution queue empty - processing complete'
       );
       consoleSpy.mockRestore();
     });
@@ -729,12 +744,12 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(phase);
+      mockResolveScope.mockReturnValue([phase] as HierarchyItem[]);
 
       // EXECUTE
+      const orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
 
       // VERIFY: executePhase was called (status updated)
@@ -760,12 +775,12 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(milestone);
+      mockResolveScope.mockReturnValue([milestone] as HierarchyItem[]);
 
       // EXECUTE
+      const orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
 
       // VERIFY: executeMilestone was called (status updated)
@@ -791,12 +806,12 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(task);
+      mockResolveScope.mockReturnValue([task] as HierarchyItem[]);
 
       // EXECUTE
+      const orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
 
       // VERIFY: executeTask was called (status updated)
@@ -822,12 +837,12 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(subtask);
+      mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
 
       // EXECUTE
+      const orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
 
       // VERIFY: executeSubtask was called (status updated three times with Researching added)
@@ -864,11 +879,11 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(subtask);
+      mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
 
+      const orchestrator = new TaskOrchestrator(mockManager);
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
@@ -897,11 +912,11 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       // Test Phase
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValueOnce(phase);
+      mockResolveScope.mockReturnValue([phase] as HierarchyItem[]);
+      let orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1',
@@ -910,7 +925,8 @@ describe('TaskOrchestrator', () => {
 
       // Test Milestone
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValueOnce(milestone);
+      mockResolveScope.mockReturnValue([milestone] as HierarchyItem[]);
+      orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1.M1',
@@ -919,7 +935,8 @@ describe('TaskOrchestrator', () => {
 
       // Test Task
       const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValueOnce(task);
+      mockResolveScope.mockReturnValue([task] as HierarchyItem[]);
+      orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1.M1.T1',
@@ -928,7 +945,8 @@ describe('TaskOrchestrator', () => {
 
       // Test Subtask
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValueOnce(subtask);
+      mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
+      orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1.M1.T1.S1',
@@ -966,11 +984,21 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
-      // Simulate DFS pre-order: Phase first
+      // Simulate DFS pre-order: Phase → Milestone → Task → Subtask
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValueOnce(phase);
+      const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
+      const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned');
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+
+      mockResolveScope.mockReturnValue([
+        phase,
+        milestone,
+        task,
+        subtask,
+      ] as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
 
       // EXECUTE: Process first item (Phase)
       const result1 = await orchestrator.processNextItem();
@@ -982,10 +1010,6 @@ describe('TaskOrchestrator', () => {
         'Implementing'
       );
 
-      // Simulate next item: Milestone
-      const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValueOnce(milestone);
-
       // EXECUTE: Process second item (Milestone)
       const result2 = await orchestrator.processNextItem();
 
@@ -996,7 +1020,25 @@ describe('TaskOrchestrator', () => {
         'Implementing'
       );
 
-      // Continue with Task and Subtask similarly...
+      // EXECUTE: Process third item (Task)
+      const result3 = await orchestrator.processNextItem();
+
+      // VERIFY: Task processed
+      expect(result3).toBe(true);
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1',
+        'Implementing'
+      );
+
+      // EXECUTE: Process fourth item (Subtask)
+      const result4 = await orchestrator.processNextItem();
+
+      // VERIFY: Subtask processed
+      expect(result4).toBe(true);
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Complete'
+      );
     });
   });
 
@@ -1017,22 +1059,23 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      // Simulate: Phase → Milestone → Task → Subtask → null (complete)
+      // Simulate: Phase → Milestone → Task → Subtask
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
       const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned');
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
 
-      mockGetNextPendingItem
-        .mockReturnValueOnce(phase)
-        .mockReturnValueOnce(milestone)
-        .mockReturnValueOnce(task)
-        .mockReturnValueOnce(subtask)
-        .mockReturnValueOnce(null);
+      mockResolveScope.mockReturnValue([
+        phase,
+        milestone,
+        task,
+        subtask,
+      ] as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
 
       // EXECUTE: Process all items
       let count = 0;
@@ -1067,7 +1110,7 @@ describe('TaskOrchestrator', () => {
         'Complete'
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Backlog processing complete'
+        '[TaskOrchestrator] Execution queue empty - processing complete'
       );
 
       consoleSpy.mockRestore();
@@ -1089,9 +1132,9 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
+      mockResolveScope.mockReturnValue([]);
 
-      mockGetNextPendingItem.mockReturnValue(null);
+      const orchestrator = new TaskOrchestrator(mockManager);
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -1127,9 +1170,10 @@ describe('TaskOrchestrator', () => {
         new Error('Update failed')
       );
 
-      const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(subtask);
+      mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
 
       // EXECUTE & VERIFY
       await expect(orchestrator.processNextItem()).rejects.toThrow(
@@ -1154,14 +1198,14 @@ describe('TaskOrchestrator', () => {
       };
       const mockManager = createMockSessionManager(currentSession);
 
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
+
       // Create orchestrator with valid session
       const orchestrator = new TaskOrchestrator(mockManager);
 
       // Simulate session becoming null (edge case)
       (mockManager as any).currentSession = null;
-
-      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      mockGetNextPendingItem.mockReturnValue(subtask);
 
       // EXECUTE & VERIFY: Should throw when trying to refresh backlog after processing
       await expect(orchestrator.processNextItem()).rejects.toThrow(
@@ -1187,7 +1231,6 @@ describe('TaskOrchestrator', () => {
         currentItemId: null,
       };
       const mockManager = createMockSessionManager(currentSession);
-      const orchestrator = new TaskOrchestrator(mockManager);
 
       // Test each type - TypeScript should narrow correctly
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
@@ -1196,28 +1239,36 @@ describe('TaskOrchestrator', () => {
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
 
       // EXECUTE: Each type should be dispatched correctly
-      mockGetNextPendingItem.mockReturnValueOnce(phase);
+      // Create orchestrator with phase in queue
+      mockResolveScope.mockReturnValue([phase] as HierarchyItem[]);
+      let orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1',
         'Implementing'
       );
 
-      mockGetNextPendingItem.mockReturnValueOnce(milestone);
+      // Create new orchestrator with milestone in queue
+      mockResolveScope.mockReturnValue([milestone] as HierarchyItem[]);
+      orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1.M1',
         'Implementing'
       );
 
-      mockGetNextPendingItem.mockReturnValueOnce(task);
+      // Create new orchestrator with task in queue
+      mockResolveScope.mockReturnValue([task] as HierarchyItem[]);
+      orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1.M1.T1',
         'Implementing'
       );
 
-      mockGetNextPendingItem.mockReturnValueOnce(subtask);
+      // Create new orchestrator with subtask in queue
+      mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
+      orchestrator = new TaskOrchestrator(mockManager);
       await orchestrator.processNextItem();
       expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
         'P1.M1.T1.S1',
@@ -2784,6 +2835,606 @@ describe('TaskOrchestrator', () => {
       expect(failedCalls.length).toBeGreaterThan(0);
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('constructor with scope parameter', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should default to all items when scope is undefined', () => {
+      // SETUP: Create mock session manager
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock resolveScope to return all leaf subtasks
+      const mockSubtasks = [
+        createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+      ];
+      mockResolveScope.mockReturnValue(mockSubtasks);
+
+      // EXECUTE: Create orchestrator without scope
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // VERIFY: Queue contains all leaf subtasks, resolveScope called with 'all'
+      expect(orchestrator.executionQueue).toHaveLength(1);
+      expect(orchestrator.executionQueue[0].id).toBe('P1.M1.T1.S1');
+      expect(mockResolveScope).toHaveBeenCalledWith(testBacklog, {
+        type: 'all',
+      });
+    });
+
+    it('should populate queue from phase scope', () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned'),
+        ]),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock resolveScope to return phase and descendants
+      const mockItems = [
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+        createTestMilestone('P1.M1', 'Milestone 1', 'Planned'),
+      ];
+      mockResolveScope.mockReturnValue(mockItems as HierarchyItem[]);
+
+      const phaseScope: Scope = { type: 'phase', id: 'P1' };
+
+      // EXECUTE: Create orchestrator with phase scope
+      const orchestrator = new TaskOrchestrator(mockManager, phaseScope);
+
+      // VERIFY: Queue populated from scope
+      expect(orchestrator.executionQueue).toHaveLength(2);
+      expect(orchestrator.executionQueue[0].id).toBe('P1');
+      expect(orchestrator.executionQueue[1].id).toBe('P1.M1');
+      expect(mockResolveScope).toHaveBeenCalledWith(testBacklog, phaseScope);
+    });
+
+    it('should preserve existing behavior without scope (backward compatibility)', () => {
+      // SETUP: Same as original constructor test
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      mockResolveScope.mockReturnValue([]);
+
+      // EXECUTE: Create orchestrator without scope (original behavior)
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // VERIFY: Should still work, queue defaults to 'all' scope
+      expect(orchestrator.sessionManager).toBe(mockManager);
+      expect(orchestrator.backlog).toBe(testBacklog);
+      expect(mockResolveScope).toHaveBeenCalledWith(testBacklog, {
+        type: 'all',
+      });
+    });
+  });
+
+  describe('processNextItem with executionQueue', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should process items from executionQueue in order', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock resolveScope to return items in order
+      const mockItems = [
+        createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+        createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+      ];
+      mockResolveScope.mockReturnValue(mockItems as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager, { type: 'all' });
+
+      // EXECUTE: Process items
+      const hasMore1 = await orchestrator.processNextItem();
+      const hasMore2 = await orchestrator.processNextItem();
+      const hasMore3 = await orchestrator.processNextItem();
+
+      // VERIFY: Items processed, queue drained
+      expect(hasMore1).toBe(true);
+      expect(hasMore2).toBe(true);
+      expect(hasMore3).toBe(false); // Queue empty
+      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(6); // Researching + Implementing + Complete for each (2 * 3 = 6)
+    });
+
+    it('should return false when executionQueue is empty', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock resolveScope to return empty array
+      mockResolveScope.mockReturnValue([]);
+
+      const orchestrator = new TaskOrchestrator(mockManager, {
+        type: 'phase',
+        id: 'P999',
+      });
+
+      // EXECUTE: Try to process from empty queue
+      const hasMore = await orchestrator.processNextItem();
+
+      // VERIFY: Should return false immediately
+      expect(hasMore).toBe(false);
+      expect(mockManager.updateItemStatus).not.toHaveBeenCalled();
+    });
+
+    it('should delegate to correct type handler', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock resolveScope to return a Phase item
+      const mockPhase = createTestPhase('P1', 'Phase 1', 'Planned');
+      mockResolveScope.mockReturnValue([mockPhase] as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager, {
+        type: 'phase',
+        id: 'P1',
+      });
+
+      // EXECUTE: Process phase
+      const hasMore = await orchestrator.processNextItem();
+
+      // VERIFY: Phase status was updated
+      expect(hasMore).toBe(true);
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
+    });
+  });
+
+  describe('setScope()', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should change scope and rebuild queue', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+        createTestPhase('P2', 'Phase 2', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Initial scope: P1
+      const p1Items = [createTestPhase('P1', 'Phase 1', 'Planned')];
+      mockResolveScope.mockReturnValue(p1Items as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager, {
+        type: 'phase',
+        id: 'P1',
+      });
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // Mock new scope: P2
+      const p2Items = [createTestPhase('P2', 'Phase 2', 'Planned')];
+      mockResolveScope.mockReturnValue(p2Items as HierarchyItem[]);
+
+      // EXECUTE: Change scope to P2
+      await orchestrator.setScope({ type: 'phase', id: 'P2' });
+
+      // VERIFY: Scope logged, queue rebuilt with P2 items
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Scope change')
+      );
+      expect(orchestrator.executionQueue).toHaveLength(1);
+      expect(orchestrator.executionQueue[0].id).toBe('P2');
+      expect(mockResolveScope).toHaveBeenCalledWith(testBacklog, {
+        type: 'phase',
+        id: 'P2',
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should log scope change with old and new scope', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+        createTestPhase('P2', 'Phase 2', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      mockResolveScope.mockReturnValue([]);
+
+      // Create orchestrator without scope (undefined)
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // EXECUTE: Change scope to P1
+      await orchestrator.setScope({ type: 'phase', id: 'P1' });
+
+      // VERIFY: Log shows old scope as "undefined (all)"
+      const logs = consoleSpy.mock.calls
+        .map((call: any[]) => call.join(' '))
+        .join('\n');
+      expect(logs).toContain('undefined (all)');
+      expect(logs).toContain('phase');
+      expect(logs).toContain('P1');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle empty scope resolution', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Initial items
+      const initialItems = [createTestPhase('P1', 'Phase 1', 'Planned')];
+      mockResolveScope.mockReturnValue(initialItems as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // Mock empty scope result
+      mockResolveScope.mockReturnValue([]);
+
+      // EXECUTE: Change to non-existent scope
+      await orchestrator.setScope({ type: 'phase', id: 'P999' });
+
+      // VERIFY: Queue is empty, no error thrown
+      expect(orchestrator.executionQueue).toHaveLength(0);
+    });
+
+    it('can be called multiple times', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+        createTestPhase('P2', 'Phase 2', 'Planned'),
+        createTestPhase('P3', 'Phase 3', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      mockResolveScope.mockReturnValue([]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // EXECUTE: Change scope multiple times
+      await orchestrator.setScope({ type: 'phase', id: 'P1' });
+      await orchestrator.setScope({ type: 'phase', id: 'P2' });
+      await orchestrator.setScope({ type: 'phase', id: 'P3' });
+
+      // VERIFY: Each call rebuilds queue
+      expect(mockResolveScope).toHaveBeenCalledTimes(4); // 1 for constructor + 3 for setScope
+      expect(mockResolveScope).toHaveBeenLastCalledWith(testBacklog, {
+        type: 'phase',
+        id: 'P3',
+      });
+    });
+  });
+
+  describe('executionQueue getter', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should return a copy of the executionQueue', () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      const mockItems = [
+        createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+      ];
+      mockResolveScope.mockReturnValue(mockItems as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // EXECUTE: Get executionQueue twice
+      const queue1 = orchestrator.executionQueue;
+      const queue2 = orchestrator.executionQueue;
+
+      // VERIFY: Different references (copies), same content
+      expect(queue1).not.toBe(queue2); // Different array references
+      expect(queue1).toEqual(queue2); // Same content
+    });
+
+    it('should not allow external mutation of internal queue', () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      const mockItems = [
+        createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+      ];
+      mockResolveScope.mockReturnValue(mockItems as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // EXECUTE: Try to mutate returned queue
+      const queue = orchestrator.executionQueue;
+      queue.push(
+        createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned') as any
+      );
+
+      // VERIFY: Internal queue unchanged
+      expect(orchestrator.executionQueue).toHaveLength(1);
+      expect(orchestrator.executionQueue[0].id).toBe('P1.M1.T1.S1');
+    });
+  });
+
+  describe('scope-based execution integration', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should integrate scope with full execution flow', async () => {
+      // SETUP: Multi-level backlog
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock scope resolution to return 2 subtasks
+      const mockSubtasks = [
+        createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+        createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+      ];
+      mockResolveScope.mockReturnValue(mockSubtasks as HierarchyItem[]);
+
+      // EXECUTE: Create orchestrator with scope and process all items
+      const orchestrator = new TaskOrchestrator(mockManager, {
+        type: 'task',
+        id: 'P1.M1.T1',
+      });
+      let hasMore = true;
+      let processedCount = 0;
+
+      while (hasMore && processedCount < 10) {
+        // Safety limit to prevent infinite loops
+        hasMore = await orchestrator.processNextItem();
+        processedCount++;
+      }
+
+      // VERIFY: Both subtasks processed
+      expect(processedCount).toBe(3); // 2 items + 1 final call that returns false
+      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(6); // Researching + Implementing + Complete for each (2 * 3 = 6)
+      expect(orchestrator.executionQueue).toHaveLength(0); // Queue empty
+    });
+
+    it('should support mid-execution scope changes', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+          createTestMilestone('P1.M2', 'Milestone 2', 'Planned', [
+            createTestTask('P1.M2.T1', 'Task 2', 'Planned', [
+              createTestSubtask('P1.M2.T1.S1', 'Subtask 2', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: 'test-session',
+          createdAt: new Date().toISOString(),
+          prdPath: './PRD.md',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Initial scope: M1
+      const m1Subtask = createTestSubtask(
+        'P1.M1.T1.S1',
+        'Subtask 1',
+        'Planned'
+      );
+      mockResolveScope.mockReturnValue([m1Subtask] as HierarchyItem[]);
+
+      const orchestrator = new TaskOrchestrator(mockManager, {
+        type: 'milestone',
+        id: 'P1.M1',
+      });
+
+      // EXECUTE: Process first item
+      await orchestrator.processNextItem();
+
+      // Change scope to M2
+      const m2Subtask = createTestSubtask(
+        'P1.M2.T1.S1',
+        'Subtask 2',
+        'Planned'
+      );
+      mockResolveScope.mockReturnValue([m2Subtask] as HierarchyItem[]);
+
+      await orchestrator.setScope({ type: 'milestone', id: 'P1.M2' });
+
+      // Process second item
+      await orchestrator.processNextItem();
+
+      // VERIFY: Both items processed
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Researching'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M2.T1.S1',
+        'Researching'
+      );
     });
   });
 });
