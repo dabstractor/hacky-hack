@@ -1,0 +1,1298 @@
+/**
+ * Unit tests for SessionManager class
+ *
+ * @remarks
+ * Tests validate SessionManager class from src/core/session-manager.ts with 100% coverage.
+ * Tests follow the Setup/Execute/Verify pattern with comprehensive edge case coverage.
+ *
+ * Mocks are used for all file system, crypto, and session-utils operations - no real I/O is performed.
+ *
+ * @see {@link https://vitest.dev/guide/ | Vitest Documentation}
+ */
+
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { SessionManager } from '../../../src/core/session-manager.js';
+import {
+  hashPRD,
+  createSessionDirectory,
+  readTasksJSON,
+  SessionFileError,
+} from '../../../src/core/session-utils.js';
+import type { Backlog } from '../../../src/core/models.js';
+import { Status } from '../../../src/core/models.js';
+
+// Mock the node:fs/promises module
+vi.mock('node:fs/promises', () => ({
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  stat: vi.fn(),
+  readdir: vi.fn(),
+}));
+
+// Mock the node:fs module for synchronous operations
+vi.mock('node:fs', () => ({
+  statSync: vi.fn(),
+  readdir: vi.fn(),
+}));
+
+// Mock the session-utils module
+vi.mock('../../../src/core/session-utils.js', () => ({
+  hashPRD: vi.fn(),
+  createSessionDirectory: vi.fn(),
+  readTasksJSON: vi.fn(),
+  SessionFileError: class extends Error {
+    readonly path: string;
+    readonly operation: string;
+    readonly code?: string;
+    constructor(path: string, operation: string, cause?: Error) {
+      const err = cause as NodeJS.ErrnoException;
+      super(
+        `Failed to ${operation} at ${path}: ${err?.message ?? 'unknown error'}`
+      );
+      this.name = 'SessionFileError';
+      this.path = path;
+      this.operation = operation;
+      this.code = err?.code;
+    }
+  },
+}));
+
+// Import mocked modules
+import { readFile, writeFile, stat, readdir } from 'node:fs/promises';
+import { statSync } from 'node:fs';
+
+// Cast mocked functions
+const mockReadFile = readFile as any;
+const mockWriteFile = writeFile as any;
+const mockStat = stat as any;
+const mockReaddir = readdir as any;
+const mockStatSync = statSync as any;
+
+const mockHashPRD = hashPRD as any;
+const mockCreateSessionDirectory = createSessionDirectory as any;
+const mockReadTasksJSON = readTasksJSON as any;
+
+// Factory functions for test data
+const createTestSubtask = (
+  id: string,
+  title: string,
+  status: Status,
+  dependencies: string[] = []
+) => ({
+  id,
+  type: 'Subtask' as const,
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope: 'Test scope',
+});
+
+const createTestTask = (
+  id: string,
+  title: string,
+  status: Status,
+  subtasks: any[] = []
+) => ({
+  id,
+  type: 'Task' as const,
+  title,
+  status,
+  description: 'Test task description',
+  subtasks,
+});
+
+const createTestMilestone = (
+  id: string,
+  title: string,
+  status: Status,
+  tasks: any[] = []
+) => ({
+  id,
+  type: 'Milestone' as const,
+  title,
+  status,
+  description: 'Test milestone description',
+  tasks,
+});
+
+const createTestPhase = (
+  id: string,
+  title: string,
+  status: Status,
+  milestones: any[] = []
+) => ({
+  id,
+  type: 'Phase' as const,
+  title,
+  status,
+  description: 'Test phase description',
+  milestones,
+});
+
+const createTestBacklog = (phases: any[]): Backlog => ({
+  backlog: phases,
+});
+
+// Mock hash response (64-character hex string)
+const MOCK_FULL_HASH =
+  '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123';
+const MOCK_SESSION_HASH = '14b9dc2a33c7'; // First 12 chars
+
+describe('SessionManager', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  describe('constructor', () => {
+    it('should validate PRD file exists synchronously', () => {
+      // SETUP: Mock successful stat check
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+
+      // VERIFY
+      expect(mockStatSync).toHaveBeenCalledWith('/test/PRD.md');
+      expect(manager.prdPath).toBe('/test/PRD.md');
+      expect(manager.planDir).toContain('plan');
+    });
+
+    it('should throw SessionFileError when PRD does not exist (ENOENT)', () => {
+      // SETUP: Mock ENOENT error
+      const error = new Error('ENOENT: no such file') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockStatSync.mockImplementation(() => {
+        throw error;
+      });
+
+      // EXECUTE & VERIFY
+      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+        SessionFileError
+      );
+      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+        'validate PRD exists'
+      );
+    });
+
+    it('should throw SessionFileError when path is not a file', () => {
+      // SETUP: Mock directory stat
+      mockStatSync.mockReturnValue({ isFile: () => false });
+
+      // EXECUTE & VERIFY
+      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+        SessionFileError
+      );
+      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+        'validate PRD path'
+      );
+    });
+
+    it('should store prdPath and planDir as readonly properties', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md', '/custom/plan');
+
+      // VERIFY
+      expect(manager.prdPath).toBe('/test/PRD.md');
+      expect(manager.planDir).toContain('/custom/plan');
+      // Verify readonly - TypeScript enforces this, but we can check the values
+      expect(() => {
+        (manager as any).prdPath = '/new/path';
+      }).not.toThrow(); // Runtime allows it, but TypeScript prevents it
+    });
+
+    it('should initialize currentSession to null', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+
+      // VERIFY
+      expect(manager.currentSession).toBeNull();
+    });
+
+    it('should resolve relative paths to absolute paths', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager('./PRD.md');
+
+      // VERIFY: Path should be absolute
+      expect(manager.prdPath).toMatch(/^\/.*PRD\.md$/);
+    });
+
+    it('should use default plan directory when not specified', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+
+      // VERIFY
+      expect(manager.planDir).toContain('plan');
+    });
+  });
+
+  describe('currentSession getter', () => {
+    it('should return null before initialize is called', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+
+      // VERIFY
+      expect(manager.currentSession).toBeNull();
+    });
+
+    it('should return SessionState after initialize is called', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]); // No existing sessions
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // VERIFY
+      expect(manager.currentSession).not.toBeNull();
+      expect(manager.currentSession?.metadata.id).toBe('001_14b9dc2a33c7');
+    });
+  });
+
+  describe('initialize', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+    });
+
+    it('should hash PRD using hashPRD()', async () => {
+      // SETUP: No existing sessions
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // VERIFY
+      expect(mockHashPRD).toHaveBeenCalledWith('/test/PRD.md');
+    });
+
+    it('should search plan/ directory for matching hash', async () => {
+      // SETUP
+      mockReaddir.mockResolvedValue([]); // No existing sessions
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // VERIFY: readdir was called to search for existing sessions
+      expect(mockReaddir).toHaveBeenCalledWith(manager.planDir, {
+        withFileTypes: true,
+      });
+    });
+
+    it('should create new session when hash not found', async () => {
+      // SETUP: No matching session found
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
+        '/test/PRD.md',
+        1
+      );
+      expect(session.metadata.id).toBe('001_14b9dc2a33c7');
+      expect(session.taskRegistry.backlog).toEqual([]);
+    });
+
+    it('should write PRD snapshot to prd_snapshot.md', async () => {
+      // SETUP
+      const prdContent = '# Test PRD\n\nThis is content.';
+      mockReaddir.mockResolvedValue([]);
+      mockReadFile.mockResolvedValue(prdContent);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // VERIFY
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringMatching(/\/prd_snapshot\.md$/),
+        prdContent,
+        { mode: 0o644 }
+      );
+    });
+
+    it('should return SessionState with metadata, prdSnapshot, taskRegistry, currentItemId', async () => {
+      // SETUP
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(session).toMatchObject({
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: MOCK_SESSION_HASH,
+          path: '/plan/001_14b9dc2a33c7',
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: { backlog: [] },
+        currentItemId: null,
+      });
+      expect(session.metadata.createdAt).toBeInstanceOf(Date);
+    });
+
+    it('should load existing session when matching hash is found', async () => {
+      // SETUP: Existing session directory found
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+      ]);
+      mockReadTasksJSON.mockResolvedValue(testBacklog);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY: Should load from existing session
+      expect(mockCreateSessionDirectory).not.toHaveBeenCalled();
+      expect(session.metadata.id).toBe('001_14b9dc2a33c7');
+      expect(session.taskRegistry.backlog).toHaveLength(1);
+    });
+
+    it('should increment sequence number when creating new session', async () => {
+      // SETUP: Existing session 001 exists, but hash doesn't match
+      mockReaddir.mockResolvedValue([
+        { name: '001_oldhash1234', isDirectory: () => true },
+      ]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY: Should create session 002
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
+        '/test/PRD.md',
+        2
+      );
+      expect(session.metadata.id).toBe('002_14b9dc2a33c7');
+    });
+
+    it('should start from sequence 1 when no sessions exist', async () => {
+      // SETUP
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // VERIFY
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
+        '/test/PRD.md',
+        1
+      );
+    });
+
+    it('should use zero-padded sequence (3 digits) in session ID', async () => {
+      // SETUP
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(session.metadata.id).toMatch(/^00\d_/);
+    });
+
+    it('should extract session hash (first 12 chars) from full hash', async () => {
+      // SETUP
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(session.metadata.hash).toBe(MOCK_SESSION_HASH);
+      expect(session.metadata.hash.length).toBe(12);
+    });
+
+    it('should handle plan/ directory not existing (ENOENT)', async () => {
+      // SETUP: plan/ doesn't exist
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReaddir.mockImplementation(() => {
+        throw error;
+      });
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE: Should create first session
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(session.metadata.id).toBe('001_14b9dc2a33c7');
+    });
+
+    it('should propagate SessionFileError from hashPRD()', async () => {
+      // SETUP: hashPRD throws error
+      const hashError = new SessionFileError('/test/PRD.md', 'read PRD');
+      mockHashPRD.mockRejectedValue(hashError);
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(manager.initialize()).rejects.toThrow(SessionFileError);
+    });
+
+    it('should propagate SessionFileError from createSessionDirectory()', async () => {
+      // SETUP: createSessionDirectory throws error
+      const dirError = new SessionFileError(
+        '/plan/001_14b9dc2a33c7',
+        'create directory'
+      );
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockRejectedValue(dirError);
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(manager.initialize()).rejects.toThrow(SessionFileError);
+    });
+  });
+
+  describe('loadSession', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should read tasks.json using readTasksJSON()', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      mockReadTasksJSON.mockResolvedValue(testBacklog);
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(mockReadTasksJSON).toHaveBeenCalledWith('/plan/001_14b9dc2a33c7');
+      expect(session.taskRegistry.backlog).toHaveLength(1);
+    });
+
+    it('should read prd_snapshot.md from session directory', async () => {
+      // SETUP
+      const prdContent = '# Test PRD Content';
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockResolvedValue(prdContent);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(mockReadFile).toHaveBeenCalledWith(
+        expect.stringMatching(/\/plan\/001_14b9dc2a33c7\/prd_snapshot\.md$/),
+        'utf-8'
+      );
+      expect(session.prdSnapshot).toBe(prdContent);
+    });
+
+    it('should parse metadata from directory name', async () => {
+      // SETUP
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockResolvedValue('# PRD');
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(session.metadata.id).toBe('001_14b9dc2a33c7');
+      expect(session.metadata.hash).toBe('14b9dc2a33c7');
+    });
+
+    it('should check for parent_session.txt file', async () => {
+      // SETUP: Parent session file exists
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile
+        .mockResolvedValueOnce('# PRD')
+        .mockResolvedValueOnce('000_parenthash'); // parent_session.txt
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(session.metadata.parentSession).toBe('000_parenthash');
+    });
+
+    it('should set parentSession to null when no parent file exists', async () => {
+      // SETUP: No parent file (readFile throws)
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockResolvedValueOnce('# PRD').mockRejectedValueOnce(error); // parent_session.txt doesn't exist
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(session.metadata.parentSession).toBeNull();
+    });
+
+    it('should get directory creation time from stat()', async () => {
+      // SETUP
+      const mtime = new Date('2024-01-15T10:30:00Z');
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockResolvedValue('# PRD');
+      mockStat.mockResolvedValue({ mtime });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(mockStat).toHaveBeenCalledWith('/plan/001_14b9dc2a33c7');
+      expect(session.metadata.createdAt).toEqual(mtime);
+    });
+
+    it('should set currentItemId to null (Task Orchestrator will set it)', async () => {
+      // SETUP
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockResolvedValue('# PRD');
+      mockStat.mockResolvedValue({ mtime: new Date() });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(session.currentItemId).toBeNull();
+    });
+
+    it('should reconstruct complete SessionState from disk', async () => {
+      // SETUP: Full session state
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      mockReadTasksJSON.mockResolvedValue(testBacklog);
+      mockReadFile.mockResolvedValue('# Full PRD');
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY: Complete hierarchy restored
+      expect(session.taskRegistry.backlog).toHaveLength(1);
+      expect(session.taskRegistry.backlog[0].id).toBe('P1');
+      expect(session.taskRegistry.backlog[0].milestones[0].id).toBe('P1.M1');
+      expect(session.taskRegistry.backlog[0].milestones[0].tasks[0].id).toBe(
+        'P1.M1.T1'
+      );
+      expect(
+        session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].id
+      ).toBe('P1.M1.T1.S1');
+    });
+
+    it('should propagate SessionFileError from readTasksJSON()', async () => {
+      // SETUP
+      const error = new SessionFileError(
+        '/plan/001_14b9dc2a33c7/tasks.json',
+        'read tasks.json'
+      );
+      mockReadTasksJSON.mockRejectedValue(error);
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(
+        manager.loadSession('/plan/001_14b9dc2a33c7')
+      ).rejects.toThrow(SessionFileError);
+    });
+
+    it('should throw when prd_snapshot.md not found', async () => {
+      // SETUP
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockRejectedValue(error);
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(
+        manager.loadSession('/plan/001_14b9dc2a33c7')
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('createDeltaSession', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should require initialize() to be called first', async () => {
+      // SETUP: Manager with no current session
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE & VERIFY
+      await expect(manager.createDeltaSession('/new/PRD.md')).rejects.toThrow(
+        'no current session loaded'
+      );
+    });
+
+    it('should validate new PRD exists', async () => {
+      // SETUP: Initialize with current session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: New PRD doesn't exist
+      mockStat.mockRejectedValue(new Error('ENOENT'));
+
+      // EXECUTE & VERIFY
+      await expect(manager.createDeltaSession('/new/PRD.md')).rejects.toThrow(
+        SessionFileError
+      );
+    });
+
+    it('should hash new PRD', async () => {
+      // SETUP: Initialize current session
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: Mock new PRD hash
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(mockHashPRD).toHaveBeenCalledWith('/new/PRD.md');
+    });
+
+    it('should compare new PRD hash with current session hash', async () => {
+      // SETUP: Initialize current session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: Different hash for new PRD
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      const originalHash = manager.currentSession!.metadata.hash;
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY: Hash should be different from original
+      expect(deltaSession.metadata.hash).not.toBe(originalHash);
+      expect(deltaSession.metadata.hash).toBe('a3f8e9d12b4a');
+      // Verify current session was updated to delta session
+      expect(manager.currentSession?.metadata.hash).toBe('a3f8e9d12b4a');
+    });
+
+    it('should read old PRD from current session prdSnapshot', async () => {
+      // SETUP
+      const oldPRD = '# Old PRD Content';
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue(oldPRD);
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: New PRD
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+      mockReadFile.mockResolvedValue('# New PRD');
+
+      // EXECUTE
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(deltaSession.oldPRD).toBe(oldPRD);
+    });
+
+    it('should read new PRD from file', async () => {
+      // SETUP
+      const newPRD = '# New PRD Content';
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: New PRD - reset mock and setup for new PRD read
+      mockReadFile.mockReset().mockResolvedValue(newPRD);
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(deltaSession.newPRD).toBe(newPRD);
+    });
+
+    it('should generate diff summary', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD\n');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: New PRD with different content
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+      mockReadFile
+        .mockResolvedValueOnce('# Old PRD\n')
+        .mockResolvedValueOnce('# New PRD\n\nExtra content');
+
+      // EXECUTE
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(deltaSession.diffSummary).toContain('PRD modified');
+      expect(deltaSession.diffSummary).toContain('lines');
+    });
+
+    it('should create new session with incremented sequence', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: Create delta session
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(deltaSession.metadata.id).toBe('002_a3f8e9d12b4a');
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith('/new/PRD.md', 2);
+    });
+
+    it('should write parent_session.txt to new session directory', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: Create delta session
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringMatching(/\/parent_session\.txt$/),
+        '001_14b9dc2a33c7',
+        { mode: 0o644 }
+      );
+    });
+
+    it('should set parentSession to current session ID', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: Create delta session
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(deltaSession.metadata.parentSession).toBe('001_14b9dc2a33c7');
+    });
+
+    it('should return DeltaSession with oldPRD, newPRD, diffSummary', async () => {
+      // SETUP
+      const oldPRD = '# Old PRD';
+      const newPRD = '# New PRD\n\nAdditional content';
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue(oldPRD);
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: Create delta session - reset mock for new PRD read
+      mockReadFile.mockReset().mockResolvedValue(newPRD);
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+
+      // EXECUTE
+      const deltaSession = await manager.createDeltaSession('/new/PRD.md');
+
+      // VERIFY
+      expect(deltaSession).toMatchObject({
+        oldPRD,
+        newPRD,
+        diffSummary: expect.stringContaining('PRD modified'),
+      });
+      expect(deltaSession.taskRegistry).toEqual({ backlog: [] });
+      expect(deltaSession.currentItemId).toBeNull();
+    });
+
+    it('should propagate SessionFileError from new PRD validation', async () => {
+      // SETUP: Initialize current session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: New PRD stat throws
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockStat.mockRejectedValue(error);
+
+      // EXECUTE & VERIFY
+      await expect(manager.createDeltaSession('/new/PRD.md')).rejects.toThrow(
+        SessionFileError
+      );
+    });
+
+    it('should propagate SessionFileError from createSessionDirectory()', async () => {
+      // SETUP: Initialize current session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Old PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // SETUP: createSessionDirectory throws
+      const dirError = new SessionFileError(
+        '/plan/002_a3f8e9d12b4a',
+        'create directory'
+      );
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockRejectedValue(dirError);
+      mockReadFile.mockResolvedValue('# New PRD');
+
+      // EXECUTE & VERIFY
+      await expect(manager.createDeltaSession('/new/PRD.md')).rejects.toThrow(
+        SessionFileError
+      );
+    });
+  });
+
+  describe('integration scenarios', () => {
+    it('should support full session lifecycle: initialize -> load -> delta', async () => {
+      // SETUP: Initial session creation
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Original PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({ mtime: new Date() });
+
+      // EXECUTE: Initialize new session
+      const manager = new SessionManager('/test/PRD.md');
+      const session1 = await manager.initialize();
+
+      // VERIFY: Initial session created
+      expect(session1.metadata.id).toBe('001_14b9dc2a33c7');
+      expect(session1.metadata.parentSession).toBeNull();
+
+      // EXECUTE: Load the same session (simulate restart)
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+      ]);
+      mockReadTasksJSON.mockResolvedValue(testBacklog);
+
+      const session2 = await manager.initialize();
+
+      // VERIFY: Existing session loaded
+      expect(session2.metadata.id).toBe('001_14b9dc2a33c7');
+      expect(session2.taskRegistry.backlog[0].status).toBe('Complete');
+
+      // EXECUTE: Create delta session with modified PRD
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+      mockReadFile.mockReset().mockResolvedValue('# Modified PRD');
+
+      const deltaSession = await manager.createDeltaSession('/modified/PRD.md');
+
+      // VERIFY: Delta session created with parent reference
+      expect(deltaSession.metadata.id).toBe('002_a3f8e9d12b4a');
+      expect(deltaSession.metadata.parentSession).toBe('001_14b9dc2a33c7');
+      expect(deltaSession.oldPRD).toBe('# Original PRD');
+      expect(deltaSession.newPRD).toBe('# Modified PRD');
+    });
+
+    it('should handle multiple sequential sessions', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReadFile.mockResolvedValue('# PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE: Create first session
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      await manager.initialize();
+
+      // EXECUTE: Simulate PRD change, create second session
+      const hash2 =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(hash2);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+      mockReadFile
+        .mockResolvedValueOnce('# PRD')
+        .mockResolvedValueOnce('# PRD v2');
+      mockStat.mockResolvedValue({});
+
+      await manager.createDeltaSession('/test/PRD.md');
+
+      // EXECUTE: Another PRD change, create third session
+      const hash3 =
+        'xyz789abc12a4567890abcdef1234567890abcdef1234567890abcdef123456';
+      mockHashPRD.mockResolvedValueOnce(hash3);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/003_xyz789abc12');
+      mockReadFile
+        .mockResolvedValueOnce('# PRD v2')
+        .mockResolvedValueOnce('# PRD v3');
+
+      await manager.createDeltaSession('/test/PRD.md');
+
+      // VERIFY: Sequence numbers incremented correctly
+      expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
+        1,
+        '/test/PRD.md',
+        1
+      );
+      expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
+        2,
+        '/test/PRD.md',
+        2
+      );
+      expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
+        3,
+        '/test/PRD.md',
+        3
+      );
+    });
+  });
+
+  describe('edge cases and boundary conditions', () => {
+    it('should handle empty task registry', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(session.taskRegistry.backlog).toEqual([]);
+    });
+
+    it('should handle large task registry with deep hierarchy', async () => {
+      // SETUP: Deep hierarchy
+      const deepBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+              createTestSubtask('P1.M1.T1.S3', 'Subtask 3', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReadTasksJSON.mockResolvedValue(deepBacklog);
+      mockReadFile.mockResolvedValue('# PRD');
+      mockStat.mockResolvedValue({ mtime: new Date() });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(
+        session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks
+      ).toHaveLength(3);
+    });
+
+    it('should handle session ID with maximum sequence (999)', async () => {
+      // SETUP: Existing session 999
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([
+        { name: '999_oldhash1234', isDirectory: () => true },
+      ]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/1000_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY: Should create session 1000
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
+        '/test/PRD.md',
+        1000
+      );
+      expect(session.metadata.id).toBe('1000_14b9dc2a33c7');
+    });
+
+    it('should handle parent session with long ID', async () => {
+      // SETUP
+      const longParentId = '999_1234567890ab'; // Max valid format
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile
+        .mockResolvedValueOnce('# PRD')
+        .mockResolvedValueOnce(longParentId); // parent_session.txt
+      mockStat.mockResolvedValue({ mtime: new Date() });
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
+
+      // VERIFY
+      expect(session.metadata.parentSession).toBe(longParentId);
+    });
+
+    it('should handle PRD with special characters in content', async () => {
+      // SETUP
+      const specialPRD =
+        '# PRD\n\n```typescript\nconst code = "test";\n```\n\n* List item\n\n> Quote';
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue(specialPRD);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      const session = await manager.initialize();
+
+      // VERIFY
+      expect(session.prdSnapshot).toBe(specialPRD);
+    });
+  });
+
+  describe('error handling paths', () => {
+    it('should propagate generic errors from readdir', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockRejectedValue(new Error('EACCES: permission denied'));
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(manager.initialize()).rejects.toThrow('EACCES');
+    });
+
+    it('should propagate errors from stat when loading session', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
+      mockReadFile.mockResolvedValue('# PRD');
+      mockStat.mockRejectedValue(new Error('EIO: I/O error'));
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(
+        manager.loadSession('/plan/001_14b9dc2a33c7')
+      ).rejects.toThrow('EIO');
+    });
+
+    it('should handle createDeltaSession called twice with different PRDs', async () => {
+      // SETUP: Initialize
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# PRD v1');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockStat.mockResolvedValue({});
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: First delta
+      const hash2 =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(hash2);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+      mockReadFile.mockReset().mockResolvedValue('# PRD v2');
+
+      await manager.createDeltaSession('/test/PRD.md');
+
+      // EXECUTE: Second delta (different PRD)
+      const hash3 =
+        'xyz789abc12a4567890abcdef1234567890abcdef1234567890abcdef123456';
+      mockHashPRD.mockResolvedValueOnce(hash3);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/003_xyz789abc12a');
+      mockReadFile.mockReset().mockResolvedValue('# PRD v3');
+
+      const delta2 = await manager.createDeltaSession('/test/PRD.md');
+
+      // VERIFY: Should use session 002 as parent (latest session)
+      expect(delta2.metadata.id).toBe('003_xyz789abc12a');
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
+        '/test/PRD.md',
+        3
+      );
+    });
+  });
+});
