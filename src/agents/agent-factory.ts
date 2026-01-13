@@ -28,9 +28,34 @@ import {
   PRP_BUILDER_PROMPT,
   BUG_HUNT_PROMPT,
 } from './prompts.js';
+import { BashMCP } from '../tools/bash-mcp.js';
+import { FilesystemMCP } from '../tools/filesystem-mcp.js';
+import { GitMCP } from '../tools/git-mcp.js';
+
 // PATTERN: Configure environment at module load time (intentional side effect)
 // CRITICAL: This must execute before any agent creation
 configureEnvironment();
+
+/**
+ * Singleton MCP server instances
+ *
+ * @remarks
+ * One instance of each MCP server is shared across all agents.
+ * This avoids redundant server registration and memory overhead.
+ * MCP servers register their tools in the constructor via MCPHandler.
+ */
+const BASH_MCP = new BashMCP();
+const FILESYSTEM_MCP = new FilesystemMCP();
+const GIT_MCP = new GitMCP();
+
+/**
+ * Combined array of all MCP tools for agent integration
+ *
+ * @remarks
+ * This array is passed to createAgent() via the mcps parameter.
+ * All agents (architect, researcher, coder, qa) receive the same tool set.
+ */
+const MCP_TOOLS = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP] as const;
 
 /**
  * Agent persona identifier for selecting specialized configurations
@@ -162,6 +187,7 @@ export function createArchitectAgent(): Agent {
   const config = {
     ...baseConfig,
     system: TASK_BREAKDOWN_PROMPT,
+    mcps: MCP_TOOLS,
   };
   return createAgent(config);
 }
@@ -188,6 +214,7 @@ export function createResearcherAgent(): Agent {
   const config = {
     ...baseConfig,
     system: PRP_BLUEPRINT_PROMPT,
+    mcps: MCP_TOOLS,
   };
   return createAgent(config);
 }
@@ -214,6 +241,7 @@ export function createCoderAgent(): Agent {
   const config = {
     ...baseConfig,
     system: PRP_BUILDER_PROMPT,
+    mcps: MCP_TOOLS,
   };
   return createAgent(config);
 }
@@ -240,8 +268,12 @@ export function createQAAgent(): Agent {
   const config = {
     ...baseConfig,
     system: BUG_HUNT_PROMPT,
+    mcps: MCP_TOOLS,
   };
   return createAgent(config);
 }
 
 // PATTERN: Re-export types for convenience
+
+// PATTERN: Export MCP tools for external use and testing
+export { MCP_TOOLS };
