@@ -9,6 +9,7 @@ Research findings on async operation chaining patterns for TypeScript, focusing 
 ## Key Resources & Documentation
 
 ### Orchestration Libraries
+
 - **Temporal.io** - https://docs.temporal.io/learn/activities
   - Durable activity execution
   - Automatic retry with exponential backoff
@@ -30,6 +31,7 @@ Research findings on async operation chaining patterns for TypeScript, focusing 
   - Sequential execution
 
 ### Async Patterns
+
 - **Async/Await** - https://javascript.info/async-await
   - Syntactic sugar for promises
   - Try/catch error handling
@@ -66,15 +68,15 @@ interface WorkflowSteps {
 
 // Implementation
 const steps: WorkflowSteps = {
-  validate: async (input) => {
+  validate: async input => {
     // Validation logic
     return { valid: true, data: input };
   },
-  transform: async (result) => {
+  transform: async result => {
     // Transformation logic
     return { transformed: result.data };
   },
-  save: async (data) => {
+  save: async data => {
     // Save logic
     return { success: true };
   },
@@ -82,6 +84,7 @@ const steps: WorkflowSteps = {
 ```
 
 **Benefits:**
+
 - Compile-time type checking
 - Clear data flow
 - IDE autocomplete
@@ -104,11 +107,7 @@ class SequentialPipeline<TInput, TOutput> {
         current = await step(current);
       } catch (error) {
         // Wrap error with context
-        throw new StepError(
-          step.name,
-          current,
-          error
-        );
+        throw new StepError(step.name, current, error);
       }
     }
 
@@ -136,6 +135,7 @@ class StepError extends Error {
 ```
 
 **Advantages:**
+
 - Explicit error context
 - Easy debugging
 - Step-level error handling
@@ -153,9 +153,7 @@ class ParallelExecutor {
     input: TInput
   ): Promise<Array<{ success: boolean; result?: TOutput; error?: Error }>> {
     // Execute all steps in parallel
-    const results = await Promise.allSettled(
-      steps.map(step => step(input))
-    );
+    const results = await Promise.allSettled(steps.map(step => step(input)));
 
     // Transform to structured results
     return results.map(result => {
@@ -181,6 +179,7 @@ const failures = results.filter(r => !r.success);
 ```
 
 **Benefits:**
+
 - Concurrent execution
 - Individual error handling
 - Partial success support
@@ -226,7 +225,7 @@ async function withRetry<T>(
 
       console.warn(
         `Attempt ${attempt + 1}/${maxAttempts} failed. ` +
-        `Retrying in ${delay}ms...`
+          `Retrying in ${delay}ms...`
       );
 
       await sleep(delay);
@@ -242,17 +241,15 @@ function sleep(ms: number): Promise<void> {
 }
 
 // Usage
-const result = await withRetry(
-  () => fetchAPI(),
-  {
-    maxAttempts: 5,
-    baseDelay: 2000,
-    retryIf: (error) => error instanceof NetworkError,
-  }
-);
+const result = await withRetry(() => fetchAPI(), {
+  maxAttempts: 5,
+  baseDelay: 2000,
+  retryIf: error => error instanceof NetworkError,
+});
 ```
 
 **Key Features:**
+
 - Configurable attempts
 - Exponential backoff
 - Conditional retry
@@ -265,10 +262,7 @@ Support mid-execution cancellation:
 ```typescript
 // Pattern: AbortController integration
 class CancellableWorkflow {
-  async execute(
-    input: unknown,
-    signal?: AbortSignal
-  ): Promise<unknown> {
+  async execute(input: unknown, signal?: AbortSignal): Promise<unknown> {
     // Check for cancellation
     if (signal?.aborted) {
       throw new DOMException('Aborted', 'AbortError');
@@ -316,6 +310,7 @@ setTimeout(() => controller.abort(), 5000);
 ```
 
 **Benefits:**
+
 - Clean cancellation
 - Resource cleanup
 - Timeout support
@@ -373,19 +368,16 @@ class ProgressiveWorkflow {
 
 // Usage
 const workflow = new ProgressiveWorkflow();
-await workflow.execute(
-  [step1, step2, step3],
-  input,
-  (progress) => {
-    console.log(
-      `Progress: ${progress.step}/${progress.total} ` +
+await workflow.execute([step1, step2, step3], input, progress => {
+  console.log(
+    `Progress: ${progress.step}/${progress.total} ` +
       `(${progress.percentComplete.toFixed(1)}%) - ${progress.stepName}`
-    );
-  }
-);
+  );
+});
 ```
 
 **Advantages:**
+
 - User feedback
 - UI updates
 - Monitoring integration
@@ -399,11 +391,7 @@ await workflow.execute(
 
 ```typescript
 // BAD: Errors swallowed
-Promise.all([
-  step1(),
-  step2(),
-  step3(),
-]).then(() => {
+Promise.all([step1(), step2(), step3()]).then(() => {
   console.log('All done');
 }); // Errors ignored
 
@@ -468,10 +456,7 @@ await step1();
 // GOOD: Timeout protection
 await withTimeout(step1(), 5000);
 
-async function withTimeout<T>(
-  promise: Promise<T>,
-  ms: number
-): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   const timeout = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error('Timeout')), ms);
   });
@@ -511,6 +496,7 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
 **Key Patterns:**
 
 1. **Fix-and-Retry Loop** (lines 262-290)
+
    ```typescript
    while (fixAttempts <= maxFixAttempts) {
      validationResults = await this.#runValidationGates(prp);
@@ -523,7 +509,9 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
      if (fixAttempts < maxFixAttempts) {
        fixAttempts++;
        const delay = Math.min(2000 * Math.pow(2, fixAttempts - 1), 30000);
-       console.warn(`Validation failed. Fix attempt ${fixAttempts}/${maxFixAttempts}...`);
+       console.warn(
+         `Validation failed. Fix attempt ${fixAttempts}/${maxFixAttempts}...`
+       );
        await this.#sleep(delay);
        await this.#fixAndRetry(prp, validationResults, fixAttempts);
      } else {
@@ -531,16 +519,20 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
      }
    }
    ```
+
    - Retry loop with exponential backoff
    - Clear success condition
    - Detailed logging
    - Maximum attempt limit
 
 2. **Sequential Validation Gates** (lines 326-384)
+
    ```typescript
    for (const gate of sortedGates) {
      if (gate.manual || gate.command === null) {
-       results.push({ /* skipped */ });
+       results.push({
+         /* skipped */
+       });
        continue;
      }
 
@@ -558,12 +550,14 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
      }
    }
    ```
+
    - Sequential execution
    - Skip manual gates
    - Timeout per command
    - Stop on first failure
 
 3. **Structured Error Types** (lines 82-134)
+
    ```typescript
    export class PRPExecutionError extends Error {
      constructor(
@@ -588,6 +582,7 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
      }
    }
    ```
+
    - Custom error classes
    - Context preservation
    - Clear error semantics
@@ -600,6 +595,7 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-generator.ts`
 **Key Patterns:**
 
 1. **Retry Loop with Exponential Backoff** (lines 169-227)
+
    ```typescript
    for (let attempt = 0; attempt < maxRetries; attempt++) {
      try {
@@ -623,6 +619,7 @@ Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-generator.ts`
      }
    }
    ```
+
    - Retry with exponential backoff
    - Different retry logic for different errors
    - Detailed logging

@@ -123,7 +123,9 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       // EXECUTE
@@ -161,7 +163,9 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       const pipeline1 = new PRPPipeline(prdPath);
@@ -175,7 +179,9 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       const pipeline2 = new PRPPipeline(prdPath);
@@ -201,18 +207,35 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       const pipeline1 = new PRPPipeline(prdPath);
       await pipeline1.run();
 
       // Second run - architect should not be called (existing backlog)
-      vi.clearAllMocks();
-      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      // Create fresh mock for second run
+      const mockAgent2 = {
+        prompt: vi.fn().mockResolvedValue({ backlog: { backlog: [] } }),
+      };
+      (createArchitectAgent as any).mockReturnValue(mockAgent2);
+      // Mock readFile to return non-empty backlog to simulate existing session
       (readFile as any).mockImplementation((path: string) => {
         if (path.includes('tasks.json')) {
-          return JSON.stringify({ backlog: [] });
+          return JSON.stringify({
+            backlog: [
+              {
+                id: 'P1',
+                type: 'Phase',
+                title: 'Phase 1',
+                status: 'Complete' as Status,
+                description: 'Test phase',
+                milestones: [],
+              },
+            ],
+          });
         }
         return '';
       });
@@ -221,7 +244,7 @@ describe('PRPPipeline Integration Tests', () => {
       await pipeline2.run();
 
       // VERIFY: Architect agent not called for existing session with backlog
-      expect(mockAgent.prompt).not.toHaveBeenCalled();
+      expect(mockAgent2.prompt).not.toHaveBeenCalled();
     });
   });
 
@@ -240,7 +263,9 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       // EXECUTE
@@ -249,8 +274,8 @@ describe('PRPPipeline Integration Tests', () => {
       // Run the pipeline
       await pipeline.run();
 
-      // VERIFY: Final phase is qa_complete (all phases completed)
-      expect(pipeline.currentPhase).toBe('qa_complete');
+      // VERIFY: Final phase is shutdown_complete (cleanup runs in finally block)
+      expect(pipeline.currentPhase).toBe('shutdown_complete');
     });
 
     it('should update task counts during execution', async () => {
@@ -415,7 +440,9 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       // EXECUTE
@@ -459,7 +486,9 @@ describe('PRPPipeline Integration Tests', () => {
         if (path.includes('tasks.json')) {
           return JSON.stringify({ backlog: [] });
         }
-        return '';
+        // Return actual file content for other files (like PRD.md)
+        const actual = require('node:fs/promises');
+        return actual.readFile(path, 'utf-8');
       });
 
       // EXECUTE with scope

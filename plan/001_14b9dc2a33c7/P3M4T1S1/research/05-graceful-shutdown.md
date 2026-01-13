@@ -9,6 +9,7 @@ Research findings on interrupting workflows mid-execution and implementing prope
 ## Key Resources & Documentation
 
 ### Signal Handling
+
 - **Node.js Process Signals** - https://nodejs.org/api/process.html#process_signal_events
   - SIGTERM, SIGINT, SIGUSR2 signals
   - Process event listeners
@@ -20,6 +21,7 @@ Research findings on interrupting workflows mid-execution and implementing prope
   - Cluster mode shutdown
 
 ### Cancellation Patterns
+
 - **AbortController** - https://developer.mozilla.org/en-US/docs/Web/API/AbortController
   - Standard cancellation API
   - Signal propagation
@@ -36,6 +38,7 @@ Research findings on interrupting workflows mid-execution and implementing prope
   - onCancellation callback
 
 ### Cleanup Libraries
+
 - **Node-Cleanup** - https://github.com/jtlapp/node-cleanup
   - Exit handler installation
   - Cleanup function queues
@@ -78,14 +81,19 @@ class GracefulShutdown {
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', error => {
       console.error('[Shutdown] Uncaught exception:', error);
       this.shutdown('uncaughtException');
     });
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', (reason, promise) => {
-      console.error('[Shutdown] Unhandled rejection at:', promise, 'reason:', reason);
+      console.error(
+        '[Shutdown] Unhandled rejection at:',
+        promise,
+        'reason:',
+        reason
+      );
       this.shutdown('unhandledRejection');
     });
   }
@@ -138,6 +146,7 @@ shutdown.register(async () => {
 ```
 
 **Benefits:**
+
 - Multiple signal types handled
 - Cleanup handlers executed
 - Error resilience
@@ -245,6 +254,7 @@ class WorkflowCancelledError extends Error {
 ```
 
 **Advantages:**
+
 - Standard cancellation API
 - Propagates through async operations
 - Works with fetch API
@@ -337,6 +347,7 @@ await resources.cleanup();
 ```
 
 **Benefits:**
+
 - Automatic resource tracking
 - Ordered cleanup (LIFO)
 - Error collection
@@ -375,14 +386,14 @@ class OperationTracker {
     console.log(`[Tracker] Waiting for ${this.operations.size} operations...`);
 
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Timeout waiting for operations')), timeout);
+      setTimeout(
+        () => reject(new Error('Timeout waiting for operations')),
+        timeout
+      );
     });
 
     try {
-      await Promise.race([
-        Promise.all(this.operations),
-        timeoutPromise,
-      ]);
+      await Promise.race([Promise.all(this.operations), timeoutPromise]);
       console.log('[Tracker] All operations completed');
     } catch (error) {
       console.error('[Tracker] Error waiting for operations:', error);
@@ -403,9 +414,7 @@ class OperationTracker {
 const tracker = new OperationTracker();
 
 async function processItem(item: unknown) {
-  return tracker.track(
-    doWork(item)
-  );
+  return tracker.track(doWork(item));
 }
 
 // On shutdown
@@ -416,6 +425,7 @@ async function handleShutdown() {
 ```
 
 **Advantages:**
+
 - Track all operations
 - Wait for completion
 - Timeout protection
@@ -441,7 +451,10 @@ class GracefulShutdown {
     const shutdownPromise = this.performShutdown();
 
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Shutdown timeout')), this.shutdownTimeout);
+      setTimeout(
+        () => reject(new Error('Shutdown timeout')),
+        this.shutdownTimeout
+      );
     });
 
     try {
@@ -458,7 +471,10 @@ class GracefulShutdown {
   private async performShutdown(): Promise<void> {
     const steps = [
       { name: 'Stop accepting new work', fn: () => this.stopAcceptingWork() },
-      { name: 'Wait for in-flight operations', fn: () => this.waitForOperations() },
+      {
+        name: 'Wait for in-flight operations',
+        fn: () => this.waitForOperations(),
+      },
       { name: 'Close connections', fn: () => this.closeConnections() },
       { name: 'Flush logs', fn: () => this.flushLogs() },
       { name: 'Cleanup resources', fn: () => this.cleanupResources() },
@@ -499,6 +515,7 @@ class GracefulShutdown {
 ```
 
 **Benefits:**
+
 - Timeout protection
 - Sequential cleanup steps
 - Error resilience
@@ -628,7 +645,9 @@ export class InterruptibleTaskOrchestrator extends TaskOrchestrator {
   }
 
   private async handleShutdown(signal: string): Promise<void> {
-    console.log(`[TaskOrchestrator] Received ${signal}, initiating graceful shutdown...`);
+    console.log(
+      `[TaskOrchestrator] Received ${signal}, initiating graceful shutdown...`
+    );
 
     // Stop accepting new work
     this.controller.abort();
@@ -641,16 +660,25 @@ export class InterruptibleTaskOrchestrator extends TaskOrchestrator {
       await Promise.race([
         this.waitForCurrentItem(),
         new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout waiting for current item')), 5000);
+          setTimeout(
+            () => reject(new Error('Timeout waiting for current item')),
+            5000
+          );
         }),
       ]);
     } catch (error) {
-      console.error('[TaskOrchestrator] Error waiting for current item:', error);
+      console.error(
+        '[TaskOrchestrator] Error waiting for current item:',
+        error
+      );
     }
 
     // Get state snapshot before exit
     const snapshot = this.getSnapshot();
-    console.log('[TaskOrchestrator] State snapshot:', JSON.stringify(snapshot, null, 2));
+    console.log(
+      '[TaskOrchestrator] State snapshot:',
+      JSON.stringify(snapshot, null, 2)
+    );
 
     // Exit
     process.exit(0);
@@ -658,7 +686,7 @@ export class InterruptibleTaskOrchestrator extends TaskOrchestrator {
 
   private async waitForCurrentItem(): Promise<void> {
     // Wait for current processNextItem() to complete
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const checkInterval = setInterval(() => {
         // Check if no item is currently being processed
         // This would require tracking current state
@@ -683,7 +711,9 @@ export class InterruptibleTaskOrchestrator extends TaskOrchestrator {
   // Override processNextItem to check for cancellation
   async processNextItem(): Promise<boolean> {
     if (this.controller.signal.aborted) {
-      console.log('[TaskOrchestrator] Shutdown in progress, not processing new items');
+      console.log(
+        '[TaskOrchestrator] Shutdown in progress, not processing new items'
+      );
       return false;
     }
 

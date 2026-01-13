@@ -7,6 +7,7 @@
 **Feature Goal**: Create `PRPPipeline` class that orchestrates the complete PRP Pipeline workflow: session initialization → PRD decomposition → backlog execution → QA cycle, with Groundswell Workflow integration for full observability and state tracking.
 
 **Deliverable**: `src/workflows/prp-pipeline.ts` containing:
+
 - `PRPPipeline` class extending Groundswell `Workflow`
 - `@ObservedState()` decorators for session, orchestrator, runtime, phase, task counts
 - `@Step()` decorated methods: `initializeSession()`, `decomposePRD()`, `executeBacklog()`, `runQACycle()`
@@ -14,6 +15,7 @@
 - `PipelineResult` interface for execution summary
 
 **Success Definition**:
+
 - `PRPPipeline` correctly extends Groundswell `Workflow`
 - All `@Step()` methods execute with timing and state tracking
 - `@ObservedState()` fields are tracked and snapshotted
@@ -33,6 +35,7 @@
 **Use Case**: The user has a PRD document and wants to execute the full PRP Pipeline: detect or create session, generate task backlog, execute all tasks with PRP generation/implementation, run QA bug hunt, and receive summary results.
 
 **User Journey**:
+
 1. User invokes CLI: `prp-pipeline run ./PRD.md`
 2. PRPPipeline initializes - detects existing session or creates new one
 3. For new sessions: Architect agent generates task backlog from PRD
@@ -43,6 +46,7 @@
 8. User reviews results in session directory
 
 **Pain Points Addressed**:
+
 - Eliminates manual orchestration of session → backlog → execution → QA
 - Provides full visibility into pipeline execution via Groundswell observability
 - State snapshots enable debugging and recovery
@@ -65,6 +69,7 @@
 ### System Behavior
 
 The `PRPPipeline` class:
+
 1. Accepts `prdPath: string` and optional `scope?: Scope` in constructor
 2. Creates SessionManager, TaskOrchestrator, PRPRuntime instances
 3. Declares `@ObservedState()` fields for sessionManager, taskOrchestrator, runtime, currentPhase, totalTasks, completedTasks
@@ -100,6 +105,7 @@ The `PRPPipeline` class:
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Yes** - This PRP provides:
+
 - Exact Groundswell Workflow decorator patterns and options
 - Complete component APIs (SessionManager, TaskOrchestrator, PRPRuntime)
 - Architect agent invocation pattern for backlog generation
@@ -476,7 +482,7 @@ Task 10: CREATE tests/integration/prp-pipeline-integration.test.ts
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // File: src/workflows/prp-pipeline.ts
 
 // CRITICAL: Import patterns - use .js extensions for ES modules
@@ -667,7 +673,9 @@ export class PRPPipeline extends Workflow {
 
       this.logger.info('[PRPPipeline] Session initialized successfully');
     } catch (error) {
-      this.logger.error(`[PRPPipeline] Session initialization failed: ${error}`);
+      this.logger.error(
+        `[PRPPipeline] Session initialization failed: ${error}`
+      );
       throw error;
     }
   }
@@ -691,16 +699,21 @@ export class PRPPipeline extends Workflow {
       const hasBacklog = backlog && backlog.backlog.length > 0;
 
       if (hasBacklog) {
-        this.logger.info('[PRPPipeline] Existing backlog found, skipping generation');
+        this.logger.info(
+          '[PRPPipeline] Existing backlog found, skipping generation'
+        );
         this.totalTasks = this.#countTasks();
         this.currentPhase = 'prd_decomposed';
         return;
       }
 
-      this.logger.info('[PRPPipeline] New session, generating backlog from PRD');
+      this.logger.info(
+        '[PRPPipeline] New session, generating backlog from PRD'
+      );
 
       // Import agent factory dynamically
-      const { createArchitectAgent } = await import('../agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../agents/agent-factory.js');
       const { createArchitectPrompt } = await import('../agents/prompts.js');
 
       // Create Architect agent
@@ -807,10 +820,13 @@ export class PRPPipeline extends Workflow {
       // Check if all tasks are complete
       if (!this.#allTasksComplete()) {
         const failedCount = this.#countFailedTasks();
-        const plannedCount = this.totalTasks - this.completedTasks - failedCount;
+        const plannedCount =
+          this.totalTasks - this.completedTasks - failedCount;
 
         this.logger.info('[PRPPipeline] Not all tasks complete, skipping QA');
-        this.logger.info(`[PRPPipeline] Failed: ${failedCount}, Planned: ${plannedCount}`);
+        this.logger.info(
+          `[PRPPipeline] Failed: ${failedCount}, Planned: ${plannedCount}`
+        );
 
         this.#bugsFound = 0;
         this.currentPhase = 'qa_skipped';
@@ -858,7 +874,9 @@ export class PRPPipeline extends Workflow {
 
     this.logger.info('[PRPPipeline] Starting PRP Pipeline workflow');
     this.logger.info(`[PRPPipeline] PRD: ${this.#prdPath}`);
-    this.logger.info(`[PRPPipeline] Scope: ${JSON.stringify(this.#scope ?? 'all')}`);
+    this.logger.info(
+      `[PRPPipeline] Scope: ${JSON.stringify(this.#scope ?? 'all')}`
+    );
 
     try {
       // Execute workflow steps
@@ -870,7 +888,8 @@ export class PRPPipeline extends Workflow {
       this.setStatus('completed');
 
       const duration = performance.now() - this.#startTime;
-      const sessionPath = this.sessionManager.currentSession?.metadata.path ?? '';
+      const sessionPath =
+        this.sessionManager.currentSession?.metadata.path ?? '';
 
       this.logger.info('[PRPPipeline] Workflow completed successfully');
       this.logger.info(`[PRPPipeline] Duration: ${duration.toFixed(0)}ms`);
@@ -890,7 +909,8 @@ export class PRPPipeline extends Workflow {
       this.setStatus('failed');
 
       const duration = performance.now() - this.#startTime;
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       this.logger.error(`[PRPPipeline] Workflow failed: ${errorMessage}`);
 
@@ -1000,11 +1020,12 @@ export class PRPPipeline extends Workflow {
       title: phase.title,
       status: phase.status,
       totalMilestones: phase.milestones.length,
-      completedMilestones: phase.milestones.filter(m => m.status === 'Complete').length,
+      completedMilestones: phase.milestones.filter(m => m.status === 'Complete')
+        .length,
     }));
   }
 }
-```
+````
 
 ### Integration Points
 

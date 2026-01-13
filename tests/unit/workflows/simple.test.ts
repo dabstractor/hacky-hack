@@ -1,4 +1,3 @@
-
 import { describe, expect, it } from 'vitest';
 
 describe('test', () => {
@@ -6,4 +5,3 @@ describe('test', () => {
     expect(true).toBe(true);
   });
 });
-

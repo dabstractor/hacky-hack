@@ -9,6 +9,7 @@ Research findings on decorator-based state observation patterns for TypeScript, 
 ## Key Resources & Documentation
 
 ### Observable Libraries
+
 - **MobX** - https://mobx.js.org/the-gist-of-mobx.html
   - Observable state management
   - Decorators for reactive programming
@@ -40,6 +41,7 @@ Research findings on decorator-based state observation patterns for TypeScript, 
   - Modular architecture
 
 ### TypeScript Decorators
+
 - **TC39 Decorators Proposal** - https://github.com/tc39/proposal-decorators
   - Official decorators specification
   - Stage 3 proposal (2024)
@@ -127,6 +129,7 @@ class WorkflowState {
 ```
 
 **Benefits:**
+
 - Declarative reactivity
 - Automatic dependency tracking
 - Computed values cache
@@ -233,6 +236,7 @@ class ObservableWorkflow {
 ```
 
 **Advantages:**
+
 - Stream-based architecture
 - Powerful operators
 - Time-travel debugging
@@ -320,6 +324,7 @@ class ObservableWorkflow {
 ```
 
 **Benefits:**
+
 - Full control over behavior
 - No external dependencies
 - Custom notification logic
@@ -333,15 +338,10 @@ Use ES6 Proxy for automatic observation:
 // Pattern: Proxy-based observable
 type Listener = (path: string, value: unknown) => void;
 
-function makeObservable<T extends object>(
-  obj: T,
-  onChange: Listener
-): T {
+function makeObservable<T extends object>(obj: T, onChange: Listener): T {
   return new Proxy(obj, {
     set(target, property, value) {
-      const oldValue = (target as Record<string, unknown>)[
-        property as string
-      ];
+      const oldValue = (target as Record<string, unknown>)[property as string];
 
       // Only notify on actual change
       if (oldValue !== value) {
@@ -371,6 +371,7 @@ state.step = 1; // Logs: "State changed: step = 1"
 ```
 
 **Advantages:**
+
 - No decorators needed
 - Works with any object
 - Automatic tracking
@@ -435,6 +436,7 @@ unsubscribe(); // Cleanup
 ```
 
 **Benefits:**
+
 - Modern and lightweight
 - Fine-grained reactivity
 - No dependencies
@@ -552,9 +554,7 @@ class GoodState {
 
 ```typescript
 // BAD: Errors swallowed
-const data$ = from(fetch('/api/data')).pipe(
-  map(response => response.json())
-);
+const data$ = from(fetch('/api/data')).pipe(map(response => response.json()));
 
 // GOOD: Error handling
 const data$ = from(fetch('/api/data')).pipe(
@@ -684,25 +684,28 @@ export class ObservablePRPExecutor extends PRPExecutor {
       timestamp: new Date(),
     });
 
-    return super.execute(prp, prpPath).pipe(
-      tap(result => {
-        this.executionEvents.next({
-          type: 'complete',
-          taskId: prp.taskId,
-          timestamp: new Date(),
-          data: result,
-        });
-      }),
-      catchError(error => {
-        this.executionEvents.next({
-          type: 'error',
-          taskId: prp.taskId,
-          timestamp: new Date(),
-          data: error,
-        });
-        throw error;
-      })
-    ).toPromise();
+    return super
+      .execute(prp, prpPath)
+      .pipe(
+        tap(result => {
+          this.executionEvents.next({
+            type: 'complete',
+            taskId: prp.taskId,
+            timestamp: new Date(),
+            data: result,
+          });
+        }),
+        catchError(error => {
+          this.executionEvents.next({
+            type: 'error',
+            taskId: prp.taskId,
+            timestamp: new Date(),
+            data: error,
+          });
+          throw error;
+        })
+      )
+      .toPromise();
   }
 
   async #runValidationGates(prp: PRPDocument): Promise<ValidationGateResult[]> {

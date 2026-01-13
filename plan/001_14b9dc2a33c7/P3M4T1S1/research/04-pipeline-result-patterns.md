@@ -9,6 +9,7 @@ Research findings on return types and result patterns for multi-step workflows i
 ## Key Resources & Documentation
 
 ### Result Type Libraries
+
 - **Neverthrow** - https://github.com/supermacro/neverthrow
   - Result<T, E> type for error handling
   - Functional error handling patterns
@@ -35,6 +36,7 @@ Research findings on return types and result patterns for multi-step workflows i
   - Category theory fundamentals
 
 ### Validation Libraries
+
 - **Zod** - https://github.com/colinhacks/zod
   - Schema validation
   - Type inference
@@ -87,6 +89,7 @@ if (result.success) {
 ```
 
 **Benefits:**
+
 - Type-safe error handling
 - Explicit success/failure
 - No runtime type checks needed
@@ -132,6 +135,7 @@ class PipelineExecutor {
 ```
 
 **Advantages:**
+
 - Rich error context
 - Easy debugging
 - Error categorization
@@ -198,6 +202,7 @@ class Validator {
 ```
 
 **Benefits:**
+
 - Comprehensive validation tracking
 - Detailed statistics
 - Time tracking
@@ -267,13 +272,15 @@ class Pipeline {
       totalArtifacts: this.artifacts.length,
       totalSize: this.artifacts.reduce((sum, a) => sum + (a.size || 0), 0),
       filesCreated: this.artifacts.filter(a => a.type === 'file').length,
-      directoriesCreated: this.artifacts.filter(a => a.type === 'directory').length,
+      directoriesCreated: this.artifacts.filter(a => a.type === 'directory')
+        .length,
     };
   }
 }
 ```
 
 **Advantages:**
+
 - Track all outputs
 - Size calculations
 - Hash verification
@@ -314,7 +321,9 @@ interface PipelinePerformance {
 
 // Usage
 class InstrumentedPipeline {
-  async execute(steps: Array<() => Promise<void>>): Promise<PipelinePerformance> {
+  async execute(
+    steps: Array<() => Promise<void>>
+  ): Promise<PipelinePerformance> {
     const stepMetrics: StepMetrics[] = [];
     const startTime = Date.now();
     let peakMemory = 0;
@@ -368,11 +377,17 @@ class InstrumentedPipeline {
     return {
       totalDuration,
       averageStepDuration: totalDuration / stepMetrics.length,
-      slowestStep: stepMetrics.reduce((max, m) => (m.duration > max.duration ? m : max)),
-      fastestStep: stepMetrics.reduce((min, m) => (m.duration < min.duration ? m : min)),
+      slowestStep: stepMetrics.reduce((max, m) =>
+        m.duration > max.duration ? m : max
+      ),
+      fastestStep: stepMetrics.reduce((min, m) =>
+        m.duration < min.duration ? m : min
+      ),
       memoryUsage: {
         peak: peakMemory,
-        average: stepMetrics.reduce((sum, m) => sum + m.memory.after, 0) / stepMetrics.length,
+        average:
+          stepMetrics.reduce((sum, m) => sum + m.memory.after, 0) /
+          stepMetrics.length,
       },
       steps: stepMetrics,
     };
@@ -381,6 +396,7 @@ class InstrumentedPipeline {
 ```
 
 **Benefits:**
+
 - Performance bottleneck identification
 - Memory leak detection
 - Optimization guidance
@@ -472,6 +488,7 @@ class RetryableOperation {
 ```
 
 **Advantages:**
+
 - Retry pattern visibility
 - Delay tracking
 - Failure analysis
@@ -620,12 +637,14 @@ export interface ExecutionResult {
 ```
 
 **Strengths:**
+
 - Detailed validation results
 - Comprehensive stdout/stderr capture
 - Retry attempt tracking
 - Clear success boolean
 
 **Potential Improvements:**
+
 ```typescript
 export interface ValidationGateResult {
   readonly level: 1 | 2 | 3 | 4;
@@ -689,12 +708,14 @@ public async setStatus(
 ```
 
 **Strengths:**
+
 - Old status capture
 - Timestamp tracking
 - Reason parameter
 - Logging
 
 **Potential Improvements:**
+
 ```typescript
 interface StatusTransition {
   readonly itemId: string;

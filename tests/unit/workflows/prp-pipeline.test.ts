@@ -12,11 +12,7 @@
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { PRPPipeline } from '../../../src/workflows/prp-pipeline.js';
-import {
-  Backlog,
-  SessionState,
-  Status,
-} from '../../../src/core/models.js';
+import { Backlog, SessionState, Status } from '../../../src/core/models.js';
 
 // Mock the node:fs/promises module
 vi.mock('node:fs/promises', () => ({
@@ -54,10 +50,13 @@ vi.mock('../../../src/agents/prompts.js', () => ({
 // Import mocked modules
 import { readFile } from 'node:fs/promises';
 import { createArchitectAgent } from '../../../src/agents/agent-factory.js';
+import { SessionManager as SessionManagerClass } from '../../../src/core/session-manager.js';
 
 // Cast mocked functions
 const mockReadFile = readFile as any;
 const mockCreateArchitectAgent = createArchitectAgent as any;
+// Get reference to mocked constructor for test setup
+const MockSessionManagerClass = SessionManagerClass as any;
 
 // Factory functions for test data
 const createTestSubtask = (
@@ -136,11 +135,14 @@ const createTestSession = (backlog: Backlog): SessionState => ({
 
 // Create mock SessionManager factory
 function createMockSessionManager(session: SessionState | null) {
-  return {
+  const mock = {
     currentSession: session,
     initialize: vi.fn().mockResolvedValue(session),
     saveBacklog: vi.fn().mockResolvedValue(undefined),
   };
+  // Set the mock instance to be returned by SessionManager constructor
+  MockSessionManagerClass.mockImplementation(() => mock);
+  return mock;
 }
 
 // Create mock TaskOrchestrator factory
@@ -154,6 +156,12 @@ function createMockTaskOrchestrator() {
 describe('PRPPipeline', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset SessionManager mock
+    MockSessionManagerClass.mockImplementation(() => ({
+      currentSession: null,
+      initialize: vi.fn().mockResolvedValue({ currentSession: null }),
+      saveBacklog: vi.fn().mockResolvedValue(undefined),
+    }));
     // Setup default mocks
     mockReadFile.mockResolvedValue(
       JSON.stringify({ backlog: [createTestPhase('P1', 'Phase 1', 'Planned')] })
@@ -163,6 +171,12 @@ describe('PRPPipeline', () => {
         backlog: createTestBacklog([]),
       }),
     });
+  });
+
+  afterEach(() => {
+    // Clean up signal listeners to prevent memory leaks
+    process.removeAllListeners('SIGINT');
+    process.removeAllListeners('SIGTERM');
   });
 
   describe('constructor', () => {
@@ -264,13 +278,17 @@ describe('PRPPipeline', () => {
       await pipeline.executeBacklog();
 
       // VERIFY
-      expect((mockOrchestrator as any).processNextItem).toHaveBeenCalledTimes(3);
+      expect((mockOrchestrator as any).processNextItem).toHaveBeenCalledTimes(
+        3
+      );
     });
 
     it('should update currentPhase to backlog_complete', async () => {
       // SETUP
       const mockOrchestrator = createMockTaskOrchestrator();
-      (mockOrchestrator as any).processNextItem = vi.fn().mockResolvedValueOnce(false);
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValueOnce(false);
 
       const pipeline = new PRPPipeline('./test.md');
       (pipeline as any).taskOrchestrator = mockOrchestrator;
@@ -293,13 +311,17 @@ describe('PRPPipeline', () => {
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE & VERIFY
-      await expect(pipeline.executeBacklog()).rejects.toThrow('Execution failed');
+      await expect(pipeline.executeBacklog()).rejects.toThrow(
+        'Execution failed'
+      );
     });
 
     it('should throw safety error after max iterations', async () => {
       // SETUP
       const mockOrchestrator = createMockTaskOrchestrator();
-      (mockOrchestrator as any).processNextItem = vi.fn().mockResolvedValue(true);
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValue(true);
 
       const pipeline = new PRPPipeline('./test.md');
       (pipeline as any).taskOrchestrator = mockOrchestrator;
@@ -371,10 +393,12 @@ describe('PRPPipeline', () => {
       const mockManager = createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
-      (mockOrchestrator as any).processNextItem = vi.fn().mockResolvedValue(false);
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValue(false);
 
+      // Create pipeline AFTER setting up mocks
       const pipeline = new PRPPipeline('./test.md');
-      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // Mock step methods
@@ -399,10 +423,12 @@ describe('PRPPipeline', () => {
       const mockManager = createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
-      (mockOrchestrator as any).processNextItem = vi.fn().mockResolvedValue(false);
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValue(false);
 
+      // Create pipeline AFTER setting up mocks
       const pipeline = new PRPPipeline('./test.md');
-      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE
@@ -418,13 +444,16 @@ describe('PRPPipeline', () => {
     it('should return PipelineResult with success false on error', async () => {
       // SETUP
       const mockError = new Error('Test error');
-      const mockManager: any = {
+      // Create mock manager that will error
+      const errorManager: any = {
         initialize: vi.fn().mockRejectedValue(mockError),
         currentSession: null,
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
       };
+      // Override the mock to return error manager
+      MockSessionManagerClass.mockImplementation(() => errorManager);
 
       const pipeline = new PRPPipeline('./test.md');
-      (pipeline as any).sessionManager = mockManager;
 
       // EXECUTE
       const result = await pipeline.run();
@@ -433,6 +462,13 @@ describe('PRPPipeline', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Test error');
       expect(result.duration).toBeGreaterThan(0);
+
+      // Reset mock to default for other tests
+      MockSessionManagerClass.mockImplementation(() => ({
+        currentSession: null,
+        initialize: vi.fn().mockResolvedValue({ currentSession: null }),
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+      }));
     });
 
     it('should include phase summaries in result', async () => {
@@ -447,10 +483,12 @@ describe('PRPPipeline', () => {
       const mockManager = createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
-      (mockOrchestrator as any).processNextItem = vi.fn().mockResolvedValue(false);
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValue(false);
 
+      // Create pipeline AFTER setting up mocks
       const pipeline = new PRPPipeline('./test.md');
-      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE
@@ -509,10 +547,12 @@ describe('PRPPipeline', () => {
       const mockManager = createMockSessionManager(mockSession);
 
       const mockOrchestrator = createMockTaskOrchestrator();
-      (mockOrchestrator as any).processNextItem = vi.fn().mockResolvedValue(false);
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValue(false);
 
+      // Create pipeline AFTER setting up mocks
       const pipeline = new PRPPipeline('./test.md');
-      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE
@@ -534,6 +574,199 @@ describe('PRPPipeline', () => {
         totalMilestones: 1,
         completedMilestones: 0,
       });
+    });
+  });
+
+  describe('graceful shutdown', () => {
+    it('should initialize shutdown state fields with default values', () => {
+      // EXECUTE
+      const pipeline = new PRPPipeline('./test.md');
+
+      // VERIFY
+      expect(pipeline.shutdownRequested).toBe(false);
+      expect(pipeline.currentTaskId).toBeNull();
+      expect(pipeline.shutdownReason).toBeNull();
+    });
+
+    it('should set shutdownRequested to true and reason to SIGINT on SIGINT', () => {
+      // SETUP
+      const pipeline = new PRPPipeline('./test.md');
+      const originalListeners = (process as any)._events?.SIGINT?.length ?? 0;
+
+      // EXECUTE - Emit SIGINT event
+      process.emit('SIGINT');
+
+      // VERIFY
+      expect(pipeline.shutdownRequested).toBe(true);
+      expect(pipeline.shutdownReason).toBe('SIGINT');
+
+      // Cleanup: Remove our test listener
+      const listeners = (process as any)._events?.SIGINT;
+      if (listeners && typeof listeners.length === 'number' && listeners.length > originalListeners) {
+        process.removeAllListeners('SIGINT');
+      }
+    });
+
+    it('should set shutdownRequested to true and reason to SIGTERM on SIGTERM', () => {
+      // SETUP
+      const pipeline = new PRPPipeline('./test.md');
+      const originalListeners = (process as any)._events?.SIGTERM?.length ?? 0;
+
+      // EXECUTE - Emit SIGTERM event
+      process.emit('SIGTERM');
+
+      // VERIFY
+      expect(pipeline.shutdownRequested).toBe(true);
+      expect(pipeline.shutdownReason).toBe('SIGTERM');
+
+      // Cleanup: Remove our test listener
+      const listeners = (process as any)._events?.SIGTERM;
+      if (listeners && typeof listeners.length === 'number' && listeners.length > originalListeners) {
+        process.removeAllListeners('SIGTERM');
+      }
+    });
+
+    it('should break executeBacklog loop when shutdownRequested is true', async () => {
+      // SETUP
+      const pipeline = new PRPPipeline('./test.md');
+      let callCount = 0;
+
+      const mockOrchestrator = createMockTaskOrchestrator();
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockImplementation(async () => {
+          callCount++;
+          // Set shutdownRequested after first call
+          if (callCount === 2) {
+            pipeline.shutdownRequested = true;
+          }
+          return callCount < 4; // Would normally return true 4 times
+        });
+
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE
+      await pipeline.executeBacklog();
+
+      // VERIFY - should have stopped early due to shutdownRequested
+      expect(callCount).toBe(2);
+      expect(pipeline.currentPhase).toBe('shutdown_interrupted');
+    });
+
+    it('should call cleanup in finally block even on error', async () => {
+      // SETUP
+      const mockError = new Error('Test error');
+      const mockManager: any = {
+        initialize: vi.fn().mockRejectedValue(mockError),
+        currentSession: null,
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+
+      // Spy on cleanup method
+      const cleanupSpy = vi
+        .spyOn(pipeline, 'cleanup')
+        .mockResolvedValue(undefined);
+
+      // EXECUTE
+      await pipeline.run();
+
+      // VERIFY - cleanup should be called even though initialize failed
+      expect(cleanupSpy).toHaveBeenCalled();
+      cleanupSpy.mockRestore();
+    });
+
+    it('should save backlog in cleanup when session exists', async () => {
+      // SETUP
+      const backlog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Implementing', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+              createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const mockSession = createTestSession(backlog);
+      const mockManager = createMockSessionManager(mockSession);
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      await pipeline.cleanup();
+
+      // VERIFY
+      expect(mockManager.saveBacklog).toHaveBeenCalledWith(backlog);
+      expect(pipeline.currentPhase).toBe('shutdown_complete');
+    });
+
+    it('should include shutdownInterrupted in PipelineResult', async () => {
+      // SETUP
+      const mockSession = createTestSession(createTestBacklog([]));
+      const mockManager = createMockSessionManager(mockSession);
+
+      const mockOrchestrator = createMockTaskOrchestrator();
+      (mockOrchestrator as any).processNextItem = vi
+        .fn()
+        .mockResolvedValue(false);
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE - normal completion
+      const result = await pipeline.run();
+
+      // VERIFY
+      expect(result.shutdownInterrupted).toBe(false);
+      expect(result.shutdownReason).toBeUndefined();
+    });
+
+    it('should include shutdownInterrupted true when shutdown requested', async () => {
+      // SETUP
+      const mockError = new Error('Test error');
+      const mockManager: any = {
+        initialize: vi.fn().mockRejectedValue(mockError),
+        currentSession: null,
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+
+      // Set shutdown flags before error
+      pipeline.shutdownRequested = true;
+      pipeline.shutdownReason = 'SIGINT';
+
+      // EXECUTE
+      const result = await pipeline.run();
+
+      // VERIFY
+      expect(result.shutdownInterrupted).toBe(true);
+      expect(result.shutdownReason).toBe('SIGINT');
+    });
+
+    it('should log warning on duplicate SIGINT', () => {
+      // SETUP
+      const pipeline = new PRPPipeline('./test.md');
+      const warnSpy = vi.spyOn((pipeline as any).logger, 'warn');
+
+      // EXECUTE - Emit SIGINT twice
+      process.emit('SIGINT');
+      process.emit('SIGINT');
+
+      // VERIFY
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Duplicate SIGINT received')
+      );
+
+      // Cleanup
+      process.removeAllListeners('SIGINT');
+      warnSpy.mockRestore();
     });
   });
 });

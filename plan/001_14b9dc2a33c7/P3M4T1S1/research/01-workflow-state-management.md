@@ -9,6 +9,7 @@ Research findings on workflow state management patterns for TypeScript orchestra
 ## Key Resources & Documentation
 
 ### Primary Libraries
+
 - **Temporal.io** - https://docs.temporal.io/learn/workflows
   - Durable workflow execution with automatic state persistence
   - Workflow replay and deterministic execution requirements
@@ -32,6 +33,7 @@ Research findings on workflow state management patterns for TypeScript orchestra
   - Simple time-based execution, minimal state management
 
 ### State Management Patterns
+
 - **XState** - https://stately.ai/docs/xstate
   - State machines and statecharts for TypeScript
   - Hierarchical states, parallel states, and history
@@ -67,11 +69,12 @@ enum WorkflowState {
   PAUSED = 'paused',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 ```
 
 **Why this works:**
+
 - Type-safe state transitions
 - Exhaustive switch statements
 - Clear semantic meaning
@@ -84,12 +87,12 @@ Enforce valid state transitions to prevent invalid state changes:
 ```typescript
 // Pattern: State transition matrix
 const VALID_TRANSITIONS: Record<WorkflowStatus, WorkflowStatus[]> = {
-  'pending': ['running', 'cancelled'],
-  'running': ['paused', 'completed', 'failed', 'cancelled'],
-  'paused': ['running', 'cancelled'],
-  'completed': [], // Terminal state
-  'failed': ['pending'], // Can retry
-  'cancelled': [], // Terminal state
+  pending: ['running', 'cancelled'],
+  running: ['paused', 'completed', 'failed', 'cancelled'],
+  paused: ['running', 'cancelled'],
+  completed: [], // Terminal state
+  failed: ['pending'], // Can retry
+  cancelled: [], // Terminal state
 };
 
 class Workflow {
@@ -98,9 +101,7 @@ class Workflow {
   transitionTo(newStatus: WorkflowStatus): void {
     const allowed = VALID_TRANSITIONS[this.status];
     if (!allowed.includes(newStatus)) {
-      throw new Error(
-        `Invalid transition: ${this.status} → ${newStatus}`
-      );
+      throw new Error(`Invalid transition: ${this.status} → ${newStatus}`);
     }
     this.status = newStatus;
   }
@@ -108,6 +109,7 @@ class Workflow {
 ```
 
 **Benefits:**
+
 - Prevents invalid state jumps (e.g., pending → completed)
 - Self-documenting state machine
 - Easy to audit state transitions
@@ -147,6 +149,7 @@ const nextState = updateState(currentState, {
 ```
 
 **Advantages:**
+
 - Easy time-travel debugging
 - Safe state snapshots
 - No mutation side effects
@@ -187,6 +190,7 @@ class PersistentWorkflowManager {
 ```
 
 **Key Principles:**
+
 - Write-ahead logging
 - Atomic state updates
 - Crash recovery
@@ -234,7 +238,9 @@ interface Subtask {
 function getPhaseStatus(phase: Phase): Phase['status'] {
   const allComplete = phase.milestones.every(m => m.status === 'Complete');
   const anyFailed = phase.milestones.some(m => m.status === 'Failed');
-  const anyImplementing = phase.milestones.some(m => m.status === 'Implementing');
+  const anyImplementing = phase.milestones.some(
+    m => m.status === 'Implementing'
+  );
 
   if (anyFailed) return 'Failed';
   if (allComplete) return 'Complete';
@@ -244,6 +250,7 @@ function getPhaseStatus(phase: Phase): Phase['status'] {
 ```
 
 **Benefits:**
+
 - Natural hierarchy mapping
 - Parent status derived from children
 - Parallel processing of siblings
@@ -340,7 +347,9 @@ class VerboseWorkflow {
   setStatus(status: string, reason?: string) {
     const oldStatus = this.status;
     this.status = status;
-    console.log(`[${this.id}] ${oldStatus} → ${status}${reason ? ` (${reason})` : ''}`);
+    console.log(
+      `[${this.id}] ${oldStatus} → ${status}${reason ? ` (${reason})` : ''}`
+    );
   }
 }
 ```
@@ -381,6 +390,7 @@ class PersistentWorkflow {
 Located at: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 
 **Key Patterns:**
+
 1. **Status transitions with logging** (lines 163-192)
    - Captures oldStatus for logging
    - Includes timestamp and reason
@@ -402,6 +412,7 @@ Located at: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 Located at: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
 
 **Key Patterns:**
+
 1. **Validation gate results** (lines 35-74)
    - Structured result objects
    - Success tracking per gate

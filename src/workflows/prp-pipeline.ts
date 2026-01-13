@@ -22,11 +22,11 @@
  * ```
  */
 
-import { Workflow } from 'groundswell';
+import { Workflow, Step } from 'groundswell';
 import type { SessionManager } from '../core/session-manager.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
 import type { PRPRuntime } from '../agents/prp-runtime.js';
-import type { Backlog, Phase, Status } from '../core/models.js';
+import type { Backlog, Status } from '../core/models.js';
 import type { Scope } from '../core/scope-resolver.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
@@ -55,6 +55,10 @@ export interface PipelineResult {
   bugsFound: number;
   /** Error message if pipeline failed */
   error?: string;
+  /** Whether execution was interrupted by shutdown signal */
+  shutdownInterrupted: boolean;
+  /** Reason for shutdown (if interrupted) */
+  shutdownReason?: 'SIGINT' | 'SIGTERM';
 }
 
 /**
@@ -110,6 +114,15 @@ export class PRPPipeline extends Workflow {
   /** Number of completed subtasks */
   completedTasks: number = 0;
 
+  /** Whether graceful shutdown has been requested */
+  shutdownRequested: boolean = false;
+
+  /** ID of the currently executing task */
+  currentTaskId: string | null = null;
+
+  /** Reason for shutdown request */
+  shutdownReason: 'SIGINT' | 'SIGTERM' | null = null;
+
   // ========================================================================
   // Private Fields
   // ========================================================================
@@ -125,6 +138,15 @@ export class PRPPipeline extends Workflow {
 
   /** Number of bugs found by QA agent */
   #bugsFound: number = 0;
+
+  /** SIGINT event handler reference */
+  #sigintHandler: (() => void) | null = null;
+
+  /** SIGTERM event handler reference */
+  #sigtermHandler: (() => void) | null = null;
+
+  /** Counter for duplicate SIGINT (force exit) */
+  #sigintCount: number = 0;
 
   // ========================================================================
   // Constructor
@@ -147,12 +169,65 @@ export class PRPPipeline extends Workflow {
     this.#prdPath = prdPath;
     this.#scope = scope;
 
-    // Create SessionManager
-    this.sessionManager = new SessionManagerClass(prdPath);
+    // SessionManager will be created in run() to catch initialization errors
+    this.sessionManager = null as any;
 
     // Create TaskOrchestrator (will be initialized with session after initializeSession)
     // Placeholder for now - will be recreated after session initialization
     this.taskOrchestrator = null as any;
+
+    // Setup signal handlers for graceful shutdown
+    this.#setupSignalHandlers();
+  }
+
+  // ========================================================================
+  // Private Methods
+  // ========================================================================
+
+  /**
+   * Registers SIGINT and SIGTERM handlers for graceful shutdown
+   *
+   * @remarks
+   * - First SIGINT: Sets shutdownRequested flag, current task completes
+   * - Second SIGINT: Logs warning (shutdown already in progress)
+   * - SIGTERM: Same as SIGINT (sent by kill command)
+   *
+   * Handlers are removed in cleanup() to prevent memory leaks.
+   */
+  #setupSignalHandlers(): void {
+    // SIGINT handler (Ctrl+C)
+    this.#sigintHandler = () => {
+      this.#sigintCount++;
+
+      if (this.#sigintCount > 1) {
+        this.logger.warn(
+          '[PRPPipeline] Duplicate SIGINT received - shutdown already in progress'
+        );
+        // Future: Could force immediate exit here
+        return;
+      }
+
+      this.logger.info(
+        '[PRPPipeline] SIGINT received, initiating graceful shutdown'
+      );
+      this.shutdownRequested = true;
+      this.shutdownReason = 'SIGINT';
+    };
+
+    // SIGTERM handler (kill command)
+    this.#sigtermHandler = () => {
+      this.logger.info(
+        '[PRPPipeline] SIGTERM received, initiating graceful shutdown'
+      );
+      this.shutdownRequested = true;
+      this.shutdownReason = 'SIGTERM';
+    };
+
+    // Register handlers
+    process.on('SIGINT', this.#sigintHandler);
+    process.on('SIGTERM', this.#sigtermHandler);
+
+    this.logger.debug('[PRPPipeline] Signal handlers registered');
   }
 
   // ========================================================================
@@ -249,7 +324,7 @@ export class PRPPipeline extends Workflow {
       // Generate backlog
       this.logger.info('[PRPPipeline] Calling Architect agent...');
       // @ts-expect-error -- Groundswell agent.prompt() type signature is incorrect, accepts string
-      const result = await architectAgent.prompt(architectPrompt);
+      const _result = await architectAgent.prompt(architectPrompt);
 
       // Parse the result - architect agent returns { backlog: Backlog }
       // Note: The architect agent writes to $TASKS_FILE, but we can also parse from response
@@ -290,6 +365,10 @@ export class PRPPipeline extends Workflow {
    * until it returns false (queue empty). Updates completedTasks count
    * after each item for observability.
    *
+   * Supports graceful shutdown via SIGINT/SIGTERM signals - checks
+   * shutdownRequested flag after each task completes and breaks loop
+   * if shutdown was requested.
+   *
    * NOTE: TaskOrchestrator.executeSubtask() is currently a placeholder.
    * Future: Will integrate PRPRuntime for actual PRP execution.
    */
@@ -300,7 +379,7 @@ export class PRPPipeline extends Workflow {
       let iterations = 0;
       const maxIterations = 10000; // Safety limit
 
-      // Process items until queue is empty
+      // Process items until queue is empty or shutdown requested
       while (await this.taskOrchestrator.processNextItem()) {
         iterations++;
 
@@ -312,6 +391,18 @@ export class PRPPipeline extends Workflow {
         // Update completed tasks count
         this.completedTasks = this.#countCompletedTasks();
 
+        // Check for shutdown request after each task
+        if (this.shutdownRequested) {
+          this.logger.info(
+            '[PRPPipeline] Shutdown requested, finishing current task'
+          );
+          this.logger.info(
+            `[PRPPipeline] Completed ${this.completedTasks}/${this.totalTasks} tasks before shutdown`
+          );
+          this.currentPhase = 'shutdown_interrupted';
+          break;
+        }
+
         // Log progress every 10 items
         if (iterations % 10 === 0) {
           this.logger.info(
@@ -320,17 +411,20 @@ export class PRPPipeline extends Workflow {
         }
       }
 
-      this.logger.info(`[PRPPipeline] Processed ${iterations} items total`);
+      // Only log "complete" if not interrupted
+      if (!this.shutdownRequested) {
+        this.logger.info(`[PRPPipeline] Processed ${iterations} items total`);
 
-      // Final counts
-      this.completedTasks = this.#countCompletedTasks();
-      const failedTasks = this.#countFailedTasks();
+        // Final counts
+        this.completedTasks = this.#countCompletedTasks();
+        const failedTasks = this.#countFailedTasks();
 
-      this.logger.info(`[PRPPipeline] Complete: ${this.completedTasks}`);
-      this.logger.info(`[PRPPipeline] Failed: ${failedTasks}`);
+        this.logger.info(`[PRPPipeline] Complete: ${this.completedTasks}`);
+        this.logger.info(`[PRPPipeline] Failed: ${failedTasks}`);
 
-      this.currentPhase = 'backlog_complete';
-      this.logger.info('[PRPPipeline] Backlog execution complete');
+        this.currentPhase = 'backlog_complete';
+        this.logger.info('[PRPPipeline] Backlog execution complete');
+      }
     } catch (error) {
       this.logger.error(`[PRPPipeline] Backlog execution failed: ${error}`);
       throw error;
@@ -382,6 +476,70 @@ export class PRPPipeline extends Workflow {
     }
   }
 
+  /**
+   * Cleanup and state preservation before shutdown
+   *
+   * @remarks
+   * Called from run() method's finally block to ensure cleanup
+   * happens even on error or interruption. Saves current state
+   * and removes signal listeners to prevent memory leaks.
+   */
+  @Step({ trackTiming: true })
+  async cleanup(): Promise<void> {
+    this.logger.info('[PRPPipeline] Starting cleanup and state preservation');
+
+    try {
+      // Check if sessionManager was initialized
+      if (!this.sessionManager) {
+        this.logger.warn('[PRPPipeline] SessionManager not initialized, skipping state save');
+        // Still remove signal listeners
+        if (this.#sigintHandler) {
+          process.off('SIGINT', this.#sigintHandler);
+          this.logger.debug('[PRPPipeline] SIGINT handler removed');
+        }
+        if (this.#sigtermHandler) {
+          process.off('SIGTERM', this.#sigtermHandler);
+          this.logger.debug('[PRPPipeline] SIGTERM handler removed');
+        }
+        this.currentPhase = 'shutdown_complete';
+        this.logger.info('[PRPPipeline] Cleanup complete (no session)');
+        return;
+      }
+
+      // Save current state
+      const backlog = this.sessionManager.currentSession?.taskRegistry;
+      if (backlog) {
+        await this.sessionManager.saveBacklog(backlog);
+        this.logger.info('[PRPPipeline] State saved successfully');
+
+        // Log state summary
+        const completed = this.#countCompletedTasks();
+        const remaining = this.totalTasks - completed;
+        this.logger.info(
+          `[PRPPipeline] State: ${completed} complete, ${remaining} remaining`
+        );
+      } else {
+        this.logger.warn('[PRPPipeline] No session state to save');
+      }
+
+      // Remove signal listeners to prevent memory leaks
+      if (this.#sigintHandler) {
+        process.off('SIGINT', this.#sigintHandler);
+        this.logger.debug('[PRPPipeline] SIGINT handler removed');
+      }
+      if (this.#sigtermHandler) {
+        process.off('SIGTERM', this.#sigtermHandler);
+        this.logger.debug('[PRPPipeline] SIGTERM handler removed');
+      }
+
+      this.currentPhase = 'shutdown_complete';
+      this.logger.info('[PRPPipeline] Cleanup complete');
+    } catch (error) {
+      // Log but don't throw - cleanup failures shouldn't prevent shutdown
+      this.logger.error(`[PRPPipeline] Cleanup failed: ${error}`);
+    }
+  }
+
   // ========================================================================
   // Main Entry Point
   // ========================================================================
@@ -393,10 +551,15 @@ export class PRPPipeline extends Workflow {
    * Orchestrates all steps in sequence:
    * 1. Initialize session
    * 2. Decompose PRD (if new session)
-   * 3. Execute backlog
+   * 3. Execute backlog (with graceful shutdown support)
    * 4. Run QA cycle
+   * 5. Cleanup (always runs via finally block)
    *
-   * Returns PipelineResult with execution summary.
+   * Supports graceful shutdown via SIGINT/SIGTERM signals. When a signal
+   * is received, the current task completes before the pipeline exits,
+   * and state is preserved for resumption.
+   *
+   * Returns PipelineResult with execution summary including shutdown status.
    *
    * @returns Pipeline execution result with summary
    */
@@ -411,6 +574,9 @@ export class PRPPipeline extends Workflow {
     );
 
     try {
+      // Create SessionManager (may throw if PRD doesn't exist)
+      this.sessionManager = new SessionManagerClass(this.#prdPath);
+
       // Execute workflow steps
       await this.initializeSession();
       await this.decomposePRD();
@@ -436,6 +602,7 @@ export class PRPPipeline extends Workflow {
         duration,
         phases: this.#summarizePhases(),
         bugsFound: this.#bugsFound,
+        shutdownInterrupted: false, // Completed successfully
       };
     } catch (error) {
       this.setStatus('failed');
@@ -448,7 +615,7 @@ export class PRPPipeline extends Workflow {
 
       return {
         success: false,
-        sessionPath: this.sessionManager.currentSession?.metadata.path ?? '',
+        sessionPath: this.sessionManager?.currentSession?.metadata.path ?? '',
         totalTasks: this.totalTasks,
         completedTasks: this.completedTasks,
         failedTasks: this.#countFailedTasks(),
@@ -457,7 +624,12 @@ export class PRPPipeline extends Workflow {
         phases: [],
         bugsFound: this.#bugsFound,
         error: errorMessage,
+        shutdownInterrupted: this.shutdownRequested, // May have been interrupted
+        shutdownReason: this.shutdownReason ?? undefined,
       };
+    } finally {
+      // Always cleanup, even if interrupted or errored
+      await this.cleanup();
     }
   }
 
@@ -469,6 +641,7 @@ export class PRPPipeline extends Workflow {
    * Counts total subtasks in backlog
    */
   #countTasks(): number {
+    if (!this.sessionManager) return 0;
     const backlog = this.sessionManager.currentSession?.taskRegistry;
     if (!backlog) return 0;
 
@@ -487,6 +660,7 @@ export class PRPPipeline extends Workflow {
    * Counts completed subtasks
    */
   #countCompletedTasks(): number {
+    if (!this.sessionManager) return 0;
     const backlog = this.sessionManager.currentSession?.taskRegistry;
     if (!backlog) return 0;
 
@@ -505,6 +679,7 @@ export class PRPPipeline extends Workflow {
    * Counts failed subtasks
    */
   #countFailedTasks(): number {
+    if (!this.sessionManager) return 0;
     const backlog = this.sessionManager.currentSession?.taskRegistry;
     if (!backlog) return 0;
 
@@ -544,6 +719,7 @@ export class PRPPipeline extends Workflow {
    * Builds phase summary array
    */
   #summarizePhases(): PhaseSummary[] {
+    if (!this.sessionManager) return [];
     const backlog = this.sessionManager.currentSession?.taskRegistry;
     if (!backlog) return [];
 

@@ -9,6 +9,7 @@ Research findings on when to track timing, capture state snapshots, and implemen
 ## Key Resources & Documentation
 
 ### Performance Monitoring
+
 - **Node.js Performance Hooks** - https://nodejs.org/api/perf_hooks.html
   - PerformanceObserver API
   - PerformanceEntry timing
@@ -20,6 +21,7 @@ Research findings on when to track timing, capture state snapshots, and implemen
   - Performance measurement
 
 ### Profiling Tools
+
 - **Clinic.js** - https://clinicjs.org/
   - Performance profiling
   - Memory profiling
@@ -36,6 +38,7 @@ Research findings on when to track timing, capture state snapshots, and implemen
   - Performance profiling
 
 ### Snapshot Libraries
+
 - **Redux DevTools** - https://github.com/reduxjs/redux-devtools
   - State history tracking
   - Time-travel debugging
@@ -106,9 +109,7 @@ class PerformanceTracker {
   printTimings(): void {
     const print = (timing: TimingData, indent = 0) => {
       const prefix = '  '.repeat(indent);
-      console.log(
-        `${prefix}${timing.name}: ${timing.duration.toFixed(2)}ms`
-      );
+      console.log(`${prefix}${timing.name}: ${timing.duration.toFixed(2)}ms`);
 
       for (const child of timing.children) {
         print(child, indent + 1);
@@ -146,6 +147,7 @@ async function executeWorkflow() {
 ```
 
 **Benefits:**
+
 - Hierarchical timing
 - Parent-child relationships
 - Detailed metadata
@@ -174,7 +176,11 @@ class MilestoneTracker {
     this.addMilestone('start');
   }
 
-  addMilestone(name: string, data?: unknown, metadata?: Record<string, unknown>): void {
+  addMilestone(
+    name: string,
+    data?: unknown,
+    metadata?: Record<string, unknown>
+  ): void {
     const milestone: Milestone = {
       name,
       timestamp: new Date(),
@@ -236,6 +242,7 @@ console.log('Milestone durations:', tracker.getMilestoneDurations());
 ```
 
 **Advantages:**
+
 - Key event tracking
 - Duration calculations
 - Timeline visualization
@@ -332,6 +339,7 @@ const previousState = snapshotManager.restore('snapshot-123');
 ```
 
 **Benefits:**
+
 - State history
 - Rollback capability
 - Debugging support
@@ -438,6 +446,7 @@ console.log('Stats:', collector.getAllStats());
 ```
 
 **Advantages:**
+
 - Statistical analysis
 - Performance trending
 - Outlier detection
@@ -497,11 +506,13 @@ class MemoryTracker {
     return this.snapshots.slice();
   }
 
-  getMemoryGrowth(): {
-    heapUsedGrowth: number;
-    heapTotalGrowth: number;
-    rssGrowth: number;
-  } | undefined {
+  getMemoryGrowth():
+    | {
+        heapUsedGrowth: number;
+        heapTotalGrowth: number;
+        rssGrowth: number;
+      }
+    | undefined {
     if (this.snapshots.length < 2) {
       return undefined;
     }
@@ -558,6 +569,7 @@ console.log('Average memory:', tracker.getAverageMemory());
 ```
 
 **Benefits:**
+
 - Memory leak detection
 - Usage patterns
 - Growth tracking
@@ -685,7 +697,11 @@ export class InstrumentedTaskOrchestrator extends TaskOrchestrator {
     }
   }
 
-  async setStatus(itemId: string, status: Status, reason?: string): Promise<void> {
+  async setStatus(
+    itemId: string,
+    status: Status,
+    reason?: string
+  ): Promise<void> {
     this.performanceTracker.start('setStatus', { itemId, status });
 
     try {
