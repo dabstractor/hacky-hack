@@ -483,7 +483,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "Phase 3: Pipeline Implementation",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Implement the four core engines: Session Manager, Task Orchestrator, Agent Runtime wrapper, and Pipeline Controller. This is the heart of the PRP system.",
       "milestones": [
         {
@@ -710,7 +710,7 @@
           "type": "Milestone",
           "id": "P3.M4",
           "title": "Milestone 3.4: Pipeline Controller",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Implement the main workflow using Groundswell that orchestrates all components.",
           "tasks": [
             {
@@ -757,7 +757,7 @@
               "type": "Task",
               "id": "P3.M4.T2",
               "title": "Create CLI Entry Point",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Build the command-line interface that launches the pipeline with various options.",
               "subtasks": [
                 {
@@ -775,7 +775,7 @@
                   "type": "Subtask",
                   "id": "P3.M4.T2.S2",
                   "title": "Create main entry point",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M4.T2.S1"
@@ -786,7 +786,7 @@
                   "type": "Subtask",
                   "id": "P3.M4.T2.S3",
                   "title": "Add npm scripts and documentation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M4.T2.S2"
