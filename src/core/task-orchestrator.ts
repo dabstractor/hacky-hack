@@ -33,6 +33,7 @@ import type {
   Status,
 } from './models.js';
 import type { HierarchyItem } from '../utils/task-utils.js';
+import { getDependencies } from '../utils/task-utils.js';
 
 /**
  * Task Orchestrator for PRP Pipeline backlog processing
@@ -70,9 +71,7 @@ export class TaskOrchestrator {
     // Load initial backlog from session state
     const currentSession = sessionManager.currentSession;
     if (!currentSession) {
-      throw new Error(
-        'Cannot create TaskOrchestrator: no active session'
-      );
+      throw new Error('Cannot create TaskOrchestrator: no active session');
     }
 
     this.#backlog = currentSession.taskRegistry;
@@ -85,6 +84,129 @@ export class TaskOrchestrator {
    */
   get backlog(): Backlog {
     return this.#backlog;
+  }
+
+  /**
+   * Checks if a subtask can execute based on its dependencies
+   *
+   * @param subtask - The subtask to check
+   * @returns true if all dependencies are Complete or no dependencies exist
+   *
+   * @remarks
+   * Uses getDependencies utility to resolve dependency IDs to actual Subtask objects.
+   * Returns true if the subtask has no dependencies (empty array).
+   * Returns true only when ALL dependencies have status === 'Complete'.
+   * Returns false if ANY dependency is not Complete.
+   *
+   * @example
+   * ```typescript
+   * const subtask = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', ['P1.M1.T1.S1']);
+   * const canExecute = orchestrator.canExecute(subtask);
+   * // Returns false if P1.M1.T1.S1 is not Complete
+   * ```
+   */
+  public canExecute(subtask: Subtask): boolean {
+    // PATTERN: Use getDependencies utility from task-utils
+    const dependencies = getDependencies(subtask, this.#backlog);
+
+    // GOTCHA: Empty array means no dependencies = can execute
+    if (dependencies.length === 0) {
+      return true;
+    }
+
+    // PATTERN: Array.every() checks ALL items match condition
+    // CRITICAL: Use strict string equality for status comparison
+    const allComplete = dependencies.every(dep => dep.status === 'Complete');
+
+    return allComplete;
+  }
+
+  /**
+   * Gets the dependencies that are blocking a subtask from executing
+   *
+   * @param subtask - The subtask to check
+   * @returns Array of incomplete dependency Subtask objects
+   *
+   * @remarks
+   * Uses getDependencies utility to resolve dependency IDs to actual Subtask objects.
+   * Filters dependencies where status !== 'Complete'.
+   * Returns empty array if no blocking dependencies exist.
+   *
+   * @example
+   * ```typescript
+   * const blockers = orchestrator.getBlockingDependencies(subtask);
+   * console.log(`Blocked on: ${blockers.map(b => b.id).join(', ')}`);
+   * ```
+   */
+  public getBlockingDependencies(subtask: Subtask): Subtask[] {
+    // PATTERN: Use getDependencies utility from task-utils
+    const dependencies = getDependencies(subtask, this.#backlog);
+
+    // PATTERN: Array.filter() returns NEW array (immutable)
+    // CRITICAL: Check for NOT Complete to find blockers
+    const blocking = dependencies.filter(dep => dep.status !== 'Complete');
+
+    return blocking;
+  }
+
+  /**
+   * Waits for a subtask's dependencies to become Complete
+   *
+   * @param subtask - The subtask whose dependencies to wait for
+   * @param options - Optional configuration for timeout and interval
+   * @returns Promise that resolves when dependencies are Complete
+   * @throws {Error} If timeout is exceeded before dependencies are Complete
+   *
+   * @remarks
+   * Polls canExecute() at intervals until all dependencies are Complete or timeout.
+   * This is a placeholder for future async workflow enhancement.
+   * Current implementation uses simple polling; event-driven in future.
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   await orchestrator.waitForDependencies(subtask, { timeout: 5000 });
+   *   // Dependencies are now Complete
+   * } catch (error) {
+   *   // Timeout - dependencies not ready within 5 seconds
+   * }
+   * ```
+   */
+  public async waitForDependencies(
+    subtask: Subtask,
+    options: { timeout?: number; interval?: number } = {}
+  ): Promise<void> {
+    // PATTERN: Default values with destructuring
+    const { timeout = 30000, interval = 1000 } = options;
+
+    const startTime = Date.now();
+
+    // PATTERN: Polling loop with timeout
+    while (Date.now() - startTime < timeout) {
+      // Refresh backlog to get latest status
+      await this.#refreshBacklog();
+
+      // Check if dependencies are complete
+      if (this.canExecute(subtask)) {
+        console.log(
+          `[TaskOrchestrator] Dependencies complete for ${subtask.id}`
+        );
+        return;
+      }
+
+      // Log waiting status
+      const blockers = this.getBlockingDependencies(subtask);
+      const blockerIds = blockers.map(b => b.id).join(', ');
+      console.log(`[TaskOrchestrator] Waiting for dependencies: ${blockerIds}`);
+
+      // Sleep for interval
+      await new Promise(resolve => setTimeout(resolve, interval));
+    }
+
+    // PATTERN: Throw descriptive error on timeout
+    throw new Error(
+      `Timeout waiting for dependencies of ${subtask.id} after ${timeout}ms`
+    );
   }
 
   /**
@@ -157,10 +279,11 @@ export class TaskOrchestrator {
         // TypeScript knows 'item' is Subtask here (has dependencies property)
         return this.executeSubtask(item);
 
-      default:
+      default: {
         // PATTERN: Exhaustive check - TypeScript errors if missing case
         const _exhaustive: never = item;
         throw new Error(`Unknown hierarchy item type: ${_exhaustive}`);
+      }
     }
   }
 
@@ -177,7 +300,9 @@ export class TaskOrchestrator {
    */
   async executePhase(phase: Phase): Promise<void> {
     await this.#updateStatus(phase.id, 'Implementing');
-    console.log(`[TaskOrchestrator] Executing Phase: ${phase.id} - ${phase.title}`);
+    console.log(
+      `[TaskOrchestrator] Executing Phase: ${phase.id} - ${phase.title}`
+    );
   }
 
   /**
@@ -211,7 +336,9 @@ export class TaskOrchestrator {
    */
   async executeTask(task: Task): Promise<void> {
     await this.#updateStatus(task.id, 'Implementing');
-    console.log(`[TaskOrchestrator] Executing Task: ${task.id} - ${task.title}`);
+    console.log(
+      `[TaskOrchestrator] Executing Task: ${task.id} - ${task.title}`
+    );
   }
 
   /**
@@ -221,11 +348,16 @@ export class TaskOrchestrator {
    * @returns Promise that resolves when execution completes
    *
    * @remarks
-   * This is the main execution unit. In P3.M3.T1, this will generate
-   * a PRP and run the Coder agent. For now, it's a placeholder that:
-   * 1. Sets status to 'Implementing'
-   * 2. Logs the action
-   * 3. Sets status to 'Complete'
+   * This is the main execution unit. Before execution, it checks if all
+   * dependencies are Complete using canExecute(). If blocked, it logs
+   * the blocking dependencies and returns early without executing.
+   *
+   * In P3.M3.T1, this will generate a PRP and run the Coder agent.
+   * For now, it's a placeholder that:
+   * 1. Checks dependencies (new in this PRP)
+   * 2. Sets status to 'Implementing' (if not blocked)
+   * 3. Logs the action
+   * 4. Sets status to 'Complete'
    *
    * The Pipeline Controller will call processNextItem() which delegates
    * to this method when the next pending item is a Subtask.
@@ -235,7 +367,26 @@ export class TaskOrchestrator {
       `[TaskOrchestrator] Executing Subtask: ${subtask.id} - ${subtask.title}`
     );
 
-    // PLACEHOLDER: Set status to Implementing
+    // NEW: Check if dependencies are satisfied
+    if (!this.canExecute(subtask)) {
+      const blockers = this.getBlockingDependencies(subtask);
+
+      // PATTERN: Log each blocking dependency for clarity
+      for (const blocker of blockers) {
+        console.log(
+          `[TaskOrchestrator] Blocked on: ${blocker.id} - ${blocker.title} (status: ${blocker.status})`
+        );
+      }
+
+      console.log(
+        `[TaskOrchestrator] Subtask ${subtask.id} blocked on dependencies, skipping`
+      );
+
+      // PATTERN: Return early without executing
+      return;
+    }
+
+    // EXISTING: Continue with normal execution flow
     await this.#updateStatus(subtask.id, 'Implementing');
 
     // PLACEHOLDER: Log execution (PRP generation + Coder agent execution in P3.M3.T1)
@@ -288,7 +439,9 @@ export class TaskOrchestrator {
     }
 
     // 3. Log item being processed
-    console.log(`[TaskOrchestrator] Processing: ${nextItem.id} (${nextItem.type})`);
+    console.log(
+      `[TaskOrchestrator] Processing: ${nextItem.id} (${nextItem.type})`
+    );
 
     // 4. Delegate to type-specific handler
     await this.#delegateByType(nextItem);

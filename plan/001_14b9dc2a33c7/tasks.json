@@ -604,7 +604,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S2",
                   "title": "Implement dependency resolution",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M2.T1.S1"

@@ -16,10 +16,14 @@ import type { SessionManager } from '../../../src/core/session-manager.js';
 import type { Backlog } from '../../../src/core/models.js';
 import { Status } from '../../../src/core/models.js';
 
-// Mock the task-utils module
-vi.mock('../../../src/utils/task-utils.js', () => ({
-  getNextPendingItem: vi.fn(),
-}));
+// Mock the task-utils module - use importOriginal to get real getDependencies implementation
+vi.mock('../../../src/utils/task-utils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/utils/task-utils.js')>();
+  return {
+    ...actual,
+    getNextPendingItem: vi.fn(),
+  };
+});
 
 // Import mocked function
 import { getNextPendingItem } from '../../../src/utils/task-utils.js';
@@ -91,9 +95,7 @@ const createTestBacklog = (phases: any[]): Backlog => ({
 });
 
 // Mock SessionManager
-const createMockSessionManager = (
-  currentSession: any
-): SessionManager => {
+const createMockSessionManager = (currentSession: any): SessionManager => {
   const mockManager = {
     currentSession,
     updateItemStatus: vi.fn().mockResolvedValue(currentSession?.taskRegistry),
@@ -294,7 +296,10 @@ describe('TaskOrchestrator', () => {
       await orchestrator.executePhase(phase);
 
       // VERIFY: Only phase status updated, children not iterated
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
       expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(1);
     });
   });
@@ -594,12 +599,9 @@ describe('TaskOrchestrator', () => {
       const mockManager = createMockSessionManager(currentSession);
       const orchestrator = new TaskOrchestrator(mockManager);
 
-      const subtask = createTestSubtask(
-        'P1.M1.T1.S2',
-        'Subtask 2',
-        'Planned',
-        ['P1.M1.T1.S1']
-      );
+      const subtask = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', [
+        'P1.M1.T1.S1',
+      ]);
 
       // EXECUTE
       await orchestrator.executeSubtask(subtask);
@@ -690,9 +692,7 @@ describe('TaskOrchestrator', () => {
 
       mockGetNextPendingItem.mockReturnValue(null);
 
-      const consoleSpy = vi
-        .spyOn(console, 'log')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       const result = await orchestrator.processNextItem();
@@ -892,26 +892,41 @@ describe('TaskOrchestrator', () => {
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
       mockGetNextPendingItem.mockReturnValueOnce(phase);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
 
       // Test Milestone
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
       mockGetNextPendingItem.mockReturnValueOnce(milestone);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1',
+        'Implementing'
+      );
 
       // Test Task
       const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned');
       mockGetNextPendingItem.mockReturnValueOnce(task);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1',
+        'Implementing'
+      );
 
       // Test Subtask
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
       mockGetNextPendingItem.mockReturnValueOnce(subtask);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1.S1', 'Implementing');
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1.S1', 'Complete');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Complete'
+      );
     });
   });
 
@@ -951,7 +966,10 @@ describe('TaskOrchestrator', () => {
 
       // VERIFY: Phase processed
       expect(result1).toBe(true);
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
 
       // Simulate next item: Milestone
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
@@ -962,7 +980,10 @@ describe('TaskOrchestrator', () => {
 
       // VERIFY: Milestone processed
       expect(result2).toBe(true);
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1',
+        'Implementing'
+      );
 
       // Continue with Task and Subtask similarly...
     });
@@ -1014,11 +1035,26 @@ describe('TaskOrchestrator', () => {
       // VERIFY: All 4 items processed, then returned false
       // count is 5 because we increment after the loop check
       expect(count).toBe(5); // 4 successful + 1 that returned false
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1', 'Implementing');
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1', 'Implementing');
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1', 'Implementing');
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1.S1', 'Implementing');
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1.S1', 'Complete');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Complete'
+      );
       expect(consoleSpy).toHaveBeenCalledWith(
         '[TaskOrchestrator] Backlog processing complete'
       );
@@ -1085,7 +1121,9 @@ describe('TaskOrchestrator', () => {
       mockGetNextPendingItem.mockReturnValue(subtask);
 
       // EXECUTE & VERIFY
-      await expect(orchestrator.processNextItem()).rejects.toThrow('Update failed');
+      await expect(orchestrator.processNextItem()).rejects.toThrow(
+        'Update failed'
+      );
     });
 
     it('should handle refresh with null session (edge case)', async () => {
@@ -1149,19 +1187,945 @@ describe('TaskOrchestrator', () => {
       // EXECUTE: Each type should be dispatched correctly
       mockGetNextPendingItem.mockReturnValueOnce(phase);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
 
       mockGetNextPendingItem.mockReturnValueOnce(milestone);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1',
+        'Implementing'
+      );
 
       mockGetNextPendingItem.mockReturnValueOnce(task);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1',
+        'Implementing'
+      );
 
       mockGetNextPendingItem.mockReturnValueOnce(subtask);
       await orchestrator.processNextItem();
-      expect(mockManager.updateItemStatus).toHaveBeenCalledWith('P1.M1.T1.S1', 'Implementing');
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1.M1.T1.S1',
+        'Implementing'
+      );
+    });
+  });
+
+  describe('dependency resolution', () => {
+    describe('canExecute()', () => {
+      it('should return true when subtask has no dependencies', () => {
+        // SETUP
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Subtask 1',
+          'Planned',
+          []
+        );
+
+        // EXECUTE
+        const result = orchestrator.canExecute(subtask);
+
+        // VERIFY: No dependencies means can execute
+        expect(result).toBe(true);
+      });
+
+      it('should return true when all dependencies are Complete', () => {
+        // SETUP: Subtask with dependency that is Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE
+        const result = orchestrator.canExecute(subtask);
+
+        // VERIFY: Dependency is Complete
+        expect(result).toBe(true);
+      });
+
+      it('should return false when one dependency is not Complete', () => {
+        // SETUP: Subtask with dependency that has status 'Planned'
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'), // Not Complete!
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE
+        const result = orchestrator.canExecute(subtask);
+
+        // VERIFY: Dependency is 'Planned', not 'Complete'
+        expect(result).toBe(false);
+      });
+
+      it('should return false when multiple dependencies are not Complete', () => {
+        // SETUP: Subtask with multiple dependencies, none Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Implementing'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S3',
+          'Subtask 3',
+          'Planned',
+          ['P1.M1.T1.S1', 'P1.M1.T1.S2']
+        );
+
+        // EXECUTE
+        const result = orchestrator.canExecute(subtask);
+
+        // VERIFY: Neither dependency is Complete
+        expect(result).toBe(false);
+      });
+
+      it('should handle missing dependencies gracefully (treats as non-blocking)', () => {
+        // SETUP: Subtask depends on non-existent ID
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['NONEXISTENT_ID']
+        );
+
+        // EXECUTE
+        const result = orchestrator.canExecute(subtask);
+
+        // VERIFY: Missing dependencies are filtered out, so no blockers
+        expect(result).toBe(true);
+      });
+    });
+
+    describe('getBlockingDependencies()', () => {
+      it('should return empty array when no dependencies', () => {
+        // SETUP
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Subtask 1',
+          'Planned',
+          []
+        );
+
+        // EXECUTE
+        const blockers = orchestrator.getBlockingDependencies(subtask);
+
+        // VERIFY
+        expect(blockers).toEqual([]);
+      });
+
+      it('should return empty array when all dependencies are Complete', () => {
+        // SETUP: All dependencies are Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE
+        const blockers = orchestrator.getBlockingDependencies(subtask);
+
+        // VERIFY: No blocking dependencies (dependency is Complete)
+        expect(blockers).toEqual([]);
+      });
+
+      it('should return array with one blocking dependency', () => {
+        // SETUP: One dependency is not Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE
+        const blockers = orchestrator.getBlockingDependencies(subtask);
+
+        // VERIFY: One blocking dependency
+        expect(blockers).toHaveLength(1);
+        expect(blockers[0].id).toBe('P1.M1.T1.S1');
+        expect(blockers[0].status).toBe('Planned');
+      });
+
+      it('should return array with multiple blocking dependencies', () => {
+        // SETUP: Multiple dependencies are not Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Implementing'),
+                createTestSubtask('P1.M1.T1.S3', 'Subtask 3', 'Complete'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S4',
+          'Subtask 4',
+          'Planned',
+          ['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3']
+        );
+
+        // EXECUTE
+        const blockers = orchestrator.getBlockingDependencies(subtask);
+
+        // VERIFY: Two blocking dependencies (S3 is Complete, so not a blocker)
+        expect(blockers).toHaveLength(2);
+        const blockerIds = blockers.map(b => b.id).sort();
+        expect(blockerIds).toEqual(['P1.M1.T1.S1', 'P1.M1.T1.S2']);
+      });
+
+      it('should filter out non-Complete dependencies correctly', () => {
+        // SETUP: Mix of Complete and non-Complete dependencies
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+                createTestSubtask('P1.M1.T1.S3', 'Subtask 3', 'Complete'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S4',
+          'Subtask 4',
+          'Planned',
+          ['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3']
+        );
+
+        // EXECUTE
+        const blockers = orchestrator.getBlockingDependencies(subtask);
+
+        // VERIFY: Only S2 is blocking (S1 and S3 are Complete)
+        expect(blockers).toHaveLength(1);
+        expect(blockers[0].id).toBe('P1.M1.T1.S2');
+      });
+    });
+
+    describe('waitForDependencies()', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should resolve when dependencies become Complete', async () => {
+        // SETUP: Subtask with dependencies that will become Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // Create a promise that resolves after we manually update the backlog
+        const waitPromise = orchestrator.waitForDependencies(subtask, {
+          timeout: 5000,
+          interval: 100,
+        });
+
+        // Simulate dependency becoming Complete after some time
+        setTimeout(() => {
+          // Update the backlog to have Complete dependency
+          const updatedBacklog = createTestBacklog([
+            createTestPhase('P1', 'Phase 1', 'Planned', [
+              createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+                createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                  createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+                ]),
+              ]),
+            ]),
+          ]);
+          (mockManager as any).currentSession.taskRegistry = updatedBacklog;
+        }, 500);
+
+        // EXECUTE: Advance time
+        await vi.advanceTimersByTimeAsync(500);
+
+        // VERIFY: Promise should resolve
+        await expect(waitPromise).resolves.toBeUndefined();
+      });
+
+      it('should reject on timeout if dependencies never Complete', async () => {
+        // SETUP: Subtask with dependencies that never become Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE: Wait with short timeout
+        const waitPromise = orchestrator.waitForDependencies(subtask, {
+          timeout: 500,
+          interval: 100,
+        });
+
+        // Advance past timeout
+        await vi.advanceTimersByTimeAsync(600);
+
+        // VERIFY: Should reject with timeout error
+        await expect(waitPromise).rejects.toThrow(
+          'Timeout waiting for dependencies of P1.M1.T1.S2 after 500ms'
+        );
+      });
+
+      it('should accept custom interval and timeout options', async () => {
+        // SETUP
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE: Use custom timeout of 200ms
+        const waitPromise = orchestrator.waitForDependencies(subtask, {
+          timeout: 200,
+          interval: 50,
+        });
+
+        // Advance past timeout
+        await vi.advanceTimersByTimeAsync(250);
+
+        // VERIFY: Should use custom timeout
+        await expect(waitPromise).rejects.toThrow(
+          'Timeout waiting for dependencies of P1.M1.T1.S2 after 200ms'
+        );
+      });
+    });
+
+    describe('executeSubtask() with dependencies', () => {
+      it('should skip execution when dependencies are not satisfied', async () => {
+        // SETUP: Subtask with blocked dependencies
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        const consoleSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: Status never updated (no execute call)
+        expect(mockManager.updateItemStatus).not.toHaveBeenCalled();
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Blocked on: P1.M1.T1.S1 - Subtask 1 (status: Planned)'
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Subtask P1.M1.T1.S2 blocked on dependencies, skipping'
+        );
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should execute normally when all dependencies are Complete', async () => {
+        // SETUP: Subtask with all Complete dependencies
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S2',
+          'Subtask 2',
+          'Planned',
+          ['P1.M1.T1.S1']
+        );
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: Normal execution flow (status updated twice)
+        expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+          1,
+          'P1.M1.T1.S2',
+          'Implementing'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+          2,
+          'P1.M1.T1.S2',
+          'Complete'
+        );
+      });
+
+      it('should log all blocking dependencies', async () => {
+        // SETUP: Subtask with multiple blocking dependencies
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Implementing'),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S3',
+          'Subtask 3',
+          'Planned',
+          ['P1.M1.T1.S1', 'P1.M1.T1.S2']
+        );
+
+        const consoleSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: Both blocking dependencies logged
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Blocked on: P1.M1.T1.S1 - Subtask 1 (status: Planned)'
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Blocked on: P1.M1.T1.S2 - Subtask 2 (status: Implementing)'
+        );
+
+        consoleSpy.mockRestore();
+      });
+    });
+
+    describe('integration: dependency chain execution', () => {
+      it('should execute dependency chain A->B->C in correct order', async () => {
+        // SETUP: Three subtasks where S2 depends on S1, S3 depends on S2
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned', []),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', [
+                  'P1.M1.T1.S1',
+                ]),
+                createTestSubtask('P1.M1.T1.S3', 'Subtask 3', 'Planned', [
+                  'P1.M1.T1.S2',
+                ]),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const consoleSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
+
+        // EXECUTE: Process items in order (simulating DFS traversal)
+
+        // Step 1: Process S1 (no dependencies) - should execute
+        await orchestrator.executeSubtask(
+          testBacklog.backlog[0].milestones[0].tasks[0].subtasks[0]
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S1',
+          'Implementing'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S1',
+          'Complete'
+        );
+        // Update testBacklog to reflect the new status
+        testBacklog.backlog[0].milestones[0].tasks[0].subtasks[0] = {
+          ...testBacklog.backlog[0].milestones[0].tasks[0].subtasks[0],
+          status: 'Complete',
+        };
+
+        // Step 2: Try to process S2 (depends on S1, now Complete) - should execute
+        await orchestrator.executeSubtask(
+          testBacklog.backlog[0].milestones[0].tasks[0].subtasks[1]
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S2',
+          'Implementing'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S2',
+          'Complete'
+        );
+        // Update testBacklog to reflect the new status
+        testBacklog.backlog[0].milestones[0].tasks[0].subtasks[1] = {
+          ...testBacklog.backlog[0].milestones[0].tasks[0].subtasks[1],
+          status: 'Complete',
+        };
+
+        // Step 3: Try to process S3 (depends on S2, now Complete) - should execute
+        await orchestrator.executeSubtask(
+          testBacklog.backlog[0].milestones[0].tasks[0].subtasks[2]
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S3',
+          'Implementing'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S3',
+          'Complete'
+        );
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should skip blocked subtasks and continue to executable ones', async () => {
+        // SETUP: S2 depends on S1, but S1 is not Complete
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned', []),
+                createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', [
+                  'P1.M1.T1.S1',
+                ]),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const consoleSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
+
+        // EXECUTE: Try to execute S2 before S1 is Complete
+
+        // S2 should be blocked
+        await orchestrator.executeSubtask(
+          testBacklog.backlog[0].milestones[0].tasks[0].subtasks[1]
+        );
+        expect(mockManager.updateItemStatus).not.toHaveBeenCalled(); // No status update for blocked subtask
+
+        // S1 should execute normally
+        await orchestrator.executeSubtask(
+          testBacklog.backlog[0].milestones[0].tasks[0].subtasks[0]
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S1',
+          'Implementing'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S1',
+          'Complete'
+        );
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should handle cross-boundary dependencies', async () => {
+        // SETUP: Subtask in P3.M2.T1 depends on subtask in P1.M1.T1
+        const testBacklog = createTestBacklog([
+          createTestPhase('P1', 'Phase 1', 'Planned', [
+            createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+              createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+              ]),
+            ]),
+          ]),
+          createTestPhase('P3', 'Phase 3', 'Planned', [
+            createTestMilestone('P3.M2', 'Milestone 2', 'Planned', [
+              createTestTask('P3.M2.T1', 'Task 1', 'Planned', [
+                createTestSubtask('P3.M2.T1.S1', 'Subtask 1', 'Planned', [
+                  'P1.M1.T1.S1',
+                ]),
+              ]),
+            ]),
+          ]),
+        ]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        // EXECUTE: Subtask in P3 depends on P1 subtask
+        await orchestrator.executeSubtask(
+          testBacklog.backlog[1].milestones[0].tasks[0].subtasks[0]
+        );
+
+        // VERIFY: Should execute (P1.M1.T1.S1 is Complete)
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P3.M2.T1.S1',
+          'Implementing'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P3.M2.T1.S1',
+          'Complete'
+        );
+      });
     });
   });
 });
