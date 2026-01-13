@@ -269,7 +269,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Import system prompts from PROMPTS.md",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S1"
