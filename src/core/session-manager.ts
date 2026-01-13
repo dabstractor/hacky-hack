@@ -23,13 +23,25 @@
 import { statSync } from 'node:fs';
 import { readFile, writeFile, stat, readdir } from 'node:fs/promises';
 import { resolve, basename } from 'node:path';
-import type { SessionState, SessionMetadata, DeltaSession } from './models.js';
+import type {
+  SessionState,
+  SessionMetadata,
+  DeltaSession,
+  Backlog,
+  Status,
+} from './models.js';
+import type { HierarchyItem } from '../utils/task-utils.js';
 import {
   hashPRD,
   createSessionDirectory,
   readTasksJSON,
+  writeTasksJSON,
   SessionFileError,
 } from './session-utils.js';
+import {
+  updateItemStatus as updateItemStatusUtil,
+  findItem,
+} from '../utils/task-utils.js';
 
 /**
  * Session Manager for PRP Pipeline state management
@@ -316,7 +328,10 @@ export class SessionManager {
     const diffSummary = this.#generateDiffSummary(oldPRD, newPRD);
 
     // 5. Create new session directory
-    const currentSeq = parseInt(this.#currentSession.metadata.id.split('_')[0], 10);
+    const currentSeq = parseInt(
+      this.#currentSession.metadata.id.split('_')[0],
+      10
+    );
     const newSeq = currentSeq + 1;
     const sessionPath = await createSessionDirectory(newPRDPath, newSeq);
 
@@ -352,5 +367,165 @@ export class SessionManager {
     this.#currentSession = deltaSession;
 
     return deltaSession;
+  }
+
+  /**
+   * Atomically saves backlog to tasks.json
+   *
+   * @remarks
+   * Delegates to writeTasksJSON() which uses atomic write pattern
+   * (temp file + rename) to prevent data corruption if process crashes.
+   *
+   * @param backlog - Backlog object to persist
+   * @throws {Error} If no session is loaded
+   * @throws {SessionFileError} If write fails
+   *
+   * @example
+   * ```typescript
+   * const backlog: Backlog = { backlog: [/* ... *\/] };
+   * await manager.saveBacklog(backlog);
+   * ```
+   */
+  async saveBacklog(backlog: Backlog): Promise<void> {
+    if (!this.#currentSession) {
+      throw new Error('Cannot save backlog: no session loaded');
+    }
+
+    await writeTasksJSON(this.#currentSession.metadata.path, backlog);
+  }
+
+  /**
+   * Loads backlog from tasks.json
+   *
+   * @remarks
+   * Delegates to readTasksJSON() which reads and validates the
+   * backlog with Zod schema. Use this to refresh the in-memory
+   * task registry from disk.
+   *
+   * @returns Validated Backlog object
+   * @throws {Error} If no session is loaded
+   * @throws {SessionFileError} If read or validation fails
+   *
+   * @example
+   * ```typescript
+   * const backlog = await manager.loadBacklog();
+   * console.log(backlog.backlog.length); // Number of phases
+   * ```
+   */
+  async loadBacklog(): Promise<Backlog> {
+    if (!this.#currentSession) {
+      throw new Error('Cannot load backlog: no session loaded');
+    }
+
+    return readTasksJSON(this.#currentSession.metadata.path);
+  }
+
+  /**
+   * Updates item status and persists changes atomically
+   *
+   * @remarks
+   * Uses immutable update pattern from task-utils.ts to create a new
+   * backlog with updated status, then persists to disk and updates
+   * the internal session state.
+   *
+   * @param itemId - Item ID to update (e.g., "P1.M1.T1.S1")
+   * @param status - New status value
+   * @returns Updated Backlog after save
+   * @throws {Error} If no session is loaded
+   * @throws {SessionFileError} If write fails
+   *
+   * @example
+   * ```typescript
+   * const updated = await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+   * // Status updated in memory and persisted to tasks.json
+   * ```
+   */
+  async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
+    if (!this.#currentSession) {
+      throw new Error('Cannot update item status: no session loaded');
+    }
+
+    // Get current backlog from session
+    const currentBacklog = this.#currentSession.taskRegistry;
+
+    // Immutable update using utility function
+    const updated = updateItemStatusUtil(currentBacklog, itemId, status);
+
+    // Persist to disk atomically
+    await this.saveBacklog(updated);
+
+    // Update internal session state by creating new object (readonly properties)
+    this.#currentSession = {
+      ...this.#currentSession,
+      taskRegistry: updated,
+    };
+
+    return updated;
+  }
+
+  /**
+   * Gets the current item from the backlog
+   *
+   * @remarks
+   * Resolves currentItemId from the loaded session by searching the
+   * backlog hierarchy. Returns null if no session is loaded or if
+   * currentItemId is null.
+   *
+   * @returns HierarchyItem or null if no current item set
+   *
+   * @example
+   * ```typescript
+   * const item = manager.getCurrentItem();
+   * if (item) {
+   *   console.log(`Currently working on: ${item.title}`);
+   * }
+   * ```
+   */
+  getCurrentItem(): HierarchyItem | null {
+    // Return null if no session loaded (not throw)
+    if (!this.#currentSession) {
+      return null;
+    }
+
+    // Return null if no current item set
+    if (!this.#currentSession.currentItemId) {
+      return null;
+    }
+
+    // Delegate to findItem utility
+    return findItem(
+      this.#currentSession.taskRegistry,
+      this.#currentSession.currentItemId
+    );
+  }
+
+  /**
+   * Sets the current item ID for tracking execution position
+   *
+   * @remarks
+   * Updates the internal session state's currentItemId field.
+   * This mutates the private #currentSession field internally,
+   * which is allowed for private fields despite readonly interface.
+   *
+   * @param itemId - Item ID to set as current
+   * @throws {Error} If no session is loaded
+   *
+   * @example
+   * ```typescript
+   * manager.setCurrentItem('P1.M1.T1.S1');
+   * const current = manager.getCurrentItem();
+   * console.log(current?.id); // 'P1.M1.T1.S1'
+   * ```
+   */
+  setCurrentItem(itemId: string): void {
+    if (!this.#currentSession) {
+      throw new Error('Cannot set current item: no session loaded');
+    }
+
+    // Create new object with updated currentItemId (readonly properties)
+    this.#currentSession = {
+      ...this.#currentSession,
+      currentItemId: itemId,
+    };
   }
 }

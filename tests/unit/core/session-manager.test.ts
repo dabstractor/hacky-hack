@@ -16,8 +16,13 @@ import {
   hashPRD,
   createSessionDirectory,
   readTasksJSON,
+  writeTasksJSON,
   SessionFileError,
 } from '../../../src/core/session-utils.js';
+import {
+  updateItemStatus as updateItemStatusUtil,
+  findItem,
+} from '../../../src/utils/task-utils.js';
 import type { Backlog } from '../../../src/core/models.js';
 import { Status } from '../../../src/core/models.js';
 
@@ -40,6 +45,7 @@ vi.mock('../../../src/core/session-utils.js', () => ({
   hashPRD: vi.fn(),
   createSessionDirectory: vi.fn(),
   readTasksJSON: vi.fn(),
+  writeTasksJSON: vi.fn(),
   SessionFileError: class extends Error {
     readonly path: string;
     readonly operation: string;
@@ -57,6 +63,12 @@ vi.mock('../../../src/core/session-utils.js', () => ({
   },
 }));
 
+// Mock the task-utils module
+vi.mock('../../../src/utils/task-utils.js', () => ({
+  updateItemStatus: vi.fn(),
+  findItem: vi.fn(),
+}));
+
 // Import mocked modules
 import { readFile, writeFile, stat, readdir } from 'node:fs/promises';
 import { statSync } from 'node:fs';
@@ -71,6 +83,9 @@ const mockStatSync = statSync as any;
 const mockHashPRD = hashPRD as any;
 const mockCreateSessionDirectory = createSessionDirectory as any;
 const mockReadTasksJSON = readTasksJSON as any;
+const mockWriteTasksJSON = writeTasksJSON as any;
+const mockUpdateItemStatusUtil = updateItemStatusUtil as any;
+const mockFindItem = findItem as any;
 
 // Factory functions for test data
 const createTestSubtask = (
@@ -1293,6 +1308,449 @@ describe('SessionManager', () => {
         '/test/PRD.md',
         3
       );
+    });
+  });
+
+  describe('saveBacklog', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should call writeTasksJSON with session path and backlog', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+
+      // EXECUTE
+      await manager.saveBacklog(testBacklog);
+
+      // VERIFY
+      expect(mockWriteTasksJSON).toHaveBeenCalledWith(
+        '/plan/001_14b9dc2a33c7',
+        testBacklog
+      );
+    });
+
+    it('should throw Error when no session loaded', async () => {
+      // SETUP: Manager without session
+      const manager = new SessionManager('/test/PRD.md');
+      const testBacklog = createTestBacklog([]);
+
+      // EXECUTE & VERIFY
+      await expect(manager.saveBacklog(testBacklog)).rejects.toThrow(
+        'Cannot save backlog: no session loaded'
+      );
+    });
+
+    it('should propagate SessionFileError from writeTasksJSON', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const error = new SessionFileError(
+        '/plan/001_14b9dc2a33c7/tasks.json',
+        'write tasks.json'
+      );
+      mockWriteTasksJSON.mockRejectedValue(error);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      const testBacklog = createTestBacklog([]);
+
+      // EXECUTE & VERIFY
+      await expect(manager.saveBacklog(testBacklog)).rejects.toThrow(
+        SessionFileError
+      );
+    });
+  });
+
+  describe('loadBacklog', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should call readTasksJSON and return backlog', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+      mockReadTasksJSON.mockResolvedValue(testBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE
+      const result = await manager.loadBacklog();
+
+      // VERIFY
+      expect(mockReadTasksJSON).toHaveBeenCalledWith('/plan/001_14b9dc2a33c7');
+      expect(result).toEqual(testBacklog);
+    });
+
+    it('should throw Error when no session loaded', async () => {
+      // SETUP: Manager without session
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE & VERIFY
+      await expect(manager.loadBacklog()).rejects.toThrow(
+        'Cannot load backlog: no session loaded'
+      );
+    });
+
+    it('should propagate SessionFileError from readTasksJSON', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const error = new SessionFileError(
+        '/plan/001_14b9dc2a33c7/tasks.json',
+        'read tasks.json'
+      );
+      mockReadTasksJSON.mockRejectedValue(error);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE & VERIFY
+      await expect(manager.loadBacklog()).rejects.toThrow(SessionFileError);
+    });
+  });
+
+  describe('updateItemStatus', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should update status, save, and return updated backlog', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // Initialize creates empty backlog
+      const emptyBacklog = createTestBacklog([]);
+      const originalBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+            ]),
+          ]),
+        ]),
+      ]);
+
+      // Mock updateItemStatusUtil to transform empty backlog to updated backlog
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE - updateItemStatus will use current empty backlog
+      const result = await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+
+      // VERIFY
+      expect(mockUpdateItemStatusUtil).toHaveBeenCalledWith(
+        emptyBacklog,
+        'P1.M1.T1.S1',
+        'Complete'
+      );
+      expect(mockWriteTasksJSON).toHaveBeenCalledWith(
+        '/plan/001_14b9dc2a33c7',
+        updatedBacklog
+      );
+      expect(result).toEqual(updatedBacklog);
+    });
+
+    it('should throw Error when no session loaded', async () => {
+      // SETUP: Manager without session
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE & VERIFY
+      await expect(
+        manager.updateItemStatus('P1.M1.T1.S1', 'Complete')
+      ).rejects.toThrow('Cannot update item status: no session loaded');
+    });
+
+    it('should update currentSession.taskRegistry after save', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const originalBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+      // Now we have empty backlog, but for this test let's use loadBacklog to set the original
+      mockReadTasksJSON.mockResolvedValue(originalBacklog);
+      await manager.loadBacklog(); // This loads but doesn't update currentSession
+
+      // EXECUTE - updateItemStatus will use current empty backlog from initialize
+      await manager.updateItemStatus('P1', 'Complete');
+
+      // VERIFY: Internal state updated to updatedBacklog
+      expect(manager.currentSession?.taskRegistry).toEqual(updatedBacklog);
+    });
+  });
+
+  describe('getCurrentItem', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should return item when currentItemId is set', async () => {
+      // SETUP: Initialize session with currentItemId
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const testSubtask = createTestSubtask(
+        'P1.M1.T1.S1',
+        'Subtask 1',
+        'Planned'
+      );
+      mockFindItem.mockReturnValue(testSubtask);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize(); // Must await for session to load
+      // Set currentItemId
+      manager.setCurrentItem('P1.M1.T1.S1');
+
+      // EXECUTE
+      const result = manager.getCurrentItem();
+
+      // VERIFY
+      expect(mockFindItem).toHaveBeenCalledWith(
+        manager.currentSession?.taskRegistry,
+        'P1.M1.T1.S1'
+      );
+      expect(result).toEqual(testSubtask);
+    });
+
+    it('should return null when no session loaded', () => {
+      // SETUP: Manager without session
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE
+      const result = manager.getCurrentItem();
+
+      // VERIFY: Should return null, not throw
+      expect(result).toBeNull();
+    });
+
+    it('should return null when currentItemId is null', async () => {
+      // SETUP: Initialize session without currentItemId
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize(); // Must await for session to load
+
+      // EXECUTE
+      const result = manager.getCurrentItem();
+
+      // VERIFY
+      expect(result).toBeNull();
+      expect(mockFindItem).not.toHaveBeenCalled();
+    });
+
+    it('should return null when item not found in backlog', async () => {
+      // SETUP: Initialize session with currentItemId but item doesn't exist
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockFindItem.mockReturnValue(null);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize(); // Must await for session to load
+      manager.setCurrentItem('P1.M1.T1.S1');
+
+      // EXECUTE
+      const result = manager.getCurrentItem();
+
+      // VERIFY
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('setCurrentItem', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should set currentItemId on currentSession', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize(); // Must await for session to load
+
+      // EXECUTE
+      manager.setCurrentItem('P1.M1.T1.S1');
+
+      // VERIFY: Access via getter to verify
+      expect(manager.currentSession?.currentItemId).toBe('P1.M1.T1.S1');
+    });
+
+    it('should throw Error when no session loaded', () => {
+      // SETUP: Manager without session
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE & VERIFY
+      expect(() => manager.setCurrentItem('P1.M1.T1.S1')).toThrow(
+        'Cannot set current item: no session loaded'
+      );
+    });
+  });
+
+  describe('persistence integration scenarios', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should support full save/load cycle', async () => {
+      // SETUP: Initialize session with backlog
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const originalBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+      mockReadTasksJSON.mockResolvedValue(originalBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Save backlog
+      await manager.saveBacklog(originalBacklog);
+
+      // EXECUTE: Load backlog
+      const loaded = await manager.loadBacklog();
+
+      // VERIFY: Same data returned
+      expect(loaded).toEqual(originalBacklog);
+    });
+
+    it('should support updateItemStatus persistence cycle', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+      // loadBacklog should return the updated backlog (simulating persistence)
+      mockReadTasksJSON.mockResolvedValue(updatedBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Update status
+      await manager.updateItemStatus('P1', 'Complete');
+
+      // EXECUTE: Load to verify persistence
+      const loaded = await manager.loadBacklog();
+
+      // VERIFY: Updated status persisted
+      expect(loaded.backlog[0].status).toBe('Complete');
+    });
+
+    it('should support setCurrentItem/getCurrentItem cycle', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const testSubtask = createTestSubtask(
+        'P1.M1.T1.S1',
+        'Subtask 1',
+        'Planned'
+      );
+      mockFindItem.mockReturnValue(testSubtask);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize(); // Must await for session to load
+
+      // EXECUTE: Set current item
+      manager.setCurrentItem('P1.M1.T1.S1');
+
+      // EXECUTE: Get current item
+      const current = manager.getCurrentItem();
+
+      // VERIFY: Correct item returned
+      expect(current?.id).toBe('P1.M1.T1.S1');
+      expect(current?.title).toBe('Subtask 1');
     });
   });
 });
