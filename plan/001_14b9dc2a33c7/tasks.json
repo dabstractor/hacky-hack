@@ -982,7 +982,7 @@
               "type": "Task",
               "id": "P4.M4.T2",
               "title": "Test Agent System",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create integration tests for agent factory, prompts, and MCP tools.",
               "subtasks": [
                 {
@@ -1000,7 +1000,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T2.S2",
                   "title": "Test MCP tools",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T2.S1"
@@ -1020,7 +1020,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T3.S1",
                   "title": "Create minimal test PRD",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P4.M4.T2.S2"
