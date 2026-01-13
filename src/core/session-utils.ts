@@ -1,0 +1,424 @@
+/**
+ * File system utilities for session management
+ *
+ * @module core/session-utils
+ *
+ * @remarks
+ * Provides type-safe, error-handled file system operations for session management.
+ * These utilities are used by the Session Manager to create sessions, persist state,
+ * and manage PRP documents without any file system concerns.
+ *
+ * All functions use the custom {@link SessionFileError} class for consistent error
+ * handling. Critical write operations use atomic patterns (temp file + rename) to
+ * prevent data corruption if the process crashes during write.
+ *
+ * @example
+ * ```typescript
+ * import { hashPRD, createSessionDirectory, writeTasksJSON } from './core/session-utils.js';
+ *
+ * const hash = await hashPRD('/path/to/PRD.md');
+ * const sessionPath = await createSessionDirectory('/path/to/PRD.md', 1);
+ * await writeTasksJSON(sessionPath, backlog);
+ * ```
+ */
+
+import { createHash, randomBytes } from 'node:crypto';
+import { readFile, writeFile, mkdir, rename, unlink } from 'node:fs/promises';
+import { resolve, join, dirname, basename } from 'node:path';
+import type { Backlog, PRPDocument } from './models.js';
+import { BacklogSchema, PRPDocumentSchema } from './models.js';
+
+/**
+ * Error thrown when a session file operation fails
+ *
+ * @remarks
+ * This error is thrown by all session utility functions when file system
+ * operations fail. Captures the path, operation, and underlying error code
+ * for debugging and error handling.
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   await readFile(path, 'utf-8');
+ * } catch (error) {
+ *   throw new SessionFileError(path, 'read PRD', error as Error);
+ * }
+ * ```
+ */
+export class SessionFileError extends Error {
+  /** File/path where the error occurred */
+  readonly path: string;
+
+  /** Description of the operation being performed */
+  readonly operation: string;
+
+  /** Node.js errno code (ENOENT, EACCES, etc.) if available */
+  readonly code?: string;
+
+  /**
+   * Creates a new SessionFileError
+   *
+   * @param path - File/path where error occurred
+   * @param operation - Description of operation being performed
+   * @param cause - Underlying error that caused this failure
+   */
+  constructor(path: string, operation: string, cause?: Error) {
+    const err = cause as NodeJS.ErrnoException;
+    super(
+      `Failed to ${operation} at ${path}: ${err?.message ?? 'unknown error'}`
+    );
+    this.name = 'SessionFileError';
+    this.path = path;
+    this.operation = operation;
+    this.code = err?.code;
+  }
+}
+
+/**
+ * Atomically writes data to a file using temp file + rename pattern
+ *
+ * @remarks
+ * This internal helper implements the atomic write pattern used by
+ * writeTasksJSON and writePRP. Writing to a temp file first, then renaming,
+ * ensures that the target file is never partially written (rename is atomic
+ * on the same filesystem). If the process crashes between write and rename,
+ * the target file remains untouched.
+ *
+ * @param targetPath - Final destination path for the file
+ * @param data - String content to write
+ * @throws {SessionFileError} If write or rename fails
+ * @internal
+ */
+async function atomicWrite(targetPath: string, data: string): Promise<void> {
+  const tempPath = resolve(
+    dirname(targetPath),
+    `.${basename(targetPath)}.${randomBytes(8).toString('hex')}.tmp`
+  );
+
+  try {
+    await writeFile(tempPath, data, { mode: 0o644 });
+    await rename(tempPath, targetPath);
+  } catch (error) {
+    // Clean up temp file on error
+    try {
+      await unlink(tempPath);
+    } catch {
+      // Ignore cleanup errors
+    }
+    throw new SessionFileError(targetPath, 'atomic write', error as Error);
+  }
+}
+
+/**
+ * Computes SHA-256 hash of a PRD file
+ *
+ * @remarks
+ * Reads the file content and computes the SHA-256 hash using Node.js crypto.
+ * Returns the full 64-character hexadecimal hash string. The session hash
+ * (first 12 characters) is extracted from this value by createSessionDirectory.
+ *
+ * Used for PRD delta detection - if the hash changes, a delta session is needed.
+ *
+ * @param prdPath - Absolute or relative path to the PRD markdown file
+ * @returns Promise resolving to 64-character hexadecimal hash string
+ * @throws {SessionFileError} If file cannot be read
+ *
+ * @example
+ * ```typescript
+ * const hash = await hashPRD('/path/to/PRD.md');
+ * // Returns: '14b9dc2a33c7a1234567890abcdef...'
+ * console.log(hash.length); // 64
+ * ```
+ */
+export async function hashPRD(prdPath: string): Promise<string> {
+  try {
+    const content = await readFile(prdPath, 'utf-8');
+    return createHash('sha256').update(content).digest('hex');
+  } catch (error) {
+    throw new SessionFileError(prdPath, 'read PRD', error as Error);
+  }
+}
+
+/**
+ * Creates the complete session directory structure
+ *
+ * @remarks
+ * Creates a session directory at `plan/{sequence}_{hash}/` where:
+ * - `sequence` is zero-padded to 3 digits (e.g., '001', '002')
+ * - `hash` is the first 12 characters of the PRD's SHA-256 hash
+ *
+ * Creates the following subdirectories:
+ * - `architecture/` - Architectural research findings
+ * - `prps/` - Generated PRP documents
+ * - `artifacts/` - Temporary implementation artifacts
+ *
+ * The `EEXIST` error is handled gracefully - if the directory already exists,
+ * no error is thrown. This enables idempotent calls.
+ *
+ * @param prdPath - Path to PRD file for hash computation
+ * @param sequence - Session sequence number (will be zero-padded to 3 digits)
+ * @returns Promise resolving to absolute path of created session directory
+ * @throws {SessionFileError} If directory creation fails
+ *
+ * @example
+ * ```typescript
+ * const sessionPath = await createSessionDirectory('/path/to/PRD.md', 1);
+ * // Returns: '/absolute/path/to/plan/001_14b9dc2a33c7'
+ * ```
+ */
+export async function createSessionDirectory(
+  prdPath: string,
+  sequence: number
+): Promise<string> {
+  try {
+    // Compute PRD hash
+    const fullHash = await hashPRD(prdPath);
+    const sessionHash = fullHash.slice(0, 12);
+
+    // Build session ID and path
+    const sessionId = `${String(sequence).padStart(3, '0')}_${sessionHash}`;
+    const sessionPath = resolve('plan', sessionId);
+
+    // Create directory structure
+    const directories = [
+      sessionPath,
+      join(sessionPath, 'architecture'),
+      join(sessionPath, 'prps'),
+      join(sessionPath, 'artifacts'),
+    ];
+
+    for (const dir of directories) {
+      try {
+        await mkdir(dir, { recursive: true, mode: 0o755 });
+      } catch (error: unknown) {
+        // EEXIST is OK (directory already exists)
+        const err = error as NodeJS.ErrnoException;
+        if (err.code !== 'EEXIST') {
+          throw error;
+        }
+      }
+    }
+
+    return sessionPath;
+  } catch (error) {
+    if (error instanceof SessionFileError) {
+      throw error;
+    }
+    throw new SessionFileError(
+      prdPath,
+      'create session directory',
+      error as Error
+    );
+  }
+}
+
+/**
+ * Atomically writes tasks.json to session directory
+ *
+ * @remarks
+ * Validates the backlog with Zod schema before writing, then uses atomic
+ * write pattern (temp file + rename) to prevent corruption if the process
+ * crashes during write.
+ *
+ * The tasks.json file is the single source of truth for the task hierarchy
+ * in a session. It must be written atomically to ensure data integrity.
+ *
+ * @param sessionPath - Absolute path to session directory
+ * @param backlog - Backlog object to write
+ * @throws {SessionFileError} If validation or write fails
+ *
+ * @example
+ * ```typescript
+ * const backlog: Backlog = { backlog: [/* ... *\/] };
+ * await writeTasksJSON('/path/to/session', backlog);
+ * // Creates: /path/to/session/tasks.json
+ * ```
+ */
+export async function writeTasksJSON(
+  sessionPath: string,
+  backlog: Backlog
+): Promise<void> {
+  try {
+    // Validate with Zod schema
+    const validated = BacklogSchema.parse(backlog);
+
+    // Serialize to JSON with 2-space indentation
+    const content = JSON.stringify(validated, null, 2);
+
+    // Write atomically
+    const tasksPath = resolve(sessionPath, 'tasks.json');
+    await atomicWrite(tasksPath, content);
+  } catch (error) {
+    if (error instanceof SessionFileError) {
+      throw error;
+    }
+    throw new SessionFileError(
+      resolve(sessionPath, 'tasks.json'),
+      'write tasks.json',
+      error as Error
+    );
+  }
+}
+
+/**
+ * Reads and validates tasks.json from session directory
+ *
+ * @remarks
+ * Reads the tasks.json file, parses the JSON content, and validates with
+ * Zod schema to ensure the data matches the expected Backlog structure.
+ *
+ * This is the counterpart to writeTasksJSON - use it to load the task
+ * hierarchy when resuming a session or initializing the Session Manager.
+ *
+ * @param sessionPath - Absolute path to session directory
+ * @returns Promise resolving to validated Backlog object
+ * @throws {SessionFileError} If file cannot be read or is invalid
+ *
+ * @example
+ * ```typescript
+ * const backlog = await readTasksJSON('/path/to/session');
+ * console.log(backlog.backlog.length); // Number of phases
+ * ```
+ */
+export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
+  try {
+    const tasksPath = resolve(sessionPath, 'tasks.json');
+    const content = await readFile(tasksPath, 'utf-8');
+    const parsed = JSON.parse(content);
+    return BacklogSchema.parse(parsed);
+  } catch (error) {
+    throw new SessionFileError(
+      resolve(sessionPath, 'tasks.json'),
+      'read tasks.json',
+      error as Error
+    );
+  }
+}
+
+/**
+ * Converts PRPDocument to markdown format
+ *
+ * @remarks
+ * Internal helper that converts a PRPDocument object to markdown string
+ * following the PRP template structure from PROMPTS.md. The markdown includes
+ * all sections: header, objective, context, implementation steps, validation
+ * gates, success criteria, and references.
+ *
+ * @param prp - PRP document to convert
+ * @returns Markdown string representation of the PRP
+ * @internal
+ */
+function prpToMarkdown(prp: PRPDocument): string {
+  const sections: string[] = [];
+
+  // Header
+  sections.push(`# ${prp.taskId}`);
+  sections.push('');
+
+  // Objective
+  sections.push('## Objective');
+  sections.push('');
+  sections.push(prp.objective);
+  sections.push('');
+
+  // Context
+  sections.push('## Context');
+  sections.push('');
+  sections.push(prp.context);
+  sections.push('');
+
+  // Implementation Steps
+  sections.push('## Implementation Steps');
+  sections.push('');
+  prp.implementationSteps.forEach((step, i) => {
+    sections.push(`${i + 1}. ${step}`);
+  });
+  sections.push('');
+
+  // Validation Gates
+  sections.push('## Validation Gates');
+  sections.push('');
+  prp.validationGates.forEach(gate => {
+    sections.push(`### Level ${gate.level}`);
+    sections.push('');
+    sections.push(gate.description);
+    if (gate.manual) {
+      sections.push('');
+      sections.push('*Manual validation required*');
+    } else if (gate.command !== null && gate.command !== undefined) {
+      sections.push('');
+      sections.push('```bash');
+      sections.push(gate.command);
+      sections.push('```');
+    }
+    sections.push('');
+  });
+
+  // Success Criteria
+  sections.push('## Success Criteria');
+  sections.push('');
+  prp.successCriteria.forEach(criterion => {
+    const checkbox = criterion.satisfied ? '[x]' : '[ ]';
+    sections.push(`- ${checkbox} ${criterion.description}`);
+  });
+  sections.push('');
+
+  // References
+  sections.push('## References');
+  sections.push('');
+  prp.references.forEach(ref => {
+    sections.push(`- ${ref}`);
+  });
+
+  return sections.join('\n');
+}
+
+/**
+ * Writes PRP document to prps/ subdirectory as markdown
+ *
+ * @remarks
+ * Validates the PRP with Zod schema before writing, converts to markdown
+ * format, then uses atomic write pattern to prevent corruption.
+ *
+ * PRP files are stored at `prps/{taskId}.md` in the session directory.
+ * Each PRP represents a complete implementation specification for a
+ * single subtask in the task hierarchy.
+ *
+ * @param sessionPath - Absolute path to session directory
+ * @param taskId - Task ID for filename (e.g., 'P1.M2.T2.S3')
+ * @param prp - PRP document to write
+ * @throws {SessionFileError} If validation or write fails
+ *
+ * @example
+ * ```typescript
+ * const prp: PRPDocument = { /* ... *\/ };
+ * await writePRP('/path/to/session', 'P1.M2.T2.S3', prp);
+ * // Creates: /path/to/session/prps/P1.M2.T2.S3.md
+ * ```
+ */
+export async function writePRP(
+  sessionPath: string,
+  taskId: string,
+  prp: PRPDocument
+): Promise<void> {
+  try {
+    // Validate with Zod schema
+    const validated = PRPDocumentSchema.parse(prp);
+
+    // Convert to markdown
+    const content = prpToMarkdown(validated);
+
+    // Write atomically
+    const prpPath = resolve(sessionPath, 'prps', `${taskId}.md`);
+    await atomicWrite(prpPath, content);
+  } catch (error) {
+    if (error instanceof SessionFileError) {
+      throw error;
+    }
+    throw new SessionFileError(
+      resolve(sessionPath, 'prps', `${taskId}.md`),
+      'write PRP',
+      error as Error
+    );
+  }
+}
