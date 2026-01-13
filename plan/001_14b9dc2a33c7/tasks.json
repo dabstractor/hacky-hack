@@ -953,7 +953,7 @@
               "type": "Task",
               "id": "P4.M4.T1",
               "title": "Test Core Data Structures",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create unit tests for all models, utilities, and helpers.",
               "subtasks": [
                 {
@@ -969,7 +969,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T1.S2",
                   "title": "Test session management",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T1.S1"
@@ -989,7 +989,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T2.S1",
                   "title": "Test agent factory and prompts",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T1.S2"

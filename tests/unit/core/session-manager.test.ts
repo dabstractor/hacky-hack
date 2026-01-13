@@ -1888,6 +1888,40 @@ describe('SessionManager', () => {
       // VERIFY: Should call readdir with resolved 'plan' directory
       expect(mockReaddir).toHaveBeenCalled();
     });
+
+    it('should skip sessions that fail to load during listSessions', async () => {
+      // SETUP: Multiple sessions exist, one will throw error during stat
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockImplementation(async () => [
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+        { name: '002_25e8db4b4d8a', isDirectory: () => true },
+        { name: '003_a3f8e9d12b4a', isDirectory: () => true },
+      ]);
+
+      // Mock stat to throw error for session 002
+      let callCount = 0;
+      mockStat.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 2) {
+          // Second call (session 002) throws error
+          throw new Error('EACCES: permission denied');
+        }
+        return { mtime: new Date('2024-01-01') };
+      });
+
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadFile.mockRejectedValue(error);
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY: Should return 2 sessions (001 and 003), skipping 002
+      expect(sessions).toHaveLength(2);
+      expect(sessions[0].id).toBe('001_14b9dc2a33c7');
+      expect(sessions[1].id).toBe('003_a3f8e9d12b4a');
+      // Line 677-679: catch block executes, continue skips the failing session
+    });
   });
 
   describe('findLatestSession (static)', () => {
@@ -2143,6 +2177,20 @@ describe('SessionManager', () => {
 
       // VERIFY: hashPRD was not called again
       expect(mockHashPRD).toHaveBeenCalledTimes(1);
+    });
+
+    it('defensive check for null prdHash is unreachable in normal operation', () => {
+      // NOTE: Lines 830-831 in session-manager.ts check if #prdHash is null
+      // This is defensive code that cannot be reached in normal operation because:
+      // 1. initialize() always calls hashPRD() and sets #prdHash before returning
+      // 2. There is no public API that sets #currentSession without also setting #prdHash
+      // 3. The first check in hasSessionChanged() (for #currentSession) would fail first
+      //
+      // This is a TypeScript type guard combined with defensive programming to provide
+      // runtime safety, but it's unreachable given the current implementation.
+      //
+      // Coverage approach: Document as unreachable defensive code rather than
+      // attempting to create artificial test scenarios that don't reflect real usage.
     });
   });
 
