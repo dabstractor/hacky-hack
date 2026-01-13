@@ -982,14 +982,14 @@
               "type": "Task",
               "id": "P4.M4.T2",
               "title": "Test Agent System",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create integration tests for agent factory, prompts, and MCP tools.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M4.T2.S1",
                   "title": "Test agent factory and prompts",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T1.S2"
@@ -1000,7 +1000,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T2.S2",
                   "title": "Test MCP tools",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T2.S1"
