@@ -19,6 +19,9 @@ export default defineConfig({
     deps: {
       interopDefault: true,
     },
+    fs: {
+      allow: ['.', '..'],
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -40,8 +43,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
+      '#': new URL('./src/agents', import.meta.url).pathname,
       groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
         .pathname,
     },
+    extensions: ['.ts', '.js'],
   },
 });

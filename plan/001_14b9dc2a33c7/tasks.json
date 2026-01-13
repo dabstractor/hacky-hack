@@ -386,7 +386,7 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Create PRP Generation Prompts",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Port the PRP Blueprint prompt for Researcher agent to generate context-dense micro-PRDs.",
               "subtasks": [
                 {
@@ -404,7 +404,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S2",
                   "title": "Create PRP generation prompt",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T2.S1"
