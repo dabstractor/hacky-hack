@@ -824,7 +824,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S1",
                   "title": "Create delta analysis workflow",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.3 - Delta Session: Detect hash mismatch → Delta Session → PRD Diff → Task Patching.\n2. INPUT: Old PRD, new PRD, completed task IDs. createDeltaPrompt() from P2.M2.T3.\n3. LOGIC: Create src/workflows/delta-workflow.ts:\n   - Import { Workflow, Step } from 'groundswell'\n   - Export class DeltaAnalysisWorkflow extends Workflow\n   - @ObservedState() oldPRD: string\n   - @ObservedState() newPRD: string\n   - @ObservedState() completedTasks: string[]\n   - @ObservedState() deltaAnalysis: DeltaAnalysis | null\n   - Constructor accepts oldPRD, newPRD, completedTasks\n   - @Step() async analyzeDelta(): Promise<DeltaAnalysis> - Use QA agent with createDeltaPrompt(), return analysis\n   - Override async run(): Promise<DeltaAnalysis> - Orchestrate analysis\n4. OUTPUT: Workflow that produces structured delta analysis."
@@ -833,7 +833,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S2",
                   "title": "Implement task patching logic",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M1.T1.S1"

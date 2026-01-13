@@ -1,0 +1,12 @@
+/**
+ * Workflow exports
+ *
+ * @module workflows/index
+ *
+ * @remarks
+ * Central export point for all workflow classes in the PRP Pipeline system.
+ */
+
+export { HelloWorldWorkflow } from './hello-world.js';
+export { PRPPipeline } from './prp-pipeline.js';
+export { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
