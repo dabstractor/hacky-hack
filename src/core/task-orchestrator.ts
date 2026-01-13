@@ -87,6 +87,53 @@ export class TaskOrchestrator {
   }
 
   /**
+   * Sets item status with logging and state persistence
+   *
+   * @param itemId - Item ID to update (e.g., "P1.M1.T1.S1")
+   * @param status - New status value
+   * @param reason - Optional reason for status change (for debugging)
+   * @throws {Error} If SessionManager.updateItemStatus() fails
+   *
+   * @remarks
+   * Public wrapper for SessionManager.updateItemStatus() that:
+   * 1. Logs the status transition with structured information
+   * 2. Persists the status change via SessionManager
+   * 3. Refreshes backlog to get latest state
+   *
+   * Logs include: timestamp, itemId, oldStatus, newStatus, reason
+   */
+  public async setStatus(
+    itemId: string,
+    status: Status,
+    reason?: string
+  ): Promise<void> {
+    // Import findItem utility to get current item for oldStatus
+    const { findItem } = await import('../utils/task-utils.js');
+
+    // PATTERN: Get current item to capture oldStatus for logging
+    const currentItem = findItem(this.#backlog, itemId);
+    const oldStatus = currentItem?.status ?? 'Unknown';
+    const timestamp = new Date().toISOString();
+
+    // PATTERN: Log status transition with structured information
+    // Format includes: timestamp, itemId, oldStatus, newStatus, reason
+    const reasonStr = reason ? ` (${reason})` : '';
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
+    console.log(
+      `[TaskOrchestrator] Status: ${itemId} ${oldStatus} → ${status}${reasonStr}`
+    );
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
+    console.log(`[TaskOrchestrator] Timestamp: ${timestamp}`);
+
+    // PATTERN: Persist status change through SessionManager
+    // NOTE: reason is only for logging, not passed to SessionManager (API doesn't support it)
+    await this.sessionManager.updateItemStatus(itemId, status);
+
+    // PATTERN: Reload backlog to get latest state
+    await this.#refreshBacklog();
+  }
+
+  /**
    * Checks if a subtask can execute based on its dependencies
    *
    * @param subtask - The subtask to check
@@ -299,7 +346,14 @@ export class TaskOrchestrator {
    * call processNextItem() to process milestones within this phase.
    */
   async executePhase(phase: Phase): Promise<void> {
+    // PATTERN: Log before status update (NEW - adds visibility)
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
+    console.log(
+      `[TaskOrchestrator] Phase: ${phase.id} - Setting status to Implementing`
+    );
+
     await this.#updateStatus(phase.id, 'Implementing');
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
     console.log(
       `[TaskOrchestrator] Executing Phase: ${phase.id} - ${phase.title}`
     );
@@ -317,7 +371,14 @@ export class TaskOrchestrator {
    * call processNextItem() to process tasks within this milestone.
    */
   async executeMilestone(milestone: Milestone): Promise<void> {
+    // PATTERN: Log before status update (NEW - adds visibility)
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
+    console.log(
+      `[TaskOrchestrator] Milestone: ${milestone.id} - Setting status to Implementing`
+    );
+
     await this.#updateStatus(milestone.id, 'Implementing');
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
     console.log(
       `[TaskOrchestrator] Executing Milestone: ${milestone.id} - ${milestone.title}`
     );
@@ -335,7 +396,14 @@ export class TaskOrchestrator {
    * call processNextItem() to process subtasks within this task.
    */
   async executeTask(task: Task): Promise<void> {
+    // PATTERN: Log before status update (NEW - adds visibility)
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
+    console.log(
+      `[TaskOrchestrator] Task: ${task.id} - Setting status to Implementing`
+    );
+
     await this.#updateStatus(task.id, 'Implementing');
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
     console.log(
       `[TaskOrchestrator] Executing Task: ${task.id} - ${task.title}`
     );
@@ -352,19 +420,29 @@ export class TaskOrchestrator {
    * dependencies are Complete using canExecute(). If blocked, it logs
    * the blocking dependencies and returns early without executing.
    *
+   * Status progression: Planned → Researching → Implementing → Complete/Failed
+   * - Researching: PRP generation phase (activates unused status)
+   * - Implementing: Coder agent execution phase
+   * - Complete: All validation gates passed
+   * - Failed: Exception during execution
+   *
    * In P3.M3.T1, this will generate a PRP and run the Coder agent.
-   * For now, it's a placeholder that:
-   * 1. Checks dependencies (new in this PRP)
-   * 2. Sets status to 'Implementing' (if not blocked)
-   * 3. Logs the action
-   * 4. Sets status to 'Complete'
+   * For now, it's a placeholder that logs the action and marks as complete.
    *
    * The Pipeline Controller will call processNextItem() which delegates
    * to this method when the next pending item is a Subtask.
    */
   async executeSubtask(subtask: Subtask): Promise<void> {
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
     console.log(
       `[TaskOrchestrator] Executing Subtask: ${subtask.id} - ${subtask.title}`
+    );
+
+    // PATTERN: Set 'Researching' status at start (NEW - activates unused status)
+    await this.setStatus(subtask.id, 'Researching', 'Starting PRP generation');
+    // eslint-disable-next-line no-console -- Expected logging for status transitions
+    console.log(
+      `[TaskOrchestrator] Researching: ${subtask.id} - preparing PRP`
     );
 
     // NEW: Check if dependencies are satisfied
@@ -373,11 +451,13 @@ export class TaskOrchestrator {
 
       // PATTERN: Log each blocking dependency for clarity
       for (const blocker of blockers) {
+        // eslint-disable-next-line no-console -- Expected logging for dependency tracking
         console.log(
           `[TaskOrchestrator] Blocked on: ${blocker.id} - ${blocker.title} (status: ${blocker.status})`
         );
       }
 
+      // eslint-disable-next-line no-console -- Expected logging for dependency tracking
       console.log(
         `[TaskOrchestrator] Subtask ${subtask.id} blocked on dependencies, skipping`
       );
@@ -386,18 +466,48 @@ export class TaskOrchestrator {
       return;
     }
 
-    // EXISTING: Continue with normal execution flow
-    await this.#updateStatus(subtask.id, 'Implementing');
+    // PATTERN: Set 'Implementing' status before work
+    await this.setStatus(subtask.id, 'Implementing', 'Starting implementation');
 
-    // PLACEHOLDER: Log execution (PRP generation + Coder agent execution in P3.M3.T1)
-    console.log(
-      `[TaskOrchestrator] PLACEHOLDER: Would generate PRP and run Coder agent`
-    );
-    console.log(`[TaskOrchestrator] Context scope: ${subtask.context_scope}`);
+    // PATTERN: Wrap execution in try/catch for error handling (NEW)
+    try {
+      // PLACEHOLDER: PRP generation + Coder agent execution (existing - preserve)
+      // eslint-disable-next-line no-console -- Expected logging for status transitions
+      console.log(
+        `[TaskOrchestrator] PLACEHOLDER: Would generate PRP and run Coder agent`
+      );
+      // eslint-disable-next-line no-console -- Expected logging for status transitions
+      console.log(`[TaskOrchestrator] Context scope: ${subtask.context_scope}`);
 
-    // PLACEHOLDER: Set status to Complete
-    // In P3.M3.T1, this will depend on Coder agent success/failure
-    await this.#updateStatus(subtask.id, 'Complete');
+      // PATTERN: Set 'Complete' status on success
+      await this.setStatus(
+        subtask.id,
+        'Complete',
+        'Implementation completed successfully'
+      );
+    } catch (error) {
+      // PATTERN: Set 'Failed' status on exception with error details
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      await this.setStatus(
+        subtask.id,
+        'Failed',
+        `Execution failed: ${errorMessage}`
+      );
+
+      // PATTERN: Log error with context for debugging
+      // eslint-disable-next-line no-console -- Expected error logging for debugging
+      console.error(
+        `[TaskOrchestrator] ERROR: ${subtask.id} failed: ${errorMessage}`
+      );
+      if (error instanceof Error && error.stack) {
+        // eslint-disable-next-line no-console -- Expected error logging for debugging
+        console.error(`[TaskOrchestrator] Stack trace: ${error.stack}`);
+      }
+
+      // PATTERN: Re-throw error for upstream handling
+      throw error;
+    }
   }
 
   /**

@@ -588,7 +588,7 @@
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Create Task Execution Engine",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Build the core loop that processes tasks from the backlog in dependency order.",
               "subtasks": [
                 {
@@ -615,7 +615,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S3",
                   "title": "Implement status tracking and updates",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T1.S2"
@@ -635,7 +635,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S1",
                   "title": "Create scope parser and resolver",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M2.T1.S3"

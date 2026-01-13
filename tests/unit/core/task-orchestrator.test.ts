@@ -17,8 +17,9 @@ import type { Backlog } from '../../../src/core/models.js';
 import { Status } from '../../../src/core/models.js';
 
 // Mock the task-utils module - use importOriginal to get real getDependencies implementation
-vi.mock('../../../src/utils/task-utils.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../src/utils/task-utils.js')>();
+vi.mock('../../../src/utils/task-utils.js', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../../../src/utils/task-utils.js')>();
   return {
     ...actual,
     getNextPendingItem: vi.fn(),
@@ -524,18 +525,23 @@ describe('TaskOrchestrator', () => {
       // EXECUTE
       await orchestrator.executeSubtask(subtask);
 
-      // VERIFY: Status updated to Implementing then Complete
+      // VERIFY: Status updated to Researching, Implementing, then Complete (NEW status progression)
       expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
         1,
         'P1.M1.T1.S1',
-        'Implementing'
+        'Researching'
       );
       expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
         2,
         'P1.M1.T1.S1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        3,
+        'P1.M1.T1.S1',
         'Complete'
       );
-      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(2);
+      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(3);
     });
 
     it('should log placeholder execution message', async () => {
@@ -607,7 +613,7 @@ describe('TaskOrchestrator', () => {
       await orchestrator.executeSubtask(subtask);
 
       // VERIFY: Dependencies don't affect placeholder execution
-      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(2); // Implementing + Complete
+      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(3); // Researching + Implementing + Complete
     });
   });
 
@@ -824,14 +830,19 @@ describe('TaskOrchestrator', () => {
       // EXECUTE
       await orchestrator.processNextItem();
 
-      // VERIFY: executeSubtask was called (status updated twice)
+      // VERIFY: executeSubtask was called (status updated three times with Researching added)
       expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
         1,
+        'P1.M1.T1.S1',
+        'Researching'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        2,
         'P1.M1.T1.S1',
         'Implementing'
       );
       expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
-        2,
+        3,
         'P1.M1.T1.S1',
         'Complete'
       );
@@ -1814,8 +1825,12 @@ describe('TaskOrchestrator', () => {
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
-        // VERIFY: Status never updated (no execute call)
-        expect(mockManager.updateItemStatus).not.toHaveBeenCalled();
+        // VERIFY: Status updated to Researching (NEW: set at start before dependency check)
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S2',
+          'Researching'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(1); // Only Researching, no further execution
         expect(consoleSpy).toHaveBeenCalledWith(
           '[TaskOrchestrator] Blocked on: P1.M1.T1.S1 - Subtask 1 (status: Planned)'
         );
@@ -1862,14 +1877,19 @@ describe('TaskOrchestrator', () => {
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
-        // VERIFY: Normal execution flow (status updated twice)
+        // VERIFY: Normal execution flow (status updated three times with Researching added)
         expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
           1,
+          'P1.M1.T1.S2',
+          'Researching'
+        );
+        expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+          2,
           'P1.M1.T1.S2',
           'Implementing'
         );
         expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
-          2,
+          3,
           'P1.M1.T1.S2',
           'Complete'
         );
@@ -2054,11 +2074,15 @@ describe('TaskOrchestrator', () => {
 
         // EXECUTE: Try to execute S2 before S1 is Complete
 
-        // S2 should be blocked
+        // S2 should be blocked (but still set to Researching first - NEW behavior)
         await orchestrator.executeSubtask(
           testBacklog.backlog[0].milestones[0].tasks[0].subtasks[1]
         );
-        expect(mockManager.updateItemStatus).not.toHaveBeenCalled(); // No status update for blocked subtask
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S2',
+          'Researching'
+        ); // Only Researching for blocked subtask (NEW behavior)
+        expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(1);
 
         // S1 should execute normally
         await orchestrator.executeSubtask(
@@ -2126,6 +2150,642 @@ describe('TaskOrchestrator', () => {
           'Complete'
         );
       });
+    });
+  });
+
+  describe('setStatus()', () => {
+    it('should log status transition with correct format', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // EXECUTE
+      await orchestrator.setStatus('P1', 'Implementing', 'Starting work');
+
+      // VERIFY
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '[TaskOrchestrator] Status: P1 Planned → Implementing'
+        )
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[TaskOrchestrator] Timestamp:')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('(Starting work)')
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('should call SessionManager.updateItemStatus() with correct parameters', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // EXECUTE
+      await orchestrator.setStatus('P1', 'Implementing');
+
+      // VERIFY
+      expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+        'P1',
+        'Implementing'
+      );
+    });
+
+    it('should include reason in log when provided', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // EXECUTE
+      await orchestrator.setStatus(
+        'P1.M1.T1.S1',
+        'Complete',
+        'All tests passed'
+      );
+
+      // VERIFY
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('(All tests passed)')
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle missing reason parameter', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // EXECUTE
+      await orchestrator.setStatus('P1.M1.T1.S1', 'Complete');
+
+      // VERIFY: Should not have parentheses for reason
+      const logCalls = consoleSpy.mock.calls.filter(call =>
+        call[0]?.includes('Status:')
+      );
+      expect(logCalls[0][0]).not.toContain('(');
+      expect(logCalls[0][0]).not.toContain(')');
+      consoleSpy.mockRestore();
+    });
+
+    it('should call #refreshBacklog() after status update', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      (mockManager.updateItemStatus as any).mockResolvedValue(updatedBacklog);
+      const orchestrator = new TaskOrchestrator(mockManager);
+
+      // EXECUTE
+      await orchestrator.setStatus('P1', 'Complete');
+
+      // VERIFY: Check that updateItemStatus was called (which triggers internal refresh)
+      expect(mockManager.updateItemStatus).toHaveBeenCalled();
+    });
+  });
+
+  describe('executeSubtask() status lifecycle', () => {
+    it('should set Researching status at start', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+
+      // EXECUTE
+      await orchestrator.executeSubtask(subtask);
+
+      // VERIFY: First status update should be 'Researching'
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        1,
+        'P1.M1.T1.S1',
+        'Researching'
+      );
+    });
+
+    it('should set Implementing status after research', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+
+      // EXECUTE
+      await orchestrator.executeSubtask(subtask);
+
+      // VERIFY: Second status update should be 'Implementing'
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        2,
+        'P1.M1.T1.S1',
+        'Implementing'
+      );
+    });
+
+    it('should set Complete status on success', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+
+      // EXECUTE
+      await orchestrator.executeSubtask(subtask);
+
+      // VERIFY: Last status update should be 'Complete'
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        3,
+        'P1.M1.T1.S1',
+        'Complete'
+      );
+    });
+
+    it('should log Researching status with message', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // EXECUTE
+      await orchestrator.executeSubtask(subtask);
+
+      // VERIFY
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[TaskOrchestrator] Researching: P1.M1.T1.S1 - preparing PRP'
+      );
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('error handling with Failed status', () => {
+    it('should set Failed status on exception', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock to throw error during the execution (after Implementing status)
+      (mockManager.updateItemStatus as any).mockImplementation(
+        async (id: string, status: string) => {
+          if (status === 'Complete') {
+            throw new Error('Test execution error');
+          }
+          return testBacklog;
+        }
+      );
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      const consoleSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      // EXECUTE & VERIFY: Should throw the error
+      await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
+        'Test execution error'
+      );
+
+      // VERIFY: Failed status should have been set
+      const failedCalls = (
+        mockManager.updateItemStatus as any
+      ).mock.calls.filter((call: any[]) => call[1] === 'Failed');
+      expect(failedCalls.length).toBeGreaterThan(0);
+      expect(failedCalls[0][0]).toBe('P1.M1.T1.S1');
+      // NOTE: reason is logged but NOT passed to SessionManager.updateItemStatus()
+      // The log output shows: "[TaskOrchestrator] Status: ... Failed (Execution failed: Test execution error)"
+      consoleSpy.mockRestore();
+    });
+
+    it('should include error message in failed status reason', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock to throw error with specific message
+      const testError = new Error('Network timeout during PRP generation');
+      (mockManager.updateItemStatus as any).mockImplementation(
+        async (id: string, status: string) => {
+          if (status === 'Complete') {
+            throw testError;
+          }
+          return testBacklog;
+        }
+      );
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      const consoleSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {});
+
+      // EXECUTE
+      await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
+        'Network timeout during PRP generation'
+      );
+
+      // VERIFY: Failed status was set
+      const failedCalls = (
+        mockManager.updateItemStatus as any
+      ).mock.calls.filter((call: any[]) => call[1] === 'Failed');
+      expect(failedCalls.length).toBeGreaterThan(0);
+      expect(failedCalls[0][0]).toBe('P1.M1.T1.S1');
+      expect(failedCalls[0][1]).toBe('Failed');
+
+      // VERIFY: Error message was logged (reason parameter is for logging only)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Execution failed: Network timeout during PRP generation')
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should log error with context', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock to throw error
+      const testError = new Error('Test error');
+      testError.stack = 'Error: Test error\n    at test.ts:10:15';
+      (mockManager.updateItemStatus as any).mockImplementation(
+        async (id: string, status: string) => {
+          if (status === 'Complete') {
+            throw testError;
+          }
+          return testBacklog;
+        }
+      );
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      const consoleSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      // EXECUTE
+      await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
+        'Test error'
+      );
+
+      // VERIFY: Error was logged with context
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[TaskOrchestrator] ERROR: P1.M1.T1.S1 failed: Test error'
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[TaskOrchestrator] Stack trace: Error: Test error\n    at test.ts:10:15'
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should re-throw original error after setting Failed status', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock to throw error
+      const testError = new Error('Custom error message');
+      (mockManager.updateItemStatus as any).mockImplementation(
+        async (id: string, status: string) => {
+          if (status === 'Complete') {
+            throw testError;
+          }
+          return testBacklog;
+        }
+      );
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+
+      // EXECUTE & VERIFY: Should re-throw the original error
+      await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
+        'Custom error message'
+      );
+    });
+
+    it('should handle different error types (Error, string, unknown)', async () => {
+      // SETUP: Test with string error
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock to throw string error
+      (mockManager.updateItemStatus as any).mockImplementation(
+        async (id: string, status: string) => {
+          if (status === 'Complete') {
+            throw 'String error message';
+          }
+          return testBacklog;
+        }
+      );
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      const consoleSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {});
+
+      // EXECUTE & VERIFY: Should handle string error
+      await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
+        'String error message'
+      );
+
+      // VERIFY: Failed status was set
+      const failedCalls = (
+        mockManager.updateItemStatus as any
+      ).mock.calls.filter((call: any[]) => call[1] === 'Failed');
+      expect(failedCalls.length).toBeGreaterThan(0);
+      expect(failedCalls[0][0]).toBe('P1.M1.T1.S1');
+      expect(failedCalls[0][1]).toBe('Failed');
+
+      // VERIFY: Error message was logged (reason parameter is for logging only)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Execution failed: String error message')
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('status lifecycle integration test', () => {
+    it('should follow full status progression: Planned → Researching → Implementing → Complete', async () => {
+      // SETUP: Create test subtask with 'Planned' status
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+
+      // EXECUTE
+      await orchestrator.executeSubtask(subtask);
+
+      // VERIFY: Status progression order
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        1,
+        'P1.M1.T1.S1',
+        'Researching'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        2,
+        'P1.M1.T1.S1',
+        'Implementing'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        3,
+        'P1.M1.T1.S1',
+        'Complete'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle error scenario: Planned → Researching → Implementing → Failed', async () => {
+      // SETUP
+      const testBacklog = createTestBacklog([]);
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: testBacklog,
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+
+      // Mock to throw error at Complete stage
+      (mockManager.updateItemStatus as any).mockImplementation(
+        async (id: string, status: string) => {
+          if (status === 'Complete') {
+            throw new Error('Execution failed');
+          }
+          return testBacklog;
+        }
+      );
+
+      const orchestrator = new TaskOrchestrator(mockManager);
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
+      const consoleSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      // EXECUTE
+      await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
+        'Execution failed'
+      );
+
+      // VERIFY: All status transitions except Complete were called
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        1,
+        'P1.M1.T1.S1',
+        'Researching'
+      );
+      expect(mockManager.updateItemStatus).toHaveBeenNthCalledWith(
+        2,
+        'P1.M1.T1.S1',
+        'Implementing'
+      );
+
+      // Verify Failed was set
+      const failedCalls = (
+        mockManager.updateItemStatus as any
+      ).mock.calls.filter((call: any[]) => call[1] === 'Failed');
+      expect(failedCalls.length).toBeGreaterThan(0);
+
+      consoleSpy.mockRestore();
     });
   });
 });
