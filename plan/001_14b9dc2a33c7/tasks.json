@@ -953,14 +953,14 @@
               "type": "Task",
               "id": "P4.M4.T1",
               "title": "Test Core Data Structures",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create unit tests for all models, utilities, and helpers.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M4.T1.S1",
                   "title": "Test task hierarchy models and utilities",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From P1.M2 - Task models, Zod schemas, task-utils need comprehensive testing.\n2. INPUT: src/core/models.ts, src/core/task-utils.ts.\n3. LOGIC: Create tests/unit/models.test.ts:\n   - Test BacklogSchema validates correct structure\n   - Test BacklogSchema rejects invalid story_points (not 0.5, 1, 2)\n   - Test findItem() locates items by ID at any hierarchy level\n   - Test getDependencies() resolves dependency strings to objects\n   - Test filterByStatus() returns correct items\n   - Test getNextPendingItem() depth-first order\n   - Test updateItemStatus() creates immutable copy\n   - Use Jest or Vitest with mocking for file operations\n4. OUTPUT: Comprehensive unit tests with >80% coverage."
@@ -969,7 +969,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T1.S2",
                   "title": "Test session management",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T1.S1"

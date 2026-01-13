@@ -643,6 +643,44 @@ describe('utils/task-utils', () => {
       expect(result?.id).toBe('P1');
       expect(endTime - startTime).toBeLessThan(1);
     });
+
+    it('should find Planned milestone when parent Phase is Complete', () => {
+      // SETUP: Hierarchy where Phase is Complete but Milestone is Planned
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
+      const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Planned', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE
+      const result = getNextPendingItem(backlog);
+
+      // VERIFY: Should return the Planned milestone
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('P1.M1');
+      expect(result?.type).toBe('Milestone');
+    });
+
+    it('should find Planned task when Phase and Milestone are Complete', () => {
+      // SETUP: Hierarchy where Phase and Milestone are Complete but Task is Planned
+      const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Complete');
+      const task = createTestTask('P1.M1.T1', 'Task', 'Planned', [subtask]);
+      const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+        task,
+      ]);
+      const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
+      const backlog = createTestBacklog([phase]);
+
+      // EXECUTE
+      const result = getNextPendingItem(backlog);
+
+      // VERIFY: Should return the Planned task
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('P1.M1.T1');
+      expect(result?.type).toBe('Task');
+    });
   });
 
   describe('updateItemStatus', () => {
