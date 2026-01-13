@@ -663,7 +663,11 @@ describe('TaskOrchestrator', () => {
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
 
-        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Test Subtask',
+          'Planned'
+        );
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
@@ -694,8 +698,14 @@ describe('TaskOrchestrator', () => {
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
 
-        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
-        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Test Subtask',
+          'Planned'
+        );
+        const consoleSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
@@ -726,8 +736,14 @@ describe('TaskOrchestrator', () => {
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
 
-        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
-        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Test Subtask',
+          'Planned'
+        );
+        const consoleSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
@@ -758,7 +774,11 @@ describe('TaskOrchestrator', () => {
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
 
-        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Test Subtask',
+          'Planned'
+        );
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {});
@@ -796,7 +816,11 @@ describe('TaskOrchestrator', () => {
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
 
-        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const subtask = createTestSubtask(
+          'P1.M1.T1.S1',
+          'Test Subtask',
+          'Planned'
+        );
         const consoleWarnSpy = vi
           .spyOn(console, 'warn')
           .mockImplementation(() => {});

@@ -29,7 +29,30 @@ build/
 Thumbs.db
 
 # Session management (keep structure, ignore temp files if needed)
-# plan/*/ is tracked, but specific temp patterns can be added here if needed
+# Keep only current session (001_14b9dc2a33c7) and tracked session 002
+# Ignore all other plan session directories
+plan/001_04e9d6a9521c/
+plan/001_13496c951e93/
+plan/001_2d045a9851a0/
+plan/001_329fc8baf6d2/
+plan/001_3aa463ab2087/
+plan/001_4474d1b1ff08/
+plan/001_56013439f851/
+plan/001_57575f9c6491/
+plan/001_60debf5c5d95/
+plan/001_648edfedabf0/
+plan/001_690bd18f799c/
+plan/001_6b695fc064f1/
+plan/001_85f683555705/
+plan/001_898c65ee4de4/
+plan/001_b4c16ff343eb/
+plan/001_baab10b5c180/
+plan/001_ce241f253476/
+plan/001_de9a422f5396/
+plan/001_e3d4e356661c/
+plan/001_e846f1572a50/
+plan/001_ef0ae56bf3ad/
+plan/003_*/
 plan/**/artifacts/
 
 # TypeScript build artifacts

@@ -17,11 +17,7 @@ vi.mock('../../../src/tools/git-mcp.js', () => ({
   gitCommit: vi.fn(),
 }));
 
-import {
-  gitStatus,
-  gitAdd,
-  gitCommit,
-} from '../../../src/tools/git-mcp.js';
+import { gitStatus, gitAdd, gitCommit } from '../../../src/tools/git-mcp.js';
 import {
   filterProtectedFiles,
   formatCommitMessage,
@@ -122,7 +118,10 @@ describe('utils/git-commit', () => {
       const result = filterProtectedFiles(files);
 
       // VERIFY
-      expect(result).toEqual(['/project/src/index.ts', '/project/src/utils.ts']);
+      expect(result).toEqual([
+        '/project/src/index.ts',
+        '/project/src/utils.ts',
+      ]);
     });
   });
 
@@ -147,7 +146,9 @@ describe('utils/git-commit', () => {
       const result = formatCommitMessage(message);
 
       // VERIFY
-      expect(result).toContain('Co-Authored-By: Claude <noreply@anthropic.com>');
+      expect(result).toContain(
+        'Co-Authored-By: Claude <noreply@anthropic.com>'
+      );
     });
 
     it('should include blank line between message and trailer', () => {
@@ -173,7 +174,9 @@ describe('utils/git-commit', () => {
       // VERIFY
       expect(result).toContain('[PRP Auto]');
       expect(result).toContain(message);
-      expect(result).toContain('Co-Authored-By: Claude <noreply@anthropic.com>');
+      expect(result).toContain(
+        'Co-Authored-By: Claude <noreply@anthropic.com>'
+      );
     });
 
     it('should handle special characters in message', () => {
@@ -219,7 +222,8 @@ describe('utils/git-commit', () => {
         });
         expect(mockGitCommit).toHaveBeenCalledWith({
           path: '/project',
-          message: '[PRP Auto] Test commit\n\nCo-Authored-By: Claude <noreply@anthropic.com>',
+          message:
+            '[PRP Auto] Test commit\n\nCo-Authored-By: Claude <noreply@anthropic.com>',
         });
       });
 
@@ -408,7 +412,9 @@ describe('utils/git-commit', () => {
     describe('logging behavior', () => {
       it('should log commit hash on success', async () => {
         // SETUP
-        const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        const consoleLogSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
         mockGitStatus.mockResolvedValue({
           success: true,
           modified: ['src/index.ts'],
@@ -434,7 +440,9 @@ describe('utils/git-commit', () => {
 
       it('should log when no files to commit', async () => {
         // SETUP
-        const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        const consoleLogSpy = vi
+          .spyOn(console, 'log')
+          .mockImplementation(() => {});
         mockGitStatus.mockResolvedValue({
           success: true,
         });

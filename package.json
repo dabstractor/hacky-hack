@@ -11,6 +11,8 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "watch": "nodemon --exec tsx src/index.ts",
+    "pipeline": "tsx src/index.ts",
+    "pipeline:dev": "nodemon --exec tsx src/index.ts",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -31,6 +33,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "commander": "^14.0.2",
     "fast-glob": "^3.3.3",
     "simple-git": "^3.30.0",
     "zod": "^3.22.4"
