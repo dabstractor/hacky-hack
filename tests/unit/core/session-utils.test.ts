@@ -771,7 +771,8 @@ describe('core/session-utils', () => {
     it('should handle satisfied success criteria checkboxes', async () => {
       // SETUP
       const prp = createTestPRPDocument('P1.M2.T2.S3');
-      prp.successCriteria[0].satisfied = true;
+      // Use type assertion to bypass readonly for testing
+      (prp.successCriteria[0] as { satisfied: boolean }).satisfied = true;
 
       // EXECUTE
       await writePRP('/test/session', 'P1.M2.T2.S3', prp);

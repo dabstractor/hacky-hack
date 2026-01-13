@@ -260,7 +260,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Implement base agent configuration",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - createAgent() accepts name, system, model, enableCache, enableReflection, mcps, tools, hooks, env. From environment_config.md - Must map ANTHROPIC_AUTH_TOKEN → ANTHROPIC_API_KEY.\n2. INPUT: src/config/environment.ts with configureEnvironment() and getModel(). Groundswell is linked.\n3. LOGIC: Create src/agents/agent-factory.ts:\n   - Define AgentPersona type: 'architect' | 'researcher' | 'coder' | 'qa'\n   - Define AgentConfig interface extending Groundswell config\n   - Export function createBaseConfig(persona: AgentPersona): AgentConfig\n   - Call configureEnvironment() at module load time\n   - Map persona to model tier (architect→sonnet, coder→sonnet, qa→sonnet, researcher→sonnet)\n   - Set enableCache: true, enableReflection: true for all personas\n   - Set maxTokens: 8192 for architect, 4096 for others\n   - Return config object with env vars properly mapped\n4. OUTPUT: agent-factory.ts with createBaseConfig() that returns valid Groundswell config."
