@@ -859,21 +859,21 @@
           "type": "Milestone",
           "id": "P4.M2",
           "title": "Milestone 4.2: Parallel Research",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Implement parallel research that pre-generates PRPs for N+1 tasks during execution.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M2.T1",
               "title": "Create Parallel Research System",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Build the background research system that generates PRPs ahead of execution.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M2.T1.S1",
                   "title": "Create research queue manager",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.2 - While Task N implements, spin up background thread to research Task N+1.\n2. INPUT: TaskOrchestrator execution queue. PRPGenerator.\n3. LOGIC: Create src/core/research-queue.ts:\n   - Export class ResearchQueue with maxSize: number = 3 (max concurrent research tasks)\n   - Property queue: Task[] = [], researching: Map<string, Promise<PRPDocument>>\n   - async enqueue(task: Task): Promise<void> - Add to queue\n   - async processNext(backlog: Backlog): Promise<void> - If queue not empty and under maxSize, start generating PRP for next task\n   - isResearching(taskId: string): boolean - Check if task is currently being researched\n   - getPRP(taskId: string): PRPDocument | null - Retrieve completed PRP from cache\n   - async waitForPRP(taskId: string): Promise<PRPDocument> - Block until PRP ready\n4. OUTPUT: Research queue that manages parallel PRP generation."
@@ -882,7 +882,7 @@
                   "type": "Subtask",
                   "id": "P4.M2.T1.S2",
                   "title": "Integrate parallel research with execution",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M2.T1.S1"

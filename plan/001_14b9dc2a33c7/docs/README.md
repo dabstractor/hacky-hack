@@ -1,427 +1,349 @@
-# LLM Agent PRP Generation - Research Index
+# Research Findings: Background/Parallel Processing for ResearchQueue Integration
 
 **Research Date:** 2026-01-13
+**Task:** P4M2T1S2
 **Status:** Complete
-**Version:** 1.0
 
 ---
 
-## Overview
+## Quick Reference
 
-This research project investigates best practices for using LLM agents to generate Product Requirement Prompts (PRPs). The research covers five key areas:
+This directory contains comprehensive research on TypeScript patterns for background/parallel processing, specifically for integrating a ResearchQueue with TaskOrchestrator.
 
-1. **LLM Agent Patterns** - ReAct, Plan-and-Execute, Self-Refinement, Multi-Agent
-2. **Prompt Engineering** - Structured outputs, few-shot learning, context injection
-3. **Context Curation** - RAG systems, token budgeting, quality metrics
-4. **Error Handling** - Retry logic, circuit breakers, fallback strategies
-5. **File System Patterns** - Document lifecycle, version control, metadata management
+### Documents
 
----
+1. **[background-parallel-processing-research.md](./background-parallel-processing-research.md)**
+   - Comprehensive research document (7 sections)
+   - Fire-and-forget patterns
+   - Promise.all vs Promise.allSettled
+   - Anti-patterns to avoid
+   - Research-ahead patterns
+   - Metrics logging
+   - Integration patterns
 
-## Document Structure
+2. **[code-examples.md](./code-examples.md)**
+   - Production-ready implementations
+   - PromiseTracker class
+   - ResearchCache class
+   - OrchestratorMetricsCollector class
+   - ResearchEnabledTaskOrchestrator class
+   - Usage examples
+   - Testing utilities
 
-### 1. Main Research Document
+3. **[external-queue-patterns.md](./external-queue-patterns.md)**
+   - External queue library research (P4M2T1S1)
+   - Comparison with custom ResearchQueue
+   - Best practices for queue selection
 
-**File:** `research_llm_agent_prp_generation.md`
-**Size:** Comprehensive guide (~25,000 words)
-
-**Contents:**
-
-- Agent pattern comparisons
-- Prompt engineering techniques
-- Context management strategies
-- Error handling patterns
-- File system organization
-- Implementation roadmap
-- Tool and library recommendations
-
-**Best For:** Deep dive into all research areas, understanding theory and patterns
-
----
-
-### 2. Code Examples
-
-**File:** `research_code_examples.ts`
-**Size:** ~2,000 lines of TypeScript code
-
-**Contents:**
-
-- Base agent interface
-- ReAct agent implementation
-- Plan-and-Execute agent implementation
-- Retry logic with exponential backoff
-- RAG system implementation
-- Context manager
-- Document lifecycle management
-- File system organizer
-- Complete usage example
-- Testing utilities
-
-**Best For:** Direct implementation, code patterns, understanding implementations
-
----
-
-### 3. Research Summary
-
-**File:** `research_summary.md`
-**Size:** Executive summary (~5,000 words)
-
-**Contents:**
-
-- Quick reference guide
-- Agent pattern comparison table
-- Prompt engineering checklist
-- Context curation strategy
-- Error handling configurations
-- File system organization
-- Key URLs and resources
-- Implementation checklist
-- Success metrics
-- Common pitfalls and solutions
-
-**Best For:** Quick reference, getting started, decision-making
-
----
-
-### 4. GitHub Examples
-
-**File:** `research_github_examples.md`
-**Size:** Curated repository list (~8,000 words)
-
-**Contents:**
-
-- 18 featured repositories
-- Code examples from each repo
-- Implementation patterns
-- Search queries for finding more examples
-- Implementation roadmap based on examples
-- Key takeaways from examples
-
-**Best For:** Finding reference implementations, learning from real projects
-
----
-
-## Quick Start Guide
-
-### For Architects
-
-1. Read `research_summary.md` - Understand patterns and trade-offs
-2. Review `research_llm_agent_prp_generation.md` sections 1-2 - Deep dive into agent patterns
-3. Study `research_github_examples.md` - Review production examples
-4. Use `research_code_examples.ts` - Reference implementations
-
-### For Developers
-
-1. Read `research_summary.md` - Quick reference
-2. Study `research_code_examples.ts` - Copy-paste implementations
-3. Review `research_github_examples.md` - Learn from real projects
-4. Reference `research_llm_agent_prp_generation.md` - Understand patterns
-
-### For Project Managers
-
-1. Read `research_summary.md` - Executive overview
-2. Review "Implementation Checklist" in summary
-3. Study "Success Metrics" in summary
-4. Review "Common Pitfalls" section
+4. **[summary.md](./summary.md)**
+   - Executive summary of research findings
+   - Quick reference guide
 
 ---
 
 ## Key Findings
 
-### Recommended Agent Pattern
+### 1. Fire-and-Forget Patterns
 
-**Plan-and-Execute** with **Self-Refinement**
+**Critical Pattern:** Always attach `.catch()` to background promises to prevent unhandled rejections.
 
-- Predictable and inspectable
-- High quality outputs
-- Medium implementation complexity
-- Good balance of control and automation
+```typescript
+// GOOD: Fire-and-forget with error handling
+function executeBackgroundTask(
+  taskId: string,
+  work: () => Promise<void>
+): void {
+  work().catch(error => {
+    console.error(`[BackgroundTask] ${taskId} failed:`, error);
+  });
+}
 
-### Recommended Tech Stack
+// BAD: Unhandled promise rejection
+function badBackgroundTask(work: () => Promise<void>): void {
+  work(); // Will crash Node.js in future versions
+}
+```
 
-- **Framework:** LangChain.js or Vercel AI SDK
-- **LLM:** OpenAI GPT-4 or Anthropic Claude
-- **Vector DB:** Pinecone (managed) or Weaviate (self-hosted)
-- **Storage:** File system + Git for version control
-- **Validation:** Zod for schema validation
+**Key Insights:**
 
-### Critical Success Factors
+- Use PromiseTracker for deduplication of in-flight operations
+- Always clean up promise maps to prevent memory leaks
+- Implement global error handlers for unhandled rejections
 
-1. **Context Quality:** High relevance (>0.7 score)
-2. **Error Handling:** Retry with exponential backoff
-3. **Token Management:** Careful budgeting (8000 tokens max)
-4. **Quality Assurance:** Self-refinement loop
-5. **Monitoring:** Track performance and costs
+### 2. Promise.all vs Promise.allSettled
 
----
+| Feature         | Promise.all                            | Promise.allSettled                           |
+| --------------- | -------------------------------------- | -------------------------------------------- |
+| **Behavior**    | Fail-fast (rejects on first error)     | Waits for all (success or failure)           |
+| **Use Case**    | Critical operations (all must succeed) | Independent operations (partial success OK)  |
+| **Return Type** | `T[]` (array of results)               | `PromiseSettledResult<T>[]` (status objects) |
 
-## Implementation Phases
+**Recommendation:** Use hybrid pattern - separate critical from non-critical operations.
 
-### Phase 1: Foundation (Weeks 1-2)
+```typescript
+// Critical: Must succeed
+await Promise.all(criticalOps);
 
-**Goal:** Basic PRP generation
+// Non-critical: Can fail safely
+await Promise.allSettled(nonCriticalOps);
+```
 
-**Tasks:**
+### 3. Anti-Patterns to Avoid
 
-- [ ] Set up TypeScript project
-- [ ] Implement Plan-and-Execute agent
-- [ ] Create prompt templates
-- [ ] Add basic retry logic
-- [ ] Implement file storage
+| Anti-Pattern         | Consequence         | Solution                 |
+| -------------------- | ------------------- | ------------------------ |
+| Unhandled promises   | Node.js crashes     | Always attach `.catch()` |
+| Unbounded maps       | Memory leaks        | Clean up in `.finally()` |
+| Race conditions      | Duplicate work      | Atomic check-and-set     |
+| Blocking event loop  | Poor performance    | Use async operations     |
+| Over-parallelization | Resource exhaustion | Limit concurrency        |
 
-**Deliverable:** Working PRP generator with templates
+### 4. Research-Ahead Patterns
 
-### Phase 2: Context Management (Weeks 3-4)
+**Pattern:** While executing task N, start background research for tasks N+1, N+2, etc.
 
-**Goal:** Intelligent context assembly
+```typescript
+for (let i = 0; i < subtasks.length; i++) {
+  const current = subtasks[i];
 
-**Tasks:**
+  // Start background research for upcoming tasks
+  for (let j = 1; j <= lookAhead; j++) {
+    const next = subtasks[i + j];
+    if (next) {
+      startBackgroundResearch(next); // Fire-and-forget
+    }
+  }
 
-- [ ] Set up vector database
-- [ ] Implement RAG system
-- [ ] Create context manager
-- [ ] Add token budgeting
-- [ ] Implement quality scoring
+  // Execute current task (research may already be complete)
+  await executeSubtask(current);
+}
+```
 
-**Deliverable:** Context-aware PRP generator
+**Benefits:**
 
-### Phase 3: Reliability (Weeks 5-6)
+- Reduces overall execution time
+- Hides research latency
+- Improves user-perceived performance
 
-**Goal:** Production-ready error handling
+### 5. Cache Metrics Logging
 
-**Tasks:**
+**Essential Metrics:**
 
-- [ ] Implement circuit breaker
-- [ ] Add fallback strategies
-- [ ] Create error logging system
-- [ ] Add monitoring dashboards
-- [ ] Implement rate limiting
+- Hit rate (hits / total requests)
+- Average latency
+- Cache size
+- Expiration rate
 
-**Deliverable:** Reliable, production-ready system
+**Implementation:**
 
-### Phase 4: Quality Assurance (Weeks 7-8)
-
-**Goal:** High-quality outputs
-
-**Tasks:**
-
-- [ ] Add self-refinement agent
-- [ ] Implement validation rules
-- [ ] Create quality metrics
-- [ ] Add review workflows
-- [ ] Implement testing suite
-
-**Deliverable:** Quality-assured PRP generator
-
-### Phase 5: Advanced Features (Weeks 9-10)
-
-**Goal:** Production optimization
-
-**Tasks:**
-
-- [ ] Implement multi-agent collaboration
-- [ ] Add version control integration
-- [ ] Build access control system
-- [ ] Create caching layer
-- [ ] Optimize performance
-
-**Deliverable:** Full-featured PRP generation platform
-
----
-
-## Success Metrics
-
-### Quality Metrics
-
-- **Completeness:** >95% of required sections present
-- **Clarity:** >90% unambiguous language
-- **Measurability:** >85% testable requirements
-- **Consistency:** >95% no contradictions
-- **Relevance:** >90% matches stakeholder needs
-
-### Performance Metrics
-
-- **Generation Time:** <30 seconds for standard PRP
-- **Retry Rate:** <10% of requests need retry
-- **Cache Hit Rate:** >40% for similar requests
-- **Error Rate:** <5% overall failure rate
-- **Cost:** <$0.50 per PRP generation
-
-### Reliability Metrics
-
-- **Uptime:** >99.5%
-- **Circuit Breaker Trips:** <1 per day
-- **Data Loss:** 0 incidents
-- **Recovery Time:** <5 minutes
+```typescript
+interface CacheMetrics {
+  hits: number;
+  misses: number;
+  hitRate: number;
+  averageLatency: number;
+  totalRequests: number;
+}
+```
 
 ---
 
-## Resource URLs
+## Recommended Implementation Strategy
 
-### Primary Resources
+### Phase 1: Core Infrastructure (P4M2T1S2)
 
-- **LangChain.js:** https://github.com/langchain-ai/langchainjs
-- **Vercel AI SDK:** https://github.com/vercel/ai
-- **OpenAI API:** https://platform.openai.com/docs
-- **Anthropic Claude:** https://docs.anthropic.com/
+1. **Implement PromiseTracker**
+   - Copy from `code-examples.md`
+   - Add to `src/core/promise-tracker.ts`
+   - Write unit tests
 
-### Vector Databases
+2. **Implement ResearchCache**
+   - Copy from `code-examples.md`
+   - Add to `src/core/research-cache.ts`
+   - Write unit tests
 
-- **Pinecone:** https://www.pinecone.io/
-- **Weaviate:** https://weaviate.io/
-- **Chroma:** https://www.trychroma.com/
+3. **Implement OrchestratorMetricsCollector**
+   - Copy from `code-examples.md`
+   - Add to `src/core/orchestrator-metrics.ts`
+   - Write unit tests
 
-### Learning Resources
+### Phase 2: Integration (P4M2T1S3)
 
-- **OpenAI Cookbook:** https://github.com/openai/openai-cookbook
-- **Prompt Engineering Guide:** https://www.promptingguide.ai/
-- **LangChain Tutorials:** https://js.langchain.com/docs/tutorials/
+1. **Extend TaskOrchestrator**
+   - Copy ResearchEnabledTaskOrchestrator from `code-examples.md`
+   - Add to `src/core/research-enabled-task-orchestrator.ts`
+   - Integrate with existing TaskOrchestrator
 
-### Communities
+2. **Implement Research Logic**
+   - Override `performResearch()` method
+   - Connect to actual research agent
+   - Add error handling
 
-- **LangChain Discord:** https://discord.gg/6ADSyUUb6c
-- **Vercel Discord:** https://discord.gg/ve7YKfDE
-- **Anthropic Discord:** https://discord.gg/anthropic
+3. **Add Metrics Logging**
+   - Log cache hit/miss rates
+   - Alert on low hit rates
+   - Track research-ahead effectiveness
 
----
+### Phase 3: Optimization (P4M2T1S4)
 
-## Common Pitfalls
+1. **Implement Research-Ahead**
+   - Modify `processNextItem()` to start background research
+   - Tune `lookAhead` parameter
+   - Monitor performance improvements
 
-### 1. Context Overflow
+2. **Add Graceful Shutdown**
+   - Implement `waitForBackgroundResearch()`
+   - Add shutdown hooks
+   - Ensure all research completes before exit
 
-**Problem:** Exceeding token limits
-**Solution:** Implement token budgeting and semantic chunking
-
-### 2. Quality Inconsistency
-
-**Problem:** Variable output quality
-**Solution:** Add self-refinement loop and quality scoring
-
-### 3. Rate Limiting
-
-**Problem:** API rate limits
-**Solution:** Implement exponential backoff and circuit breaker
-
-### 4. Hallucination
-
-**Problem:** Generating false information
-**Solution:** Use RAG with factual context and validation
-
-### 5. High Costs
-
-**Problem:** Expensive API calls
-**Solution:** Implement smart caching and use smaller models
+3. **Production Monitoring**
+   - Add metrics dashboards
+   - Set up alerts
+   - Optimize cache TTL
 
 ---
 
-## Next Steps
+## Documentation URLs
 
-1. **Review Documents**
-   - Start with `research_summary.md` for overview
-   - Deep dive with `research_llm_agent_prp_generation.md`
-   - Study code in `research_code_examples.ts`
-   - Explore repos in `research_github_examples.md`
+### Official Documentation
 
-2. **Select Tech Stack**
-   - Choose agent pattern (Plan-and-Execute recommended)
-   - Select framework (LangChain.js or Vercel AI SDK)
-   - Pick vector database (Pinecone recommended)
-   - Decide on storage (file system + Git recommended)
+**TypeScript/JavaScript:**
 
-3. **Set Up Environment**
-   - Initialize TypeScript project
-   - Install dependencies
-   - Configure API keys
-   - Set up vector database
+- [MDN: Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- [MDN: Promise.all()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)
+- [MDN: Promise.allSettled()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)
+- [MDN: Async functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
 
-4. **Implement MVP**
-   - Basic agent with templates
-   - Simple file storage
-   - Basic error handling
-   - Manual testing
+**Node.js:**
 
-5. **Iterate and Improve**
-   - Add RAG system
-   - Implement retry logic
-   - Add quality checks
-   - Optimize performance
+- [Node.js Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)
+- [Node.js Async Context Tracking](https://nodejs.org/api/async_context.html)
+- [Node.js Worker Threads](https://nodejs.org/api/worker_threads.html)
 
-6. **Deploy to Production**
-   - Set up monitoring
-   - Configure alerts
-   - Document processes
-   - Train team
+### Best Practices
+
+- [Node.js Async Patterns](https://nodejs.dev/learn/asynchronous-workflow-and-control-flow-in-nodejs/)
+- [JavaScript Promise Patterns](https://javascript.info/async)
+- [TypeScript Promise Patterns](https://basarat.gitbook.io/typescript/type-system/promise)
 
 ---
 
-## Contributing
+## Code Locations
 
-To contribute to this research:
+### Current Implementation
 
-1. Add new findings to relevant documents
-2. Update code examples with new patterns
-3. Add new repositories to GitHub examples
-4. Update success metrics with real data
-5. Share lessons learned
+- **Task Orchestrator:** `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
+- **Session Manager:** `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
+- **Type Models:** `/home/dustin/projects/hacky-hack/src/core/models.ts`
 
----
+### New Files to Create
 
-## Document Maintenance
+1. `src/core/promise-tracker.ts` - PromiseTracker class
+2. `src/core/research-cache.ts` - ResearchCache class
+3. `src/core/orchestrator-metrics.ts` - OrchestratorMetricsCollector class
+4. `src/core/research-enabled-task-orchestrator.ts` - ResearchEnabledTaskOrchestrator class
 
-| Document        | Update Frequency | Last Updated | Maintainer       |
-| --------------- | ---------------- | ------------ | ---------------- |
-| Main Research   | Monthly          | 2026-01-13   | Research Team    |
-| Code Examples   | As needed        | 2026-01-13   | Development Team |
-| Summary         | Monthly          | 2026-01-13   | Research Team    |
-| GitHub Examples | Quarterly        | 2026-01-13   | Research Team    |
+### Related Research
 
----
-
-## Contact
-
-**Research Lead:** [Your Name]
-**Email:** [your.email@example.com]
-**Slack:** [#research-llm-agents]
-**GitHub:** [github.com/your-org/research]
+- **External Queue Patterns:** [./external-queue-patterns.md](./external-queue-patterns.md)
+- **Async Error Handling:** `/plan/001_14b9dc2a33c7/P3M2T1S3/research/async_error_handling_research.md`
+- **Summary:** [./summary.md](./summary.md)
 
 ---
 
-## Changelog
+## Key Insights Summary
 
-### v1.0 (2026-01-13)
+### 1. Background Processing
 
-- Initial research completed
-- All core documents created
-- Code examples implemented
-- GitHub repositories curated
-- Implementation roadmap defined
+- **Fire-and-forget requires error handling** - Always attach `.catch()`
+- **PromiseTracker prevents duplicate work** - Deduplicate by key
+- **Clean up promises** - Use `.finally()` to prevent memory leaks
 
----
+### 2. Parallel Processing
 
-**Acknowledgments**
+- **Promise.all for critical** - All operations must succeed
+- **Promise.allSettled for resilient** - Partial success is acceptable
+- **Limit concurrency** - Avoid overwhelming resources
 
-This research was conducted using Claude Code Agent and incorporates findings from:
+### 3. Research-Ahead
 
-- Academic papers on LLM agents
-- Open-source repositories
-- Industry best practices
-- Real-world implementations
+- **Start research early** - While executing current task
+- **Look ahead 3-5 tasks** - Tune based on workload
+- **Cache results** - Reuse across multiple calls
 
-**License:** MIT
-**Copyright:** 2026
+### 4. Metrics
 
----
+- **Track hit rate** - Target >50%
+- **Monitor latency** - Should be <10ms
+- **Alert on degradation** - Automated monitoring
 
-## Quick Navigation
+### 5. Integration
 
-- [Main Research Document](./research_llm_agent_prp_generation.md)
-- [Code Examples](./research_code_examples.ts)
-- [Research Summary](./research_summary.md)
-- [GitHub Examples](./research_github_examples.md)
-- [Project Root](../)
+- **Extend TaskOrchestrator** - Don't modify existing code
+- **Override key methods** - `performResearch()`, `executeImplementation()`
+- **Graceful shutdown** - Wait for background research
 
 ---
 
-**End of Index**
+## Testing Checklist
 
-For questions or feedback, please open an issue or contact the research team directly.
+- [ ] PromiseTracker deduplication works correctly
+- [ ] PromiseTracker cleanup prevents memory leaks
+- [ ] ResearchCache hits/misses are tracked accurately
+- [ ] ResearchCache expiration works correctly
+- [ ] OrchestratorMetricsCollector aggregates metrics properly
+- [ ] ResearchEnabledTaskOrchestrator starts background research
+- [ ] Research-ahead improves performance
+- [ ] Graceful shutdown waits for background research
+- [ ] Cache hit rate is >50% in realistic workload
+- [ ] No unhandled promise rejections
+
+---
+
+## Performance Targets
+
+Based on research findings, target these metrics:
+
+| Metric                           | Target     | Current |
+| -------------------------------- | ---------- | ------- |
+| Cache Hit Rate                   | >50%       | N/A     |
+| Cache Latency                    | <10ms      | N/A     |
+| Research Deduplication           | >30%       | N/A     |
+| Background Research Success Rate | >95%       | N/A     |
+| Memory Leak Growth               | 0 bytes/hr | N/A     |
+
+---
+
+## Next Actions
+
+1. ✅ **Research Complete** - All patterns documented
+2. ⏳ **Create Files** - Copy implementations from code-examples.md
+3. ⏳ **Write Tests** - Unit tests for all new classes
+4. ⏳ **Integrate** - Extend TaskOrchestrator
+5. ⏳ **Implement Research** - Connect to actual research agent
+6. ⏳ **Measure Performance** - Validate targets
+
+---
+
+## Questions & Answers
+
+**Q: Should I use Promise.all or Promise.allSettled for research?**
+A: Use Promise.allSettled - research operations are independent and partial success is acceptable.
+
+**Q: How do I prevent memory leaks with PromiseTracker?**
+A: Always clean up promises in `.finally()` block. The provided implementation handles this automatically.
+
+**Q: What's the optimal lookAhead value?**
+A: Start with 3-5, tune based on workload characteristics. Monitor metrics to find optimal value.
+
+**Q: How do I handle research failures in background tasks?**
+A: Always attach `.catch()` to background promises. Log errors but don't let them block main execution.
+
+**Q: Should I use a library or implement from scratch?**
+A: For this use case, implement from scratch using the provided examples. Libraries like p-limit or p-queue are overkill for simple deduplication.
+
+---
+
+**Document Status:** Complete
+**Ready for Implementation:** Yes
+**Estimated Implementation Time:** 4-6 hours
