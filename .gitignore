@@ -30,7 +30,7 @@ Thumbs.db
 
 # Session management (keep structure, ignore temp files if needed)
 # plan/*/ is tracked, but specific temp patterns can be added here if needed
-plan//**/artifacts/
+plan/**/artifacts/
 
 # TypeScript build artifacts
 *.tsbuildinfo

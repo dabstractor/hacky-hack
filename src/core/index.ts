@@ -9,6 +9,7 @@
 
 // Session management
 export { SessionManager } from './session-manager.js';
+export { TaskOrchestrator } from './task-orchestrator.js';
 export {
   hashPRD,
   createSessionDirectory,
