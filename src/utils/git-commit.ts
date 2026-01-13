@@ -1,0 +1,206 @@
+/**
+ * Git commit utilities for PRP Pipeline
+ *
+ * @module utils/git-commit
+ *
+ * @remarks
+ * Provides automated Git commit functionality with smart file filtering.
+ * Protects pipeline state files from being committed while automatically
+ * creating checkpoints after each subtask completion.
+ *
+ * @example
+ * ```typescript
+ * import { smartCommit } from './utils/git-commit.js';
+ *
+ * const commitHash = await smartCommit(
+ *   '/project/session/path',
+ *   'P3.M4.T1.S3: Implement smart commit workflow'
+ * );
+ * // Returns: 'abc123def456...' or null if no files to commit
+ * ```
+ */
+
+import { gitStatus, gitAdd, gitCommit } from '../tools/git-mcp.js';
+import { basename } from 'node:path';
+
+// ===== CONSTANTS =====
+
+/**
+ * Files that must never be committed by smart commit
+ *
+ * @remarks
+ * These files contain pipeline state and must remain uncommitted
+ * to enable clean pipeline resumption and state management.
+ */
+const PROTECTED_FILES = [
+  'tasks.json', // Pipeline task registry
+  'PRD.md', // Original PRD document
+  'prd_snapshot.md', // PRD snapshot for delta detection
+] as const;
+
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Filters out protected files from a list of files
+ *
+ * @param files - Array of file paths to filter
+ * @returns Array of file paths excluding protected files
+ *
+ * @remarks
+ * Uses basename comparison to handle both relative and absolute paths.
+ * Protected files are defined in PROTECTED_FILES constant.
+ *
+ * @example
+ * ```typescript
+ * filterProtectedFiles(['src/index.ts', 'tasks.json', 'README.md']);
+ * // Returns: ['src/index.ts', 'README.md']
+ * ```
+ */
+export function filterProtectedFiles(files: string[]): string[] {
+  return files.filter(file => {
+    const fileName = basename(file) as (typeof PROTECTED_FILES)[number];
+    return !PROTECTED_FILES.includes(fileName);
+  });
+}
+
+/**
+ * Formats a commit message with PRP prefix and co-author trailer
+ *
+ * @param message - Base commit message
+ * @returns Formatted commit message with prefix and trailer
+ *
+ * @remarks
+ * Adds [PRP Auto] prefix to distinguish automated commits.
+ * Appends Co-Authored-By: Claude trailer per AI contribution standards.
+ *
+ * @example
+ * ```typescript
+ * formatCommitMessage('P3.M4.T1.S3: Implement smart commit');
+ * // Returns: '[PRP Auto] P3.M4.T1.S3: Implement smart commit\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+ * ```
+ */
+export function formatCommitMessage(message: string): string {
+  return `[PRP Auto] ${message}\n\nCo-Authored-By: Claude <noreply@anthropic.com>`;
+}
+
+// ===== MAIN FUNCTION =====
+
+/**
+ * Creates a smart Git commit excluding protected pipeline state files
+ *
+ * @param sessionPath - Path to git repository (usually project root)
+ * @param message - Commit message describing what was implemented
+ * @returns Promise resolving to commit hash, or null if no commit was made
+ *
+ * @remarks
+ * **Workflow**:
+ * 1. Check git status for modified and untracked files
+ * 2. Filter out protected files (tasks.json, PRD.md, prd_snapshot.md)
+ * 3. If no files remain, return null (skip commit)
+ * 4. Stage remaining files with git add
+ * 5. Create commit with [PRP Auto] prefix and Co-Authored-By trailer
+ * 6. Return commit hash for observability
+ *
+ * **Error Handling**:
+ * - Git operation failures are logged but don't throw
+ * - Returns null on any failure to allow pipeline to continue
+ * - Errors are logged to console.error for debugging
+ *
+ * **Protected Files**:
+ * - `tasks.json`: Pipeline task registry state
+ * - `PRD.md`: Original PRD document
+ * - `prd_snapshot.md`: PRD snapshot for delta detection
+ *
+ * @example
+ * ```typescript
+ * const hash = await smartCommit('/project', 'P3.M4.T1.S3: Implement smart commit');
+ * if (hash) {
+ *   console.log(`Commit created: ${hash}`);
+ * } else {
+ *   console.log('No files to commit');
+ * }
+ * ```
+ */
+export async function smartCommit(
+  sessionPath: string,
+  message: string
+): Promise<string | null> {
+  try {
+    // Validate inputs
+    if (!sessionPath || sessionPath.trim() === '') {
+      console.error('[smartCommit] Invalid session path');
+      return null;
+    }
+
+    if (!message || message.trim() === '') {
+      console.error('[smartCommit] Invalid commit message');
+      return null;
+    }
+
+    // Get repository status
+    const statusResult = await gitStatus({ path: sessionPath });
+    if (!statusResult.success) {
+      console.error(`[smartCommit] Git status failed: ${statusResult.error}`);
+      return null;
+    }
+
+    // Collect files to potentially stage
+    const filesToStage: string[] = [];
+
+    // Add modified files (excluding protected)
+    if (statusResult.modified) {
+      filesToStage.push(...statusResult.modified);
+    }
+
+    // Add untracked files (excluding protected)
+    if (statusResult.untracked) {
+      filesToStage.push(...statusResult.untracked);
+    }
+
+    // Filter out protected files
+    const filteredFiles = filterProtectedFiles(filesToStage);
+
+    // Skip commit if no files to stage
+    if (filteredFiles.length === 0) {
+      console.log(
+        '[smartCommit] No files to commit after filtering protected files'
+      );
+      return null;
+    }
+
+    // Stage the files
+    const addResult = await gitAdd({
+      path: sessionPath,
+      files: filteredFiles,
+    });
+
+    if (!addResult.success) {
+      console.error(`[smartCommit] Git add failed: ${addResult.error}`);
+      return null;
+    }
+
+    // Format commit message
+    const formattedMessage = formatCommitMessage(message);
+
+    // Create commit
+    const commitResult = await gitCommit({
+      path: sessionPath,
+      message: formattedMessage,
+    });
+
+    if (!commitResult.success) {
+      console.error(`[smartCommit] Git commit failed: ${commitResult.error}`);
+      return null;
+    }
+
+    // Return commit hash
+    const commitHash = commitResult.commitHash ?? null;
+    console.log(`[smartCommit] Commit created: ${commitHash}`);
+    return commitHash;
+  } catch (error) {
+    // Catch any unexpected errors
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[smartCommit] Unexpected error: ${errorMessage}`);
+    return null;
+  }
+}

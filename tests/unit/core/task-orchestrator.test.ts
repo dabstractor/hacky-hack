@@ -34,13 +34,22 @@ vi.mock('../../../src/core/scope-resolver.js', () => ({
   parseScope: vi.fn(),
 }));
 
+// Mock the git-commit module for smartCommit tests
+vi.mock('../../../src/utils/git-commit.js', () => ({
+  smartCommit: vi.fn(),
+  filterProtectedFiles: vi.fn((files: string[]) => files),
+  formatCommitMessage: vi.fn((msg: string) => msg),
+}));
+
 // Import mocked functions
 import { getNextPendingItem } from '../../../src/utils/task-utils.js';
 import { resolveScope } from '../../../src/core/scope-resolver.js';
+import { smartCommit } from '../../../src/utils/git-commit.js';
 
 // Cast mocked functions
 const mockGetNextPendingItem = getNextPendingItem as any;
 const mockResolveScope = resolveScope as any;
+const mockSmartCommit = smartCommit as any;
 
 // Set default mock for resolveScope to return empty array (for backward compatibility)
 mockResolveScope.mockReturnValue([]);
@@ -627,6 +636,181 @@ describe('TaskOrchestrator', () => {
 
       // VERIFY: Dependencies don't affect placeholder execution
       expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(3); // Researching + Implementing + Complete
+    });
+
+    describe('smartCommit integration', () => {
+      beforeEach(() => {
+        // Reset smartCommit mock before each test
+        mockSmartCommit.mockReset();
+      });
+
+      it('should call smartCommit after subtask completion with correct parameters', async () => {
+        // SETUP
+        mockSmartCommit.mockResolvedValue('abc123def456');
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: smartCommit was called with session path and commit message
+        expect(mockSmartCommit).toHaveBeenCalledWith(
+          '/plan/001_14b9dc2a33c7',
+          'P1.M1.T1.S1: Test Subtask'
+        );
+      });
+
+      it('should log commit hash when smartCommit succeeds', async () => {
+        // SETUP
+        mockSmartCommit.mockResolvedValue('abc123def456');
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: Commit hash was logged
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Commit created: abc123def456'
+        );
+        consoleSpy.mockRestore();
+      });
+
+      it('should log when smartCommit returns null (no files to commit)', async () => {
+        // SETUP
+        mockSmartCommit.mockResolvedValue(null);
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: "No files to commit" was logged
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] No files to commit'
+        );
+        consoleSpy.mockRestore();
+      });
+
+      it('should log error but not fail subtask when smartCommit throws', async () => {
+        // SETUP
+        mockSmartCommit.mockRejectedValue(new Error('Git operation failed'));
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: '/plan/001_14b9dc2a33c7',
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const consoleErrorSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: Subtask still completed despite commit failure
+        expect(mockManager.updateItemStatus).toHaveBeenCalledWith(
+          'P1.M1.T1.S1',
+          'Complete'
+        );
+        // Error was logged
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Smart commit failed: Git operation failed'
+        );
+        consoleErrorSpy.mockRestore();
+      });
+
+      it('should log warning when session path is not available', async () => {
+        // SETUP
+        const testBacklog = createTestBacklog([]);
+        const currentSession = {
+          metadata: {
+            id: '001_14b9dc2a33c7',
+            hash: '14b9dc2a33c7',
+            path: undefined as unknown as string, // No path available
+            createdAt: new Date(),
+            parentSession: null,
+          },
+          prdSnapshot: '# Test PRD',
+          taskRegistry: testBacklog,
+          currentItemId: null,
+        };
+        const mockManager = createMockSessionManager(currentSession);
+        const orchestrator = new TaskOrchestrator(mockManager);
+
+        const subtask = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
+        const consoleWarnSpy = vi
+          .spyOn(console, 'warn')
+          .mockImplementation(() => {});
+
+        // EXECUTE
+        await orchestrator.executeSubtask(subtask);
+
+        // VERIFY: Warning was logged and smartCommit was not called
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          '[TaskOrchestrator] Session path not available for smart commit'
+        );
+        expect(mockSmartCommit).not.toHaveBeenCalled();
+        consoleWarnSpy.mockRestore();
+      });
     });
   });
 

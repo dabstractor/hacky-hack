@@ -53,11 +53,13 @@ class Workflow {
 ```
 
 **Advantages:**
+
 - Simple to implement
 - Current operation completes before exit
 - Clean state preservation
 
 **Disadvantages:**
+
 - Requires polling the flag
 - May delay shutdown if current operation is long-running
 
@@ -90,11 +92,13 @@ class Workflow {
 ```
 
 **Advantages:**
+
 - Supports cancellation of in-flight operations
 - Standard web API pattern
 - Better for long-running operations
 
 **Disadvantages:**
+
 - Requires operation support for cancellation signals
 - More complex implementation
 
@@ -128,11 +132,13 @@ class Workflow {
 ```
 
 **Advantages:**
+
 - User control over shutdown behavior
 - Prevents indefinite hangs
 - Clear user feedback
 
 **Disadvantages:**
+
 - More complex state management
 - Requires timeout handling
 
@@ -143,6 +149,7 @@ class Workflow {
 The PRPPipeline implements a simplified flag-based pattern:
 
 1. **State Tracking**:
+
    ```typescript
    @ObservedState()
    shutdownRequested: boolean = false;
@@ -152,6 +159,7 @@ The PRPPipeline implements a simplified flag-based pattern:
    ```
 
 2. **Signal Handler Registration** (in constructor):
+
    ```typescript
    #sigintHandler: (() => void) | null = null;
    #sigtermHandler: (() => void) | null = null;
@@ -181,6 +189,7 @@ The PRPPipeline implements a simplified flag-based pattern:
    ```
 
 3. **Shutdown Check in Execution Loop**:
+
    ```typescript
    while (await this.taskOrchestrator.processNextItem()) {
      this.completedTasks = this.#countCompletedTasks();
@@ -194,6 +203,7 @@ The PRPPipeline implements a simplified flag-based pattern:
    ```
 
 4. **Cleanup in Finally Block**:
+
    ```typescript
    async run(): Promise<PipelineResult> {
      try {
@@ -232,6 +242,7 @@ The PRPPipeline implements a simplified flag-based pattern:
 **Issue**: Signal listeners accumulate if not removed.
 
 **Solution**: Store handler references and remove in cleanup:
+
 ```typescript
 #sigintHandler: (() => void) | null = null;
 
@@ -252,14 +263,22 @@ async cleanup(): Promise<void> {
 **Issue**: Inline arrow functions can't be removed.
 
 **Wrong:**
+
 ```typescript
-process.on('SIGINT', () => { /* ... */ }); // Can't remove this!
-process.off('SIGINT', () => { /* ... */ }); // Different reference
+process.on('SIGINT', () => {
+  /* ... */
+}); // Can't remove this!
+process.off('SIGINT', () => {
+  /* ... */
+}); // Different reference
 ```
 
 **Correct:**
+
 ```typescript
-this.#sigintHandler = () => { /* ... */ };
+this.#sigintHandler = () => {
+  /* ... */
+};
 process.on('SIGINT', this.#sigintHandler);
 process.off('SIGINT', this.#sigintHandler); // Same reference
 ```
@@ -269,6 +288,7 @@ process.off('SIGINT', this.#sigintHandler); // Same reference
 **Issue**: Checking shutdown flag before operation starts prevents current task from completing.
 
 **Wrong:**
+
 ```typescript
 while (!this.shutdownRequested && hasMoreWork()) {
   await processNextItem(); // Might be interrupted mid-task
@@ -276,6 +296,7 @@ while (!this.shutdownRequested && hasMoreWork()) {
 ```
 
 **Correct:**
+
 ```typescript
 while (await processNextItem()) {
   if (this.shutdownRequested) break; // Let task complete first
@@ -287,12 +308,14 @@ while (await processNextItem()) {
 **Issue**: Errors during execution can skip cleanup.
 
 **Wrong:**
+
 ```typescript
 await this.executeBacklog();
 await this.cleanup(); // Never runs if executeBacklog throws
 ```
 
 **Correct:**
+
 ```typescript
 try {
   await this.executeBacklog();
@@ -306,6 +329,7 @@ try {
 **Issue**: When `run()` creates a new SessionManager, tests can't inject mocks.
 
 **Solution**: Mock the SessionManager class at module level:
+
 ```typescript
 vi.mock('../../../src/core/session-manager.js', () => ({
   SessionManager: vi.fn().mockImplementation(() => mockObject),

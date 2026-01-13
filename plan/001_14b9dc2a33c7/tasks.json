@@ -717,7 +717,7 @@
               "type": "Task",
               "id": "P3.M4.T1",
               "title": "Create Main PRP Pipeline Workflow",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Build the Groundswell Workflow that manages the entire pipeline lifecycle.",
               "subtasks": [
                 {
@@ -744,7 +744,7 @@
                   "type": "Subtask",
                   "id": "P3.M4.T1.S3",
                   "title": "Implement smart commit workflow",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M4.T1.S2"
@@ -764,7 +764,7 @@
                   "type": "Subtask",
                   "id": "P3.M4.T2.S1",
                   "title": "Create CLI argument parser",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M4.T1.S3"

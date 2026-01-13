@@ -9,7 +9,13 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { PRPPipeline } from '../../src/workflows/prp-pipeline.js';
@@ -66,7 +72,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
         taskRegistry: backlog,
       },
       initialize: vi.fn().mockResolvedValue({
-        metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+        metadata: {
+          id: 'test',
+          hash: 'abc',
+          path: tempDir,
+          createdAt: new Date(),
+        },
         prdSnapshot: '# Test',
         taskRegistry: backlog,
         currentItemId: null,
@@ -287,7 +298,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,
@@ -346,7 +362,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,
@@ -452,7 +473,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,
@@ -492,8 +518,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
 
       // EXECUTE
       const pipeline = new PRPPipeline(prdPath);
-      const initialSigintCount =
-        (process as any)._events?.SIGINT?.length ?? 0;
+      const initialSigintCount = (process as any)._events?.SIGINT?.length ?? 0;
 
       // Run pipeline
       const mockSessionManager: any = {
@@ -502,7 +527,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,
@@ -520,8 +550,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       await pipeline.run();
 
       // VERIFY: Signal listeners should be cleaned up (back to original count)
-      const finalSigintCount =
-        (process as any)._events?.SIGINT?.length ?? 0;
+      const finalSigintCount = (process as any)._events?.SIGINT?.length ?? 0;
       expect(finalSigintCount).toBeLessThanOrEqual(initialSigintCount);
     });
   });
@@ -555,7 +584,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,
@@ -614,7 +648,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,

@@ -491,7 +491,9 @@ export class PRPPipeline extends Workflow {
     try {
       // Check if sessionManager was initialized
       if (!this.sessionManager) {
-        this.logger.warn('[PRPPipeline] SessionManager not initialized, skipping state save');
+        this.logger.warn(
+          '[PRPPipeline] SessionManager not initialized, skipping state save'
+        );
         // Still remove signal listeners
         if (this.#sigintHandler) {
           process.off('SIGINT', this.#sigintHandler);

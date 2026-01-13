@@ -602,7 +602,11 @@ describe('PRPPipeline', () => {
 
       // Cleanup: Remove our test listener
       const listeners = (process as any)._events?.SIGINT;
-      if (listeners && typeof listeners.length === 'number' && listeners.length > originalListeners) {
+      if (
+        listeners &&
+        typeof listeners.length === 'number' &&
+        listeners.length > originalListeners
+      ) {
         process.removeAllListeners('SIGINT');
       }
     });
@@ -621,7 +625,11 @@ describe('PRPPipeline', () => {
 
       // Cleanup: Remove our test listener
       const listeners = (process as any)._events?.SIGTERM;
-      if (listeners && typeof listeners.length === 'number' && listeners.length > originalListeners) {
+      if (
+        listeners &&
+        typeof listeners.length === 'number' &&
+        listeners.length > originalListeners
+      ) {
         process.removeAllListeners('SIGTERM');
       }
     });

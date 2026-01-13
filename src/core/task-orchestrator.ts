@@ -36,6 +36,7 @@ import type { HierarchyItem } from '../utils/task-utils.js';
 import { getDependencies } from '../utils/task-utils.js';
 import type { Scope } from './scope-resolver.js';
 import { resolveScope } from './scope-resolver.js';
+import { smartCommit } from '../utils/git-commit.js';
 
 /**
  * Task Orchestrator for PRP Pipeline backlog processing
@@ -580,6 +581,36 @@ export class TaskOrchestrator {
         'Complete',
         'Implementation completed successfully'
       );
+
+      // NEW: Smart commit after successful subtask completion
+      try {
+        const sessionPath = this.sessionManager.currentSession?.metadata.path;
+        if (!sessionPath) {
+          // eslint-disable-next-line no-console -- Expected logging for commit operations
+          console.warn(
+            '[TaskOrchestrator] Session path not available for smart commit'
+          );
+        } else {
+          const commitMessage = `${subtask.id}: ${subtask.title}`;
+          const commitHash = await smartCommit(sessionPath, commitMessage);
+
+          if (commitHash) {
+            // eslint-disable-next-line no-console -- Expected logging for commit operations
+            console.log(`[TaskOrchestrator] Commit created: ${commitHash}`);
+          } else {
+            // eslint-disable-next-line no-console -- Expected logging for commit operations
+            console.log('[TaskOrchestrator] No files to commit');
+          }
+        }
+      } catch (error) {
+        // Don't fail the subtask if commit fails
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        // eslint-disable-next-line no-console -- Expected error logging for debugging
+        console.error(
+          `[TaskOrchestrator] Smart commit failed: ${errorMessage}`
+        );
+      }
     } catch (error) {
       // PATTERN: Set 'Failed' status on exception with error details
       const errorMessage =
