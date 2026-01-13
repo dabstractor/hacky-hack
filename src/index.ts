@@ -100,7 +100,10 @@ async function main(): Promise<number> {
   // Verbose logging
   if (args.verbose) {
     console.error('[Entry] Verbose mode enabled');
-    console.error('[Entry] Parsed CLI arguments:', JSON.stringify(args, null, 2));
+    console.error(
+      '[Entry] Parsed CLI arguments:',
+      JSON.stringify(args, null, 2)
+    );
   }
 
   // Handle dry-run mode
@@ -142,7 +145,9 @@ async function main(): Promise<number> {
   if (result.shutdownInterrupted) {
     // User interrupted with Ctrl+C
     console.log(`\n⚠️  Pipeline interrupted by ${result.shutdownReason}`);
-    console.log(`📊 Progress: ${result.completedTasks}/${result.totalTasks} tasks completed`);
+    console.log(
+      `📊 Progress: ${result.completedTasks}/${result.totalTasks} tasks completed`
+    );
     console.log(`💾 State saved to: ${result.sessionPath}`);
     console.log(`\n🚀 To resume, run:`);
     console.log(`   npm run dev -- --prd ${args.prd} --continue`);
@@ -166,7 +171,9 @@ async function main(): Promise<number> {
 
   // Pipeline succeeded
   console.log(`\n✅ Pipeline completed successfully`);
-  console.log(`📊 Tasks: ${result.completedTasks}/${result.totalTasks} completed`);
+  console.log(
+    `📊 Tasks: ${result.completedTasks}/${result.totalTasks} completed`
+  );
   console.log(`⏱️  Duration: ${(result.duration / 1000).toFixed(1)}s`);
   console.log(`💾 Session: ${result.sessionPath}`);
   if (result.bugsFound > 0) {

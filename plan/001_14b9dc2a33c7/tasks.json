@@ -483,7 +483,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "Phase 3: Pipeline Implementation",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Implement the four core engines: Session Manager, Task Orchestrator, Agent Runtime wrapper, and Pipeline Controller. This is the heart of the PRP system.",
       "milestones": [
         {
@@ -710,7 +710,7 @@
           "type": "Milestone",
           "id": "P3.M4",
           "title": "Milestone 3.4: Pipeline Controller",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Implement the main workflow using Groundswell that orchestrates all components.",
           "tasks": [
             {
@@ -757,7 +757,7 @@
               "type": "Task",
               "id": "P3.M4.T2",
               "title": "Create CLI Entry Point",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Build the command-line interface that launches the pipeline with various options.",
               "subtasks": [
                 {
@@ -786,7 +786,7 @@
                   "type": "Subtask",
                   "id": "P3.M4.T2.S3",
                   "title": "Add npm scripts and documentation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M4.T2.S2"
@@ -824,7 +824,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S1",
                   "title": "Create delta analysis workflow",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.3 - Delta Session: Detect hash mismatch → Delta Session → PRD Diff → Task Patching.\n2. INPUT: Old PRD, new PRD, completed task IDs. createDeltaPrompt() from P2.M2.T3.\n3. LOGIC: Create src/workflows/delta-workflow.ts:\n   - Import { Workflow, Step } from 'groundswell'\n   - Export class DeltaAnalysisWorkflow extends Workflow\n   - @ObservedState() oldPRD: string\n   - @ObservedState() newPRD: string\n   - @ObservedState() completedTasks: string[]\n   - @ObservedState() deltaAnalysis: DeltaAnalysis | null\n   - Constructor accepts oldPRD, newPRD, completedTasks\n   - @Step() async analyzeDelta(): Promise<DeltaAnalysis> - Use QA agent with createDeltaPrompt(), return analysis\n   - Override async run(): Promise<DeltaAnalysis> - Orchestrate analysis\n4. OUTPUT: Workflow that produces structured delta analysis."
