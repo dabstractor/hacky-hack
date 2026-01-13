@@ -28,6 +28,8 @@
 // CRITICAL: Import patterns - use .js extensions for ES modules
 import { PRPGenerator } from './prp-generator.js';
 import { PRPExecutor } from './prp-executor.js';
+import { getLogger } from '../utils/logger.js';
+import type { Logger } from '../utils/logger.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
 import type { PRPDocument, Subtask, Backlog, Status } from '../core/models.js';
 import type { ExecutionResult } from './prp-executor.js';
@@ -81,6 +83,9 @@ export class PRPRuntimeError extends Error {
  * ```
  */
 export class PRPRuntime {
+  /** Logger instance for structured logging */
+  readonly #logger: Logger;
+
   /** Task Orchestrator for status management */
   readonly #orchestrator: TaskOrchestrator;
 
@@ -100,6 +105,7 @@ export class PRPRuntime {
    * @throws {Error} If no active session exists
    */
   constructor(orchestrator: TaskOrchestrator) {
+    this.#logger = getLogger('PRPRuntime');
     this.#orchestrator = orchestrator;
 
     // Extract session path from orchestrator's session manager
@@ -134,9 +140,9 @@ export class PRPRuntime {
     subtask: Subtask,
     backlog: Backlog
   ): Promise<ExecutionResult> {
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[PRPRuntime] Starting execution for ${subtask.id}: ${subtask.title}`
+    this.#logger.info(
+      { subtaskId: subtask.id, title: subtask.title },
+      'Starting execution'
     );
 
     try {
@@ -146,12 +152,10 @@ export class PRPRuntime {
         'Researching',
         'Starting PRP generation'
       );
-      // eslint-disable-next-line no-console -- Expected logging for phase tracking
-      console.log(`[PRPRuntime] Research Phase: ${subtask.id}`);
+      this.#logger.debug({ subtaskId: subtask.id }, 'Research Phase');
 
       const prp = await this.#generator.generate(subtask, backlog);
-      // eslint-disable-next-line no-console -- Expected logging for phase completion
-      console.log(`[PRPRuntime] PRP generated for ${subtask.id}`);
+      this.#logger.debug({ subtaskId: subtask.id }, 'PRP generated');
 
       // PHASE 2: Implementation - Execute PRP
       await this.#orchestrator.setStatus(
@@ -159,8 +163,7 @@ export class PRPRuntime {
         'Implementing',
         'Starting PRP execution'
       );
-      // eslint-disable-next-line no-console -- Expected logging for phase tracking
-      console.log(`[PRPRuntime] Implementation Phase: ${subtask.id}`);
+      this.#logger.info({ subtaskId: subtask.id }, 'Implementation Phase');
 
       // Construct PRP file path (sanitize taskId: replace dots with underscores)
       const sanitizedId = subtask.id.replace(/\./g, '_');
@@ -169,8 +172,7 @@ export class PRPRuntime {
       // Create artifacts directory
       const artifactsDir = join(this.#sessionPath, 'artifacts', subtask.id);
       await mkdir(artifactsDir, { recursive: true });
-      // eslint-disable-next-line no-console -- Expected logging for directory creation
-      console.log(`[PRPRuntime] Artifacts directory: ${artifactsDir}`);
+      this.#logger.debug({ artifactsDir }, 'Artifacts directory created');
 
       // Execute PRP
       const result = await this.#executor.execute(prp, prpPath);
@@ -185,16 +187,17 @@ export class PRPRuntime {
           'Complete',
           'Implementation completed successfully'
         );
-        // eslint-disable-next-line no-console -- Expected logging for success
-        console.log(`[PRPRuntime] Complete: ${subtask.id}`);
+        this.#logger.info({ subtaskId: subtask.id }, 'Complete');
       } else {
         await this.#orchestrator.setStatus(
           subtask.id,
           'Failed',
           result.error ?? 'Execution failed'
         );
-        // eslint-disable-next-line no-console -- Expected logging for failure
-        console.error(`[PRPRuntime] Failed: ${subtask.id} - ${result.error}`);
+        this.#logger.error(
+          { subtaskId: subtask.id, error: result.error },
+          'Failed'
+        );
       }
 
       return result;
@@ -208,12 +211,14 @@ export class PRPRuntime {
         `Execution failed: ${errorMessage}`
       );
 
-      // eslint-disable-next-line no-console -- Expected error logging
-      console.error(`[PRPRuntime] ERROR: ${subtask.id} - ${errorMessage}`);
-      if (error instanceof Error && error.stack) {
-        // eslint-disable-next-line no-console -- Expected error logging
-        console.error(`[PRPRuntime] Stack trace: ${error.stack}`);
-      }
+      this.#logger.error(
+        {
+          subtaskId: subtask.id,
+          error: errorMessage,
+          ...(error instanceof Error && { stack: error.stack }),
+        },
+        'Execution failed'
+      );
 
       // Return failed execution result
       return {
@@ -266,15 +271,15 @@ export class PRPRuntime {
         { mode: 0o644 }
       );
 
-      // eslint-disable-next-line no-console -- Expected logging for artifact writing
-      console.log(`[PRPRuntime] Artifacts written to: ${artifactsDir}`);
+      this.#logger.debug({ artifactsDir }, 'Artifacts written');
     } catch (error) {
       // Log error but don't fail execution
-      // eslint-disable-next-line no-console -- Expected error logging for non-critical operation
-      console.warn(
-        `[PRPRuntime] Failed to write artifacts: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+      this.#logger.warn(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          artifactsDir,
+        },
+        'Failed to write artifacts'
       );
     }
   }

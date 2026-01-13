@@ -23,6 +23,20 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
 }));
 
+// Mock the logger with hoisted variables
+const { mockLogger } = vi.hoisted(() => ({
+  mockLogger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+vi.mock('../../../src/utils/logger.js', () => ({
+  getLogger: vi.fn(() => mockLogger),
+}));
+
 import { existsSync } from 'node:fs';
 
 const mockExistsSync = existsSync as any;
@@ -34,8 +48,11 @@ describe('cli/index', () => {
     // Default: file exists
     mockExistsSync.mockReturnValue(true);
 
-    // Mock console.error to capture error messages
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    // Clear mock logger calls
+    mockLogger.info.mockClear();
+    mockLogger.error.mockClear();
+    mockLogger.warn.mockClear();
+    mockLogger.debug.mockClear();
 
     // Mock process.exit to capture exit calls and prevent actual exit
     // Make it throw to stop execution (simulating real process.exit behavior)
@@ -236,11 +253,11 @@ describe('cli/index', () => {
         // EXECUTE & VERIFY: Should throw process.exit error
         expect(() => parseCLIArgs()).toThrow('process.exit(1)');
 
-        // VERIFY: Error message was displayed
-        expect(console.error).toHaveBeenCalledWith(
+        // VERIFY: Error message was logged
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('PRD file not found')
         );
-        expect(console.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('./missing.md')
         );
       });
@@ -254,7 +271,7 @@ describe('cli/index', () => {
         expect(() => parseCLIArgs()).toThrow('process.exit(1)');
 
         // VERIFY: Help text includes --prd usage
-        expect(console.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('--prd')
         );
       });
@@ -346,11 +363,11 @@ describe('cli/index', () => {
         // EXECUTE & VERIFY: Should throw process.exit error
         expect(() => parseCLIArgs()).toThrow('process.exit(1)');
 
-        // VERIFY: Error message was displayed
-        expect(console.error).toHaveBeenCalledWith(
+        // VERIFY: Error message was logged
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('Invalid scope')
         );
-        expect(console.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('P1.X1')
         );
       });
@@ -363,10 +380,10 @@ describe('cli/index', () => {
         expect(() => parseCLIArgs()).toThrow('process.exit(1)');
 
         // VERIFY: Expected format is shown
-        expect(console.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('Expected format')
         );
-        expect(console.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('P1, P1.M1, P1.M1.T1, P1.M1.T1.S1, or all')
         );
       });
@@ -379,7 +396,7 @@ describe('cli/index', () => {
         expect(() => parseCLIArgs()).toThrow('process.exit(1)');
 
         // VERIFY: Details from error are shown
-        expect(console.error).toHaveBeenCalledWith(
+        expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining('Details:')
         );
       });

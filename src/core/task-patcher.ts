@@ -19,7 +19,11 @@
  */
 
 import type { Backlog, DeltaAnalysis } from './models.js';
+import { getLogger } from '../utils/logger.js';
 import { updateItemStatus } from '../utils/task-utils.js';
+
+// Module-level logger for task patcher
+const logger = getLogger('TaskPatcher');
 
 // ============================================================================
 // MAIN FUNCTION
@@ -94,8 +98,9 @@ export function patchBacklog(backlog: Backlog, delta: DeltaAnalysis): Backlog {
         // NOTE: New PRD section content not available in current scope
         // Placeholder: Log warning and continue
         // TODO: Future enhancement - pass new PRD content to Architect
-        console.warn(
-          `[patchBacklog] 'added' change for ${taskId} - Architect agent call not implemented (new PRD content unavailable)`
+        logger.warn(
+          { changeType: change.type, taskId },
+          'Feature not implemented'
         );
         break;
     }

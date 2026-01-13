@@ -19,6 +19,8 @@
 
 import { Workflow, Step } from 'groundswell';
 import type { DeltaAnalysis } from '../core/models.js';
+import type { Logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 import { createQAAgent } from '../agents/agent-factory.js';
 import { createDeltaAnalysisPrompt } from '../agents/prompts/delta-analysis-prompt.js';
 
@@ -50,6 +52,9 @@ export class DeltaAnalysisWorkflow extends Workflow {
   /** Delta analysis result (null until analyzeDelta completes) */
   deltaAnalysis: DeltaAnalysis | null = null;
 
+  /** Correlation logger with correlation ID for tracing */
+  private correlationLogger: Logger;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -76,6 +81,17 @@ export class DeltaAnalysisWorkflow extends Workflow {
     this.oldPRD = oldPRD;
     this.newPRD = newPRD;
     this.completedTasks = completedTasks;
+
+    // Create correlation logger with correlation ID
+    const correlationId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    this.correlationLogger = getLogger('DeltaAnalysisWorkflow').child({
+      correlationId,
+    });
+
+    this.correlationLogger.info('[DeltaAnalysisWorkflow] Initialized', {
+      correlationId,
+      completedTasksCount: completedTasks.length,
+    });
   }
 
   // ========================================================================
@@ -147,6 +163,7 @@ export class DeltaAnalysisWorkflow extends Workflow {
   async run(): Promise<DeltaAnalysis> {
     this.setStatus('running');
 
+    this.correlationLogger.info('[DeltaAnalysisWorkflow] Starting workflow');
     this.logger.info('[DeltaAnalysisWorkflow] Starting workflow');
     this.logger.info('[DeltaAnalysisWorkflow] Comparing PRD versions');
     this.logger.info(

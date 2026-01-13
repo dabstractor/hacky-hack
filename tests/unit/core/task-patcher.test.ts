@@ -25,6 +25,21 @@ import type {
   RequirementChange,
 } from '../../../src/core/models.js';
 
+// Mock the logger with hoisted variables
+const { mockLogger } = vi.hoisted(() => ({
+  mockLogger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+// Mock the logger module before importing
+vi.mock('../../../src/utils/logger.js', () => ({
+  getLogger: vi.fn(() => mockLogger),
+}));
+
 // Test fixtures
 const createTestSubtask = (
   id: string,
@@ -439,8 +454,8 @@ describe('core/task-patcher', () => {
 
   describe('patchBacklog - added changes', () => {
     it('should log warning for added change (placeholder implementation)', () => {
-      // SETUP: Backlog and console spy
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      // SETUP: Backlog and logger mock
+      mockLogger.warn.mockClear();
       const phase = createTestPhase('P1', 'Phase 1', 'Complete');
       const backlog = createTestBacklog([phase]);
 
@@ -460,19 +475,15 @@ describe('core/task-patcher', () => {
       patchBacklog(backlog, delta);
 
       // VERIFY: Warning logged, backlog unchanged
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("'added' change for P1.M1.T1.S1")
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { changeType: 'added', taskId: 'P1.M1.T1.S1' },
+        'Feature not implemented'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Architect agent call not implemented')
-      );
-
-      consoleSpy.mockRestore();
     });
 
     it('should handle multiple added changes with warnings', () => {
-      // SETUP: Console spy
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      // SETUP: Logger mock
+      mockLogger.warn.mockClear();
       const phase = createTestPhase('P1', 'Phase 1', 'Complete');
       const backlog = createTestBacklog([phase]);
 
@@ -498,9 +509,15 @@ describe('core/task-patcher', () => {
       patchBacklog(backlog, delta);
 
       // VERIFY: Warnings logged for both added changes
-      expect(consoleSpy).toHaveBeenCalledTimes(2);
-
-      consoleSpy.mockRestore();
+      expect(mockLogger.warn).toHaveBeenCalledTimes(2);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { changeType: 'added', taskId: 'P1.M1.T1.S1' },
+        'Feature not implemented'
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { changeType: 'added', taskId: 'P1.M1.T1.S2' },
+        'Feature not implemented'
+      );
     });
   });
 
@@ -865,8 +882,8 @@ describe('core/task-patcher', () => {
       const phase = createTestPhase('P1', 'Phase 1', 'Complete', [milestone]);
       const backlog = createTestBacklog([phase]);
 
-      // Console spy for 'added' warning
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      // Logger mock for 'added' warning
+      mockLogger.warn.mockClear();
 
       const delta: DeltaAnalysis = createDeltaAnalysis(
         [
@@ -899,9 +916,10 @@ describe('core/task-patcher', () => {
       expect(findItem(patched, 'P1.M1.T1.S1')?.status).toBe('Planned'); // modified
       expect(findItem(patched, 'P1.M1.T1.S2')?.status).toBe('Obsolete'); // removed
       expect(findItem(patched, 'P1.M1.T1.S3')?.status).toBe('Complete'); // added - unchanged (placeholder)
-      expect(consoleSpy).toHaveBeenCalled(); // Warning for 'added'
-
-      consoleSpy.mockRestore();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { changeType: 'added', taskId: 'P1.M1.T1.S3' },
+        'Feature not implemented'
+      ); // Warning for 'added'
     });
 
     it('should handle all status values in backlog', () => {

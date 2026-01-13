@@ -21,6 +21,7 @@
  */
 
 import { configureEnvironment, getModel } from '../config/environment.js';
+import { getLogger } from '../utils/logger.js';
 import { createAgent, type Agent } from 'groundswell';
 import {
   TASK_BREAKDOWN_PROMPT,
@@ -35,6 +36,9 @@ import { GitMCP } from '../tools/git-mcp.js';
 // PATTERN: Configure environment at module load time (intentional side effect)
 // CRITICAL: This must execute before any agent creation
 configureEnvironment();
+
+// Module-level logger for agent factory
+const logger = getLogger('AgentFactory');
 
 /**
  * Singleton MCP server instances
@@ -189,6 +193,7 @@ export function createArchitectAgent(): Agent {
     system: TASK_BREAKDOWN_PROMPT,
     mcps: MCP_TOOLS,
   };
+  logger.debug({ persona: 'architect', model: config.model }, 'Creating agent');
   return createAgent(config);
 }
 
@@ -216,6 +221,10 @@ export function createResearcherAgent(): Agent {
     system: PRP_BLUEPRINT_PROMPT,
     mcps: MCP_TOOLS,
   };
+  logger.debug(
+    { persona: 'researcher', model: config.model },
+    'Creating agent'
+  );
   return createAgent(config);
 }
 
@@ -243,6 +252,7 @@ export function createCoderAgent(): Agent {
     system: PRP_BUILDER_PROMPT,
     mcps: MCP_TOOLS,
   };
+  logger.debug({ persona: 'coder', model: config.model }, 'Creating agent');
   return createAgent(config);
 }
 
@@ -270,6 +280,7 @@ export function createQAAgent(): Agent {
     system: BUG_HUNT_PROMPT,
     mcps: MCP_TOOLS,
   };
+  logger.debug({ persona: 'qa', model: config.model }, 'Creating agent');
   return createAgent(config);
 }
 

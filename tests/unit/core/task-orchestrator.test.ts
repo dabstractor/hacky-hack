@@ -18,6 +18,21 @@ import { Status } from '../../../src/core/models.js';
 import type { Scope } from '../../../src/core/scope-resolver.js';
 import type { HierarchyItem } from '../../../src/utils/task-utils.js';
 
+// Mock the logger with hoisted variables
+const { mockLogger } = vi.hoisted(() => ({
+  mockLogger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+// Mock the logger module before importing
+vi.mock('../../../src/utils/logger.js', () => ({
+  getLogger: vi.fn(() => mockLogger),
+}));
+
 // Mock the task-utils module - use importOriginal to get real getDependencies implementation
 vi.mock('../../../src/utils/task-utils.js', async importOriginal => {
   const actual =
@@ -3377,22 +3392,25 @@ describe('TaskOrchestrator', () => {
       const mockManager = createMockSessionManager(currentSession);
       mockResolveScope.mockReturnValue([]);
 
+      // Clear previous mock calls
+      mockLogger.info.mockClear();
+
       // Create orchestrator without scope (undefined)
       const orchestrator = new TaskOrchestrator(mockManager);
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE: Change scope to P1
       await orchestrator.setScope({ type: 'phase', id: 'P1' });
 
-      // VERIFY: Log shows old scope as "undefined (all)"
-      const logs = consoleSpy.mock.calls
-        .map((call: any[]) => call.join(' '))
-        .join('\n');
-      expect(logs).toContain('undefined (all)');
-      expect(logs).toContain('phase');
-      expect(logs).toContain('P1');
+      // VERIFY: Log shows old scope as "undefined (all)" and new scope with phase info
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { oldScope: 'undefined (all)', newScope: '{"type":"phase","id":"P1"}' },
+        'Scope change'
+      );
 
-      consoleSpy.mockRestore();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { queueSize: 0 },
+        'Execution queue rebuilt'
+      );
     });
 
     it('should handle empty scope resolution', async () => {

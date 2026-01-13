@@ -22,6 +22,9 @@
 
 import { gitStatus, gitAdd, gitCommit } from '../tools/git-mcp.js';
 import { basename } from 'node:path';
+import { getLogger } from './logger.js';
+
+const logger = getLogger('smartCommit');
 
 // ===== CONSTANTS =====
 
@@ -128,19 +131,19 @@ export async function smartCommit(
   try {
     // Validate inputs
     if (!sessionPath || sessionPath.trim() === '') {
-      console.error('[smartCommit] Invalid session path');
+      logger.error('Invalid session path');
       return null;
     }
 
     if (!message || message.trim() === '') {
-      console.error('[smartCommit] Invalid commit message');
+      logger.error('Invalid commit message');
       return null;
     }
 
     // Get repository status
     const statusResult = await gitStatus({ path: sessionPath });
     if (!statusResult.success) {
-      console.error(`[smartCommit] Git status failed: ${statusResult.error}`);
+      logger.error(`Git status failed: ${statusResult.error}`);
       return null;
     }
 
@@ -162,9 +165,7 @@ export async function smartCommit(
 
     // Skip commit if no files to stage
     if (filteredFiles.length === 0) {
-      console.log(
-        '[smartCommit] No files to commit after filtering protected files'
-      );
+      logger.info('No files to commit after filtering protected files');
       return null;
     }
 
@@ -175,7 +176,7 @@ export async function smartCommit(
     });
 
     if (!addResult.success) {
-      console.error(`[smartCommit] Git add failed: ${addResult.error}`);
+      logger.error(`Git add failed: ${addResult.error}`);
       return null;
     }
 
@@ -189,18 +190,18 @@ export async function smartCommit(
     });
 
     if (!commitResult.success) {
-      console.error(`[smartCommit] Git commit failed: ${commitResult.error}`);
+      logger.error(`Git commit failed: ${commitResult.error}`);
       return null;
     }
 
     // Return commit hash
     const commitHash = commitResult.commitHash ?? null;
-    console.log(`[smartCommit] Commit created: ${commitHash}`);
+    logger.info(`Commit created: ${commitHash}`);
     return commitHash;
   } catch (error) {
     // Catch any unexpected errors
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`[smartCommit] Unexpected error: ${errorMessage}`);
+    logger.error(`Unexpected error: ${errorMessage}`);
     return null;
   }
 }

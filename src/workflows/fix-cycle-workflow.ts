@@ -29,6 +29,8 @@ import type {
   Subtask,
   Status,
 } from '../core/models.js';
+import type { Logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 import { TaskOrchestrator } from '../core/task-orchestrator.js';
 import { SessionManager } from '../core/session-manager.js';
 import { BugHuntWorkflow } from './bug-hunt-workflow.js';
@@ -72,6 +74,9 @@ export class FixCycleWorkflow extends Workflow {
   /** Latest test results from retest phase */
   currentResults: TestResults | null = null;
 
+  /** Correlation logger with correlation ID for tracing */
+  private correlationLogger: Logger;
+
   // ========================================================================
   // Private Fields
   // ========================================================================
@@ -110,7 +115,18 @@ export class FixCycleWorkflow extends Workflow {
     this.taskOrchestrator = taskOrchestrator;
     this.sessionManager = sessionManager;
 
+    // Create correlation logger with correlation ID
+    const correlationId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    this.correlationLogger = getLogger('FixCycleWorkflow').child({
+      correlationId,
+    });
+
     this.logger.info('[FixCycleWorkflow] Initialized', {
+      initialBugCount: testResults.bugs.length,
+      maxIterations: this.maxIterations,
+    });
+    this.correlationLogger.info('[FixCycleWorkflow] Initialized', {
+      correlationId,
       initialBugCount: testResults.bugs.length,
       maxIterations: this.maxIterations,
     });
@@ -277,6 +293,9 @@ export class FixCycleWorkflow extends Workflow {
    */
   async run(): Promise<TestResults> {
     this.setStatus('running');
+    this.correlationLogger.info(
+      '[FixCycleWorkflow] Starting fix cycle workflow'
+    );
     this.logger.info('[FixCycleWorkflow] Starting fix cycle workflow');
     this.logger.info(
       `[FixCycleWorkflow] Initial bug count: ${this.testResults.bugs.length}`

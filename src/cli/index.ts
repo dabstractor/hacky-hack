@@ -28,6 +28,9 @@
 import { Command } from 'commander';
 import { parseScope, ScopeParseError } from '../core/scope-resolver.js';
 import { existsSync } from 'node:fs';
+import { getLogger } from '../utils/logger.js';
+
+const logger = getLogger('CLI');
 
 // ===== TYPE DEFINITIONS =====
 
@@ -124,8 +127,8 @@ export function parseCLIArgs(): CLIArgs {
 
   // Validate PRD file exists
   if (!existsSync(options.prd)) {
-    console.error(`Error: PRD file not found: ${options.prd}`);
-    console.error('Please provide a valid PRD file path using --prd');
+    logger.error(`PRD file not found: ${options.prd}`);
+    logger.error('Please provide a valid PRD file path using --prd');
     process.exit(1);
   }
 
@@ -136,11 +139,11 @@ export function parseCLIArgs(): CLIArgs {
       // Scope is valid, continue
     } catch (error) {
       if (error instanceof ScopeParseError) {
-        console.error(`Error: Invalid scope "${options.scope}"`);
-        console.error(
+        logger.error(`Invalid scope "${options.scope}"`);
+        logger.error(
           `Expected format: P1, P1.M1, P1.M1.T1, P1.M1.T1.S1, or all`
         );
-        console.error(`Details: ${error.message}`);
+        logger.error(`Details: ${error.message}`);
         process.exit(1);
       }
       // Re-throw unexpected errors

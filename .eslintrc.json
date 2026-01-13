@@ -49,6 +49,9 @@
     "dist/",
     "coverage/",
     "*.config.js",
-    "*.config.ts"
+    "*.config.ts",
+    "plan/**/research/*.ts",
+    "plan/**/docs/research_*.ts",
+    "**/research/*_examples.ts"
   ]
 }

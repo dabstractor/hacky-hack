@@ -29,6 +29,8 @@ import type { TaskOrchestrator } from '../core/task-orchestrator.js';
 import type { PRPRuntime } from '../agents/prp-runtime.js';
 import type { Backlog, Status, DeltaAnalysis, Task } from '../core/models.js';
 import type { Scope } from '../core/scope-resolver.js';
+import type { Logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
 import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
@@ -108,6 +110,9 @@ export class PRPPipeline extends Workflow {
   /** Task execution orchestrator */
   taskOrchestrator: TaskOrchestrator;
 
+  /** Correlation logger with correlation ID for tracing */
+  correlationLogger: Logger;
+
   /** PRP Runtime for inner loop execution */
   runtime: PRPRuntime | null = null;
 
@@ -157,6 +162,9 @@ export class PRPPipeline extends Workflow {
   /** Counter for duplicate SIGINT (force exit) */
   #sigintCount: number = 0;
 
+  /** Correlation ID for tracing workflow execution */
+  readonly #correlationId: string;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -180,6 +188,9 @@ export class PRPPipeline extends Workflow {
       throw new Error('PRP path cannot be empty');
     }
 
+    // Generate correlation ID for workflow tracing
+    this.#correlationId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     this.#prdPath = prdPath;
     this.#scope = scope;
     this.mode = mode ?? 'normal';
@@ -190,6 +201,11 @@ export class PRPPipeline extends Workflow {
     // Create TaskOrchestrator (will be initialized with session after initializeSession)
     // Placeholder for now - will be recreated after session initialization
     this.taskOrchestrator = null as any;
+
+    // Create correlation logger with correlation ID
+    this.correlationLogger = getLogger('PRPPipeline').child({
+      correlationId: this.#correlationId,
+    });
 
     // Setup signal handlers for graceful shutdown
     this.#setupSignalHandlers();
@@ -262,6 +278,9 @@ export class PRPPipeline extends Workflow {
    * After session initialization, creates TaskOrchestrator instance.
    */
   async initializeSession(): Promise<void> {
+    this.correlationLogger.info('[PRPPipeline] Initializing session', {
+      correlationId: this.#correlationId,
+    });
     this.logger.info('[PRPPipeline] Initializing session');
 
     try {
@@ -957,6 +976,15 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
     this.#startTime = performance.now();
     this.setStatus('running');
 
+    this.correlationLogger.info(
+      '[PRPPipeline] Starting PRP Pipeline workflow',
+      {
+        correlationId: this.#correlationId,
+        prdPath: this.#prdPath,
+        scope: this.#scope ?? 'all',
+        mode: this.mode,
+      }
+    );
     this.logger.info('[PRPPipeline] Starting PRP Pipeline workflow');
     this.logger.info(`[PRPPipeline] PRD: ${this.#prdPath}`);
     this.logger.info(

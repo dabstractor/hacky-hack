@@ -48,8 +48,7 @@ describe('Feature Name', () => {
 ```typescript
 // ✅ CORRECT
 vi.mocked(fs.readFile)
-  .mockResolvedValue('content')
-  (
+  .mockResolvedValue('content')(
     // ❌ WRONG
     fs.readFile as any
   )

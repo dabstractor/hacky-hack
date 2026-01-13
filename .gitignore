@@ -54,3 +54,8 @@ tests/**/*.{js,d.ts}
 
 # Shell scripts (temporary/validation tools - prefer TypeScript equivalents)
 /scripts/
+
+# Research code examples (not part of main codebase)
+plan/**/research/*.ts
+plan/**/docs/research_*.ts
+**/research/*_examples.ts

@@ -21,6 +21,8 @@
 // CRITICAL: Import patterns - use .js extensions for ES modules
 import { createCoderAgent } from './agent-factory.js';
 import { PRP_BUILDER_PROMPT } from './prompts.js';
+import { getLogger } from '../utils/logger.js';
+import type { Logger } from '../utils/logger.js';
 import type { Agent } from 'groundswell';
 import type { PRPDocument, ValidationGate } from '../core/models.js';
 import { BashMCP } from '../tools/bash-mcp.js';
@@ -165,6 +167,9 @@ export class ValidationError extends Error {
  * ```
  */
 export class PRPExecutor {
+  /** Logger instance for structured logging */
+  readonly #logger: Logger;
+
   /** Path to session directory (for working directory context) */
   readonly sessionPath: string;
 
@@ -189,6 +194,7 @@ export class PRPExecutor {
     if (!sessionPath) {
       throw new Error('sessionPath is required for PRPExecutor');
     }
+    this.#logger = getLogger('PRPExecutor');
     this.sessionPath = sessionPath;
     this.#coderAgent = createCoderAgent();
     this.#bashMCP = new BashMCP();
@@ -240,8 +246,7 @@ export class PRPExecutor {
 
     try {
       // STEP 2: Execute Coder Agent
-      // eslint-disable-next-line no-console -- Intentional logging for execution tracking
-      console.log(`Executing PRP for ${prp.taskId}...`);
+      this.#logger.info({ prpTaskId: prp.taskId }, 'Starting PRP execution');
       const coderResponse = await this.#coderAgent.prompt(injectedPrompt);
 
       // STEP 3: Parse JSON result
@@ -275,10 +280,9 @@ export class PRPExecutor {
         if (fixAttempts < maxFixAttempts) {
           fixAttempts++;
           const delay = Math.min(2000 * Math.pow(2, fixAttempts - 1), 30000);
-          // eslint-disable-next-line no-console -- Intentional logging for retry tracking
-          console.warn(
-            `Validation failed for ${prp.taskId}. ` +
-              `Fix attempt ${fixAttempts}/${maxFixAttempts} in ${delay}ms...`
+          this.#logger.warn(
+            { prpTaskId: prp.taskId, fixAttempts, maxFixAttempts, delay },
+            'Validation failed, retrying'
           );
           await this.#sleep(delay);
 
@@ -369,12 +373,15 @@ export class PRPExecutor {
 
       // Stop sequential execution on first failure
       if (!gateResult.success) {
-        // eslint-disable-next-line no-console -- Intentional logging for validation failures
-        console.error(
-          `Validation Level ${gate.level} failed: ${gate.description}\n` +
-            `Command: ${gate.command}\n` +
-            `Exit Code: ${result.exitCode}\n` +
-            `Stderr: ${result.stderr}`
+        this.#logger.error(
+          {
+            level: gate.level,
+            description: gate.description,
+            command: gate.command,
+            exitCode: result.exitCode,
+            stderr: result.stderr,
+          },
+          'Validation gate failed'
         );
         break;
       }

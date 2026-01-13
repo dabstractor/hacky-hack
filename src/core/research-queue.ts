@@ -20,6 +20,8 @@
  */
 
 import { PRPGenerator } from '../agents/prp-generator.js';
+import { getLogger } from '../utils/logger.js';
+import type { Logger } from '../utils/logger.js';
 import type { PRPDocument, Task, Subtask, Backlog } from './models.js';
 import type { SessionManager } from './session-manager.js';
 
@@ -53,6 +55,9 @@ type TaskOrSubtask = Task | Subtask;
  * ```
  */
 export class ResearchQueue {
+  /** Logger instance for structured logging */
+  readonly #logger: Logger;
+
   /** Session manager passed to PRPGenerator */
   readonly sessionManager: SessionManager;
 
@@ -79,6 +84,7 @@ export class ResearchQueue {
    * @throws {Error} If no session is active in SessionManager
    */
   constructor(sessionManager: SessionManager, maxSize: number = 3) {
+    this.#logger = getLogger('ResearchQueue');
     this.sessionManager = sessionManager;
     this.maxSize = maxSize;
     this.#prpGenerator = new PRPGenerator(sessionManager);
@@ -152,8 +158,9 @@ export class ResearchQueue {
         // Log error but don't cache failed results
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        console.error(
-          `[ResearchQueue] PRP generation failed for ${task.id}: ${errorMessage}`
+        this.#logger.warn(
+          { taskId: task.id, error: errorMessage },
+          'PRP generation failed (non-critical)'
         );
         // Re-throw to allow waitForPRP to handle the error
         throw error;
@@ -165,9 +172,7 @@ export class ResearchQueue {
         this.processNext(backlog).catch((error: unknown) => {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          console.error(
-            `[ResearchQueue] Error starting next task: ${errorMessage}`
-          );
+          this.#logger.error({ error: errorMessage }, 'Background task failed');
         });
       });
 

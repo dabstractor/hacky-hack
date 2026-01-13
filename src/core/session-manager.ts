@@ -23,6 +23,8 @@
 import { statSync } from 'node:fs';
 import { readFile, writeFile, stat, readdir } from 'node:fs/promises';
 import { resolve, basename } from 'node:path';
+import { getLogger } from '../utils/logger.js';
+import type { Logger } from '../utils/logger.js';
 import type {
   SessionState,
   SessionMetadata,
@@ -86,6 +88,9 @@ interface SessionDirInfo {
  * Uses readonly properties for immutability and prevents state corruption.
  */
 export class SessionManager {
+  /** Logger instance for structured logging */
+  readonly #logger: Logger;
+
   /** Path to PRD markdown file */
   readonly prdPath: string;
 
@@ -106,6 +111,7 @@ export class SessionManager {
    * @throws {SessionFileError} If PRD file does not exist
    */
   constructor(prdPath: string, planDir: string = resolve('plan')) {
+    this.#logger = getLogger('SessionManager');
     // Validate PRD exists synchronously
     const absPath = resolve(prdPath);
 
@@ -202,6 +208,10 @@ export class SessionManager {
     if (existingSession) {
       // 3. Load existing session
       this.#currentSession = await this.loadSession(existingSession);
+      this.#logger.info(
+        { sessionId: this.#currentSession.metadata.id, prdPath: this.prdPath },
+        'Session loaded'
+      );
       return this.#currentSession;
     }
 
@@ -232,6 +242,7 @@ export class SessionManager {
       currentItemId: null,
     };
 
+    this.#logger.info({ sessionId, sessionPath }, 'Session created');
     return this.#currentSession;
   }
 
@@ -365,6 +376,14 @@ export class SessionManager {
     // Update current session to point to the new delta session
     this.#currentSession = deltaSession;
 
+    this.#logger.info(
+      {
+        deltaSessionId: sessionId,
+        parentSessionId: this.#currentSession.metadata.parentSession,
+        changesCount: diffResult.changes.length,
+      },
+      'Delta session created'
+    );
     return deltaSession;
   }
 
@@ -391,6 +410,10 @@ export class SessionManager {
     }
 
     await writeTasksJSON(this.#currentSession.metadata.path, backlog);
+    this.#logger.debug(
+      { backlogPath: this.#currentSession.metadata.path },
+      'Backlog persisted'
+    );
   }
 
   /**

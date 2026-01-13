@@ -34,7 +34,7 @@ import { BugHuntWorkflow } from '../../../src/workflows/bug-hunt-workflow.js';
 const mockBugHuntWorkflow = BugHuntWorkflow as any;
 
 // Factory functions for test data
-const createTestTask = (
+const _createTestTask = (
   id: string,
   title: string,
   status: 'Complete' | 'Failed' | 'Planned' = 'Complete'
@@ -63,7 +63,7 @@ const createTestBug = (
   location,
 });
 
-const createTestResults = (
+const _createTestResults = (
   hasBugs: boolean,
   bugs: Bug[],
   summary: string,

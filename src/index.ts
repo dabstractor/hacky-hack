@@ -112,14 +112,14 @@ async function main(): Promise<number> {
 
   // Handle dry-run mode
   if (args.dryRun) {
-    console.log('🔍 DRY RUN - would execute with:');
-    console.log(`  PRD: ${args.prd}`);
-    console.log(`  Mode: ${args.mode}`);
+    logger.info('🔍 DRY RUN - would execute with:');
+    logger.info(`  PRD: ${args.prd}`);
+    logger.info(`  Mode: ${args.mode}`);
     if (args.scope) {
-      console.log(`  Scope: ${args.scope}`);
+      logger.info(`  Scope: ${args.scope}`);
     }
     if (args.continue) {
-      console.log(`  Resume: enabled`);
+      logger.info(`  Resume: enabled`);
     }
     return 0;
   }
@@ -148,40 +148,40 @@ async function main(): Promise<number> {
   // Handle result based on state
   if (result.shutdownInterrupted) {
     // User interrupted with Ctrl+C
-    console.log(`\n⚠️  Pipeline interrupted by ${result.shutdownReason}`);
-    console.log(
+    logger.info(`\n⚠️  Pipeline interrupted by ${result.shutdownReason}`);
+    logger.info(
       `📊 Progress: ${result.completedTasks}/${result.totalTasks} tasks completed`
     );
-    console.log(`💾 State saved to: ${result.sessionPath}`);
-    console.log(`\n🚀 To resume, run:`);
-    console.log(`   npm run dev -- --prd ${args.prd} --continue`);
+    logger.info(`💾 State saved to: ${result.sessionPath}`);
+    logger.info(`\n🚀 To resume, run:`);
+    logger.info(`   npm run dev -- --prd ${args.prd} --continue`);
     return 130; // SIGINT exit code
   }
 
   if (!result.success) {
     // Pipeline failed
-    console.log(`\n❌ Pipeline failed`);
+    logger.info(`\n❌ Pipeline failed`);
     if (result.error) {
-      console.log(`Error: ${result.error}`);
+      logger.info(`Error: ${result.error}`);
     }
-    console.log(`📊 Failed tasks: ${result.failedTasks}/${result.totalTasks}`);
-    console.log(`💾 Session: ${result.sessionPath}`);
+    logger.info(`📊 Failed tasks: ${result.failedTasks}/${result.totalTasks}`);
+    logger.info(`💾 Session: ${result.sessionPath}`);
     if (args.continue) {
-      console.log(`\n🚀 To retry, run:`);
-      console.log(`   npm run dev -- --prd ${args.prd} --continue`);
+      logger.info(`\n🚀 To retry, run:`);
+      logger.info(`   npm run dev -- --prd ${args.prd} --continue`);
     }
     return 1;
   }
 
   // Pipeline succeeded
-  console.log(`\n✅ Pipeline completed successfully`);
-  console.log(
+  logger.info(`\n✅ Pipeline completed successfully`);
+  logger.info(
     `📊 Tasks: ${result.completedTasks}/${result.totalTasks} completed`
   );
-  console.log(`⏱️  Duration: ${(result.duration / 1000).toFixed(1)}s`);
-  console.log(`💾 Session: ${result.sessionPath}`);
+  logger.info(`⏱️  Duration: ${(result.duration / 1000).toFixed(1)}s`);
+  logger.info(`💾 Session: ${result.sessionPath}`);
   if (result.bugsFound > 0) {
-    console.log(`🐛 Bugs found: ${result.bugsFound}`);
+    logger.info(`🐛 Bugs found: ${result.bugsFound}`);
   }
 
   return 0;

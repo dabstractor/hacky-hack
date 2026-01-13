@@ -12,6 +12,8 @@
 // CRITICAL: Import patterns - use .js extensions for ES modules
 import { createResearcherAgent } from './agent-factory.js';
 import { createPRPBlueprintPrompt } from './prompts/prp-blueprint-prompt.js';
+import { getLogger } from '../utils/logger.js';
+import type { Logger } from '../utils/logger.js';
 import type { Agent } from 'groundswell';
 import type { PRPDocument, Task, Subtask, Backlog } from '../core/models.js';
 import { PRPDocumentSchema } from '../core/models.js';
@@ -106,6 +108,9 @@ export class PRPFileError extends Error {
  * ```
  */
 export class PRPGenerator {
+  /** Logger instance for structured logging */
+  readonly #logger: Logger;
+
   /** Session manager for accessing session state and paths */
   readonly sessionManager: SessionManager;
 
@@ -127,6 +132,7 @@ export class PRPGenerator {
    * ```
    */
   constructor(sessionManager: SessionManager) {
+    this.#logger = getLogger('PRPGenerator');
     this.sessionManager = sessionManager;
 
     // Extract session path from current session
@@ -179,9 +185,9 @@ export class PRPGenerator {
         const prompt = createPRPBlueprintPrompt(task, backlog, process.cwd());
 
         // Step 2: Execute Researcher Agent
-        // eslint-disable-next-line no-console -- Intentional logging for retry tracking
-        console.log(
-          `Generating PRP for ${task.id} (attempt ${attempt + 1}/${maxRetries})...`
+        this.#logger.info(
+          { taskId: task.id, attempt: attempt + 1, maxRetries },
+          'Generating PRP'
         );
         const result = await this.#researcherAgent.prompt(prompt);
 
@@ -207,14 +213,14 @@ export class PRPGenerator {
         const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
 
         // Log retry attempt
-        // eslint-disable-next-line no-console -- Intentional logging for retry tracking
-        console.warn(
-          `PRP generation attempt ${attempt + 1} failed for ${task.id}. ` +
-            `Retrying in ${delay}ms...`
-        );
-        // eslint-disable-next-line no-console -- Intentional logging for retry tracking
-        console.warn(
-          `Error: ${error instanceof Error ? error.message : String(error)}`
+        this.#logger.warn(
+          {
+            taskId: task.id,
+            attempt: attempt + 1,
+            error: error instanceof Error ? error.message : String(error),
+            delay,
+          },
+          'PRP generation failed, retrying'
         );
 
         // Wait before retrying
@@ -258,8 +264,7 @@ export class PRPGenerator {
       // Write PRP file with proper permissions
       await writeFile(filePath, markdown, { mode: 0o644 });
 
-      // eslint-disable-next-line no-console -- Intentional logging for file write confirmation
-      console.log(`PRP written to: ${filePath}`);
+      this.#logger.info({ taskId: prp.taskId, filePath }, 'PRP written');
     } catch (error) {
       throw new PRPFileError(prp.taskId, filePath, error);
     }

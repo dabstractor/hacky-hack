@@ -8,13 +8,27 @@
  * @see {@link https://vitest.dev/guide/ | Vitest Documentation}
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the GitMCP functions that smartCommit uses
 vi.mock('../../../src/tools/git-mcp.js', () => ({
   gitStatus: vi.fn(),
   gitAdd: vi.fn(),
   gitCommit: vi.fn(),
+}));
+
+// Mock the logger with hoisted variables
+const { mockLogger } = vi.hoisted(() => ({
+  mockLogger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+vi.mock('../../../src/utils/logger.js', () => ({
+  getLogger: vi.fn(() => mockLogger),
 }));
 
 import { gitStatus, gitAdd, gitCommit } from '../../../src/tools/git-mcp.js';
@@ -32,6 +46,11 @@ describe('utils/git-commit', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
+    // Clear mock logger calls
+    mockLogger.info.mockClear();
+    mockLogger.error.mockClear();
+    mockLogger.warn.mockClear();
+    mockLogger.debug.mockClear();
   });
 
   describe('filterProtectedFiles', () => {
@@ -412,9 +431,6 @@ describe('utils/git-commit', () => {
     describe('logging behavior', () => {
       it('should log commit hash on success', async () => {
         // SETUP
-        const consoleLogSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
         mockGitStatus.mockResolvedValue({
           success: true,
           modified: ['src/index.ts'],
@@ -432,17 +448,11 @@ describe('utils/git-commit', () => {
         await smartCommit('/project', 'Test commit');
 
         // VERIFY
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-          '[smartCommit] Commit created: abc123'
-        );
-        consoleLogSpy.mockRestore();
+        expect(mockLogger.info).toHaveBeenCalledWith('Commit created: abc123');
       });
 
       it('should log when no files to commit', async () => {
         // SETUP
-        const consoleLogSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
         mockGitStatus.mockResolvedValue({
           success: true,
         });
@@ -451,49 +461,29 @@ describe('utils/git-commit', () => {
         await smartCommit('/project', 'Test commit');
 
         // VERIFY
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-          '[smartCommit] No files to commit after filtering protected files'
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'No files to commit after filtering protected files'
         );
-        consoleLogSpy.mockRestore();
       });
 
       it('should log error for invalid sessionPath', async () => {
-        // SETUP
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         // EXECUTE
         await smartCommit('', 'Test commit');
 
         // VERIFY
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[smartCommit] Invalid session path'
-        );
-        consoleErrorSpy.mockRestore();
+        expect(mockLogger.error).toHaveBeenCalledWith('Invalid session path');
       });
 
       it('should log error for invalid commit message', async () => {
-        // SETUP
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         // EXECUTE
         await smartCommit('/project', '');
 
         // VERIFY
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[smartCommit] Invalid commit message'
-        );
-        consoleErrorSpy.mockRestore();
+        expect(mockLogger.error).toHaveBeenCalledWith('Invalid commit message');
       });
 
       it('should log error for git status failure', async () => {
         // SETUP
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
         mockGitStatus.mockResolvedValue({
           success: false,
           error: 'Status failed',
@@ -503,10 +493,9 @@ describe('utils/git-commit', () => {
         await smartCommit('/project', 'Test commit');
 
         // VERIFY
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[smartCommit] Git status failed: Status failed'
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Git status failed: Status failed'
         );
-        consoleErrorSpy.mockRestore();
       });
     });
   });

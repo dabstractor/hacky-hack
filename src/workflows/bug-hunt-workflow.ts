@@ -25,6 +25,8 @@
 
 import { Workflow, Step } from 'groundswell';
 import type { Task, TestResults } from '../core/models.js';
+import type { Logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 import { createQAAgent } from '../agents/agent-factory.js';
 import { createBugHuntPrompt } from '../agents/prompts/bug-hunt-prompt.js';
 
@@ -55,6 +57,9 @@ export class BugHuntWorkflow extends Workflow {
   /** Generated test results (null until report phase completes) */
   testResults: TestResults | null = null;
 
+  /** Correlation logger with correlation ID for tracing */
+  private correlationLogger: Logger;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -83,7 +88,18 @@ export class BugHuntWorkflow extends Workflow {
     this.prdContent = prdContent;
     this.completedTasks = completedTasks;
 
+    // Create correlation logger with correlation ID
+    const correlationId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    this.correlationLogger = getLogger('BugHuntWorkflow').child({
+      correlationId,
+    });
+
     this.logger.info('[BugHuntWorkflow] Initialized', {
+      prdLength: prdContent.length,
+      tasksCount: completedTasks.length,
+    });
+    this.correlationLogger.info('[BugHuntWorkflow] Initialized', {
+      correlationId,
       prdLength: prdContent.length,
       tasksCount: completedTasks.length,
     });
@@ -289,6 +305,7 @@ export class BugHuntWorkflow extends Workflow {
    */
   async run(): Promise<TestResults> {
     this.setStatus('running');
+    this.correlationLogger.info('[BugHuntWorkflow] Starting bug hunt workflow');
     this.logger.info('[BugHuntWorkflow] Starting bug hunt workflow');
 
     try {

@@ -1219,7 +1219,7 @@ npm run lint
 - [ ] All logs include level field
 - [ ] All logs include context field
 - [ ] All logs include message field
-- [ ] Sensitive data redaction configured (password, token, api_key, secret, authorization, _.password, _.token)
+- [ ] Sensitive data redaction configured (password, token, api*key, secret, authorization, *.password, \_.token)
 - [ ] Pretty colored output used when `--machine-readable` is false (development)
 - [ ] JSON output used when `--machine-readable` is true
 - [ ] DEBUG level logs only shown when `--verbose` is true

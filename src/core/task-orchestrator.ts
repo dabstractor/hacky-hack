@@ -24,6 +24,8 @@
  */
 
 import type { SessionManager } from './session-manager.js';
+import { getLogger } from '../utils/logger.js';
+import type { Logger } from '../utils/logger.js';
 import type {
   Backlog,
   Phase,
@@ -58,6 +60,9 @@ import { PRPRuntime } from '../agents/prp-runtime.js';
  * Coder agent execution will be added in P3.M3.T1.
  */
 export class TaskOrchestrator {
+  /** Logger instance for structured logging */
+  readonly #logger: Logger;
+
   /** Session state manager for persistence */
   readonly sessionManager: SessionManager;
 
@@ -93,6 +98,7 @@ export class TaskOrchestrator {
    * The execution queue is populated by resolving the scope against the backlog.
    */
   constructor(sessionManager: SessionManager, scope?: Scope) {
+    this.#logger = getLogger('TaskOrchestrator');
     this.sessionManager = sessionManager;
 
     // Load initial backlog from session state
@@ -109,15 +115,11 @@ export class TaskOrchestrator {
 
     // Initialize ResearchQueue with concurrency limit of 3
     this.researchQueue = new ResearchQueue(this.sessionManager, 3);
-    // eslint-disable-next-line no-console -- Expected logging for initialization
-    console.log('[TaskOrchestrator] ResearchQueue initialized with maxSize=3');
+    this.#logger.debug({ maxSize: 3 }, 'ResearchQueue initialized');
 
     // Initialize PRPRuntime for execution
     this.#prpRuntime = new PRPRuntime(this);
-    // eslint-disable-next-line no-console -- Expected logging for initialization
-    console.log(
-      '[TaskOrchestrator] PRPRuntime initialized for subtask execution'
-    );
+    this.#logger.debug('PRPRuntime initialized for subtask execution');
   }
 
   /**
@@ -138,9 +140,9 @@ export class TaskOrchestrator {
     // Resolve scope to list of items
     const items = resolveScope(this.#backlog, scopeToResolve);
 
-    // Log queue size for visibility
-    console.log(
-      `[TaskOrchestrator] Execution queue built: ${items.length} items for scope ${JSON.stringify(scopeToResolve)}`
+    this.#logger.info(
+      { itemCount: items.length, scope: JSON.stringify(scopeToResolve) },
+      'Execution queue built'
     );
 
     return items;
@@ -198,15 +200,10 @@ export class TaskOrchestrator {
     const oldStatus = currentItem?.status ?? 'Unknown';
     const timestamp = new Date().toISOString();
 
-    // PATTERN: Log status transition with structured information
-    // Format includes: timestamp, itemId, oldStatus, newStatus, reason
-    const reasonStr = reason ? ` (${reason})` : '';
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Status: ${itemId} ${oldStatus} → ${status}${reasonStr}`
+    this.#logger.info(
+      { itemId, oldStatus, newStatus: status, timestamp, reason },
+      'Status transition'
     );
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(`[TaskOrchestrator] Timestamp: ${timestamp}`);
 
     // PATTERN: Persist status change through SessionManager
     // NOTE: reason is only for logging, not passed to SessionManager (API doesn't support it)
@@ -318,16 +315,17 @@ export class TaskOrchestrator {
 
       // Check if dependencies are complete
       if (this.canExecute(subtask)) {
-        console.log(
-          `[TaskOrchestrator] Dependencies complete for ${subtask.id}`
-        );
+        this.#logger.info({ subtaskId: subtask.id }, 'Dependencies complete');
         return;
       }
 
       // Log waiting status
       const blockers = this.getBlockingDependencies(subtask);
       const blockerIds = blockers.map(b => b.id).join(', ');
-      console.log(`[TaskOrchestrator] Waiting for dependencies: ${blockerIds}`);
+      this.#logger.debug(
+        { subtaskId: subtask.id, blockerIds },
+        'Waiting for dependencies'
+      );
 
       // Sleep for interval
       await new Promise(resolve => setTimeout(resolve, interval));
@@ -406,14 +404,15 @@ export class TaskOrchestrator {
       : 'undefined (all)';
     const newScope = JSON.stringify(scope);
 
-    console.log(`[TaskOrchestrator] Scope change: ${oldScope} → ${newScope}`);
+    this.#logger.info({ oldScope, newScope }, 'Scope change');
 
     // Store new scope and rebuild queue
     this.#scope = scope;
     this.#executionQueue = this.#buildQueue(scope);
 
-    console.log(
-      `[TaskOrchestrator] Execution queue rebuilt: ${this.#executionQueue.length} items`
+    this.#logger.info(
+      { queueSize: this.#executionQueue.length },
+      'Execution queue rebuilt'
     );
   }
 
@@ -467,15 +466,12 @@ export class TaskOrchestrator {
    */
   async executePhase(phase: Phase): Promise<void> {
     // PATTERN: Log before status update (NEW - adds visibility)
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Phase: ${phase.id} - Setting status to Implementing`
-    );
+    this.#logger.info({ phaseId: phase.id }, 'Setting status to Implementing');
 
     await this.#updateStatus(phase.id, 'Implementing');
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Executing Phase: ${phase.id} - ${phase.title}`
+    this.#logger.info(
+      { phaseId: phase.id, title: phase.title },
+      'Executing Phase'
     );
   }
 
@@ -492,15 +488,15 @@ export class TaskOrchestrator {
    */
   async executeMilestone(milestone: Milestone): Promise<void> {
     // PATTERN: Log before status update (NEW - adds visibility)
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Milestone: ${milestone.id} - Setting status to Implementing`
+    this.#logger.info(
+      { milestoneId: milestone.id },
+      'Setting status to Implementing'
     );
 
     await this.#updateStatus(milestone.id, 'Implementing');
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Executing Milestone: ${milestone.id} - ${milestone.title}`
+    this.#logger.info(
+      { milestoneId: milestone.id, title: milestone.title },
+      'Executing Milestone'
     );
   }
 
@@ -518,36 +514,34 @@ export class TaskOrchestrator {
    */
   async executeTask(task: Task): Promise<void> {
     // PATTERN: Log before status update (NEW - adds visibility)
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Task: ${task.id} - Setting status to Implementing`
-    );
+    this.#logger.info({ taskId: task.id }, 'Setting status to Implementing');
 
     await this.#updateStatus(task.id, 'Implementing');
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Executing Task: ${task.id} - ${task.title}`
-    );
+    this.#logger.info({ taskId: task.id, title: task.title }, 'Executing Task');
 
     // Enqueue all subtasks for parallel PRP generation
-    // eslint-disable-next-line no-console -- Expected logging for research queue
-    console.log(
-      `[TaskOrchestrator] Enqueuing ${task.subtasks.length} subtasks for parallel PRP generation`
+    this.#logger.info(
+      { taskId: task.id, subtaskCount: task.subtasks.length },
+      'Enqueuing subtasks for parallel PRP generation'
     );
 
     for (const subtask of task.subtasks) {
       await this.researchQueue.enqueue(subtask, this.#backlog);
-      // eslint-disable-next-line no-console -- Expected logging for research queue
-      console.log(
-        `[TaskOrchestrator] Enqueued ${subtask.id} for parallel research`
+      this.#logger.debug(
+        { taskId: task.id, subtaskId: subtask.id },
+        'Enqueued for parallel research'
       );
     }
 
     // Log queue statistics after enqueueing
     const stats = this.researchQueue.getStats();
-    // eslint-disable-next-line no-console -- Expected logging for research queue
-    console.log(
-      `[TaskOrchestrator] Research queue stats: ${stats.queued} queued, ${stats.researching} researching, ${stats.cached} cached`
+    this.#logger.debug(
+      {
+        queued: stats.queued,
+        researching: stats.researching,
+        cached: stats.cached,
+      },
+      'Research queue stats'
     );
   }
 
@@ -572,31 +566,31 @@ export class TaskOrchestrator {
    * Triggers background research for next tasks after starting execution.
    */
   async executeSubtask(subtask: Subtask): Promise<void> {
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Executing Subtask: ${subtask.id} - ${subtask.title}`
+    this.#logger.info(
+      { subtaskId: subtask.id, title: subtask.title },
+      'Executing Subtask'
     );
 
     // PATTERN: Set 'Researching' status at start
     await this.setStatus(subtask.id, 'Researching', 'Starting PRP generation');
-    // eslint-disable-next-line no-console -- Expected logging for status transitions
-    console.log(
-      `[TaskOrchestrator] Researching: ${subtask.id} - preparing PRP`
+    this.#logger.debug(
+      { subtaskId: subtask.id },
+      'Researching - preparing PRP'
     );
 
     // NEW: Check if PRP is cached in ResearchQueue
     const cachedPRP = this.researchQueue.getPRP(subtask.id);
     if (cachedPRP) {
       this.#cacheHits++;
-      // eslint-disable-next-line no-console -- Expected logging for cache hits
-      console.log(
-        `[TaskOrchestrator] Cache HIT: ${subtask.id} - using cached PRP`
+      this.#logger.debug(
+        { subtaskId: subtask.id },
+        'Cache HIT - using cached PRP'
       );
     } else {
       this.#cacheMisses++;
-      // eslint-disable-next-line no-console -- Expected logging for cache misses
-      console.log(
-        `[TaskOrchestrator] Cache MISS: ${subtask.id} - PRP will be generated by PRPRuntime`
+      this.#logger.debug(
+        { subtaskId: subtask.id },
+        'Cache MISS - PRP will be generated by PRPRuntime'
       );
     }
 
@@ -609,15 +603,20 @@ export class TaskOrchestrator {
 
       // PATTERN: Log each blocking dependency for clarity
       for (const blocker of blockers) {
-        // eslint-disable-next-line no-console -- Expected logging for dependency tracking
-        console.log(
-          `[TaskOrchestrator] Blocked on: ${blocker.id} - ${blocker.title} (status: ${blocker.status})`
+        this.#logger.info(
+          {
+            subtaskId: subtask.id,
+            blockerId: blocker.id,
+            blockerTitle: blocker.title,
+            blockerStatus: blocker.status,
+          },
+          'Blocked on dependency'
         );
       }
 
-      // eslint-disable-next-line no-console -- Expected logging for dependency tracking
-      console.log(
-        `[TaskOrchestrator] Subtask ${subtask.id} blocked on dependencies, skipping`
+      this.#logger.warn(
+        { subtaskId: subtask.id },
+        'Subtask blocked on dependencies, skipping'
       );
 
       // PATTERN: Return early without executing
@@ -630,9 +629,9 @@ export class TaskOrchestrator {
     // PATTERN: Wrap execution in try/catch for error handling
     try {
       // NEW: Use PRPRuntime for execution (handles PRP generation if cache miss)
-      // eslint-disable-next-line no-console -- Expected logging for execution
-      console.log(
-        `[TaskOrchestrator] Starting PRPRuntime execution for ${subtask.id}`
+      this.#logger.info(
+        { subtaskId: subtask.id },
+        'Starting PRPRuntime execution'
       );
 
       const result = await this.#prpRuntime.executeSubtask(
@@ -640,9 +639,9 @@ export class TaskOrchestrator {
         this.#backlog
       );
 
-      // eslint-disable-next-line no-console -- Expected logging for execution result
-      console.log(
-        `[TaskOrchestrator] PRPRuntime execution ${result.success ? 'succeeded' : 'failed'} for ${subtask.id}`
+      this.#logger.info(
+        { subtaskId: subtask.id, success: result.success },
+        'PRPRuntime execution complete'
       );
 
       // NEW: Trigger background research for next pending tasks
@@ -650,17 +649,21 @@ export class TaskOrchestrator {
       this.researchQueue.processNext(this.#backlog).catch(error => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        // eslint-disable-next-line no-console -- Expected error logging for background research
-        console.error(
-          `[TaskOrchestrator] Background research error: ${errorMessage}`
+        this.#logger.error(
+          { error: errorMessage },
+          'Background research error'
         );
       });
 
       // Log updated queue statistics
       const stats = this.researchQueue.getStats();
-      // eslint-disable-next-line no-console -- Expected logging for research queue
-      console.log(
-        `[TaskOrchestrator] Research queue stats: ${stats.queued} queued, ${stats.researching} researching, ${stats.cached} cached`
+      this.#logger.debug(
+        {
+          queued: stats.queued,
+          researching: stats.researching,
+          cached: stats.cached,
+        },
+        'Research queue stats'
       );
 
       // PATTERN: Set 'Complete' status on success
@@ -682,30 +685,22 @@ export class TaskOrchestrator {
       try {
         const sessionPath = this.sessionManager.currentSession?.metadata.path;
         if (!sessionPath) {
-          // eslint-disable-next-line no-console -- Expected logging for commit operations
-          console.warn(
-            '[TaskOrchestrator] Session path not available for smart commit'
-          );
+          this.#logger.warn('Session path not available for smart commit');
         } else {
           const commitMessage = `${subtask.id}: ${subtask.title}`;
           const commitHash = await smartCommit(sessionPath, commitMessage);
 
           if (commitHash) {
-            // eslint-disable-next-line no-console -- Expected logging for commit operations
-            console.log(`[TaskOrchestrator] Commit created: ${commitHash}`);
+            this.#logger.info({ commitHash }, 'Commit created');
           } else {
-            // eslint-disable-next-line no-console -- Expected logging for commit operations
-            console.log('[TaskOrchestrator] No files to commit');
+            this.#logger.info('No files to commit');
           }
         }
       } catch (error) {
         // Don't fail the subtask if commit fails
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        // eslint-disable-next-line no-console -- Expected error logging for debugging
-        console.error(
-          `[TaskOrchestrator] Smart commit failed: ${errorMessage}`
-        );
+        this.#logger.error({ error: errorMessage }, 'Smart commit failed');
       }
     } catch (error) {
       // PATTERN: Set 'Failed' status on exception with error details
@@ -718,14 +713,14 @@ export class TaskOrchestrator {
       );
 
       // PATTERN: Log error with context for debugging
-      // eslint-disable-next-line no-console -- Expected error logging for debugging
-      console.error(
-        `[TaskOrchestrator] ERROR: ${subtask.id} failed: ${errorMessage}`
+      this.#logger.error(
+        {
+          subtaskId: subtask.id,
+          error: errorMessage,
+          ...(error instanceof Error && { stack: error.stack }),
+        },
+        'Subtask execution failed'
       );
-      if (error instanceof Error && error.stack) {
-        // eslint-disable-next-line no-console -- Expected error logging for debugging
-        console.error(`[TaskOrchestrator] Stack trace: ${error.stack}`);
-      }
 
       // PATTERN: Re-throw error for upstream handling
       throw error;
@@ -745,9 +740,13 @@ export class TaskOrchestrator {
     const total = this.#cacheHits + this.#cacheMisses;
     const hitRatio = total > 0 ? (this.#cacheHits / total) * 100 : 0;
 
-    // eslint-disable-next-line no-console -- Expected logging for cache metrics
-    console.log(
-      `[TaskOrchestrator] Cache metrics: ${this.#cacheHits} hits, ${this.#cacheMisses} misses, ${hitRatio.toFixed(1)}% hit ratio`
+    this.#logger.debug(
+      {
+        hits: this.#cacheHits,
+        misses: this.#cacheMisses,
+        hitRatio: hitRatio.toFixed(1),
+      },
+      'Cache metrics'
     );
   }
 
@@ -784,9 +783,7 @@ export class TaskOrchestrator {
   async processNextItem(): Promise<boolean> {
     // 1. Check if execution queue has items
     if (this.#executionQueue.length === 0) {
-      console.log(
-        '[TaskOrchestrator] Execution queue empty - processing complete'
-      );
+      this.#logger.info('Execution queue empty - processing complete');
       return false;
     }
 
@@ -795,8 +792,9 @@ export class TaskOrchestrator {
     // Non-null assertion safe: we checked length > 0 above
 
     // 3. Log item being processed
-    console.log(
-      `[TaskOrchestrator] Processing: ${nextItem.id} (${nextItem.type})`
+    this.#logger.info(
+      { itemId: nextItem.id, type: nextItem.type },
+      'Processing'
     );
 
     // 4. Delegate to type-specific handler
