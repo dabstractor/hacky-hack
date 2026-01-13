@@ -362,7 +362,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Create Zod schema for backlog output",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S4"
