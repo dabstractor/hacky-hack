@@ -133,7 +133,7 @@ async function main(): Promise<number> {
   if (args.verbose) {
     console.error('[Entry] Creating PRPPipeline instance');
   }
-  const pipeline = new PRPPipeline(args.prd, scope);
+  const pipeline = new PRPPipeline(args.prd, scope, args.mode);
 
   // Run pipeline
   if (args.verbose) {

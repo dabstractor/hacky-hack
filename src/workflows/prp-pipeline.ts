@@ -27,11 +27,13 @@ import { readFile } from 'node:fs/promises';
 import type { SessionManager } from '../core/session-manager.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
 import type { PRPRuntime } from '../agents/prp-runtime.js';
-import type { Backlog, Status, DeltaAnalysis } from '../core/models.js';
+import type { Backlog, Status, DeltaAnalysis, Task } from '../core/models.js';
 import type { Scope } from '../core/scope-resolver.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
 import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
+import { BugHuntWorkflow } from './bug-hunt-workflow.js';
+import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
 
@@ -112,6 +114,9 @@ export class PRPPipeline extends Workflow {
   /** Current pipeline phase */
   currentPhase: string = 'init';
 
+  /** Pipeline execution mode */
+  mode: 'normal' | 'bug-hunt' | 'validate' = 'normal';
+
   /** Total number of subtasks in backlog */
   totalTasks: number = 0;
 
@@ -161,9 +166,14 @@ export class PRPPipeline extends Workflow {
    *
    * @param prdPath - Path to PRD markdown file
    * @param scope - Optional scope to limit execution
+   * @param mode - Execution mode: 'normal', 'bug-hunt', or 'validate' (default: 'normal')
    * @throws {Error} If prdPath is empty
    */
-  constructor(prdPath: string, scope?: Scope) {
+  constructor(
+    prdPath: string,
+    scope?: Scope,
+    mode?: 'normal' | 'bug-hunt' | 'validate'
+  ) {
     super('PRPPipeline');
 
     if (!prdPath || prdPath.trim() === '') {
@@ -172,6 +182,7 @@ export class PRPPipeline extends Workflow {
 
     this.#prdPath = prdPath;
     this.#scope = scope;
+    this.mode = mode ?? 'normal';
 
     // SessionManager will be created in run() to catch initialization errors
     this.sessionManager = null as any;
@@ -557,45 +568,300 @@ export class PRPPipeline extends Workflow {
    * Run QA bug hunt cycle
    *
    * @remarks
-   * If all tasks are Complete (no Failed or Planned), runs QA agent
-   * to perform bug hunt. Currently logs intent - actual QA integration
-   * is in P4.M3.
+   * Behavior based on mode:
+   * - 'bug-hunt': Run QA immediately regardless of task status
+   * - 'validate': Skip QA (validation-only mode)
+   * - 'normal': Run QA only if all tasks are Complete
+   *
+   * QA flow:
+   * 1. Run BugHuntWorkflow to detect bugs
+   * 2. If bugs found, run FixCycleWorkflow to fix them
+   * 3. Write TEST_RESULTS.md if bugs remain
+   * 4. Print QA summary to console
    */
   async runQACycle(): Promise<void> {
     this.logger.info('[PRPPipeline] QA Cycle');
 
     try {
-      // Check if all tasks are complete
-      if (!this.#allTasksComplete()) {
-        const failedCount = this.#countFailedTasks();
-        const plannedCount =
-          this.totalTasks - this.completedTasks - failedCount;
+      // ============================================================
+      // Decision: Run QA or skip based on mode
+      // ============================================================
 
-        this.logger.info('[PRPPipeline] Not all tasks complete, skipping QA');
+      let shouldRunQA = false;
+
+      if (this.mode === 'bug-hunt') {
+        // Bug-hunt mode: run QA immediately
         this.logger.info(
-          `[PRPPipeline] Failed: ${failedCount}, Planned: ${plannedCount}`
+          '[PRPPipeline] Bug-hunt mode: running QA regardless of task status'
         );
+        shouldRunQA = true;
+      } else if (this.mode === 'validate') {
+        // Validate mode: skip QA
+        this.logger.info('[PRPPipeline] Validate mode: skipping QA cycle');
+        this.#bugsFound = 0;
+        this.currentPhase = 'qa_skipped';
+        return;
+      } else {
+        // Normal mode: check if all tasks are complete
+        if (!this.#allTasksComplete()) {
+          const failedCount = this.#countFailedTasks();
+          const plannedCount =
+            this.totalTasks - this.completedTasks - failedCount;
 
+          this.logger.info('[PRPPipeline] Not all tasks complete, skipping QA');
+          this.logger.info(
+            `[PRPPipeline] Failed: ${failedCount}, Planned: ${plannedCount}`
+          );
+
+          this.#bugsFound = 0;
+          this.currentPhase = 'qa_skipped';
+          return;
+        }
+        shouldRunQA = true;
+      }
+
+      if (!shouldRunQA) {
         this.#bugsFound = 0;
         this.currentPhase = 'qa_skipped';
         return;
       }
 
+      // ============================================================
+      // Phase 1: Bug Hunt
+      // ============================================================
+
       this.logger.info('[PRPPipeline] All tasks complete, running QA bug hunt');
 
-      // TODO: Integrate QA agent (P4.M3.T1)
-      // For now, just log and continue
-      this.logger.info('[PRPPipeline] QA integration pending (P4.M3.T1)');
+      const prdContent = this.sessionManager.currentSession?.prdSnapshot ?? '';
+      const completedTasks = this.#extractCompletedTasks();
 
-      this.#bugsFound = 0;
+      this.logger.info(
+        `[PRPPipeline] Testing against ${completedTasks.length} completed tasks`
+      );
 
+      const bugHuntWorkflow = new BugHuntWorkflow(prdContent, completedTasks);
+      const testResults = await bugHuntWorkflow.run();
+
+      // Log initial test results
+      this.logger.info('[PRPPipeline] Bug hunt complete', {
+        hasBugs: testResults.hasBugs,
+        bugCount: testResults.bugs.length,
+        summary: testResults.summary,
+      });
+
+      // ============================================================
+      // Phase 2: Fix Cycle (if bugs found)
+      // ============================================================
+
+      let finalResults = testResults;
+
+      if (testResults.hasBugs) {
+        this.logger.info('[PRPPipeline] Bugs detected, starting fix cycle');
+
+        try {
+          const fixCycleWorkflow = new FixCycleWorkflow(
+            testResults,
+            prdContent,
+            this.taskOrchestrator,
+            this.sessionManager
+          );
+
+          const fixResults = await fixCycleWorkflow.run();
+
+          // Log fix cycle results
+          const bugsRemaining = fixResults.bugs.length;
+          const bugsFixed = testResults.bugs.length - bugsRemaining;
+
+          this.logger.info('[PRPPipeline] Fix cycle complete', {
+            bugsFixed,
+            bugsRemaining,
+            hasBugs: fixResults.hasBugs,
+          });
+
+          finalResults = fixResults;
+
+          // Warning if bugs remain after fix cycle
+          if (bugsRemaining > 0) {
+            this.logger.warn(
+              `[PRPPipeline] Fix cycle completed with ${bugsRemaining} bugs remaining`
+            );
+          }
+        } catch (fixError) {
+          // Fix cycle failure - log but use original test results
+          const errorMessage =
+            fixError instanceof Error ? fixError.message : String(fixError);
+          this.logger.warn(
+            `[PRPPipeline] Fix cycle failed (continuing with original results): ${errorMessage}`
+          );
+          // Keep original testResults as finalResults
+        }
+      }
+
+      // ============================================================
+      // Phase 3: Update state
+      // ============================================================
+
+      this.#bugsFound = finalResults.bugs.length;
       this.currentPhase = 'qa_complete';
+
+      // ============================================================
+      // Phase 4: Write TEST_RESULTS.md (if bugs found)
+      // ============================================================
+
+      if (finalResults.bugs.length > 0) {
+        const sessionPath = this.sessionManager.currentSession?.metadata.path;
+        if (sessionPath) {
+          const { resolve } = await import('node:path');
+          const { writeFile } = await import('node:fs/promises');
+
+          const resultsPath = resolve(sessionPath, 'TEST_RESULTS.md');
+
+          // Generate markdown content
+          const criticalBugs = finalResults.bugs.filter(
+            b => b.severity === 'critical'
+          );
+          const majorBugs = finalResults.bugs.filter(
+            b => b.severity === 'major'
+          );
+          const minorBugs = finalResults.bugs.filter(
+            b => b.severity === 'minor'
+          );
+          const cosmeticBugs = finalResults.bugs.filter(
+            b => b.severity === 'cosmetic'
+          );
+
+          const content = `# QA Test Results
+
+**Generated**: ${new Date().toISOString()}
+**Mode**: ${this.mode}
+**Total Bugs**: ${finalResults.bugs.length}
+
+## Summary
+
+${finalResults.summary}
+
+## Bug Breakdown
+
+| Severity | Count |
+|----------|-------|
+| 🔴 Critical | ${criticalBugs.length} |
+| 🟠 Major | ${majorBugs.length} |
+| 🟡 Minor | ${minorBugs.length} |
+| ⚪ Cosmetic | ${cosmeticBugs.length} |
+
+## Bug Details
+
+${finalResults.bugs
+  .map(
+    (bug, index) => `
+### ${index + 1}. ${bug.title}
+
+**Severity**: ${bug.severity}
+**ID**: ${bug.id}
+
+${bug.description}
+
+**Reproduction**:
+${bug.reproduction}
+
+${bug.location ? `**Location**: ${bug.location}` : ''}
+`
+  )
+  .join('\n')}
+
+## Recommendations
+
+${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
+`;
+
+          await writeFile(resultsPath, content, 'utf-8');
+          this.logger.info(
+            `[PRPPipeline] TEST_RESULTS.md written to ${resultsPath}`
+          );
+        }
+      }
+
+      // ============================================================
+      // Phase 5: Print console summary
+      // ============================================================
+
+      console.log('\n' + '='.repeat(60));
+      console.log('🐛 QA Summary');
+      console.log('='.repeat(60));
+
+      if (finalResults.bugs.length === 0) {
+        console.log('✅ No bugs found - all tests passed!');
+      } else {
+        console.log(`📊 Total bugs found: ${finalResults.bugs.length}`);
+
+        const criticalCount = finalResults.bugs.filter(
+          b => b.severity === 'critical'
+        ).length;
+        const majorCount = finalResults.bugs.filter(
+          b => b.severity === 'major'
+        ).length;
+        const minorCount = finalResults.bugs.filter(
+          b => b.severity === 'minor'
+        ).length;
+        const cosmeticCount = finalResults.bugs.filter(
+          b => b.severity === 'cosmetic'
+        ).length;
+
+        console.log(`  🔴 Critical: ${criticalCount}`);
+        console.log(`  🟠 Major: ${majorCount}`);
+        console.log(`  🟡 Minor: ${minorCount}`);
+        console.log(`  ⚪ Cosmetic: ${cosmeticCount}`);
+
+        console.log(`\n${finalResults.summary}`);
+
+        if (criticalCount > 0 || majorCount > 0) {
+          console.log(
+            '\n⚠️  Critical or major bugs detected - manual review recommended'
+          );
+        }
+
+        const sessionPath = this.sessionManager.currentSession?.metadata.path;
+        if (sessionPath) {
+          console.log(`\n📄 Detailed results: ${sessionPath}/TEST_RESULTS.md`);
+        }
+      }
+
+      console.log('='.repeat(60) + '\n');
+
       this.logger.info('[PRPPipeline] QA cycle complete');
     } catch (error) {
       // QA failure is non-fatal - log and continue
       this.logger.warn(`[PRPPipeline] QA cycle failed (non-fatal): ${error}`);
       this.#bugsFound = 0;
+      this.currentPhase = 'qa_failed';
     }
+  }
+
+  /**
+   * Extract completed tasks from session backlog
+   *
+   * @returns Array of completed Task objects
+   * @private
+   */
+  #extractCompletedTasks(): Task[] {
+    const backlog = this.sessionManager.currentSession?.taskRegistry;
+    if (!backlog) {
+      return [];
+    }
+
+    const completedTasks: Task[] = [];
+
+    for (const phase of backlog.backlog) {
+      for (const milestone of phase.milestones) {
+        for (const task of milestone.tasks) {
+          if (task.status === 'Complete') {
+            completedTasks.push(task);
+          }
+        }
+      }
+    }
+
+    return completedTasks;
   }
 
   /**

@@ -58,6 +58,30 @@ vi.mock('../../../src/workflows/delta-analysis-workflow.js', () => ({
   })),
 }));
 
+// Mock BugHuntWorkflow
+vi.mock('../../../src/workflows/bug-hunt-workflow.js', () => ({
+  BugHuntWorkflow: vi.fn().mockImplementation(() => ({
+    run: vi.fn().mockResolvedValue({
+      hasBugs: false,
+      bugs: [],
+      summary: 'No bugs found',
+      recommendations: [],
+    }),
+  })),
+}));
+
+// Mock FixCycleWorkflow
+vi.mock('../../../src/workflows/fix-cycle-workflow.js', () => ({
+  FixCycleWorkflow: vi.fn().mockImplementation(() => ({
+    run: vi.fn().mockResolvedValue({
+      hasBugs: false,
+      bugs: [],
+      summary: 'All bugs fixed',
+      recommendations: [],
+    }),
+  })),
+}));
+
 // Mock TaskPatcher
 vi.mock('../../../src/core/task-patcher.js', () => ({
   patchBacklog: vi.fn().mockImplementation((backlog: Backlog) => backlog),

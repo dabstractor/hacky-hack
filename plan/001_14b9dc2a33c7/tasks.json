@@ -897,14 +897,14 @@
           "type": "Milestone",
           "id": "P4.M3",
           "title": "Milestone 4.3: QA and Bug Hunt System",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Implement the creative bug hunting workflow and fix cycle.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M3.T1",
               "title": "Implement QA Bug Hunt Workflow",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create the adversarial QA workflow that hunts for bugs after all tasks complete.",
               "subtasks": [
                 {
@@ -931,7 +931,7 @@
                   "type": "Subtask",
                   "id": "P4.M3.T1.S3",
                   "title": "Integrate QA with main pipeline",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P4.M3.T1.S2"
@@ -960,7 +960,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T1.S1",
                   "title": "Test task hierarchy models and utilities",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From P1.M2 - Task models, Zod schemas, task-utils need comprehensive testing.\n2. INPUT: src/core/models.ts, src/core/task-utils.ts.\n3. LOGIC: Create tests/unit/models.test.ts:\n   - Test BacklogSchema validates correct structure\n   - Test BacklogSchema rejects invalid story_points (not 0.5, 1, 2)\n   - Test findItem() locates items by ID at any hierarchy level\n   - Test getDependencies() resolves dependency strings to objects\n   - Test filterByStatus() returns correct items\n   - Test getNextPendingItem() depth-first order\n   - Test updateItemStatus() creates immutable copy\n   - Use Jest or Vitest with mocking for file operations\n4. OUTPUT: Comprehensive unit tests with >80% coverage."
