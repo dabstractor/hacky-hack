@@ -490,7 +490,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Milestone 3.1: Session Manager",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Implement session lifecycle management including PRD hashing, directory creation, and state persistence.",
           "tasks": [
             {
@@ -537,7 +537,7 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Implement PRD Snapshot and Diffing",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Create functionality to snapshot PRD state and detect changes for delta sessions.",
               "subtasks": [
                 {
@@ -566,7 +566,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S3",
                   "title": "Create delta session initialization",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M1.T2.S2"
