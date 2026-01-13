@@ -239,7 +239,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Phase 2: Core Agent System",
-      "status": "Planned",
+      "status": "Complete",
       "description": "Implement the Agent Runtime and Groundswell integration. This phase creates the agent factory, prompt templates, and MCP tools that power the four engine personas.",
       "milestones": [
         {
@@ -348,7 +348,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Milestone 2.2: Prompt System",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Port the critical system prompts to Groundswell Prompt objects with Zod schemas for structured output.",
           "tasks": [
             {
@@ -448,7 +448,7 @@
               "type": "Task",
               "id": "P2.M2.T4",
               "title": "Create QA Bug Hunt Prompts",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Port the Creative Bug Finding prompt for adversarial QA testing.",
               "subtasks": [
                 {
@@ -466,7 +466,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T4.S2",
                   "title": "Create bug hunt prompt generator",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T4.S1"
