@@ -2519,9 +2519,7 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi
-        .spyOn(console, 'log')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
@@ -2538,7 +2536,9 @@ describe('TaskOrchestrator', () => {
 
       // VERIFY: Error message was logged (reason parameter is for logging only)
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Execution failed: Network timeout during PRP generation')
+        expect.stringContaining(
+          'Execution failed: Network timeout during PRP generation'
+        )
       );
 
       consoleSpy.mockRestore();
@@ -2661,9 +2661,7 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi
-        .spyOn(console, 'log')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE & VERIFY: Should handle string error
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
