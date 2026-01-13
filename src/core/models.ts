@@ -985,7 +985,7 @@ export interface ValidationGate {
 export const ValidationGateSchema: z.ZodType<ValidationGate> = z.object({
   level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   description: z.string().min(1, 'Description is required'),
-  command: z.union([z.string(), z.null()]),
+  command: z.string().nullable(),
   manual: z.boolean(),
 });
 

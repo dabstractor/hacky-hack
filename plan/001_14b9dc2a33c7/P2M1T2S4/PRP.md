@@ -9,6 +9,7 @@
 **Deliverable**: Updated `src/agents/agent-factory.ts` where all persona-specific agent creators (createArchitectAgent, createResearcherAgent, createCoderAgent, createQAAgent) receive MCP tool instances and pass them to `createAgent()` via the `mcps` configuration option.
 
 **Success Definition**:
+
 - All agent creators in agent-factory.ts instantiate or reference singleton BashMCP, FilesystemMCP, and GitMCP instances
 - The `createAgent()` calls include the `mcps` array parameter with all three MCP instances
 - Unit tests verify that agent configurations include the expected MCP tools
@@ -57,6 +58,7 @@
 **No Prior Knowledge Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: Yes - this PRP provides:
+
 - Exact file paths and imports needed
 - Complete code patterns to follow from existing code
 - Specific Groundswell API usage with mcps parameter
@@ -197,6 +199,7 @@ src/
 ### Data Models and Structure
 
 No new data models required. Using existing types:
+
 - `Agent` type from Groundswell (return type of createAgent)
 - `MCPHandler` base class from Groundswell (parent of BashMCP, FilesystemMCP, GitMCP)
 - `AgentPersona` union type (already defined in agent-factory.ts)
@@ -352,9 +355,9 @@ Task 8: EXPORT MCP_TOOLS for external use (optional)
 // CRITICAL: Create instances ONCE at module load time
 // Gotcha: Don't create new instances inside each agent creator (wasteful)
 
-const BASH_MCP = new BashMCP();        // Singleton - one instance
-const FILESYSTEM_MCP = new FilesystemMCP();  // Singleton - one instance
-const GIT_MCP = new GitMCP();          // Singleton - one instance
+const BASH_MCP = new BashMCP(); // Singleton - one instance
+const FILESYSTEM_MCP = new FilesystemMCP(); // Singleton - one instance
+const GIT_MCP = new GitMCP(); // Singleton - one instance
 
 // Pattern 2: Combined MCP array for agent config
 // CRITICAL: Use 'as const' for readonly array
@@ -369,9 +372,9 @@ const MCP_TOOLS = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP] as const;
 export function createCoderAgent(): Agent {
   const baseConfig = createBaseConfig('coder');
   const config = {
-    ...baseConfig,        // Spread existing config
+    ...baseConfig, // Spread existing config
     system: PRP_BUILDER_PROMPT,
-    mcps: MCP_TOOLS,      // Add MCP tools
+    mcps: MCP_TOOLS, // Add MCP tools
   };
   return createAgent(config);
 }
@@ -571,6 +574,7 @@ node /tmp/test-mcp-integration.mjs
 **Rating: 9/10** for one-pass implementation success likelihood
 
 **Reasoning**:
+
 - Clear, specific implementation tasks with exact line numbers
 - Complete code examples for all modifications
 - Comprehensive validation commands

@@ -1,6 +1,7 @@
 # BacklogSchema Analysis
 
 ## Source
+
 - **File**: `src/core/models.ts` (lines 549-629)
 - **Related**: `PhaseSchema`, `MilestoneSchema`, `TaskSchema`, `SubtaskSchema`, `StatusEnum`, `ItemTypeEnum`
 
@@ -15,6 +16,7 @@ export const BacklogSchema: z.ZodType<Backlog> = z.object({
 ## Key Dependencies
 
 ### PhaseSchema (Recursive)
+
 ```typescript
 export const PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
   z.object({
@@ -29,6 +31,7 @@ export const PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
 ```
 
 ### StatusEnum
+
 ```typescript
 export const StatusEnum = z.enum([
   'Planned',
@@ -41,6 +44,7 @@ export const StatusEnum = z.enum([
 ```
 
 ### ItemTypeEnum
+
 ```typescript
 export const ItemTypeEnum = z.enum(['Phase', 'Milestone', 'Task', 'Subtask']);
 ```

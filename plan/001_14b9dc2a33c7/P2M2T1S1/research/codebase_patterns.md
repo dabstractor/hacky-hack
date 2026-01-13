@@ -1,6 +1,7 @@
 # Existing Codebase Patterns for Prompt Creation
 
 ## Current State
+
 The codebase does **not** currently use `createPrompt()`. It uses string constants directly.
 
 ## Existing Pattern (src/agents/prompts.ts)
@@ -21,7 +22,7 @@ export function createArchitectAgent(): Agent {
   const baseConfig = createBaseConfig('architect');
   const config = {
     ...baseConfig,
-    system: TASK_BREAKDOWN_PROMPT,  // Using string constant
+    system: TASK_BREAKDOWN_PROMPT, // Using string constant
     mcps: MCP_TOOLS,
   };
   return createAgent(config);
@@ -43,7 +44,7 @@ export function createArchitectPrompt(prdContent: string): Prompt {
     user: prdContent,
     system: TASK_BREAKDOWN_PROMPT,
     responseFormat: BacklogSchema,
-    enableReflection: true,  // Enable for complex decomposition
+    enableReflection: true, // Enable for complex decomposition
   });
 }
 ```
@@ -59,11 +60,13 @@ src/agents/
 ```
 
 ## Naming Conventions
+
 - File names: `kebab-case.ts` (e.g., `architect-prompt.ts`)
 - Function names: `camelCase` (e.g., `createArchitectPrompt`)
 - Export functions as named exports
 
 ## Import Patterns
+
 - Groundswell: `import { createPrompt, type Prompt } from 'groundswell';`
 - Zod: `import { z } from 'zod';`
 - Models: `import { BacklogSchema } from '../../core/models.js';`

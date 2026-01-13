@@ -9,6 +9,7 @@
 **Deliverable**: `src/agents/prompts/architect-prompt.ts` module exporting `createArchitectPrompt()` function that returns a Groundswell `Prompt` object with `BacklogSchema` as the `responseFormat`.
 
 **Success Definition**:
+
 - Function `createArchitectPrompt(prdContent: string): Prompt` is exported
 - The returned Prompt uses `BacklogSchema` for `responseFormat`
 - The returned Prompt uses `TASK_BREAKDOWN_PROMPT` for the `system` prompt
@@ -54,6 +55,7 @@ Create a new module `src/agents/prompts/architect-prompt.ts` that exports a func
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Yes** - This PRP provides:
+
 - Exact file structure and location for the new module
 - Complete import patterns with specific paths
 - The full `createPrompt` API signature from Groundswell
@@ -180,6 +182,7 @@ src/
 ### Data Models and Structure
 
 No new data models are required. This PRP uses existing models:
+
 - `BacklogSchema` from `src/core/models.ts`
 - `Prompt` type from `groundswell`
 
@@ -220,7 +223,7 @@ Task 5: VERIFY function can be imported
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 /**
  * Architect prompt generator module
  *
@@ -294,7 +297,7 @@ export function createArchitectPrompt(prdContent: string): Prompt {
 
 // PATTERN: Export type for convenience (optional but helpful)
 export type { Prompt } from 'groundswell';
-```
+````
 
 ### Integration Points
 
