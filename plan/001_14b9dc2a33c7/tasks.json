@@ -803,7 +803,7 @@
       "type": "Phase",
       "id": "P4",
       "title": "Phase 4: Advanced Features & QA",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Implement delta sessions, parallel research, QA bug hunting, and comprehensive testing.",
       "milestones": [
         {
@@ -946,7 +946,7 @@
           "type": "Milestone",
           "id": "P4.M4",
           "title": "Milestone 4.4: Comprehensive Testing",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Create comprehensive test suite for all pipeline components.",
           "tasks": [
             {
@@ -1013,7 +1013,7 @@
               "type": "Task",
               "id": "P4.M4.T3",
               "title": "End-to-End Pipeline Testing",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create integration tests that run the full pipeline on sample PRDs.",
               "subtasks": [
                 {
@@ -1031,7 +1031,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T3.S2",
                   "title": "Create E2E pipeline test",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T3.S1"
@@ -1042,7 +1042,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T3.S3",
                   "title": "Create delta session E2E test",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T3.S2"
