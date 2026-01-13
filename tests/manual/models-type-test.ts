@@ -9,16 +9,16 @@ import {
 } from '../../src/core/models.js';
 
 // Verify Status type works
-const status1: Status = 'Planned';
-const status2: Status = 'Complete';
+const _status1: Status = 'Planned';
+const _status2: Status = 'Complete';
 // @ts-expect-error - Invalid status should error
-const status3: Status = 'Invalid';
+const _status3: Status = 'Invalid';
 
 // Verify ItemType type works
-const type1: ItemType = 'Subtask';
-const type2: ItemType = 'Phase';
+const _type1: ItemType = 'Subtask';
+const _type2: ItemType = 'Phase';
 // @ts-expect-error - Invalid type should error
-const type3: ItemType = 'Invalid';
+const _type3: ItemType = 'Invalid';
 
 // Verify Subtask interface
 const subtask: Subtask = {

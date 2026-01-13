@@ -879,3 +879,458 @@ export interface DeltaSession extends SessionState {
    */
   readonly diffSummary: string;
 }
+
+/**
+ * Represents a single validation level in the PRP validation system
+ *
+ * @remarks
+ * PRPs use a 4-level progressive validation system:
+ * - Level 1: Syntax & Style (linting, type checking)
+ * - Level 2: Unit Tests (component validation)
+ * - Level 3: Integration Testing (system validation)
+ * - Level 4: Manual/Creative Validation (end-to-end workflows)
+ *
+ * Each level must pass before proceeding to the next. The `command` field
+ * contains the shell command to run for automated validation levels, while
+ * `manual` indicates whether the level requires human intervention.
+ *
+ * @see {@link ../../PROMPTS.md | PROMPTS.md PRP Template: Validation Loop section}
+ *
+ * @example
+ * ```typescript
+ * import { ValidationGate } from './core/models.js';
+ *
+ * const level1Gate: ValidationGate = {
+ *   level: 1,
+ *   description: 'Syntax & Style validation',
+ *   command: 'ruff check src/ --fix && mypy src/',
+ *   manual: false,
+ * };
+ *
+ * const level4Gate: ValidationGate = {
+ *   level: 4,
+ *   description: 'Manual end-to-end testing',
+ *   command: null,
+ *   manual: true,
+ * };
+ * ```
+ */
+export interface ValidationGate {
+  /**
+   * Validation level in the progressive system (1-4)
+   *
+   * @remarks
+   * Each level represents a distinct validation gate:
+   * - 1: Syntax & Style (linting, formatting, type checking)
+   * - 2: Unit Tests (component-level validation)
+   * - 3: Integration Testing (system-level validation)
+   * - 4: Manual/Creative (end-to-end workflows, domain-specific)
+   */
+  readonly level: 1 | 2 | 3 | 4;
+
+  /**
+   * Human-readable description of what this level validates
+   *
+   * @remarks
+   * Provides context for developers executing the PRP about what
+   * aspect of the implementation is being validated at this level.
+   */
+  readonly description: string;
+
+  /**
+   * Bash command to run for this validation level
+   *
+   * @remarks
+   * Contains the shell command for automated validation. Set to `null`
+   * for manual validation levels (typically level 4) that require human
+   * judgment or creative validation.
+   *
+   * @nullable true
+   * @example 'ruff check src/ --fix && npm run type-check'
+   */
+  readonly command: string | null;
+
+  /**
+   * Whether this validation requires manual intervention
+   *
+   * @remarks
+   * Set to `true` for validation levels that require human judgment,
+   * such as end-to-end testing, code review, or creative validation.
+   * Automated levels (1-3) should be `false`.
+   */
+  readonly manual: boolean;
+}
+
+/**
+ * Zod schema for ValidationGate interface validation
+ *
+ * @remarks
+ * Validates that an object conforms to the ValidationGate interface structure.
+ * Enforces that level is one of the four valid literal values (1-4) and that
+ * command is either a string or null (not undefined).
+ *
+ * @example
+ * ```typescript
+ * import { ValidationGateSchema } from './core/models.js';
+ *
+ * const result = ValidationGateSchema.safeParse({
+ *   level: 1,
+ *   description: 'Test',
+ *   command: 'npm test',
+ *   manual: false,
+ * });
+ * // result.success === true
+ * ```
+ */
+export const ValidationGateSchema: z.ZodType<ValidationGate> = z.object({
+  level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  description: z.string().min(1, 'Description is required'),
+  command: z.union([z.string(), z.null()]),
+  manual: z.boolean(),
+});
+
+/**
+ * Represents a single success criterion checkbox from the PRP "What" section
+ *
+ * @remarks
+ * Success criteria are measurable outcomes that define completion of a PRP.
+ * Each criterion has a description and a satisfied boolean that tracks
+ * whether the criterion has been met during implementation.
+ *
+ * These criteria are used in the Final Validation Checklist to verify
+ * that all success conditions from the "What" section have been satisfied.
+ *
+ * @see {@link ../../PROMPTS.md | PROMPTS.md PRP Template: Success Criteria section}
+ *
+ * @example
+ * ```typescript
+ * import { SuccessCriterion } from './core/models.js';
+ *
+ * const criterion: SuccessCriterion = {
+ *   description: 'All four interfaces added to src/core/models.ts',
+ *   satisfied: false,
+ * };
+ *
+ * // After implementation completes:
+ * criterion.satisfied = true;
+ * ```
+ */
+export interface SuccessCriterion {
+  /**
+   * The criterion description text (without checkbox prefix)
+   *
+   * @remarks
+   * Contains the readable description of what success looks like
+   * for this specific criterion. This is the text that would appear
+   * after the checkbox in the PRP document.
+   *
+   * @example "All four interfaces added to src/core/models.ts"
+   */
+  readonly description: string;
+
+  /**
+   * Whether this criterion has been met
+   *
+   * @remarks
+   * Tracks the satisfaction state of this success criterion.
+   * Updated as implementation progresses and validation gates pass.
+   * The Final Validation Checklist checks that all criteria are satisfied.
+   */
+  readonly satisfied: boolean;
+}
+
+/**
+ * Zod schema for SuccessCriterion interface validation
+ *
+ * @remarks
+ * Validates that an object conforms to the SuccessCriterion interface structure.
+ * Both description and satisfied fields are required; satisfied must be a boolean.
+ *
+ * @example
+ * ```typescript
+ * import { SuccessCriterionSchema } from './core/models.js';
+ *
+ * const result = SuccessCriterionSchema.safeParse({
+ *   description: 'Test criterion',
+ *   satisfied: true,
+ * });
+ * // result.success === true
+ * ```
+ */
+export const SuccessCriterionSchema: z.ZodType<SuccessCriterion> = z.object({
+  description: z.string().min(1, 'Description is required'),
+  satisfied: z.boolean(),
+});
+
+/**
+ * Complete PRP (Product Requirement Prompt) document structure
+ *
+ * @remarks
+ * PRPDocument represents the full structure of a PRP as defined in PROMPTS.md.
+ * It captures all sections needed for type-safe generation, validation, and
+ * execution of PRPs throughout the development pipeline.
+ *
+ * This interface is used by:
+ * - P2.M2.T2 (Create PRP Generation Prompts) to generate PRPs from Architect output
+ * - P3.M3.T1 (PRP Execution Runtime) to parse and execute PRPs
+ *
+ * The document contains the objective, context, implementation steps, validation
+ * gates, success criteria, and references needed to implement a work item.
+ *
+ * @see {@link ../../PROMPTS.md#319-637 | PROMPTS.md PRP Template}
+ *
+ * @example
+ * ```typescript
+ * import { PRPDocument, ValidationGate, SuccessCriterion } from './core/models.js';
+ *
+ * const prp: PRPDocument = {
+ *   taskId: 'P1.M2.T2.S2',
+ *   objective: 'Add PRP document interfaces to models.ts',
+ *   context: '# All Needed Context\\n\\n...',
+ *   implementationSteps: [
+ *     'Create ValidationGate interface',
+ *     'Create ValidationGateSchema',
+ *   ],
+ *   validationGates: [
+ *     {
+ *       level: 1,
+ *       description: 'Syntax & Style validation',
+ *       command: 'npm run validate',
+ *       manual: false,
+ *     },
+ *     // ... more gates
+ *   ],
+ *   successCriteria: [
+ *     { description: 'All interfaces added', satisfied: false },
+ *     // ... more criteria
+ *   ],
+ *   references: [
+ *     'https://github.com/anthropics/claude-code',
+ *     'src/core/models.ts',
+ *   ],
+ * };
+ * ```
+ */
+export interface PRPDocument {
+  /**
+   * The work item ID this PRP is for
+   *
+   * @remarks
+   * Matches the task hierarchy ID format (e.g., "P1.M2.T2.S2" for a subtask).
+   * Used to associate the PRP with its corresponding work item in the backlog.
+   *
+   * @format P{phase}.M{milestone}.T{task}.S{subtask} or similar
+   * @example "P1.M2.T2.S2"
+   */
+  readonly taskId: string;
+
+  /**
+   * The Feature Goal from the Goal section
+   *
+   * @remarks
+   * Contains the specific, measurable end state of what needs to be built.
+   * This is the primary objective that the implementation must achieve.
+   */
+  readonly objective: string;
+
+  /**
+   * The complete "All Needed Context" section as markdown
+   *
+   * @remarks
+   * Stores the full context section as a markdown string, including
+   * documentation references, file patterns, gotchas, and all other
+   * context needed for successful implementation.
+   *
+   * This context is critical for the "one-pass implementation success"
+   * goal of the PRP system.
+   */
+  readonly context: string;
+
+  /**
+   * Array of implementation task descriptions
+   *
+   * @remarks
+   * Each step is a string description of a discrete implementation task.
+   * Steps are ordered by dependencies and guide the agent through
+   * the implementation process.
+   */
+  readonly implementationSteps: string[];
+
+  /**
+   * Array of 4 validation gates (one per level)
+   *
+   * @remarks
+   * Contains exactly 4 validation gates, one for each level of the
+   * progressive validation system. Each gate must pass before proceeding
+   * to the next level.
+   */
+  readonly validationGates: ValidationGate[];
+
+  /**
+   * Array of success criteria checkboxes
+   *
+   * @remarks
+   * Contains all success criteria from the "What" section. These are
+   * verified in the Final Validation Checklist to confirm that all
+   * success conditions have been met.
+   */
+  readonly successCriteria: SuccessCriterion[];
+
+  /**
+   * Array of reference URLs and file paths
+   *
+   * @remarks
+   * Contains links to external documentation and internal file references
+   * that provide additional context for implementation.
+   */
+  readonly references: string[];
+}
+
+/**
+ * Zod schema for PRPDocument interface validation
+ *
+ * @remarks
+ * Validates that an object conforms to the PRPDocument interface structure.
+ * Ensures all required fields are present and properly typed, including
+ * nested validation of ValidationGate and SuccessCriterion arrays.
+ *
+ * @example
+ * ```typescript
+ * import { PRPDocumentSchema } from './core/models.js';
+ *
+ * const result = PRPDocumentSchema.safeParse({
+ *   taskId: 'P1.M2.T2.S2',
+ *   objective: 'Test',
+ *   context: '## Context',
+ *   implementationSteps: ['Step 1'],
+ *   validationGates: [...],
+ *   successCriteria: [...],
+ *   references: [],
+ * });
+ * // result.success === true
+ * ```
+ */
+export const PRPDocumentSchema: z.ZodType<PRPDocument> = z.object({
+  taskId: z.string().min(1, 'Task ID is required'),
+  objective: z.string().min(1, 'Objective is required'),
+  context: z.string().min(1, 'Context is required'),
+  implementationSteps: z.array(
+    z.string().min(1, 'Implementation step cannot be empty')
+  ),
+  validationGates: z.array(ValidationGateSchema),
+  successCriteria: z.array(SuccessCriterionSchema),
+  references: z.array(z.string()),
+});
+
+/**
+ * Metadata about a generated PRP document for tracking within session state
+ *
+ * @remarks
+ * PRPArtifact stores metadata about PRP generation and execution status.
+ * It enables the Session Manager to track which PRPs have been generated,
+ * their current execution status, and their filesystem locations.
+ *
+ * The status field tracks the PRP lifecycle through these states:
+ * - `Generated`: PRP has been created but not yet executed
+ * - `Executing`: PRP is currently being implemented by an agent
+ * - `Completed`: PRP execution completed successfully
+ * - `Failed`: PRP execution failed and requires intervention
+ *
+ * Artifacts are stored in session state to enable resume capability
+ * and track progress across multiple PRP executions.
+ *
+ * @example
+ * ```typescript
+ * import { PRPArtifact } from './core/models.js';
+ *
+ * const artifact: PRPArtifact = {
+ *   taskId: 'P1.M2.T2.S2',
+ *   prpPath: 'plan/001_14b9dc2a33c7/P1M2T2S2/PRP.md',
+ *   status: 'Generated',
+ *   generatedAt: new Date('2024-01-12T10:00:00Z'),
+ * };
+ *
+ * // Update status during execution
+ * artifact.status = 'Executing';
+ * ```
+ */
+export interface PRPArtifact {
+  /**
+   * The work item ID this PRP was generated for
+   *
+   * @remarks
+   * Matches the task ID in the backlog. Used to correlate the PRP
+   * artifact with its corresponding work item.
+   *
+   * @example "P1.M2.T2.S2"
+   */
+  readonly taskId: string;
+
+  /**
+   * Filesystem path to the generated PRP.md file
+   *
+   * @remarks
+   * Absolute or relative path to the PRP document on disk. Used by the
+   * PRP Execution Runtime to load and parse the PRP for execution.
+   *
+   * @format plan/{sequence}_{hash}/{taskId}/PRP.md
+   * @example "plan/001_14b9dc2a33c7/P1M2T2S2/PRP.md"
+   */
+  readonly prpPath: string;
+
+  /**
+   * Current execution status of the PRP
+   *
+   * @remarks
+   * Tracks where the PRP is in its lifecycle:
+   * - `Generated`: PRP file has been created, ready for execution
+   * - `Executing`: Agent is currently implementing the PRP
+   * - `Completed`: All validation gates passed, PRP is complete
+   * - `Failed`: Execution failed, requires retry or manual intervention
+   */
+  readonly status: 'Generated' | 'Executing' | 'Completed' | 'Failed';
+
+  /**
+   * Timestamp when the PRP was generated
+   *
+   * @remarks
+   * Records when the PRP was created. Used for tracking and debugging.
+   * Stored as a Date object for type safety.
+   *
+   * @format ISO 8601
+   */
+  readonly generatedAt: Date;
+}
+
+/**
+ * Zod schema for PRPArtifact interface validation
+ *
+ * @remarks
+ * Validates that an object conforms to the PRPArtifact interface structure.
+ * Ensures status is one of the four valid literal values and that generatedAt
+ * is a valid Date object.
+ *
+ * @example
+ * ```typescript
+ * import { PRPArtifactSchema } from './core/models.js';
+ *
+ * const result = PRPArtifactSchema.safeParse({
+ *   taskId: 'P1.M2.T2.S2',
+ *   prpPath: 'plan/001_14b9dc2a33c7/P1M2T2S2/PRP.md',
+ *   status: 'Generated',
+ *   generatedAt: new Date(),
+ * });
+ * // result.success === true
+ * ```
+ */
+export const PRPArtifactSchema: z.ZodType<PRPArtifact> = z.object({
+  taskId: z.string().min(1, 'Task ID is required'),
+  prpPath: z.string().min(1, 'PRP path is required'),
+  status: z.union([
+    z.literal('Generated'),
+    z.literal('Executing'),
+    z.literal('Completed'),
+    z.literal('Failed'),
+  ]),
+  generatedAt: z.date(),
+});

@@ -17,6 +17,7 @@ This research document compiles best practices for implementing recursive tree t
 ### 1.1 Depth-First Search (DFS) - Recommended for Task Hierarchies
 
 **When to use:**
+
 - Processing complete task chains before moving to siblings
 - Memory-efficient for deep hierarchies
 - Natural fit for dependency resolution
@@ -90,6 +91,7 @@ function traversePostOrder(
 ```
 
 **Key Advantages for Task Hierarchy:**
+
 - **Dependency resolution:** Process subtasks in dependency order before marking parent tasks complete
 - **Aggregate computation:** Calculate completion percentages, total story points
 - **Status propagation:** Update parent status based on child completion
@@ -98,6 +100,7 @@ function traversePostOrder(
 ### 1.2 Breadth-First Search (BFS)
 
 **When to use:**
+
 - Finding items at the same hierarchy level
 - Processing tasks by priority level
 - Shortest path in dependency graphs
@@ -105,10 +108,7 @@ function traversePostOrder(
 **TypeScript Implementation:**
 
 ```typescript
-function traverseBFS<T>(
-  root: TreeNode<T>,
-  callback: (value: T) => void
-): void {
+function traverseBFS<T>(root: TreeNode<T>, callback: (value: T) => void): void {
   const queue: TreeNode<T>[] = [root];
 
   while (queue.length > 0) {
@@ -128,8 +128,10 @@ function getItemsAtDepth(
   targetDepth: number
 ): (Phase | Milestone | Task | Subtask)[] {
   const result: (Phase | Milestone | Task | Subtask)[] = [];
-  const queue: Array<{ item: Phase | Milestone | Task | Subtask; depth: number }> =
-    backlog.map(p => ({ item: p, depth: 0 }));
+  const queue: Array<{
+    item: Phase | Milestone | Task | Subtask;
+    depth: number;
+  }> = backlog.map(p => ({ item: p, depth: 0 }));
 
   while (queue.length > 0) {
     const { item, depth } = queue.shift()!;
@@ -154,6 +156,7 @@ function getItemsAtDepth(
 ```
 
 **Use Cases for Task Hierarchy:**
+
 - Find all tasks at the same priority level
 - Level-by-level reporting
 - Parallel processing of independent items at same depth
@@ -197,7 +200,7 @@ function findByStatus(
 ): (Phase | Milestone | Task | Subtask)[] {
   const results: (Phase | Milestone | Task | Subtask)[] = [];
 
-  traversePreOrder(backlog[0], (item) => {
+  traversePreOrder(backlog[0], item => {
     if (item.status === status) {
       results.push(item);
     }
@@ -217,7 +220,7 @@ function isTask(item: Phase | Milestone | Task | Subtask): item is Task {
 function getAllTasks(backlog: Phase[]): Task[] {
   const tasks: Task[] = [];
 
-  traversePreOrder(backlog[0], (item) => {
+  traversePreOrder(backlog[0], item => {
     if (isTask(item)) {
       tasks.push(item);
     }
@@ -249,9 +252,7 @@ function updateSubtaskStatus(
       tasks: milestone.tasks.map(task => ({
         ...task,
         subtasks: task.subtasks.map(subtask =>
-          subtask.id === subtaskId
-            ? { ...subtask, status: newStatus }
-            : subtask
+          subtask.id === subtaskId ? { ...subtask, status: newStatus } : subtask
         ),
       })),
     })),
@@ -260,11 +261,13 @@ function updateSubtaskStatus(
 ```
 
 **Pros:**
+
 - No dependencies
 - Full type safety
 - Explicit about what changes
 
 **Cons:**
+
 - Verbose for deep nesting
 - Error-prone (easy to miss a level)
 - Performance overhead from copying entire tree
@@ -275,7 +278,16 @@ function updateSubtaskStatus(
 
 ```typescript
 type Path =
-  | ['backlog', number, 'milestones', number, 'tasks', number, 'subtasks', number]
+  | [
+      'backlog',
+      number,
+      'milestones',
+      number,
+      'tasks',
+      number,
+      'subtasks',
+      number,
+    ]
   | ['backlog', number, 'milestones', number, 'tasks', number]
   | ['backlog', number, 'milestones', number]
   | ['backlog', number];
@@ -313,6 +325,7 @@ function updateByPath<T>(
 ### 2.3 Immer Library (Recommended for Task Hierarchy)
 
 **Why Immer is ideal for this project:**
+
 - Handles 4-level nesting elegantly
 - Maintains immutability with mutable-style syntax
 - Structural sharing (only copies changed paths)
@@ -320,6 +333,7 @@ function updateByPath<T>(
 - Reduces bug surface area
 
 **Installation:**
+
 ```bash
 npm install immer
 ```
@@ -335,7 +349,7 @@ function updateSubtaskStatus(
   subtaskId: string,
   newStatus: Status
 ): Backlog {
-  return produce(backlog, (draft) => {
+  return produce(backlog, draft => {
     for (const phase of draft.backlog) {
       for (const milestone of phase.milestones) {
         for (const task of milestone.tasks) {
@@ -357,7 +371,7 @@ function updateSubtask(
   subtaskId: string,
   updates: Partial<Pick<Subtask, 'status' | 'story_points' | 'title'>>
 ): Backlog {
-  return produce(backlog, (draft) => {
+  return produce(backlog, draft => {
     for (const phase of draft.backlog) {
       for (const milestone of phase.milestones) {
         for (const task of milestone.tasks) {
@@ -379,7 +393,7 @@ function addSubtask(
   taskId: string,
   newSubtask: Subtask
 ): Backlog {
-  return produce(backlog, (draft) => {
+  return produce(backlog, draft => {
     for (const phase of draft.backlog) {
       for (const milestone of phase.milestones) {
         for (const task of milestone.tasks) {
@@ -399,7 +413,7 @@ function updateParentStatuses(
   subtaskId: string,
   newStatus: Status
 ): Backlog {
-  return produce(backlog, (draft) => {
+  return produce(backlog, draft => {
     // First, update the subtask
     for (const phase of draft.backlog) {
       for (const milestone of phase.milestones) {
@@ -448,21 +462,22 @@ function updateParentStatuses(
 ```
 
 **Performance Characteristics of Immer:**
+
 - **Time Complexity:** O(path length) - only copies nodes along the update path
 - **Space Complexity:** O(path length) - structural sharing unchanged branches
 - **Benchmark:** For typical task hierarchy (100 items), updates complete in <1ms
 
 ### 2.4 Comparison: Immer vs Manual Updates
 
-| Aspect | Manual Spread | Immer |
-|--------|--------------|-------|
-| Code verbosity | High (nested spreads) | Low (mutable syntax) |
-| Type safety | Full | Full (with Draft<T>) |
-| Performance | Slightly faster (no proxy overhead) | Excellent (structural sharing) |
-| Bug susceptibility | High (easy to miss a level) | Low |
-| Learning curve | Low | Low (familiar syntax) |
-| Bundle size | 0 bytes | ~3KB minified |
-| Deep nesting support | Poor (exponential verbosity) | Excellent |
+| Aspect               | Manual Spread                       | Immer                          |
+| -------------------- | ----------------------------------- | ------------------------------ |
+| Code verbosity       | High (nested spreads)               | Low (mutable syntax)           |
+| Type safety          | Full                                | Full (with Draft<T>)           |
+| Performance          | Slightly faster (no proxy overhead) | Excellent (structural sharing) |
+| Bug susceptibility   | High (easy to miss a level)         | Low                            |
+| Learning curve       | Low                                 | Low (familiar syntax)          |
+| Bundle size          | 0 bytes                             | ~3KB minified                  |
+| Deep nesting support | Poor (exponential verbosity)        | Excellent                      |
 
 **Recommendation for PRP Pipeline:** Use **Immer** for all hierarchy updates. The code clarity and bug reduction far outweigh the minimal performance cost and bundle size.
 
@@ -473,6 +488,7 @@ function updateParentStatuses(
 ### 3.1 Stack Overflow on Deep Recursion
 
 **Problem:**
+
 ```typescript
 // BAD: Can cause stack overflow on very deep hierarchies
 function sumStoryPointsDeep(phase: Phase): number {
@@ -489,6 +505,7 @@ function sumStoryPointsDeep(phase: Phase): number {
 ```
 
 **Solution 1: Iterative approach**
+
 ```typescript
 function sumStoryPointsIterative(backlog: Phase[]): number {
   let sum = 0;
@@ -511,6 +528,7 @@ function sumStoryPointsIterative(backlog: Phase[]): number {
 ```
 
 **Solution 2: Trampoline for very deep recursion**
+
 ```typescript
 type Trampoline<T> = T | (() => Trampoline<T>);
 
@@ -538,8 +556,8 @@ function sumStoryPointsTrampoline(phase: Phase): number {
       'milestones' in first
         ? first.milestones.flatMap(m => m.tasks)
         : 'tasks' in first
-        ? first.tasks.flatMap(t => t.subtasks)
-        : [];
+          ? first.tasks.flatMap(t => t.subtasks)
+          : [];
 
     return () => sumRecursive([...children, ...rest], newAcc);
   };
@@ -553,6 +571,7 @@ function sumStoryPointsTrampoline(phase: Phase): number {
 ### 3.2 Mutating State During Traversal
 
 **Anti-Pattern:**
+
 ```typescript
 // BAD: Mutates state during traversal
 function markAllComplete(phase: Phase): void {
@@ -570,9 +589,10 @@ function markAllComplete(phase: Phase): void {
 ```
 
 **Correct Pattern (Immutable):**
+
 ```typescript
 function markAllComplete(phase: Phase): Phase {
-  return produce(phase, (draft) => {
+  return produce(phase, draft => {
     draft.status = 'Complete';
     draft.milestones.forEach(m => {
       m.status = 'Complete';
@@ -590,12 +610,16 @@ function markAllComplete(phase: Phase): Phase {
 ### 3.3 Forgetting Early Exit
 
 **Anti-Pattern:**
+
 ```typescript
 // BAD: Continues searching after finding the target
-function findByIdSlow(backlog: Phase[], id: string): Phase | Milestone | Task | Subtask | null {
+function findByIdSlow(
+  backlog: Phase[],
+  id: string
+): Phase | Milestone | Task | Subtask | null {
   let result: Phase | Milestone | Task | Subtask | null = null;
 
-  traversePreOrder(backlog[0], (item) => {
+  traversePreOrder(backlog[0], item => {
     if (item.id === id) {
       result = item; // Found it, but traversal continues!
     }
@@ -606,8 +630,12 @@ function findByIdSlow(backlog: Phase[], id: string): Phase | Milestone | Task | 
 ```
 
 **Correct Pattern:**
+
 ```typescript
-function findByIdFast(backlog: Phase[], id: string): Phase | Milestone | Task | Subtask | null {
+function findByIdFast(
+  backlog: Phase[],
+  id: string
+): Phase | Milestone | Task | Subtask | null {
   for (const phase of backlog) {
     if (phase.id === id) return phase;
 
@@ -633,6 +661,7 @@ function findByIdFast(backlog: Phase[], id: string): Phase | Milestone | Task | 
 **Problem:** If your hierarchy ever has circular references (e.g., a subtask references a parent task), recursive traversal will infinite loop.
 
 **Prevention:**
+
 ```typescript
 function traverseSafe<T>(
   phase: Phase,
@@ -656,6 +685,7 @@ traverseSafe(phase, console.log);
 ### 3.5 Incorrect Type Narrowing
 
 **Anti-Pattern:**
+
 ```typescript
 // BAD: Type narrowing doesn't work correctly
 function processItem(item: Phase | Milestone | Task | Subtask): string {
@@ -668,6 +698,7 @@ function processItem(item: Phase | Milestone | Task | Subtask): string {
 ```
 
 **Correct Pattern:**
+
 ```typescript
 // Use discriminated unions properly
 function processItem(item: Phase | Milestone | Task | Subtask): string {
@@ -690,25 +721,25 @@ function processItem(item: Phase | Milestone | Task | Subtask): string {
 
 ### 4.1 Time Complexity Analysis
 
-| Operation | Time Complexity | Notes |
-|-----------|----------------|-------|
-| Find by ID (DFS) | O(n) | Must visit every node in worst case |
-| Find by status | O(n) | Filter requires visiting all nodes |
-| Update single item | O(d) | d = depth of item (max 4 for this hierarchy) |
-| Update all items | O(n) | Must visit every node |
-| Aggregate computation (e.g., total story points) | O(n) | Single traversal |
-| Insert new item | O(d) | Just copy path to new item |
+| Operation                                        | Time Complexity | Notes                                        |
+| ------------------------------------------------ | --------------- | -------------------------------------------- |
+| Find by ID (DFS)                                 | O(n)            | Must visit every node in worst case          |
+| Find by status                                   | O(n)            | Filter requires visiting all nodes           |
+| Update single item                               | O(d)            | d = depth of item (max 4 for this hierarchy) |
+| Update all items                                 | O(n)            | Must visit every node                        |
+| Aggregate computation (e.g., total story points) | O(n)            | Single traversal                             |
+| Insert new item                                  | O(d)            | Just copy path to new item                   |
 
 **Key Insight:** For task hierarchies with 4 levels, `d = 4`, so updates are effectively O(1) constant time.
 
 ### 4.2 Space Complexity Analysis
 
-| Operation | Space Complexity | Notes |
-|-----------|-----------------|-------|
-| DFS traversal (recursive) | O(d) | Stack depth = max depth |
-| DFS traversal (iterative) | O(n) | Stack can hold all nodes |
-| BFS traversal | O(w) | Queue width = max width of level |
-| Immer update | O(d) | Only copies path to changed node |
+| Operation                 | Space Complexity | Notes                            |
+| ------------------------- | ---------------- | -------------------------------- |
+| DFS traversal (recursive) | O(d)             | Stack depth = max depth          |
+| DFS traversal (iterative) | O(n)             | Stack can hold all nodes         |
+| BFS traversal             | O(w)             | Queue width = max width of level |
+| Immer update              | O(d)             | Only copies path to changed node |
 
 ### 4.3 Memoization for Expensive Operations
 
@@ -726,7 +757,7 @@ class TaskHierarchyCache {
     }
 
     let total = 0;
-    traversePreOrder(backlog[0], (item) => {
+    traversePreOrder(backlog[0], item => {
       if ('story_points' in item) {
         total += item.story_points;
       }
@@ -743,11 +774,13 @@ class TaskHierarchyCache {
 ```
 
 **When to use memoization:**
+
 - Expensive computations (e.g., complex filtering)
 - Frequent reads, infrequent writes
 - Pure functions (no side effects)
 
 **When NOT to use:**
+
 - Simple aggregations (e.g., story point sum)
 - Writes are frequent
 - Memory is constrained
@@ -784,6 +817,7 @@ for (const item of traverseLazy(backlog)) {
 ```
 
 **Benefits:**
+
 - Memory efficient (doesn't build intermediate arrays)
 - Early exit support
 - Composable (can filter, map, etc.)
@@ -791,6 +825,7 @@ for (const item of traverseLazy(backlog)) {
 ### 4.5 Performance Best Practices
 
 1. **Use `for...of` loops instead of `forEach` for better performance**
+
    ```typescript
    // Faster
    for (const milestone of phase.milestones) { ... }
@@ -800,6 +835,7 @@ for (const item of traverseLazy(backlog)) {
    ```
 
 2. **Prefer early returns**
+
    ```typescript
    function findById(backlog: Phase[], id: string) {
      for (const phase of backlog) {
@@ -810,6 +846,7 @@ for (const item of traverseLazy(backlog)) {
    ```
 
 3. **Use iterators for large collections**
+
    ```typescript
    // Process one item at a time
    for (const item of traverseLazy(backlog)) {
@@ -818,6 +855,7 @@ for (const item of traverseLazy(backlog)) {
    ```
 
 4. **Batch updates when possible**
+
    ```typescript
    // BAD: Multiple traversals
    backlog = updateSubtaskStatus(backlog, 'P1.M1.T1.S1', 'Complete');
@@ -833,6 +871,7 @@ for (const item of traverseLazy(backlog)) {
    ```
 
 5. **Avoid unnecessary deep copies**
+
    ```typescript
    // BAD: Copies entire hierarchy
    const copy = JSON.parse(JSON.stringify(backlog));
@@ -850,6 +889,7 @@ for (const item of traverseLazy(backlog)) {
 ### 5.1 Test Structure for Recursive Functions
 
 **Recommended test organization:**
+
 ```
 tests/
 ├── unit/
@@ -929,16 +969,11 @@ describe('traversePreOrder', () => {
     const backlog = createTestBacklog();
     const visited: string[] = [];
 
-    traversePreOrder(backlog.backlog[0], (item) => {
+    traversePreOrder(backlog.backlog[0], item => {
       visited.push(item.id);
     });
 
-    expect(visited).toEqual([
-      'P1',
-      'P1.M1',
-      'P1.M1.T1',
-      'P1.M1.T1.S1',
-    ]);
+    expect(visited).toEqual(['P1', 'P1.M1', 'P1.M1.T1', 'P1.M1.T1.S1']);
   });
 
   it('should handle empty hierarchy', () => {
@@ -952,7 +987,7 @@ describe('traversePreOrder', () => {
     };
 
     const visited: string[] = [];
-    traversePreOrder(emptyPhase, (item) => {
+    traversePreOrder(emptyPhase, item => {
       visited.push(item.id);
     });
 
@@ -966,6 +1001,7 @@ describe('traversePreOrder', () => {
 **Key test cases:**
 
 1. **Immutability test:**
+
    ```typescript
    it('should not mutate original backlog', () => {
      const original = createTestBacklog();
@@ -979,6 +1015,7 @@ describe('traversePreOrder', () => {
    ```
 
 2. **Correct update:**
+
    ```typescript
    it('should update the correct subtask', () => {
      const backlog = createTestBacklog();
@@ -991,6 +1028,7 @@ describe('traversePreOrder', () => {
    ```
 
 3. **Structural sharing:**
+
    ```typescript
    it('should preserve unchanged branches', () => {
      const backlog = createTestBacklog();
@@ -999,7 +1037,9 @@ describe('traversePreOrder', () => {
 
      // Unchanged items should be same reference
      expect(updated.backlog[0]).toBe(backlog.backlog[0]);
-     expect(updated.backlog[0].milestones[0]).toBe(backlog.backlog[0].milestones[0]);
+     expect(updated.backlog[0].milestones[0]).toBe(
+       backlog.backlog[0].milestones[0]
+     );
      expect(updated.backlog[0].milestones[0].tasks[0]).toBe(
        backlog.backlog[0].milestones[0].tasks[0]
      );
@@ -1019,11 +1059,11 @@ import { vi } from 'vitest';
 
 describe('recursive function call tracking', () => {
   it('should call itself the correct number of times', () => {
-     const callback = vi.fn();
+    const callback = vi.fn();
 
-     traversePreOrder(createTestBacklog().backlog[0], callback);
+    traversePreOrder(createTestBacklog().backlog[0], callback);
 
-     expect(callback).toHaveBeenCalledTimes(4); // P1 + M1 + T1 + S1
+    expect(callback).toHaveBeenCalledTimes(4); // P1 + M1 + T1 + S1
   });
 
   it('should call with correct arguments', () => {
@@ -1031,10 +1071,12 @@ describe('recursive function call tracking', () => {
 
     traversePreOrder(createTestBacklog().backlog[0], callback);
 
-    expect(callback).toHaveBeenNthCalledWith(1,
+    expect(callback).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({ id: 'P1', type: 'Phase' })
     );
-    expect(callback).toHaveBeenNthCalledWith(2,
+    expect(callback).toHaveBeenNthCalledWith(
+      2,
       expect.objectContaining({ id: 'P1.M1', type: 'Milestone' })
     );
   });
@@ -1055,7 +1097,7 @@ import { fc } from 'fast-check';
 describe('traversal properties', () => {
   it('should visit all nodes exactly once', () => {
     fc.assert(
-      fc.property(fc.array(fc.integer()), (numbers) => {
+      fc.property(fc.array(fc.integer()), numbers => {
         const visited: number[] = [];
         // ... traverse and collect
         // ... verify each number appears exactly once
@@ -1065,7 +1107,7 @@ describe('traversal properties', () => {
 
   it('should preserve node count', () => {
     fc.assert(
-      fc.property(backlogArbitrary, (backlog) => {
+      fc.property(backlogArbitrary, backlog => {
         const countBefore = countNodes(backlog);
         const updated = updateSubtaskStatus(backlog, 'P1.M1.T1.S1', 'Complete');
         const countAfter = countNodes(updated);
@@ -1084,14 +1126,16 @@ describe('traversal properties', () => {
 describe('edge cases', () => {
   it('should handle single node hierarchy', () => {
     const single: Backlog = {
-      backlog: [{
-        id: 'P1',
-        type: 'Phase',
-        title: 'Single',
-        status: 'Planned',
-        description: 'Single phase',
-        milestones: [],
-      }],
+      backlog: [
+        {
+          id: 'P1',
+          type: 'Phase',
+          title: 'Single',
+          status: 'Planned',
+          description: 'Single phase',
+          milestones: [],
+        },
+      ],
     };
 
     const result = findById(single, 'P1');
@@ -1118,28 +1162,34 @@ describe('edge cases', () => {
 
   it('should handle empty arrays at each level', () => {
     const empty: Backlog = {
-      backlog: [{
-        id: 'P1',
-        type: 'Phase',
-        title: 'Empty',
-        status: 'Planned',
-        description: 'Empty',
-        milestones: [{
-          id: 'P1.M1',
-          type: 'Milestone',
+      backlog: [
+        {
+          id: 'P1',
+          type: 'Phase',
           title: 'Empty',
           status: 'Planned',
           description: 'Empty',
-          tasks: [{
-            id: 'P1.M1.T1',
-            type: 'Task',
-            title: 'Empty',
-            status: 'Planned',
-            description: 'Empty',
-            subtasks: [],
-          }],
-        }],
-      }],
+          milestones: [
+            {
+              id: 'P1.M1',
+              type: 'Milestone',
+              title: 'Empty',
+              status: 'Planned',
+              description: 'Empty',
+              tasks: [
+                {
+                  id: 'P1.M1.T1',
+                  type: 'Task',
+                  title: 'Empty',
+                  status: 'Planned',
+                  description: 'Empty',
+                  subtasks: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     expect(() => traversePreOrder(empty.backlog[0], () => {})).not.toThrow();
@@ -1181,6 +1231,7 @@ describe('performance', () => {
 ### 6.1 Recommended Architecture
 
 **File Structure:**
+
 ```
 src/utils/
 ├── traversal/
@@ -1216,21 +1267,25 @@ src/utils/
 ### 6.3 Implementation Strategy
 
 **Phase 1: Core Traversal**
+
 - Implement DFS and BFS traversal
 - Add find operations
 - Write comprehensive tests
 
 **Phase 2: Immutable Updates**
+
 - Integrate Immer
 - Implement update functions
 - Add status propagation logic
 
 **Phase 3: Aggregations**
+
 - Implement story point calculations
 - Add completion metrics
 - Create reporting helpers
 
 **Phase 4: Optimization**
+
 - Add memoization for expensive operations
 - Implement lazy evaluation where beneficial
 - Add performance benchmarks
@@ -1238,17 +1293,21 @@ src/utils/
 ### 6.4 Type Safety Guidelines
 
 1. **Use discriminated unions for type narrowing:**
+
    ```typescript
    function processItem(item: Phase | Milestone | Task | Subtask) {
      switch (item.type) {
-       case 'Subtask': return item.story_points;
-       case 'Task': return item.subtasks.length;
+       case 'Subtask':
+         return item.story_points;
+       case 'Task':
+         return item.subtasks.length;
        // ... TypeScript knows the exact type
      }
    }
    ```
 
 2. **Use `readonly` for all hierarchy properties:**
+
    ```typescript
    interface Phase {
      readonly id: string;
@@ -1257,6 +1316,7 @@ src/utils/
    ```
 
 3. **Use Immer's `Draft<T>` for update functions:**
+
    ```typescript
    import { Draft } from 'immer';
 
@@ -1265,7 +1325,7 @@ src/utils/
      subtaskId: string,
      updater: (draft: Draft<Subtask>) => void
    ): Backlog {
-     return produce(backlog, (draft) => {
+     return produce(backlog, draft => {
        // TypeScript knows draft is mutable
      });
    }
@@ -1274,12 +1334,14 @@ src/utils/
 ### 6.5 Testing Strategy
 
 **Test Coverage Goals:**
+
 - 100% coverage for traversal functions
 - 100% coverage for update functions
 - Edge case coverage: empty arrays, single items, max depth
 - Performance tests: verify <1ms for typical operations
 
 **Test Categories:**
+
 1. Unit tests for individual functions
 2. Integration tests for multi-step operations
 3. Property-based tests for invariants
@@ -1292,21 +1354,25 @@ src/utils/
 ### 7.1 Documentation URLs
 
 **TypeScript:**
+
 - [TypeScript Handbook - Discriminated Unions](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#discriminated-unions)
 - [TypeScript Handbook - Type Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
 - [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
 
 **Immer:**
+
 - [Official Documentation](https://immerjs.github.io/immer/)
 - [GitHub Repository](https://github.com/immerjs/immer)
 - [Immer Tutorial](https://immerjs.github.io/immer/tutorial)
 
 **Testing:**
+
 - [Vitest Documentation](https://vitest.dev/)
 - [Vitest Expect API](https://vitest.dev/api/expect.html)
 - [fast-check (Property-based Testing)](https://fast-check.dev/)
 
 **Algorithms:**
+
 - [Tree Traversal Wikipedia](https://en.wikipedia.org/wiki/Tree_traversal)
 - [Depth-First Search](https://en.wikipedia.org/wiki/Depth-first_search)
 - [Breadth-First Search](https://en.wikipedia.org/wiki/Breadth-first_search)
@@ -1314,6 +1380,7 @@ src/utils/
 ### 7.2 Code Examples
 
 **Immer Examples:**
+
 ```typescript
 // Simple update
 const nextState = produce(baseState, draft => {
@@ -1330,11 +1397,12 @@ const updated = produce(task, addSubtaskRecipe);
 ```
 
 **Traversal Examples:**
+
 ```typescript
 // Collect all IDs
 function getAllIds(backlog: Backlog): string[] {
   const ids: string[] = [];
-  traversePreOrder(backlog.backlog[0], (item) => {
+  traversePreOrder(backlog.backlog[0], item => {
     ids.push(item.id);
   });
   return ids;

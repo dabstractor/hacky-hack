@@ -3,7 +3,7 @@ import {
   SessionState,
   DeltaSession,
   Backlog,
-  Phase
+  Phase,
 } from '../../src/core/models.js';
 
 // Verify SessionMetadata interface
@@ -12,7 +12,7 @@ const metadata: SessionMetadata = {
   hash: '14b9dc2a33c7',
   path: 'plan/001_14b9dc2a33c7',
   createdAt: new Date('2024-01-12T10:00:00Z'),
-  parentSession: null
+  parentSession: null,
 };
 
 console.log('SessionMetadata:', metadata);
@@ -24,7 +24,7 @@ const phase: Phase = {
   title: 'Phase 1',
   status: 'Planned',
   description: 'Test phase',
-  milestones: []
+  milestones: [],
 };
 
 const backlog: Backlog = { backlog: [phase] };
@@ -33,7 +33,7 @@ const state: SessionState = {
   metadata: metadata,
   prdSnapshot: '# PRD Content\n...',
   taskRegistry: backlog,
-  currentItemId: 'P1.M1.T1.S1'
+  currentItemId: 'P1.M1.T1.S1',
 };
 
 console.log('SessionState:', state);
@@ -45,14 +45,14 @@ const delta: DeltaSession = {
     hash: 'a3f8e9d12b4',
     path: 'plan/002_a3f8e9d12b4',
     createdAt: new Date(),
-    parentSession: '001_14b9dc2a33c7'
+    parentSession: '001_14b9dc2a33c7',
   },
   prdSnapshot: '# Updated PRD\n...',
   taskRegistry: backlog,
   currentItemId: null,
   oldPRD: '# Original PRD\n...',
   newPRD: '# Updated PRD\n...',
-  diffSummary: 'Added new feature X'
+  diffSummary: 'Added new feature X',
 };
 
 console.log('DeltaSession:', delta);

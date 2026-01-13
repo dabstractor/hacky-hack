@@ -17,11 +17,19 @@ import {
   MilestoneSchema,
   PhaseSchema,
   BacklogSchema,
+  ValidationGateSchema,
+  SuccessCriterionSchema,
+  PRPDocumentSchema,
+  PRPArtifactSchema,
   type Subtask,
   type Task,
   type Milestone,
   type Phase,
   type Backlog,
+  type ValidationGate,
+  type SuccessCriterion,
+  type PRPDocument,
+  type PRPArtifact,
 } from '../../../src/core/models.js';
 
 describe('core/models Zod Schemas', () => {
@@ -820,6 +828,495 @@ describe('core/models Zod Schemas', () => {
 
       // VERIFY: Complex hierarchy should validate
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('ValidationGateSchema', () => {
+    const validGate: ValidationGate = {
+      level: 1,
+      description: 'Syntax & Style validation',
+      command: 'npm run lint && npm run type-check',
+      manual: false,
+    };
+
+    it('should parse valid validation gate for level 1', () => {
+      // SETUP: Valid level 1 gate
+      const data = { ...validGate };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validGate);
+      }
+    });
+
+    it('should parse valid validation gate for level 2', () => {
+      // SETUP: Valid level 2 gate
+      const level2Gate: ValidationGate = {
+        level: 2,
+        description: 'Unit Tests validation',
+        command: 'npm test',
+        manual: false,
+      };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(level2Gate);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid validation gate for level 3', () => {
+      // SETUP: Valid level 3 gate
+      const level3Gate: ValidationGate = {
+        level: 3,
+        description: 'Integration Testing validation',
+        command: 'npm run test:integration',
+        manual: false,
+      };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(level3Gate);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid validation gate for level 4 with null command', () => {
+      // SETUP: Valid level 4 gate (manual validation)
+      const level4Gate: ValidationGate = {
+        level: 4,
+        description: 'Manual end-to-end testing',
+        command: null,
+        manual: true,
+      };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(level4Gate);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject validation gate with invalid level', () => {
+      // SETUP: Invalid level (not 1-4)
+      const invalid = { ...validGate, level: 5 };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject validation gate with level 0', () => {
+      // SETUP: Invalid level 0
+      const invalid = { ...validGate, level: 0 };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject validation gate with empty description', () => {
+      // SETUP: Empty description
+      const invalid = { ...validGate, description: '' };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject validation gate with missing command field', () => {
+      // SETUP: Missing command (undefined instead of string | null)
+      const invalid = { ...validGate, command: undefined };
+
+      // EXECUTE
+      const result = ValidationGateSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('SuccessCriterionSchema', () => {
+    const validCriterion: SuccessCriterion = {
+      description: 'All four interfaces added to src/core/models.ts',
+      satisfied: true,
+    };
+
+    it('should parse valid satisfied criterion', () => {
+      // SETUP: Valid satisfied criterion
+      const data = { ...validCriterion };
+
+      // EXECUTE
+      const result = SuccessCriterionSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validCriterion);
+      }
+    });
+
+    it('should parse valid unsatisfied criterion', () => {
+      // SETUP: Valid unsatisfied criterion
+      const unsatisfied: SuccessCriterion = {
+        description: 'All validation gates passing',
+        satisfied: false,
+      };
+
+      // EXECUTE
+      const result = SuccessCriterionSchema.safeParse(unsatisfied);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject criterion with empty description', () => {
+      // SETUP: Empty description
+      const invalid = { ...validCriterion, description: '' };
+
+      // EXECUTE
+      const result = SuccessCriterionSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject criterion with non-boolean satisfied', () => {
+      // SETUP: Invalid satisfied field
+      const invalid = { ...validCriterion, satisfied: 'yes' };
+
+      // EXECUTE
+      const result = SuccessCriterionSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject criterion with missing satisfied field', () => {
+      // SETUP: Missing satisfied field - Zod catches this at runtime
+      const invalid = { description: validCriterion.description };
+
+      // EXECUTE
+      const result = SuccessCriterionSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('PRPDocumentSchema', () => {
+    const validPRP: PRPDocument = {
+      taskId: 'P1.M2.T2.S2',
+      objective: 'Add PRP document interfaces to models.ts',
+      context: '# All Needed Context\n\nComplete context for implementation...',
+      implementationSteps: [
+        'Create ValidationGate interface',
+        'Create ValidationGateSchema',
+      ],
+      validationGates: [
+        {
+          level: 1,
+          description: 'Syntax & Style validation',
+          command: 'npm run validate',
+          manual: false,
+        },
+        {
+          level: 2,
+          description: 'Unit Tests validation',
+          command: 'npm test',
+          manual: false,
+        },
+        {
+          level: 3,
+          description: 'Integration Testing validation',
+          command: 'npm run test:integration',
+          manual: false,
+        },
+        {
+          level: 4,
+          description: 'Manual validation',
+          command: null,
+          manual: true,
+        },
+      ],
+      successCriteria: [
+        { description: 'All interfaces added', satisfied: true },
+        { description: 'All tests passing', satisfied: false },
+      ],
+      references: [
+        'https://github.com/anthropics/claude-code',
+        'src/core/models.ts',
+      ],
+    };
+
+    it('should parse valid PRP document', () => {
+      // SETUP: Valid PRP data
+      const data = { ...validPRP };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validPRP);
+      }
+    });
+
+    it('should parse PRP with empty arrays', () => {
+      // SETUP: PRP with empty arrays
+      const minimalPRP: PRPDocument = {
+        taskId: 'P1.M1.T1.S1',
+        objective: 'Test objective',
+        context: '# Context',
+        implementationSteps: [],
+        validationGates: [],
+        successCriteria: [],
+        references: [],
+      };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(minimalPRP);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject PRP with empty taskId', () => {
+      // SETUP: Empty taskId
+      const invalid = { ...validPRP, taskId: '' };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject PRP with empty objective', () => {
+      // SETUP: Empty objective
+      const invalid = { ...validPRP, objective: '' };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject PRP with empty context', () => {
+      // SETUP: Empty context
+      const invalid = { ...validPRP, context: '' };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject PRP with empty implementation step', () => {
+      // SETUP: Empty implementation step
+      const invalid = {
+        ...validPRP,
+        implementationSteps: ['', 'Valid step'],
+      };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject PRP with invalid validation gate', () => {
+      // SETUP: Invalid validation gate in array
+      const invalid = {
+        ...validPRP,
+        validationGates: [
+          {
+            level: 5, // Invalid level
+            description: 'Invalid gate',
+            command: 'test',
+            manual: false,
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject PRP with invalid success criterion', () => {
+      // SETUP: Invalid success criterion in array
+      const invalid = {
+        ...validPRP,
+        successCriteria: [
+          {
+            description: '', // Empty description
+            satisfied: true,
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = PRPDocumentSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('PRPArtifactSchema', () => {
+    const validArtifact: PRPArtifact = {
+      taskId: 'P1.M2.T2.S2',
+      prpPath: 'plan/001_14b9dc2a33c7/P1M2T2S2/PRP.md',
+      status: 'Generated',
+      generatedAt: new Date('2024-01-12T10:00:00Z'),
+    };
+
+    it('should parse valid artifact with Generated status', () => {
+      // SETUP: Valid artifact with Generated status
+      const data = { ...validArtifact };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validArtifact);
+      }
+    });
+
+    it('should parse valid artifact with Executing status', () => {
+      // SETUP: Valid artifact with Executing status
+      const executing: PRPArtifact = {
+        ...validArtifact,
+        status: 'Executing',
+      };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(executing);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid artifact with Completed status', () => {
+      // SETUP: Valid artifact with Completed status
+      const completed: PRPArtifact = {
+        ...validArtifact,
+        status: 'Completed',
+      };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(completed);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid artifact with Failed status', () => {
+      // SETUP: Valid artifact with Failed status
+      const failed: PRPArtifact = {
+        ...validArtifact,
+        status: 'Failed',
+      };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(failed);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid artifact with current date', () => {
+      // SETUP: Valid artifact with current date
+      const current: PRPArtifact = {
+        ...validArtifact,
+        generatedAt: new Date(),
+      };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(current);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject artifact with empty taskId', () => {
+      // SETUP: Empty taskId
+      const invalid = { ...validArtifact, taskId: '' };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject artifact with empty prpPath', () => {
+      // SETUP: Empty prpPath
+      const invalid = { ...validArtifact, prpPath: '' };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject artifact with invalid status', () => {
+      // SETUP: Invalid status
+      const invalid = { ...validArtifact, status: 'InProgress' };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject artifact with invalid generatedAt', () => {
+      // SETUP: Invalid date string (not a Date object)
+      const invalid = {
+        ...validArtifact,
+        generatedAt: '2024-01-12' as unknown as Date,
+      };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject artifact with string date instead of Date object', () => {
+      // SETUP: String instead of Date
+      const invalid = {
+        ...validArtifact,
+        generatedAt: '2024-01-12T10:00:00Z' as unknown as Date,
+      };
+
+      // EXECUTE
+      const result = PRPArtifactSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
     });
   });
 });

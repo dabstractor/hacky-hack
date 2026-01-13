@@ -13,6 +13,7 @@
 **Deliverable**: A single `src/utils/task-utils.ts` file exporting 5 pure utility functions with 100% test coverage in `tests/unit/core/task-utils.test.ts`.
 
 **Success Definition**:
+
 - All 5 functions work correctly with the existing type definitions from `src/core/models.ts`
 - 100% test coverage achieved (statements, branches, functions, lines)
 - All existing tests pass after implementation
@@ -25,12 +26,14 @@
 **Target User**: Task Orchestrator (internal system component)
 
 **Use Case**: The Task Orchestrator needs to navigate the task hierarchy to:
+
 - Find specific work items by ID for status updates
 - Resolve dependency chains for proper execution order
 - Filter items by status for next-work selection
 - Update item statuses immutably without corrupting the backlog
 
 **User Journey**:
+
 1. Task Orchestrator loads Backlog from `tasks.json`
 2. Calls `getNextPendingItem()` to find the first 'Planned' subtask
 3. Calls `getDependencies()` to check if all prerequisites are complete
@@ -39,6 +42,7 @@
 6. Repeats until backlog is complete
 
 **Pain Points Addressed**:
+
 - **No existing utilities**: The `src/utils/` directory is empty
 - **Complex navigation**: 4-level nesting requires careful recursive traversal
 - **Immutability required**: Readonly properties prevent accidental mutation
@@ -182,18 +186,20 @@ const updatedPhase = {
       ...t,
       subtasks: t.subtasks.map(s =>
         s.id === targetId ? { ...s, status: newStatus } : s
-      )
-    }))
-  }))
+      ),
+    })),
+  })),
 };
 
 // CRITICAL: Use discriminated union type narrowing
 function processItem(item: Phase | Milestone | Task | Subtask) {
-  switch (item.type) {  // 'type' field narrows the union
+  switch (
+    item.type // 'type' field narrows the union
+  ) {
     case 'Subtask':
-      return item.story_points;  // TypeScript knows this is Subtask
+      return item.story_points; // TypeScript knows this is Subtask
     case 'Task':
-      return item.subtasks.length;  // TypeScript knows this is Task
+      return item.subtasks.length; // TypeScript knows this is Task
     // ... etc
   }
 }
@@ -202,13 +208,13 @@ function processItem(item: Phase | Milestone | Task | Subtask) {
 // Don't continue after finding the item
 function findById(backlog: Backlog, id: string) {
   for (const phase of backlog.backlog) {
-    if (phase.id === id) return phase;  // Early exit!
+    if (phase.id === id) return phase; // Early exit!
     for (const milestone of phase.milestones) {
-      if (milestone.id === id) return milestone;  // Early exit!
+      if (milestone.id === id) return milestone; // Early exit!
       // ... continue nesting
     }
   }
-  return null;  // Not found
+  return null; // Not found
 }
 
 // CRITICAL: Handle empty arrays gracefully
@@ -237,7 +243,7 @@ import type {
   Task,
   Subtask,
   Status,
-  ItemType
+  ItemType,
 } from '../core/models.js';
 
 // Union type for any item in hierarchy
@@ -305,7 +311,7 @@ Task 7: CREATE tests/unit/core/task-utils.test.ts
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // PATTERN: Module structure matching src/core/models.ts
 /**
  * Utility functions for task hierarchy operations
@@ -330,13 +336,13 @@ Task 7: CREATE tests/unit/core/task-utils.test.ts
 function getTypeInfo(item: HierarchyItem): string {
   switch (item.type) {
     case 'Subtask':
-      return `Subtask with ${item.story_points} points`;  // item is Subtask
+      return `Subtask with ${item.story_points} points`; // item is Subtask
     case 'Task':
-      return `Task with ${item.subtasks.length} subtasks`;  // item is Task
+      return `Task with ${item.subtasks.length} subtasks`; // item is Task
     case 'Milestone':
-      return `Milestone with ${item.tasks.length} tasks`;  // item is Milestone
+      return `Milestone with ${item.tasks.length} tasks`; // item is Milestone
     case 'Phase':
-      return `Phase with ${item.milestones.length} milestones`;  // item is Phase
+      return `Phase with ${item.milestones.length} milestones`; // item is Phase
   }
 }
 
@@ -380,7 +386,10 @@ export function getDependencies(task: Subtask, backlog: Backlog): Subtask[] {
 }
 
 // PATTERN: DFS collector with accumulator array
-export function filterByStatus(backlog: Backlog, status: Status): HierarchyItem[] {
+export function filterByStatus(
+  backlog: Backlog,
+  status: Status
+): HierarchyItem[] {
   const results: HierarchyItem[] = [];
 
   for (const phase of backlog.backlog) {
@@ -424,7 +433,11 @@ export function getNextPendingItem(backlog: Backlog): HierarchyItem | null {
 }
 
 // PATTERN: Immutable deep update with nested spreads
-export function updateItemStatus(backlog: Backlog, id: string, newStatus: Status): Backlog {
+export function updateItemStatus(
+  backlog: Backlog,
+  id: string,
+  newStatus: Status
+): Backlog {
   return {
     ...backlog,
     backlog: backlog.backlog.map(phase => {
@@ -454,19 +467,19 @@ export function updateItemStatus(backlog: Backlog, id: string, newStatus: Status
                   subtask.id === id
                     ? { ...subtask, status: newStatus }
                     : subtask
-                )
+                ),
               };
-            })
+            }),
           };
-        })
+        }),
       };
-    })
+    }),
   };
 }
 
 // GOTCHA: Manual spread updates are verbose but maintainable for 4-level hierarchy
 // GOTCHA: Consider adding Immer in future if updates become more complex
-```
+````
 
 ### Integration Points
 

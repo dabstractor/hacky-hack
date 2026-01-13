@@ -211,7 +211,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S2",
                   "title": "Create PRP document interfaces",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T2.S1"

@@ -5,7 +5,7 @@
 **Story Points**: 1
 **Status**: Ready for Implementation
 
-***
+---
 
 ## Goal
 
@@ -13,21 +13,21 @@
 
 **Deliverable**: Extended `src/core/models.ts` with additional exported interfaces:
 
-* `SessionMetadata` interface (id, hash, path, createdAt, parentSession)
-* `SessionState` interface (metadata, prdSnapshot, taskRegistry, currentItemId)
-* `DeltaSession` interface extending SessionState (oldPRD, newPRD, diffSummary)
-* Comprehensive JSDoc documentation on all new exports
-* All exports properly typed with zero compilation errors
+- `SessionMetadata` interface (id, hash, path, createdAt, parentSession)
+- `SessionState` interface (metadata, prdSnapshot, taskRegistry, currentItemId)
+- `DeltaSession` interface extending SessionState (oldPRD, newPRD, diffSummary)
+- Comprehensive JSDoc documentation on all new exports
+- All exports properly typed with zero compilation errors
 
 **Success Definition**:
 
-* All 3 new interfaces are defined and exported from `src/core/models.ts`
-* TypeScript compiles without errors (`npx tsc --noEmit`)
-* All interfaces follow existing codebase JSDoc patterns
-* Existing exports (Status, ItemType, Subtask, Task, Milestone, Phase, Backlog) remain unchanged
-* Module can be imported using ESM syntax (`import { ... } from './core/models.js'`)
+- All 3 new interfaces are defined and exported from `src/core/models.ts`
+- TypeScript compiles without errors (`npx tsc --noEmit`)
+- All interfaces follow existing codebase JSDoc patterns
+- Existing exports (Status, ItemType, Subtask, Task, Milestone, Phase, Backlog) remain unchanged
+- Module can be imported using ESM syntax (`import { ... } from './core/models.js'`)
 
-***
+---
 
 ## User Persona
 
@@ -44,23 +44,23 @@
 
 **Pain Points Addressed**:
 
-* **No shared session type definitions**: Without interfaces, session handling code would use inconsistent structures
-* **Unclear delta session structure**: Lacking explicit interfaces makes the parent-child session relationship implicit
-* **No documentation**: JSDoc comments provide IDE autocomplete and inline documentation
-* **Type safety**: Strong typing prevents runtime errors when handling session data
+- **No shared session type definitions**: Without interfaces, session handling code would use inconsistent structures
+- **Unclear delta session structure**: Lacking explicit interfaces makes the parent-child session relationship implicit
+- **No documentation**: JSDoc comments provide IDE autocomplete and inline documentation
+- **Type safety**: Strong typing prevents runtime errors when handling session data
 
-***
+---
 
 ## Why
 
-* **Foundation for Session Manager (P3.M1)**: All session state persistence, directory management, and PRD hashing operations depend on these type definitions
-* **Foundation for Delta Sessions (P4.M1)**: Delta detection, PRD diffing, and task patching require the DeltaSession interface
-* **Enables type-safe state loading**: The Session Manager loads `tasks.json` which must conform to SessionState interface
-* **Prevents data corruption**: Immutable (`readonly`) properties prevent accidental mutation of session state
-* **Self-documenting code**: JSDoc provides IDE tooltips and generated documentation
-* **Integration with existing patterns**: Extends the established `src/core/models.ts` module with consistent patterns
+- **Foundation for Session Manager (P3.M1)**: All session state persistence, directory management, and PRD hashing operations depend on these type definitions
+- **Foundation for Delta Sessions (P4.M1)**: Delta detection, PRD diffing, and task patching require the DeltaSession interface
+- **Enables type-safe state loading**: The Session Manager loads `tasks.json` which must conform to SessionState interface
+- **Prevents data corruption**: Immutable (`readonly`) properties prevent accidental mutation of session state
+- **Self-documenting code**: JSDoc provides IDE tooltips and generated documentation
+- **Integration with existing patterns**: Extends the established `src/core/models.ts` module with consistent patterns
 
-***
+---
 
 ## What
 
@@ -71,41 +71,41 @@ Extend the existing `src/core/models.ts` module with session management type def
 ```typescript
 // 1. SessionMetadata Interface
 interface SessionMetadata {
-  readonly id: string;        // Sequence number (e.g., "001", "002")
-  readonly hash: string;      // PRD hash (e.g., "14b9dc2a33c7")
-  readonly path: string;      // Directory path (e.g., "plan/001_14b9dc2a33c7")
-  readonly createdAt: Date;   // Session creation timestamp
-  readonly parentSession: string | null;  // Parent session ID for delta sessions
+  readonly id: string; // Sequence number (e.g., "001", "002")
+  readonly hash: string; // PRD hash (e.g., "14b9dc2a33c7")
+  readonly path: string; // Directory path (e.g., "plan/001_14b9dc2a33c7")
+  readonly createdAt: Date; // Session creation timestamp
+  readonly parentSession: string | null; // Parent session ID for delta sessions
 }
 
 // 2. SessionState Interface
 interface SessionState {
   readonly metadata: SessionMetadata;
-  readonly prdSnapshot: string;      // PRD content at session start
-  readonly taskRegistry: Backlog;    // Task hierarchy (reuses existing Backlog interface)
-  readonly currentItemId: string | null;  // Currently executing item ID
+  readonly prdSnapshot: string; // PRD content at session start
+  readonly taskRegistry: Backlog; // Task hierarchy (reuses existing Backlog interface)
+  readonly currentItemId: string | null; // Currently executing item ID
 }
 
 // 3. DeltaSession Interface (extends SessionState)
 interface DeltaSession extends SessionState {
-  readonly oldPRD: string;      // Original PRD content
-  readonly newPRD: string;      // Modified PRD content
+  readonly oldPRD: string; // Original PRD content
+  readonly newPRD: string; // Modified PRD content
   readonly diffSummary: string; // Human-readable diff summary
 }
 ```
 
 ### Success Criteria
 
-* [ ] `SessionMetadata` interface with 5 properties: id, hash, path, createdAt, parentSession
-* [ ] `SessionState` interface with 4 properties: metadata, prdSnapshot, taskRegistry, currentItemId
-* [ ] `DeltaSession` interface extending SessionState with 3 additional properties: oldPRD, newPRD, diffSummary
-* [ ] All properties use `readonly` modifier
-* [ ] All exports have comprehensive JSDoc comments
-* [ ] `npx tsc --noEmit` completes without errors
-* [ ] Existing exports remain unchanged (backward compatible)
-* [ ] File remains at `src/core/models.ts`
+- [ ] `SessionMetadata` interface with 5 properties: id, hash, path, createdAt, parentSession
+- [ ] `SessionState` interface with 4 properties: metadata, prdSnapshot, taskRegistry, currentItemId
+- [ ] `DeltaSession` interface extending SessionState with 3 additional properties: oldPRD, newPRD, diffSummary
+- [ ] All properties use `readonly` modifier
+- [ ] All exports have comprehensive JSDoc comments
+- [ ] `npx tsc --noEmit` completes without errors
+- [ ] Existing exports remain unchanged (backward compatible)
+- [ ] File remains at `src/core/models.ts`
 
-***
+---
 
 ## All Needed Context
 
@@ -115,12 +115,12 @@ interface DeltaSession extends SessionState {
 
 **Answer**: Yes - this PRP provides:
 
-* Exact file location (`src/core/models.ts`) and module structure
-* Complete interface definitions with all property names and types
-* JSDoc patterns to follow from existing codebase
-* TypeScript configuration specifics (strict mode, ESM)
-* Existing file structure to preserve
-* Validation commands for verification
+- Exact file location (`src/core/models.ts`) and module structure
+- Complete interface definitions with all property names and types
+- JSDoc patterns to follow from existing codebase
+- TypeScript configuration specifics (strict mode, ESM)
+- Existing file structure to preserve
+- Validation commands for verification
 
 ### Documentation & References
 
@@ -281,13 +281,13 @@ readonly prdSnapshot: string;  // CORRECT - full markdown content
 readonly prdSnapshotPath: string;  // WRONG - stores content not path
 ```
 
-***
+---
 
 ## Implementation Blueprint
 
 ### Data Models and Structure
 
-```typescript
+````typescript
 /**
  * Session Metadata Interface
  *
@@ -539,7 +539,7 @@ export interface DeltaSession extends SessionState {
    */
   readonly diffSummary: string;
 }
-```
+````
 
 ### Implementation Tasks (ordered by dependencies)
 
@@ -610,7 +610,7 @@ Task 9: CLEANUP backup file
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // CRITICAL PATTERNS - Follow these for consistency
 // ============================================================================
@@ -737,7 +737,7 @@ type DeltaSession = SessionState & { ... }      // WRONG - use extends
 // GOTCHA: Preserve all existing exports
 // Status, ItemType, Subtask, Task, Milestone, Phase, Backlog must remain unchanged
 // Only ADD new interfaces, do not modify existing ones
-```
+````
 
 ### Integration Points
 
@@ -762,7 +762,7 @@ BACKWARD_COMPATIBILITY:
   - Only ADD new exports at the end of the file
 ```
 
-***
+---
 
 ## Validation Loop
 
@@ -1248,75 +1248,75 @@ npx tsx tests/integration/session-serialization-test.ts
 # Expected: Session state serializes to JSON, Date becomes ISO string
 ```
 
-***
+---
 
 ## Final Validation Checklist
 
 ### Technical Validation
 
-* [ ] All 3 new interfaces defined: `SessionMetadata`, `SessionState`, `DeltaSession`
-* [ ] TypeScript compiles without errors: `npx tsc --noEmit`
-* [ ] All new exports have comprehensive JSDoc comments with `@remarks`, `@see`, `@example`
-* [ ] All properties use `readonly` modifier
-* [ ] File remains at `src/core/models.ts` (not moved)
-* [ ] ESM import syntax works with `.js` extension
-* [ ] Prettier formatting passes
-* [ ] ESLint linting passes
+- [ ] All 3 new interfaces defined: `SessionMetadata`, `SessionState`, `DeltaSession`
+- [ ] TypeScript compiles without errors: `npx tsc --noEmit`
+- [ ] All new exports have comprehensive JSDoc comments with `@remarks`, `@see`, `@example`
+- [ ] All properties use `readonly` modifier
+- [ ] File remains at `src/core/models.ts` (not moved)
+- [ ] ESM import syntax works with `.js` extension
+- [ ] Prettier formatting passes
+- [ ] ESLint linting passes
 
 ### Feature Validation
 
-* [ ] `SessionMetadata` has 5 properties: id, hash, path, createdAt, parentSession
-* [ ] `SessionState` has 4 properties: metadata, prdSnapshot, taskRegistry, currentItemId
-* [ ] `DeltaSession` extends `SessionState` with 3 additional properties: oldPRD, newPRD, diffSummary
-* [ ] `taskRegistry` property reuses existing `Backlog` interface
-* [ ] `parentSession` and `currentItemId` use `string | null` type
-* [ ] `createdAt` uses `Date` type (not string)
-* [ ] Interface inheritance works correctly (`DeltaSession extends SessionState`)
-* [ ] Type narrowing works for delta detection
+- [ ] `SessionMetadata` has 5 properties: id, hash, path, createdAt, parentSession
+- [ ] `SessionState` has 4 properties: metadata, prdSnapshot, taskRegistry, currentItemId
+- [ ] `DeltaSession` extends `SessionState` with 3 additional properties: oldPRD, newPRD, diffSummary
+- [ ] `taskRegistry` property reuses existing `Backlog` interface
+- [ ] `parentSession` and `currentItemId` use `string | null` type
+- [ ] `createdAt` uses `Date` type (not string)
+- [ ] Interface inheritance works correctly (`DeltaSession extends SessionState`)
+- [ ] Type narrowing works for delta detection
 
 ### Code Quality Validation
 
-* [ ] Follows existing codebase patterns from `src/core/models.ts`
-* [ ] JSDoc comments use `@remarks`, `@example`, `@see` tags appropriately
-* [ ] Property naming uses camelCase (parentSession, currentItemId, taskRegistry)
-* [ ] No "I" prefix on interfaces (SessionMetadata not ISessionMetadata)
-* [ ] Reuses existing interfaces where appropriate (Backlog for taskRegistry)
-* [ ] Cross-references architecture documentation with `@see` tags
-* [ ] Module-level JSDoc preserved from original file
+- [ ] Follows existing codebase patterns from `src/core/models.ts`
+- [ ] JSDoc comments use `@remarks`, `@example`, `@see` tags appropriately
+- [ ] Property naming uses camelCase (parentSession, currentItemId, taskRegistry)
+- [ ] No "I" prefix on interfaces (SessionMetadata not ISessionMetadata)
+- [ ] Reuses existing interfaces where appropriate (Backlog for taskRegistry)
+- [ ] Cross-references architecture documentation with `@see` tags
+- [ ] Module-level JSDoc preserved from original file
 
 ### Backward Compatibility Validation
 
-* [ ] All existing exports preserved: Status, ItemType, Subtask, Task, Milestone, Phase, Backlog
-* [ ] All existing Zod schemas preserved: StatusEnum, ItemTypeEnum, SubtaskSchema, TaskSchema, MilestoneSchema, PhaseSchema, BacklogSchema
-* [ ] No existing interface definitions modified
-* [ ] Existing tests still pass: `npm test`
-* [ ] Full project type check passes: `npx tsc --noEmit`
+- [ ] All existing exports preserved: Status, ItemType, Subtask, Task, Milestone, Phase, Backlog
+- [ ] All existing Zod schemas preserved: StatusEnum, ItemTypeEnum, SubtaskSchema, TaskSchema, MilestoneSchema, PhaseSchema, BacklogSchema
+- [ ] No existing interface definitions modified
+- [ ] Existing tests still pass: `npm test`
+- [ ] Full project type check passes: `npx tsc --noEmit`
 
 ### Documentation & Deployment
 
-* [ ] Module-level JSDoc preserved from original file
-* [ ] Each new interface has clear description in JSDoc
-* [ ] Each property has inline JSDoc where clarification is needed
-* [ ] `@example` tags show executable usage code
-* [ ] `@see` tags reference system_context.md and PRD.md
+- [ ] Module-level JSDoc preserved from original file
+- [ ] Each new interface has clear description in JSDoc
+- [ ] Each property has inline JSDoc where clarification is needed
+- [ ] `@example` tags show executable usage code
+- [ ] `@see` tags reference system_context.md and PRD.md
 
-***
+---
 
 ## Anti-Patterns to Avoid
 
-* ❌ **Don't modify existing interfaces** - Only add new interfaces, preserve existing ones
-* ❌ **Don't omit `readonly` modifier** - All properties should be immutable
-* ❌ **Don't use "I" prefix** - Interface names should be SessionMetadata, not ISessionMetadata
-* ❌ **Don't use snake_case** - Property names should be camelCase (parentSession, currentItemId)
-* ❌ **Don't use optional properties** - Use `string | null` not `string?` for nullable fields
-* ❌ **Don't redefine Backlog** - Reuse existing Backlog interface for taskRegistry
-* ❌ **Don't use `type` for inheritance** - Use `interface extends` not `type ... &`
-* ❌ **Don't skip JSDoc comments** - All new exports need comprehensive documentation
-* ❌ **Don't use string for dates** - Use `Date` type for createdAt, serialize to ISO string when needed
-* ❌ **Don't insert in middle of file** - Add new interfaces at end after BacklogSchema
-* ❌ **Don't break backward compatibility** - Existing code must continue to work unchanged
+- ❌ **Don't modify existing interfaces** - Only add new interfaces, preserve existing ones
+- ❌ **Don't omit `readonly` modifier** - All properties should be immutable
+- ❌ **Don't use "I" prefix** - Interface names should be SessionMetadata, not ISessionMetadata
+- ❌ **Don't use snake_case** - Property names should be camelCase (parentSession, currentItemId)
+- ❌ **Don't use optional properties** - Use `string | null` not `string?` for nullable fields
+- ❌ **Don't redefine Backlog** - Reuse existing Backlog interface for taskRegistry
+- ❌ **Don't use `type` for inheritance** - Use `interface extends` not `type ... &`
+- ❌ **Don't skip JSDoc comments** - All new exports need comprehensive documentation
+- ❌ **Don't use string for dates** - Use `Date` type for createdAt, serialize to ISO string when needed
+- ❌ **Don't insert in middle of file** - Add new interfaces at end after BacklogSchema
+- ❌ **Don't break backward compatibility** - Existing code must continue to work unchanged
 
-***
+---
 
 ## Confidence Score
 
@@ -1324,25 +1324,25 @@ npx tsx tests/integration/session-serialization-test.ts
 
 **Confidence Rationale**:
 
-* ✅ Complete interface specifications with exact property names and types
-* ✅ JSDoc patterns demonstrated from existing `src/core/models.ts` codebase
-* ✅ TypeScript configuration specifics documented (strict mode, ESM)
-* ✅ Research findings integrated (session model from PRD/system_context.md)
-* ✅ Validation commands provided for all 4 levels
-* ✅ Backward compatibility requirements clearly defined
-* ✅ No ambiguity in implementation approach
-* ✅ Follows existing codebase conventions exactly
+- ✅ Complete interface specifications with exact property names and types
+- ✅ JSDoc patterns demonstrated from existing `src/core/models.ts` codebase
+- ✅ TypeScript configuration specifics documented (strict mode, ESM)
+- ✅ Research findings integrated (session model from PRD/system_context.md)
+- ✅ Validation commands provided for all 4 levels
+- ✅ Backward compatibility requirements clearly defined
+- ✅ No ambiguity in implementation approach
+- ✅ Follows existing codebase conventions exactly
 
 **Risk Mitigation**:
 
-* Create backup of `src/core/models.ts` before modification (Task 1)
-* Verify backward compatibility by running existing tests (Task 8)
-* Follow JSDoc pattern exactly from existing interfaces in same file
-* Use `readonly` modifier consistently to prevent issues
-* Reuse existing `Backlog` interface to avoid redundancy
+- Create backup of `src/core/models.ts` before modification (Task 1)
+- Verify backward compatibility by running existing tests (Task 8)
+- Follow JSDoc pattern exactly from existing interfaces in same file
+- Use `readonly` modifier consistently to prevent issues
+- Reuse existing `Backlog` interface to avoid redundancy
 
 **Minor Deduction**:
 
-* The next subtask (P1.M2.T2.S2) will create Zod schemas matching these interfaces - if interface design has issues, they'll surface during Zod schema creation
-* This is acceptable as it's part of the iterative refinement process
-* Delta session workflows (P4.M1) will provide real-world validation of the interface design
+- The next subtask (P1.M2.T2.S2) will create Zod schemas matching these interfaces - if interface design has issues, they'll surface during Zod schema creation
+- This is acceptable as it's part of the iterative refinement process
+- Delta session workflows (P4.M1) will provide real-world validation of the interface design
