@@ -911,7 +911,7 @@
                   "type": "Subtask",
                   "id": "P4.M3.T1.S1",
                   "title": "Create bug hunt workflow",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.4 - QA Agent creates TEST_RESULTS.md only if bugs exist. Three phases: Scope, Creative E2E, Adversarial.\n2. INPUT: PRD content, completed tasks list. createBugHuntPrompt() from P2.M2.T4.\n3. LOGIC: Create src/workflows/bug-hunt-workflow.ts:\n   - Import { Workflow, Step } from 'groundswell'\n   - Export class BugHuntWorkflow extends Workflow\n   - @ObservedState() prdContent: string\n   - @ObservedState() completedTasks: Task[]\n   - @ObservedState() testResults: TestResults | null\n   - Constructor accepts PRD, completed tasks\n   - @Step() async analyzeScope(): Promise<void> - Read PRD, understand requirements\n   - @Step() async creativeE2ETesting(): Promise<void> - Generate test scenarios, execute happy path\n   - @Step() async adversarialTesting(): Promise<void> - Test edge cases, unexpected inputs\n   - @Step() async generateReport(): Promise<TestResults> - Use QA agent with createBugHuntPrompt()\n   - Override async run(): Promise<TestResults> - Orchestrate all phases\n4. OUTPUT: Bug hunt workflow that produces detailed test results."
@@ -920,7 +920,7 @@
                   "type": "Subtask",
                   "id": "P4.M3.T1.S2",
                   "title": "Implement fix cycle for bugs",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M3.T1.S1"
