@@ -156,7 +156,9 @@ vi.mock('../../src/agents/agent-factory.js', () => ({
 
 // Mock PRPExecutor to avoid running real validation commands
 // Create a mock that can be controlled per test
-let mockPRPExecutorExecute = vi.fn().mockResolvedValue(createMockExecutionResult(true));
+let mockPRPExecutorExecute = vi
+  .fn()
+  .mockResolvedValue(createMockExecutionResult(true));
 
 vi.mock('../../src/agents/prp-executor.js', () => ({
   PRPExecutor: vi.fn().mockImplementation(() => ({
@@ -173,7 +175,9 @@ describe('integration/prp-runtime', () => {
 
   beforeEach(async () => {
     // Reset PRPExecutor mock for each test
-    mockPRPExecutorExecute = vi.fn().mockResolvedValue(createMockExecutionResult(true));
+    mockPRPExecutorExecute = vi
+      .fn()
+      .mockResolvedValue(createMockExecutionResult(true));
     vi.doMock('../../src/agents/prp-executor.js', () => ({
       PRPExecutor: vi.fn().mockImplementation(() => ({
         execute: mockPRPExecutorExecute,
@@ -205,11 +209,16 @@ This is a unique test PRD for PRPRuntime integration tests with ID: ${uniqueId}.
 
     // Write test backlog to session tasks.json
     const testBacklog = createTestBacklog();
-    const tasksPath = join(sessionManager.currentSession!.metadata.path, 'tasks.json');
+    const tasksPath = join(
+      sessionManager.currentSession!.metadata.path,
+      'tasks.json'
+    );
     await fs.writeFile(tasksPath, JSON.stringify(testBacklog, null, 2));
 
     // Reload session to pick up tasks.json
-    await sessionManager.loadSession(sessionManager.currentSession!.metadata.id);
+    await sessionManager.loadSession(
+      sessionManager.currentSession!.metadata.id
+    );
 
     // Initialize TaskOrchestrator
     orchestrator = new TaskOrchestrator(sessionManager);
@@ -369,7 +378,9 @@ This is a unique test PRD for PRPRuntime integration tests with ID: ${uniqueId}.
       const subtask = backlog.backlog[0].milestones[0].tasks[0].subtasks[0];
 
       // Configure mock PRPExecutor to return failed result
-      mockPRPExecutorExecute.mockResolvedValueOnce(createMockExecutionResult(false));
+      mockPRPExecutorExecute.mockResolvedValueOnce(
+        createMockExecutionResult(false)
+      );
 
       // Spy on orchestrator.setStatus to track status changes
       const setStatusSpy = vi.spyOn(orchestrator, 'setStatus');
@@ -414,7 +425,9 @@ This is a unique test PRD for PRPRuntime integration tests with ID: ${uniqueId}.
       const subtask = backlog.backlog[0].milestones[0].tasks[0].subtasks[0];
 
       // Configure mock PRPExecutor to throw error
-      mockPRPExecutorExecute.mockRejectedValueOnce(new Error('Coder agent timeout'));
+      mockPRPExecutorExecute.mockRejectedValueOnce(
+        new Error('Coder agent timeout')
+      );
 
       // EXECUTE: Run complete orchestration
       const runtime = new PRPRuntime(orchestrator);

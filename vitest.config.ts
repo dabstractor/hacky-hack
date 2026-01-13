@@ -39,6 +39,12 @@ export default defineConfig({
   },
   esbuild: {
     target: 'esnext',
+    tsconfigRaw: {
+      compilerOptions: {
+        experimentalDecorators: true,
+        emitDecoratorMetadata: true,
+      },
+    },
   },
   resolve: {
     alias: {
