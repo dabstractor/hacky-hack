@@ -44,6 +44,37 @@ import {
 } from '../utils/task-utils.js';
 
 /**
+ * Compiled regex for session directory matching
+ *
+ * @remarks
+ * Matches directory names in the format {sequence}_{hash} where:
+ * - sequence: 3-digit zero-padded number (e.g., 001, 002)
+ * - hash: 12-character lowercase hexadecimal string (first 12 chars of SHA-256)
+ *
+ * Example matches: "001_14b9dc2a33c7", "999_abcdef123456"
+ * Example non-matches: "1_abc", "001_abcdef", "001_14b9dc2a33c7_extra"
+ */
+const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
+
+/**
+ * Parsed session directory information
+ *
+ * @remarks
+ * Internal type used to represent a parsed session directory with
+ * its name, path, sequence number, and hash.
+ */
+interface SessionDirInfo {
+  /** Directory name (e.g., '001_14b9dc2a33c7') */
+  name: string;
+  /** Absolute path to directory */
+  path: string;
+  /** Parsed sequence number (e.g., 1) */
+  sequence: number;
+  /** Parsed hash (e.g., '14b9dc2a33c7') */
+  hash: string;
+}
+
+/**
  * Session Manager for PRP Pipeline state management
  *
  * @remarks
@@ -62,6 +93,9 @@ export class SessionManager {
 
   /** Current loaded session state (null until initialize/loadSession called) */
   #currentSession: SessionState | null = null;
+
+  /** Cached PRD hash for change detection (null until initialize called) */
+  #prdHash: string | null = null;
 
   /**
    * Creates a new SessionManager instance
@@ -123,21 +157,10 @@ export class SessionManager {
    * @returns Absolute path to matching session directory, or null if not found
    */
   async #findSessionByHash(hash: string): Promise<string | null> {
-    try {
-      const entries = await readdir(this.planDir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.isDirectory() && entry.name.endsWith(`_${hash}`)) {
-          return resolve(this.planDir, entry.name);
-        }
-      }
-      return null;
-    } catch (error) {
-      // If plan/ directory doesn't exist yet, that's OK
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return null;
-      }
-      throw error;
-    }
+    const sessions: SessionDirInfo[] =
+      await SessionManager.__scanSessionDirectories(this.planDir);
+    const match = sessions.find((s: SessionDirInfo) => s.hash === hash);
+    return match?.path ?? null;
   }
 
   /**
@@ -146,28 +169,13 @@ export class SessionManager {
    * @returns Next sequence number (highest existing + 1)
    */
   async #getNextSequence(): Promise<number> {
-    try {
-      const entries = await readdir(this.planDir, { withFileTypes: true });
-      let maxSeq = 0;
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const match = entry.name.match(/^(\d+)_/);
-          if (match) {
-            const seq = parseInt(match[1], 10);
-            if (seq > maxSeq) {
-              maxSeq = seq;
-            }
-          }
-        }
-      }
-      return maxSeq + 1;
-    } catch (error) {
-      // If plan/ directory doesn't exist yet, start from 1
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return 1;
-      }
-      throw error;
-    }
+    const sessions: SessionDirInfo[] =
+      await SessionManager.__scanSessionDirectories(this.planDir);
+    const maxSeq = sessions.reduce(
+      (max: number, s: SessionDirInfo) => Math.max(max, s.sequence),
+      0
+    );
+    return maxSeq + 1;
   }
 
   /**
@@ -197,6 +205,8 @@ export class SessionManager {
     // 1. Hash the PRD
     const fullHash = await hashPRD(this.prdPath);
     const sessionHash = fullHash.slice(0, 12);
+    // Cache the PRD hash for later change detection
+    this.#prdHash = sessionHash;
 
     // 2. Search for existing session with matching hash
     const existingSession = await this.#findSessionByHash(sessionHash);
@@ -527,5 +537,309 @@ export class SessionManager {
       ...this.#currentSession,
       currentItemId: itemId,
     };
+  }
+
+  /**
+   * Parses session directory name into components
+   *
+   * @remarks
+   * Internal static helper that extracts sequence and hash from a directory name.
+   * Returns null if the directory name doesn't match the session pattern.
+   *
+   * @param name - Directory name (e.g., '001_14b9dc2a33c7')
+   * @param planDir - Path to plan directory
+   * @returns Parsed session info or null if invalid format
+   * @internal
+   */
+  static __parseSessionDirectory(
+    name: string,
+    planDir: string
+  ): SessionDirInfo | null {
+    const match = name.match(SESSION_DIR_PATTERN);
+    if (!match) return null;
+
+    return {
+      name,
+      path: resolve(planDir, name),
+      sequence: parseInt(match[1], 10),
+      hash: match[2],
+    };
+  }
+
+  /**
+   * Scans plan directory for session subdirectories
+   *
+   * @remarks
+   * Internal static helper that reads the plan directory and returns all
+   * subdirectories matching the session pattern. Handles ENOENT gracefully
+   * by returning an empty array.
+   *
+   * @param planDir - Path to plan directory
+   * @returns Array of session directory info
+   * @throws {Error} For non-ENOENT errors during directory scanning
+   * @internal
+   */
+  static async __scanSessionDirectories(
+    planDir: string
+  ): Promise<SessionDirInfo[]> {
+    try {
+      const entries = await readdir(planDir, { withFileTypes: true });
+      const sessions: SessionDirInfo[] = [];
+
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const match = entry.name.match(SESSION_DIR_PATTERN);
+          if (match) {
+            sessions.push({
+              name: entry.name,
+              path: resolve(planDir, entry.name),
+              sequence: parseInt(match[1], 10),
+              hash: match[2],
+            });
+          }
+        }
+      }
+
+      return sessions;
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err.code === 'ENOENT') {
+        return []; // Plan directory doesn't exist yet
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Reads parent session ID from parent_session.txt
+   *
+   * @remarks
+   * Internal static helper that reads the parent session reference file.
+   * Returns null if the file doesn't exist (not an error).
+   *
+   * @param sessionPath - Path to session directory
+   * @returns Parent session ID or null
+   * @internal
+   */
+  static async __readParentSession(
+    sessionPath: string
+  ): Promise<string | null> {
+    try {
+      const parentPath = resolve(sessionPath, 'parent_session.txt');
+      const parentContent = await readFile(parentPath, 'utf-8');
+      return parentContent.trim();
+    } catch {
+      // No parent session file
+      return null;
+    }
+  }
+
+  /**
+   * Lists all sessions in the plan directory
+   *
+   * @remarks
+   * Scans the plan directory for session subdirectories matching the
+   * pattern {sequence}_{hash}. Returns an array of SessionMetadata objects
+   * sorted by sequence number in ascending order.
+   *
+   * Returns an empty array if the plan directory doesn't exist or contains
+   * no sessions.
+   *
+   * @param planDir - Path to plan directory (default: resolve('plan'))
+   * @returns Array of SessionMetadata sorted by sequence ascending
+   *
+   * @example
+   * ```typescript
+   * const sessions = await SessionManager.listSessions();
+   * console.log(`Found ${sessions.length} sessions`);
+   * for (const session of sessions) {
+   *   console.log(`${session.id}: ${session.hash}`);
+   * }
+   * ```
+   */
+  static async listSessions(
+    planDir: string = resolve('plan')
+  ): Promise<SessionMetadata[]> {
+    // Scan for session directories
+    const sessions: SessionDirInfo[] =
+      await SessionManager.__scanSessionDirectories(planDir);
+
+    // Build SessionMetadata for each session
+    const metadata: SessionMetadata[] = [];
+
+    for (const session of sessions) {
+      try {
+        // Get directory stats for createdAt
+        const stats = await stat(session.path);
+
+        // Check for parent session
+        const parentSession = await SessionManager.__readParentSession(
+          session.path
+        );
+
+        metadata.push({
+          id: session.name,
+          hash: session.hash,
+          path: session.path,
+          createdAt: stats.mtime,
+          parentSession,
+        });
+      } catch {
+        // Skip sessions that fail to load (e.g., permission denied, I/O error)
+        continue;
+      }
+    }
+
+    // Sort by sequence ascending
+    metadata.sort((a, b) => {
+      const seqA = parseInt(a.id.split('_')[0], 10);
+      const seqB = parseInt(b.id.split('_')[0], 10);
+      return seqA - seqB;
+    });
+
+    return metadata;
+  }
+
+  /**
+   * Finds the latest session (highest sequence number)
+   *
+   * @remarks
+   * Calls listSessions() and returns the session with the highest sequence
+   * number. Returns null if no sessions exist.
+   *
+   * @param planDir - Path to plan directory (default: resolve('plan'))
+   * @returns Latest SessionMetadata or null if no sessions exist
+   *
+   * @example
+   * ```typescript
+   * const latest = await SessionManager.findLatestSession();
+   * if (latest) {
+   *   console.log(`Latest session: ${latest.id}`);
+   * } else {
+   *   console.log('No sessions found');
+   * }
+   * ```
+   */
+  static async findLatestSession(
+    planDir: string = resolve('plan')
+  ): Promise<SessionMetadata | null> {
+    const sessions = await SessionManager.listSessions(planDir);
+
+    if (sessions.length === 0) {
+      return null;
+    }
+
+    // listSessions() sorts ascending, so last element is highest
+    return sessions[sessions.length - 1];
+  }
+
+  /**
+   * Finds session matching the given PRD file
+   *
+   * @remarks
+   * Computes the SHA-256 hash of the PRD file and searches for a session
+   * directory with a matching hash (first 12 characters). Returns the full
+   * SessionMetadata if found, null otherwise.
+   *
+   * Validates that the PRD file exists before computing the hash.
+   *
+   * @param prdPath - Path to PRD markdown file
+   * @param planDir - Path to plan directory (default: resolve('plan'))
+   * @returns Matching SessionMetadata or null if not found
+   * @throws {SessionFileError} If PRD file does not exist
+   *
+   * @example
+   * ```typescript
+   * const session = await SessionManager.findSessionByPRD('./PRD.md');
+   * if (session) {
+   *   console.log(`Found existing session: ${session.id}`);
+   * } else {
+   *   console.log('No matching session found');
+   * }
+   * ```
+   */
+  static async findSessionByPRD(
+    prdPath: string,
+    planDir: string = resolve('plan')
+  ): Promise<SessionMetadata | null> {
+    // Validate PRD exists synchronously
+    const absPath = resolve(prdPath);
+    try {
+      const stats = statSync(absPath);
+      if (!stats.isFile()) {
+        throw new SessionFileError(absPath, 'validate PRD path');
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new SessionFileError(
+          absPath,
+          'validate PRD exists',
+          error as Error
+        );
+      }
+      throw error;
+    }
+
+    // Compute PRD hash
+    const fullHash = await hashPRD(absPath);
+    const sessionHash = fullHash.slice(0, 12);
+
+    // Scan for sessions
+    const sessions: SessionDirInfo[] =
+      await SessionManager.__scanSessionDirectories(planDir);
+
+    // Find matching session
+    const match = sessions.find((s: SessionDirInfo) => s.hash === sessionHash);
+    if (!match) {
+      return null;
+    }
+
+    // Build full SessionMetadata
+    const stats = await stat(match.path);
+    const parentSession = await SessionManager.__readParentSession(match.path);
+
+    return {
+      id: match.name,
+      hash: match.hash,
+      path: match.path,
+      createdAt: stats.mtime,
+      parentSession,
+    };
+  }
+
+  /**
+   * Checks if the current PRD has changed since session load
+   *
+   * @remarks
+   * Compares the cached PRD hash (computed during initialize()) with the
+   * loaded session's hash. Returns true if the hashes differ (PRD was modified),
+   * false otherwise.
+   *
+   * This is a synchronous check that uses the cached PRD hash from initialize().
+   *
+   * @returns true if PRD hash differs from session hash, false otherwise
+   * @throws {Error} If no session is currently loaded
+   *
+   * @example
+   * ```typescript
+   * const manager = new SessionManager('./PRD.md');
+   * await manager.initialize();
+   *
+   * // User modifies PRD file...
+   *
+   * if (manager.hasSessionChanged()) {
+   *   console.log('PRD has changed, delta session needed');
+   *   await manager.createDeltaSession('./PRD.md');
+   * }
+   * ```
+   */
+  hasSessionChanged(): boolean {
+    if (!this.#currentSession) {
+      throw new Error('Cannot check session change: no session loaded');
+    }
+    if (!this.#prdHash) {
+      throw new Error('Cannot check session change: PRD hash not computed');
+    }
+    return this.#prdHash !== this.#currentSession.metadata.hash;
   }
 }

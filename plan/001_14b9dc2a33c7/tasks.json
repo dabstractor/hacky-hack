@@ -497,7 +497,7 @@
               "type": "Task",
               "id": "P3.M1.T1",
               "title": "Implement Session Initialization",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Create the session manager that initializes new sessions, detects existing sessions, and handles delta sessions.",
               "subtasks": [
                 {
@@ -524,7 +524,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S3",
                   "title": "Implement session listing and discovery",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M1.T1.S2"
@@ -544,7 +544,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Create PRD snapshot utility",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M1.T1.S3"

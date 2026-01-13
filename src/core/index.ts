@@ -15,6 +15,8 @@ export {
   writeTasksJSON,
   readTasksJSON,
   writePRP,
+  snapshotPRD,
+  loadSnapshot,
   SessionFileError,
 } from './session-utils.js';
 

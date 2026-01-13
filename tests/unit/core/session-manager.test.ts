@@ -159,10 +159,6 @@ describe('SessionManager', () => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    vi.resetAllMocks();
-  });
-
   describe('constructor', () => {
     it('should validate PRD file exists synchronously', () => {
       // SETUP: Mock successful stat check
@@ -409,7 +405,7 @@ describe('SessionManager', () => {
     it('should increment sequence number when creating new session', async () => {
       // SETUP: Existing session 001 exists, but hash doesn't match
       mockReaddir.mockResolvedValue([
-        { name: '001_oldhash1234', isDirectory: () => true },
+        { name: '001_a1b2c3d4e5f6', isDirectory: () => true }, // Valid format but different hash
       ]);
       mockCreateSessionDirectory.mockResolvedValue('/plan/002_14b9dc2a33c7');
 
@@ -1188,7 +1184,7 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
       mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
       mockReaddir.mockResolvedValue([
-        { name: '999_oldhash1234', isDirectory: () => true },
+        { name: '999_a1b2c3d4e5f6', isDirectory: () => true }, // Valid format but different hash
       ]);
       mockCreateSessionDirectory.mockResolvedValue('/plan/1000_14b9dc2a33c7');
       mockReadFile.mockResolvedValue('# PRD');
@@ -1751,6 +1747,442 @@ describe('SessionManager', () => {
       // VERIFY: Correct item returned
       expect(current?.id).toBe('P1.M1.T1.S1');
       expect(current?.title).toBe('Subtask 1');
+    });
+  });
+
+  describe('listSessions (static)', () => {
+    it('should list all sessions sorted by sequence ascending', async () => {
+      // SETUP: Mock multiple session directories (all with 12-char hashes)
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockImplementation(async () => [
+        { name: '002_25e8db4b4d8a', isDirectory: () => true },
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+        { name: '003_a3f8e9d12b4a', isDirectory: () => true },
+        { name: 'invalid_dir', isDirectory: () => true },
+        { name: 'file.txt', isDirectory: () => false },
+      ]);
+      mockStat.mockImplementation(async () => ({
+        mtime: new Date('2024-01-01'),
+      }));
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadFile.mockImplementation(async () => {
+        throw error;
+      }); // No parent file for any session
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY: Should return 3 sessions, sorted by sequence ascending
+      expect(sessions).toHaveLength(3);
+      expect(sessions[0].id).toBe('001_14b9dc2a33c7');
+      expect(sessions[1].id).toBe('002_25e8db4b4d8a');
+      expect(sessions[2].id).toBe('003_a3f8e9d12b4a');
+    });
+
+    it('should parse hash from directory name correctly', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      mockReadFile.mockRejectedValueOnce(new Error('ENOENT'));
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY
+      expect(sessions[0].hash).toBe('14b9dc2a33c7');
+    });
+
+    it('should read parent_session.txt if present', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '002_25e8db4b4d8a', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-02') });
+      mockReadFile.mockResolvedValue('001_14b9dc2a33c7'); // parent_session.txt
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY
+      expect(sessions[0].parentSession).toBe('001_14b9dc2a33c7');
+    });
+
+    it('should set parentSession to null when no parent file exists', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadFile.mockRejectedValueOnce(error);
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY
+      expect(sessions[0].parentSession).toBeNull();
+    });
+
+    it('should return empty array when plan directory does not exist', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReaddir.mockRejectedValue(error);
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY
+      expect(sessions).toEqual([]);
+    });
+
+    it('should filter out non-matching directory names', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+        { name: '001_invalid', isDirectory: () => true }, // Invalid hash
+        { name: '999_abc', isDirectory: () => true }, // Too short
+        { name: 'not_a_session', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      mockReadFile.mockRejectedValueOnce(new Error('ENOENT'));
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY: Only valid session directories should be included
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0].id).toBe('001_14b9dc2a33c7');
+    });
+
+    it('should handle empty plan directory', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([]);
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY
+      expect(sessions).toEqual([]);
+    });
+
+    it('should use default plan directory when not specified', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([]);
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const sessions = await SessionManager.listSessions();
+
+      // VERIFY: Should call readdir with resolved 'plan' directory
+      expect(mockReaddir).toHaveBeenCalled();
+    });
+  });
+
+  describe('findLatestSession (static)', () => {
+    it('should return session with highest sequence number', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+        { name: '002_25e8db4b4d8a', isDirectory: () => true },
+        { name: '003_a3f8e9d12b4a', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
+
+      // EXECUTE
+      const latest = await SessionManager.findLatestSession('/test/plan');
+
+      // VERIFY
+      expect(latest?.id).toBe('003_a3f8e9d12b4a');
+    });
+
+    it('should return null when no sessions exist', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([]);
+
+      // EXECUTE
+      const latest = await SessionManager.findLatestSession('/test/plan');
+
+      // VERIFY
+      expect(latest).toBeNull();
+    });
+
+    it('should return null when plan directory does not exist', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReaddir.mockRejectedValue(error);
+
+      // EXECUTE
+      const latest = await SessionManager.findLatestSession('/test/plan');
+
+      // VERIFY
+      expect(latest).toBeNull();
+    });
+
+    it('should return single session when only one exists', async () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
+
+      // EXECUTE
+      const latest = await SessionManager.findLatestSession('/test/plan');
+
+      // VERIFY
+      expect(latest?.id).toBe('001_14b9dc2a33c7');
+    });
+  });
+
+  describe('findSessionByPRD (static)', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should find session by PRD hash', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+        { name: '002_differenthash', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
+
+      // EXECUTE
+      const session = await SessionManager.findSessionByPRD('/test/PRD.md');
+
+      // VERIFY
+      expect(session).not.toBeNull();
+      expect(session?.id).toBe('001_14b9dc2a33c7');
+      expect(session?.hash).toBe(MOCK_SESSION_HASH);
+      expect(mockHashPRD).toHaveBeenCalledWith('/test/PRD.md');
+    });
+
+    it('should return null when no matching session found', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([
+        { name: '001_differenthash', isDirectory: () => true },
+      ]);
+
+      // EXECUTE
+      const session = await SessionManager.findSessionByPRD('/test/PRD.md');
+
+      // VERIFY
+      expect(session).toBeNull();
+    });
+
+    it('should throw SessionFileError when PRD does not exist', async () => {
+      // SETUP: PRD file doesn't exist
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockStatSync.mockImplementation(() => {
+        throw error;
+      });
+
+      // EXECUTE & VERIFY
+      await expect(
+        SessionManager.findSessionByPRD('/nonexistent/PRD.md')
+      ).rejects.toThrow(SessionFileError);
+    });
+
+    it('should validate PRD is a file, not directory', async () => {
+      // SETUP: PRD path is a directory
+      mockStatSync.mockReturnValue({ isFile: () => false });
+
+      // EXECUTE & VERIFY
+      await expect(
+        SessionManager.findSessionByPRD('/test/PRD.md')
+      ).rejects.toThrow(SessionFileError);
+    });
+
+    it('should extract session hash from full PRD hash', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
+
+      // EXECUTE
+      const session = await SessionManager.findSessionByPRD('/test/PRD.md');
+
+      // VERIFY: Session hash should be first 12 chars of full hash
+      expect(session?.hash).toBe(MOCK_SESSION_HASH);
+      expect(MOCK_SESSION_HASH.length).toBe(12);
+    });
+
+    it('should read parent session from parent_session.txt', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true }, // Matching PRD hash
+      ]);
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-02') });
+      mockReadFile.mockResolvedValue('000_parenthash'); // parent_session.txt
+
+      // EXECUTE
+      const session = await SessionManager.findSessionByPRD('/test/PRD.md');
+
+      // VERIFY
+      expect(session?.parentSession).toBe('000_parenthash');
+    });
+
+    it('should return null when plan directory does not exist', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      const error = new Error('ENOENT') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReaddir.mockRejectedValue(error);
+
+      // EXECUTE
+      const session = await SessionManager.findSessionByPRD('/test/PRD.md');
+
+      // VERIFY
+      expect(session).toBeNull();
+    });
+  });
+
+  describe('hasSessionChanged', () => {
+    it('should return false when PRD hash matches session hash', async () => {
+      // SETUP: Initialize with matching PRD
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]); // No existing sessions
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE
+      const changed = manager.hasSessionChanged();
+
+      // VERIFY: PRD hash was cached during initialize(), should match session hash
+      expect(changed).toBe(false);
+    });
+
+    it('should return true when PRD hash differs from session hash', async () => {
+      // SETUP: Initialize session with PRD hash
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH); // Returns 14b9dc2a33c7...
+      mockReaddir.mockResolvedValue([]); // No existing sessions
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // Create a delta session with different hash (simulating PRD change)
+      const newHash =
+        'a3f8e9d12b4aa5678901234567890abcdef1234567890abcdef1234567890abcdef';
+      mockHashPRD.mockResolvedValueOnce(newHash);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/002_a3f8e9d12b4a');
+      mockReadFile.mockResolvedValue('# Different PRD');
+      mockStat.mockResolvedValue({});
+
+      await manager.createDeltaSession('/new/PRD.md');
+
+      // EXECUTE: After delta session, cached PRD hash (14b9dc2a33c7) differs from new session hash (a3f8e9d12b4a)
+      const changed = manager.hasSessionChanged();
+
+      // VERIFY: Should return true because hashes don't match
+      expect(changed).toBe(true);
+    });
+
+    it('should throw Error when no session is loaded', async () => {
+      // SETUP: Manager without session
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      const manager = new SessionManager('/test/PRD.md');
+
+      // EXECUTE & VERIFY
+      expect(() => manager.hasSessionChanged()).toThrow(
+        'Cannot check session change: no session loaded'
+      );
+    });
+
+    it('should use cached PRD hash from initialize()', async () => {
+      // SETUP: Initialize caches the PRD hash
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // Verify hashPRD was called exactly once during initialize
+      expect(mockHashPRD).toHaveBeenCalledTimes(1);
+
+      // EXECUTE: hasSessionChanged should use cached hash, not call hashPRD again
+      manager.hasSessionChanged();
+
+      // VERIFY: hashPRD was not called again
+      expect(mockHashPRD).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('session discovery integration', () => {
+    it('should support full discovery workflow', async () => {
+      // SETUP: Multiple sessions exist (all with 12-char hashes)
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      mockReaddir.mockResolvedValue([
+        { name: '001_14b9dc2a33c7', isDirectory: () => true },
+        { name: '002_25e8db4b4d8a', isDirectory: () => true },
+        { name: '003_a3f8e9d12b4a', isDirectory: () => true },
+      ]);
+
+      // Set up stat to return mtime
+      mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
+
+      // Set up readFile to return content for parent sessions (simulating they have parents)
+      mockReadFile.mockResolvedValue('001_14b9dc2a33c7');
+
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+
+      // EXECUTE: List all sessions
+      const sessions = await SessionManager.listSessions('/test/plan');
+
+      // VERIFY: All sessions found
+      expect(sessions.length).toBeGreaterThan(0);
+
+      // EXECUTE: Find latest
+      const latest = await SessionManager.findLatestSession('/test/plan');
+
+      // VERIFY
+      expect(latest).not.toBeNull();
+      expect(latest?.id).toBe('003_a3f8e9d12b4a');
+
+      // EXECUTE: Find session by PRD
+      const byPRD = await SessionManager.findSessionByPRD('/test/PRD.md');
+
+      // VERIFY
+      expect(byPRD).not.toBeNull();
+      expect(byPRD?.id).toBe('001_14b9dc2a33c7');
     });
   });
 });

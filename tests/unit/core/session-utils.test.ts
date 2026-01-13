@@ -17,6 +17,8 @@ import {
   writeTasksJSON,
   readTasksJSON,
   writePRP,
+  snapshotPRD,
+  loadSnapshot,
   SessionFileError,
 } from '../../../src/core/session-utils.js';
 import type { Backlog, PRPDocument } from '../../../src/core/models.js';
@@ -37,9 +39,15 @@ vi.mock('node:fs/promises', () => ({
   unlink: vi.fn(),
 }));
 
+// Mock the node:util module
+vi.mock('node:util', () => ({
+  TextDecoder: vi.fn(),
+}));
+
 // Import mocked modules
 import { createHash, randomBytes } from 'node:crypto';
 import { readFile, writeFile, mkdir, rename, unlink } from 'node:fs/promises';
+import { TextDecoder } from 'node:util';
 
 // Cast mocked functions
 const mockCreateHash = createHash as any;
@@ -49,6 +57,7 @@ const mockWriteFile = writeFile as any;
 const mockMkdir = mkdir as any;
 const mockRename = rename as any;
 const mockUnlink = unlink as any;
+const mockTextDecoder = TextDecoder as any;
 
 // Factory functions for test data
 const createTestSubtask = (
@@ -1138,6 +1147,245 @@ describe('core/session-utils', () => {
       await expect(
         writePRP('/test/session', 'test', invalidPRP)
       ).rejects.toThrow(SessionFileError);
+    });
+  });
+
+  describe('snapshotPRD', () => {
+    beforeEach(() => {
+      // Setup default TextDecoder mock
+      const mockDecoderInstance = {
+        decode: vi.fn().mockReturnValue('# Test PRD\n\nContent'),
+      };
+      mockTextDecoder.mockReturnValue(mockDecoderInstance);
+    });
+
+    it('should read PRD and write to prd_snapshot.md', async () => {
+      // SETUP: Mock successful read and write
+      const prdContent = Buffer.from('# Test PRD\n\nContent');
+      mockReadFile.mockResolvedValue(prdContent);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      await snapshotPRD('/test/session', '/test/PRD.md');
+
+      // VERIFY
+      expect(mockReadFile).toHaveBeenCalledWith('/test/PRD.md');
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringMatching(/\/prd_snapshot\.md$/),
+        '# Test PRD\n\nContent', // Decoded string, not buffer
+        { mode: 0o644 }
+      );
+    });
+
+    it('should use strict UTF-8 validation for PRD content', async () => {
+      // SETUP
+      const prdContent = Buffer.from('# Test PRD\n\nContent');
+      mockReadFile.mockResolvedValue(prdContent);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      await snapshotPRD('/test/session', '/test/PRD.md');
+
+      // VERIFY: TextDecoder should be called with fatal: true
+      expect(mockTextDecoder).toHaveBeenCalledWith('utf-8', { fatal: true });
+    });
+
+    it('should throw SessionFileError when PRD file not found (ENOENT)', async () => {
+      // SETUP: Mock file not found
+      const error = new Error(
+        'ENOENT: file not found'
+      ) as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadFile.mockRejectedValue(error);
+
+      // EXECUTE & VERIFY
+      await expect(
+        snapshotPRD('/test/session', '/test/PRD.md')
+      ).rejects.toThrow(SessionFileError);
+
+      try {
+        await snapshotPRD('/test/session', '/test/PRD.md');
+      } catch (e) {
+        expect(e).toBeInstanceOf(SessionFileError);
+        const sessionError = e as SessionFileError;
+        expect(sessionError.code).toBe('ENOENT');
+        expect(sessionError.operation).toBe('read PRD');
+      }
+    });
+
+    it('should throw SessionFileError when PRD has invalid UTF-8', async () => {
+      // SETUP: Mock TextDecoder to throw on invalid UTF-8
+      const mockDecoderInstance = {
+        decode: vi.fn().mockImplementation(() => {
+          throw new TypeError('Invalid UTF-8');
+        }),
+      };
+      mockTextDecoder.mockReturnValue(mockDecoderInstance);
+      mockReadFile.mockResolvedValue(Buffer.from([0xff, 0xfe]));
+
+      // EXECUTE & VERIFY
+      await expect(
+        snapshotPRD('/test/session', '/test/PRD.md')
+      ).rejects.toThrow(SessionFileError);
+
+      try {
+        await snapshotPRD('/test/session', '/test/PRD.md');
+      } catch (e) {
+        expect(e).toBeInstanceOf(SessionFileError);
+        const sessionError = e as SessionFileError;
+        expect(sessionError.operation).toBe('read PRD');
+      }
+    });
+
+    it('should throw SessionFileError when write fails (EACCES)', async () => {
+      // SETUP: Mock read success, write failure
+      const error = new Error(
+        'EACCES: permission denied'
+      ) as NodeJS.ErrnoException;
+      error.code = 'EACCES';
+      mockReadFile.mockResolvedValue(Buffer.from('# Test PRD'));
+      mockWriteFile.mockRejectedValue(error);
+
+      // EXECUTE & VERIFY
+      await expect(
+        snapshotPRD('/test/session', '/test/PRD.md')
+      ).rejects.toThrow(SessionFileError);
+
+      try {
+        await snapshotPRD('/test/session', '/test/PRD.md');
+      } catch (e) {
+        expect(e).toBeInstanceOf(SessionFileError);
+        const sessionError = e as SessionFileError;
+        expect(sessionError.code).toBe('EACCES');
+        expect(sessionError.operation).toBe('write PRD snapshot');
+      }
+    });
+
+    it('should create file with mode 0o644', async () => {
+      // SETUP
+      mockReadFile.mockResolvedValue(Buffer.from('# Test PRD'));
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      await snapshotPRD('/test/session', '/test/PRD.md');
+
+      // VERIFY: File mode should be 0o644
+      const writeOptions = mockWriteFile.mock.calls[0][2];
+      expect(writeOptions).toEqual({ mode: 0o644 });
+    });
+
+    it('should resolve relative paths to absolute paths', async () => {
+      // SETUP
+      mockReadFile.mockResolvedValue(Buffer.from('# Test PRD'));
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // EXECUTE
+      await snapshotPRD('relative/session', 'relative/PRD.md');
+
+      // VERIFY: Both paths should be resolved to absolute paths
+      expect(mockReadFile).toHaveBeenCalled();
+      const calledPath = mockReadFile.mock.calls[0][0];
+      expect(calledPath.startsWith('/')).toBe(true);
+    });
+  });
+
+  describe('loadSnapshot', () => {
+    beforeEach(() => {
+      // Setup default TextDecoder mock
+      const mockDecoderInstance = {
+        decode: vi.fn().mockReturnValue('# Test PRD\n\nContent'),
+      };
+      mockTextDecoder.mockReturnValue(mockDecoderInstance);
+    });
+
+    it('should read and return prd_snapshot.md content', async () => {
+      // SETUP: Mock successful read with custom decoder
+      const snapshotContent = Buffer.from('# Test PRD\n\nSnapshot Content');
+      mockReadFile.mockResolvedValue(snapshotContent);
+      const mockDecoderInstance = {
+        decode: vi.fn().mockReturnValue('# Test PRD\n\nSnapshot Content'),
+      };
+      mockTextDecoder.mockReturnValue(mockDecoderInstance);
+
+      // EXECUTE
+      const content = await loadSnapshot('/test/session');
+
+      // VERIFY
+      expect(mockReadFile).toHaveBeenCalledWith(
+        expect.stringMatching(/\/prd_snapshot\.md$/)
+      );
+      expect(content).toBe('# Test PRD\n\nSnapshot Content');
+    });
+
+    it('should use strict UTF-8 validation for snapshot content', async () => {
+      // SETUP
+      mockReadFile.mockResolvedValue(Buffer.from('# Test PRD'));
+
+      // EXECUTE
+      await loadSnapshot('/test/session');
+
+      // VERIFY: TextDecoder should be called with fatal: true
+      expect(mockTextDecoder).toHaveBeenCalledWith('utf-8', { fatal: true });
+    });
+
+    it('should throw SessionFileError when snapshot file not found (ENOENT)', async () => {
+      // SETUP: Mock file not found
+      const error = new Error(
+        'ENOENT: file not found'
+      ) as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      mockReadFile.mockRejectedValue(error);
+
+      // EXECUTE & VERIFY
+      await expect(loadSnapshot('/test/session')).rejects.toThrow(
+        SessionFileError
+      );
+
+      try {
+        await loadSnapshot('/test/session');
+      } catch (e) {
+        expect(e).toBeInstanceOf(SessionFileError);
+        const sessionError = e as SessionFileError;
+        expect(sessionError.code).toBe('ENOENT');
+        expect(sessionError.operation).toBe('read PRD snapshot');
+      }
+    });
+
+    it('should throw SessionFileError when snapshot has invalid UTF-8', async () => {
+      // SETUP: Mock TextDecoder to throw on invalid UTF-8
+      const mockDecoderInstance = {
+        decode: vi.fn().mockImplementation(() => {
+          throw new TypeError('Invalid UTF-8');
+        }),
+      };
+      mockTextDecoder.mockReturnValue(mockDecoderInstance);
+      mockReadFile.mockResolvedValue(Buffer.from([0xff, 0xfe]));
+
+      // EXECUTE & VERIFY
+      await expect(loadSnapshot('/test/session')).rejects.toThrow(
+        SessionFileError
+      );
+
+      try {
+        await loadSnapshot('/test/session');
+      } catch (e) {
+        expect(e).toBeInstanceOf(SessionFileError);
+        const sessionError = e as SessionFileError;
+        expect(sessionError.operation).toBe('read PRD snapshot');
+      }
+    });
+
+    it('should read from correct path in session directory', async () => {
+      // SETUP
+      mockReadFile.mockResolvedValue(Buffer.from('# Test PRD'));
+
+      // EXECUTE
+      await loadSnapshot('/test/session');
+
+      // VERIFY
+      expect(mockReadFile).toHaveBeenCalledWith(
+        expect.stringMatching(/\/test\/session\/prd_snapshot\.md$/)
+      );
     });
   });
 });

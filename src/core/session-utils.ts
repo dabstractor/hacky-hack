@@ -25,6 +25,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { readFile, writeFile, mkdir, rename, unlink } from 'node:fs/promises';
 import { resolve, join, dirname, basename } from 'node:path';
+import { TextDecoder } from 'node:util';
 import type { Backlog, PRPDocument } from './models.js';
 import { BacklogSchema, PRPDocumentSchema } from './models.js';
 
@@ -106,6 +107,33 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
       // Ignore cleanup errors
     }
     throw new SessionFileError(targetPath, 'atomic write', error as Error);
+  }
+}
+
+/**
+ * Reads a file with strict UTF-8 validation
+ *
+ * @remarks
+ * Internal helper that reads a file as a buffer and validates UTF-8 encoding
+ * using TextDecoder with fatal: true. This prevents silent data corruption
+ * from invalid UTF-8 sequences.
+ *
+ * @param path - File path to read
+ * @param operation - Description of operation for error messages
+ * @returns Promise resolving to file content as string
+ * @throws {SessionFileError} If file cannot be read or contains invalid UTF-8
+ * @internal
+ */
+async function readUTF8FileStrict(
+  path: string,
+  operation: string
+): Promise<string> {
+  try {
+    const buffer = await readFile(path);
+    const decoder = new TextDecoder('utf-8', { fatal: true });
+    return decoder.decode(buffer);
+  } catch (error) {
+    throw new SessionFileError(path, operation, error as Error);
   }
 }
 
@@ -421,4 +449,81 @@ export async function writePRP(
       error as Error
     );
   }
+}
+
+/**
+ * Creates a PRD snapshot in the session directory
+ *
+ * @remarks
+ * Reads the PRD file content with strict UTF-8 validation and writes it to
+ * `prd_snapshot.md` in the session directory. This snapshot preserves a frozen
+ * copy of the PRD for reference during implementation.
+ *
+ * The snapshot is created with mode 0o644 (owner read/write, group/others read-only).
+ *
+ * @param sessionPath - Path to session directory
+ * @param prdPath - Path to PRD markdown file
+ * @throws {SessionFileError} If PRD cannot be read, has invalid UTF-8, or snapshot cannot be written
+ *
+ * @example
+ * ```typescript
+ * await snapshotPRD('/path/to/session', '/path/to/PRD.md');
+ * // Creates: /path/to/session/prd_snapshot.md
+ * ```
+ */
+export async function snapshotPRD(
+  sessionPath: string,
+  prdPath: string
+): Promise<void> {
+  try {
+    // Resolve absolute paths
+    const absSessionPath = resolve(sessionPath);
+    const absPRDPath = resolve(prdPath);
+
+    // Read PRD with strict UTF-8 validation
+    const content = await readUTF8FileStrict(absPRDPath, 'read PRD');
+
+    // Build snapshot path
+    const snapshotPath = resolve(absSessionPath, 'prd_snapshot.md');
+
+    // Write snapshot with mode 0o644
+    await writeFile(snapshotPath, content, { mode: 0o644 });
+  } catch (error) {
+    // Re-throw SessionFileError without wrapping
+    if (error instanceof SessionFileError) {
+      throw error;
+    }
+    // Wrap unexpected errors in SessionFileError
+    throw new SessionFileError(
+      resolve(sessionPath, 'prd_snapshot.md'),
+      'write PRD snapshot',
+      error as Error
+    );
+  }
+}
+
+/**
+ * Loads a PRD snapshot from the session directory
+ *
+ * @remarks
+ * Reads the `prd_snapshot.md` file from the session directory with strict UTF-8
+ * validation and returns its content. This is the counterpart to snapshotPRD.
+ *
+ * @param sessionPath - Path to session directory
+ * @returns Promise resolving to PRD snapshot content
+ * @throws {SessionFileError} If snapshot file cannot be read or has invalid UTF-8
+ *
+ * @example
+ * ```typescript
+ * const content = await loadSnapshot('/path/to/session');
+ * console.log(content); // PRD markdown content
+ * ```
+ */
+export async function loadSnapshot(sessionPath: string): Promise<string> {
+  // Resolve absolute path
+  const absSessionPath = resolve(sessionPath);
+  const snapshotPath = resolve(absSessionPath, 'prd_snapshot.md');
+
+  // Read snapshot with strict UTF-8 validation
+  return await readUTF8FileStrict(snapshotPath, 'read PRD snapshot');
 }
