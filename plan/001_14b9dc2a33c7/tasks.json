@@ -810,14 +810,14 @@
           "type": "Milestone",
           "id": "P4.M1",
           "title": "Milestone 4.1: Delta Session Implementation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Implement the delta workflow that handles PRD changes without losing completed work.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M1.T1",
               "title": "Implement Delta PRD Analysis",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create the workflow that analyzes PRD changes and patches the task backlog.",
               "subtasks": [
                 {
@@ -833,7 +833,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S2",
                   "title": "Implement task patching logic",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M1.T1.S1"
@@ -844,7 +844,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S3",
                   "title": "Integrate delta workflow with pipeline",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M1.T1.S2"

@@ -29,6 +29,9 @@ export {
   normalizeMarkdown,
 } from './prd-differ.js';
 
+// Task patching
+export { patchBacklog } from './task-patcher.js';
+
 // Type definitions and models
 export type {
   Backlog,
