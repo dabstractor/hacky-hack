@@ -487,7 +487,7 @@ Task 5: VALIDATE Test execution
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 /**
  * Filesystem MCP Tool Module
  *
@@ -855,7 +855,7 @@ export type {
   GrepSearchResult,
 };
 export { fileReadTool, fileWriteTool, globFilesTool, grepSearchTool };
-```
+````
 
 ### Integration Points
 

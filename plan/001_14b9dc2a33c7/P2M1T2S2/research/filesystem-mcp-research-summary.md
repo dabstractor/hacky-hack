@@ -21,19 +21,23 @@ The BashMCP implementation provides the exact pattern to follow for FilesystemMC
    - Union types for nullable fields (`number | null`)
 
 3. **Tool Schema Pattern**:
+
    ```typescript
    const toolName: Tool = {
      name: 'tool_name',
      description: 'Clear description of what tool does',
      input_schema: {
        type: 'object',
-       properties: { /* ... */ },
-       required: ['property1', 'property2']
-     }
+       properties: {
+         /* ... */
+       },
+       required: ['property1', 'property2'],
+     },
    };
    ```
 
 4. **Class Pattern**:
+
    ```typescript
    export class ToolNameMCP extends MCPHandler {
      constructor() {
@@ -57,7 +61,7 @@ The BashMCP implementation provides the exact pattern to follow for FilesystemMC
 
 6. **Export Pattern**:
    ```typescript
-   export class ToolNameMCP extends MCPHandler { }
+   export class ToolNameMCP extends MCPHandler {}
    export type { InputInterface, ResultInterface };
    export { toolSchema, executorFunction };
    ```
@@ -67,6 +71,7 @@ The BashMCP implementation provides the exact pattern to follow for FilesystemMC
 ### Key Functions for FilesystemMCP
 
 **File Reading**:
+
 ```typescript
 import { promises as fs } from 'node:fs';
 
@@ -78,6 +83,7 @@ const buffer = await fs.readFile(filePath);
 ```
 
 **File Writing**:
+
 ```typescript
 // Write file with encoding
 await fs.writeFile(filePath, content, { encoding: 'utf-8' });
@@ -87,6 +93,7 @@ await fs.mkdir(dirPath, { recursive: true });
 ```
 
 **Error Codes to Handle**:
+
 - `ENOENT`: File or directory not found
 - `EACCES`: Permission denied
 - `EISDIR`: Path is a directory (not a file)
@@ -96,11 +103,13 @@ await fs.mkdir(dirPath, { recursive: true });
 ## Fast-Glob Library Research
 
 ### Installation
+
 ```bash
 npm install fast-glob@^3.3.2
 ```
 
 ### Usage Pattern
+
 ```typescript
 import fg from 'fast-glob';
 
@@ -116,11 +125,12 @@ const files = await fg(['**/*.ts', '**/*.js'], options);
 
 // Ignore patterns
 const files = await fg('**/*.ts', {
-  ignore: ['**/node_modules/**', '**/dist/**']
+  ignore: ['**/node_modules/**', '**/dist/**'],
 });
 ```
 
 ### Key Options
+
 - `cwd`: Working directory for search
 - `absolute`: Return absolute paths
 - `onlyFiles`: Only return files (not directories)
@@ -131,20 +141,21 @@ const files = await fg('**/*.ts', {
 ### Path Traversal Prevention
 
 **Dangerous**:
+
 ```typescript
 // Allows ../../../etc/passwd
 await fs.readFile(userPath);
 ```
 
 **Safe**:
+
 ```typescript
 import { resolve, normalize, sep } from 'node:path';
 
 const safePath = resolve(baseDir, userPath);
 const normalizedBase = normalize(baseDir);
 
-if (!safePath.startsWith(normalizedBase + sep) &&
-    safePath !== normalizedBase) {
+if (!safePath.startsWith(normalizedBase + sep) && safePath !== normalizedBase) {
   throw new Error('Path traversal detected');
 }
 ```

@@ -40,6 +40,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
+      groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
+        .pathname,
     },
   },
 });
