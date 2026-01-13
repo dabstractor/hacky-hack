@@ -268,7 +268,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Create Bash MCP tool",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": ["P2.M1.T1.S3"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - MCP tools require name, description, input_schema. Executor registered via mcpHandler.registerToolExecutor().\n2. INPUT: Groundswell MCPHandler is available. Node.js child_process for execution.\n3. LOGIC: Create src/tools/bash-mcp.ts:\n   - Define bashTool schema with name 'execute_bash', command (string), cwd (optional string), timeout (optional number)\n   - Create BashMCP class extending MCPHandler\n   - Register 'bash' server with bashTool\n   - Register executor that spawns child_process.exec with timeout, cwd options\n   - Capture stdout, stderr, exitCode\n   - Return formatted result with status, output, error fields\n4. OUTPUT: BashMCP class that can execute shell commands and return results."
