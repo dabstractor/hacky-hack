@@ -10,3 +10,4 @@
 
 export { createArchitectPrompt } from './architect-prompt.js';
 export { createPRPBlueprintPrompt } from './prp-blueprint-prompt.js';
+export { createDeltaAnalysisPrompt } from './delta-analysis-prompt.js';

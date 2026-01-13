@@ -14,6 +14,7 @@ import {
   PRP_BLUEPRINT_PROMPT,
   PRP_BUILDER_PROMPT,
   DELTA_PRD_PROMPT,
+  DELTA_ANALYSIS_PROMPT,
   BUG_HUNT_PROMPT,
   PROMPTS,
   type PromptKey,
@@ -39,6 +40,11 @@ describe('agents/prompts', () => {
     it('should export DELTA_PRD_PROMPT as a string', () => {
       expect(typeof DELTA_PRD_PROMPT).toBe('string');
       expect(DELTA_PRD_PROMPT.length).toBeGreaterThan(100);
+    });
+
+    it('should export DELTA_ANALYSIS_PROMPT as a string', () => {
+      expect(typeof DELTA_ANALYSIS_PROMPT).toBe('string');
+      expect(DELTA_ANALYSIS_PROMPT.length).toBeGreaterThan(100);
     });
 
     it('should export BUG_HUNT_PROMPT as a string', () => {
@@ -68,6 +74,11 @@ describe('agents/prompts', () => {
       expect(DELTA_PRD_PROMPT).toContain('delta PRD');
     });
 
+    it('DELTA_ANALYSIS_PROMPT should contain expected header', () => {
+      expect(DELTA_ANALYSIS_PROMPT).toContain('PRD Delta Analysis');
+      expect(DELTA_ANALYSIS_PROMPT).toContain('Requirements Change Analyst');
+    });
+
     it('BUG_HUNT_PROMPT should contain expected header', () => {
       expect(BUG_HUNT_PROMPT).toContain('Creative Bug Finding');
       expect(BUG_HUNT_PROMPT).toContain('End-to-End PRD Validation');
@@ -75,13 +86,14 @@ describe('agents/prompts', () => {
   });
 
   describe('PROMPTS lookup object', () => {
-    it('should contain all five prompts', () => {
+    it('should contain all six prompts', () => {
       const keys = Object.keys(PROMPTS) as PromptKey[];
-      expect(keys).toHaveLength(5);
+      expect(keys).toHaveLength(6);
       expect(keys).toContain('TASK_BREAKDOWN');
       expect(keys).toContain('PRP_BLUEPRINT');
       expect(keys).toContain('PRP_BUILDER');
       expect(keys).toContain('DELTA_PRD');
+      expect(keys).toContain('DELTA_ANALYSIS');
       expect(keys).toContain('BUG_HUNT');
     });
 
@@ -90,6 +102,7 @@ describe('agents/prompts', () => {
       expect(PROMPTS.PRP_BLUEPRINT).toBe(PRP_BLUEPRINT_PROMPT);
       expect(PROMPTS.PRP_BUILDER).toBe(PRP_BUILDER_PROMPT);
       expect(PROMPTS.DELTA_PRD).toBe(DELTA_PRD_PROMPT);
+      expect(PROMPTS.DELTA_ANALYSIS).toBe(DELTA_ANALYSIS_PROMPT);
       expect(PROMPTS.BUG_HUNT).toBe(BUG_HUNT_PROMPT);
     });
 

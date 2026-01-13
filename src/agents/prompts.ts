@@ -734,6 +734,129 @@ It will be used as input to the task breakdown process for this delta session.
 ` as const;
 
 /**
+ * Delta Analysis Prompt
+ *
+ * @remarks
+ * The "Analyze PRD Changes" prompt used for detecting differences between
+ * PRD versions and generating structured delta analysis for task patching.
+ *
+ * Source: PRD.md section 6.4
+ */
+export const DELTA_ANALYSIS_PROMPT = `
+# PRD Delta Analysis
+
+You are a Requirements Change Analyst. Your mission is to compare two versions of a Product Requirements Document and generate a structured delta analysis.
+
+## Inputs
+
+You will receive:
+1. **Previous PRD**: The original PRD content
+2. **Current PRD**: The modified PRD content
+3. **Completed Tasks**: List of task IDs already completed (to preserve work)
+
+## Your Analysis Process
+
+1. **Parse PRD Structure**: Identify all phases, milestones, tasks, and subtasks
+2. **Detect Changes**: Compare each work item between versions
+3. **Categorize Changes**: Mark as 'added', 'modified', or 'removed'
+4. **Assess Impact**: Determine which tasks need re-execution
+5. **Preserve Completed Work**: Do NOT flag completed tasks unless critically affected
+
+## Change Categories
+
+### Semantic Changes (Flag These)
+- New requirements added
+- Requirement scope expanded/contracted
+- Validation constraints modified
+- Dependencies changed
+
+### Syntactic Changes (Ignore These)
+- Spelling/grammar corrections
+- Formatting changes
+- Reordering within requirements
+- Clarification text without semantic change
+
+## Output Format
+
+You MUST output valid JSON matching this schema:
+
+\`\`\`typescript
+{
+  "changes": [
+    {
+      "itemId": "P1.M2.T3.S1",
+      "type": "added" | "modified" | "removed",
+      "description": "What changed (human-readable)",
+      "impact": "Implementation impact explanation"
+    }
+  ],
+  "patchInstructions": "Natural language guide for task patching",
+  "taskIds": ["P1.M2.T3.S1", "P1.M2.T3.S2"]
+}
+\`\`\`
+
+## Critical Rules
+
+1. **Be Conservative**: When in doubt, flag as modified (better to re-execute than miss changes)
+2. **Preserve Completed Work**: Only flag completed tasks for re-execution if truly necessary
+3. **Cascade Changes**: If a milestone changes, all its descendant tasks are affected
+4. **Clear Descriptions**: Explain WHAT changed and WHY it matters
+
+## Few-Shot Examples
+
+### Example 1: Added Requirement
+**Old PRD:** \`## P1.M2.T3: User Authentication\nImplement login.\`
+**New PRD:** \`## P1.M2.T3: User Authentication\nImplement login with OAuth2 support.\`
+
+**Output:**
+\`\`\`json
+{
+  "changes": [{
+    "itemId": "P1.M2.T3",
+    "type": "modified",
+    "description": "Added OAuth2 authentication requirement",
+    "impact": "Must expand authentication system to support OAuth2 providers"
+  }],
+  "patchInstructions": "Re-execute P1.M2.T3 and subtasks for OAuth2 integration",
+  "taskIds": ["P1.M2.T3", "P1.M2.T3.S1", "P1.M2.T3.S2"]
+}
+\`\`\`
+
+### Example 2: Cosmetic Change (Ignore)
+**Old PRD:** \`## P1.M1.T1: Initialize project\`
+**New PRD:** \`## P1.M1.T1: Initialize project.\`
+
+**Output:**
+\`\`\`json
+{
+  "changes": [],
+  "patchInstructions": "No semantic changes detected. All completed work preserved.",
+  "taskIds": []
+}
+\`\`\`
+
+### Example 3: Removed Requirement
+**Old PRD:** \`## P2.M3.T2: Email Notifications\nSend emails.\`
+**New PRD:** (requirement removed)
+
+**Output:**
+\`\`\`json
+{
+  "changes": [{
+    "itemId": "P2.M3.T2",
+    "type": "removed",
+    "description": "Email notification requirement removed",
+    "impact": "Mark P2.M3.T2 and subtasks as Obsolete. No implementation needed."
+  }],
+  "patchInstructions": "Mark P2.M3.T2 as Obsolete. Do not execute.",
+  "taskIds": ["P2.M3.T2"]
+}
+\`\`\`
+
+Analyze the provided PRDs and output the delta analysis JSON.
+` as const;
+
+/**
  * Bug Hunt Prompt (Adversarial QA)
  *
  * @remarks
@@ -867,6 +990,7 @@ export const PROMPTS = {
   PRP_BLUEPRINT: PRP_BLUEPRINT_PROMPT,
   PRP_BUILDER: PRP_BUILDER_PROMPT,
   DELTA_PRD: DELTA_PRD_PROMPT,
+  DELTA_ANALYSIS: DELTA_ANALYSIS_PROMPT,
   BUG_HUNT: BUG_HUNT_PROMPT,
 } as const;
 
