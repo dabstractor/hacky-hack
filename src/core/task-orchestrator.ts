@@ -37,6 +37,8 @@ import { getDependencies } from '../utils/task-utils.js';
 import type { Scope } from './scope-resolver.js';
 import { resolveScope } from './scope-resolver.js';
 import { smartCommit } from '../utils/git-commit.js';
+import { ResearchQueue } from './research-queue.js';
+import { PRPRuntime } from '../agents/prp-runtime.js';
 
 /**
  * Task Orchestrator for PRP Pipeline backlog processing
@@ -68,6 +70,16 @@ export class TaskOrchestrator {
   /** Queue of items to execute (populated from scope) */
   #executionQueue: HierarchyItem[];
 
+  /** Research queue for parallel PRP generation */
+  readonly researchQueue: ResearchQueue;
+
+  /** PRP runtime for execution */
+  readonly #prpRuntime: PRPRuntime;
+
+  /** Cache metrics tracking */
+  #cacheHits: number = 0;
+  #cacheMisses: number = 0;
+
   /**
    * Creates a new TaskOrchestrator instance
    *
@@ -94,6 +106,18 @@ export class TaskOrchestrator {
     // Store scope and build execution queue
     this.#scope = scope;
     this.#executionQueue = this.#buildQueue(scope);
+
+    // Initialize ResearchQueue with concurrency limit of 3
+    this.researchQueue = new ResearchQueue(this.sessionManager, 3);
+    // eslint-disable-next-line no-console -- Expected logging for initialization
+    console.log('[TaskOrchestrator] ResearchQueue initialized with maxSize=3');
+
+    // Initialize PRPRuntime for execution
+    this.#prpRuntime = new PRPRuntime(this);
+    // eslint-disable-next-line no-console -- Expected logging for initialization
+    console.log(
+      '[TaskOrchestrator] PRPRuntime initialized for subtask execution'
+    );
   }
 
   /**
@@ -487,9 +511,10 @@ export class TaskOrchestrator {
    * @returns Promise that resolves when execution completes
    *
    * @remarks
-   * Sets task status to 'Implementing'. Child iteration happens through
-   * the processNextItem() loop - the Pipeline Controller will repeatedly
-   * call processNextItem() to process subtasks within this task.
+   * Sets task status to 'Implementing'. Enqueues all subtasks for parallel PRP
+   * generation. Child iteration happens through the processNextItem() loop -
+   * the Pipeline Controller will repeatedly call processNextItem() to process
+   * subtasks within this task.
    */
   async executeTask(task: Task): Promise<void> {
     // PATTERN: Log before status update (NEW - adds visibility)
@@ -503,10 +528,31 @@ export class TaskOrchestrator {
     console.log(
       `[TaskOrchestrator] Executing Task: ${task.id} - ${task.title}`
     );
+
+    // Enqueue all subtasks for parallel PRP generation
+    // eslint-disable-next-line no-console -- Expected logging for research queue
+    console.log(
+      `[TaskOrchestrator] Enqueuing ${task.subtasks.length} subtasks for parallel PRP generation`
+    );
+
+    for (const subtask of task.subtasks) {
+      await this.researchQueue.enqueue(subtask, this.#backlog);
+      // eslint-disable-next-line no-console -- Expected logging for research queue
+      console.log(
+        `[TaskOrchestrator] Enqueued ${subtask.id} for parallel research`
+      );
+    }
+
+    // Log queue statistics after enqueueing
+    const stats = this.researchQueue.getStats();
+    // eslint-disable-next-line no-console -- Expected logging for research queue
+    console.log(
+      `[TaskOrchestrator] Research queue stats: ${stats.queued} queued, ${stats.researching} researching, ${stats.cached} cached`
+    );
   }
 
   /**
-   * Executes a Subtask item (main execution unit - placeholder)
+   * Executes a Subtask item (main execution unit)
    *
    * @param subtask - Subtask to execute
    * @returns Promise that resolves when execution completes
@@ -517,16 +563,13 @@ export class TaskOrchestrator {
    * the blocking dependencies and returns early without executing.
    *
    * Status progression: Planned → Researching → Implementing → Complete/Failed
-   * - Researching: PRP generation phase (activates unused status)
-   * - Implementing: Coder agent execution phase
+   * - Researching: PRP generation phase (checks cache first)
+   * - Implementing: Coder agent execution phase via PRPRuntime
    * - Complete: All validation gates passed
    * - Failed: Exception during execution
    *
-   * In P3.M3.T1, this will generate a PRP and run the Coder agent.
-   * For now, it's a placeholder that logs the action and marks as complete.
-   *
-   * The Pipeline Controller will call processNextItem() which delegates
-   * to this method when the next pending item is a Subtask.
+   * Checks ResearchQueue cache for existing PRP before generation.
+   * Triggers background research for next tasks after starting execution.
    */
   async executeSubtask(subtask: Subtask): Promise<void> {
     // eslint-disable-next-line no-console -- Expected logging for status transitions
@@ -534,12 +577,31 @@ export class TaskOrchestrator {
       `[TaskOrchestrator] Executing Subtask: ${subtask.id} - ${subtask.title}`
     );
 
-    // PATTERN: Set 'Researching' status at start (NEW - activates unused status)
+    // PATTERN: Set 'Researching' status at start
     await this.setStatus(subtask.id, 'Researching', 'Starting PRP generation');
     // eslint-disable-next-line no-console -- Expected logging for status transitions
     console.log(
       `[TaskOrchestrator] Researching: ${subtask.id} - preparing PRP`
     );
+
+    // NEW: Check if PRP is cached in ResearchQueue
+    const cachedPRP = this.researchQueue.getPRP(subtask.id);
+    if (cachedPRP) {
+      this.#cacheHits++;
+      // eslint-disable-next-line no-console -- Expected logging for cache hits
+      console.log(
+        `[TaskOrchestrator] Cache HIT: ${subtask.id} - using cached PRP`
+      );
+    } else {
+      this.#cacheMisses++;
+      // eslint-disable-next-line no-console -- Expected logging for cache misses
+      console.log(
+        `[TaskOrchestrator] Cache MISS: ${subtask.id} - PRP will be generated by PRPRuntime`
+      );
+    }
+
+    // Log cache metrics
+    this.#logCacheMetrics();
 
     // NEW: Check if dependencies are satisfied
     if (!this.canExecute(subtask)) {
@@ -565,24 +627,58 @@ export class TaskOrchestrator {
     // PATTERN: Set 'Implementing' status before work
     await this.setStatus(subtask.id, 'Implementing', 'Starting implementation');
 
-    // PATTERN: Wrap execution in try/catch for error handling (NEW)
+    // PATTERN: Wrap execution in try/catch for error handling
     try {
-      // PLACEHOLDER: PRP generation + Coder agent execution (existing - preserve)
-      // eslint-disable-next-line no-console -- Expected logging for status transitions
+      // NEW: Use PRPRuntime for execution (handles PRP generation if cache miss)
+      // eslint-disable-next-line no-console -- Expected logging for execution
       console.log(
-        `[TaskOrchestrator] PLACEHOLDER: Would generate PRP and run Coder agent`
+        `[TaskOrchestrator] Starting PRPRuntime execution for ${subtask.id}`
       );
-      // eslint-disable-next-line no-console -- Expected logging for status transitions
-      console.log(`[TaskOrchestrator] Context scope: ${subtask.context_scope}`);
+
+      const result = await this.#prpRuntime.executeSubtask(
+        subtask,
+        this.#backlog
+      );
+
+      // eslint-disable-next-line no-console -- Expected logging for execution result
+      console.log(
+        `[TaskOrchestrator] PRPRuntime execution ${result.success ? 'succeeded' : 'failed'} for ${subtask.id}`
+      );
+
+      // NEW: Trigger background research for next pending tasks
+      // Fire-and-forget: don't await, log errors
+      this.researchQueue.processNext(this.#backlog).catch(error => {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        // eslint-disable-next-line no-console -- Expected error logging for background research
+        console.error(
+          `[TaskOrchestrator] Background research error: ${errorMessage}`
+        );
+      });
+
+      // Log updated queue statistics
+      const stats = this.researchQueue.getStats();
+      // eslint-disable-next-line no-console -- Expected logging for research queue
+      console.log(
+        `[TaskOrchestrator] Research queue stats: ${stats.queued} queued, ${stats.researching} researching, ${stats.cached} cached`
+      );
 
       // PATTERN: Set 'Complete' status on success
-      await this.setStatus(
-        subtask.id,
-        'Complete',
-        'Implementation completed successfully'
-      );
+      if (result.success) {
+        await this.setStatus(
+          subtask.id,
+          'Complete',
+          'Implementation completed successfully'
+        );
+      } else {
+        await this.setStatus(
+          subtask.id,
+          'Failed',
+          result.error ?? 'Execution failed'
+        );
+      }
 
-      // NEW: Smart commit after successful subtask completion
+      // Smart commit after successful subtask completion
       try {
         const sessionPath = this.sessionManager.currentSession?.metadata.path;
         if (!sessionPath) {
@@ -634,6 +730,25 @@ export class TaskOrchestrator {
       // PATTERN: Re-throw error for upstream handling
       throw error;
     }
+  }
+
+  /**
+   * Logs cache metrics for monitoring
+   *
+   * @remarks
+   * Logs cache hits, misses, and hit ratio percentage. Called from
+   * executeSubtask() to provide visibility into cache effectiveness.
+   *
+   * @private
+   */
+  #logCacheMetrics(): void {
+    const total = this.#cacheHits + this.#cacheMisses;
+    const hitRatio = total > 0 ? (this.#cacheHits / total) * 100 : 0;
+
+    // eslint-disable-next-line no-console -- Expected logging for cache metrics
+    console.log(
+      `[TaskOrchestrator] Cache metrics: ${this.#cacheHits} hits, ${this.#cacheMisses} misses, ${hitRatio.toFixed(1)}% hit ratio`
+    );
   }
 
   /**

@@ -11,6 +11,7 @@
 ### Official Documentation
 
 **TypeScript/JavaScript:**
+
 - [MDN: Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 - [MDN: Promise.all()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)
 - [MDN: Promise.allSettled()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled)
@@ -19,6 +20,7 @@
 - [TypeScript Handbook - Async/Await](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html#awaited-type)
 
 **Node.js:**
+
 - [Node.js Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)
 - [Node.js Async Context Tracking](https://nodejs.org/api/async_context.html)
 - [Node.js Worker Threads](https://nodejs.org/api/worker_threads.html)
@@ -45,6 +47,7 @@
 ### 1. Fire-and-Forget Background Tasks
 
 **Critical Pattern:**
+
 ```typescript
 // GOOD: Always handle errors
 work().catch(error => {
@@ -56,6 +59,7 @@ work(); // Will crash Node.js
 ```
 
 **Key Points:**
+
 - Always attach `.catch()` to prevent unhandled rejections
 - Use PromiseTracker for deduplication of in-flight operations
 - Clean up promise maps in `.finally()` to prevent memory leaks
@@ -63,13 +67,14 @@ work(); // Will crash Node.js
 
 ### 2. Promise.all vs Promise.allSettled
 
-| Feature | Promise.all | Promise.allSettled |
-|---------|------------|-------------------|
-| Behavior | Fail-fast | Waits for all |
-| Use Case | Critical operations | Independent operations |
-| Return | `T[]` | `PromiseSettledResult<T>[]` |
+| Feature  | Promise.all         | Promise.allSettled          |
+| -------- | ------------------- | --------------------------- |
+| Behavior | Fail-fast           | Waits for all               |
+| Use Case | Critical operations | Independent operations      |
+| Return   | `T[]`               | `PromiseSettledResult<T>[]` |
 
 **Recommendation:**
+
 ```typescript
 // Critical: All must succeed
 await Promise.all([fetchUser(), fetchOrders()]);
@@ -80,13 +85,13 @@ const results = await Promise.allSettled([logAnalytics(), sendEmail()]);
 
 ### 3. Anti-Patterns to Avoid
 
-| Anti-Pattern | Solution |
-|--------------|----------|
-| Unhandled promises | Always attach `.catch()` |
-| Unbounded maps | Clean up in `.finally()` |
-| Race conditions | Use atomic check-and-set |
-| Blocking event loop | Use async operations |
-| Over-parallelization | Limit concurrency |
+| Anti-Pattern         | Solution                 |
+| -------------------- | ------------------------ |
+| Unhandled promises   | Always attach `.catch()` |
+| Unbounded maps       | Clean up in `.finally()` |
+| Race conditions      | Use atomic check-and-set |
+| Blocking event loop  | Use async operations     |
+| Over-parallelization | Limit concurrency        |
 
 ### 4. Research-Ahead Pattern
 
@@ -106,6 +111,7 @@ for (let i = 0; i < tasks.length; i++) {
 ```
 
 **Benefits:**
+
 - Reduces overall execution time
 - Hides research latency
 - Improves perceived performance
@@ -115,12 +121,14 @@ for (let i = 0; i < tasks.length; i++) {
 ### 5. Cache Metrics Logging
 
 **Essential Metrics:**
+
 - Hit rate = hits / (hits + misses)
 - Target: >50%
 - Average latency: <10ms
 - Cache size: Monitor for growth
 
 **Implementation:**
+
 ```typescript
 interface CacheMetrics {
   hits: number;
@@ -147,18 +155,21 @@ All implementations are available in `code-examples.md`:
 ## Integration Strategy
 
 ### Phase 1: Core Infrastructure
+
 1. Copy implementations from `code-examples.md`
 2. Add to `src/core/` directory
 3. Write unit tests
 4. Verify no memory leaks
 
 ### Phase 2: Integration
+
 1. Extend TaskOrchestrator with ResearchEnabledTaskOrchestrator
 2. Implement `performResearch()` method
 3. Add metrics logging
 4. Test with real workload
 
 ### Phase 3: Optimization
+
 1. Implement research-ahead in `processNextItem()`
 2. Tune `lookAhead` parameter
 3. Add graceful shutdown
@@ -168,30 +179,33 @@ All implementations are available in `code-examples.md`:
 
 ## Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| Cache Hit Rate | >50% |
-| Cache Latency | <10ms |
-| Research Deduplication | >30% |
-| Background Research Success | >95% |
-| Memory Leak Growth | 0 bytes/hr |
+| Metric                      | Target     |
+| --------------------------- | ---------- |
+| Cache Hit Rate              | >50%       |
+| Cache Latency               | <10ms      |
+| Research Deduplication      | >30%       |
+| Background Research Success | >95%       |
+| Memory Leak Growth          | 0 bytes/hr |
 
 ---
 
 ## Related Code Locations
 
 **Current Implementation:**
+
 - Task Orchestrator: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 - Session Manager: `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 - Type Models: `/home/dustin/projects/hacky-hack/src/core/models.ts`
 
 **New Files to Create:**
+
 1. `src/core/promise-tracker.ts`
 2. `src/core/research-cache.ts`
 3. `src/core/orchestrator-metrics.ts`
 4. `src/core/research-enabled-task-orchestrator.ts`
 
 **Related Research:**
+
 - External Queue Patterns: `/plan/001_14b9dc2a33c7/P4M2T1S1/research/external-queue-patterns.md`
 - Async Error Handling: `/plan/001_14b9dc2a33c7/P3M2T1S3/research/async_error_handling_research.md`
 
@@ -202,6 +216,7 @@ All implementations are available in `code-examples.md`:
 This research provides comprehensive patterns for integrating ResearchQueue with TaskOrchestrator:
 
 **Key Findings:**
+
 1. **Fire-and-forget requires error handling** - Always attach `.catch()`
 2. **PromiseTracker prevents duplicate work** - Deduplicate by key
 3. **Promise.all for critical, Promise.allSettled for resilient** - Choose based on failure tolerance
@@ -216,6 +231,7 @@ This research provides comprehensive patterns for integrating ResearchQueue with
 ---
 
 **Research Documents:**
+
 - [README.md](./README.md) - Quick reference guide
 - [background-parallel-processing-research.md](./background-parallel-processing-research.md) - Comprehensive research
 - [code-examples.md](./code-examples.md) - Production-ready implementations

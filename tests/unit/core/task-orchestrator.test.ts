@@ -41,6 +41,29 @@ vi.mock('../../../src/utils/git-commit.js', () => ({
   formatCommitMessage: vi.fn((msg: string) => msg),
 }));
 
+// Mock the ResearchQueue class
+vi.mock('../../../src/core/research-queue.js', () => ({
+  ResearchQueue: vi.fn().mockImplementation(() => ({
+    enqueue: vi.fn().mockResolvedValue(undefined),
+    getPRP: vi.fn().mockReturnValue(null),
+    processNext: vi.fn().mockResolvedValue(undefined),
+    getStats: vi.fn().mockReturnValue({ queued: 0, researching: 0, cached: 0 }),
+  })),
+}));
+
+// Mock the PRPRuntime class
+vi.mock('../../../src/agents/prp-runtime.js', () => ({
+  PRPRuntime: vi.fn().mockImplementation(() => ({
+    executeSubtask: vi.fn().mockResolvedValue({
+      success: true,
+      validationResults: [],
+      artifacts: [],
+      error: undefined,
+      fixAttempts: 0,
+    }),
+  })),
+}));
+
 // Import mocked functions
 import { getNextPendingItem } from '../../../src/utils/task-utils.js';
 import { resolveScope } from '../../../src/core/scope-resolver.js';
@@ -601,10 +624,10 @@ describe('TaskOrchestrator', () => {
         '[TaskOrchestrator] Executing Subtask: P1.M1.T1.S1 - Subtask 1'
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] PLACEHOLDER: Would generate PRP and run Coder agent'
+        '[TaskOrchestrator] Starting PRPRuntime execution for P1.M1.T1.S1'
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Context scope: Test context scope'
+        '[TaskOrchestrator] PRPRuntime execution succeeded for P1.M1.T1.S1'
       );
       consoleSpy.mockRestore();
     });
