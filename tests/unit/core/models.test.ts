@@ -21,6 +21,8 @@ import {
   SuccessCriterionSchema,
   PRPDocumentSchema,
   PRPArtifactSchema,
+  RequirementChangeSchema,
+  DeltaAnalysisSchema,
   type Subtask,
   type Task,
   type Milestone,
@@ -30,6 +32,8 @@ import {
   type SuccessCriterion,
   type PRPDocument,
   type PRPArtifact,
+  type RequirementChange,
+  type DeltaAnalysis,
 } from '../../../src/core/models.js';
 
 describe('core/models Zod Schemas', () => {
@@ -1317,6 +1321,345 @@ describe('core/models Zod Schemas', () => {
 
       // VERIFY
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('RequirementChangeSchema', () => {
+    const validChange: RequirementChange = {
+      itemId: 'P1.M2.T3.S1',
+      type: 'modified',
+      description: 'Added validation for negative numbers',
+      impact: 'Update implementation to reject negative story_points values',
+    };
+
+    it('should parse valid RequirementChange with type added', () => {
+      // SETUP: Valid change with type 'added'
+      const added: RequirementChange = {
+        ...validChange,
+        type: 'added',
+      };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(added);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(added);
+      }
+    });
+
+    it('should parse valid RequirementChange with type modified', () => {
+      // SETUP: Valid change with type 'modified'
+      const modified: RequirementChange = {
+        ...validChange,
+        type: 'modified',
+      };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(modified);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(modified);
+      }
+    });
+
+    it('should parse valid RequirementChange with type removed', () => {
+      // SETUP: Valid change with type 'removed'
+      const removed: RequirementChange = {
+        ...validChange,
+        type: 'removed',
+      };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(removed);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(removed);
+      }
+    });
+
+    it('should accept valid milestone ID format', () => {
+      // SETUP: Change with milestone ID
+      const milestoneChange: RequirementChange = {
+        ...validChange,
+        itemId: 'P2.M1',
+      };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(milestoneChange);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept valid task ID format', () => {
+      // SETUP: Change with task ID
+      const taskChange: RequirementChange = {
+        ...validChange,
+        itemId: 'P1.M2.T3',
+      };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(taskChange);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject RequirementChange with invalid type', () => {
+      // SETUP: Invalid type value
+      const invalid = { ...validChange, type: 'invalid' as const };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject RequirementChange with empty itemId', () => {
+      // SETUP: Empty itemId
+      const invalid = { ...validChange, itemId: '' };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject RequirementChange with empty description', () => {
+      // SETUP: Empty description
+      const invalid = { ...validChange, description: '' };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject RequirementChange with empty impact', () => {
+      // SETUP: Empty impact
+      const invalid = { ...validChange, impact: '' };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept RequirementChange with single character strings', () => {
+      // SETUP: Minimum valid strings (min(1) boundary)
+      const minStrings: RequirementChange = {
+        itemId: 'P',
+        type: 'added',
+        description: 'A',
+        impact: 'I',
+      };
+
+      // EXECUTE
+      const result = RequirementChangeSchema.safeParse(minStrings);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('DeltaAnalysisSchema', () => {
+    const validAnalysis: DeltaAnalysis = {
+      changes: [
+        {
+          itemId: 'P1.M2.T3.S1',
+          type: 'modified',
+          description: 'Added validation for negative numbers',
+          impact:
+            'Update implementation to reject negative story_points values',
+        },
+      ],
+      patchInstructions: 'Re-execute P1.M2.T3.S1 to apply validation changes',
+      taskIds: ['P1.M2.T3.S1'],
+    };
+
+    it('should parse valid DeltaAnalysis with single change', () => {
+      // SETUP: Valid delta analysis with single change
+      const data = { ...validAnalysis };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validAnalysis);
+      }
+    });
+
+    it('should parse valid DeltaAnalysis with multiple changes', () => {
+      // SETUP: Delta analysis with multiple changes
+      const multiChange: DeltaAnalysis = {
+        changes: [
+          {
+            itemId: 'P5.M1.T1',
+            type: 'added',
+            description: 'New feature: Production deployment pipeline',
+            impact:
+              'Implement full deployment workflow with staging and production environments',
+          },
+          {
+            itemId: 'P1.M2.T3.S1',
+            type: 'modified',
+            description: 'Extended story_points range from 13 to 21',
+            impact:
+              'Update validation in SubtaskSchema to allow values up to 21',
+          },
+          {
+            itemId: 'P2.M3.T2',
+            type: 'removed',
+            description: 'Removed deprecated parallel research feature',
+            impact: 'Remove P2.M3.T2 and all subtasks from task registry',
+          },
+        ],
+        patchInstructions:
+          'Execute P5.M1.T1 for new feature. Re-execute P1.M2.T3.S1 for schema update.',
+        taskIds: ['P5.M1.T1', 'P1.M2.T3.S1', 'P2.M3.T2'],
+      };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(multiChange);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid DeltaAnalysis with empty changes array', () => {
+      // SETUP: Delta analysis with no changes
+      const noChanges: DeltaAnalysis = {
+        changes: [],
+        patchInstructions: 'No changes detected between PRD versions',
+        taskIds: [],
+      };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(noChanges);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse valid DeltaAnalysis with empty taskIds array', () => {
+      // SETUP: Delta analysis with changes but no task IDs (edge case)
+      const withEmptyTaskIds: DeltaAnalysis = {
+        changes: [
+          {
+            itemId: 'P1.M1.T1',
+            type: 'modified',
+            description: 'Minor documentation update',
+            impact: 'No code changes required',
+          },
+        ],
+        patchInstructions: 'Documentation changes only, no re-execution needed',
+        taskIds: [],
+      };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(withEmptyTaskIds);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject DeltaAnalysis with empty patchInstructions', () => {
+      // SETUP: Empty patch instructions
+      const invalid = { ...validAnalysis, patchInstructions: '' };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject DeltaAnalysis with invalid change in changes array', () => {
+      // SETUP: Delta analysis with invalid change in array
+      const withInvalidChange = {
+        ...validAnalysis,
+        changes: [
+          {
+            itemId: 'P1.M2.T3.S1',
+            type: 'invalid',
+            description: 'Test',
+            impact: 'Test',
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(withInvalidChange);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject DeltaAnalysis with change missing required field', () => {
+      // SETUP: Delta analysis with change missing description
+      const withMissingField = {
+        ...validAnalysis,
+        changes: [
+          {
+            itemId: 'P1.M2.T3.S1',
+            type: 'modified' as const,
+            description: '',
+            impact: 'Test',
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(withMissingField);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should parse DeltaAnalysis with all three change types present', () => {
+      // SETUP: Delta analysis containing all change types
+      const allTypes: DeltaAnalysis = {
+        changes: [
+          {
+            itemId: 'P1',
+            type: 'added' as const,
+            description: 'A',
+            impact: 'I',
+          },
+          {
+            itemId: 'P2',
+            type: 'modified' as const,
+            description: 'M',
+            impact: 'I',
+          },
+          {
+            itemId: 'P3',
+            type: 'removed' as const,
+            description: 'R',
+            impact: 'I',
+          },
+        ],
+        patchInstructions: 'All change types present',
+        taskIds: ['P1', 'P2', 'P3'],
+      };
+
+      // EXECUTE
+      const result = DeltaAnalysisSchema.safeParse(allTypes);
+
+      // VERIFY
+      expect(result.success).toBe(true);
     });
   });
 });

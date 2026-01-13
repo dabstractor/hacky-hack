@@ -9,6 +9,7 @@
 **Deliverable**: A new file `src/agents/prompts/prp-blueprint-prompt.ts` with a `createPRPBlueprintPrompt()` function that extracts task context from a Backlog and generates a type-safe Groundswell prompt.
 
 **Success Definition**:
+
 - The function accepts a `Task | Subtask`, the parent `Backlog`, and the codebase path
 - It extracts hierarchical context (dependencies, parent items, scope)
 - It returns a `Prompt<PRPDocument>` using Groundswell's `createPrompt()`
@@ -22,6 +23,7 @@
 **Use Case**: When the PRP Pipeline needs to create a detailed PRP for a specific task/subtask from the backlog, this prompt generator provides the structured prompt with all necessary context injected.
 
 **User Journey**:
+
 1. Task Orchestrator selects next pending work item from Backlog
 2. System calls `createPRPBlueprintPrompt(task/subtask, backlog, codebasePath)`
 3. Function extracts hierarchical context (dependencies, parent descriptions, scope)
@@ -30,6 +32,7 @@
 6. PRP is stored and passed to Coder Agent for implementation
 
 **Pain Points Addressed**:
+
 - Manual PRP creation is error-prone and incomplete
 - Context extraction from hierarchical backlog is complex
 - Without proper context injection, PRPs fail the "one-pass implementation" goal
@@ -48,6 +51,7 @@
 ## What
 
 Create a `createPRPBlueprintPrompt()` function that:
+
 1. Accepts a `Task | Subtask` object from the Backlog hierarchy
 2. Accepts the full `Backlog` object for context extraction
 3. Accepts an optional `codebasePath` string for codebase analysis context
@@ -81,6 +85,7 @@ Create a `createPRPBlueprintPrompt()` function that:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **YES** - This PRP includes:
+
 - Exact file paths and line numbers for all reference patterns
 - Complete interface definitions for all data models
 - Full source code of architect-prompt.ts as pattern to follow
@@ -190,6 +195,7 @@ src/
 ### Data models and structure
 
 The implementation uses existing data models:
+
 - **Backlog**: Root interface with `backlog: Phase[]` array
 - **Task | Subtask**: Union type for work items at different hierarchy levels
 - **PRPDocument**: Output structure with taskId, objective, context, implementationSteps, validationGates, successCriteria, references
@@ -256,7 +262,11 @@ import { createPrompt, type Prompt } from 'groundswell';
 import type { Backlog, Task, Subtask, PRPDocument } from '../../core/models.js';
 import { PRPDocumentSchema } from '../../core/models.js';
 import { PRP_BLUEPRINT_PROMPT } from '../prompts.js';
-import { findItem, getDependencies, isSubtask } from '../../utils/task-utils.js';
+import {
+  findItem,
+  getDependencies,
+  isSubtask,
+} from '../../utils/task-utils.js';
 
 // Pattern 2: Type guard for discriminated union
 function extractTaskContext(task: Task | Subtask, backlog: Backlog): string {
@@ -292,9 +302,10 @@ function extractParentContext(taskId: string, backlog: Backlog): string {
 // Pattern 4: Placeholder replacement in PRP_BLUEPRINT_PROMPT
 // GOTCHA: PRP_BLUEPRINT_PROMPT contains <item_title> and <item_description> placeholders
 // Option A: Use .replace() method
-const userPrompt = PRP_BLUEPRINT_PROMPT
-  .replace('<item_title>', task.title)
-  .replace('<item_description>', task.description || context_scope);
+const userPrompt = PRP_BLUEPRINT_PROMPT.replace(
+  '<item_title>',
+  task.title
+).replace('<item_description>', task.description || context_scope);
 
 // Option B: Use template literal with extracted values
 const userPrompt = `
@@ -496,11 +507,11 @@ if (validation.success) {
 
 ## References Summary
 
-| Reference | Location | Purpose |
-|-----------|----------|---------|
-| architect-prompt.ts | src/agents/prompts/architect-prompt.ts:1-68 | Exact pattern to follow for prompt generator |
-| PRP_BLUEPRINT_PROMPT | src/agents/prompts.ts:157-603 | System prompt for PRP generation |
-| PRPDocumentSchema | src/core/models.ts:1213-1223 | Zod schema for structured output |
-| task-utils.ts | src/utils/task-utils.ts:90-142 | Context extraction utilities |
-| prompts.test.ts | tests/unit/agents/prompts.test.ts | Unit test pattern for prompts |
-| architect-agent.test.ts | tests/integration/architect-agent.test.ts | Integration test pattern for agents |
+| Reference               | Location                                    | Purpose                                      |
+| ----------------------- | ------------------------------------------- | -------------------------------------------- |
+| architect-prompt.ts     | src/agents/prompts/architect-prompt.ts:1-68 | Exact pattern to follow for prompt generator |
+| PRP_BLUEPRINT_PROMPT    | src/agents/prompts.ts:157-603               | System prompt for PRP generation             |
+| PRPDocumentSchema       | src/core/models.ts:1213-1223                | Zod schema for structured output             |
+| task-utils.ts           | src/utils/task-utils.ts:90-142              | Context extraction utilities                 |
+| prompts.test.ts         | tests/unit/agents/prompts.test.ts           | Unit test pattern for prompts                |
+| architect-agent.test.ts | tests/integration/architect-agent.test.ts   | Integration test pattern for agents          |

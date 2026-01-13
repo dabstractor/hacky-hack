@@ -1334,3 +1334,189 @@ export const PRPArtifactSchema: z.ZodType<PRPArtifact> = z.object({
   ]),
   generatedAt: z.date(),
 });
+
+/**
+ * Represents a single detected change in the PRD delta analysis
+ *
+ * @remarks
+ * RequirementChange captures individual differences between old and new
+ * PRD versions. Each change is categorized as added, modified, or removed,
+ * with descriptions of what changed and how it impacts implementation.
+ *
+ * Used by the Delta Analysis workflow to communicate PRD differences to
+ * the task patching logic.
+ *
+ * @example
+ * ```typescript
+ * import { RequirementChange } from './core/models.js';
+ *
+ * const change: RequirementChange = {
+ *   itemId: 'P1.M2.T3.S1',
+ *   type: 'modified',
+ *   description: 'Added validation for negative numbers',
+ *   impact: 'Update implementation to reject negative story_points values'
+ * };
+ * ```
+ */
+export interface RequirementChange {
+  /**
+   * Task, milestone, or subtask ID that changed
+   *
+   * @format P{phase}.M{milestone}.T{task}.S{subtask} (or shorter)
+   * @example 'P1.M2.T3.S1' for a subtask, 'P2.M1' for a milestone
+   */
+  readonly itemId: string;
+
+  /**
+   * Type of change detected
+   *
+   * @remarks
+   * - 'added': New requirement that didn't exist in old PRD
+   * - 'modified': Existing requirement with changed content
+   * - 'removed': Requirement that exists in old PRD but not new PRD
+   */
+  readonly type: 'added' | 'modified' | 'removed';
+
+  /**
+   * Human-readable description of what changed
+   *
+   * @remarks
+   * Explains the specific difference between old and new PRD versions.
+   * Should be detailed enough for a developer to understand the change.
+   *
+   * @example "Added field: maxRetries with default value of 3"
+   */
+  readonly description: string;
+
+  /**
+   * Explanation of implementation impact
+   *
+   * @remarks
+   * Describes how this change affects the codebase and what actions
+   * are needed. Used by the task patching logic to determine re-execution.
+   *
+   * @example "Update createTask() to validate maxRetries parameter"
+   */
+  readonly impact: string;
+}
+
+/**
+ * Zod schema for RequirementChange validation
+ *
+ * @remarks
+ * Validates RequirementChange objects with all field constraints.
+ * Ensures type is one of the three valid enum values and that
+ * string fields are non-empty.
+ *
+ * @example
+ * ```typescript
+ * import { RequirementChangeSchema } from './core/models.js';
+ *
+ * const result = RequirementChangeSchema.safeParse({
+ *   itemId: 'P1.M2.T3.S1',
+ *   type: 'modified',
+ *   description: 'Added validation',
+ *   impact: 'Update implementation'
+ * });
+ * // result.success === true
+ * ```
+ */
+export const RequirementChangeSchema: z.ZodType<RequirementChange> = z.object({
+  itemId: z.string().min(1, 'Item ID is required'),
+  type: z.enum(['added', 'modified', 'removed']),
+  description: z.string().min(1, 'Description is required'),
+  impact: z.string().min(1, 'Impact is required'),
+});
+
+/**
+ * Complete delta analysis result from PRD comparison
+ *
+ * @remarks
+ * DeltaAnalysis represents the structured output of the Delta Analysis
+ * workflow (P4.M1.T1). Contains all detected changes, natural language
+ * instructions for task patching, and the list of task IDs that need
+ * to be re-executed.
+ *
+ * This structure enables type-safe validation of AI agent output when
+ * performing PRD diffing, ensuring that delta sessions have reliable
+ * change data for task patching decisions.
+ *
+ * @example
+ * ```typescript
+ * import { DeltaAnalysis, RequirementChange } from './core/models.js';
+ *
+ * const analysis: DeltaAnalysis = {
+ *   changes: [
+ *     {
+ *       itemId: 'P1.M2.T3.S1',
+ *       type: 'modified',
+ *       description: 'Added validation',
+ *       impact: 'Update implementation'
+ *     }
+ *   ],
+ *   patchInstructions: 'Re-execute P1.M2.T3.S1 to apply validation changes',
+ *   taskIds: ['P1.M2.T3.S1']
+ * };
+ * ```
+ */
+export interface DeltaAnalysis {
+  /**
+   * Array of all detected changes between PRD versions
+   *
+   * @remarks
+   * Contains RequirementChange objects for each added, modified, or
+   * removed requirement. Empty array if no changes detected.
+   */
+  readonly changes: RequirementChange[];
+
+  /**
+   * Natural language instructions for task patching
+   *
+   * @remarks
+   * Human-readable guide for the task patching logic (P4.M1.T2).
+   * Explains which tasks need re-execution, which can be reused,
+   * and any special handling required for the delta.
+   *
+   * @example "Re-execute P1.M2.T3.S1. P1.M2.T1 can be reused from parent session."
+   */
+  readonly patchInstructions: string;
+
+  /**
+   * Task IDs that need to be re-executed
+   *
+   * @remarks
+   * List of task/subtask IDs affected by PRD changes. The Task
+   * Orchestrator uses this list to determine which work items
+   * need to run in the delta session.
+   *
+   * Empty array if no tasks are affected (rare - delta session
+   * wouldn't be created if no changes).
+   */
+  readonly taskIds: string[];
+}
+
+/**
+ * Zod schema for DeltaAnalysis validation
+ *
+ * @remarks
+ * Validates DeltaAnalysis objects including nested RequirementChange
+ * array validation. Ensures patchInstructions is non-empty and that
+ * all changes in the array conform to RequirementChangeSchema.
+ *
+ * @example
+ * ```typescript
+ * import { DeltaAnalysisSchema } from './core/models.js';
+ *
+ * const result = DeltaAnalysisSchema.safeParse({
+ *   changes: [],
+ *   patchInstructions: 'No changes detected',
+ *   taskIds: []
+ * });
+ * // result.success === true
+ * ```
+ */
+export const DeltaAnalysisSchema: z.ZodType<DeltaAnalysis> = z.object({
+  changes: z.array(RequirementChangeSchema),
+  patchInstructions: z.string().min(1, 'Patch instructions are required'),
+  taskIds: z.array(z.string()),
+});
