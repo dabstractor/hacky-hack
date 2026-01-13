@@ -213,7 +213,8 @@ This is a unique test PRD for PRPGenerator integration tests with ID: ${uniqueId
       // VERIFY: File was written to correct location
       // Find the PRP file write call (filter out test setup writes)
       const prpCall = mockWriteFile.mock.calls.find(
-        (call: any[]) => call[0] && call[0].toString().endsWith('P3_M3_T1_S1.md')
+        (call: any[]) =>
+          call[0] && call[0].toString().endsWith('P3_M3_T1_S1.md')
       );
       expect(prpCall).toBeDefined();
       expect(prpCall![1]).toContain('# PRP for P3.M3.T1.S1');

@@ -661,14 +661,14 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "Milestone 3.3: Agent Runtime Wrapper",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Create the runtime that executes PRPs using agents and handles progressive validation.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Implement PRP Execution Runtime",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Build the runtime that generates PRPs, executes them with agents, and runs validation gates.",
               "subtasks": [
                 {
@@ -684,7 +684,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S2",
                   "title": "Create PRP Executor",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M3.T1.S1"
@@ -695,7 +695,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S3",
                   "title": "Integrate PRP generation and execution",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M3.T1.S2"

@@ -246,6 +246,7 @@ async function executeBashCommand(
  * @remarks
  * Groundswell MCP server that provides bash command execution.
  * Extends MCPHandler and registers the execute_bash tool.
+ * Also provides direct execute_bash method for synchronous use.
  */
 export class BashMCP extends MCPHandler {
   constructor() {
@@ -264,6 +265,30 @@ export class BashMCP extends MCPHandler {
       'execute_bash',
       executeBashCommand as ToolExecutor
     );
+  }
+
+  /**
+   * Execute a bash command directly (non-MCP path)
+   *
+   * @remarks
+   * Provides direct access to bash execution for components that need
+   * to run commands outside of the MCP tool framework. This is used
+   * by PRPExecutor to run validation gates.
+   *
+   * @param input - Tool input with command, optional cwd, optional timeout
+   * @returns Promise resolving to execution result
+   *
+   * @example
+   * ```typescript
+   * const bashMCP = new BashMCP();
+   * const result = await bashMCP.execute_bash({
+   *   command: 'npm test',
+   *   cwd: process.cwd()
+   * });
+   * ```
+   */
+  async execute_bash(input: BashToolInput): Promise<BashToolResult> {
+    return executeBashCommand(input);
   }
 }
 
