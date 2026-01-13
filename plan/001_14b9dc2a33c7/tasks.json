@@ -455,7 +455,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T4.S1",
                   "title": "Create bug report Zod schema",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T3.S2"

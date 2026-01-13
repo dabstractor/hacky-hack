@@ -1520,3 +1520,266 @@ export const DeltaAnalysisSchema: z.ZodType<DeltaAnalysis> = z.object({
   patchInstructions: z.string().min(1, 'Patch instructions are required'),
   taskIds: z.array(z.string()),
 });
+
+/**
+ * Bug severity classification for QA reporting
+ *
+ * @remarks
+ * Severity levels indicate impact on system functionality:
+ * - `critical`: System down, data loss, security vulnerability
+ * - `major`: Significant functionality broken, workarounds unavailable
+ * - `minor`: Partial functionality, workarounds available
+ * - `cosmetic`: Polish items, typos, visual issues
+ *
+ * @example
+ * ```typescript
+ * import { BugSeverity } from './core/models.js';
+ *
+ * const severity: BugSeverity = 'critical';
+ * ```
+ */
+export type BugSeverity = 'critical' | 'major' | 'minor' | 'cosmetic';
+
+/**
+ * Zod schema for BugSeverity enum validation
+ *
+ * @remarks
+ * Validates that a value is one of the four valid severity levels.
+ * Used for runtime validation of bug severity fields.
+ *
+ * @example
+ * ```typescript
+ * import { BugSeverityEnum } from './core/models.js';
+ *
+ * const result = BugSeverityEnum.safeParse('critical');
+ * // result.success === true
+ * ```
+ */
+export const BugSeverityEnum = z.enum([
+  'critical',
+  'major',
+  'minor',
+  'cosmetic',
+]);
+
+/**
+ * Structured bug report from QA Agent testing
+ *
+ * @remarks
+ * Bug represents a single issue discovered during QA testing. Contains
+ * all information needed for developers to reproduce, understand, and fix
+ * the issue. Used by the QA Agent to generate structured bug reports
+ * that can be processed by the bug fix sub-pipeline.
+ *
+ * @example
+ * ```typescript
+ * import { Bug, BugSeverity } from './core/models.js';
+ *
+ * const bug: Bug = {
+ *   id: 'BUG-001',
+ *   severity: 'critical',
+ *   title: 'Login fails with empty password',
+ *   description: 'Unhandled exception when password field is empty',
+ *   reproduction: '1. Navigate to /login\n2. Leave password empty\n3. Click Submit',
+ *   location: 'src/services/auth.ts:45'
+ * };
+ * ```
+ */
+export interface Bug {
+  /**
+   * Unique identifier for this bug report
+   *
+   * @remarks
+   * Should be unique across all bugs in a test session.
+   * Use format like BUG-001 or timestamp-based ID.
+   *
+   * @example 'BUG-001' or 'bug-1705123456'
+   */
+  readonly id: string;
+
+  /** Severity classification */
+  readonly severity: BugSeverity;
+
+  /**
+   * Brief, searchable title of the bug
+   *
+   * @minLength 1
+   * @maxLength 200
+   * @example 'Login fails with empty password'
+   */
+  readonly title: string;
+
+  /**
+   * Detailed explanation of the bug
+   *
+   * @remarks
+   * Should include expected vs actual behavior, error messages,
+   * and any relevant context about when the bug occurs.
+   */
+  readonly description: string;
+
+  /**
+   * Step-by-step instructions to reproduce the bug
+   *
+   * @remarks
+   * Must be detailed enough that another developer can follow
+   * the steps and reliably observe the bug.
+   *
+   * @example
+   * ```
+   * 1. Navigate to /login
+   * 2. Leave password field empty
+   * 3. Click Submit button
+   * 4. Observe: Unhandled exception thrown
+   * ```
+   */
+  readonly reproduction: string;
+
+  /**
+   * File or function location where bug occurs
+   *
+   * @remarks
+   * Optional field for code-related bugs. Include file path
+   * and function name for easy navigation.
+   *
+   * @nullable true
+   * @example 'src/services/auth.ts:45' or 'LoginComponent.submit()'
+   */
+  readonly location?: string;
+}
+
+/**
+ * Zod schema for Bug validation
+ *
+ * @remarks
+ * Validates Bug objects with all field constraints. Ensures required
+ * fields are present and non-empty, title length is bounded, and
+ * severity is a valid BugSeverity value.
+ *
+ * @example
+ * ```typescript
+ * import { BugSchema } from './core/models.js';
+ *
+ * const result = BugSchema.safeParse({
+ *   id: 'BUG-001',
+ *   severity: 'critical',
+ *   title: 'Test bug',
+ *   description: 'Test description',
+ *   reproduction: 'Test steps'
+ * });
+ * // result.success === true
+ * ```
+ */
+export const BugSchema: z.ZodType<Bug> = z.object({
+  id: z.string().min(1, 'Bug ID is required'),
+  severity: BugSeverityEnum,
+  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  description: z.string().min(1, 'Description is required'),
+  reproduction: z.string().min(1, 'Reproduction steps are required'),
+  location: z.string().optional(),
+});
+
+/**
+ * Complete test results from QA Agent bug hunt
+ *
+ * @remarks
+ * TestResults represents the structured output of the QA Bug Hunt workflow.
+ * Contains all bugs found during testing, a summary of the testing performed,
+ * and recommendations for fixes. The `hasBugs` boolean drives the bug fix
+ * cycle: if true, the bug fix sub-pipeline processes the bugs; if false,
+ * the absence of TEST_RESULTS.md signals success.
+ *
+ * This structure enables type-safe validation of AI agent output when
+ * performing QA testing, ensuring that bug reports have reliable data
+ * for the fix cycle.
+ *
+ * @example
+ * ```typescript
+ * import { TestResults, Bug } from './core/models.js';
+ *
+ * const results: TestResults = {
+ *   hasBugs: true,
+ *   bugs: [
+ *     {
+ *       id: 'BUG-001',
+ *       severity: 'critical',
+ *       title: 'Login fails',
+ *       description: 'Auth error',
+ *       reproduction: 'Steps...'
+ *     }
+ *   ],
+ *   summary: 'Found 1 critical bug during login testing',
+ *   recommendations: ['Add input validation']
+ * };
+ * ```
+ */
+export interface TestResults {
+  /**
+   * Whether critical or major bugs were found
+   *
+   * @remarks
+   * This boolean drives the bug fix cycle. If true, the bug
+   * fix sub-pipeline treats the TEST_RESULTS.md as a mini-PRD.
+   * If false, the absence of the file signals success.
+   */
+  readonly hasBugs: boolean;
+
+  /**
+   * Array of all bugs found during testing
+   *
+   * @remarks
+   * Contains bugs of all severity levels. Empty array if no
+   * bugs found. The QA Agent populates this based on testing
+   * results across happy paths, edge cases, and adversarial scenarios.
+   */
+  readonly bugs: Bug[];
+
+  /**
+   * High-level summary of testing performed
+   *
+   * @remarks
+   * Should include: total tests performed, areas covered,
+   * overall quality assessment, and any notable findings.
+   *
+   * @example "Performed 15 tests across login, data persistence, and error handling. Found 2 critical issues."
+   */
+  readonly summary: string;
+
+  /**
+   * Recommended fixes or improvements
+   *
+   * @remarks
+   * Array of actionable recommendations for fixing bugs or
+   * improving the implementation. Can be empty if no specific
+   * recommendations beyond fixing reported bugs.
+   */
+  readonly recommendations: string[];
+}
+
+/**
+ * Zod schema for TestResults validation
+ *
+ * @remarks
+ * Validates TestResults objects including nested Bug array validation.
+ * Ensures summary is non-empty and that all bugs in the array conform
+ * to BugSchema. Empty bugs array is valid (no bugs found).
+ *
+ * @example
+ * ```typescript
+ * import { TestResultsSchema } from './core/models.js';
+ *
+ * const result = TestResultsSchema.safeParse({
+ *   hasBugs: false,
+ *   bugs: [],
+ *   summary: 'All tests passed',
+ *   recommendations: []
+ * });
+ * // result.success === true
+ * ```
+ */
+export const TestResultsSchema: z.ZodType<TestResults> = z.object({
+  hasBugs: z.boolean(),
+  bugs: z.array(BugSchema),
+  summary: z.string().min(1, 'Summary is required'),
+  recommendations: z.array(z.string()).min(0),
+});

@@ -51,6 +51,7 @@ Create a prompt generator function that:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Exact file paths and line numbers for all patterns to follow
 - Complete schema definitions for `DeltaAnalysis` and `RequirementChange`
 - Groundswell API usage patterns from existing implementations
@@ -164,13 +165,13 @@ import { BacklogSchema } from '../../core/models.js';
 
 // CRITICAL: Always use Zod schemas, not TypeScript types for responseFormat
 // Correct:
-responseFormat: DeltaAnalysisSchema
+responseFormat: DeltaAnalysisSchema;
 
 // Incorrect (this is a type, not a runtime schema):
-responseFormat: DeltaAnalysis
+responseFormat: DeltaAnalysis;
 
 // CRITICAL: Enable reflection for complex structured output
-enableReflection: true
+enableReflection: true;
 
 // PATTERN: Use `as const` on prompt string constants
 export const DELTA_ANALYSIS_PROMPT = `...` as const;
@@ -198,17 +199,17 @@ The schemas already exist in `src/core/models.ts`:
 ```typescript
 // RequirementChange Interface (lines 1361-1401)
 interface RequirementChange {
-  readonly itemId: string;                      // Task/milestone/subtask ID
+  readonly itemId: string; // Task/milestone/subtask ID
   readonly type: 'added' | 'modified' | 'removed';
-  readonly description: string;                 // What changed
-  readonly impact: string;                      // Implementation impact
+  readonly description: string; // What changed
+  readonly impact: string; // Implementation impact
 }
 
 // DeltaAnalysis Interface (lines 1462-1496)
 interface DeltaAnalysis {
-  readonly changes: RequirementChange[];       // All detected changes
-  readonly patchInstructions: string;           // Natural language instructions
-  readonly taskIds: string[];                  // Tasks needing re-execution
+  readonly changes: RequirementChange[]; // All detected changes
+  readonly patchInstructions: string; // Natural language instructions
+  readonly taskIds: string[]; // Tasks needing re-execution
 }
 ```
 
@@ -415,15 +416,16 @@ function constructUserPrompt(
   completedTaskIds?: string[]
 ): string {
   // Build completed tasks section
-  const completedTasksSection = completedTaskIds !== undefined && completedTaskIds.length > 0
-    ? `
+  const completedTasksSection =
+    completedTaskIds !== undefined && completedTaskIds.length > 0
+      ? `
 
 ## Completed Tasks
 
 The following tasks have been completed and should be preserved unless critically affected:
 ${completedTaskIds.map(id => `- ${id}`).join('\n')}
 `
-    : '';
+      : '';
 
   // Construct the complete user prompt
   return `
@@ -504,12 +506,20 @@ export const mockCompletedTaskIds = ['P1.M1.T1', 'P1.M2.T1'];
 
 import { describe, expect, it } from 'vitest';
 import { createDeltaAnalysisPrompt } from '../../../../src/agents/prompts/delta-analysis-prompt.js';
-import { mockOldPRD, mockNewPRD, mockCompletedTaskIds } from '../../../fixtures/mock-delta-data.js';
+import {
+  mockOldPRD,
+  mockNewPRD,
+  mockCompletedTaskIds,
+} from '../../../fixtures/mock-delta-data.js';
 
 describe('agents/prompts/delta-analysis-prompt', () => {
   describe('createDeltaAnalysisPrompt', () => {
     it('should return a Prompt object with correct structure', () => {
-      const prompt = createDeltaAnalysisPrompt(mockOldPRD, mockNewPRD, mockCompletedTaskIds);
+      const prompt = createDeltaAnalysisPrompt(
+        mockOldPRD,
+        mockNewPRD,
+        mockCompletedTaskIds
+      );
 
       expect(prompt).toBeDefined();
       expect(typeof prompt.user).toBe('string');
@@ -530,7 +540,11 @@ describe('agents/prompts/delta-analysis-prompt', () => {
     });
 
     it('should include completed tasks when provided', () => {
-      const prompt = createDeltaAnalysisPrompt(mockOldPRD, mockNewPRD, mockCompletedTaskIds);
+      const prompt = createDeltaAnalysisPrompt(
+        mockOldPRD,
+        mockNewPRD,
+        mockCompletedTaskIds
+      );
       expect(prompt.user).toContain('## Completed Tasks');
       expect(prompt.user).toContain('P1.M1.T1');
       expect(prompt.user).toContain('P1.M2.T1');
@@ -561,8 +575,8 @@ describe('agents/prompts/delta-analysis-prompt', () => {
 PROMPTS_TS:
   - add to: src/agents/prompts.ts
   - after: DELTA_PRD_PROMPT (line 734)
-  - pattern: "export const DELTA_ANALYSIS_PROMPT = `...` as const;"
-  - then: "Add to PROMPTS object: DELTA_ANALYSIS: DELTA_ANALYSIS_PROMPT"
+  - pattern: 'export const DELTA_ANALYSIS_PROMPT = `...` as const;'
+  - then: 'Add to PROMPTS object: DELTA_ANALYSIS: DELTA_ANALYSIS_PROMPT'
 
 MODELS_IMPORT:
   - from: src/core/models.js

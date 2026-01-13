@@ -23,6 +23,9 @@ import {
   PRPArtifactSchema,
   RequirementChangeSchema,
   DeltaAnalysisSchema,
+  BugSeverityEnum,
+  BugSchema,
+  TestResultsSchema,
   type Subtask,
   type Task,
   type Milestone,
@@ -34,6 +37,9 @@ import {
   type PRPArtifact,
   type RequirementChange,
   type DeltaAnalysis,
+  type BugSeverity,
+  type Bug,
+  type TestResults,
 } from '../../../src/core/models.js';
 
 describe('core/models Zod Schemas', () => {
@@ -1657,6 +1663,355 @@ describe('core/models Zod Schemas', () => {
 
       // EXECUTE
       const result = DeltaAnalysisSchema.safeParse(allTypes);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('BugSeverityEnum', () => {
+    it('should accept all four valid severity values', () => {
+      // SETUP: Valid severity values
+      const validSeverities = [
+        'critical',
+        'major',
+        'minor',
+        'cosmetic',
+      ] as const;
+
+      // EXECUTE & VERIFY: Each severity should parse successfully
+      validSeverities.forEach(severity => {
+        const result = BugSeverityEnum.safeParse(severity);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toBe(severity);
+        }
+      });
+    });
+
+    it('should reject invalid severity values', () => {
+      // SETUP: Invalid severity value
+      const invalidSeverity = 'invalid';
+
+      // EXECUTE
+      const result = BugSeverityEnum.safeParse(invalidSeverity);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject uppercase severity values', () => {
+      // SETUP: Uppercase severity (not valid per contract)
+      const uppercaseSeverity = 'Critical';
+
+      // EXECUTE
+      const result = BugSeverityEnum.safeParse(uppercaseSeverity);
+
+      // VERIFY: Should fail - contract specifies lowercase
+      expect(result.success).toBe(false);
+    });
+
+    it('should expose all enum values via options property', () => {
+      // EXECUTE & VERIFY: Check .options property
+      expect(BugSeverityEnum.options).toEqual([
+        'critical',
+        'major',
+        'minor',
+        'cosmetic',
+      ]);
+    });
+  });
+
+  describe('BugSchema', () => {
+    const validBug: Bug = {
+      id: 'BUG-001',
+      severity: 'critical',
+      title: 'Login fails with empty password',
+      description: 'Unhandled exception when password field is empty',
+      reproduction:
+        '1. Navigate to /login\n2. Leave password empty\n3. Click Submit',
+      location: 'src/services/auth.ts:45',
+    };
+
+    it('should parse valid bug with all fields including location', () => {
+      // SETUP: Valid bug data
+      const data = { ...validBug };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validBug);
+      }
+    });
+
+    it('should parse valid bug without optional location field', () => {
+      // SETUP: Valid bug without location
+      const bugWithoutLocation = {
+        id: 'BUG-002',
+        severity: 'major' as const,
+        title: 'Button alignment issue',
+        description: 'Submit button is misaligned on mobile',
+        reproduction: 'Open app on mobile device',
+      };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(bugWithoutLocation);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject bug with empty id', () => {
+      // SETUP: Empty id
+      const invalid = { ...validBug, id: '' };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject bug with invalid severity', () => {
+      // SETUP: Invalid severity value
+      const invalid = { ...validBug, severity: 'urgent' as const };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject bug with empty title', () => {
+      // SETUP: Empty title
+      const invalid = { ...validBug, title: '' };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject bug with title exceeding 200 characters', () => {
+      // SETUP: Title too long
+      const invalid = { ...validBug, title: 'a'.repeat(201) };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject bug with empty description', () => {
+      // SETUP: Empty description
+      const invalid = { ...validBug, description: '' };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject bug with empty reproduction steps', () => {
+      // SETUP: Empty reproduction
+      const invalid = { ...validBug, reproduction: '' };
+
+      // EXECUTE
+      const result = BugSchema.safeParse(invalid);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept all four severity levels', () => {
+      // SETUP: Test each severity level
+      const severities: BugSeverity[] = [
+        'critical',
+        'major',
+        'minor',
+        'cosmetic',
+      ];
+
+      severities.forEach(severity => {
+        const bugWithSeverity = { ...validBug, severity };
+        const result = BugSchema.safeParse(bugWithSeverity);
+        expect(result.success).toBe(true);
+      });
+    });
+  });
+
+  describe('TestResultsSchema', () => {
+    const validBug: Bug = {
+      id: 'BUG-001',
+      severity: 'critical',
+      title: 'Auth fails',
+      description: 'Authentication error',
+      reproduction: 'Try to login',
+    };
+
+    const validResults: TestResults = {
+      hasBugs: true,
+      bugs: [validBug],
+      summary: 'Found 1 critical bug during testing',
+      recommendations: ['Add input validation'],
+    };
+
+    it('should parse valid test results with bugs', () => {
+      // SETUP: Valid results with bugs
+      const data = { ...validResults };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(data);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validResults);
+      }
+    });
+
+    it('should parse valid test results with empty bugs array', () => {
+      // SETUP: Valid results with no bugs
+      const resultsNoBugs: TestResults = {
+        hasBugs: false,
+        bugs: [],
+        summary: 'All tests passed successfully',
+        recommendations: [],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(resultsNoBugs);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse test results with hasBugs set to true', () => {
+      // SETUP: Results indicating bugs exist
+      const resultsWithBugs = {
+        hasBugs: true,
+        bugs: [{ ...validBug }],
+        summary: 'Critical issues found',
+        recommendations: ['Fix bugs'],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(resultsWithBugs);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should parse test results with hasBugs set to false', () => {
+      // SETUP: Results indicating no bugs
+      const resultsNoBugsFlag = {
+        hasBugs: false,
+        bugs: [],
+        summary: 'No issues detected',
+        recommendations: [],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(resultsNoBugsFlag);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject test results missing required summary field', () => {
+      // SETUP: Missing summary
+      const missingSummary = {
+        hasBugs: false,
+        bugs: [],
+        recommendations: [],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(missingSummary);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject test results with invalid nested bug', () => {
+      // SETUP: Invalid bug in bugs array
+      const invalidNestedBug = {
+        hasBugs: true,
+        bugs: [{ ...validBug, severity: 'invalid' as const }],
+        summary: 'Test with invalid bug',
+        recommendations: [],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(invalidNestedBug);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept test results with multiple bugs', () => {
+      // SETUP: Multiple bugs of different severities
+      const multiBugResults: TestResults = {
+        hasBugs: true,
+        bugs: [
+          {
+            id: 'BUG-001',
+            severity: 'critical',
+            title: 'C1',
+            description: 'D1',
+            reproduction: 'R1',
+          },
+          {
+            id: 'BUG-002',
+            severity: 'major',
+            title: 'C2',
+            description: 'D2',
+            reproduction: 'R2',
+          },
+          {
+            id: 'BUG-003',
+            severity: 'minor',
+            title: 'C3',
+            description: 'D3',
+            reproduction: 'R3',
+          },
+          {
+            id: 'BUG-004',
+            severity: 'cosmetic',
+            title: 'C4',
+            description: 'D4',
+            reproduction: 'R4',
+          },
+        ],
+        summary: 'Found 4 bugs across all severity levels',
+        recommendations: ['Fix critical first', 'Then major', 'Then minor'],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(multiBugResults);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept test results with empty recommendations array', () => {
+      // SETUP: No specific recommendations
+      const noRecommendations: TestResults = {
+        hasBugs: true,
+        bugs: [{ ...validBug }],
+        summary: 'Bug found but no specific recommendations',
+        recommendations: [],
+      };
+
+      // EXECUTE
+      const result = TestResultsSchema.safeParse(noRecommendations);
 
       // VERIFY
       expect(result.success).toBe(true);
