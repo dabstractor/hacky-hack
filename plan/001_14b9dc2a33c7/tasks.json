@@ -355,7 +355,7 @@
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Create Architect Prompt with Structured Output",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Port the Task Breakdown system prompt to a Groundswell Prompt with Zod schema for the backlog JSON structure.",
               "subtasks": [
                 {
@@ -373,7 +373,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S2",
                   "title": "Test Architect Agent with PRD",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T1.S1"
