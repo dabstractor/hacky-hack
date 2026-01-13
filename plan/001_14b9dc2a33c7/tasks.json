@@ -1020,7 +1020,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T3.S1",
                   "title": "Create minimal test PRD",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P4.M4.T2.S2"
@@ -1031,7 +1031,7 @@
                   "type": "Subtask",
                   "id": "P4.M4.T3.S2",
                   "title": "Create E2E pipeline test",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P4.M4.T3.S1"
