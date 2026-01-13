@@ -20,6 +20,14 @@ export {
   SessionFileError,
 } from './session-utils.js';
 
+// PRD diffing utilities
+export {
+  diffPRDs,
+  hasSignificantChanges,
+  parsePRDSections,
+  normalizeMarkdown,
+} from './prd-differ.js';
+
 // Type definitions and models
 export type {
   Backlog,
@@ -42,6 +50,9 @@ export type {
   Bug,
   TestResults,
 } from './models.js';
+
+// PRD diffing types
+export type { PRDSection, SectionChange, DiffSummary } from './prd-differ.js';
 
 export {
   StatusEnum,

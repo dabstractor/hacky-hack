@@ -10,7 +10,7 @@
  * @see {@link https://vitest.dev/guide/ | Vitest Documentation}
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { SessionManager } from '../../../src/core/session-manager.js';
 import {
   hashPRD,
@@ -854,8 +854,8 @@ describe('SessionManager', () => {
       const deltaSession = await manager.createDeltaSession('/new/PRD.md');
 
       // VERIFY
-      expect(deltaSession.diffSummary).toContain('PRD modified');
-      expect(deltaSession.diffSummary).toContain('lines');
+      expect(deltaSession.diffSummary).toContain('PRD changes');
+      expect(deltaSession.diffSummary).toBeDefined();
     });
 
     it('should create new session with incremented sequence', async () => {
@@ -966,7 +966,7 @@ describe('SessionManager', () => {
       expect(deltaSession).toMatchObject({
         oldPRD,
         newPRD,
-        diffSummary: expect.stringContaining('PRD modified'),
+        diffSummary: expect.stringContaining('PRD changes'),
       });
       expect(deltaSession.taskRegistry).toEqual({ backlog: [] });
       expect(deltaSession.currentItemId).toBeNull();
@@ -1451,7 +1451,7 @@ describe('SessionManager', () => {
 
       // Initialize creates empty backlog
       const emptyBacklog = createTestBacklog([]);
-      const originalBacklog = createTestBacklog([
+      const _originalBacklog = createTestBacklog([
         createTestPhase('P1', 'Phase 1', 'Planned', [
           createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
             createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
@@ -1883,7 +1883,7 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
 
       // EXECUTE
-      const sessions = await SessionManager.listSessions();
+      const _sessions = await SessionManager.listSessions();
 
       // VERIFY: Should call readdir with resolved 'plan' directory
       expect(mockReaddir).toHaveBeenCalled();

@@ -38,6 +38,7 @@ import {
   writeTasksJSON,
   SessionFileError,
 } from './session-utils.js';
+import { diffPRDs } from './prd-differ.js';
 import {
   updateItemStatus as updateItemStatusUtil,
   findItem,
@@ -176,19 +177,6 @@ export class SessionManager {
       0
     );
     return maxSeq + 1;
-  }
-
-  /**
-   * Generates diff summary between old and new PRD content
-   *
-   * @param oldPRD - Original PRD content
-   * @param newPRD - Modified PRD content
-   * @returns Human-readable diff summary
-   */
-  #generateDiffSummary(oldPRD: string, newPRD: string): string {
-    const oldLines = oldPRD.split('\n').length;
-    const newLines = newPRD.split('\n').length;
-    return `PRD modified: ${oldLines} lines → ${newLines} lines. Full delta analysis required.`;
   }
 
   /**
@@ -334,8 +322,9 @@ export class SessionManager {
     const oldPRD = this.#currentSession.prdSnapshot;
     const newPRD = await readFile(absPath, 'utf-8');
 
-    // 4. Generate diff summary
-    const diffSummary = this.#generateDiffSummary(oldPRD, newPRD);
+    // 4. Generate diff summary using structured PRD differ
+    const diffResult = diffPRDs(oldPRD, newPRD);
+    const diffSummary = diffResult.summaryText;
 
     // 5. Create new session directory
     const currentSeq = parseInt(
