@@ -137,6 +137,51 @@ export interface GroundswellLocalLinkOptions {
   projectPath?: string;
 }
 
+/**
+ * Result of Groundswell symlink verification
+ *
+ * @remarks
+ * Returned by {@link verifyGroundswellSymlink} to indicate whether
+ * the symlink exists at node_modules/groundswell and provides
+ * diagnostic information for debugging.
+ *
+ * @example
+ * ```typescript
+ * const result = await verifyGroundswellSymlink(s3Result);
+ * if (!result.exists) {
+ *   console.error(`Symlink not found: ${result.path}`);
+ *   console.error(`Error: ${result.error}`);
+ * }
+ * ```
+ */
+export interface GroundswellSymlinkVerifyResult {
+  /** Whether symlink exists at node_modules/groundswell */
+  exists: boolean;
+
+  /** Absolute path where symlink should exist */
+  path: string;
+
+  /** Actual symlink target (if verification succeeded) */
+  symlinkTarget?: string;
+
+  /** Human-readable status message */
+  message: string;
+
+  /** Error message if verification failed */
+  error?: string;
+}
+
+/**
+ * Optional configuration for verifyGroundswellSymlink()
+ *
+ * @remarks
+ * Optional configuration for the verifyGroundswellSymlink function.
+ */
+export interface GroundswellSymlinkVerifyOptions {
+  /** Project directory path (default: /home/dustin/projects/hacky-hack) */
+  projectPath?: string;
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -491,4 +536,111 @@ export async function linkGroundswellLocally(
       });
     });
   });
+}
+
+/**
+ * Verifies that the Groundswell symlink exists at node_modules/groundswell
+ *
+ * @remarks
+ * Performs symlink verification with comprehensive validation and error handling:
+ * 1. Validates S3 result.success - skips verification if local link failed
+ * 2. Uses native fs.lstat() for symlink detection (NOT stat() - stat() follows symlinks)
+ * 3. Uses fs.readlink() to extract symlink target path
+ * 4. Handles all error cases (ENOENT, EACCES, EINVAL)
+ * 5. Returns structured result with symlink target for additional verification
+ *
+ * The function does not throw for normal errors. All errors are returned
+ * in the structured result object.
+ *
+ * @param previousResult - Result from S3's linkGroundswellLocally() function
+ * @param options - Optional configuration including project path
+ * @returns Promise resolving to symlink verification result
+ *
+ * @example
+ * ```typescript
+ * // Basic usage with defaults
+ * const s4Result = await verifyGroundswellSymlink(s3Result);
+ * if (s4Result.exists) {
+ *   console.log('Symlink verified!');
+ *   console.log('Target:', s4Result.symlinkTarget);
+ * }
+ *
+ * // Custom project path
+ * const result = await verifyGroundswellSymlink(s3Result, {
+ *   projectPath: '/custom/project/path'
+ * });
+ * ```
+ */
+export async function verifyGroundswellSymlink(
+  previousResult: GroundswellLocalLinkResult,
+  options?: GroundswellSymlinkVerifyOptions
+): Promise<GroundswellSymlinkVerifyResult> {
+  const { projectPath = DEFAULT_PROJECT_PATH } = options ?? {};
+
+  const symlinkPath = join(projectPath, 'node_modules', 'groundswell');
+
+  // PATTERN: Conditional execution based on S3 result
+  if (!previousResult.success) {
+    return {
+      exists: false,
+      path: symlinkPath,
+      message: `Skipped: Local link failed - ${previousResult.message}`,
+      error: undefined,
+    };
+  }
+
+  // PATTERN: Use native fs.lstat() and fs.readlink() (recommended in research)
+  try {
+    // CRITICAL: Use lstat() NOT stat() for symlink detection
+    // stat() follows symlinks and always returns isSymbolicLink() === false
+    const stats = await lstat(symlinkPath);
+
+    if (!stats.isSymbolicLink()) {
+      return {
+        exists: false,
+        path: symlinkPath,
+        message: `Path exists but is not a symbolic link: ${symlinkPath}`,
+        error: 'Not a symlink',
+      };
+    }
+
+    // Get symlink target
+    const symlinkTarget = await readlink(symlinkPath);
+
+    return {
+      exists: true,
+      path: symlinkPath,
+      symlinkTarget,
+      message: `Symlink verified at ${symlinkPath} -> ${symlinkTarget}`,
+    };
+  } catch (error) {
+    // PATTERN: Handle Node.js errno codes (from linkGroundswellLocally)
+    const errno = error as NodeJS.ErrnoException;
+
+    if (errno?.code === 'ENOENT') {
+      return {
+        exists: false,
+        path: symlinkPath,
+        message: `Symlink not found: ${symlinkPath}`,
+        error: 'ENOENT',
+      };
+    }
+
+    if (errno?.code === 'EACCES') {
+      return {
+        exists: false,
+        path: symlinkPath,
+        message: `Permission denied: ${symlinkPath}`,
+        error: 'EACCES',
+      };
+    }
+
+    // Generic error
+    return {
+      exists: false,
+      path: symlinkPath,
+      message: `Verification failed: ${errno?.message || 'Unknown error'}`,
+      error: errno?.code || 'UNKNOWN',
+    };
+  }
 }

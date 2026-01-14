@@ -1,208 +1,261 @@
-# PRP: Verify Groundswell symlink in node_modules
-
-**Subtask**: P1.M1.T1.S4
-**Status**: Research Complete
-**Points**: 0.5
+# Product Requirement Prompt (PRP): P1.M1.T1.S4 - Verify Groundswell Symlink
 
 ---
 
 ## Goal
 
-**Feature Goal**: Verify that the npm link symlink exists at `node_modules/groundswell` after the local linking operation, confirming the symlink integrity before proceeding to npm list verification.
+**Feature Goal**: Verify that the Groundswell symlink exists at `node_modules/groundswell` after the `npm link groundswell` command has been executed, confirming the local linking step was successful.
 
-**Deliverable**: `verifyGroundswellSymlink()` function added to `src/utils/groundswell-linker.ts` with comprehensive unit tests in `tests/unit/utils/groundswell-linker.test.ts`.
+**Deliverable**: A `verifyGroundswellSymlink()` function in `src/utils/groundswell-linker.ts` that consumes S3's `GroundswellLocalLinkResult` and produces a `GroundswellSymlinkVerifyResult` for S5 to consume.
 
 **Success Definition**:
-- Consumes S3's `GroundswellLocalLinkResult` - only proceeds if `success: true`
-- Executes `ls -la node_modules/groundswell` via spawn() with proper timeout handling
-- Parses output to verify symlink indicator (->) is present
-- Returns structured `{ exists: boolean, path: string }` result
-- Returns `exists: true` only when symlink is verified
-- Mock-friendly design for unit testing with Vitest
+- Function returns `{ exists: true, path: string }` when symlink is valid
+- All unit tests pass (30+ tests covering happy path, errors, edge cases)
+- Integration with S3 works correctly (conditional execution based on S3 result)
+- Mock-friendly design works with Vitest
+
+---
 
 ## User Persona
 
-**Target User**: Bug hunt workflow automation that needs to programmatically verify symlink integrity after npm linking without manual intervention.
+**Target User**: Developer/Build System (this is an infrastructure task)
 
-**Use Case**: After S3 successfully creates the local npm link (`npm link groundswell`), S4 verifies the symlink actually exists at `node_modules/groundswell` before proceeding to npm list verification in S5.
+**Use Case**: As part of the Groundswell dependency setup workflow, after executing `npm link groundswell`, the system needs to verify that the symlink was created correctly before proceeding to S5 (npm list verification).
 
 **User Journey**:
-1. Bug hunt workflow detects missing Groundswell dependency
-2. S1 verifies Groundswell exists at `~/projects/groundswell`
-3. S2 executes `npm link` from Groundswell directory (creates global symlink)
-4. S3 executes `npm link groundswell` from hacky-hack directory (creates local symlink)
-5. **S4 (this task)** verifies symlink exists at `node_modules/groundswell` with symlink indicator
-6. S5 runs `npm list` to verify dependency resolution
-7. Application compiles successfully with Groundswell imports
+1. S3 executes `npm link groundswell` and returns `GroundswellLocalLinkResult`
+2. S4 receives S3's result and checks if `success: true`
+3. If S3 succeeded, S4 verifies the symlink exists at `node_modules/groundswell`
+4. S4 returns `GroundswellSymlinkVerifyResult` with symlink existence status
+5. S5 consumes S4's result to run `npm list` command
 
 **Pain Points Addressed**:
-- Manual symlink verification with `ls -la` is error-prone in automated workflows
-- No programmatic verification that symlink was created correctly after npm link
-- Difficult to debug when npm link appears to succeed but symlink is missing
-- Workflow automation requires deterministic symlink verification before proceeding
+- Detects broken or missing symlinks before they cause runtime errors
+- Provides clear diagnostic information when symlink verification fails
+- Enables early failure in the dependency resolution workflow
+
+---
 
 ## Why
 
-- **Business value**: Enables automated local development workflow with confidence that npm link actually created the required symlink
-- **Integration with existing features**: Consumes S3's `GroundswellLocalLinkResult` output; produces output consumed by S5 for npm list verification
-- **Problems this solves**: Resolves Bug Fix Issue #1 - "Cannot find module 'groundswell'" by ensuring symlink verification before proceeding
+- **Infrastructure Reliability**: Symlink verification is critical for npm link workflows. A broken symlink can cause "module not found" errors that are difficult to debug.
+- **S3 Integration**: S3 already does symlink verification, but S4 provides a separate, explicit verification step with a different contract that S5 can consume.
+- **Diagnostic Value**: Returns raw ls output (or symlink target) for debugging failed links.
+- **Workflow Progression**: Part of the sequential S1-S6 workflow for Groundswell dependency resolution. Each step consumes the previous step's output.
+
+---
 
 ## What
 
-Verifies symlink existence at `node_modules/groundswell` by executing `ls -la` and parsing output for symlink indicators:
-
-1. **Input validation**: Accepts S3's `GroundswellLocalLinkResult` - skips verification if `success: false`
-2. **Command execution**: Spawns `ls -la node_modules/groundswell` using `node:child_process.spawn()` with proper timeout handling
-3. **Output parsing**: Parses stdout for symlink indicators (permission bit `l` and arrow pattern `->`)
-4. **Result return**: Returns `{ exists: boolean, path: string }` with exists=true only when symlink verified
-
 ### Success Criteria
 
-- [ ] Function executes `ls -la node_modules/groundswell` command from project directory
-- [ ] Returns `exists: true` when symlink indicator (->) found in ls output
-- [ ] Returns `exists: false` when symlink not found or S3 result.success is false
-- [ ] Skips execution (returns exists: false) when S3 result.success is false
-- [ ] Captures and returns stdout for debugging
-- [ ] Verifies symlink exists at node_modules/groundswell after linking
-- [ ] Uses dual detection (permission + arrow) for reliability
-- [ ] All unit tests pass including spawn error, timeout, and conditional skip scenarios
-- [ ] Code follows existing patterns from `src/utils/groundswell-linker.ts`
+- [ ] `verifyGroundswellSymlink()` function exists in `src/utils/groundswell-linker.ts`
+- [ ] Function consumes S3's `GroundswellLocalLinkResult` as first parameter
+- [ ] Function accepts optional `GroundswellSymlinkVerifyOptions` parameter
+- [ ] Conditional execution: skips verification if S3's `success` is `false`
+- [ ] Uses native `fs.lstat()` and `fs.readlink()` for symlink detection (recommended in research)
+- [ ] Returns `GroundswellSymlinkVerifyResult` with all required fields
+- [ ] Handles all error cases (ENOENT, EACCES, EINVAL, etc.)
+- [ ] Comprehensive test suite with 30+ tests
+
+### User-Visible Behavior
+
+```typescript
+// Input: S3's result
+const s3Result: GroundswellLocalLinkResult = {
+  success: true,
+  message: 'Successfully linked groundswell...',
+  symlinkPath: '/home/dustin/projects/hacky-hack/node_modules/groundswell',
+  symlinkTarget: '../../../projects/groundswell',
+  stdout: '...',
+  stderr: '',
+  exitCode: 0,
+};
+
+// Call S4
+const s4Result = await verifyGroundswellSymlink(s3Result);
+
+// Output: S4's result
+console.log(s4Result);
+// {
+//   exists: true,
+//   path: '/home/dustin/projects/hacky-hack/node_modules/groundswell',
+//   symlinkTarget: '../../../projects/groundswell',
+//   message: 'Symlink verified at /home/.../node_modules/groundswell',
+//   error: undefined
+// }
+```
+
+---
 
 ## All Needed Context
 
 ### Context Completeness Check
 
-**"No Prior Knowledge" test**: A developer unfamiliar with this codebase would need:
-- The spawn execution pattern from `groundswell-linker.ts` (S2/S3 implementation)
-- The input contract from S3 (`GroundswellLocalLinkResult` interface)
-- The ls -la output parsing patterns from research
-- Testing patterns for mocking ChildProcess and spawn in Vitest
-- The project directory path (`/home/dustin/projects/hacky-hack`)
-- The expected symlink location (`node_modules/groundswell`)
-- Symlink detection patterns (permission bit `l` and arrow `->`)
+This PRP provides:
+- Exact file paths and line numbers for all referenced code
+- Complete type definitions with all fields
+- Exact function signatures and naming conventions
+- Test file locations and comprehensive mock patterns
+- Validation commands that work in this codebase
+- All gotchas and warnings from research
 
 ### Documentation & References
 
 ```yaml
-# MUST READ - Implementation patterns from S2/S3
+# MUST READ - Implementation patterns and examples
 - file: src/utils/groundswell-linker.ts
-  why: Spawn execution pattern with timeout handling, stdout/stderr capture
-  pattern: Lines 153-240 (linkGroundswell function)
-  gotcha: shell: false is critical for security; use argument arrays not command strings
+  why: S3 implementation with symlink verification pattern (lines 425-465)
+  pattern: Use fs.lstat() and fs.readlink() for symlink detection
+  gotcha: "S3 already does symlink verification - S4 is a separate explicit step"
+  critical: "Follow S3's spawn() timeout pattern and error handling"
 
-# MUST READ - Input contract from S3
-- file: src/utils/groundswell-linker.ts
-  why: GroundswellLocalLinkResult interface defines input structure
-  pattern: Lines 218-243 (GroundswellLocalLinkResult interface definition from S3 PRP)
-  gotcha: Check result.success before executing ls verification
+- file: src/utils/groundswell-verifier.ts
+  why: S1 implementation showing input validation and result patterns
+  pattern: Synchronous verification with structured result return
+  gotcha: "S1 uses existsSync(), S4 should use async fs.lstat()"
 
-# MUST READ - Testing patterns from S2/S3
 - file: tests/unit/utils/groundswell-linker.test.ts
-  why: Mock patterns for ChildProcess, fake timers, spawn function
-  pattern: Lines 44-86 (createMockChild helper function)
-  gotcha: Must use vi.runAllTimersAsync() for fake timer tests
+  why: Comprehensive test patterns for spawn() and fs mocking
+  pattern: createMockChild() helper, fake timers, mock factory functions
+  critical: "Use vi.mocked() for type-safe mocking in Vitest"
 
-# MUST READ - ls -la output parsing patterns
-- docfile: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S4/research/ls-output-parsing-research.md
-  why: Complete guide to ls -la format, symlink indicators, and parsing patterns
-  section: Section 2 (Symlink Indicators), Section 5 (Parsing Patterns)
-  critical: Use dual detection (permission bit l + arrow ->) for reliability
+- docfile: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/subtasks/P1M1T1S4/research/symlink-verification-research.md
+  why: Complete symlink verification patterns with fs.lstat() and fs.readlink()
+  section: "Using fs.lstat() and fs.promises.lstat" (lines 20-186)
+  critical: "Use lstat() NOT stat() - stat() follows symlinks and always returns false for isSymbolicLink()"
 
-# MUST READ - Symlink verification patterns
-- docfile: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S4/research/symlink-verification-research.md
-  why: Complete guide to fs.lstat(), ls spawning, and symlink detection
-  section: Sections 4-5 (ls spawning, Vitest mocking)
-  critical: ls -la spawning for verification vs fs.lstat() for production
+- docfile: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/subtasks/P1M1T1S4/research/ls-output-parsing-research.md
+  why: Alternative ls -la parsing approach (NOT recommended for production)
+  section: "Alternative Approaches" (lines 768-823)
+  gotcha: "Native APIs are preferred - ls -la parsing is for debugging only"
 
-# MUST READ - External dependencies architecture
-- docfile: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/architecture/external_deps.md
-  why: Symlink requirements and verification commands
-  section: "Installation Strategy" and "Option 1: npm link (RECOMMENDED)"
-  critical: Symlink must be created at node_modules/groundswell
+# EXTERNAL REFERENCES
+- url: https://nodejs.org/api/fs.html#fspromiseslstatpath-options
+  why: Official documentation for fs.promises.lstat()
+  critical: "lstat() does NOT follow symlinks - use for symlink detection"
 
-# External documentation
-- url: https://nodejs.org/api/child_process.html#child_processspawncommand-args-options
-  why: spawn() API documentation for ls execution
-  critical: Use shell: false for security, argument arrays for command
-  section: "child_process.spawn()"
+- url: https://nodejs.org/api/fs.html#fspromisesreadlinkpath-options
+  why: Official documentation for fs.promises.readlink()
+  critical: "readlink() returns the symlink target path"
 
-# External documentation
-- url: https://nodejs.org/api/child_process.html#event-close
-  why: close event documentation for exit code handling
-  critical: Exit code 0 indicates success, non-zero indicates failure
-  section: "Event: 'close'"
+- url: https://vitest.dev/guide/mocking.html
+  why: Vitest mocking documentation for fs operations
+  section: "vi.mock with factory functions"
 ```
 
 ### Current Codebase Tree
 
 ```bash
-src/utils/
-├── groundswell-verifier.ts    # S1: Verification (Complete)
-├── groundswell-linker.ts       # S2: npm link global (Complete), S3: npm link local (In Progress), S4: ADD HERE
-└── ...
-
-tests/unit/utils/
-├── groundswell-verifier.test.ts    # S1 tests (Complete)
-├── groundswell-linker.test.ts       # S2/S3 tests (Complete), S4 tests (ADD HERE)
-└── ...
+hacky-hack/
+├── src/
+│   ├── utils/
+│   │   ├── groundswell-verifier.ts      # S1: Verify Groundswell exists
+│   │   └── groundswell-linker.ts        # S2+S3: npm link operations
+│   └── ...
+├── tests/
+│   └── unit/
+│       └── utils/
+│           ├── groundswell-verifier.test.ts
+│           └── groundswell-linker.test.ts
+├── vitest.config.ts                      # Test configuration
+├── package.json
+└── tsconfig.json
 ```
 
-### Desired Codebase Tree
+### Desired Codebase Tree with Files to be Added
 
 ```bash
-# Implementation files (extend existing files)
-src/utils/groundswell-linker.ts    # ADD: verifyGroundswellSymlink() function, interface definitions
-tests/unit/utils/groundswell-linker.test.ts    # ADD: Tests for symlink verification
-
-# No additional files needed - extend existing S2/S3 implementation
+hacky-hack/
+├── src/
+│   ├── utils/
+│   │   ├── groundswell-verifier.ts       # EXISTING - S1
+│   │   └── groundswell-linker.ts         # MODIFY - Add S4 function
+│   └── ...
+├── tests/
+│   └── unit/
+│       └── utils/
+│           ├── groundswell-verifier.test.ts     # EXISTING
+│           └── groundswell-linker.test.ts       # MODIFY - Add S4 tests
 ```
 
-### Known Gotchas & Library Quirks
+### Known Gotchas of Our Codebase & Library Quirks
 
 ```typescript
-// CRITICAL: Conditional execution based on S3 result
-// If S3 result.success is false, skip verification and return exists: false
+// CRITICAL: Use lstat() NOT stat() for symlink detection
+// stat() follows symlinks and always returns isSymbolicLink() === false
+// BAD: const stats = await stat(path); return stats.isSymbolicLink(); // ALWAYS FALSE
+// GOOD: const stats = await lstat(path); return stats.isSymbolicLink(); // CORRECT
 
-// CRITICAL: ls -la output parsing for symlink detection
-// Primary indicator: First character is 'l' (permission bit)
-// Secondary indicator: Contains ' -> ' pattern (arrow notation)
-// Use BOTH for reliability
+// CRITICAL: The codebase uses fs/promises (Promise-based), NOT fs callback API
+import { lstat, readlink } from 'node:fs/promises'; // CORRECT
+// import { lstat } from 'node:fs'; // DON'T USE - requires promisify
 
-// CRITICAL: Spawn argument array format
-// WRONG: spawn('ls -la node_modules/groundswell')  // Tries to execute as single executable
-// RIGHT: spawn('ls', ['-la', 'node_modules/groundswell'], { shell: false })
+// CRITICAL: Handle NodeJS.ErrnoException type for error.code checking
+const errno = error as NodeJS.ErrnoException;
+if (errno?.code === 'ENOENT') { /* path doesn't exist */ }
+if (errno?.code === 'EACCES') { /* permission denied */ }
+if (errno?.code === 'EINVAL') { /* not a symlink */ }
 
-// CRITICAL: shell: false prevents command injection vulnerabilities
-// Never use shell: true with user-provided input
+// CRITICAL: S3 already does symlink verification (groundswell-linker.ts:431-444)
+// S4 is a SEPARATE explicit verification step for workflow clarity
+// S4 should re-verify independently, not just return S3's verification result
 
-// CRITICAL: ls -la output format
-// <permissions> <links> <owner> <group> <size> <date> <time> <name> [-> <target>]
-// Example symlink line: "lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 groundswell -> /home/user/.nvm/versions/node/v20.x.x/lib/node_modules/groundswell"
+// PATTERN: Conditional execution based on previous step's success
+if (!previousResult.success) {
+  return {
+    exists: false,
+    path: symlinkPath,
+    message: `Skipped: Previous step failed - ${previousResult.message}`,
+    error: undefined,
+  };
+}
 
-// CRITICAL: Skip header line in ls output
-// First line is "total <number>" - skip when parsing
-// Symlink entries start after header
+// PATTERN: Timeout handling with SIGTERM then SIGKILL (from S3)
+const timeoutId = setTimeout(() => {
+  killed = true;
+  child.kill('SIGTERM');
+  setTimeout(() => {
+    if (!child.killed) child.kill('SIGKILL');
+  }, 2000);
+}, timeout);
 
-// CRITICAL: Node.js spawn() event handling
-// Use 'close' event for exit code, not 'exit'
-// Clear timeout in both close and error handlers
+// PATTERN: Use vi.useFakeTimers() for timeout tests in Vitest
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.clearAllMocks();
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
 
-// CRITICAL: Vitest mocking for spawn and ls output
-// Must mock 'node:child_process' for spawn function
-// Must mock stdout/stderr capture with Buffer events
-// Use fake timers for timeout testing
+// PATTERN: Mock factory functions for consistent test data
+function createMockStats(options: {
+  isSymbolicLink?: boolean;
+  isFile?: boolean;
+  isDirectory?: boolean;
+}): Stats {
+  return {
+    isSymbolicLink: vi.fn(() => options.isSymbolicLink ?? false),
+    isFile: vi.fn(() => options.isFile ?? false),
+    // ... other required Stats fields
+  } as Stats;
+}
 
-// CRITICAL: Project directory is hardcoded in contract
-// Use /home/dustin/projects/hacky-hack as cwd for spawn execution
+// GOTCHA: ls -la parsing is NOT recommended for production (per research)
+// Use native fs.lstat() and fs.readlink() instead
+// ls -la parsing is only for debugging/legacy scenarios
 
-// CRITICAL: Symlink location relative to project directory
-// Expected symlink path: /home/dustin/projects/hacky-hack/node_modules/groundswell
+// GOTCHA: Relative symlink targets need resolution
+// readlink() may return '../../../projects/groundswell'
+// Use path.resolve() to get absolute path if needed
 
-// CRITICAL: Dual symlink detection for reliability
-// Method 1: First character of permissions is 'l'
-// Method 2: Line contains ' -> ' pattern
-// Both must be true for confirmed symlink
+// GOTCHA: Broken symlinks are detected by lstat() successfully
+// lstat() works on broken symlinks, stat() throws ENOENT
+// Use stat() on the target to check if symlink is broken
 ```
+
+---
 
 ## Implementation Blueprint
 
@@ -210,10 +263,12 @@ tests/unit/utils/groundswell-linker.test.ts    # ADD: Tests for symlink verifica
 
 ```typescript
 /**
- * Result of symlink verification in node_modules
+ * Result of Groundswell symlink verification
  *
+ * @remarks
  * Returned by verifyGroundswellSymlink() to indicate whether
- * the symlink exists at the expected location.
+ * the symlink exists at node_modules/groundswell and provides
+ * diagnostic information for debugging.
  */
 export interface GroundswellSymlinkVerifyResult {
   /** Whether symlink exists at node_modules/groundswell */
@@ -222,11 +277,11 @@ export interface GroundswellSymlinkVerifyResult {
   /** Absolute path where symlink should exist */
   path: string;
 
-  /** Raw ls -la output for debugging */
-  lsOutput: string;
+  /** Actual symlink target (if verification succeeded) */
+  symlinkTarget?: string;
 
-  /** Exit code from ls command (0 = success) */
-  exitCode: number | null;
+  /** Human-readable status message */
+  message: string;
 
   /** Error message if verification failed */
   error?: string;
@@ -234,11 +289,11 @@ export interface GroundswellSymlinkVerifyResult {
 
 /**
  * Optional configuration for verifyGroundswellSymlink()
+ *
+ * @remarks
+ * Optional configuration for the verifyGroundswellSymlink function.
  */
 export interface GroundswellSymlinkVerifyOptions {
-  /** Timeout in milliseconds (default: 5000) */
-  timeout?: number;
-
   /** Project directory path (default: /home/dustin/projects/hacky-hack) */
   projectPath?: string;
 }
@@ -247,507 +302,473 @@ export interface GroundswellSymlinkVerifyOptions {
 ### Implementation Tasks (ordered by dependencies)
 
 ```yaml
-Task 1: DEFINE GroundswellSymlinkVerifyResult interface
-  - ADD: export interface GroundswellSymlinkVerifyResult to groundswell-linker.ts
-  - INCLUDE: exists, path, lsOutput, exitCode, error?
-  - PLACEMENT: After GroundswellLocalLinkResult interface (around line 243)
-  - PATTERN: Follow existing GroundswellLocalLinkResult naming and structure
+Task 1: ADD GroundswellSymlinkVerifyResult and GroundswellSymlinkVerifyOptions interfaces
+  - LOCATION: src/utils/groundswell-linker.ts (after GroundswellLocalLinkResult, line 124)
+  - IMPLEMENT: GroundswellSymlinkVerifyResult interface
+  - IMPLEMENT: GroundswellSymlinkVerifyOptions interface
+  - FOLLOW pattern: GroundswellLocalLinkResult (lines 100-124)
+  - FIELDS: exists, path, symlinkTarget?, message, error?
+  - NAMING: CamelCase interfaces, descriptive field names
 
-Task 2: DEFINE GroundswellSymlinkVerifyOptions interface
-  - ADD: export interface GroundswellSymlinkVerifyOptions to groundswell-linker.ts
-  - INCLUDE: timeout?, projectPath?
-  - PLACEMENT: After GroundswellSymlinkVerifyResult interface
-  - DEFAULT: timeout = 5000, projectPath = '/home/dustin/projects/hacky-hack'
+Task 2: ADD DEFAULT_PROJECT_PATH constant
+  - LOCATION: src/utils/groundswell-linker.ts (after DEFAULT_PROJECT_PATH, line 160)
+  - IMPLEMENT: const DEFAULT_SYMLINK_VERIFY_PATH = '/home/dustin/projects/hacky-hack';
+  - FOLLOW pattern: DEFAULT_PROJECT_PATH constant (line 160)
+  - NAMING: UPPER_SNAKE_CASE for constants
 
-Task 3: IMPLEMENT verifyGroundswellSymlink() function signature
-  - ADD: export async function verifyGroundswellSymlink() to groundswell-linker.ts
-  - ACCEPT: previousResult: GroundswellLocalLinkResult, options?: GroundswellSymlinkVerifyOptions
-  - RETURN: Promise<GroundswellSymlinkVerifyResult>
-  - PLACEMENT: After linkGroundswellLocally() function
-  - PATTERN: Follow linkGroundswell() and linkGroundswellLocally() function structure
+Task 3: CREATE verifyGroundswellSymlink() function
+  - LOCATION: src/utils/groundswell-linker.ts (after linkGroundswellLocally, line 494)
+  - IMPLEMENT: async function verifyGroundswellSymlink()
+  - SIGNATURE: (previousResult: GroundswellLocalLinkResult, options?: GroundswellSymlinkVerifyOptions) => Promise<GroundswellSymlinkVerifyResult>
+  - DEPENDENCIES: Import lstat, readlink from 'node:fs/promises' (already imported on line 27)
+  - DEPENDENCIES: Import join from 'node:path' (already imported on line 28)
 
-Task 4: IMPLEMENT input validation (conditional skip)
-  - CHECK: previousResult.success === false
-  - IF true: RETURN { exists: false, path, lsOutput: '', exitCode: null }
-  - GOTCHA: Early return prevents execution when S3 failed
-  - INCLUDE: previousResult.message in error for context
+Task 4: IMPLEMENT conditional execution logic
+  - LOCATION: verifyGroundswellSymlink() function body
+  - CHECK: if (!previousResult.success) return early with exists: false
+  - FOLLOW pattern: linkGroundswellLocally() conditional execution (lines 356-365)
+  - MESSAGE: Include previousResult.message in skip message for debugging
 
-Task 5: IMPLEMENT spawn execution for ls -la
-  - EXECUTE: spawn('ls', ['-la', symlinkPath], { cwd: projectPath, stdio, shell: false })
-  - FOLLOW: linkGroundswell() pattern (lines 153-170)
-  - CATCH: Synchronous spawn errors (ENOENT, EACCES)
-  - RETURN: { exists: false, error: message } for spawn failures
-  - CRITICAL: shell: false prevents injection
+Task 5: IMPLEMENT symlink verification using native APIs
+  - LOCATION: verifyGroundswellSymlink() function body (after conditional check)
+  - USE: const stats = await lstat(symlinkPath);
+  - CHECK: if (!stats.isSymbolicLink()) return exists: false
+  - GET: const target = await readlink(symlinkPath);
+  - FOLLOW pattern: linkGroundswellLocally() verification (lines 431-444)
+  - CRITICAL: Use lstat() NOT stat() for symlink detection
 
-Task 6: IMPLEMENT output capture with Promise wrapper
-  - IMPLEMENT: Promise-based stdout/stderr capture
-  - FOLLOW: linkGroundswell() pattern (lines 173-240)
-  - LISTEN: child.stdout.on('data', callback) for stdout
-  - LISTEN: child.stderr.on('data', callback) for stderr
-  - ACCUMULATE: String concatenation for each data event
-  - GOTCHA: Data events receive Buffer, call toString() to convert
+Task 6: IMPLEMENT error handling
+  - LOCATION: verifyGroundswellSymlink() function body (wrap in try/catch)
+  - HANDLE: ENOENT - path doesn't exist (return exists: false)
+  - HANDLE: EACCES - permission denied (return error with code)
+  - HANDLE: EINVAL - not a symlink (return error with code)
+  - FOLLOW pattern: linkGroundswellLocally() error handling (lines 454-465)
+  - TYPE: const errno = error as NodeJS.ErrnoException;
 
-Task 7: IMPLEMENT timeout handling
-  - IMPLEMENT: setTimeout with SIGTERM then SIGKILL
-  - FOLLOW: linkGroundswell() pattern (lines 180-190)
-  - ESCALATION: 2 second grace period between SIGTERM and SIGKILL
-  - FLAG: Set timedOut flag to prevent data capture after kill
-  - DEFAULT: 5000ms timeout (ls is fast, use shorter timeout than npm link)
+Task 7: EXPORT verifyGroundswellSymlink function
+  - LOCATION: src/utils/groundswell-linker.ts (add to existing exports)
+  - EXPORT: export async function verifyGroundswellSymlink(...)
+  - FOLLOW pattern: Existing exports (linkGroundswell, linkGroundswellLocally)
 
-Task 8: IMPLEMENT symlink verification on close event
-  - AFTER: exitCode === 0, parse stdout for symlink indicators
-  - SPLIT: Split stdout by '\n' to get individual lines
-  - SKIP: First line (header: "total <number>")
-  - CHECK: Each line for symlink indicators
-  - METHOD 1: First character is 'l' (permission bit)
-  - METHOD 2: Line contains ' -> ' pattern (arrow notation)
-  - RETURN: exists: true only if BOTH indicators found
-  - HANDLE: ENOENT (directory not found) gracefully
+Task 8: CREATE comprehensive test suite
+  - LOCATION: tests/unit/utils/groundswell-linker.test.ts
+  - IMPLEMENT: describe('verifyGroundswellSymlink', () => { ... })
+  - MOCK: vi.mock('node:fs/promises') for lstat and readlink
+  - TESTS: 30+ tests covering all scenarios (see Test Patterns below)
 
-Task 9: IMPLEMENT error event handling
-  - IMPLEMENT: child.on('error', error => resolve({ exists: false }))
-  - FOLLOW: linkGroundswell() pattern (lines 228-239)
-  - CLEAR: clearTimeout on error to prevent timeout from firing
-  - RESOLVE: Return result with error message from Error object
-
-Task 10: ADD JSDoc documentation
-  - IMPLEMENT: Comprehensive JSDoc comments
-  - FOLLOW: linkGroundswell() pattern (lines 98-130)
-  - INCLUDE: Function signature, parameters, return type, examples
-  - MARK: Use @remarks for detailed behavior notes
-
-Task 11: CREATE unit tests for happy path
-  - ADD: describe('verifyGroundswellSymlink', ...) to groundswell-linker.test.ts
-  - MOCK: vi.mock('node:child_process') for spawn function
-  - TEST: Returns exists: true when ls succeeds and symlink found
-  - TEST: Includes symlink indicator (->) in output parsing
-
-Task 12: CREATE unit tests for conditional skip
-  - TEST: Skips execution when previousResult.success is false
-  - TEST: Returns exists: false with appropriate error message
-  - TEST: Does not call spawn when skipping
-
-Task 13: CREATE unit tests for ls output parsing
-  - TEST: Detects symlink by permission bit (first char is 'l')
-  - TEST: Detects symlink by arrow pattern (' -> ')
-  - TEST: Returns exists: false when no symlink indicator found
-  - TEST: Skips header line when parsing output
-
-Task 14: CREATE unit tests for spawn errors
-  - TEST: Handles ENOENT (ls not found)
-  - TEST: Handles directory not found (exit code non-zero)
-  - TEST: Returns exists: false with error details
-
-Task 15: CREATE unit tests for timeout scenarios
-  - TEST: Terminates hung ls process with SIGTERM
-  - TEST: Escalates to SIGKILL after grace period
-  - TEST: Returns exists: false with timeout error message
+Task 9: RUN test suite validation
+  - COMMAND: npm test -- tests/unit/utils/groundswell-linker.test.ts
+  - VERIFY: All tests pass
+  - VERIFY: No TypeScript errors
+  - VERIFY: 100% code coverage for new function
 ```
 
 ### Implementation Patterns & Key Details
 
 ```typescript
-// INPUT VALIDATION PATTERN (conditional skip based on S3 result)
+/**
+ * PATTERN: Conditional execution based on previous result
+ * Location: Start of verifyGroundswellSymlink()
+ */
 export async function verifyGroundswellSymlink(
   previousResult: GroundswellLocalLinkResult,
   options?: GroundswellSymlinkVerifyOptions
 ): Promise<GroundswellSymlinkVerifyResult> {
-  const { timeout = 5000, projectPath = '/home/dustin/projects/hacky-hack' } = options ?? {};
+  const { projectPath = DEFAULT_PROJECT_PATH } = options ?? {};
+  const symlinkPath = join(projectPath, 'node_modules', 'groundswell');
 
-  const symlinkPath = 'node_modules/groundswell';
-
-  // PATTERN: Conditional execution based on S3 result
+  // PATTERN: Skip if previous step failed (from linkGroundswellLocally)
   if (!previousResult.success) {
     return {
       exists: false,
       path: symlinkPath,
-      lsOutput: '',
-      exitCode: null,
-      error: `Skipped: Local npm link failed - ${previousResult.message}`,
+      message: `Skipped: Local link failed - ${previousResult.message}`,
+      error: undefined,
     };
   }
 
-  // ... continue with spawn execution
-}
+  // PATTERN: Use native fs.lstat() and fs.readlink() (recommended in research)
+  try {
+    // CRITICAL: Use lstat() NOT stat() for symlink detection
+    const stats = await lstat(symlinkPath);
 
-// SPAWN EXECUTION PATTERN (similar to S2/S3 but different command)
-try {
-  child = spawn('ls', ['-la', symlinkPath], {
-    cwd: projectPath,  // CRITICAL: Use project directory
-    stdio: ['ignore', 'pipe', 'pipe'],
-    shell: false,  // CRITICAL: prevents shell injection
-  });
-} catch (error) {
-  return {
-    exists: false,
-    path: symlinkPath,
-    lsOutput: '',
-    exitCode: null,
-    error: error instanceof Error ? error.message : String(error),
-  };
-}
-
-// SYMLINK DETECTION PATTERN (NEW - ls output parsing)
-// In close event handler, after exitCode === 0 check
-child.on('close', (exitCode) => {
-  clearTimeout(timeoutId);
-
-  if (exitCode !== 0) {
-    return resolve({
-      exists: false,
-      path: symlinkPath,
-      lsOutput: stdout,
-      exitCode,
-      error: `ls failed with exit code ${exitCode}`,
-    });
-  }
-
-  // PATTERN: Parse ls output for symlink indicators
-  const lines = stdout.trim().split('\n');
-
-  // Skip header line (total ...)
-  const entries = lines.slice(1);
-
-  let symlinkFound = false;
-  for (const line of entries) {
-    const trimmed = line.trim();
-
-    // METHOD 1: Check permission bit (first char is 'l')
-    const parts = trimmed.split(/\s+/);
-    if (parts.length === 0) continue;
-    const hasLinkPermission = parts[0].charAt(0) === 'l';
-
-    // METHOD 2: Check for arrow pattern
-    const hasArrow = / -> /.test(trimmed);
-
-    // DUAL DETECTION: Both must be true
-    if (hasLinkPermission && hasArrow) {
-      symlinkFound = true;
-      break;
-    }
-  }
-
-  resolve({
-    exists: symlinkFound,
-    path: symlinkPath,
-    lsOutput: stdout,
-    exitCode,
-  });
-});
-
-// PROMISE-BASED OUTPUT CAPTURE PATTERN (same as S2/S3)
-return new Promise(async resolve => {  // NOTE: async not needed here, no fs operations
-  let stdout = '';
-  let stderr = '';
-  let timedOut = false;
-  let killed = false;
-
-  // ... timeout handler (same as S2/S3 but shorter timeout)
-
-  // ... stdout/stderr capture (same as S2/S3)
-
-  // CLOSE EVENT HANDLER with symlink parsing
-  child.on('close', (exitCode) => {  // NOTE: Not async, just parsing strings
-    clearTimeout(timeoutId);
-
-    if (exitCode !== 0) {
-      return resolve({
+    if (!stats.isSymbolicLink()) {
+      return {
         exists: false,
         path: symlinkPath,
-        lsOutput: stdout,
-        exitCode,
-        error: `ls failed with exit code ${exitCode}`,
-      });
+        message: `Path exists but is not a symbolic link: ${symlinkPath}`,
+        error: 'Not a symlink',
+      };
     }
 
-    // PATTERN: Verify symlink by parsing ls output
-    const lines = stdout.trim().split('\n');
-    const entries = lines.slice(1);  // Skip header
+    // Get symlink target
+    const symlinkTarget = await readlink(symlinkPath);
 
-    let symlinkFound = false;
-    for (const line of entries) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-
-      const parts = trimmed.split(/\s+/);
-      if (parts.length === 0) continue;
-
-      const hasLinkPermission = parts[0].charAt(0) === 'l';
-      const hasArrow = / -> /.test(trimmed);
-
-      if (hasLinkPermission && hasArrow) {
-        symlinkFound = true;
-        break;
-      }
-    }
-
-    resolve({
-      exists: symlinkFound,
+    return {
+      exists: true,
       path: symlinkPath,
-      lsOutput: stdout,
-      exitCode,
-    });
-  });
+      symlinkTarget,
+      message: `Symlink verified at ${symlinkPath} -> ${symlinkTarget}`,
+    };
+  } catch (error) {
+    // PATTERN: Handle Node.js errno codes (from linkGroundswellLocally)
+    const errno = error as NodeJS.ErrnoException;
 
-  // ... error event handler (same as S2/S3)
-});
+    if (errno?.code === 'ENOENT') {
+      return {
+        exists: false,
+        path: symlinkPath,
+        message: `Symlink not found: ${symlinkPath}`,
+        error: 'ENOENT',
+      };
+    }
+
+    if (errno?.code === 'EACCES') {
+      return {
+        exists: false,
+        path: symlinkPath,
+        message: `Permission denied: ${symlinkPath}`,
+        error: 'EACCES',
+      };
+    }
+
+    // Generic error
+    return {
+      exists: false,
+      path: symlinkPath,
+      message: `Verification failed: ${errno?.message || 'Unknown error'}`,
+      error: errno?.code || 'UNKNOWN',
+    };
+  }
+}
 ```
 
 ### Integration Points
 
 ```yaml
-INPUT_CONTRACT:
-  - from: P1.M1.T1.S3 (linkGroundswellLocally)
-  - type: GroundswellLocalLinkResult
-  - consume: Check result.success before executing ls verification
-  - validate: Skip execution if success is false
-  - use: result.message for skip error context
+FUNCTION_SIGNATURE:
+  - name: verifyGroundswellSymlink
+  - parameters: previousResult: GroundswellLocalLinkResult, options?: GroundswellSymlinkVerifyOptions
+  - returns: Promise<GroundswellSymlinkVerifyResult>
+  - location: src/utils/groundswell-linker.ts
 
-OUTPUT_CONTRACT:
-  - to: P1.M1.T1.S5 (run npm list to verify dependency resolution)
-  - type: GroundswellSymlinkVerifyResult
-  - provide: exists boolean for conditional logic
-  - provide: path string for verification path
-  - provide: lsOutput for debugging
+IMPORTS:
+  - file: src/utils/groundswell-linker.ts
+  - add: No new imports needed (lstat, readlink, join already imported)
 
-DEPENDENCIES:
-  - import: spawn, ChildProcess from 'node:child_process'
-  - import: No fs imports needed (using ls instead of fs.lstat)
-  - use: No external dependencies beyond Node.js built-ins
+EXPORTS:
+  - file: src/utils/groundswell-linker.ts
+  - add: export { verifyGroundswellSymlink, type GroundswellSymlinkVerifyResult, type GroundswellSymlinkVerifyOptions }
 
-WORKFLOW_INTEGRATION:
-  - context: Bug hunt workflow (src/workflows/bug-hunt-workflow.ts)
-  - usage: verifyGroundswellSymlink() called after linkGroundswellLocally() succeeds
-  - logging: Result.lsOutput logged for debugging
+WORKFLOW_CONSUMERS:
+  - S5: Will consume GroundswellSymlinkVerifyResult
+  - Pattern: const s4Result = await verifyGroundswellSymlink(s3Result);
 ```
+
+---
 
 ## Validation Loop
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
 ```bash
-# Run after reviewing implementation files
-npx tsc --noEmit src/utils/groundswell-linker.ts    # Type checking
-npx eslint src/utils/groundswell-linker.ts         # Linting
+# Run TypeScript compiler to check for type errors
+npx tsc --noEmit src/utils/groundswell-linker.ts
 
-# Expected: Zero errors. If errors exist, READ output and verify implementation is correct.
+# Expected: Zero type errors. If errors exist, READ output and fix before proceeding.
 
-# Project-wide validation
-npm run typecheck    # Full project type check
-npm run lint         # Full project lint
+# Run ESLint (if configured)
+npm run lint -- src/utils/groundswell-linker.ts
+
+# Expected: Zero linting errors.
+
+# Format check (if using Prettier)
+npm run format:check -- src/utils/groundswell-linker.ts
+
+# Expected: Code is properly formatted.
 ```
 
 ### Level 2: Unit Tests (Component Validation)
 
 ```bash
-# Test the groundswell-linker module specifically
-npm run test:run -- tests/unit/utils/groundswell-linker.test.ts
+# Run tests for groundswell-linker module
+npm test -- tests/unit/utils/groundswell-linker.test.ts
 
-# Full utils test suite
-npm run test:run -- tests/unit/utils/
+# Expected: All tests pass (including existing S2/S3 tests + new S4 tests)
 
-# Coverage validation (ensure high coverage)
+# Run with coverage
 npm run test:coverage -- tests/unit/utils/groundswell-linker.test.ts
 
-# Expected: All tests pass. Coverage should be >90% for this module.
+# Expected: 100% coverage for verifyGroundswellSymlink function
 
-# Test scenarios covered:
-# - Happy path: ls succeeds, symlink found with both indicators
-# - Conditional skip: skips when S3 result.success is false
-# - Spawn errors: handles ENOENT (ls not found), directory not found
-# - ls failures: returns exists: false for non-zero exit codes
-# - Symlink detection: detects when both permission and arrow present
-# - Symlink detection: returns exists: false when indicators missing
-# - Timeout: terminates hung ls processes with SIGTERM then SIGKILL
-# - Output parsing: correctly skips header line
-# - Output parsing: handles empty output gracefully
-# - Result structure: returns all expected fields with correct types
+# Run all utils tests
+npm test -- tests/unit/utils/
+
+# Expected: All tests pass, no regressions in existing code
 ```
 
 ### Level 3: Integration Testing (System Validation)
 
 ```bash
-# MANUAL TEST: Verify actual symlink verification functionality
-# WARNING: This requires actual npm link from S3
+# Test the full S1-S4 workflow
+# (This would require integration test setup - beyond unit test scope)
 
-# Step 1: Ensure symlink exists (from S3)
-ls -la node_modules/groundswell
-# Expected: lrwxrwxrwx ... groundswell -> <global_path>
+# Manual verification: Run TypeScript compilation
+npx tsc --noEmit
 
-# Step 2: Execute verification (via programmatic function)
-node -e "import('./dist/utils/groundswell-linker.js').then(m => m.verifyGroundswellSymlink({success:true,message:'test'}).then(r => console.log(r)))"
+# Expected: Zero compilation errors across entire project
 
-# OR use the actual workflow:
-npm run dev -- --prd PRD.md --bug-hunt
+# Verify function is exported correctly
+node -e "import('./src/utils/groundswell-linker.ts').then(m => console.log(Object.keys(m)))"
 
-# Expected output on success:
-# {
-#   exists: true,
-#   path: "node_modules/groundswell",
-#   lsOutput: "total 0\nlrwxrwxrwx 1 user group 18 Jan 14 12:00 groundswell -> /home/user/.nvm/versions/node/v20.x.x/lib/node_modules/groundswell",
-#   exitCode: 0
-# }
-
-# Step 3: Verify symlink was detected
-# The exists field should be true
-
-# Step 4: Test conditional skip (when S3 failed)
-# Manually call with success: false and verify exists: false
-
-# Step 5: Test broken symlink scenario
-# Manually delete symlink and verify ls exits with non-zero code
+# Expected: verifyGroundswellSymlink appears in exported members
 ```
 
 ### Level 4: Creative & Domain-Specific Validation
 
 ```bash
-# TypeScript type checking for Groundswell imports
-npm run typecheck    # Should pass with symlink in place
+# Test symlink verification with actual filesystem (integration test)
+# Create temporary symlink and verify detection
+mkdir -p /tmp/test-symlink-check
+cd /tmp/test-symlink-check
+mkdir -p target
+ln -s target link
+node -e "
+import { lstat, readlink } from 'node:fs/promises';
+const stats = await lstat('link');
+console.log('isSymbolicLink:', stats.isSymbolicLink());
+const target = await readlink('link');
+console.log('target:', target);
+"
 
-# Integration with bug hunt workflow
-# Run workflow that uses verifyGroundswellSymlink and verify logs
-npm run dev -- --prd PRD.md --bug-hunt
+# Expected Output:
+# isSymbolicLink: true
+# target: target
 
-# Verify the ls operation shows up in logs with success/failure status
-
-# Test symlink verification edge cases:
-# 1. Create a regular file at node_modules/groundswell - should return exists: false
-# 2. Create a directory at node_modules/groundswell - should return exists: false
-# 3. Test with various ls output formats (different locales)
-
-# Test conditional skip:
-# 1. Call with previousResult.success = false - should skip execution
-# 2. Verify spawn is never called when skipping
-# 3. Verify return exists: false with error message
-
-# Test error scenarios manually:
-# 1. Set very short timeout (10ms) and verify SIGTERM/SIGKILL
-# 2. Make project directory read-only and verify EACCES handling
+# Verify S4 function behavior with real symlink
+# (requires importing the function and testing with real paths)
 ```
+
+---
 
 ## Final Validation Checklist
 
 ### Technical Validation
 
-- [ ] Implementation added to src/utils/groundswell-linker.ts
-- [ ] All Level 1 validation passes (type check, lint)
-- [ ] All Level 2 unit tests pass (15+ test scenarios)
-- [ ] Implementation follows spawn pattern from linkGroundswell()
-- [ ] Input validation skips execution when S3 failed
-- [ ] Spawn errors return exists: false result
-- [ ] Timeout handling uses SIGTERM then SIGKILL
-- [ ] Symlink detection uses dual indicators (permission + arrow)
-- [ ] Result structure includes all required fields
+- [ ] All 4 validation levels completed successfully
+- [ ] All tests pass: `npm test -- tests/unit/utils/groundswell-linker.test.ts`
+- [ ] No type errors: `npx tsc --noEmit`
+- [ ] No linting errors: `npm run lint` (if configured)
+- [ ] Function is properly exported: `verifyGroundswellSymlink` appears in module exports
 
 ### Feature Validation
 
-- [ ] Executes `ls -la node_modules/groundswell` from project directory
-- [ ] Returns exists: true when symlink indicators found
-- [ ] Returns exists: false when symlink not found or S3 failed
-- [ ] Captures stdout for debugging
-- [ ] Skips execution when S3 result.success is false
-- [ ] Timeout terminates hung processes
-- [ ] Parses ls output correctly (skips header, detects indicators)
 - [ ] All success criteria from "What" section met
+- [ ] Conditional execution works (skips when S3 success is false)
+- [ ] Symlink detection works using fs.lstat()
+- [ ] Symlink target is correctly extracted using fs.readlink()
+- [ ] All error cases handled (ENOENT, EACCES, EINVAL)
+- [ ] Result interface matches expected contract for S5
 
 ### Code Quality Validation
 
-- [ ] Follows existing linkGroundswell() spawn execution pattern
-- [ ] Function naming matches convention (verifyGroundswellSymlink)
-- [ ] Interface naming matches convention (GroundswellSymlinkVerifyResult)
-- [ ] JSDoc comments are comprehensive
-- [ ] Anti-patterns avoided (shell: true, command strings, no timeout)
-- [ ] No security vulnerabilities (argument arrays, shell: false)
-- [ ] Uses dual symlink detection for reliability
+- [ ] Follows existing codebase patterns (naming, structure, error handling)
+- [ ] JSDoc comments present and complete
+- [ ] File placement matches desired codebase tree structure
+- [ ] Anti-patterns avoided (stat() vs lstat(), callback vs Promise API)
+- [ ] Dependencies properly imported (no new imports needed)
 
 ### Documentation & Deployment
 
-- [ ] JSDoc comments explain function behavior
-- [ ] Examples in JSDoc are valid TypeScript
-- [ ] Error messages are actionable
-- [ ] Integration points documented (S3 input, S5 output)
-- [ ] Files ready to be committed to git
+- [ ] Code is self-documenting with clear variable/function names
+- [ ] JSDoc includes @remarks with usage examples
+- [ ] Error messages are informative and actionable
+- [ ] Test documentation describes what each test validates
+
+---
 
 ## Anti-Patterns to Avoid
 
-- **Don't** use `spawn('ls -la node_modules/groundswell')` - must use argument array: `spawn('ls', ['-la', 'node_modules/groundswell'])`
-- **Don't** use `shell: true` - prevents shell injection vulnerabilities
-- **Don't** skip timeout handling - ls can hang indefinitely in rare cases
-- **Don't** ignore spawn errors - handle both sync and async error paths
-- **Don't** forget to clear timeout on close/error - prevents memory leaks
-- **Don't** skip header line in ls output - will cause parsing errors
-- **Don't** use single indicator detection - use both permission and arrow for reliability
-- **Don't** execute when S3 failed - always check previousResult.success first
-- **Don't** forget to convert Buffer to string in data events
-- **Don't** continue capturing data after kill signal
-- **Don't** throw errors for ls failures - return exists: false result
-- **Don't** use `child.exec()` - deprecated and uses shell
-
-## Implementation Status
-
-**Status**: Research Complete, Ready for Implementation
-
-**Next Steps**:
-1. Create implementation tasks from this PRP
-2. Implement `verifyGroundswellSymlink()` function in `src/utils/groundswell-linker.ts`
-3. Create comprehensive unit tests in `tests/unit/utils/groundswell-linker.test.ts`
-4. Run all validation levels
-5. Commit files to git with appropriate message
-6. Update task status from "Researching" to "Complete"
-7. Proceed to S5: Run npm list to verify dependency resolution
+- ❌ **Don't use `stat()` instead of `lstat()`** - `stat()` follows symlinks and always returns `isSymbolicLink() === false`
+- ❌ **Don't skip conditional execution check** - Must verify `previousResult.success` before proceeding
+- ❌ **Don't use callback-based fs API** - Use `fs/promises` for async/await patterns
+- ❌ **Don't ignore error codes** - Always check `errno.code` for ENOENT, EACCES, EINVAL
+- ❌ **Don't throw exceptions for normal errors** - Return structured result objects
+- ❌ **Don't use `ls -la` parsing** - Native APIs are more reliable (per research)
+- ❌ **Don't forget to type-check errors** - Use `as NodeJS.ErrnoException` for error.code access
+- ❌ **Don't hardcode project path** - Use DEFAULT_PROJECT_PATH constant with options override
+- ❌ **Don't skip mocking in tests** - Always mock fs operations for unit tests
+- ❌ **Don't use real timers in timeout tests** - Use `vi.useFakeTimers()` for deterministic tests
 
 ---
 
-## Research Notes
+## Test Patterns Reference
 
-### Key Research Findings
+### Test Organization Structure
 
-From `research/ls-output-parsing-research.md`:
-- **ls -la format**: `<permissions> <links> <owner> <group> <size> <date> <time> <name> [-> <target>]`
-- **Symlink indicators**: Two reliable detection methods
-  1. Permission bit: First character is `l` (e.g., `lrwxrwxrwx`)
-  2. Arrow notation: Contains ` -> target` pattern
-- **Header line**: First line is `total <number>` - must skip when parsing
-- **Parsing strategy**: Split by whitespace, check first char and arrow pattern
+```typescript
+describe('verifyGroundswellSymlink', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-From `research/symlink-verification-research.md`:
-- **Spawn pattern**: Use argument arrays with `shell: false` for security
-- **Timeout handling**: SIGTERM then SIGKILL after 2 second grace period
-- **Output capture**: Promise-based with stdout/stderr accumulation
-- **Mocking patterns**: Vitest mocks for spawn, fake timers for timeout tests
+  describe('Conditional execution', () => {
+    it('should skip verification when previousResult.success is false', async () => {
+      // SETUP: Create S3 result with success: false
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists: false, no lstat() calls
+    });
 
-From S2/S3 PRP and implementation:
-- **Conditional execution**: Check previousResult.success before executing
-- **Spawn argument array**: `spawn('ls', ['-la', 'node_modules/groundswell'], { shell: false })`
-- **Promise-based**: Return Promise that resolves on close/error events
-- **Result structure**: Include all diagnostic fields (exitCode, lsOutput, error)
+    it('should include previous error message when skipping', async () => {
+      // SETUP: S3 result with error message
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: message includes S3's error message
+    });
+  });
 
-### ls -la Behavior
+  describe('Happy path - symlink exists', () => {
+    it('should return exists: true when symlink is valid', async () => {
+      // SETUP: Mock lstat() to return symlink Stats
+      // SETUP: Mock readlink() to return target
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists: true, symlinkTarget populated
+    });
 
-From research documentation:
+    it('should use default project path when no options provided', async () => {
+      // SETUP: Mock with default path
+      // EXECUTE: Call without options
+      // VERIFY: Uses /home/dustin/projects/hacky-hack
+    });
 
-1. **Output structure**: One line per entry with 8+ fields
-2. **Symlink line format**: `lrwxrwxrwx 1 user group size date time name -> target`
-3. **Exit codes**: 0 = success, non-zero = failure
-4. **Error cases**: Directory not found (exit code 1 or 2)
+    it('should use custom project path when provided', async () => {
+      // SETUP: Mock with custom path
+      // EXECUTE: Call with { projectPath: '/custom/path' }
+      // VERIFY: Uses custom path
+    });
+  });
 
-### Testing Strategy
+  describe('Symlink detection errors', () => {
+    it('should return exists: false when path is not a symlink', async () => {
+      // SETUP: Mock lstat() with isSymbolicLink: false
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists: false, error: 'Not a symlink'
+    });
 
-From research and existing patterns:
-1. **Mock spawn function**: `vi.mock('node:child_process')` with `spawn: vi.fn()`
-2. **Mock ChildProcess**: Create realistic mock with stdout/stderr/close events
-3. **Conditional skip tests**: Verify spawn is never called when S3 failed
-4. **Symlink detection tests**: Mock ls output with various formats
-5. **Timeout tests**: Use fake timers, mock ls that never completes
+    it('should return exists: false when path does not exist (ENOENT)', async () => {
+      // SETUP: Mock lstat() to throw { code: 'ENOENT' }
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists: false, error: 'ENOENT'
+    });
+
+    it('should return exists: false with EACCES error (permission denied)', async () => {
+      // SETUP: Mock lstat() to throw { code: 'EACCES' }
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists: false, error: 'EACCES'
+    });
+
+    it('should return exists: false with EINVAL error (invalid argument)', async () => {
+      // SETUP: Mock lstat() to throw { code: 'EINVAL' }
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists: false, error: 'EINVAL'
+    });
+
+    it('should handle readlink() errors gracefully', async () => {
+      // SETUP: Mock lstat() success, readlink() failure
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: Error returned appropriately
+    });
+  });
+
+  describe('Result structure', () => {
+    it('should return all required fields in result', async () => {
+      // SETUP: Mock successful verification
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: exists, path, symlinkTarget, message all present
+    });
+
+    it('should populate symlinkTarget when verification succeeds', async () => {
+      // SETUP: Mock readlink() to return target path
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: symlinkTarget matches mock value
+    });
+
+    it('should include error field when verification fails', async () => {
+      // SETUP: Mock lstat() to throw error
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: error field is populated
+    });
+  });
+
+  describe('Integration with S3', () => {
+    it('should consume S3 result correctly', async () => {
+      // SETUP: Create realistic S3 result
+      // EXECUTE: Call verifyGroundswellSymlink(s3Result)
+      // VERIFY: S3 fields are used correctly
+    });
+
+    it('should pass through S3 error messages on skip', async () => {
+      // SETUP: S3 result with specific error message
+      // EXECUTE: Call verifyGroundswellSymlink()
+      // VERIFY: Result includes S3's message
+    });
+  });
+});
+```
 
 ---
 
-**Confidence Score**: 10/10 for one-pass implementation success
+## Confidence Score
 
-**Validation**: This PRP provides complete context including:
-- Exact file paths and line numbers to reference
-- Specific code patterns to follow from S2/S3 implementation
-- Complete ls output parsing patterns from research
-- Comprehensive testing patterns from S2/S3 tests
-- All spawn execution and timeout handling patterns documented
-- Input/output contracts clearly specified
+**Overall Confidence: 9/10**
+
+**Reasoning:**
+- Comprehensive research documented in S4 research files (symlink-verification-research.md, ls-output-parsing-research.md)
+- Clear patterns established in S1-S3 implementations
+- Native API approach (fs.lstat/fs.readlink) is well-documented and tested
+- Test patterns are consistent across the codebase
+- Only uncertainty is integration with S5 (which is out of scope for this PRP)
+
+**Risk Mitigation:**
+- All code patterns verified against existing implementations
+- Test patterns match existing groundswell-linker.test.ts structure
+- Error handling follows established conventions
+- Type safety ensured through TypeScript
+
+---
+
+## Appendix: Quick Reference
+
+### Key File Locations
+
+| File | Purpose | Key Content |
+|------|---------|-------------|
+| `src/utils/groundswell-linker.ts` | Implementation | Add verifyGroundswellSymlink() function |
+| `tests/unit/utils/groundswell-linker.test.ts` | Tests | Add S4 test suite |
+
+### Import Statement
+
+```typescript
+import { lstat, readlink } from 'node:fs/promises';
+import { join } from 'node:path';
+// Both already imported in groundswell-linker.ts (lines 27-28)
+```
+
+### Function Signature
+
+```typescript
+export async function verifyGroundswellSymlink(
+  previousResult: GroundswellLocalLinkResult,
+  options?: GroundswellSymlinkVerifyOptions
+): Promise<GroundswellSymlinkVerifyResult>
+```
+
+### Critical Constants
+
+```typescript
+const DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack'; // Already exists
+const symlinkPath = join(projectPath, 'node_modules', 'groundswell');
+```
+
+---
+
+**End of PRP for P1.M1.T1.S4**

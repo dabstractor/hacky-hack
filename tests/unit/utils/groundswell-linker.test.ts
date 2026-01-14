@@ -42,8 +42,11 @@ import { verifyGroundswellExists } from '../../../src/utils/groundswell-verifier
 import {
   linkGroundswell,
   linkGroundswellLocally,
+  verifyGroundswellSymlink,
   type GroundswellLinkResult,
   type GroundswellLocalLinkResult,
+  type GroundswellSymlinkVerifyResult,
+  type GroundswellSymlinkVerifyOptions,
 } from '../../../src/utils/groundswell-linker.js';
 
 // =============================================================================
@@ -1837,6 +1840,795 @@ describe('linkGroundswellLocally', () => {
       expect(result.success).toBe(false);
       expect(result.message).toContain('Skipped');
       expect(spawn).not.toHaveBeenCalled();
+    });
+  });
+});
+
+// =============================================================================
+// TEST SUITE: verifyGroundswellSymlink
+// ============================================================================
+
+describe('verifyGroundswellSymlink', () => {
+  const mockProjectPath = '/home/dustin/projects/hacky-hack';
+  const mockSymlinkPath = `${mockProjectPath}/node_modules/groundswell`;
+  const mockSymlinkTarget = '../../../projects/groundswell';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ========================================================================
+  // Conditional execution tests (input validation based on S3 result)
+  // ========================================================================
+
+  describe('Conditional execution based on S3 result', () => {
+    it('should skip verification when previousResult.success is false', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: false,
+        message: 'npm link groundswell failed with exit code 1',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: 'npm ERR!',
+        exitCode: 1,
+      };
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.message).toContain('Skipped: Local link failed');
+      expect(result.message).toContain('npm link groundswell failed');
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should not call lstat when skipping due to S3 failure', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: false,
+        message: 'Local link failed',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 1,
+      };
+
+      await verifyGroundswellSymlink(previousResult);
+
+      expect(lstat).not.toHaveBeenCalled();
+    });
+
+    it('should include previousResult.message in skip message', async () => {
+      const customMessage = 'Custom failure message from S3';
+      const previousResult: GroundswellLocalLinkResult = {
+        success: false,
+        message: customMessage,
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 127,
+      };
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.message).toContain(customMessage);
+    });
+
+    it('should return correct path even when skipping', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: false,
+        message: 'Failed',
+        symlinkPath: '/custom/symlink/path',
+        stdout: '',
+        stderr: '',
+        exitCode: 1,
+      };
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.path).toContain('node_modules/groundswell');
+    });
+  });
+
+  // ========================================================================
+  // Happy path tests - symlink exists
+  // ========================================================================
+
+  describe('Happy path - symlink exists and is valid', () => {
+    it('should return exists: true when symlink is valid', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Successfully linked groundswell locally',
+        symlinkPath: mockSymlinkPath,
+        symlinkTarget: mockSymlinkTarget,
+        stdout: 'linked',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(true);
+      expect(result.symlinkTarget).toBe(mockSymlinkTarget);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should use default project path when no options provided', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      await verifyGroundswellSymlink(previousResult);
+
+      expect(lstat).toHaveBeenCalledWith(
+        '/home/dustin/projects/hacky-hack/node_modules/groundswell'
+      );
+    });
+
+    it('should use custom project path when provided', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const customProjectPath = '/custom/project/path';
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      await verifyGroundswellSymlink(previousResult, {
+        projectPath: customProjectPath,
+      });
+
+      expect(lstat).toHaveBeenCalledWith(
+        '/custom/project/path/node_modules/groundswell'
+      );
+    });
+
+    it('should include symlink target in success message', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const customTarget = '/custom/target/path';
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(customTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.message).toContain(customTarget);
+      expect(result.message).toContain('Symlink verified at');
+    });
+
+    it('should call readlink after lstat confirms symlink', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      await verifyGroundswellSymlink(previousResult);
+
+      expect(readlink).toHaveBeenCalledWith(mockSymlinkPath);
+    });
+  });
+
+  // ========================================================================
+  // Symlink detection errors
+  // ========================================================================
+
+  describe('Symlink detection errors', () => {
+    it('should return exists: false when path is not a symlink', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => false,
+      } as ReturnType<typeof lstat>);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('Not a symlink');
+      expect(result.message).toContain('not a symbolic link');
+    });
+
+    it('should return exists: false when path does not exist (ENOENT)', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({
+        code: 'ENOENT',
+        message: 'no such file or directory',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('ENOENT');
+      expect(result.message).toContain('Symlink not found');
+    });
+
+    it('should return exists: false with EACCES error (permission denied)', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({
+        code: 'EACCES',
+        message: 'permission denied',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('EACCES');
+      expect(result.message).toContain('Permission denied');
+    });
+
+    it('should return exists: false with generic error for unknown error codes', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({
+        code: 'EPERM',
+        message: 'operation not permitted',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('EPERM');
+      expect(result.message).toContain('Verification failed');
+    });
+
+    it('should handle error without code property', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({
+        message: 'Some unknown error',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('UNKNOWN');
+      expect(result.message).toContain('Some unknown error');
+    });
+
+    it('should handle error without message or code', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({});
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('UNKNOWN');
+      expect(result.message).toContain('Unknown error');
+    });
+
+    it('should handle readlink() errors gracefully', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockRejectedValue({
+        code: 'EINVAL',
+        message: 'invalid argument',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.error).toBe('EINVAL');
+    });
+  });
+
+  // ========================================================================
+  // Result structure tests
+  // ========================================================================
+
+  describe('GroundswellSymlinkVerifyResult structure', () => {
+    it('should return complete result object on successful verification', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result: GroundswellSymlinkVerifyResult =
+        await verifyGroundswellSymlink(previousResult);
+
+      expect(result).toHaveProperty('exists');
+      expect(result).toHaveProperty('path');
+      expect(result).toHaveProperty('message');
+      expect(result).toHaveProperty('symlinkTarget');
+
+      expect(typeof result.exists).toBe('boolean');
+      expect(typeof result.path).toBe('string');
+      expect(typeof result.message).toBe('string');
+    });
+
+    it('should populate symlinkTarget when verification succeeds', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const expectedTarget = '../../../projects/groundswell';
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(expectedTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.symlinkTarget).toBe(expectedTarget);
+    });
+
+    it('should not include symlinkTarget when verification fails', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({
+        code: 'ENOENT',
+        message: 'not found',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.symlinkTarget).toBeUndefined();
+    });
+
+    it('should include error field when verification fails', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockRejectedValue({
+        code: 'ENOENT',
+        message: 'not found',
+      } as NodeJS.ErrnoException);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.error).toBe('ENOENT');
+    });
+
+    it('should not include error property on successful verification', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.error).toBeUndefined();
+    });
+  });
+
+  // ========================================================================
+  // Integration with S3 tests
+  // ========================================================================
+
+  describe('Integration with S3 (linkGroundswellLocally)', () => {
+    it('should consume S3 result correctly when S3 succeeded', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Successfully linked groundswell in project',
+        symlinkPath: mockSymlinkPath,
+        symlinkTarget: mockSymlinkTarget,
+        stdout: 'linked',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(true);
+      expect(lstat).toHaveBeenCalled();
+    });
+
+    it('should consume S3 result correctly when S3 failed', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: false,
+        message: 'npm link groundswell failed',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: 'npm ERR!',
+        exitCode: 1,
+      };
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(false);
+      expect(result.message).toContain('Skipped');
+      expect(lstat).not.toHaveBeenCalled();
+    });
+
+    it('should pass through S3 error messages on skip', async () => {
+      const s3ErrorMessage = 'npm link groundswell failed with exit code 127';
+      const previousResult: GroundswellLocalLinkResult = {
+        success: false,
+        message: s3ErrorMessage,
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: 'npm ERR!',
+        exitCode: 127,
+      };
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.message).toContain(s3ErrorMessage);
+    });
+
+    it('should support chaining S3 -> S4 -> S5 workflow', async () => {
+      // S3 result
+      const s3Result: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Successfully linked groundswell in project',
+        symlinkPath: mockSymlinkPath,
+        symlinkTarget: mockSymlinkTarget,
+        stdout: 'linked',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      // S4 verification
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const s4Result = await verifyGroundswellSymlink(s3Result);
+
+      // Verify S4 result is ready for S5 consumption
+      expect(s4Result.exists).toBe(true);
+      expect(s4Result.symlinkTarget).toBeDefined();
+      expect(typeof s4Result.symlinkTarget).toBe('string');
+    });
+  });
+
+  // ========================================================================
+  // Additional edge case tests
+  // ========================================================================
+
+  describe('Edge cases', () => {
+    it('should handle relative symlink targets', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const relativeTarget = '../../../projects/groundswell';
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(relativeTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.symlinkTarget).toBe(relativeTarget);
+      expect(result.exists).toBe(true);
+    });
+
+    it('should handle absolute symlink targets', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const absoluteTarget = '/home/dustin/projects/groundswell';
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(absoluteTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.symlinkTarget).toBe(absoluteTarget);
+      expect(result.exists).toBe(true);
+    });
+
+    it('should handle empty symlink target', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue('');
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.symlinkTarget).toBe('');
+      expect(result.exists).toBe(true);
+    });
+
+    it('should handle S3 result with undefined symlinkTarget', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      // S4 should re-verify independently, not rely on S3's symlinkTarget
+      expect(result.exists).toBe(true);
+      expect(result.symlinkTarget).toBe(mockSymlinkTarget);
+    });
+
+    it('should handle S3 result with defined symlinkTarget', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        symlinkTarget: mockSymlinkTarget,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(true);
+      expect(result.symlinkTarget).toBe(mockSymlinkTarget);
+    });
+  });
+
+  // ========================================================================
+  // Type safety tests
+  // ========================================================================
+
+  describe('Type safety', () => {
+    it('should accept GroundswellLocalLinkResult as first parameter', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult);
+
+      expect(result.exists).toBe(true);
+    });
+
+    it('should accept GroundswellSymlinkVerifyOptions as second parameter', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const options: GroundswellSymlinkVerifyOptions = {
+        projectPath: '/custom/path',
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult, options);
+
+      expect(result.exists).toBe(true);
+    });
+
+    it('should accept undefined as second parameter', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result = await verifyGroundswellSymlink(previousResult, undefined);
+
+      expect(result.exists).toBe(true);
+    });
+
+    it('should return GroundswellSymlinkVerifyResult', async () => {
+      const previousResult: GroundswellLocalLinkResult = {
+        success: true,
+        message: 'Local link succeeded',
+        symlinkPath: mockSymlinkPath,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(lstat).mockResolvedValue({
+        isSymbolicLink: () => true,
+      } as ReturnType<typeof lstat>);
+
+      vi.mocked(readlink).mockResolvedValue(mockSymlinkTarget);
+
+      const result: GroundswellSymlinkVerifyResult =
+        await verifyGroundswellSymlink(previousResult);
+
+      expect(typeof result.exists).toBe('boolean');
+      expect(typeof result.path).toBe('string');
+      expect(typeof result.message).toBe('string');
     });
   });
 });
