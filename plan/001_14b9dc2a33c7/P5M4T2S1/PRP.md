@@ -1,7 +1,6 @@
 ---
-name: "PRD Validation - Handle Empty and Malformed PRDs with Helpful Errors"
+name: 'PRD Validation - Handle Empty and Malformed PRDs with Helpful Errors'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: New `src/utils/prd-validator.ts` module with PRDValidator class, modified SessionManager to call validator, `--validate-prd` CLI flag for standalone validation, ValidationError usage from error hierarchy, and helpful error messages with suggestions.
 
 **Success Definition**:
+
 - Missing PRD files throw SessionError with clear message including the file path
 - Empty PRDs (< 100 chars) throw ValidationError with content length and suggestion
 - Malformed PRDs (missing required sections) throw ValidationError with missing sections list
@@ -26,6 +26,7 @@ description: |
 **Use Case**: When a user provides a PRD file path that doesn't exist, is empty, or lacks required sections, the system should fail fast with clear, actionable error messages rather than proceeding with an invalid PRD that will cause cryptic failures downstream.
 
 **User Journey**:
+
 1. User runs pipeline with `--prd path/to/PRD.md`
 2. SessionManager.initialize() calls PRDValidator before processing
 3. If PRD is missing/empty/malformed, validation error thrown immediately
@@ -34,6 +35,7 @@ description: |
 6. User fixes PRD based on suggestions and re-runs pipeline
 
 **Pain Points Addressed**:
+
 - Cryptic errors when PRD is malformed (e.g., "No tasks generated" vs "Missing ## Functional Requirements section")
 - No guidance on what's wrong with PRD or how to fix it
 - Pipeline wastes time processing invalid PRDs only to fail later

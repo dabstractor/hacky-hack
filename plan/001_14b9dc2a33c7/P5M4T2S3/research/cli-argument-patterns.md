@@ -3,6 +3,7 @@
 ## Current CLI Architecture (src/cli/index.ts)
 
 ### CLIArgs Interface (Lines 52-82)
+
 ```typescript
 export interface CLIArgs {
   prd: string;
@@ -19,6 +20,7 @@ export interface CLIArgs {
 ```
 
 ### parseCLIArgs() Pattern (Lines 108-171)
+
 ```typescript
 export function parseCLIArgs(): CLIArgs {
   const program = new Command();
@@ -30,7 +32,8 @@ export function parseCLIArgs(): CLIArgs {
     .option('--prd <path>', 'Path to PRD markdown file', './PRD.md')
     .option('--scope <scope>', 'Scope identifier (e.g., P3.M4, P3.M4.T2)')
     .addOption(
-      program.createOption('--mode <mode>', 'Execution mode')
+      program
+        .createOption('--mode <mode>', 'Execution mode')
         .choices(['normal', 'bug-hunt', 'validate'])
         .default('normal')
     )
@@ -40,11 +43,15 @@ export function parseCLIArgs(): CLIArgs {
     .option('--machine-readable', 'Enable machine-readable JSON output', false)
     .option('--no-cache', 'Bypass cache and regenerate all PRPs', false)
     .option('--continue-on-error', 'Treat all errors as non-fatal', false)
-    .option('--validate-prd', 'Validate PRD and exit without running pipeline', false)
+    .option(
+      '--validate-prd',
+      'Validate PRD and exit without running pipeline',
+      false
+    )
     .parse(process.argv);
 
   const options = program.opts<CLIArgs>();
-  
+
   // Validation
   if (!existsSync(options.prd)) {
     logger.error(`PRD file not found: ${options.prd}`);
@@ -109,7 +116,7 @@ const pipeline = new PRPPipeline(
   args.mode,
   args.noCache,
   args.continueOnError,
-  args.maxTasks,    // NEW
-  args.maxDuration  // NEW
+  args.maxTasks, // NEW
+  args.maxDuration // NEW
 );
 ```

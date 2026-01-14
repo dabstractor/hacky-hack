@@ -88,6 +88,9 @@ export class TaskOrchestrator {
   /** Cache bypass flag from CLI --no-cache */
   readonly #noCache: boolean;
 
+  /** Current item ID being processed (for progress tracking) */
+  currentItemId: string | null = null;
+
   /**
    * Creates a new TaskOrchestrator instance
    *
@@ -803,6 +806,7 @@ export class TaskOrchestrator {
     // 1. Check if execution queue has items
     if (this.#executionQueue.length === 0) {
       this.#logger.info('Execution queue empty - processing complete');
+      this.currentItemId = null;
       return false;
     }
 
@@ -810,19 +814,22 @@ export class TaskOrchestrator {
     const nextItem = this.#executionQueue.shift()!;
     // Non-null assertion safe: we checked length > 0 above
 
-    // 3. Log item being processed
+    // 3. Set current item ID for progress tracking
+    this.currentItemId = nextItem.id;
+
+    // 4. Log item being processed
     this.#logger.info(
       { itemId: nextItem.id, type: nextItem.type },
       'Processing'
     );
 
-    // 4. Delegate to type-specific handler
+    // 5. Delegate to type-specific handler
     await this.#delegateByType(nextItem);
 
-    // 5. Refresh backlog after status update
+    // 6. Refresh backlog after status update
     await this.#refreshBacklog();
 
-    // 6. Indicate item was processed (more items may remain)
+    // 7. Indicate item was processed (more items may remain)
     return true;
   }
 }

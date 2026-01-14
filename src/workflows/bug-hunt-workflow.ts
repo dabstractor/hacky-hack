@@ -95,7 +95,7 @@ export class BugHuntWorkflow extends Workflow {
       correlationId,
     });
 
-    this.logger.info('[BugHuntWorkflow] Initialized', {
+    this.correlationLogger.info('[BugHuntWorkflow] Initialized', {
       prdLength: prdContent.length,
       tasksCount: completedTasks.length,
     });
@@ -122,19 +122,19 @@ export class BugHuntWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async analyzeScope(): Promise<void> {
-    this.logger.info('[BugHuntWorkflow] Phase 1: Scope Analysis');
-    this.logger.info('[BugHuntWorkflow] Analyzing PRD requirements...', {
+    this.correlationLogger.info('[BugHuntWorkflow] Phase 1: Scope Analysis');
+    this.correlationLogger.info('[BugHuntWorkflow] Analyzing PRD requirements...', {
       prdLength: this.prdContent.length,
     });
 
     // Log completed tasks for context
-    this.logger.info('[BugHuntWorkflow] Completed tasks for testing:', {
+    this.correlationLogger.info('[BugHuntWorkflow] Completed tasks for testing:', {
       count: this.completedTasks.length,
       tasks: this.completedTasks.map(t => `${t.id}: ${t.title}`),
     });
 
     // PATTERN: Log scope findings (QA agent will do actual analysis)
-    this.logger.info(
+    this.correlationLogger.info(
       '[BugHuntWorkflow] Scope analysis complete - QA context established'
     );
   }
@@ -157,7 +157,7 @@ export class BugHuntWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async creativeE2ETesting(): Promise<void> {
-    this.logger.info('[BugHuntWorkflow] Phase 2: Creative E2E Testing');
+    this.correlationLogger.info('[BugHuntWorkflow] Phase 2: Creative E2E Testing');
 
     // PATTERN: Log test categories for observability
     const testCategories = [
@@ -171,10 +171,10 @@ export class BugHuntWorkflow extends Workflow {
       'Regression Testing',
     ];
 
-    this.logger.info('[BugHuntWorkflow] E2E test categories:', testCategories);
+    this.correlationLogger.info('[BugHuntWorkflow] E2E test categories:', testCategories);
 
     // QA agent will perform actual testing in generateReport()
-    this.logger.info(
+    this.correlationLogger.info(
       '[BugHuntWorkflow] E2E testing scenarios defined - awaiting QA agent execution'
     );
   }
@@ -195,7 +195,7 @@ export class BugHuntWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async adversarialTesting(): Promise<void> {
-    this.logger.info('[BugHuntWorkflow] Phase 3: Adversarial Testing');
+    this.correlationLogger.info('[BugHuntWorkflow] Phase 3: Adversarial Testing');
 
     // PATTERN: Log adversarial categories for observability
     const adversarialCategories = [
@@ -208,13 +208,13 @@ export class BugHuntWorkflow extends Workflow {
       'Performance Issues',
     ];
 
-    this.logger.info(
+    this.correlationLogger.info(
       '[BugHuntWorkflow] Adversarial test categories:',
       adversarialCategories
     );
 
     // QA agent will perform actual adversarial testing in generateReport()
-    this.logger.info(
+    this.correlationLogger.info(
       '[BugHuntWorkflow] Adversarial testing scenarios defined - awaiting QA agent execution'
     );
   }
@@ -237,16 +237,16 @@ export class BugHuntWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async generateReport(): Promise<TestResults> {
-    this.logger.info('[BugHuntWorkflow] Phase 4: Generating Bug Report');
+    this.correlationLogger.info('[BugHuntWorkflow] Phase 4: Generating Bug Report');
 
     try {
       // PATTERN: Create QA agent
       const qaAgent = createQAAgent();
-      this.logger.info('[BugHuntWorkflow] QA agent created');
+      this.correlationLogger.info('[BugHuntWorkflow] QA agent created');
 
       // PATTERN: Create bug hunt prompt with PRD and completed tasks
       const prompt = createBugHuntPrompt(this.prdContent, this.completedTasks);
-      this.logger.info('[BugHuntWorkflow] Bug hunt prompt created');
+      this.correlationLogger.info('[BugHuntWorkflow] Bug hunt prompt created');
 
       // PATTERN: Execute QA agent with retry logic and cast results to TestResults
       const results = (await retryAgentPrompt(
@@ -258,7 +258,7 @@ export class BugHuntWorkflow extends Workflow {
       this.testResults = results;
 
       // Log summary
-      this.logger.info('[BugHuntWorkflow] Bug report generated', {
+      this.correlationLogger.info('[BugHuntWorkflow] Bug report generated', {
         hasBugs: results.hasBugs,
         bugCount: results.bugs.length,
         criticalCount: results.bugs.filter(b => b.severity === 'critical')
@@ -270,8 +270,8 @@ export class BugHuntWorkflow extends Workflow {
       });
 
       // Log summary and recommendations
-      this.logger.info(`[BugHuntWorkflow] Summary: ${results.summary}`);
-      this.logger.info(
+      this.correlationLogger.info(`[BugHuntWorkflow] Summary: ${results.summary}`);
+      this.correlationLogger.info(
         '[BugHuntWorkflow] Recommendations:',
         results.recommendations
       );
@@ -280,7 +280,7 @@ export class BugHuntWorkflow extends Workflow {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      this.logger.error('[BugHuntWorkflow] Failed to generate bug report', {
+      this.correlationLogger.error('[BugHuntWorkflow] Failed to generate bug report', {
         error: errorMessage,
       });
       throw new Error(`Bug report generation failed: ${errorMessage}`);
@@ -310,7 +310,7 @@ export class BugHuntWorkflow extends Workflow {
   async run(): Promise<TestResults> {
     this.setStatus('running');
     this.correlationLogger.info('[BugHuntWorkflow] Starting bug hunt workflow');
-    this.logger.info('[BugHuntWorkflow] Starting bug hunt workflow');
+    this.correlationLogger.info('[BugHuntWorkflow] Starting bug hunt workflow');
 
     try {
       // Execute phases sequentially
@@ -322,7 +322,7 @@ export class BugHuntWorkflow extends Workflow {
       const results = await this.generateReport();
 
       this.setStatus('completed');
-      this.logger.info(
+      this.correlationLogger.info(
         '[BugHuntWorkflow] Bug hunt workflow completed successfully',
         {
           hasBugs: results.hasBugs,
@@ -336,7 +336,7 @@ export class BugHuntWorkflow extends Workflow {
       this.setStatus('failed');
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      this.logger.error('[BugHuntWorkflow] Bug hunt workflow failed', {
+      this.correlationLogger.error('[BugHuntWorkflow] Bug hunt workflow failed', {
         error: errorMessage,
       });
       throw error;

@@ -19,6 +19,7 @@ This research document compiles algorithms, best practices, and implementation p
 **Key Concept:** In a directed graph, a cycle exists if and only if DFS encounters a **back edge** - an edge pointing to a node already in the current recursion stack.
 
 **Two-Set Approach:**
+
 1. **Visited Set** - Tracks all nodes that have been explored (prevents redundant work)
 2. **Recursion Stack** - Tracks nodes in the current DFS path (detects back edges)
 
@@ -46,7 +47,7 @@ function detectCycle(graph: Graph): CycleDetectionResult {
     path.push(node);
 
     // Explore all neighbors (dependencies)
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       if (!visited.has(neighbor)) {
         // Unvisited node - recurse
         if (dfs(neighbor, path)) {
@@ -85,9 +86,9 @@ A more elegant approach using three states instead of two sets:
 
 ```typescript
 enum NodeState {
-  UNVISITED = 0,      // White
-  VISITING = 1,       // Gray
-  VISITED = 2         // Black
+  UNVISITED = 0, // White
+  VISITING = 1, // Gray
+  VISITED = 2, // Black
 }
 
 function detectCycleThreeColor(graph: Graph): CycleDetectionResult {
@@ -118,7 +119,7 @@ function detectCycleThreeColor(graph: Graph): CycleDetectionResult {
     path.push(node);
 
     // Explore neighbors
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       if (dfs(neighbor)) {
         return true;
       }
@@ -142,6 +143,7 @@ function detectCycleThreeColor(graph: Graph): CycleDetectionResult {
 ```
 
 **Advantages of Three-Color Approach:**
+
 - Single data structure instead of two
 - More intuitive state transitions
 - Standard algorithm in textbooks (CLRS)
@@ -173,23 +175,20 @@ function detectCycleWithPath(graph: Graph): CycleInfo {
     recursionStack.add(node);
     currentPath.push(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       if (!visited.has(neighbor)) {
         const result = dfs(neighbor);
         if (result) return result;
       } else if (recursionStack.has(neighbor)) {
         // Cycle found! Reconstruct path
         const cycleStartIndex = currentPath.indexOf(neighbor);
-        const cyclePath = [
-          ...currentPath.slice(cycleStartIndex),
-          neighbor
-        ];
+        const cyclePath = [...currentPath.slice(cycleStartIndex), neighbor];
 
         return {
           hasCycle: true,
           cyclePath,
           cycleStart: neighbor,
-          cycleEnd: node
+          cycleEnd: node,
         };
       }
     }
@@ -222,7 +221,7 @@ function detectCycleWithParentPointers(graph: Graph): CycleInfo {
     visited.add(node);
     recursionStack.add(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       if (!visited.has(neighbor)) {
         parent.set(neighbor, node);
         const result = dfs(neighbor);
@@ -242,7 +241,7 @@ function detectCycleWithParentPointers(graph: Graph): CycleInfo {
           hasCycle: true,
           cyclePath,
           cycleStart: neighbor,
-          cycleEnd: node
+          cycleEnd: node,
         };
       }
     }
@@ -273,14 +272,16 @@ interface DependencyCycleError extends Error {
 
 function formatCycleError(cycleInfo: CycleInfo, graph: Graph): string {
   if (!cycleInfo.hasCycle || !cycleInfo.cyclePath) {
-    return "Circular dependency detected";
+    return 'Circular dependency detected';
   }
 
   const pathStr = cycleInfo.cyclePath.join(' → ');
-  const cycleDesc = cycleInfo.cyclePath.map(nodeId => {
-    const deps = graph[nodeId] || [];
-    return `  ${nodeId} depends on: [${deps.join(', ')}]`;
-  }).join('\n');
+  const cycleDesc = cycleInfo.cyclePath
+    .map(nodeId => {
+      const deps = graph[nodeId] || [];
+      return `  ${nodeId} depends on: [${deps.join(', ')}]`;
+    })
+    .join('\n');
 
   return `
 ┌─────────────────────────────────────────────────────────────┐
@@ -336,7 +337,7 @@ function detectCycleComprehensive(graph: Graph): CycleInfo {
       hasCycle: true,
       cyclePath: [selfDeps[0], selfDeps[0]], // A → A
       cycleStart: selfDeps[0],
-      cycleEnd: selfDeps[0]
+      cycleEnd: selfDeps[0],
     };
   }
 
@@ -365,7 +366,7 @@ function detectAllCycles(graph: Graph): MultipleCyclesResult {
     visited.add(node);
     currentPath.push(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       const pathIndex = currentPath.indexOf(neighbor);
 
       if (pathIndex !== -1) {
@@ -373,7 +374,7 @@ function detectAllCycles(graph: Graph): MultipleCyclesResult {
         const cyclePath = [...currentPath.slice(pathIndex), neighbor];
         cycles.push({
           path: cyclePath,
-          length: cyclePath.length - 1 // Number of edges
+          length: cyclePath.length - 1, // Number of edges
         });
       } else if (!visited.has(neighbor)) {
         dfs(neighbor);
@@ -394,20 +395,22 @@ function detectAllCycles(graph: Graph): MultipleCyclesResult {
 
   return {
     hasCycles: cycles.length > 0,
-    cycles
+    cycles,
   };
 }
 
 // Format multiple cycles for user
 function formatMultipleCycles(result: MultipleCyclesResult): string {
   if (!result.hasCycles) {
-    return "No cycles detected";
+    return 'No cycles detected';
   }
 
-  const cycleList = result.cycles.map((cycle, index) => {
-    const pathStr = cycle.path.join(' → ');
-    return `  ${index + 1}. ${pathStr} (${cycle.length} edges)`;
-  }).join('\n');
+  const cycleList = result.cycles
+    .map((cycle, index) => {
+      const pathStr = cycle.path.join(' → ');
+      return `  ${index + 1}. ${pathStr} (${cycle.length} edges)`;
+    })
+    .join('\n');
 
   return `
 ┌─────────────────────────────────────────────────────────────┐
@@ -445,7 +448,7 @@ function detectAllCyclesInGraph(graph: Graph): MultipleCyclesResult {
       globallyVisited.add(node);
       currentPath.push(node);
 
-      for (const neighbor of (graph[node] || [])) {
+      for (const neighbor of graph[node] || []) {
         const pathIndex = currentPath.indexOf(neighbor);
 
         if (pathIndex !== -1) {
@@ -453,7 +456,7 @@ function detectAllCyclesInGraph(graph: Graph): MultipleCyclesResult {
           const cyclePath = [...currentPath.slice(pathIndex), neighbor];
           allCycles.push({
             path: cyclePath,
-            length: cyclePath.length - 1
+            length: cyclePath.length - 1,
           });
         } else if (!componentVisited.has(neighbor)) {
           dfs(neighbor);
@@ -468,7 +471,7 @@ function detectAllCyclesInGraph(graph: Graph): MultipleCyclesResult {
 
   return {
     hasCycles: allCycles.length > 0,
-    cycles: allCycles.sort((a, b) => a.length - b.length)
+    cycles: allCycles.sort((a, b) => a.length - b.length),
   };
 }
 ```
@@ -489,7 +492,7 @@ function detectCycleWithOptions(
   const {
     maxCycleLength = 100,
     earlyExit = true,
-    includeAllCycles = false
+    includeAllCycles = false,
   } = options;
 
   if (includeAllCycles) {
@@ -512,14 +515,15 @@ function detectCycleWithOptions(
 
 ### 4.1 Time and Space Complexity
 
-| Operation | Time Complexity | Space Complexity | Notes |
-|-----------|----------------|------------------|-------|
-| Single cycle detection | O(V + E) | O(V) | V = vertices, E = edges |
-| Find all cycles | O(V + E) | O(V) | Same complexity, more output |
-| Path reconstruction | O(cycle_length) | O(cycle_length) | When cycle found |
-| Three-color approach | O(V + E) | O(V) | Slightly better constants |
+| Operation              | Time Complexity | Space Complexity | Notes                        |
+| ---------------------- | --------------- | ---------------- | ---------------------------- |
+| Single cycle detection | O(V + E)        | O(V)             | V = vertices, E = edges      |
+| Find all cycles        | O(V + E)        | O(V)             | Same complexity, more output |
+| Path reconstruction    | O(cycle_length) | O(cycle_length)  | When cycle found             |
+| Three-color approach   | O(V + E)        | O(V)             | Slightly better constants    |
 
 **Key Insights:**
+
 - DFS visits each vertex and edge exactly once
 - Space complexity is dominated by recursion stack and visited sets
 - Path reconstruction is O(L) where L is cycle length
@@ -539,7 +543,10 @@ interface LargeGraphStats {
 
 function analyzeGraphSize(graph: Graph): LargeGraphStats {
   const nodes = Object.keys(graph);
-  const totalEdges = nodes.reduce((sum, node) => sum + (graph[node]?.length || 0), 0);
+  const totalEdges = nodes.reduce(
+    (sum, node) => sum + (graph[node]?.length || 0),
+    0
+  );
   const degrees = nodes.map(node => graph[node]?.length || 0);
 
   return {
@@ -548,7 +555,7 @@ function analyzeGraphSize(graph: Graph): LargeGraphStats {
     avgDegree: totalEdges / nodes.length,
     maxDegree: Math.max(...degrees, 0),
     // Rough estimate: each Set entry ~32 bytes, each edge reference ~8 bytes
-    estimatedMemory: (nodes.length * 32) + (totalEdges * 8)
+    estimatedMemory: nodes.length * 32 + totalEdges * 8,
   };
 }
 
@@ -579,7 +586,7 @@ function detectCycleIterative(graph: Graph): CycleDetectionResult {
     if (visited.has(startNode)) continue;
 
     const stack: Array<{ node: string; index: number }> = [
-      { node: startNode, index: 0 }
+      { node: startNode, index: 0 },
     ];
     const path: string[] = [];
 
@@ -639,7 +646,7 @@ class BitSet {
   set(index: number): void {
     const word = Math.floor(index / 32);
     const bit = index % 32;
-    this.data[word] |= (1 << bit);
+    this.data[word] |= 1 << bit;
   }
 
   has(index: number): boolean {
@@ -669,7 +676,7 @@ function detectCycleWithBitSet(
     recursionStack.set(node);
     path.push(node);
 
-    for (const neighbor of (graph.get(node) || [])) {
+    for (const neighbor of graph.get(node) || []) {
       if (!visited.has(neighbor)) {
         if (dfs(neighbor)) return true;
       } else if (recursionStack.has(neighbor)) {
@@ -708,7 +715,7 @@ async function detectCycleParallel(
 
   // Process components in parallel
   const results = await Promise.all(
-    components.map(async (component) => {
+    components.map(async component => {
       // Process each component in a worker thread
       return detectCycleWithPath(component);
     })
@@ -757,6 +764,7 @@ function findConnectedComponents(graph: Graph): Graph[] {
 ### 5.1 Error Message Design
 
 **DO:**
+
 - Show the complete cycle path clearly
 - Use visual formatting (arrows, boxes)
 - Provide actionable suggestions
@@ -764,6 +772,7 @@ function findConnectedComponents(graph: Graph): Graph[] {
 - Highlight the specific edges that create the cycle
 
 **DON'T:**
+
 - Just say "cycle detected" without details
 - Show raw node IDs without context
 - Overwhelm with all cycles at once (show them one at a time)
@@ -778,8 +787,8 @@ describe('Cycle Detection', () => {
   describe('basic cycles', () => {
     it('should detect simple cycle A → B → A', () => {
       const graph: Graph = {
-        'A': ['B'],
-        'B': ['A']
+        A: ['B'],
+        B: ['A'],
       };
 
       const result = detectCycleWithPath(graph);
@@ -789,9 +798,9 @@ describe('Cycle Detection', () => {
 
     it('should detect longer cycle A → B → C → A', () => {
       const graph: Graph = {
-        'A': ['B'],
-        'B': ['C'],
-        'C': ['A']
+        A: ['B'],
+        B: ['C'],
+        C: ['A'],
       };
 
       const result = detectCycleWithPath(graph);
@@ -801,7 +810,7 @@ describe('Cycle Detection', () => {
 
     it('should detect self-dependency A → A', () => {
       const graph: Graph = {
-        'A': ['A']
+        A: ['A'],
       };
 
       const result = detectCycleComprehensive(graph);
@@ -813,10 +822,10 @@ describe('Cycle Detection', () => {
   describe('acyclic graphs', () => {
     it('should not detect cycles in DAG', () => {
       const graph: Graph = {
-        'A': ['B', 'C'],
-        'B': ['D'],
-        'C': ['D'],
-        'D': []
+        A: ['B', 'C'],
+        B: ['D'],
+        C: ['D'],
+        D: [],
       };
 
       const result = detectCycleWithPath(graph);
@@ -825,7 +834,7 @@ describe('Cycle Detection', () => {
 
     it('should handle single node', () => {
       const graph: Graph = {
-        'A': []
+        A: [],
       };
 
       const result = detectCycleWithPath(graph);
@@ -843,10 +852,10 @@ describe('Cycle Detection', () => {
   describe('edge cases', () => {
     it('should handle disconnected components', () => {
       const graph: Graph = {
-        'A': ['B'],
-        'B': [],
-        'C': ['D'],
-        'D': ['C'] // Cycle in second component
+        A: ['B'],
+        B: [],
+        C: ['D'],
+        D: ['C'], // Cycle in second component
       };
 
       const result = detectCycleWithPath(graph);
@@ -857,10 +866,10 @@ describe('Cycle Detection', () => {
 
     it('should handle multiple cycles', () => {
       const graph: Graph = {
-        'A': ['B'],
-        'B': ['A'], // Cycle 1
-        'C': ['D'],
-        'D': ['C']  // Cycle 2
+        A: ['B'],
+        B: ['A'], // Cycle 1
+        C: ['D'],
+        D: ['C'], // Cycle 2
       };
 
       const result = detectAllCyclesInGraph(graph);
@@ -925,10 +934,10 @@ describe('Cycle Detection', () => {
   describe('path reconstruction', () => {
     it('should reconstruct correct cycle path', () => {
       const graph: Graph = {
-        'A': ['B', 'C'],
-        'B': ['D'],
-        'C': ['D'],
-        'D': ['B'] // Cycle: B → D → B
+        A: ['B', 'C'],
+        B: ['D'],
+        C: ['D'],
+        D: ['B'], // Cycle: B → D → B
       };
 
       const result = detectCycleWithPath(graph);
@@ -938,10 +947,10 @@ describe('Cycle Detection', () => {
 
     it('should find shortest cycle in complex graph', () => {
       const graph: Graph = {
-        'A': ['B', 'C'],
-        'B': ['C', 'D'],
-        'C': ['A'], // Short cycle: A → C → A
-        'D': ['A']  // Longer cycle: A → B → D → A
+        A: ['B', 'C'],
+        B: ['C', 'D'],
+        C: ['A'], // Short cycle: A → C → A
+        D: ['A'], // Longer cycle: A → B → D → A
       };
 
       const result = detectCycleWithPath(graph);
@@ -1029,7 +1038,7 @@ function detectCycleBad(graph: Graph): boolean {
 
 // GOOD: Separate sets for different purposes
 function detectCycleGood(graph: Graph): CycleDetectionResult {
-  const visited = new Set<string>();      // All visited nodes
+  const visited = new Set<string>(); // All visited nodes
   const recursionStack = new Set<string>(); // Nodes in current path
 
   function dfs(node: string): boolean {
@@ -1103,8 +1112,8 @@ function validateTaskDependencies(tasks: Task[]): {
     valid: false,
     errors: result.cycles.map(cycle => ({
       taskId: cycle.path[0],
-      cycle: cycle.path
-    }))
+      cycle: cycle.path,
+    })),
   };
 }
 ```
@@ -1130,8 +1139,8 @@ function detectImportCycles(modules: ModuleInfo[]): void {
     const cycleStr = result.cyclePath!.join(' → ');
     throw new Error(
       `Circular import detected: ${cycleStr}\n` +
-      'This will cause runtime errors. ' +
-      'Refactor to break the cycle.'
+        'This will cause runtime errors. ' +
+        'Refactor to break the cycle.'
     );
   }
 }
@@ -1160,7 +1169,7 @@ function topologicalSortWithCycleDetection(
 
     temp.add(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       const result = visit(neighbor);
       if (result) return result;
     }
@@ -1190,6 +1199,7 @@ function topologicalSortWithCycleDetection(
 ### 7.1 DFS vs Kahn's Algorithm
 
 **DFS Approach (This Document):**
+
 - Pros:
   - Natural for cycle detection
   - Easy to reconstruct cycle paths
@@ -1200,8 +1210,11 @@ function topologicalSortWithCycleDetection(
   - Requires iterative variant for large graphs
 
 **Kahn's Algorithm (Topological Sort):**
+
 ```typescript
-function kahnAlgorithm(graph: Graph): { sorted: string[] } | { cycle: string[] } {
+function kahnAlgorithm(
+  graph: Graph
+): { sorted: string[] } | { cycle: string[] } {
   // Calculate in-degrees
   const inDegree = new Map<string, number>();
   for (const node of Object.keys(graph)) {
@@ -1226,7 +1239,7 @@ function kahnAlgorithm(graph: Graph): { sorted: string[] } | { cycle: string[] }
     const node = queue.shift()!;
     sorted.push(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       inDegree.set(neighbor, inDegree.get(neighbor)! - 1);
       if (inDegree.get(neighbor) === 0) {
         queue.push(neighbor);
@@ -1248,12 +1261,14 @@ function kahnAlgorithm(graph: Graph): { sorted: string[] } | { cycle: string[] }
 ```
 
 **When to use Kahn's:**
+
 - You already need topological order
 - Graph is very dense (many edges)
 - You want to avoid recursion entirely
 - You need to process nodes layer by layer
 
 **When to use DFS:**
+
 - You primarily need cycle detection
 - You need the actual cycle path
 - Graph is sparse
@@ -1354,7 +1369,7 @@ function detectFirstCycle(graph: Graph): CycleInfo {
     recursionStack.add(node);
     currentPath.push(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       if (!visited.has(neighbor)) {
         const result = dfs(neighbor);
         if (result) return result;
@@ -1367,7 +1382,7 @@ function detectFirstCycle(graph: Graph): CycleInfo {
           hasCycle: true,
           cyclePath,
           cycleLength: cyclePath.length - 1,
-          affectedNodes: [...new Set(cyclePath)]
+          affectedNodes: [...new Set(cyclePath)],
         };
       }
     }
@@ -1391,7 +1406,10 @@ function detectFirstCycle(graph: Graph): CycleInfo {
 /**
  * Detect all cycles in the graph
  */
-function detectAllCycles(graph: Graph): { cycles: CycleInfo[]; hasCycles: boolean } {
+function detectAllCycles(graph: Graph): {
+  cycles: CycleInfo[];
+  hasCycles: boolean;
+} {
   const visited = new Set<string>();
   const cycles: CycleInfo[] = [];
   const currentPath: string[] = [];
@@ -1400,7 +1418,7 @@ function detectAllCycles(graph: Graph): { cycles: CycleInfo[]; hasCycles: boolea
     visited.add(node);
     currentPath.push(node);
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       const cycleStart = currentPath.indexOf(neighbor);
 
       if (cycleStart !== -1) {
@@ -1410,7 +1428,7 @@ function detectAllCycles(graph: Graph): { cycles: CycleInfo[]; hasCycles: boolea
           hasCycle: true,
           cyclePath,
           cycleLength: cyclePath.length - 1,
-          affectedNodes: [...new Set(cyclePath)]
+          affectedNodes: [...new Set(cyclePath)],
         });
       } else if (!visited.has(neighbor)) {
         dfs(neighbor);
@@ -1431,7 +1449,7 @@ function detectAllCycles(graph: Graph): { cycles: CycleInfo[]; hasCycles: boolea
 
   return {
     cycles,
-    hasCycles: cycles.length > 0
+    hasCycles: cycles.length > 0,
   };
 }
 
@@ -1440,13 +1458,16 @@ function detectAllCycles(graph: Graph): { cycles: CycleInfo[]; hasCycles: boolea
  */
 export function formatCycleError(cycleInfo: CycleInfo): string {
   if (!cycleInfo.hasCycle || !cycleInfo.cyclePath) {
-    return "Circular dependency detected";
+    return 'Circular dependency detected';
   }
 
   const pathStr = cycleInfo.cyclePath.join(' → ');
-  const nodeDetails = cycleInfo.affectedNodes?.map(node => {
-    return `  • ${node}`;
-  }).join('\n') || '';
+  const nodeDetails =
+    cycleInfo.affectedNodes
+      ?.map(node => {
+        return `  • ${node}`;
+      })
+      .join('\n') || '';
 
   return `
 ╔═══════════════════════════════════════════════════════════════╗
@@ -1498,7 +1519,7 @@ export function validateTaskDependencies(
 
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
 ```
@@ -1510,16 +1531,19 @@ export function validateTaskDependencies(
 ### 10.1 Algorithm Resources
 
 **Textbooks & Academic Resources:**
+
 - Introduction to Algorithms (CLRS) - Chapter 22: Elementary Graph Algorithms
 - Algorithms, 4th Edition (Sedgewick & Wayne) - Chapter 4: Graphs
 - The Algorithm Design Manual (Skiena) - Chapter 5: Graph Traversal
 
 **Online Courses:**
+
 - Coursera: Algorithms Specialization (Princeton)
 - edX: Introduction to Algorithms (MIT)
 - Khan Academy: Algorithms and Data Structures
 
 **Interactive Visualizations:**
+
 - VisualAlgo: Graph Traversal Visualization
 - University of San Francisco: DFS Visualization
 - Algorithms Live: Cycle Detection Animations
@@ -1527,12 +1551,14 @@ export function validateTaskDependencies(
 ### 10.2 Implementation References
 
 **GitHub Repositories:**
+
 - `madge` - JavaScript circular dependency detector
 - `dependency-cruiser` - Advanced dependency analysis
 - `eslint-plugin-import` - ESLint rules for import cycles
 - `webpack` - Module dependency graph with cycle detection
 
 **Documentation:**
+
 - MDN Web Docs: Graph algorithms
 - TypeScript Handbook: Advanced Types
 - Node.js Documentation: Module resolution
@@ -1540,16 +1566,19 @@ export function validateTaskDependencies(
 ### 10.3 Related Algorithms
 
 **Strongly Connected Components (SCC):**
+
 - Tarjan's Algorithm
 - Kosaraju's Algorithm
 - Finds all cycles in a graph
 
 **Topological Sorting:**
+
 - Kahn's Algorithm
 - DFS-based topological sort
 - Useful for detecting cycles AND ordering
 
 **Minimum Feedback Arc Set:**
+
 - NP-hard problem
 - Finds minimum edges to remove to break cycles
 - Useful for suggesting fixes
@@ -1579,6 +1608,7 @@ export function validateTaskDependencies(
 6. Consider performance for large task hierarchies (>1000 tasks)
 
 **Priority Features:**
+
 - [P0] Basic cycle detection with path reconstruction
 - [P0] Self-dependency detection
 - [P1] Multiple cycle detection

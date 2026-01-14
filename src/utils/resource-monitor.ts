@@ -158,8 +158,8 @@ class FileHandleMonitor {
     this.warnThreshold = warnThreshold;
     this.criticalThreshold = criticalThreshold;
     // Dynamic import to avoid circular dependency
-    this.#loggerPromise = import('./logger.js').then(
-      ({ getLogger }) => getLogger('FileHandleMonitor')
+    this.#loggerPromise = import('./logger.js').then(({ getLogger }) =>
+      getLogger('FileHandleMonitor')
     );
   }
 
@@ -179,8 +179,9 @@ class FileHandleMonitor {
     // GOTCHA: process._getActiveHandles() is internal API
     // Use as primary method with fallback to platform commands
     try {
-      const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
-        ._getActiveHandles?.();
+      const handles = (
+        process as unknown as { _getActiveHandles?: () => unknown[] }
+      )._getActiveHandles?.();
       if (handles && Array.isArray(handles)) {
         return handles.length;
       }
@@ -280,7 +281,7 @@ class FileHandleMonitor {
 
     // Log warning asynchronously to avoid blocking
     if (percentage >= this.warnThreshold) {
-      void this.#loggerPromise.then((logger) =>
+      void this.#loggerPromise.then(logger =>
         logger.warn(
           {
             handleCount,
@@ -325,8 +326,8 @@ class MemoryMonitor {
     this.warnThreshold = warnThreshold;
     this.criticalThreshold = criticalThreshold;
     // Dynamic import to avoid circular dependency
-    this.#loggerPromise = import('./logger.js').then(
-      ({ getLogger }) => getLogger('MemoryMonitor')
+    this.#loggerPromise = import('./logger.js').then(({ getLogger }) =>
+      getLogger('MemoryMonitor')
     );
   }
 
@@ -390,7 +391,7 @@ class MemoryMonitor {
 
     // Log warning asynchronously to avoid blocking
     if (usage >= this.warnThreshold) {
-      void this.#loggerPromise.then((logger) =>
+      void this.#loggerPromise.then(logger =>
         logger.warn(
           { percentage: (usage * 100).toFixed(1) + '%' },
           'Memory usage high'
@@ -466,8 +467,8 @@ export class ResourceMonitor {
       config.memoryCriticalThreshold
     );
     // Dynamic import to avoid circular dependency
-    this.#loggerPromise = import('./logger.js').then(
-      ({ getLogger }) => getLogger('ResourceMonitor')
+    this.#loggerPromise = import('./logger.js').then(({ getLogger }) =>
+      getLogger('ResourceMonitor')
     );
   }
 
@@ -489,7 +490,7 @@ export class ResourceMonitor {
       this.#takeSnapshot();
     }, interval);
 
-    void this.#loggerPromise.then((logger) =>
+    void this.#loggerPromise.then(logger =>
       logger.debug({ interval }, 'Resource monitoring started')
     );
   }
@@ -504,7 +505,7 @@ export class ResourceMonitor {
     if (this.#intervalId) {
       clearInterval(this.#intervalId);
       this.#intervalId = null;
-      void this.#loggerPromise.then((logger) =>
+      void this.#loggerPromise.then(logger =>
         logger.debug('Resource monitoring stopped')
       );
     }
@@ -677,7 +678,7 @@ export class ResourceMonitor {
       const growth =
         (newest.fileHandles - oldest.fileHandles) / oldest.fileHandles;
       if (growth > 0.2) {
-        void this.#loggerPromise.then((logger) =>
+        void this.#loggerPromise.then(logger =>
           logger.warn(
             {
               growth: (growth * 100).toFixed(1) + '%',
@@ -694,7 +695,7 @@ export class ResourceMonitor {
     if (oldest.heapUsed > 0) {
       const memGrowth = (newest.heapUsed - oldest.heapUsed) / oldest.heapUsed;
       if (memGrowth > 0.2) {
-        void this.#loggerPromise.then((logger) =>
+        void this.#loggerPromise.then(logger =>
           logger.warn(
             {
               growth: (memGrowth * 100).toFixed(1) + '%',

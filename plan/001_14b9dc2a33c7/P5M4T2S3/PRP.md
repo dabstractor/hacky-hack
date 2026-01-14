@@ -1,7 +1,6 @@
 ---
-name: "Resource Limit Handling - Graceful Degradation for Long-Running Pipelines"
+name: 'Resource Limit Handling - Graceful Degradation for Long-Running Pipelines'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: New `src/utils/resource-monitor.ts` module with `ResourceMonitor` class, CLI flags (`--max-tasks`, `--max-duration`), integrated monitoring in `PRPPipeline`, graceful shutdown with progress preservation, and unit tests.
 
 **Success Definition**:
+
 - `ResourceMonitor` class monitors file handles and memory usage with configurable thresholds
 - CLI flags `--max-tasks N` and `--max-duration MS` are parsed and validated
 - PRPPipeline checks resource limits during `executeBacklog()` loop
@@ -26,6 +26,7 @@ description: |
 **Use Case**: When executing a large PRD with 500+ subtasks, the pipeline may hit system resource limits (file handles, memory) or run indefinitely. Users need safeguards to prevent system exhaustion and ability to resume from checkpoint.
 
 **User Journey**:
+
 1. User runs pipeline with large PRD: `node dist/index.js --prd PRD.md --max-tasks 100 --max-duration 3600000`
 2. Pipeline starts executing tasks, monitoring resources in background
 3. At task 95, file handle count reaches 85% of ulimit - warning logged
@@ -35,6 +36,7 @@ description: |
 7. Pipeline continues from task 101
 
 **Pain Points Addressed**:
+
 - Long-running pipelines exhaust system resources (EMFILE errors, OOM kills)
 - No visibility into resource usage during execution
 - No way to limit execution time or task count
@@ -52,6 +54,7 @@ description: |
 Implement resource monitoring and graceful degradation in PRPPipeline:
 
 ### 1. Resource Monitor Module (`src/utils/resource-monitor.ts`)
+
 - **FileHandleMonitor**: Get current open file handle count, check ulimit, warn at 70%/85% thresholds
 - **MemoryMonitor**: Get heap and system memory usage, warn at 80%/90% thresholds
 - **ResourceMonitor**: Unified class combining both monitors with configurable polling interval
@@ -59,12 +62,14 @@ Implement resource monitoring and graceful degradation in PRPPipeline:
 - **Platform support**: Linux (/proc), macOS (lsof), Windows (PowerShell/internal API)
 
 ### 2. CLI Argument Extensions (`src/cli/index.ts`)
+
 - Add `maxTasks?: number` to `CLIArgs` interface
 - Add `maxDuration?: number` to `CLIArgs` interface (milliseconds)
 - Parse with `.option()` and validate positive integers
 - Pass through to PRPPipeline constructor
 
 ### 3. PRPPipeline Integration (`src/workflows/prp-pipeline.ts`)
+
 - Add `#maxTasks?: number` and `#maxDuration?: number` private fields
 - Add `#resourceMonitor?: ResourceMonitor` field
 - Create monitor in constructor if limits specified
@@ -73,11 +78,13 @@ Implement resource monitoring and graceful degradation in PRPPipeline:
 - Set `shutdownReason = 'RESOURCE_LIMIT'` for new shutdown type
 
 ### 4. Graceful Shutdown Enhancement
+
 - Extend `shutdownReason` type: `'SIGINT' | 'SIGTERM' | 'RESOURCE_LIMIT'`
 - Log resource summary when shutting down (file handles, memory, task count, duration)
 - Provide actionable suggestions: "Increase ulimit with `ulimit -n 4096`", "Split PRD into smaller phases"
 
 ### 5. Progress Preservation
+
 - Call `sessionManager.flushUpdates()` before shutdown
 - Call `sessionManager.saveBacklog()` to persist current state
 - Log completion percentage and resume instructions
@@ -1428,7 +1435,7 @@ node dist/index.js --prd /tmp/test-prd.md
 - ❌ Don't forget cross-platform support - Windows doesn't have ulimit
 - ❌ Don't create resource monitor in executeBacklog() - too late, create in constructor
 - ❌ Don't skip flushUpdates() before saveBacklog() - order matters for atomicity
-- ❌ Don't use process._getActiveHandles() without fallback - internal API may change
+- ❌ Don't use process.\_getActiveHandles() without fallback - internal API may change
 - ❌ Don't check resources before task completion - check AFTER with fresh metrics
 - ❌ Don't forget to stop monitoring in cleanup() - causes memory leak from setInterval
 - ❌ Don't hardcode thresholds - make configurable via ResourceConfig

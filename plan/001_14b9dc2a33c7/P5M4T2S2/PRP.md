@@ -1,7 +1,6 @@
 ---
-name: "Circular Dependency Detection - Task Dependency Graph Validation"
+name: 'Circular Dependency Detection - Task Dependency Graph Validation'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: New `src/core/dependency-validator.ts` module with `detectCircularDeps()` function, modified `SessionManager.initialize()` to call validator, helpful error messages showing the exact cycle path, and comprehensive unit tests.
 
 **Success Definition**:
+
 - `detectCircularDeps()` function detects all circular dependencies in a backlog
 - DFS algorithm with visited set + recursion stack correctly identifies back edges
 - Cycle path is reconstructed and included in error context (e.g., `['P1.M1.T1.S1', 'P1.M1.T2.S1', 'P1.M1.T1.S1']`)
@@ -27,6 +27,7 @@ description: |
 **Use Case**: When a backlog contains tasks with circular dependencies (e.g., Task A depends on Task B, which depends on Task A), the pipeline should detect this during initialization and fail fast with a clear error showing the exact cycle path, rather than deadlocking during task execution.
 
 **User Journey**:
+
 1. User runs pipeline with a backlog containing circular dependencies
 2. SessionManager.initialize() calls detectCircularDeps()
 3. DFS traversal detects back edge indicating a cycle
@@ -36,6 +37,7 @@ description: |
 7. Pipeline proceeds with valid dependency graph
 
 **Pain Points Addressed**:
+
 - Cryptic deadlocks during task execution when cycles exist
 - No indication of which tasks form the cycle
 - Time wasted debugging dependency issues at runtime
@@ -253,21 +255,21 @@ tests/
 ```typescript
 // Dependency graph adjacency list
 interface DependencyGraph {
-  [taskId: string]: string[];  // taskId -> array of dependency IDs
+  [taskId: string]: string[]; // taskId -> array of dependency IDs
 }
 
 // Node state for three-color marking
 enum NodeState {
-  UNVISITED = 0,  // White - never seen
-  VISITING = 1,   // Gray - in current recursion stack
-  VISITED = 2     // Black - fully explored
+  UNVISITED = 0, // White - never seen
+  VISITING = 1, // Gray - in current recursion stack
+  VISITED = 2, // Black - fully explored
 }
 
 // Cycle detection result
 interface CycleDetectionResult {
   hasCycle: boolean;
-  cyclePath?: string[];      // Array of task IDs forming the cycle
-  cycleLength?: number;      // Number of edges in cycle
+  cyclePath?: string[]; // Array of task IDs forming the cycle
+  cycleLength?: number; // Number of edges in cycle
 }
 
 // Long chain information for warnings
@@ -621,7 +623,7 @@ SESSION_MANAGER:
   - modify: src/core/session-manager.ts
   - method: initialize()
   - import: "import { detectCircularDeps } from '../core/dependency-validator.js'"
-  - call: "detectCircularDeps(this.#currentSession.taskRegistry)"
+  - call: 'detectCircularDeps(this.#currentSession.taskRegistry)'
   - location: After backlog is loaded/created (after line 252)
   - catch: ValidationError and log with cycle path context
 

@@ -16,12 +16,14 @@ This document compiles research on Product Requirements Document (PRD) validatio
 ### 1.1 Structural Validation Checks
 
 **Required Section Validation:**
+
 - Verify all mandatory sections are present (Problem Statement, Goals, Requirements, Success Metrics)
 - Ensure section hierarchy is logical and follows standard PRD structure
 - Validate section depth (not too shallow, not excessively nested)
 - Check for proper markdown heading hierarchy (H1 → H2 → H3, no skipped levels)
 
 **Content Completeness Checks:**
+
 - Each section must contain substantive content (not just placeholder text)
 - Reference sections (citations, links) must be resolved and valid
 - All user stories must follow standard format: "As a [role], I want [action], so that [benefit]"
@@ -31,6 +33,7 @@ This document compiles research on Product Requirements Document (PRD) validatio
 ### 1.2 Semantic Validation Checks
 
 **Consistency Validation:**
+
 - Terminology consistency: Same terms used throughout (e.g., "user" vs "customer" vs "client")
 - No contradictory requirements between sections
 - Success metrics align with stated goals
@@ -38,6 +41,7 @@ This document compiles research on Product Requirements Document (PRD) validatio
 - Version numbers and dates are consistent
 
 **Clarity and Specificity:**
+
 - No vague terms like "fast," "user-friendly," "appropriate" without quantification
 - All requirements are testable and measurable
 - Edge cases and error scenarios are documented
@@ -46,12 +50,14 @@ This document compiles research on Product Requirements Document (PRD) validatio
 ### 1.3 Cross-Reference Validation
 
 **Internal References:**
+
 - All section links (#anchor) resolve to existing headings
 - Diagrams and figures referenced in text actually exist
 - Requirements trace back to user stories or business objectives
 - Success metrics map to specific features
 
 **External References:**
+
 - URLs to external resources are valid and accessible
 - Citations follow consistent format
 - Links to design mocks, prototypes, or specs are valid
@@ -59,18 +65,21 @@ This document compiles research on Product Requirements Document (PRD) validatio
 ### 1.4 Stakeholder Validation
 
 **Engineering Feasibility:**
+
 - Technical requirements are achievable
 - Architecture considerations are documented
 - Integration points are identified
 - Technical debt implications are considered
 
 **Design Validation:**
+
 - User experience flow is documented
 - Design principles are stated
 - Accessibility requirements included (WCAG compliance)
 - Edge cases in user interaction are covered
 
 **Business Validation:**
+
 - Business objectives are clear and measurable
 - Success metrics align with business goals
 - Market opportunity is quantified
@@ -140,12 +149,14 @@ This document compiles research on Product Requirements Document (PRD) validatio
 ### 2.3 Markdown Structure Best Practices
 
 **Heading Hierarchy:**
+
 - H1: Document title (only one H1 per document)
 - H2: Major sections (Problem, Requirements, etc.)
 - H3: Subsections within major sections
 - H4: Specific items or details (avoid going deeper if possible)
 
 **Formatting Conventions:**
+
 - Use bullet lists for enumerations (3+ items)
 - Use numbered lists for sequences or priorities
 - Use tables for comparing options or showing requirements
@@ -154,6 +165,7 @@ This document compiles research on Product Requirements Document (PRD) validatio
 - Use horizontal rules to separate major sections
 
 **Metadata Section (YAML frontmatter recommended):**
+
 ```yaml
 ---
 title: Feature Name PRD
@@ -176,18 +188,21 @@ reviewers:
 ### 3.1 Completeness Assessment (Score: 0-100%)
 
 **Section Coverage (40 points):**
+
 - All required sections present: 20 points
 - Each section contains substantive content: 10 points
 - Appendices and references complete: 5 points
 - Metadata present and accurate: 5 points
 
 **Content Depth (30 points):**
+
 - User stories are specific and actionable: 10 points
 - Acceptance criteria are testable: 10 points
 - Edge cases are considered: 5 points
 - Technical feasibility is addressed: 5 points
 
 **Stakeholder Alignment (30 points):**
+
 - Business objectives are clear: 10 points
 - Engineering considerations are documented: 10 points
 - Design requirements are included: 5 points
@@ -196,6 +211,7 @@ reviewers:
 ### 3.2 Clarity Assessment (Score: 0-100%)
 
 **Language Quality (50 points):**
+
 - No ambiguous terms: 15 points
 - Terminology is consistent: 10 points
 - Professional tone maintained: 10 points
@@ -203,6 +219,7 @@ reviewers:
 - Acronyms defined on first use: 5 points
 
 **Specificity (50 points):**
+
 - All requirements are measurable: 20 points
 - Performance metrics are quantitative: 15 points
 - User stories follow standard format: 10 points
@@ -211,17 +228,20 @@ reviewers:
 ### 3.3 Feasibility Assessment (Score: 0-100%)
 
 **Technical Viability (40 points):**
+
 - Requirements are technically achievable: 15 points
 - Architecture is considered: 10 points
 - Dependencies are identified: 10 points
 - Technical constraints acknowledged: 5 points
 
 **Resource Reality (30 points):**
+
 - Timeline is realistic: 15 points
 - Required resources are identified: 10 points
 - Priorities are clear: 5 points
 
 **Risk Management (30 points):**
+
 - Potential risks are identified: 15 points
 - Mitigation strategies are proposed: 10 points
 - Rollback plans are considered: 5 points
@@ -229,12 +249,14 @@ reviewers:
 ### 3.4 Consistency Assessment (Score: 0-100%)
 
 **Internal Consistency (50 points):**
+
 - No contradictory requirements: 20 points
 - Goals align with success metrics: 15 points
 - Features support stated objectives: 10 points
 - Version numbers consistent: 5 points
 
 **External Consistency (50 points):**
+
 - Aligns with product strategy: 20 points
 - Consistent with related features: 15 points
 - Follows company templates/standards: 10 points
@@ -243,6 +265,7 @@ reviewers:
 ### 3.5 Quality Thresholds
 
 **Minimum Acceptable Quality:**
+
 - Completeness: ≥70%
 - Clarity: ≥75%
 - Feasibility: ≥70%
@@ -250,6 +273,7 @@ reviewers:
 - Overall: ≥70%
 
 **Production-Ready Quality:**
+
 - Completeness: ≥90%
 - Clarity: ≥90%
 - Feasibility: ≥85%
@@ -263,6 +287,7 @@ reviewers:
 ### 4.1 Markdown Linting Tools
 
 **markdownlint** (Node.js-based)
+
 - URL: https://github.com/DavidAnson/markdownlint
 - Rules: MD001-MD053 covering style, structure, and formatting
 - Configurable via .markdownlint.json
@@ -270,6 +295,7 @@ reviewers:
 - Can check heading hierarchy, list formatting, code blocks
 
 **remark** (Plugin-based Markdown processor)
+
 - URL: https://github.com/remarkjs/remark
 - Extensible plugin system
 - Plugins for linting, structure validation, style checking
@@ -277,6 +303,7 @@ reviewers:
 - Supports custom rules
 
 **vale** (Prose linting tool)
+
 - URL: https://github.com/errata-ai/vale
 - Style-aware linting for documentation
 - Enforces editorial style guides
@@ -284,6 +311,7 @@ reviewers:
 - Supports custom patterns and rules
 
 **TextLint**
+
 - URL: https://github.com/textlint/textlint
 - Pluggable text linting tool
 - Plugins for spell-check, grammar, consistency
@@ -293,6 +321,7 @@ reviewers:
 ### 4.2 Structure Validation Patterns
 
 **Heading Hierarchy Validation:**
+
 ```javascript
 // Pseudocode for heading level validation
 function validateHeadingHierarchy(headings) {
@@ -308,6 +337,7 @@ function validateHeadingHierarchy(headings) {
 ```
 
 **Section Presence Validation:**
+
 ```javascript
 // Required sections with alternatives
 const requiredSections = [
@@ -315,7 +345,7 @@ const requiredSections = [
   ['Goals', 'Objectives', 'Success Metrics'],
   ['Requirements', 'Functional Requirements', 'Features'],
   ['Technical', 'Technical Considerations', 'Architecture'],
-  ['Success Metrics', 'KPIs', 'Metrics', 'Outcomes']
+  ['Success Metrics', 'KPIs', 'Metrics', 'Outcomes'],
 ];
 
 function validateSectionPresence(headings) {
@@ -333,6 +363,7 @@ function validateSectionPresence(headings) {
 ```
 
 **Link Validation Pattern:**
+
 ```javascript
 // Validate internal links point to existing headings
 function validateInternalLinks(links, headings) {
@@ -351,9 +382,11 @@ function validateInternalLinks(links, headings) {
 ### 4.3 Content Validation Patterns
 
 **User Story Format Validation:**
+
 ```javascript
 // Regex for standard user story format
-const userStoryPattern = /^As an? .+ I want (to|to be able to) .+ so that .+\.$/i;
+const userStoryPattern =
+  /^As an? .+ I want (to|to be able to) .+ so that .+\.$/i;
 
 function validateUserStories(content) {
   const stories = extractUserStories(content);
@@ -364,6 +397,7 @@ function validateUserStories(content) {
 ```
 
 **Acceptance Criteria Presence:**
+
 ```javascript
 // Check requirements have acceptance criteria
 function validateAcceptanceCriteria(sections) {
@@ -381,6 +415,7 @@ function validateAcceptanceCriteria(sections) {
 ```
 
 **Measurable Metrics Validation:**
+
 ```javascript
 // Check metrics are quantifiable
 function validateMetrics(metrics) {
@@ -388,7 +423,11 @@ function validateMetrics(metrics) {
 
   for (const metric of metrics) {
     // Must have numbers or measurable terms
-    if (!/(\d+%|\d+ms|\d+ (users|requests|seconds)|improve|reduce|increase)/i.test(metric)) {
+    if (
+      !/(\d+%|\d+ms|\d+ (users|requests|seconds)|improve|reduce|increase)/i.test(
+        metric
+      )
+    ) {
       nonMeasurable.push(metric);
     }
   }
@@ -400,11 +439,12 @@ function validateMetrics(metrics) {
 ### 4.4 Custom Validation Rules
 
 **Terminology Consistency:**
+
 ```javascript
 // Build terminology glossary and validate consistency
 const terminologyGlossary = {
-  'preferred': ['user', 'customer', 'account'],
-  'avoid': ['client', 'consumer', 'member']
+  preferred: ['user', 'customer', 'account'],
+  avoid: ['client', 'consumer', 'member'],
 };
 
 function validateTerminology(content) {
@@ -413,7 +453,9 @@ function validateTerminology(content) {
 
   for (const word of words) {
     if (terminologyGlossary.avoid.includes(word.toLowerCase())) {
-      issues.push(`Avoid using "${word}". Use "${terminologyGlossary.preferred[0]}" instead.`);
+      issues.push(
+        `Avoid using "${word}". Use "${terminologyGlossary.preferred[0]}" instead.`
+      );
     }
   }
 
@@ -422,6 +464,7 @@ function validateTerminology(content) {
 ```
 
 **Placeholder Detection:**
+
 ```javascript
 // Detect TBD, TODO, or other placeholders
 const placeholderPatterns = [
@@ -430,7 +473,7 @@ const placeholderPatterns = [
   /\bTODO\b/i,
   /\bto be determined\b/i,
   /\bXXX\b/,
-  /\[placeholder\]/i
+  /\[placeholder\]/i,
 ];
 
 function validateNoPlaceholders(content) {
@@ -454,6 +497,7 @@ function validateNoPlaceholders(content) {
 ### 5.1 Structural Malformations
 
 **1. Missing Required Sections**
+
 - **Detection:** Section presence validation against required list
 - **Common Missing Sections:**
   - Success metrics (40% of PRDs)
@@ -462,6 +506,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Implement section checklist validation
 
 **2. Improper Heading Hierarchy**
+
 - **Detection:** Parse markdown AST, check heading levels
 - **Common Issues:**
   - H1 → H3 (skipping H2)
@@ -470,6 +515,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Auto-format tools, linting rules
 
 **3. Orphaned Content**
+
 - **Detection:** Content not under any heading
 - **Common Issues:**
   - Requirements listed outside proper section
@@ -477,6 +523,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Require all content under headings
 
 **4. Excessive Nesting**
+
 - **Detection:** Heading depth > 4 levels
 - **Issue:** Documents become hard to navigate
 - **Fix:** Refactor into sub-documents or appendices
@@ -484,6 +531,7 @@ function validateNoPlaceholders(content) {
 ### 5.2 Content Malformations
 
 **1. Vague Requirements**
+
 - **Detection:** Natural language processing for vague terms
 - **Vague Terms to Flag:**
   - "fast", "responsive", "quick" → require specific metrics
@@ -493,6 +541,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Require quantitative metrics for all performance claims
 
 **2. Unmeasurable Success Metrics**
+
 - **Detection:** Metrics lacking numbers or measurable outcomes
 - **Examples of Bad Metrics:**
   - "Improve user experience" → Better: "Increase NPS from 40 to 50"
@@ -501,11 +550,13 @@ function validateNoPlaceholders(content) {
 - **Fix:** Require SMART criteria for metrics
 
 **3. Missing Acceptance Criteria**
+
 - **Detection:** Requirements without associated acceptance criteria
 - **Pattern:** Look for requirements sections, check each has criteria
 - **Fix:** Require acceptance criteria for all functional requirements
 
 **4. Contradictory Requirements**
+
 - **Detection:** Parse requirements into statements, check for logical contradictions
 - **Common Contradictions:**
   - "Load instantly" vs "comprehensive data display"
@@ -516,6 +567,7 @@ function validateNoPlaceholders(content) {
 ### 5.3 Semantic Malformations
 
 **1. Inconsistent Terminology**
+
 - **Detection:** Build term frequency map, flag synonyms used interchangeably
 - **Common Inconsistencies:**
   - user/customer/client/member
@@ -524,16 +576,19 @@ function validateNoPlaceholders(content) {
 - **Fix:** Define terminology glossary, enforce consistency
 
 **2. Undefined Acronyms**
+
 - **Detection:** Acronyms used without prior definition
 - **Pattern:** All-caps words 2+ characters, check if defined
 - **Fix:** Require first-use definition for all acronyms
 
 **3. Ambiguous Pronouns**
+
 - **Detection:** Pronouns (it, they, this) with unclear antecedents
 - **Pattern:** Search for pronouns, check referent is in same sentence
 - **Fix:** Require explicit nouns instead of pronouns in requirements
 
 **4. Passive Voice**
+
 - **Detection:** NLP detection of passive voice constructions
 - **Issue:** Passive voice obscures responsibility
 - **Example:** "Data should be validated" vs "The system must validate data"
@@ -542,6 +597,7 @@ function validateNoPlaceholders(content) {
 ### 5.4 Reference Malformations
 
 **1. Broken Internal Links**
+
 - **Detection:** Extract all `#anchor` links, verify heading exists
 - **Common Causes:**
   - Heading renamed but link not updated
@@ -550,6 +606,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Automated link validation in CI/CD
 
 **2. Broken External Links**
+
 - **Detection:** HTTP HEAD requests to all external URLs
 - **Common Issues:**
   - Links to internal wikis that moved
@@ -558,6 +615,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Link checking in CI, use permalink URLs when possible
 
 **3. Outdated References**
+
 - **Detection:** Check dates, version numbers, compare to current
 - **Common Issues:**
   - References to deprecated APIs
@@ -566,6 +624,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Document review schedule, automated version checks
 
 **4. Missing References**
+
 - **Detection:** Mentions of "attached diagram" or "see below" with no actual reference
 - **Common Issues:**
   - "See the attached mockup" (no attachment)
@@ -576,6 +635,7 @@ function validateNoPlaceholders(content) {
 ### 5.5 Formatting Malformations
 
 **1. Inconsistent List Formatting**
+
 - **Detection:** Mixed bullet styles, inconsistent indentation
 - **Common Issues:**
   - `-`, `*`, `+` used interchangeably
@@ -584,14 +644,16 @@ function validateNoPlaceholders(content) {
 - **Fix:** Markdown linting, auto-formatting
 
 **2. Malformed Code Blocks**
+
 - **Detection:** Unclosed backticks, missing language specifiers
 - **Common Issues:**
-  - ````code` (single backticks) instead of ```` ```code``` `````
+  - ``code` (single backticks) instead of `` `code` `````
   - Missing language identifier for syntax highlighting
   - Inconsistent indentation in code blocks
 - **Fix:** Linting rules for code blocks
 
 **3. Table Malformations**
+
 - **Detection:** Misaligned columns, inconsistent separators
 - **Common Issues:**
   - Uneven column widths
@@ -600,6 +662,7 @@ function validateNoPlaceholders(content) {
 - **Fix:** Table formatting tools, require consistent structure
 
 **4. Inconsistent Emphasis**
+
 - **Detection:** Mixed use of `*italic*`, `_italic_`, `**bold**`, `__bold__`
 - **Issue:** Makes document harder to read
 - **Fix:** Enforce consistent emphasis style
@@ -668,21 +731,25 @@ function validateNoPlaceholders(content) {
 ### 6.2 Recommended Tool Stack
 
 **Core Validation:**
+
 - markdownlint: Markdown syntax and structure
 - remark: AST parsing for advanced validation
 - Custom validators: PRD-specific rules
 
 **Content Analysis:**
+
 - NLP libraries: Detect vague language, passive voice
 - Regex patterns: User story format, metric measurability
 - Custom parsers: Extract requirements, metrics, references
 
 **Integration:**
+
 - Pre-commit hooks: Validate before commits
 - CI/CD pipeline: Validate on pull requests
 - GitHub Actions: Automated validation workflow
 
 **Reporting:**
+
 - JSON output: Machine-readable results
 - Markdown comments: Inline feedback on PRs
 - HTML reports: Human-readable quality assessment
@@ -690,6 +757,7 @@ function validateNoPlaceholders(content) {
 ### 6.3 Validation Rule Categories
 
 **Must-Have (Blocking) Rules:**
+
 1. All required sections present
 2. Proper heading hierarchy (no skipped levels)
 3. No broken internal links
@@ -699,6 +767,7 @@ function validateNoPlaceholders(content) {
 7. Acceptance criteria present for all requirements
 
 **Should-Have (Warning) Rules:**
+
 1. Terminology consistency
 2. No vague terms without quantification
 3. Performance requirements have specific metrics
@@ -708,6 +777,7 @@ function validateNoPlaceholders(content) {
 7. Design requirements included
 
 **Nice-to-Have (Suggestion) Rules:**
+
 1. Document has metadata (author, version, date)
 2. Section length guidelines met
 3. Consistent formatting (emphasis, lists, code blocks)
@@ -719,6 +789,7 @@ function validateNoPlaceholders(content) {
 ### 6.4 Quality Metrics and Thresholds
 
 **Validation Scores:**
+
 ```javascript
 const qualityThresholds = {
   minimum: {
@@ -726,26 +797,27 @@ const qualityThresholds = {
     completeness: 70,
     clarity: 75,
     feasibility: 70,
-    consistency: 80
+    consistency: 80,
   },
   productionReady: {
     overall: 85,
     completeness: 90,
     clarity: 90,
     feasibility: 85,
-    consistency: 90
+    consistency: 90,
   },
   excellent: {
     overall: 95,
     completeness: 95,
     clarity: 95,
     feasibility: 90,
-    consistency: 95
-  }
+    consistency: 95,
+  },
 };
 ```
 
 **Scoring Formula:**
+
 ```
 Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
                 (Feasibility × 0.20) + (Consistency × 0.20)
@@ -758,21 +830,25 @@ Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
 ### 7.1 Validation Pitfalls
 
 **1. Over-Validation**
+
 - Don't block on style issues that don't affect clarity
 - Focus on content quality over formatting perfection
 - Allow exemptions for valid reasons
 
 **2. False Positives**
+
 - Context matters: "fast" might be acceptable if defined elsewhere
 - Industry-specific terms might flag as jargon incorrectly
 - Acronyms common in domain might not need definition
 
 **3. Tool Limitations**
+
 - Automated tools can't assess technical feasibility accurately
 - NLP may misinterpret context
 - Link validators can't access internal resources behind auth
 
 **4. Gaming the System**
+
 - Don't optimize for validation scores at expense of quality
 - Placeholder data to pass validation defeats purpose
 - Focus on intent, not just meeting criteria
@@ -780,21 +856,25 @@ Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
 ### 7.2 Process Pitfalls
 
 **1. Validation as Gatekeeper**
+
 - Don't use validation to block collaboration
 - Validation should guide improvement, not prevent progress
 - Allow iterative improvement with feedback
 
 **2. One-Time Validation**
+
 - PRDs evolve, validation should be continuous
 - Re-validate after significant changes
 - Periodic review of approved PRDs
 
 **3. Ignoring Context**
+
 - Different PRD types need different validation levels
 - Internal tools vs customer-facing features
 - Quick experiments vs major releases
 
 **4. Tool Over People**
+
 - Automated validation augments, doesn't replace, human review
 - Stakeholder input essential for feasibility assessment
 - Design review needed for UX requirements
@@ -804,24 +884,28 @@ Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
 ## 8. Actionable Implementation Steps
 
 ### Phase 1: Foundation (Week 1)
+
 1. Set up markdownlint with PRD-specific rules
 2. Create required sections checklist
 3. Implement heading hierarchy validation
 4. Set up basic CI/CD validation
 
 ### Phase 2: Content Validation (Week 2)
+
 1. Implement user story format validation
 2. Add acceptance criteria presence check
 3. Create measurable metrics validator
 4. Build terminology consistency checker
 
 ### Phase 3: Quality Assessment (Week 3)
+
 1. Implement quality scoring algorithm
 2. Create quality report generator
 3. Add recommendations engine
 4. Set up threshold-based blocking
 
 ### Phase 4: Integration (Week 4)
+
 1. Integrate with PR workflow
 2. Add inline commenting on violations
 3. Create dashboard for quality tracking
@@ -856,12 +940,14 @@ Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
 ## 10. Validation Checklist (Quick Reference)
 
 ### Structure (20% of score)
+
 - [ ] All required sections present
 - [ ] Proper heading hierarchy (H1 → H2 → H3)
 - [ ] No orphaned content
 - [ ] Consistent heading depth
 
 ### Content (40% of score)
+
 - [ ] Problem statement clear
 - [ ] Goals aligned with metrics
 - [ ] User stories follow format
@@ -870,6 +956,7 @@ Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
 - [ ] Edge cases considered
 
 ### Quality (25% of score)
+
 - [ ] No vague terms
 - [ ] Metrics are measurable
 - [ ] Terminology consistent
@@ -878,6 +965,7 @@ Overall Score = (Completeness × 0.30) + (Clarity × 0.30) +
 - [ ] Acronyms defined
 
 ### References (15% of score)
+
 - [ ] Internal links resolve
 - [ ] External links valid
 - [ ] Diagrams referenced exist

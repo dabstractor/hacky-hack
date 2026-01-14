@@ -3,6 +3,7 @@
 This file contains practical TypeScript implementations for the patterns described in the research document.
 
 ## Table of Contents
+
 1. Base Agent Interface
 2. ReAct Agent Implementation
 3. Plan-and-Execute Agent Implementation
@@ -65,7 +66,7 @@ export abstract class BaseAgent {
   protected async callLLM(messages: AgentMessage[]): Promise<string> {
     return this.llmClient.call(messages, {
       temperature: this.config.temperature ?? 0.7,
-      maxTokens: this.config.maxTokens ?? 2000
+      maxTokens: this.config.maxTokens ?? 2000,
     });
   }
 }
@@ -140,10 +141,9 @@ export class ReActAgent extends BaseAgent {
         metadata: {
           attempts,
           duration: Date.now() - startTime,
-          tokenUsage: this.calculateTokenUsage(steps)
-        }
+          tokenUsage: this.calculateTokenUsage(steps),
+        },
       };
-
     } catch (error) {
       return {
         success: false,
@@ -151,8 +151,8 @@ export class ReActAgent extends BaseAgent {
         metadata: {
           attempts,
           duration: Date.now() - startTime,
-          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-        }
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        },
       };
     }
   }
@@ -169,12 +169,12 @@ export class ReActAgent extends BaseAgent {
 Available tools: ${this.config.tools.map(t => t.name).join(', ')}
 
 Previous steps:
-${previousSteps.map((s, i) => `Step ${i + 1}: ${JSON.stringify(s)}`).join('\n')}`
+${previousSteps.map((s, i) => `Step ${i + 1}: ${JSON.stringify(s)}`).join('\n')}`,
       },
       {
         role: 'user',
-        content: `Input: ${input}\n\nProvide your reasoning for the next step.`
-      }
+        content: `Input: ${input}\n\nProvide your reasoning for the next step.`,
+      },
     ];
 
     return this.callLLM(messages);
@@ -185,12 +185,12 @@ ${previousSteps.map((s, i) => `Step ${i + 1}: ${JSON.stringify(s)}`).join('\n')}
       {
         role: 'system',
         content: `Based on the reasoning, determine the next action.
-Respond with a JSON object: {"tool": "tool_name", "input": "tool_input"}`
+Respond with a JSON object: {"tool": "tool_name", "input": "tool_input"}`,
       },
       {
         role: 'user',
-        content: `Reasoning: ${thought}\n\nDetermine the next action.`
-      }
+        content: `Reasoning: ${thought}\n\nDetermine the next action.`,
+      },
     ];
 
     return this.callLLM(messages);
@@ -208,9 +208,11 @@ Respond with a JSON object: {"tool": "tool_name", "input": "tool_input"}`
   }
 
   private shouldStop(thought: string): boolean {
-    return thought.toLowerCase().includes('done') ||
-           thought.toLowerCase().includes('complete') ||
-           thought.toLowerCase().includes('final answer');
+    return (
+      thought.toLowerCase().includes('done') ||
+      thought.toLowerCase().includes('complete') ||
+      thought.toLowerCase().includes('final answer')
+    );
   }
 
   private updateContext(input: string, observation: string): string {
@@ -220,20 +222,25 @@ Respond with a JSON object: {"tool": "tool_name", "input": "tool_input"}`
   private synthesizeResult(steps: ReActStep[]): any {
     return {
       steps,
-      finalAnswer: steps[steps.length - 1].thought
+      finalAnswer: steps[steps.length - 1].thought,
     };
   }
 
   private calculateTokenUsage(steps: ReActStep[]): TokenUsage {
     // Approximate token counting
     const totalChars = steps.reduce((sum, step) => {
-      return sum + step.thought.length + (step.action?.length || 0) + (step.observation?.length || 0);
+      return (
+        sum +
+        step.thought.length +
+        (step.action?.length || 0) +
+        (step.observation?.length || 0)
+      );
     }, 0);
 
     return {
       promptTokens: Math.floor(totalChars / 4),
       completionTokens: Math.floor(totalChars / 8),
-      totalTokens: Math.floor(totalChars / 3)
+      totalTokens: Math.floor(totalChars / 3),
     };
   }
 }
@@ -295,10 +302,9 @@ export class PlanAndExecuteAgent extends BaseAgent {
         metadata: {
           attempts,
           duration: Date.now() - startTime,
-          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-        }
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        },
       };
-
     } catch (error) {
       return {
         success: false,
@@ -306,8 +312,8 @@ export class PlanAndExecuteAgent extends BaseAgent {
         metadata: {
           attempts,
           duration: Date.now() - startTime,
-          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-        }
+          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        },
       };
     }
   }
@@ -334,13 +340,13 @@ Respond with a JSON object containing:
       "estimatedComplexity": "low|medium|high"
     }
   ]
-}`
+}`,
       },
       {
         role: 'user' as const,
         content: `Create an execution plan for generating a PRP based on:
-${JSON.stringify(input, null, 2)}`
-      }
+${JSON.stringify(input, null, 2)}`,
+      },
     ];
 
     const response = await this.callLLM(messages);
@@ -354,7 +360,9 @@ ${JSON.stringify(input, null, 2)}`
 
     for (const step of plan.steps) {
       if (this.hasCircularDependency(step.id, plan, visited, recursionStack)) {
-        throw new Error(`Circular dependency detected involving step: ${step.id}`);
+        throw new Error(
+          `Circular dependency detected involving step: ${step.id}`
+        );
       }
     }
 
@@ -400,9 +408,10 @@ ${JSON.stringify(input, null, 2)}`
 
     // Execute steps in dependency order
     while (completed.size < plan.steps.length) {
-      const readySteps = plan.steps.filter(step =>
-        step.status === 'pending' &&
-        step.dependencies.every(dep => completed.has(dep))
+      const readySteps = plan.steps.filter(
+        step =>
+          step.status === 'pending' &&
+          step.dependencies.every(dep => completed.has(dep))
       );
 
       if (readySteps.length === 0 && completed.size < plan.steps.length) {
@@ -411,7 +420,7 @@ ${JSON.stringify(input, null, 2)}`
 
       // Execute ready steps in parallel
       await Promise.all(
-        readySteps.map(async (step) => {
+        readySteps.map(async step => {
           step.status = 'in_progress';
           try {
             step.result = await this.executeStep(step, results);
@@ -429,7 +438,10 @@ ${JSON.stringify(input, null, 2)}`
     return results;
   }
 
-  private async executeStep(step: PlanStep, context: Map<string, any>): Promise<any> {
+  private async executeStep(
+    step: PlanStep,
+    context: Map<string, any>
+  ): Promise<any> {
     const messages = [
       {
         role: 'system' as const,
@@ -437,12 +449,14 @@ ${JSON.stringify(input, null, 2)}`
 Step: ${step.description}
 
 Previous step results:
-${Array.from(context.entries()).map(([id, result]) => `${id}: ${JSON.stringify(result)}`).join('\n')}`
+${Array.from(context.entries())
+  .map(([id, result]) => `${id}: ${JSON.stringify(result)}`)
+  .join('\n')}`,
       },
       {
         role: 'user' as const,
-        content: `Execute the step: ${step.description}`
-      }
+        content: `Execute the step: ${step.description}`,
+      },
     ];
 
     const response = await this.callLLM(messages);
@@ -453,13 +467,14 @@ ${Array.from(context.entries()).map(([id, result]) => `${id}: ${JSON.stringify(r
     const messages = [
       {
         role: 'system' as const,
-        content: 'You are synthesizing the final result from multiple execution steps.'
+        content:
+          'You are synthesizing the final result from multiple execution steps.',
       },
       {
         role: 'user' as const,
         content: `Synthesize these results into a cohesive Product Requirement Prompt:
-${JSON.stringify(Array.from(results.entries()), null, 2)}`
-      }
+${JSON.stringify(Array.from(results.entries()), null, 2)}`,
+      },
     ];
 
     const response = await this.callLLM(messages);
@@ -486,10 +501,7 @@ export interface RetryConfig {
 export class RetryManager {
   constructor(private config: RetryConfig) {}
 
-  async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    context: string
-  ): Promise<T> {
+  async executeWithRetry<T>(fn: () => Promise<T>, context: string): Promise<T> {
     let lastError: Error;
 
     for (let attempt = 0; attempt < this.config.maxRetries; attempt++) {
@@ -506,7 +518,7 @@ export class RetryManager {
           const delay = this.calculateDelay(attempt);
           console.warn(
             `[Retry] Attempt ${attempt + 1}/${this.config.maxRetries} failed for ${context}. ` +
-            `Retrying in ${delay}ms...`
+              `Retrying in ${delay}ms...`
           );
           await this.sleep(delay);
         }
@@ -525,7 +537,8 @@ export class RetryManager {
     );
 
     // Add jitter to prevent thundering herd
-    const jitter = exponentialDelay * this.config.jitterFactor * (Math.random() * 2 - 1);
+    const jitter =
+      exponentialDelay * this.config.jitterFactor * (Math.random() * 2 - 1);
 
     return Math.max(0, Math.floor(exponentialDelay + jitter));
   }
@@ -546,17 +559,10 @@ export class RetryManager {
 // Default configuration for LLM API calls
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
-  baseDelay: 1000,      // 1 second
-  maxDelay: 30000,      // 30 seconds
-  jitterFactor: 0.1,    // 10% jitter
-  retryableErrors: [
-    'rate limit',
-    'timeout',
-    'connection',
-    '503',
-    '502',
-    '429'
-  ]
+  baseDelay: 1000, // 1 second
+  maxDelay: 30000, // 30 seconds
+  jitterFactor: 0.1, // 10% jitter
+  retryableErrors: ['rate limit', 'timeout', 'connection', '503', '502', '429'],
 };
 ```
 
@@ -634,10 +640,9 @@ Generate a response that leverages the patterns and information from the context
     const queryEmbedding = await this.embeddingModel.embed(query);
 
     // Search vector store
-    const results = await this.vectorStore.similaritySearch(
-      queryEmbedding,
-      { k: topK }
-    );
+    const results = await this.vectorStore.similaritySearch(queryEmbedding, {
+      k: topK,
+    });
 
     // Filter by score threshold
     return results
@@ -647,11 +652,13 @@ Generate a response that leverages the patterns and information from the context
 
   private buildContext(results: RetrievalResult[]): string {
     return results
-      .map((r, i) => `
+      .map((r, i) =>
+        `
 [Document ${i + 1}] (Score: ${r.score.toFixed(3)})
 Source: ${r.chunk.metadata.source}
 ${r.chunk.content}
-      `.trim())
+      `.trim()
+      )
       .join('\n\n---\n\n');
   }
 
@@ -664,7 +671,10 @@ ${r.chunk.content}
 
 // Interfaces for RAG components
 interface VectorStore {
-  similaritySearch(embedding: number[], options: { k: number }): Promise<RetrievalResult[]>;
+  similaritySearch(
+    embedding: number[],
+    options: { k: number }
+  ): Promise<RetrievalResult[]>;
   insert(chunk: DocumentChunk): Promise<void>;
 }
 
@@ -688,18 +698,18 @@ export interface ContextRequest {
 }
 
 export interface ContextAllocation {
-  core: number;        // Task description (10%)
-  examples: number;    // Few-shot examples (30%)
-  project: number;     // Project-specific (40%)
-  standards: number;   // Standards and templates (20%)
+  core: number; // Task description (10%)
+  examples: number; // Few-shot examples (30%)
+  project: number; // Project-specific (40%)
+  standards: number; // Standards and templates (20%)
 }
 
 export class ContextManager {
   private static readonly DEFAULT_ALLOCATION: ContextAllocation = {
-    core: 0.10,
-    examples: 0.30,
-    project: 0.40,
-    standards: 0.20
+    core: 0.1,
+    examples: 0.3,
+    project: 0.4,
+    standards: 0.2,
   };
 
   async buildContext(request: ContextRequest): Promise<string> {
@@ -709,7 +719,7 @@ export class ContextManager {
       this.getCoreContext(request.query, allocation.core),
       this.getExampleContext(request.query, allocation.examples),
       this.getProjectContext(request.projectId, allocation.project),
-      this.getStandardsContext(request.documentType, allocation.standards)
+      this.getStandardsContext(request.documentType, allocation.standards),
     ]);
 
     return this.assembleContext(contexts);
@@ -721,11 +731,14 @@ export class ContextManager {
       core: Math.floor(maxTokens * alloc.core),
       examples: Math.floor(maxTokens * alloc.examples),
       project: Math.floor(maxTokens * alloc.project),
-      standards: Math.floor(maxTokens * alloc.standards)
+      standards: Math.floor(maxTokens * alloc.standards),
     };
   }
 
-  private async getCoreContext(query: string, tokenBudget: number): Promise<string> {
+  private async getCoreContext(
+    query: string,
+    tokenBudget: number
+  ): Promise<string> {
     return `Task: Generate a Product Requirement Prompt based on the following request.
 
 ${query}
@@ -738,7 +751,10 @@ Requirements:
 - Identify dependencies between requirements`;
   }
 
-  private async getExampleContext(query: string, tokenBudget: number): Promise<string> {
+  private async getExampleContext(
+    query: string,
+    tokenBudget: number
+  ): Promise<string> {
     // Retrieve relevant examples from vector store
     // Implementation would use RAG system
     return `Example 1:
@@ -749,7 +765,10 @@ Output: {
 }`;
   }
 
-  private async getProjectContext(projectId: string | undefined, tokenBudget: number): Promise<string> {
+  private async getProjectContext(
+    projectId: string | undefined,
+    tokenBudget: number
+  ): Promise<string> {
     if (!projectId) return '';
 
     // Fetch project-specific context from database
@@ -760,7 +779,10 @@ Output: {
 - Timeline: 3 months`;
   }
 
-  private async getStandardsContext(documentType: string | undefined, tokenBudget: number): Promise<string> {
+  private async getStandardsContext(
+    documentType: string | undefined,
+    tokenBudget: number
+  ): Promise<string> {
     return `PRP Template:
 1. Executive Summary
 2. Functional Requirements
@@ -783,7 +805,12 @@ Output: {
 ```typescript
 // managers/lifecycle.ts
 
-export type DocumentStatus = 'draft' | 'review' | 'published' | 'archived' | 'deprecated';
+export type DocumentStatus =
+  | 'draft'
+  | 'review'
+  | 'published'
+  | 'archived'
+  | 'deprecated';
 
 export interface DocumentMetadata {
   id: string;
@@ -803,7 +830,7 @@ export class DocumentLifecycleManager {
     review: ['published', 'draft', 'archived'],
     published: ['archived', 'deprecated'],
     archived: [],
-    deprecated: []
+    deprecated: [],
   };
 
   async transitionStatus(
@@ -829,7 +856,10 @@ export class DocumentLifecycleManager {
     await this.saveMetadata(documentId, metadata);
   }
 
-  private canTransition(current: DocumentStatus, next: DocumentStatus): boolean {
+  private canTransition(
+    current: DocumentStatus,
+    next: DocumentStatus
+  ): boolean {
     return this.validTransitions[current].includes(next);
   }
 
@@ -885,7 +915,10 @@ export class DocumentLifecycleManager {
 
   // Abstract methods to be implemented by storage backend
   protected abstract getMetadata(documentId: string): Promise<DocumentMetadata>;
-  protected abstract saveMetadata(documentId: string, metadata: DocumentMetadata): Promise<void>;
+  protected abstract saveMetadata(
+    documentId: string,
+    metadata: DocumentMetadata
+  ): Promise<void>;
 }
 ```
 
@@ -913,7 +946,7 @@ export class FileSystemOrganizer {
       'prp-docs/contexts',
       'prp-docs/cache/embeddings',
       'prp-docs/cache/precomputed',
-      'config'
+      'config',
     ];
 
     for (const dir of directories) {
@@ -984,7 +1017,11 @@ export class FileSystemOrganizer {
     await fs.rename(fromPath, toPath);
   }
 
-  private getFilePath(projectId: string, documentId: string, status: string): string {
+  private getFilePath(
+    projectId: string,
+    documentId: string,
+    status: string
+  ): string {
     return path.join(
       this.basePath,
       'prp-docs',
@@ -1060,7 +1097,7 @@ async function generatePRP(request: PRPRequest): Promise<PRPDocument> {
     query: request.description,
     projectId: request.projectId,
     documentType: 'PRP',
-    maxTokens: 8000
+    maxTokens: 8000,
   });
 
   // Create agent with retry logic
@@ -1069,7 +1106,7 @@ async function generatePRP(request: PRPRequest): Promise<PRPDocument> {
     model: 'gpt-4',
     temperature: 0.7,
     maxTokens: 4000,
-    retryConfig: DEFAULT_RETRY_CONFIG
+    retryConfig: DEFAULT_RETRY_CONFIG,
   });
 
   // Generate with retry
@@ -1134,7 +1171,7 @@ export class MockLLMClient {
     // Return mock responses for testing
     return JSON.stringify({
       title: 'Test PRP',
-      sections: []
+      sections: [],
     });
   }
 }
@@ -1142,7 +1179,10 @@ export class MockLLMClient {
 export class InMemoryVectorStore {
   private documents: Map<string, any> = new Map();
 
-  async similaritySearch(embedding: number[], options: { k: number }): Promise<any[]> {
+  async similaritySearch(
+    embedding: number[],
+    options: { k: number }
+  ): Promise<any[]> {
     return Array.from(this.documents.values()).slice(0, options.k);
   }
 
@@ -1160,11 +1200,14 @@ export function createMockAgentConfig(): AgentConfig {
     name: 'test-agent',
     model: 'gpt-4',
     temperature: 0.7,
-    maxTokens: 2000
+    maxTokens: 2000,
   };
 }
 
-export function waitFor(condition: () => boolean, timeout: number = 5000): Promise<void> {
+export function waitFor(
+  condition: () => boolean,
+  timeout: number = 5000
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
 
@@ -1186,6 +1229,7 @@ export function waitFor(condition: () => boolean, timeout: number = 5000): Promi
 ---
 
 This code examples file provides practical implementations for all the patterns described in the research document. Each component is designed to be:
+
 - **Modular:** Can be used independently or combined
 - **Type-safe:** Full TypeScript typing
 - **Testable:** Includes mock implementations

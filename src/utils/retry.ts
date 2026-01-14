@@ -47,6 +47,7 @@ import { getLogger } from './logger.js';
 import {
   isAgentError,
   isValidationError,
+  isPipelineError,
   ErrorCodes,
   type PipelineError,
 } from './errors.js';
@@ -276,18 +277,17 @@ function calculateDelay(
  *
  * @remarks
  * Node.js errors and HTTP response errors may have these properties.
+ * The `code` property is used for both Node.js system error codes and
+ * PipelineError error codes from the custom error hierarchy.
  */
 interface RetryableError extends Error {
-  /** Node.js system error code */
+  /** Node.js system error code or PipelineError code */
   code?: string;
 
   /** HTTP response with status code */
   response?: {
     status?: number;
   };
-
-  /** Error from PipelineError hierarchy */
-  code?: string;
 }
 
 /**
@@ -330,11 +330,13 @@ export function isTransientError(error: unknown): boolean {
   const err = error as RetryableError;
 
   // Check PipelineError from P5.M4.T1.S1
-  if (isAgentError(err)) {
+  // We need to check the code before type narrowing since AgentError has a fixed code
+  if (isPipelineError(err)) {
+    const errorCode = err.code;
     // Agent errors are transient if they're timeouts or LLM failures
     return (
-      err.code === ErrorCodes.PIPELINE_AGENT_TIMEOUT ||
-      err.code === ErrorCodes.PIPELINE_AGENT_LLM_FAILED
+      errorCode === ErrorCodes.PIPELINE_AGENT_TIMEOUT ||
+      errorCode === ErrorCodes.PIPELINE_AGENT_LLM_FAILED
     );
   }
 

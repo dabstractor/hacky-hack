@@ -48,10 +48,7 @@ import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
 import { progressTracker, type ProgressTracker } from '../utils/progress.js';
 import { retryAgentPrompt } from '../utils/retry.js';
-import {
-  ResourceMonitor,
-  type ResourceConfig,
-} from '../utils/resource-monitor.js';
+import { ResourceMonitor } from '../utils/resource-monitor.js';
 
 /**
  * Result returned by PRPPipeline.run()
@@ -723,7 +720,6 @@ export class PRPPipeline extends Workflow {
 
       // Generate backlog with retry logic
       this.logger.info('[PRPPipeline] Calling Architect agent...');
-      // @ts-expect-error -- Groundswell agent.prompt() type signature is incorrect, accepts string
       const _result = await retryAgentPrompt(
         () => architectAgent.prompt(architectPrompt) as Promise<unknown>,
         { agentType: 'Architect', operation: 'decomposePRD' }
@@ -859,7 +855,9 @@ export class PRPPipeline extends Workflow {
             );
 
             if (status.suggestion) {
-              this.logger.info(`[PRPPipeline] Suggestion: ${status.suggestion}`);
+              this.logger.info(
+                `[PRPPipeline] Suggestion: ${status.suggestion}`
+              );
             }
 
             this.#resourceLimitReached = true;
@@ -1560,17 +1558,17 @@ The pipeline reached a resource limit and gracefully shut down to prevent system
 |--------|-------|
 | File Handles | ${snapshot.fileHandles} |
 | File Handle Limit | ${
-  snapshot.fileHandleUlimit > 0
-    ? snapshot.fileHandleUlimit
-    : 'N/A (Windows)'
-} |
+      snapshot.fileHandleUlimit > 0
+        ? snapshot.fileHandleUlimit
+        : 'N/A (Windows)'
+    } |
 | File Handle Usage | ${(snapshot.fileHandleUsage * 100).toFixed(1)}% |
 | Heap Used | ${(snapshot.heapUsed / 1024 / 1024).toFixed(1)} MB |
 | Heap Total | ${(snapshot.heapTotal / 1024 / 1024).toFixed(1)} MB |
 | System Memory Used | ${(
-    (1 - snapshot.systemFree / snapshot.systemTotal) *
-    100
-  ).toFixed(1)}% |
+      (1 - snapshot.systemFree / snapshot.systemTotal) *
+      100
+    ).toFixed(1)}% |
 
 ### Progress
 
@@ -1578,10 +1576,8 @@ The pipeline reached a resource limit and gracefully shut down to prevent system
 - **Remaining**: ${progress?.remaining ?? 0} tasks
 - **Completion**: ${progress?.percentage.toFixed(1) ?? 0}%
 - **Elapsed**: ${
-    progress?.elapsed
-      ? (progress.elapsed / 1000).toFixed(1) + 's'
-      : 'N/A'
-  }
+      progress?.elapsed ? (progress.elapsed / 1000).toFixed(1) + 's' : 'N/A'
+    }
 
 ## Recommendations
 

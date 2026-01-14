@@ -3,18 +3,22 @@
 ## SessionManager API for Progress Preservation
 
 ### 1. flushUpdates() - Lines 526-576
+
 ```typescript
 async flushUpdates(): Promise<void>
 ```
+
 - Persists accumulated batch updates atomically
 - Called before shutdown to ensure pending changes are saved
 - Early return if no pending changes (#dirty flag check)
 - Returns void, throws on error
 
 ### 2. saveBacklog() - Lines 492-502
+
 ```typescript
 async saveBacklog(backlog: Backlog): Promise<void>
 ```
+
 - Atomically saves backlog to tasks.json
 - Uses atomic write pattern (temp file + rename)
 - Validates backlog with Zod schema before writing
@@ -50,12 +54,14 @@ async saveProgressBeforeShutdown(): Promise<void> {
 ## Data Saved in Session
 
 ### Core Session State (tasks.json)
+
 - Complete task hierarchy (Phase > Milestone > Task > Subtask)
 - Status tracking (Planned, Researching, Implementing, Complete, Failed)
 - Current execution position (currentItemId)
 - Dependencies and context scope
 
 ### Session Files
+
 - tasks.json - Complete task registry
 - prd_snapshot.md - PRD content at session initialization
 - parent_session.txt - Parent session reference (delta sessions only)
@@ -72,11 +78,11 @@ async cleanup(): Promise<void> {
     if (backlog) {
       // FLUSH: Flush pending updates
       await this.sessionManager.flushUpdates();
-      
+
       // SAVE: Save backlog state
       await this.sessionManager.saveBacklog(backlog);
     }
-    
+
     // REMOVE: Signal listeners
     if (this.#sigintHandler) {
       process.off('SIGINT', this.#sigintHandler);
