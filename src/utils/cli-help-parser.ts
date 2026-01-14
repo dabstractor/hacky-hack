@@ -137,7 +137,7 @@ export const NEGATED_FLAG_REGEX = /^--no-([a-zA-Z][a-zA-Z0-9-]*)$/;
  * Matches: `-h, --help`, `-v, --verbose`, `-V, --version`, `-h --help`
  * Does NOT match: Single flags, mismatched aliases
  */
-export const ALIAS_COMBO_REGEX = /^(-[a-zA-Z]),?\s+(--[\w-]+)$/;
+export const ALIAS_COMBO_REGEX = /^(-[a-zA-Z]),?\s+--([a-zA-Z][a-zA-Z0-9-]*)$/;
 
 /**
  * Flag with angle bracket argument: --file <path>
@@ -386,10 +386,11 @@ function parseOptionLine(line: string): ParsedOption | null {
     argName: extractArgName(combinedLine),
   };
 
-  // Extract metadata from description
-  option.argType = extractArgType(match[4]);
-  option.default = extractDefault(match[4]);
-  option.choices = extractChoices(match[4]);
+  // Extract metadata from combined description (includes continuation lines)
+  const fullDescription = combinedLine.substring(combinedLine.indexOf(match[4])).trim();
+  option.argType = extractArgType(fullDescription);
+  option.default = extractDefault(fullDescription);
+  option.choices = extractChoices(fullDescription);
 
   return option;
 }
@@ -471,20 +472,30 @@ function extractDefault(description: string): string | undefined {
 /**
  * Extract choices from description
  *
- * @param description - Option description
+ * @param description - Option description (may contain newlines)
  * @returns Array of choices or undefined
  */
 function extractChoices(description: string): string[] | undefined {
+  // Normalize newlines to spaces for regex matching
+  const normalized = description.replace(/\s+/g, ' ');
+
   // Yargs style: [choices: "value1", "value2", "value3"]
-  const yargsMatch = description.match(/\[choices:\s*"([^"]+)"(?:,\s*"([^"]+)")*\]/);
+  const yargsMatch = normalized.match(/\[choices:.*?((?:"[^"]+"(?:,\s*)?)+)\]/);
   if (yargsMatch) {
-    return description.match(/"([^"]+)"/g)?.map((c) => c.replace(/"/g, ''));
+    const choices = yargsMatch[1].match(/"([^"]+)"/g);
+    if (choices) {
+      return choices.map((c) => c.replace(/"/g, ''));
+    }
   }
 
-  // Commander.js style: (choices: "value1", "value2", "value3")
-  const commanderMatch = description.match(/\(choices:\s*"([^"]+)"(?:,\s*"([^"]+)")*\)/);
+  // Commander.js style: (choices: "value1", "value2", "value3", default: "value")
+  // The pattern: choices: "value1", "value2", "value3" (stops at next keyword)
+  const commanderMatch = normalized.match(/choices:.*?((?:"[^"]+"(?:,\s*)?)+)(?:\s*,?\s*default:|$)/);
   if (commanderMatch) {
-    return description.match(/"([^"]+)"/g)?.map((c) => c.replace(/"/g, ''));
+    const choices = commanderMatch[1].match(/"([^"]+)"/g);
+    if (choices) {
+      return choices.map((c) => c.replace(/"/g, ''));
+    }
   }
 
   return undefined;
