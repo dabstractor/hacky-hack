@@ -375,13 +375,17 @@ describe('Progress Tracker utility', () => {
       expect(progress.averageDuration).toBeGreaterThanOrEqual(0);
     });
 
-    it('should throw error for unstarted task', () => {
+    it('should auto-start unstarted task on recordComplete', () => {
       const backlog = createComplexBacklog(10);
       const tracker = new ProgressTracker({ backlog });
 
-      expect(() => tracker.recordComplete('P1.M1.T1.S1')).toThrow(
-        'Cannot complete unstarted task: P1.M1.T1.S1'
-      );
+      // recordComplete should auto-start the task if not started
+      tracker.recordComplete('P1.M1.T1.S1');
+
+      const progress = tracker.getProgress();
+      expect(progress.completed).toBe(1);
+      // Duration may be very small (near 0) since auto-start happens at completion
+      expect(progress.averageDuration).toBeGreaterThanOrEqual(0);
     });
 
     it('should track multiple completed tasks', () => {

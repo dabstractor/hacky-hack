@@ -38,6 +38,7 @@ import { BugHuntWorkflow } from './bug-hunt-workflow.js';
 import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
+import { progressTracker, type ProgressTracker } from '../utils/progress.js';
 
 /**
  * Result returned by PRPPipeline.run()
@@ -164,6 +165,9 @@ export class PRPPipeline extends Workflow {
 
   /** Correlation ID for tracing workflow execution */
   readonly #correlationId: string;
+
+  /** Progress tracker for real-time execution metrics */
+  #progressTracker?: ProgressTracker;
 
   // ========================================================================
   // Constructor
@@ -528,6 +532,22 @@ export class PRPPipeline extends Workflow {
     this.logger.info('[PRPPipeline] Executing backlog');
 
     try {
+      // Initialize progress tracker with session backlog
+      const backlog = this.sessionManager.currentSession?.taskRegistry;
+      if (!backlog) {
+        throw new Error('Cannot execute pipeline: no backlog found in session');
+      }
+
+      this.#progressTracker = progressTracker({
+        backlog,
+        logInterval: 5, // Log progress every 5 tasks per work item spec
+        barWidth: 40,
+      });
+
+      this.logger.info(
+        `[PRPPipeline] Progress tracking initialized: ${this.#progressTracker?.getProgress().total ?? 0} subtasks`
+      );
+
       let iterations = 0;
       const maxIterations = 10000; // Safety limit
 
@@ -543,19 +563,34 @@ export class PRPPipeline extends Workflow {
         // Update completed tasks count
         this.completedTasks = this.#countCompletedTasks();
 
+        // Track task completion for progress
+        const currentItemId = this.taskOrchestrator.currentItemId ?? 'unknown';
+        this.#progressTracker?.recordComplete(currentItemId);
+
+        // Log progress every 5 tasks
+        if (this.completedTasks % 5 === 0) {
+          this.logger.info(
+            `[PRPPipeline] ${this.#progressTracker?.formatProgress()}`
+          );
+        }
+
         // Check for shutdown request after each task
         if (this.shutdownRequested) {
           this.logger.info(
             '[PRPPipeline] Shutdown requested, finishing current task'
           );
+
+          // Log progress state at shutdown
+          const progress = this.#progressTracker?.getProgress();
           this.logger.info(
-            `[PRPPipeline] Completed ${this.completedTasks}/${this.totalTasks} tasks before shutdown`
+            `[PRPPipeline] Shutting down: ${progress?.completed}/${progress?.total} tasks complete (${progress?.percentage.toFixed(1)}%)`
           );
+
           this.currentPhase = 'shutdown_interrupted';
           break;
         }
 
-        // Log progress every 10 items
+        // Log progress every 10 items (kept for compatibility)
         if (iterations % 10 === 0) {
           this.logger.info(
             `[PRPPipeline] Processed ${iterations} items, ${this.completedTasks}/${this.totalTasks} tasks complete`
@@ -571,8 +606,18 @@ export class PRPPipeline extends Workflow {
         this.completedTasks = this.#countCompletedTasks();
         const failedTasks = this.#countFailedTasks();
 
-        this.logger.info(`[PRPPipeline] Complete: ${this.completedTasks}`);
+        // Log final progress summary
+        const progress = this.#progressTracker?.getProgress();
+        this.logger.info('[PRPPipeline] ===== Pipeline Complete =====');
+        this.logger.info(
+          `[PRPPipeline] Progress: ${this.#progressTracker?.formatProgress()}`
+        );
+        this.logger.info(
+          `[PRPPipeline] Duration: ${(progress?.elapsed ?? 0).toFixed(0)}ms (${((progress?.elapsed ?? 0) / 1000).toFixed(1)}s)`
+        );
+        this.logger.info(`[PRPPipeline] Complete: ${progress?.completed ?? 0}`);
         this.logger.info(`[PRPPipeline] Failed: ${failedTasks}`);
+        this.logger.info('[PRPPipeline] ===== End Summary =====');
 
         this.currentPhase = 'backlog_complete';
         this.logger.info('[PRPPipeline] Backlog execution complete');
@@ -896,6 +941,19 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
     this.logger.info('[PRPPipeline] Starting cleanup and state preservation');
 
     try {
+      // Log progress state before shutdown
+      const progress = this.#progressTracker?.getProgress();
+      if (progress) {
+        this.logger.info('[PRPPipeline] 💾 Saving progress state', {
+          completedTasks: progress.completed,
+          pendingTasks: progress.remaining,
+          totalTasks: progress.total,
+          completionRate: `${progress.percentage.toFixed(1)}%`,
+          elapsed: `${progress.elapsed}ms`,
+          eta: progress.eta === Infinity ? null : progress.eta,
+        });
+      }
+
       // Check if sessionManager was initialized
       if (!this.sessionManager) {
         this.logger.warn(
@@ -919,7 +977,7 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
       const backlog = this.sessionManager.currentSession?.taskRegistry;
       if (backlog) {
         await this.sessionManager.saveBacklog(backlog);
-        this.logger.info('[PRPPipeline] State saved successfully');
+        this.logger.info('[PRPPipeline] ✅ State saved successfully');
 
         // Log state summary
         const completed = this.#countCompletedTasks();

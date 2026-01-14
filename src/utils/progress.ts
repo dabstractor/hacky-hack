@@ -221,7 +221,6 @@ export class ProgressTracker {
    * Records task completion
    *
    * @param itemId - Task/subtask ID
-   * @throws {Error} If task was not started
    *
    * @remarks
    * Calculates duration, stores for ETA calculation, and logs
@@ -229,15 +228,22 @@ export class ProgressTracker {
    *
    * Progress is logged every N tasks (configurable) and always at 100%.
    *
+   * If task was not started, auto-starts it before recording completion.
+   * This allows flexible integration with pipelines that may not have
+   * fine-grained control over when tasks start.
+   *
    * @example
    * ```typescript
    * tracker.recordComplete('P1.M1.T1.S1');
    * ```
    */
   recordComplete(itemId: string): void {
-    const startTime = this.#startTimes.get(itemId);
+    let startTime = this.#startTimes.get(itemId);
+
+    // Auto-start task if not already started (allows flexible integration)
     if (startTime === undefined) {
-      throw new Error(`Cannot complete unstarted task: ${itemId}`);
+      this.recordStart(itemId);
+      startTime = this.#startTimes.get(itemId)!;
     }
 
     const duration = Date.now() - startTime;

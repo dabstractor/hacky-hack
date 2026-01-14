@@ -171,7 +171,10 @@ const createTestBacklog = (phases: any[]): Backlog => ({
   backlog: phases,
 });
 
-const createTestSession = (backlog: Backlog): SessionState => ({
+const createTestSession = (
+  backlog: Backlog,
+  prdSnapshot: string = '# Test PRD'
+): SessionState => ({
   metadata: {
     id: '001_14b9dc2a33c7',
     hash: '14b9dc2a33c7',
@@ -179,7 +182,7 @@ const createTestSession = (backlog: Backlog): SessionState => ({
     createdAt: new Date(),
     parentSession: null,
   },
-  prdSnapshot: '# Test PRD',
+  prdSnapshot,
   taskRegistry: backlog,
   currentItemId: null,
 });
@@ -206,6 +209,7 @@ function createMockSessionManager(
 function createMockTaskOrchestrator() {
   return {
     processNextItem: vi.fn(),
+    currentItemId: null as string | null,
     sessionManager: {},
   };
 }
@@ -321,7 +325,20 @@ describe('PRPPipeline', () => {
   describe('executeBacklog', () => {
     it('should call processNextItem until false returned', async () => {
       // SETUP
+      const backlog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const mockSession = createTestSession(backlog);
+      const mockManager = createMockSessionManager(mockSession);
+
       const mockOrchestrator = createMockTaskOrchestrator();
+      mockOrchestrator.currentItemId = 'P1.M1.T1.S1';
       (mockOrchestrator as any).processNextItem = vi
         .fn()
         .mockResolvedValueOnce(true)
@@ -329,6 +346,7 @@ describe('PRPPipeline', () => {
         .mockResolvedValueOnce(false);
 
       const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE
@@ -342,12 +360,26 @@ describe('PRPPipeline', () => {
 
     it('should update currentPhase to backlog_complete', async () => {
       // SETUP
+      const backlog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const mockSession = createTestSession(backlog);
+      const mockManager = createMockSessionManager(mockSession);
+
       const mockOrchestrator = createMockTaskOrchestrator();
+      mockOrchestrator.currentItemId = 'P1.M1.T1.S1';
       (mockOrchestrator as any).processNextItem = vi
         .fn()
         .mockResolvedValueOnce(false);
 
       const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE
@@ -359,12 +391,26 @@ describe('PRPPipeline', () => {
 
     it('should throw if processNextItem throws', async () => {
       // SETUP
+      const backlog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const mockSession = createTestSession(backlog);
+      const mockManager = createMockSessionManager(mockSession);
+
       const mockOrchestrator = createMockTaskOrchestrator();
+      mockOrchestrator.currentItemId = 'P1.M1.T1.S1';
       (mockOrchestrator as any).processNextItem = vi
         .fn()
         .mockRejectedValue(new Error('Execution failed'));
 
       const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE & VERIFY
@@ -375,12 +421,25 @@ describe('PRPPipeline', () => {
 
     it('should throw safety error after max iterations', async () => {
       // SETUP
+      const backlog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const mockSession = createTestSession(backlog);
+      const mockManager = createMockSessionManager(mockSession);
+
       const mockOrchestrator = createMockTaskOrchestrator();
       (mockOrchestrator as any).processNextItem = vi
         .fn()
         .mockResolvedValue(true);
 
       const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // EXECUTE & VERIFY
@@ -693,14 +752,32 @@ describe('PRPPipeline', () => {
 
     it('should break executeBacklog loop when shutdownRequested is true', async () => {
       // SETUP
+      const backlog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+              createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+      const mockSession = createTestSession(backlog);
+      const mockManager = createMockSessionManager(mockSession);
+
       const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
       let callCount = 0;
 
       const mockOrchestrator = createMockTaskOrchestrator();
+      mockOrchestrator.currentItemId = 'P1.M1.T1.S1';
       (mockOrchestrator as any).processNextItem = vi
         .fn()
         .mockImplementation(async () => {
           callCount++;
+          // Update currentItemId for each call
+          mockOrchestrator.currentItemId =
+            callCount === 1 ? 'P1.M1.T1.S1' : 'P1.M1.T1.S2';
           // Set shutdownRequested after first call
           if (callCount === 2) {
             pipeline.shutdownRequested = true;
@@ -900,8 +977,7 @@ describe('PRPPipeline', () => {
         // SETUP
         const oldPRD = '# Original PRD\nOld content here';
         const backlog = createTestBacklog([]);
-        const mockSession = createTestSession(backlog);
-        mockSession.prdSnapshot = oldPRD;
+        const mockSession = createTestSession(backlog, oldPRD);
 
         const mockManager = createMockSessionManager(mockSession, true);
         mockManager.currentSession = mockSession;

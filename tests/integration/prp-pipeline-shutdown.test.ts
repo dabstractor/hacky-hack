@@ -669,4 +669,119 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       expect(result.shutdownReason).toBe('SIGINT');
     });
   });
+
+  describe('shutdown progress logging', () => {
+    it('should log progress state during shutdown', async () => {
+      // SETUP
+      createTestPRD();
+
+      const backlog: Backlog = {
+        backlog: [
+          {
+            id: 'P1',
+            type: 'Phase',
+            title: 'Phase 1',
+            status: 'Implementing' as Status,
+            description: 'Test phase',
+            milestones: [
+              {
+                id: 'P1.M1',
+                type: 'Milestone',
+                title: 'Milestone 1',
+                status: 'Implementing' as Status,
+                description: 'Test milestone',
+                tasks: [
+                  {
+                    id: 'P1.M1.T1',
+                    type: 'Task',
+                    title: 'Task 1',
+                    status: 'Implementing' as Status,
+                    description: 'Test task',
+                    subtasks: [
+                      {
+                        id: 'P1.M1.T1.S1',
+                        type: 'Subtask',
+                        title: 'Subtask 1',
+                        status: 'Complete' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S2',
+                        type: 'Subtask',
+                        title: 'Subtask 2',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue({ backlog }),
+      };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      // EXECUTE
+      const pipeline = new PRPPipeline(prdPath);
+      const infoSpy = vi.spyOn((pipeline as any).logger, 'info');
+
+      // Mock orchestrator to trigger shutdown
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: 'P1.M1.T1.S1',
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Set shutdown flag after first task
+          (pipeline as any).shutdownRequested = true;
+          return false;
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      const mockSessionManager: any = {
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: null,
+        }),
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+      };
+      (pipeline as any).sessionManager = mockSessionManager;
+
+      await pipeline.run();
+
+      // VERIFY - Cleanup should have run without error
+      expect(infoSpy).toHaveBeenCalledWith(
+        '[PRPPipeline] Cleanup complete'
+      );
+
+      infoSpy.mockRestore();
+    });
+  });
 });

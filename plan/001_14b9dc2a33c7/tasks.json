@@ -36,7 +36,9 @@
                   "title": "Create TypeScript configuration (tsconfig.json)",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S1"],
+                  "dependencies": [
+                    "P1.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From environment_config.md - TypeScript 5.2+ required with ES2022 target and NodeNext module resolution for Groundswell compatibility.\n2. INPUT: package.json from S1 with TypeScript installed.\n3. LOGIC: Create tsconfig.json with:\n   - target: ES2022\n   - module: NodeNext\n   - moduleResolution: NodeNext\n   - strict: true\n   - outDir: ./dist\n   - rootDir: ./src\n   - resolveJsonModule: true\n   - skipLibCheck: true\n4. OUTPUT: Valid tsconfig.json that compiles without errors using `tsc --noEmit`."
                 },
                 {
@@ -45,7 +47,9 @@
                   "title": "Link Groundswell library locally",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S2"],
+                  "dependencies": [
+                    "P1.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - Groundswell is located at ~/projects/groundswell and must be linked via npm link. It exports Workflow, Agent, createAgent, createPrompt, and MCPHandler.\n2. INPUT: Valid package.json and tsconfig.json.\n3. LOGIC:\n   - In Groundswell directory: `cd ~/projects/groundswell && npm link`\n   - In project directory: `npm link groundswell`\n   - Verify link: `ls -la node_modules/groundswell` should show symlink\n   - Add import test to verify compilation: `import { Workflow } from 'groundswell'`\n4. OUTPUT: package.json with groundswell in dependencies, verifiable symlink in node_modules, TypeScript compilation succeeds with Groundswell imports."
                 },
                 {
@@ -54,7 +58,9 @@
                   "title": "Set up project directory structure",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S3"],
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Project requires src/, tests/, and dist/ directories. Session directories (plan/001_hash/) are created dynamically.\n2. INPUT: Valid project root with dependencies installed.\n3. LOGIC: Create directory structure:\n   - mkdir -p src/{core,agents,workflows,utils,config}\n   - mkdir -p tests/{unit,integration}\n   - mkdir -p docs\n   - Create .gitignore with: node_modules/, dist/, .env, plan//**/artifacts/\n4. OUTPUT: Complete directory structure matching system architecture, .gitignore in place."
                 }
               ]
@@ -72,7 +78,9 @@
                   "title": "Create environment configuration module",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T1.S4"],
+                  "dependencies": [
+                    "P1.M1.T1.S4"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From environment_config.md - Critical mapping required: ANTHROPIC_AUTH_TOKEN (shell) → ANTHROPIC_API_KEY (SDK). Models: GLM-4.7, GLM-4.5-Air. Base URL: https://api.z.ai/api/anthropic.\n2. INPUT: src/config/ directory exists. Shell environment variables are available via process.env.\n3. LOGIC: Implement src/config/environment.ts:\n   - Export configureEnvironment() function that maps AUTH_TOKEN → API_KEY\n   - Export getModel(tier: 'opus'|'sonnet'|'haiku') function returning model names\n   - Export validateEnvironment() function checking required vars exist\n   - Throw descriptive errors if required variables missing\n   - Add JSDoc comments for all exports\n4. OUTPUT: src/config/environment.ts with three exported functions, fully typed with TypeScript interfaces."
                 },
                 {
@@ -81,7 +89,9 @@
                   "title": "Create environment validation tests",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T2.S1"],
+                  "dependencies": [
+                    "P1.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From environment_config.md validation checklist - Must test mapping logic, error handling, and model tier selection.\n2. INPUT: src/config/environment.ts module with configureEnvironment() and getModel() functions.\n3. LOGIC: Create tests/unit/environment.test.ts:\n   - Mock process.env before each test\n   - Test AUTH_TOKEN → API_KEY mapping occurs correctly\n   - Test getModel() returns correct model names for each tier\n   - Test validateEnvironment() throws when required vars missing\n   - Test configureEnvironment() sets defaults for BASE_URL\n4. OUTPUT: Passing test suite with 100% coverage of environment.ts module."
                 },
                 {
@@ -90,7 +100,9 @@
                   "title": "Validate z.ai API compatibility",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T2.S2"],
+                  "dependencies": [
+                    "P1.M1.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From environment_config.md - Unknown API compatibility. Must test endpoint availability, authentication, and basic message completion with z.ai.\n2. INPUT: Configured environment with valid ANTHROPIC_API_KEY and BASE_URL.\n3. LOGIC: Create validation script src/scripts/validate-api.ts:\n   - Use fetch/axios to test GET /api/anthropic endpoint\n   - Test POST /api/anthropic/v1/messages with minimal payload\n   - Verify GLM-4.7 model accepts requests\n   - Log response format and headers for analysis\n   - Exit with code 1 if any test fails\n4. OUTPUT: Executable validation script that confirms z.ai API compatibility or provides detailed error output."
                 }
               ]
@@ -108,7 +120,9 @@
                   "title": "Configure ESLint and Prettier",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T2.S3"],
+                  "dependencies": [
+                    "P1.M1.T2.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Standard TypeScript tooling required. No existing configuration in project.\n2. INPUT: package.json with TypeScript configured.\n3. LOGIC:\n   - Install dev dependencies: eslint, prettier, @typescript-eslint/parser, @typescript-eslint/eslint-plugin\n   - Create .eslintrc.json with TypeScript rules and recommended config\n   - Create .prettierrc with single quotes, trailing comma, semicolons\n   - Add lint and format scripts to package.json\n4. OUTPUT: Working linting/formatting with `npm run lint` and `npm run format`."
                 },
                 {
@@ -117,7 +131,9 @@
                   "title": "Create entry point and hello-world workflow",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T3.S1"],
+                  "dependencies": [
+                    "P1.M1.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - Must extend Workflow class and use @Step decorator. Hello-world validates Groundswell integration.\n2. INPUT: Valid TypeScript project with Groundswell linked.\n3. LOGIC: Create src/index.ts:\n   - Import configureEnvironment and invoke it\n   - Create HelloWorldWorkflow extending Workflow\n   - Add @Step decorated method that logs 'PRP Pipeline initialized'\n   - Instantiate and run workflow\n   - Handle errors and exit codes\n4. OUTPUT: Executable application that runs end-to-end without errors, prints success message."
                 }
               ]
@@ -144,7 +160,9 @@
                   "title": "Create TypeScript interfaces for task hierarchy",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S2"],
+                  "dependencies": [
+                    "P1.M1.T3.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Task hierarchy requires Phase, Milestone, Task, Subtask interfaces. Each has id, title, status, description fields. Subtasks have story_points, dependencies, context_scope.\n2. INPUT: src/core/ directory exists. Zod is installed.\n3. LOGIC: Create src/core/models.ts:\n   - Define Status enum: 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete'\n   - Define ItemType enum: 'Phase' | 'Milestone' | 'Task' | 'Subtask'\n   - Define Subtask interface with id, title, status, story_points, dependencies (string[]), context_scope (string)\n   - Define Task interface containing subtasks array\n   - Define Milestone interface containing tasks array\n   - Define Phase interface containing milestones array\n   - Define Backlog interface containing phases array\n   - Add extensive JSDoc comments\n4. OUTPUT: src/core/models.ts with complete type definitions, exported interfaces, zero compilation errors."
                 },
                 {
@@ -153,7 +171,9 @@
                   "title": "Create Zod schemas for validation",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T1.S1"],
+                  "dependencies": [
+                    "P1.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - Groundswell uses Zod for prompt responseFormat. Schemas needed for Architect Agent structured output.\n2. INPUT: src/core/models.ts with TypeScript interfaces.\n3. LOGIC: In src/core/models.ts:\n   - Import z from 'zod'\n   - Create z.enum for Status and ItemType\n   - Create z.object for SubtaskSchema with all fields and validation (story_points min 0.5, max 2, non-empty dependencies array when present)\n   - Create z.object for TaskSchema with recursive subtasks\n   - Create z.object for MilestoneSchema with recursive tasks\n   - Create z.object for PhaseSchema with recursive milestones\n   - Create z.object for BacklogSchema\n   - Export all schemas\n4. OUTPUT: Zod schemas that validate correctly against interface definitions, unit tests confirming schema.parse() works."
                 },
                 {
@@ -162,7 +182,9 @@
                   "title": "Create task hierarchy helper utilities",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T1.S2"],
+                  "dependencies": [
+                    "P1.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Task Orchestrator must navigate hierarchy, find items by ID, resolve dependencies, filter by status.\n2. INPUT: src/core/models.ts with interfaces and Zod schemas.\n3. LOGIC: Create src/core/task-utils.ts:\n   - export function findItem(backlog: Backlog, id: string): Phase | Milestone | Task | Subtask | null - Recursively search hierarchy\n   - export function getDependencies(task: Subtask, backlog: Backlog): Subtask[] - Resolve dependency IDs to actual subtask objects\n   - export function filterByStatus(backlog: Backlog, status: Status): ItemType[] - Return all items with given status\n   - export function getNextPendingItem(backlog: Backlog): ItemType | null - Find first item with Planned status in depth-first order\n   - export function updateItemStatus(backlog: Backlog, id: string, status: Status): Backlog - Immutable status update (deep copy)\n4. OUTPUT: Fully typed utility functions with 100% test coverage."
                 }
               ]
@@ -180,7 +202,9 @@
                   "title": "Create session management interfaces",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S3"],
+                  "dependencies": [
+                    "P1.M2.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Sessions have hash (from PRD), path (plan/001_hash), timestamp, PRD snapshot, and parentSession (for deltas).\n2. INPUT: src/core/models.ts exists.\n3. LOGIC: Extend src/core/models.ts:\n   - Define SessionMetadata interface with id (sequence number), hash (string), path (string), createdAt (Date), parentSession (string | null)\n   - Define SessionState interface with metadata, prdSnapshot (string), taskRegistry (Backlog), currentItemId (string | null)\n   - Define DeltaSession interface extending SessionState with oldPRD (string), newPRD (string), diffSummary (string)\n4. OUTPUT: Additional exported interfaces in models.ts."
                 },
                 {
@@ -189,7 +213,9 @@
                   "title": "Create PRP document interfaces",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T2.S1"],
+                  "dependencies": [
+                    "P1.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md - PRPs have structured sections: Objective, Context, Implementation Strategy, Validation Gates, Success Criteria.\n2. INPUT: src/core/models.ts exists.\n3. LOGIC: Extend src/core/models.ts:\n   - Define ValidationGate interface with level (1-4), description (string), command (string | null), manual (boolean)\n   - Define SuccessCriterion interface with description (string), satisfied (boolean)\n   - Define PRPDocument interface with taskId (string), objective (string), context (string), implementationSteps (string[]), validationGates (ValidationGate[]), successCriteria (SuccessCriterion[]), references (string[])\n   - Define PRPArtifact interface with taskId (string), prpPath (string), status ('Generated' | 'Executing' | 'Completed' | 'Failed'), generatedAt (Date)\n4. OUTPUT: Additional exported interfaces for PRP structure."
                 },
                 {
@@ -198,7 +224,9 @@
                   "title": "Create file system utilities for session management",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T2.S2"],
+                  "dependencies": [
+                    "P1.M2.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Session Manager creates plan/ directories, writes tasks.json atomically, manages PRP files in prps/ subdirectory.\n2. INPUT: src/core/models.ts with session interfaces.\n3. LOGIC: Create src/core/session-utils.ts:\n   - export async function hashPRD(prdPath: string): Promise<string> - Use crypto.createHash('sha256')\n   - export async function createSessionDirectory(prdPath: string, sequence: number): Promise<string> - Creates plan/{sequence}_{hash}/, prps/, artifacts/, architecture/ subdirs\n   - export async function writeTasksJSON(sessionPath: string, backlog: Backlog): Promise<void> - Atomic write using temp file + rename\n   - export async function readTasksJSON(sessionPath: string): Promise<Backlog> - Read and validate with Zod schema\n   - export async function writePRP(sessionPath: string, taskId: string, prp: PRPDocument): Promise<void> - Write to prps/{taskId}.md\n4. OUTPUT: Utility functions with comprehensive error handling and TypeScript tests."
                 }
               ]
@@ -243,7 +271,9 @@
                   "title": "Import system prompts from PROMPTS.md",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S1"],
+                  "dependencies": [
+                    "P2.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md (43,499 bytes) - Contains critical prompts for Task Breakdown, PRP Creation (Blueprint), PRP Execution (Builder), Delta Generation, Creative Bug Finding.\n2. INPUT: PROMPTS.md in project root. agent-factory.ts with createBaseConfig().\n3. LOGIC: Create src/agents/prompts.ts:\n   - Export const TASK_BREAKDOWN_PROMPT: string (full text from PROMPTS.md)\n   - Export const PRP_BLUEPRINT_PROMPT: string (full text from PROMPTS.md)\n   - Export const PRP_BUILDER_PROMPT: string (full text from PROMPTS.md)\n   - Export const DELTA_PRD_PROMPT: string (full text from PROMPTS.md)\n   - Export const BUG_HUNT_PROMPT: string (full text from PROMPTS.md)\n   - Each prompt should be a template literal preserving exact formatting\n4. OUTPUT: prompts.ts with all five system prompts exported as constants, matching PROMPTS.md content exactly."
                 },
                 {
@@ -252,7 +282,9 @@
                   "title": "Implement persona-specific agent creators",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S2"],
+                  "dependencies": [
+                    "P2.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - createAgent(config) returns Agent instance. Each persona needs distinct system prompt and model configuration.\n2. INPUT: agent-factory.ts with createBaseConfig(), prompts.ts with system prompts.\n3. LOGIC: In src/agents/agent-factory.ts:\n   - Import createAgent from 'groundswell', prompts from './prompts', getModel from '../config/environment'\n   - Export function createArchitectAgent(): Agent - Uses TASK_BREAKDOWN_PROMPT, sonnet model\n   - Export function createResearcherAgent(): Agent - Uses PRP_BLUEPRINT_PROMPT, sonnet model\n   - Export function createCoderAgent(): Agent - Uses PRP_BUILDER_PROMPT, sonnet model\n   - Export function createQAAgent(): Agent - Uses BUG_HUNT_PROMPT, sonnet model\n   - Each function calls createBaseConfig(persona) then createAgent(config)\n4. OUTPUT: Four exported agent creator functions returning configured Groundswell Agent instances."
                 }
               ]
@@ -270,7 +302,9 @@
                   "title": "Create Bash MCP tool",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S3"],
+                  "dependencies": [
+                    "P2.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - MCP tools require name, description, input_schema. Executor registered via mcpHandler.registerToolExecutor().\n2. INPUT: Groundswell MCPHandler is available. Node.js child_process for execution.\n3. LOGIC: Create src/tools/bash-mcp.ts:\n   - Define bashTool schema with name 'execute_bash', command (string), cwd (optional string), timeout (optional number)\n   - Create BashMCP class extending MCPHandler\n   - Register 'bash' server with bashTool\n   - Register executor that spawns child_process.exec with timeout, cwd options\n   - Capture stdout, stderr, exitCode\n   - Return formatted result with status, output, error fields\n4. OUTPUT: BashMCP class that can execute shell commands and return results."
                 },
                 {
@@ -279,7 +313,9 @@
                   "title": "Create Filesystem MCP tool",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T2.S1"],
+                  "dependencies": [
+                    "P2.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Agents need to read PRPs, write code, search files. Requires read, write, glob, grep capabilities.\n2. INPUT: BashMCP exists as reference. Node.js fs and path modules available.\n3. LOGIC: Create src/tools/filesystem-mcp.ts:\n   - Define fileReadTool: path (string) → content (string), encoding (default 'utf-8')\n   - Define fileWriteTool: path (string), content (string), createDirs (optional boolean)\n   - Define globTool: pattern (string), cwd (optional string) → matches (string[])\n   - Define grepTool: pattern (string), path (string), flags (optional string) → matches (array of {line, content})\n   - Create FilesystemMCP class with all four tools\n   - Implement executors using fs.promises for async operations\n   - Handle errors gracefully (file not found, permission denied)\n4. OUTPUT: FilesystemMCP with four working tools, handles common error cases."
                 },
                 {
@@ -288,7 +324,9 @@
                   "title": "Create Git MCP tool",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T2.S2"],
+                  "dependencies": [
+                    "P2.M1.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 7.1 - System must support Smart Commit and git operations (status, diff, add, commit).\n2. INPUT: BashMCP can execute git commands. Better to wrap in dedicated GitMCP for safety.\n3. LOGIC: Create src/tools/git-mcp.ts:\n   - Define gitStatusTool: path (optional string) → changed files array\n   - Define gitDiffTool: path (optional string), staged (boolean) → diff output\n   - Define gitCommitTool: message (string), files (string[]) → commit hash\n   - Define gitAddTool: files (string[]) → success boolean\n   - Create GitMCP class with all tools\n   - Implement executors using simple-git or child_process.exec\n   - Validate inputs (no empty messages, files exist)\n   - Use 'commit-claude' alias for commits if available\n4. OUTPUT: GitMCP with four tools, safe input validation, proper error handling."
                 },
                 {
@@ -297,7 +335,9 @@
                   "title": "Integrate MCP tools with agents",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P2.M1.T2.S3"],
+                  "dependencies": [
+                    "P2.M1.T2.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - Agents accept mcps array in config. MCPHandler.getServers() returns server configs.\n2. INPUT: BashMCP, FilesystemMCP, GitMCP classes implemented. agent-factory.ts exists.\n3. LOGIC: Modify src/agents/agent-factory.ts:\n   - Import BashMCP, FilesystemMCP, GitMCP from '../tools'\n   - Create singleton instances of each MCP class\n   - Update createBaseConfig() to include mcps array with all three instances\n   - Export function createAgentWithTools(persona: AgentPersona): Agent that includes MCP tools\n   - Ensure mcps are passed to createAgent() call\n4. OUTPUT: Updated agent-factory.ts where all agents have access to bash, filesystem, and git tools."
                 }
               ]
@@ -324,7 +364,9 @@
                   "title": "Create Zod schema for backlog output",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T2.S4"],
+                  "dependencies": [
+                    "P2.M1.T2.S4"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - createPrompt accepts responseFormat with Zod schema. From P1.M2 - BacklogSchema already exists.\n2. INPUT: BacklogSchema from src/core/models.ts. TASK_BREAKDOWN_PROMPT from src/agents/prompts.ts.\n3. LOGIC: Create src/agents/prompts/architect-prompt.ts:\n   - Import createPrompt from 'groundswell', z from 'zod'\n   - Import BacklogSchema from '../../core/models'\n   - Import TASK_BREAKDOWN_PROMPT from '../prompts'\n   - Export function createArchitectPrompt(prdContent: string): Prompt\n   - Use createPrompt with user: prdContent, system: TASK_BREAKDOWN_PROMPT, responseFormat: BacklogSchema\n   - Enable reflection for complex decomposition\n4. OUTPUT: Architect prompt generator that returns typed Groundswell Prompt with Backlog schema."
                 },
                 {
@@ -333,7 +375,9 @@
                   "title": "Test Architect Agent with PRD",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T1.S1"],
+                  "dependencies": [
+                    "P2.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 6.1 - Architect Agent must decompose PRD into strict JSON. Validate with current PRD.md.\n2. INPUT: createArchitectPrompt() function. Architect agent with tools.\n3. LOGIC: Create tests/integration/architect-agent.test.ts:\n   - Read PRD.md from project root\n   - Create Architect agent using createAgentWithTools('architect')\n   - Generate prompt using createArchitectPrompt(prdContent)\n   - Execute agent.prompt(prompt)\n   - Validate returned backlog matches BacklogSchema\n   - Verify hierarchy has at least one phase\n   - Verify story_points are 0.5, 1, or 2\n   - Log sample output for inspection\n4. OUTPUT: Integration test that successfully decomposes PRD into valid backlog JSON."
                 }
               ]
@@ -351,7 +395,9 @@
                   "title": "Create PRP document Zod schema",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T1.S2"],
+                  "dependencies": [
+                    "P2.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From P1.M2.T2 - PRPDocument interface exists. Need Zod schema for Groundswell prompt.\n2. INPUT: PRPDocument interface from src/core/models.ts. PRP_BLUEPRINT_PROMPT from prompts.ts.\n3. LOGIC: In src/core/models.ts:\n   - Create ValidationGateSchema: z.object({ level: z.number().min(1).max(4), description: z.string(), command: z.string().nullable(), manual: z.boolean() })\n   - Create SuccessCriterionSchema: z.object({ description: z.string(), satisfied: z.boolean() })\n   - Create PRPDocumentSchema matching PRPDocument interface\n   - Export all schemas\n4. OUTPUT: Zod schemas for PRP structure that validate correctly against interfaces."
                 },
                 {
@@ -360,7 +406,9 @@
                   "title": "Create PRP generation prompt",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T2.S1"],
+                  "dependencies": [
+                    "P2.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md PRP Blueprint - Requires codebase analysis, context injection, template filling.\n2. INPUT: PRPDocumentSchema, PRP_BLUEPRINT_PROMPT, Backlog with task to generate PRP for.\n3. LOGIC: Create src/agents/prompts/prp-blueprint-prompt.ts:\n   - Import createPrompt, BacklogSchema, PRPDocumentSchema, PRP_BLUEPRINT_PROMPT\n   - Export function createPRPBlueprintPrompt(task: Task | Subtask, backlog: Backlog, codebasePath: string): Prompt<PRPDocument>\n   - Extract task context from backlog (dependencies, parent items)\n   - Construct data object with taskId, title, description, context_scope, dependencies\n   - Use createPrompt with user: `Generate PRP for task: ${task.id}`, system: PRP_BLUEPRINT_PROMPT, data: extracted context, responseFormat: PRPDocumentSchema\n4. OUTPUT: Prompt generator that creates detailed PRP with context from backlog."
                 }
               ]
@@ -378,7 +426,9 @@
                   "title": "Create delta analysis Zod schema",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P2.M2.T2.S2"],
+                  "dependencies": [
+                    "P2.M2.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.3 - Delta analysis produces new/modified/removed requirements, task patching instructions.\n2. INPUT: Existing BacklogSchema. DELTA_PRD_PROMPT from prompts.ts.\n3. LOGIC: Create src/core/models.ts delta schemas:\n   - Create RequirementChange type: 'added' | 'modified' | 'removed'\n   - Create RequirementChangeSchema: z.object({ type: z.enum(['added', 'modified', 'removed']), description: z.string(), impact: z.string() })\n   - Create DeltaAnalysisSchema: z.object({ changes: z.array(RequirementChangeSchema), patchInstructions: z.string(), taskIds: z.array(z.string()) })\n4. OUTPUT: Zod schema for delta analysis output."
                 },
                 {
@@ -387,7 +437,9 @@
                   "title": "Create delta analysis prompt generator",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T3.S1"],
+                  "dependencies": [
+                    "P2.M2.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 6.4 - Delta prompt inputs: Old PRD, New PRD, Completed Tasks. Outputs change summary.\n2. INPUT: DeltaAnalysisSchema, DELTA_PRD_PROMPT, old PRD content, new PRD content, completed task IDs.\n3. LOGIC: Create src/agents/prompts/delta-prompt.ts:\n   - Import createPrompt, DeltaAnalysisSchema, DELTA_PRD_PROMPT\n   - Export function createDeltaPrompt(oldPRD: string, newPRD: string, completedTasks: string[]): Prompt<DeltaAnalysis>\n   - Construct user prompt with context about PRD change\n   - Include completed task IDs to avoid re-work\n   - Use createPrompt with responseFormat: DeltaAnalysisSchema\n4. OUTPUT: Prompt generator that produces delta analysis for task patching."
                 }
               ]
@@ -405,7 +457,9 @@
                   "title": "Create bug report Zod schema",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P2.M2.T3.S2"],
+                  "dependencies": [
+                    "P2.M2.T3.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.4 - QA agent produces TEST_RESULTS.md with bugs found or declares no bugs.\n2. INPUT: BUG_HUNT_PROMPT from prompts.ts.\n3. LOGIC: Create src/core/models.ts QA schemas:\n   - Create BugSeverity: 'critical' | 'major' | 'minor' | 'cosmetic'\n   - Create BugSchema: z.object({ id: z.string(), severity: z.enum(['critical', 'major', 'minor', 'cosmetic']), title: z.string(), description: z.string(), reproduction: z.string(), location: z.string().optional() })\n   - Create TestResultsSchema: z.object({ hasBugs: z.boolean(), bugs: z.array(BugSchema), summary: z.string(), recommendations: z.array(z.string()) })\n4. OUTPUT: Zod schemas for bug reports and test results."
                 },
                 {
@@ -414,7 +468,9 @@
                   "title": "Create bug hunt prompt generator",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T4.S1"],
+                  "dependencies": [
+                    "P2.M2.T4.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md Bug Hunt - Three phases: Scope Analysis, Creative E2E Testing, Adversarial Testing.\n2. INPUT: TestResultsSchema, BUG_HUNT_PROMPT, PRD content, completed task list.\n3. LOGIC: Create src/agents/prompts/bug-hunt-prompt.ts:\n   - Import createPrompt, TestResultsSchema, BUG_HUNT_PROMPT\n   - Export function createBugHuntPrompt(prd: string, completedTasks: Task[]): Prompt<TestResults>\n   - Construct user prompt with PRD context and completion status\n   - Instruct agent to be adversarial and creative\n   - Use createPrompt with enableReflection: true for thorough analysis\n4. OUTPUT: Prompt generator that produces detailed bug reports."
                 }
               ]
@@ -459,7 +515,9 @@
                   "title": "Implement session state persistence",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M1.T1.S1"],
+                  "dependencies": [
+                    "P3.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 5.1 - System must maintain tasks.json as single source of truth, support atomic writes.\n2. INPUT: SessionManager class skeleton. writeTasksJSON() from session-utils.ts.\n3. LOGIC: Extend SessionManager class:\n   - async saveBacklog(backlog: Backlog): Promise<void> - Calls writeTasksJSON(currentSession.path, backlog)\n   - async loadBacklog(): Promise<Backlog> - Calls readTasksJSON(currentSession.path)\n   - async updateItemStatus(itemId: string, status: Status): Promise<Backlog> - Load backlog, use task-utils updateItemStatus(), save\n   - getCurrentItem(): ItemType | null - Return currentItemId resolved from backlog\n   - setCurrentItem(itemId: string): void - Update currentSession.currentItemId\n4. OUTPUT: Session methods for persisting and updating task state atomically."
                 },
                 {
@@ -468,7 +526,9 @@
                   "title": "Implement session listing and discovery",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P3.M1.T1.S2"],
+                  "dependencies": [
+                    "P3.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Pipeline needs to discover existing sessions, find latest session, check for PRD hash mismatches.\n2. INPUT: SessionManager with initialization logic. plan/ directory structure.\n3. LOGIC: Extend SessionManager class:\n   - static listSessions(): Promise<SessionMetadata[]> - Scan plan/ for directories matching {sequence}_{hash}, parse metadata\n   - static findLatestSession(): Promise<SessionMetadata | null> - Return highest sequence number\n   - static findSessionByPRD(prdPath: string): Promise<SessionMetadata | null> - Hash PRD, find matching session\n   - hasSessionChanged(): boolean - Compare current PRD hash with session hash\n4. OUTPUT: Static session discovery methods, instance method for change detection."
                 }
               ]
@@ -486,7 +546,9 @@
                   "title": "Create PRD snapshot utility",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P3.M1.T1.S3"],
+                  "dependencies": [
+                    "P3.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Each session has prdSnapshot.md. Used for delta detection and context preservation.\n2. INPUT: SessionManager with session path. PRD file path.\n3. LOGIC: In src/core/session-utils.ts:\n   - async function snapshotPRD(sessionPath: string, prdPath: string): Promise<void> - Read PRD, write to {sessionPath}/prd_snapshot.md\n   - function loadSnapshot(sessionPath: string): string - Read prd_snapshot.md content\n   - Function should handle encoding errors gracefully\n4. OUTPUT: Utility functions for PRD snapshot persistence."
                 },
                 {
@@ -495,7 +557,9 @@
                   "title": "Implement PRD diffing for delta detection",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M1.T2.S1"],
+                  "dependencies": [
+                    "P3.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.3 - Delta session compares Old PRD vs New PRD to identify new/modified/removed requirements.\n2. INPUT: Old PRD content, new PRD content. Delta analysis prompt exists.\n3. LOGIC: Create src/core/prd-differ.ts:\n   - Export function diffPRDs(oldPRD: string, newPRD: string): DiffSummary\n   - Use diff library (e.g., diff-match-patch) to compare line-by-line\n   - Categorize changes: added sections, modified sections, removed sections\n   - Return DiffSummary with change array and summary text\n   - Export function hasSignificantChanges(diff: DiffSummary): boolean - Filter out whitespace/minor edits\n4. OUTPUT: PRD diffing that identifies requirement changes."
                 },
                 {
@@ -504,7 +568,9 @@
                   "title": "Create delta session initialization",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M1.T2.S2"],
+                  "dependencies": [
+                    "P3.M1.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Delta sessions link to parent session, store old and new PRDs, contain diff summary.\n2. INPUT: SessionManager, diffPRDs(), DeltaSessionState interface.\n3. LOGIC: In src/core/session-manager.ts:\n   - async function createDeltaSession(newPRDPath: string): Promise<DeltaSessionState>\n   - Hash new PRD, create new session directory with incremented sequence\n   - Load old PRD from current session snapshot\n   - Compute diff using diffPRDs()\n   - Save DeltaSessionState with parentSession, oldPRD, newPRD, diffSummary\n   - Copy completed tasks.json as baseline\n4. OUTPUT: Delta session creation that preserves parent context and documents changes."
                 }
               ]
@@ -540,7 +606,9 @@
                   "title": "Implement dependency resolution",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M2.T1.S1"],
+                  "dependencies": [
+                    "P3.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Subtasks have dependencies array referencing other subtask IDs. Must verify dependencies are complete before execution.\n2. INPUT: TaskOrchestrator with executeSubtask(). getDependencies() from task-utils.\n3. LOGIC: In TaskOrchestrator class:\n   - canExecute(subtask: Subtask): boolean - Check all dependencies have status Complete\n   - getBlockingDependencies(subtask: Subtask): Subtask[] - Return incomplete dependencies\n   - async waitForDependencies(subtask: Subtask): Promise<void> - Poll until dependencies complete or timeout\n   - executeSubtask() should call canExecute() first and log blocking items if false\n4. OUTPUT: Dependency checking that prevents out-of-order execution."
                 },
                 {
@@ -549,7 +617,9 @@
                   "title": "Implement status tracking and updates",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P3.M2.T1.S2"],
+                  "dependencies": [
+                    "P3.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 5.3 - Support status: Planned, Researching, Implementing, Complete, Failed, Obsolete.\n2. INPUT: TaskOrchestrator with execution methods. SessionManager.updateItemStatus().\n3. LOGIC: In TaskOrchestrator class:\n   - async setStatus(itemId: string, status: Status): Promise<void> - Wrapper for SessionManager.updateItemStatus()\n   - Execute methods should call setStatus() at appropriate times: Researching at start, Implementing during work, Complete/Failed at end\n   - Add error handling that sets Failed status on exception\n   - Log all status transitions for observability\n4. OUTPUT: Comprehensive status tracking through task lifecycle."
                 }
               ]
@@ -567,7 +637,9 @@
                   "title": "Create scope parser and resolver",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M2.T1.S3"],
+                  "dependencies": [
+                    "P3.M2.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 5.3 - User can execute specific scopes (--scope=milestone, --task=3).\n2. INPUT: Command line arguments or scope string. Backlog with items.\n3. LOGIC: Create src/core/scope-resolver.ts:\n   - Export enum ScopeType: 'phase' | 'milestone' | 'task' | 'subtask' | 'all'\n   - Export interface Scope { type: ScopeType, id?: string }\n   - Export function parseScope(scopeArg: string): Scope - Parse 'P1', 'P1.M2', '--scope=milestone', etc.\n   - Export function resolveScope(backlog: Backlog, scope: Scope): ItemType[] - Return items matching scope\n   - 'all' returns all leaf subtasks\n   - 'milestone' returns all tasks in that milestone\n   - Specific ID returns that item and children\n4. OUTPUT: Scope parsing that converts user input to item list."
                 },
                 {
@@ -576,7 +648,9 @@
                   "title": "Integrate scope with TaskOrchestrator",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P3.M2.T2.S1"],
+                  "dependencies": [
+                    "P3.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator should accept optional scope parameter to limit execution.\n2. INPUT: TaskOrchestrator class. Scope resolver.\n3. LOGIC: Modify TaskOrchestrator class:\n   - Add constructor parameter scope?: Scope\n   - Add property executionQueue: ItemType[]\n   - In constructor, resolve scope to populate executionQueue (default to all if not provided)\n   - processNextItem() should pull from executionQueue instead of getNextPendingItem()\n   - Add method setScope(scope: Scope): void to reconfigure queue mid-execution\n4. OUTPUT: TaskOrchestrator that can execute targeted subsets of backlog."
                 }
               ]
@@ -612,7 +686,9 @@
                   "title": "Create PRP Executor",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M3.T1.S1"],
+                  "dependencies": [
+                    "P3.M3.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 6.3 - Coder Agent executes PRP contract with Progressive Validation (4 levels).\n2. INPUT: PRPDocument from generator. Coder agent with tools. PRP_BUILDER_PROMPT.\n3. LOGIC: Create src/agents/prp-executor.ts:\n   - Export class PRPExecutor with coderAgent (Agent), tools (MCP[])\n   - async execute(prp: PRPDocument): Promise<ExecutionResult>\n   - Construct prompt from PRP (objective, context, implementation steps)\n   - Execute coderAgent.prompt() with PRP content\n   - Run progressive validation gates in sequence:\n     * Level 1: Lint/Type check (command-based or manual)\n     * Level 2: Unit tests (command-based or manual)\n     * Level 3: Integration tests (command-based or manual)\n     * Level 4: Manual/E2C (manual flag, skip automation)\n   - For each gate: if command exists, execute via BashMCP, check exit code\n   - Return ExecutionResult with success (boolean), validationResults (ValidationGateResult[]), artifacts (string[])\n   - If validation fails, attempt fix (retry execution up to 2 times)\n4. OUTPUT: PRPExecutor that runs PRPs and validates output."
                 },
                 {
@@ -621,7 +697,9 @@
                   "title": "Integrate PRP generation and execution",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M3.T1.S2"],
+                  "dependencies": [
+                    "P3.M3.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.2 - Inner Loop: Research (parallel) → PRP Gen → Implementation → Validation → Cleanup.\n2. INPUT: PRPGenerator, PRPExecutor, TaskOrchestrator.\n3. LOGIC: Create src/agents/prp-runtime.ts:\n   - Export class PRPRuntime with generator (PRPGenerator), executor (PRPExecutor)\n   - async executeSubtask(subtask: Subtask): Promise<ExecutionResult>\n   - Set status to Researching, generate PRP\n   - Set status to Implementing, execute PRP\n   - Update status to Complete or Failed based on result\n   - Write artifacts to {sessionPath}/artifacts/{subtask.id}/\n   - Return ExecutionResult for orchestration\n4. OUTPUT: Integrated runtime that generates PRPs and executes them with validation."
                 }
               ]
@@ -657,7 +735,9 @@
                   "title": "Implement graceful shutdown handling",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M4.T1.S1"],
+                  "dependencies": [
+                    "P3.M4.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 5.1 - Must handle graceful shutdown (finish current task before exiting on SIGINT).\n2. INPUT: PRPPipeline workflow class.\n3. LOGIC: In PRPPipeline class:\n   - Add @ObservedState() shutdownRequested: boolean = false\n   - Add property currentTaskId: string | null = null\n   - Add event listener for SIGINT (process.on('SIGINT')) that sets shutdownRequested = true\n   - In executeBacklog() step, check shutdownRequested after each task\n   - If shutdown requested and currentTaskId exists, log 'Finishing current task before shutdown'\n   - After current task completes, break loop and return\n   - Add @Step() cleanup() method that saves state before exit\n4. OUTPUT: Graceful shutdown that completes current work and preserves state."
                 },
                 {
@@ -666,7 +746,9 @@
                   "title": "Implement smart commit workflow",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M4.T1.S2"],
+                  "dependencies": [
+                    "P3.M4.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 5.1 - Smart Commit automatically stages changes while protecting pipeline state files (tasks.json, PRD.md).\n2. INPUT: PRPPipeline with GitMCP tool available.\n3. LOGIC: Create src/utils/git-commit.ts:\n   - Export async function smartCommit(sessionPath: string, message: string): Promise<void>\n   - Use git status to find changed files\n   - Exclude protected files: tasks.json, PRD.md, prd_snapshot.md\n   - Stage remaining files: git add\n   - Check if any files staged (if not, skip commit)\n   - Create commit with message: `[PRP Auto] ${message}` + Co-Authored-By: Claude\n   - Use 'commit-claude' alias if available, otherwise git commit\n   - Log commit hash for observability\n   - In PRPPipeline, call smartCommit() after each subtask completion\n4. OUTPUT: Smart commit that protects state files while committing work."
                 }
               ]
@@ -684,7 +766,9 @@
                   "title": "Create CLI argument parser",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M4.T1.S3"],
+                  "dependencies": [
+                    "P3.M4.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Standard CLI for PRD-based pipeline. Arguments: --prd, --scope, --task, --mode (normal/bug-hunt), --continue.\n2. INPUT: Command line arguments via process.argv.\n3. LOGIC: Create src/cli/index.ts:\n   - Use commander or yargs for CLI parsing\n   - Define --prd <path> (default: ./PRD.md)\n   - Define --scope <scope> (milestone, task, subtask ID)\n   - Define --mode <mode> (normal, bug-hunt, validate)\n   - Define --continue (resume last session)\n   - Define --dry-run (show plan without executing)\n   - Define --verbose (enable debug logging)\n   - Export interface CLIArgs with parsed values\n   - Validate PRD file exists\n   - Parse scope string using ScopeResolver\n4. OUTPUT: CLI parser that validates inputs and returns typed config."
                 },
                 {
@@ -693,7 +777,9 @@
                   "title": "Create main entry point",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P3.M4.T2.S1"],
+                  "dependencies": [
+                    "P3.M4.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Entry point initializes environment, creates pipeline, handles errors.\n2. INPUT: CLI parser, PRPPipeline, configureEnvironment().\n3. LOGIC: Modify src/index.ts:\n   - Call configureEnvironment() at top level\n   - Parse CLI arguments\n   - Set up logging level based on --verbose\n   - Create PRPPipeline instance with prdPath and scope\n   - Add global error handler (uncaughtException, unhandledRejection)\n   - Run pipeline: await pipeline.run()\n   - Handle errors: log, save state, exit with code 1\n   - On success: print summary, exit with code 0\n   - Ensure all async operations complete before exit\n4. OUTPUT: Executable CLI application that runs pipeline end-to-end."
                 },
                 {
@@ -702,7 +788,9 @@
                   "title": "Add npm scripts and documentation",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P3.M4.T2.S2"],
+                  "dependencies": [
+                    "P3.M4.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: User-friendly npm scripts for common operations.\n2. INPUT: Working CLI in src/index.ts.\n3. LOGIC: Update package.json scripts:\n   - 'start': 'tsx src/index.ts' - Run with default PRD\n   - 'start:custom': 'tsx src/index.ts --prd' - Accept PRD path argument\n   - 'build': 'tsc' - Compile to dist/\n   - 'dev': 'tsx watch src/index.ts' - Development mode\n   - 'lint': 'eslint src --ext .ts'\n   - 'format': 'prettier --write \"src/**/*.ts\"'\n   - 'test': 'jest' or 'vitest'\n   - Create README.md with usage examples, architecture overview, quick start\n4. OUTPUT: Complete package.json scripts and basic README."
                 }
               ]
@@ -747,7 +835,9 @@
                   "title": "Implement task patching logic",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M1.T1.S1"],
+                  "dependencies": [
+                    "P4.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.3 - Task Patching: New requirements → add tasks, Modified → mark for update, Removed → mark obsolete.\n2. INPUT: DeltaAnalysis with changes and taskIds. Current Backlog.\n3. LOGIC: Create src/core/task-patcher.ts:\n   - Export function patchBacklog(backlog: Backlog, delta: DeltaAnalysis): Backlog\n   - Parse delta.taskIds (affected tasks)\n   - For each affected task:\n     * If delta has 'added' change: Add new tasks to backlog (run Architect agent for new sections)\n     * If delta has 'modified' change: Set task status to 'Planned' (reset for re-implementation)\n     * If delta has 'removed' change: Set task status to 'Obsolete' and add deprecation note\n   - Preserve completed tasks not in taskIds array\n   - Return patched backlog (immutable update)\n4. OUTPUT: Task patcher that updates backlog based on PRD changes."
                 },
                 {
@@ -756,7 +846,9 @@
                   "title": "Integrate delta workflow with pipeline",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M1.T1.S2"],
+                  "dependencies": [
+                    "P4.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRPPipeline should detect PRD changes and automatically trigger delta workflow.\n2. INPUT: DeltaAnalysisWorkflow, TaskPatcher, PRPPipeline.\n3. LOGIC: Modify PRPPipeline class:\n   - In initializeSession() step, check hasSessionChanged()\n   - If changed, create delta session instead of normal session\n   - Add @Step() async handleDelta(): Promise<void>\n   - Load old PRD from parent session, new PRD from disk\n   - Get list of completed task IDs from backlog\n   - Run DeltaAnalysisWorkflow\n   - Call TaskPatcher.patchBacklog()\n   - Save patched backlog to new delta session\n   - Update currentSession to point to delta session\n   - Log delta summary for user\n4. OUTPUT: PRPPipeline that seamlessly handles PRD changes via delta sessions."
                 }
               ]
@@ -792,7 +884,9 @@
                   "title": "Integrate parallel research with execution",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M2.T1.S1"],
+                  "dependencies": [
+                    "P4.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator should trigger research for upcoming tasks while current task executes.\n2. INPUT: ResearchQueue, TaskOrchestrator, PRPRuntime.\n3. LOGIC: Modify TaskOrchestrator class:\n   - Add property researchQueue: ResearchQueue\n   - In executeSubtask(), before execution:\n     * Check if PRP already exists in research queue cache\n     * If yes, use cached PRP (skip generation)\n     * If no, generate PRP synchronously\n   - After starting subtask execution, call researchQueue.processNext(backlog) to trigger background research for next pending tasks\n   - In executeTask(), enqueue all subtasks to research queue at start\n   - Log cache hits vs. PRP generations for metrics\n4. OUTPUT: TaskOrchestrator with parallel research that improves throughput."
                 }
               ]
@@ -828,7 +922,9 @@
                   "title": "Implement fix cycle for bugs",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M3.T1.S1"],
+                  "dependencies": [
+                    "P4.M3.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 4.4 - If bugs found, treat TEST_RESULTS.md as mini-PRD, loop (Fix → Re-test) until no issues.\n2. INPUT: TestResults with bugs. PRPPipeline execution engine.\n3. LOGIC: Create src/workflows/fix-cycle-workflow.ts:\n   - Export class FixCycleWorkflow extends Workflow\n   - @ObservedState() testResults: TestResults\n   - @ObservedState() iteration: number = 0\n   - @ObservedState() maxIterations: number = 3\n   - @Step() async createFixTasks(): Promise<void> - Convert each bug into subtask-like fix task\n   - @Step() async executeFixes(): Promise<void> - Run fix tasks using PRPRuntime\n   - @Step() async retest(): Promise<TestResults> - Run BugHuntWorkflow again\n   - @Step() async checkComplete(): Promise<boolean> - Return true if no critical/major bugs\n   - Override async run(): Promise<TestResults> - Loop until complete or max iterations\n4. OUTPUT: Fix cycle that iterates until bugs resolved."
                 },
                 {
@@ -837,7 +933,9 @@
                   "title": "Integrate QA with main pipeline",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P4.M3.T1.S2"],
+                  "dependencies": [
+                    "P4.M3.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRPPipeline should run bug hunt after all tasks complete, or in --mode=bug-hunt.\n2. INPUT: BugHuntWorkflow, FixCycleWorkflow, PRPPipeline.\n3. LOGIC: Modify PRPPipeline class:\n   - Add @ObservedState() mode: 'normal' | 'bug-hunt' | 'validate'\n   - In runQACycle() step:\n     * If mode is 'bug-hunt', run BugHuntWorkflow directly\n     * If mode is 'normal', run BugHuntWorkflow only if all tasks Complete\n     * If testResults.hasBugs is true, run FixCycleWorkflow\n     * If fix cycle completes with bugs, log warning but don't fail\n   - Write TEST_RESULTS.md to session directory if bugs found\n   - Print QA summary to console\n4. OUTPUT: PRPPipeline with integrated QA and fix cycle."
                 }
               ]
@@ -873,7 +971,9 @@
                   "title": "Test session management",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M4.T1.S1"],
+                  "dependencies": [
+                    "P4.M4.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager, hashPRD(), createSessionDirectory() need testing.\n2. INPUT: src/core/session-manager.ts, src/core/session-utils.ts.\n3. LOGIC: Create tests/unit/session.test.ts:\n   - Mock fs.promises for file operations\n   - Test hashPRD() produces consistent SHA-256 for same content\n   - Test createSessionDirectory() creates all subdirectories\n   - Test writeTasksJSON() writes atomically (temp + rename)\n   - Test readTasksJSON() validates with Zod schema\n   - Test SessionManager.initialize() creates new session\n   - Test SessionManager.loadSession() restores state\n   - Test SessionManager.createDeltaSession() links to parent\n4. OUTPUT: Session management tests with mocked filesystem."
                 }
               ]
@@ -891,7 +991,9 @@
                   "title": "Test agent factory and prompts",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M4.T1.S2"],
+                  "dependencies": [
+                    "P4.M4.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Agent factory creates configured agents. Prompts generate structured output.\n2. INPUT: src/agents/agent-factory.ts, src/agents/prompts/.\n3. LOGIC: Create tests/integration/agents.test.ts:\n   - Mock Groundswell Agent and createAgent\n   - Test createBaseConfig() maps environment correctly\n   - Test createArchitectAgent() uses TASK_BREAKDOWN_PROMPT\n   - Test createResearcherAgent() uses PRP_BLUEPRINT_PROMPT\n   - Test createCoderAgent() uses PRP_BUILDER_PROMPT\n   - Test createQAAgent() uses BUG_HUNT_PROMPT\n   - Test createArchitectPrompt() returns Prompt with BacklogSchema\n   - Test createPRPBlueprintPrompt() returns Prompt with PRPDocumentSchema\n4. OUTPUT: Agent factory and prompt tests with mocked LLM calls."
                 },
                 {
@@ -900,7 +1002,9 @@
                   "title": "Test MCP tools",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M4.T2.S1"],
+                  "dependencies": [
+                    "P4.M4.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: BashMCP, FilesystemMCP, GitMCP execute system operations.\n2. INPUT: src/tools/*.ts MCP classes.\n3. LOGIC: Create tests/integration/tools.test.ts:\n   - Mock child_process for BashMCP\n   - Test BashMCP.executeBash() returns stdout, stderr, exitCode\n   - Test BashMCP handles timeout correctly\n   - Mock fs.promises for FilesystemMCP\n   - Test FilesystemMCP.readFile() reads content with encoding\n   - Test FilesystemMCP.writeFile() creates directories if createDirs true\n   - Test FilesystemMCP.glob() matches file patterns\n   - Test FilesystemMCP.grep() searches content with regex\n   - Mock git for GitMCP\n   - Test GitMCP.gitStatus() returns changed files\n   - Test GitMCP.gitCommit() creates commits with messages\n4. OUTPUT: MCP tool tests with mocked system calls."
                 }
               ]
@@ -918,7 +1022,9 @@
                   "title": "Create minimal test PRD",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": ["P4.M4.T2.S2"],
+                  "dependencies": [
+                    "P4.M4.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need simple PRD for testing that completes quickly.\n2. INPUT: Understanding of PRD structure from system_context.md.\n3. LOGIC: Create tests/fixtures/simple-prd.md:\n   - Define project: 'Test Project'\n   - Single Phase: 'P1: Test Phase'\n   - Single Milestone: 'P1.M1: Test Milestone'\n   - Single Task: 'P1.M1.T1: Create Hello World'\n   - 2-3 simple subtasks: 'Write function', 'Write test', 'Run test'\n   - Keep context_scope minimal\n   - Expected completion time: <5 minutes\n4. OUTPUT: Minimal PRD for fast E2E testing."
                 },
                 {
@@ -927,7 +1033,9 @@
                   "title": "Create E2E pipeline test",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M4.T3.S1"],
+                  "dependencies": [
+                    "P4.M4.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Full pipeline test: Initialize → Decompose → Execute → Complete.\n2. INPUT: Simple test PRD, PRPPipeline, mocked agents.\n3. LOGIC: Create tests/e2e/pipeline.test.ts:\n   - Mock LLM responses for Architect agent (return predefined backlog)\n   - Mock LLM responses for Researcher/Coder agents (return success)\n   - Mock all MCP tools (return success)\n   - Create temporary test session directory\n   - Run full PRPPipeline with test PRD\n   - Assert session directory created\n   - Assert tasks.json written and valid\n   - Assert all subtasks marked Complete\n   - Assert git commits created\n   - Cleanup test artifacts\n   - Measure execution time (should be fast with mocks)\n4. OUTPUT: E2E test validating complete pipeline flow."
                 },
                 {
@@ -936,7 +1044,9 @@
                   "title": "Create delta session E2E test",
                   "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P4.M4.T3.S2"],
+                  "dependencies": [
+                    "P4.M4.T3.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test delta workflow: Initial session → Modify PRD → Delta session → Patched backlog.\n2. INPUT: Simple PRD, modified version of same PRD.\n3. LOGIC: Create tests/e2e/delta.test.ts:\n   - Create initial PRD (v1)\n   - Run PRPPipeline to completion\n   - Modify PRD (v2) with new requirement\n   - Create modified PRD file\n   - Run PRPPipeline again with modified PRD\n   - Assert delta session created\n   - Assert parent session referenced\n   - Assert backlog has new task for new requirement\n   - Assert original completed tasks preserved\n   - Cleanup test artifacts\n4. OUTPUT: Delta session E2E test."
                 }
               ]
@@ -956,14 +1066,14 @@
           "type": "Milestone",
           "id": "P5.M1",
           "title": "Milestone 5.1: Observability and Logging",
-          "status": "Researching",
+          "status": "Implementing",
           "description": "Implement structured logging, metrics collection, and progress reporting.",
           "tasks": [
             {
               "type": "Task",
               "id": "P5.M1.T1",
               "title": "Implement Structured Logging",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Replace console.log with structured logging system.",
               "subtasks": [
                 {
@@ -979,9 +1089,11 @@
                   "type": "Subtask",
                   "id": "P5.M1.T1.S2",
                   "title": "Integrate logger throughout pipeline",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
-                  "dependencies": ["P5.M1.T1.S1"],
+                  "dependencies": [
+                    "P5.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All components should use structured logger instead of console.log.\n2. INPUT: Logger utility. Existing code with console statements.\n3. LOGIC: Update all source files:\n   - Replace console.log with logger.info()\n   - Replace console.error with logger.error()\n   - Replace console.warn with logger.warn()\n   - Add context strings to each component ('SessionManager', 'TaskOrchestrator', etc.)\n   - Log key events: session created, task started/completed, PRP generated, validation passed/failed\n   - Log errors with stack traces\n   - Add correlation IDs for request tracing\n4. OUTPUT: Codebase using structured logging consistently."
                 }
               ]
@@ -990,7 +1102,7 @@
               "type": "Task",
               "id": "P5.M1.T2",
               "title": "Implement Progress Reporting",
-              "status": "Researching",
+              "status": "Implementing",
               "description": "Create real-time progress indicators for pipeline execution.",
               "subtasks": [
                 {
@@ -999,16 +1111,20 @@
                   "title": "Create progress tracker",
                   "status": "Implementing",
                   "story_points": 2,
-                  "dependencies": ["P5.M1.T1.S2"],
+                  "dependencies": [
+                    "P5.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Users need visibility into pipeline progress: phases complete, tasks remaining, ETA.\n2. INPUT: Backlog with task statuses. Execution timing data.\n3. LOGIC: Create src/utils/progress.ts:\n   - Export class ProgressTracker with backlog (Backlog), startTimes (Map<string, number>)\n   - recordStart(itemId: string): void - Record task start time\n   - recordComplete(itemId: string): void - Record task completion, calculate duration\n   - getProgress(): ProgressReport - Calculate completion percentage, remaining count, average task duration\n   - getETA(): number - Estimate time remaining based on average duration\n   - formatProgress(): string - Return human-readable progress bar and stats\n   - Log progress at INFO level every N tasks\n4. OUTPUT: Progress tracker that provides real-time visibility."
                 },
                 {
                   "type": "Subtask",
                   "id": "P5.M1.T2.S2",
                   "title": "Integrate progress with pipeline",
-                  "status": "Researching",
+                  "status": "Implementing",
                   "story_points": 1,
-                  "dependencies": ["P5.M1.T2.S1"],
+                  "dependencies": [
+                    "P5.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRPPipeline should report progress during execution.\n2. INPUT: ProgressTracker utility. PRPPipeline class.\n3. LOGIC: Modify PRPPipeline class:\n   - Add @ObservedState() progressTracker: ProgressTracker\n   - In executeBacklog() step, call progressTracker.recordStart() before each task\n   - Call progressTracker.recordComplete() after each task\n   - Every 5 tasks, log progressTracker.formatProgress()\n   - In final summary, print total progress, time taken, tasks completed\n   - On shutdown, log current progress state\n4. OUTPUT: Real-time progress reporting during pipeline execution."
                 }
               ]
@@ -1033,7 +1149,7 @@
                   "type": "Subtask",
                   "id": "P5.M2.T1.S1",
                   "title": "Verify Groundswell cache configuration",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - enableCache: true provides SHA-256 based caching.\n2. INPUT: Agent factory createAgent() calls.\n3. LOGIC: Review all agent creation sites:\n   - Verify all agents have enableCache: true\n   - Test cache by making identical prompt calls twice\n   - Assert second call returns instantly (from cache)\n   - Log cache hit rate for observability\n   - Document cache behavior in architecture notes\n4. OUTPUT: Verified caching with documented hit rates."
@@ -1044,7 +1160,9 @@
                   "title": "Implement PRP cache",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M2.T1.S1"],
+                  "dependencies": [
+                    "P5.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Generated PRPs should be cached across sessions to avoid re-generation.\n2. INPUT: PRP file storage in prps/ directory.\n3. LOGIC: Modify PRPGenerator class:\n   - Add method getCachePath(taskId: string): string - Returns {sessionPath}/prps/{taskId}.md\n   - Before generating PRP, check if file exists and is recent (<24 hours)\n   - If cached PRD unchanged (hash match) and PRP exists, load from disk\n   - Skip agent.prompt() call, return cached PRPDocument\n   - Log cache hits vs. misses\n   - Add --no-cache flag to bypass cache\n4. OUTPUT: PRP caching that reduces LLM calls for repeated tasks."
                 }
               ]
@@ -1062,7 +1180,9 @@
                   "title": "Batch state updates",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M2.T1.S2"],
+                  "dependencies": [
+                    "P5.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Frequent writeTasksJSON() calls are expensive. Should batch updates.\n2. INPUT: SessionManager with per-task status updates.\n3. LOGIC: Modify SessionManager class:\n   - Add property dirty: boolean = false, pendingUpdates: Backlog | null\n   - Modify updateItemStatus() to mark dirty = true, accumulate updates in pendingUpdates\n   - Add method flushUpdates(): Promise<void> - Write pendingUpdates to disk, reset dirty flag\n   - In TaskOrchestrator, batch status updates within a task, call flushUpdates() after task completes\n   - On shutdown, ensure flushUpdates() called\n   - Log batch write stats (items per write)\n4. OUTPUT: Batched state updates reducing I/O operations."
                 }
               ]
@@ -1098,7 +1218,9 @@
                   "title": "Create detailed user guide",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M3.T1.S1"],
+                  "dependencies": [
+                    "P5.M3.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Users need detailed documentation for advanced features.\n2. INPUT: All features documented in PRD and architecture.\n3. LOGIC: Create docs/user-guide.md:\n   - Writing PRDs section (structure, best practices)\n   - Session management overview\n   - Delta workflow guide with examples\n   - Scope-based execution examples\n   - QA and bug hunt workflow\n   - Troubleshooting common issues\n   - Performance tuning tips\n   - Migration guide from v0 (bash version)\n4. OUTPUT: Comprehensive user guide in docs/."
                 }
               ]
@@ -1116,7 +1238,9 @@
                   "title": "Create architecture documentation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M3.T1.S2"],
+                  "dependencies": [
+                    "P5.M3.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Contributors need to understand system design.\n2. INPUT: Existing architecture/ files from research phase.\n3. LOGIC: Create docs/architecture.md:\n   - System overview diagram (Mermaid)\n   - Four engines detailed explanation\n   - Data flow diagrams (PRD → Backlog → PRPs → Code)\n   - Component interaction diagrams\n   - Groundswell integration patterns\n   - Extensibility points (custom agents, tools)\n   - Link to generated API docs (TypeDoc)\n4. OUTPUT: Architecture documentation with diagrams."
                 },
                 {
@@ -1125,7 +1249,9 @@
                   "title": "Create contributor guide",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P5.M3.T2.S1"],
+                  "dependencies": [
+                    "P5.M3.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: New contributors need onboarding guidance.\n2. INPUT: Development workflow and codebase structure.\n3. LOGIC: Create docs/contributing.md:\n   - Development environment setup\n   - Code organization overview (src/ layout)\n   - Testing guide (unit, integration, E2E)\n   - Pull request process\n   - Code style guide (link to ESLint config)\n   - Adding new agent personas\n   - Adding new MCP tools\n   - Release process\n4. OUTPUT: Contributor guide enabling community contributions."
                 }
               ]
@@ -1161,7 +1287,9 @@
                   "title": "Implement retry logic",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M4.T1.S1"],
+                  "dependencies": [
+                    "P5.M4.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Transient failures (API timeouts) should retry with exponential backoff.\n2. INPUT: Error hierarchy. Agent prompt calls. MCP tool executions.\n3. LOGIC: Create src/utils/retry.ts:\n   - Export interface RetryOptions { maxAttempts: number, baseDelay: number, maxDelay: number }\n   - Export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>\n   - Implement exponential backoff: delay = baseDelay * 2^attempt\n   - Only retry on transient errors (network, timeout)\n   - Don't retry on validation errors or permanent failures\n   - Log retry attempts with warning level\n   - Wrap all agent.prompt() calls with retry()\n   - Wrap MCP tool executions with retry()\n4. OUTPUT: Retry logic with exponential backoff."
                 },
                 {
@@ -1170,7 +1298,9 @@
                   "title": "Add error recovery to pipeline",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M4.T1.S2"],
+                  "dependencies": [
+                    "P5.M4.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Pipeline should recover from errors and continue where possible.\n2. INPUT: Error hierarchy, retry logic, PRPPipeline.\n3. LOGIC: Modify PRPPipeline class:\n   - Wrap each @Step() in try-catch\n   - On error, log with full context using logger.error()\n   - Set task status to Failed, record error in context_scope\n   - Continue to next task if error is non-fatal\n   - On fatal errors (session corruption), abort pipeline\n   - Add --continue-on-error flag to treat all errors as non-fatal\n   - Generate error report at end if any failures\n   - Save error report to session directory\n4. OUTPUT: Robust error recovery that maximizes progress."
                 }
               ]
@@ -1188,7 +1318,9 @@
                   "title": "Handle empty and malformed PRDs",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M4.T1.S3"],
+                  "dependencies": [
+                    "P5.M4.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD might be missing, empty, or malformed. Should provide helpful errors.\n2. INPUT: PRD file path, PRD content.\n3. LOGIC: In SessionManager.initialize():\n   - Check if PRD file exists, throw SessionError if not\n   - Check if PRD is empty (< 100 chars), throw SessionError with helpful message\n   - Validate PRD has required sections (## Executive Summary, etc.)\n   - If malformed, suggest PRD template or example\n   - Add --validate-prd flag to check PRD without running pipeline\n   - Return validation result with specific issues\n4. OUTPUT: Helpful PRD validation with clear error messages."
                 },
                 {
@@ -1197,7 +1329,9 @@
                   "title": "Handle circular dependencies",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P5.M4.T2.S1"],
+                  "dependencies": [
+                    "P5.M4.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Tasks might have circular dependencies, causing deadlock.\n2. INPUT: Backlog with dependency arrays.\n3. LOGIC: Create src/core/dependency-validator.ts:\n   - Export function detectCircularDeps(backlog: Backlog): string[][] - Returns arrays of task IDs forming cycles\n   - Use depth-first search with visited and recursion stack tracking\n   - For each subtask, build dependency graph and detect cycles\n   - If cycles found, throw TaskError with cycle path\n   - Call this validator in SessionManager.initialize() after backlog creation\n   - Log warnings for non-circular but long dependency chains (>5 levels)\n4. OUTPUT: Circular dependency detection with helpful error messages."
                 },
                 {
@@ -1206,7 +1340,9 @@
                   "title": "Handle resource limits",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P5.M4.T2.S2"],
+                  "dependencies": [
+                    "P5.M4.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Long-running pipelines might hit system limits (file handles, memory).\n2. INPUT: Pipeline execution context.\n3. LOGIC: In PRPPipeline class:\n   - Monitor open file handles, warn if approaching ulimit\n   - Monitor memory usage, log warning if >80% of available\n   - Add --max-tasks flag to limit total tasks executed\n   - Add --max-duration flag to limit total runtime\n   - Gracefully stop when limits reached, save progress\n   - Suggest user increase limits or split PRD\n4. OUTPUT: Resource limit awareness and graceful degradation."
                 }
               ]
