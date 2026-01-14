@@ -11,11 +11,13 @@ The codebase has well-established patterns for testing agent functionality, cach
 ## 1. Test Structure and Organization
 
 ### File Location Patterns:
+
 - Unit tests: `tests/unit/agents/`, `tests/unit/core/`, `tests/unit/utils/`
 - Integration tests: `tests/integration/`
 - E2E tests: `tests/e2e/`
 
 ### Mock Pattern Used:
+
 ```typescript
 // Mock pattern with hoisting (top-level vi.mock)
 vi.mock('groundswell', async () => {
@@ -33,6 +35,7 @@ vi.mock('groundswell', async () => {
 ## 2. Cache Verification Patterns
 
 ### Pattern 1: Multiple Call Verification (Research Queue)
+
 From `tests/unit/core/research-queue.test.ts`:
 
 ```typescript
@@ -53,6 +56,7 @@ it('should return cached result immediately', async () => {
 ```
 
 ### Pattern 2: Agent Factory Cache Configuration
+
 From `tests/unit/agents/agent-factory.test.ts`:
 
 ```typescript
@@ -72,6 +76,7 @@ it('should enable cache and reflection for all personas', () => {
 ## 3. Timing Assertion Patterns
 
 ### Pattern 1: performance.now() for High Precision
+
 From `tests/e2e/delta.test.ts`:
 
 ```typescript
@@ -89,6 +94,7 @@ console.log(`Test completed in ${totalDuration.toFixed(0)}ms`);
 ```
 
 ### Pattern 2: Date.now() for Simple Timing
+
 From research-queue tests:
 
 ```typescript
@@ -100,6 +106,7 @@ expect(elapsed).toBeLessThan(10); // Instant response threshold
 ```
 
 ### Pattern 3: Fake Timers for Controlled Timing
+
 From `tests/unit/utils/progress.test.ts`:
 
 ```typescript
@@ -122,6 +129,7 @@ try {
 ## 4. Logging Verification Patterns
 
 ### Pattern 1: Spy on Logger Methods
+
 From `tests/unit/utils/progress.test.ts`:
 
 ```typescript
@@ -141,6 +149,7 @@ expect(logData.completed).toBe(1);
 ```
 
 ### Pattern 2: Logger Cache Verification
+
 From `tests/unit/logger.test.ts`:
 
 ```typescript
@@ -306,6 +315,7 @@ describe('Agent Cache Verification', () => {
 ## 7. Observability Patterns
 
 For logging cache hit rates:
+
 ```typescript
 const totalCalls = 10;
 const cacheHits = 7;
@@ -320,6 +330,7 @@ console.log(`Cache performance: ${hitRate.toFixed(1)}% hit rate`);
 ## 8. Mock/Stub Patterns
 
 Common patterns used:
+
 - `vi.fn().mockResolvedValue()` for async operations
 - `vi.spyOn()` for method call verification
 - `vi.clearAllMocks()` in `afterEach`

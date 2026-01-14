@@ -1066,7 +1066,7 @@
           "type": "Milestone",
           "id": "P5.M1",
           "title": "Milestone 5.1: Observability and Logging",
-          "status": "Implementing",
+          "status": "Planned",
           "description": "Implement structured logging, metrics collection, and progress reporting.",
           "tasks": [
             {
@@ -1102,14 +1102,14 @@
               "type": "Task",
               "id": "P5.M1.T2",
               "title": "Implement Progress Reporting",
-              "status": "Implementing",
+              "status": "Planned",
               "description": "Create real-time progress indicators for pipeline execution.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P5.M1.T2.S1",
                   "title": "Create progress tracker",
-                  "status": "Implementing",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M1.T1.S2"
@@ -1120,7 +1120,7 @@
                   "type": "Subtask",
                   "id": "P5.M1.T2.S2",
                   "title": "Integrate progress with pipeline",
-                  "status": "Implementing",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P5.M1.T2.S1"
@@ -1149,7 +1149,7 @@
                   "type": "Subtask",
                   "id": "P5.M2.T1.S1",
                   "title": "Verify Groundswell cache configuration",
-                  "status": "Researching",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From groundswell_api.md - enableCache: true provides SHA-256 based caching.\n2. INPUT: Agent factory createAgent() calls.\n3. LOGIC: Review all agent creation sites:\n   - Verify all agents have enableCache: true\n   - Test cache by making identical prompt calls twice\n   - Assert second call returns instantly (from cache)\n   - Log cache hit rate for observability\n   - Document cache behavior in architecture notes\n4. OUTPUT: Verified caching with documented hit rates."

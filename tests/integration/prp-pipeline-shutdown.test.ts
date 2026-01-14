@@ -777,9 +777,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       await pipeline.run();
 
       // VERIFY - Cleanup should have run without error
-      expect(infoSpy).toHaveBeenCalledWith(
-        '[PRPPipeline] Cleanup complete'
-      );
+      expect(infoSpy).toHaveBeenCalledWith('[PRPPipeline] Cleanup complete');
 
       infoSpy.mockRestore();
     });

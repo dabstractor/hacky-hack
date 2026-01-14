@@ -9,6 +9,7 @@ This document contains research findings on how architecture notes are documente
 ## 1. Primary Architecture Documentation Location
 
 Architecture notes are primarily stored in:
+
 - **`/home/dustin/projects/hacky-hack/plan/{sequence}_{hash}/architecture/`** - Main architectural documentation
 - **`/home/dustin/projects/hacky-hack/README.md`** - High-level system overview
 - **Individual PRP documents** - Contain architecture-related implementation details
@@ -20,6 +21,7 @@ Architecture notes are primarily stored in:
 The codebase follows a consistent pattern for architecture documentation:
 
 ### A. Architecture Directory Structure
+
 ```
 plan/001_14b9dc2a33c7/architecture/
 ├── environment_config.md     - Environment setup and configuration
@@ -28,7 +30,9 @@ plan/001_14b9dc2a33c7/architecture/
 ```
 
 ### B. Documentation Template Pattern
+
 Each architecture document follows this structure:
+
 - **H1**: Main title (e.g., "Environment Configuration Guide")
 - **H2**: Major sections (Overview, Implementation, Configuration, etc.)
 - **H3**: Detailed subsections with specific implementation details
@@ -45,16 +49,19 @@ Based on search results, **cache behavior documentation should go into**:
 ### Primary Location: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/`
 
 Specifically, cache behavior should be documented in a new file:
+
 - **`/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/cache_behavior.md`**
 
 ### Cache-Related Content Found:
 
 **Groundswell API** mentions caching in `architecture/groundswell_api.md`:
+
 - Built-in LLM response caching with SHA-256 keys
 - `enableCache: true` configuration option
 - Automatic cache invalidation on prompt changes
 
 **Environment config** references caching in `architecture/environment_config.md`:
+
 - `enableCache: true` in configuration mapping
 
 ---
@@ -64,27 +71,33 @@ Specifically, cache behavior should be documented in a new file:
 The codebase has comprehensive observability documentation:
 
 ### A. Logging and Observability Patterns
+
 Location: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P3M2T1S3/research/logging_observability_research.md`
 
 Key findings:
+
 - **Structured logging format**: JSON with correlation IDs
 - **Status transition logging**: Comprehensive state change tracking
 - **Error message templates**: Standardized error formatting
 - **Bracketed log format**: Consistent [Component] prefix pattern
 
 ### B. Status Tracking Research
+
 Location: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P3M2T1S3/research/status_tracking_research.md`
 
 Key findings:
+
 - **State machine patterns**: Finite state machine for task status
 - **Transition validation**: Safe state change validation
 - **Metrics collection**: Performance and dependency tracking
 - **Distributed tracing**: Event logging for state transitions
 
 ### C. Progress Integration Patterns
+
 Location: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P5M1T2S2/research/external-progress-integration-patterns.md`
 
 Key findings:
+
 - **ETA calculation algorithms**: Exponential moving average
 - **Progress display best practices**: N-task interval recommendations
 - **Shutdown handling**: Graceful degradation patterns
@@ -96,46 +109,69 @@ Key findings:
 For P5.M2.T1.S1 (cache behavior documentation), follow these patterns:
 
 ### A. Header Structure
+
 ```markdown
 # Cache Behavior Guide
 
 ## Overview
+
 ### Executive Summary
+
 ### Current State Assessment
+
 ### Known Issues
 
 ## Cache Architecture
+
 ### Cache Layers
+
 ### Data Flow
+
 ### Invalidation Strategy
 
 ## Configuration
+
 ### Environment Variables
+
 ### Runtime Options
+
 ### Cache Size Limits
 
 ## Performance Characteristics
+
 ### Hit/Miss Ratios
+
 ### Latency Metrics
+
 ### Memory Usage
 
 ## Monitoring and Observability
+
 ### Cache Metrics
+
 ### Logging Patterns
+
 ### Alert Conditions
 
 ## Implementation Details
+
 ### Cache Key Strategy
+
 ### Expiration Policies
+
 ### Eviction Policies
 
 ## Troubleshooting
+
 ### Common Issues
+
 ### Debug Patterns
+
 ### Performance Tuning
 ```
 
 ### B. Content Patterns
+
 - **Technical specifications**: Use code blocks for API definitions
 - **Configuration options**: Use tables for settings and defaults
 - **Implementation patterns**: Use numbered lists for step-by-step guidance
@@ -147,6 +183,7 @@ For P5.M2.T1.S1 (cache behavior documentation), follow these patterns:
 ## 6. Integration Points
 
 The architecture documentation integrates with:
+
 - **PRP documents**: Reference architectural decisions from PRPs
 - **Research documents**: Link to detailed research findings
 - **Implementation code**: Connect to actual code in `src/` directory
@@ -157,22 +194,29 @@ The architecture documentation integrates with:
 ## 7. Example of Existing Architecture Documentation
 
 From `architecture/environment_config.md`:
+
 ```markdown
 # Environment Configuration Guide
 
 ## Shell Environment
+
 ### Environment Variables
+
 #### Authentication
+
 - ANTHROPIC_API_KEY: Anthropic API authentication
 - ZAI_API_KEY: z.ai API authentication
 
 ## Configuration Implementation
+
 ### Environment Variable Mapping
+
 - NODE_ENV: Application runtime environment
 - DEBUG: Enable verbose logging
 ```
 
 This pattern shows:
+
 - Clear hierarchy (H2 > H3 > H4)
 - Practical implementation details
 - Specific configuration examples

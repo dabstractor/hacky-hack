@@ -26,6 +26,7 @@ description: |
 **Target User**: Developers and operators monitoring pipeline performance and API costs.
 
 **Use Case**: A developer needs to verify that the Groundswell caching system is working correctly to:
+
 - Reduce LLM API costs by serving cached responses
 - Improve pipeline execution speed through cache hits
 - Monitor cache effectiveness through structured logs
@@ -315,7 +316,7 @@ interface AgentConfig {
   name: string;
   system: string;
   model: string;
-  enableCache: boolean;          // Cache configuration flag
+  enableCache: boolean; // Cache configuration flag
   enableReflection: boolean;
   maxTokens: number;
   temperature: number;
@@ -327,14 +328,14 @@ interface CacheMetrics {
   readonly totalCalls: number;
   readonly cacheHits: number;
   readonly cacheMisses: number;
-  readonly hitRate: number;      // Percentage (0-100)
-  readonly avgLatency: number;   // Milliseconds
+  readonly hitRate: number; // Percentage (0-100)
+  readonly avgLatency: number; // Milliseconds
 }
 
 // Test timing result:
 interface TimingResult {
   readonly callNumber: number;
-  readonly duration: number;     // Milliseconds
+  readonly duration: number; // Milliseconds
   readonly fromCache: boolean;
 }
 ```
@@ -522,7 +523,8 @@ describe('Agent Cache Verification', () => {
     // VERIFY: Log was called with cache metrics
     expect(infoSpy).toHaveBeenCalled();
     const logCall = infoSpy.mock.calls.find(
-      call => call[1]?.includes('Cache metrics') || call[0]?.hitRate !== undefined
+      call =>
+        call[1]?.includes('Cache metrics') || call[0]?.hitRate !== undefined
     );
 
     expect(logCall).toBeDefined();
