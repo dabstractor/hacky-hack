@@ -18,8 +18,9 @@ import type { Agent } from 'groundswell';
 import type { PRPDocument, Task, Subtask, Backlog } from '../core/models.js';
 import { PRPDocumentSchema } from '../core/models.js';
 import type { SessionManager } from '../core/session-manager.js';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { createHash } from 'node:crypto';
 
 /**
  * Custom error for PRP generation failures
@@ -85,6 +86,22 @@ export class PRPFileError extends Error {
 }
 
 /**
+ * Cache metadata for PRP storage
+ *
+ * @remarks
+ * Stored alongside PRP markdown files in prps/.cache/ directory.
+ * Tracks task hash for change detection and timestamps for TTL expiration.
+ */
+interface PRPCacheMetadata {
+  readonly taskId: string;
+  readonly taskHash: string;
+  readonly createdAt: number;
+  readonly accessedAt: number;
+  readonly version: string;
+  readonly prp: PRPDocument;
+}
+
+/**
  * PRP Generator for automated Product Requirement Prompt creation
  *
  * @remarks
@@ -120,20 +137,34 @@ export class PRPGenerator {
   /** Cached Researcher Agent instance */
   #researcherAgent: Agent;
 
+  /** Cache bypass flag from CLI --no-cache */
+  readonly #noCache: boolean;
+
+  /** Cache hit counter for metrics */
+  #cacheHits: number = 0;
+
+  /** Cache miss counter for metrics */
+  #cacheMisses: number = 0;
+
+  /** Cache TTL in milliseconds (24 hours) */
+  readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
   /**
    * Creates a new PRPGenerator instance
    *
    * @param sessionManager - Session state manager
+   * @param noCache - Whether to bypass cache (default: false)
    * @throws {Error} If no session is currently loaded
    *
    * @example
    * ```typescript
-   * const generator = new PRPGenerator(sessionManager);
+   * const generator = new PRPGenerator(sessionManager, false);
    * ```
    */
-  constructor(sessionManager: SessionManager) {
+  constructor(sessionManager: SessionManager, noCache: boolean = false) {
     this.#logger = getLogger('PRPGenerator');
     this.sessionManager = sessionManager;
+    this.#noCache = noCache;
 
     // Extract session path from current session
     const currentSession = sessionManager.currentSession;
@@ -144,6 +175,202 @@ export class PRPGenerator {
 
     // Cache Researcher Agent for reuse
     this.#researcherAgent = createResearcherAgent();
+  }
+
+  /**
+   * Gets the file path for a cached PRP markdown file
+   *
+   * @param taskId - The task ID (e.g., "P1.M1.T1.S1")
+   * @returns Absolute path to PRP markdown file
+   *
+   * @remarks
+   * Sanitizes taskId by replacing dots with underscores for filename.
+   * Matches the format used by #writePRPToFile().
+   */
+  getCachePath(taskId: string): string {
+    const sanitized = taskId.replace(/\./g, '_');
+    return join(this.sessionPath, 'prps', `${sanitized}.md`);
+  }
+
+  /**
+   * Gets the file path for cache metadata JSON
+   *
+   * @param taskId - The task ID (e.g., "P1.M1.T1.S1")
+   * @returns Absolute path to cache metadata JSON file
+   *
+   * @remarks
+   * Cache metadata is stored in prps/.cache/ subdirectory.
+   * Contains task hash, timestamps, and full PRPDocument for easy retrieval.
+   */
+  getCacheMetadataPath(taskId: string): string {
+    const sanitized = taskId.replace(/\./g, '_');
+    return join(this.sessionPath, 'prps', '.cache', `${sanitized}.json`);
+  }
+
+  /**
+   * Computes SHA-256 hash of task inputs for change detection
+   *
+   * @param task - The Task or Subtask to hash
+   * @param backlog - The full Backlog (not used in hash, only Task inputs)
+   * @returns Hexadecimal SHA-256 hash string
+   *
+   * @remarks
+   * Includes only fields that affect PRP output.
+   * For Task: id, title, description
+   * For Subtask: id, title, context_scope
+   * Excludes fields that don't affect PRP content: status, dependencies, story_points.
+   * Uses deterministic JSON serialization (no whitespace) for consistent hashing.
+   */
+  #computeTaskHash(task: Task | Subtask, _backlog: Backlog): string {
+    // Build input object based on type
+    let input: Record<string, unknown>;
+
+    if (task.type === 'Task') {
+      // Task has: id, title, description
+      input = {
+        id: task.id,
+        title: task.title,
+        description: (task as Task).description,
+      };
+    } else {
+      // Subtask has: id, title, context_scope
+      input = {
+        id: task.id,
+        title: task.title,
+        context_scope: (task as Subtask).context_scope,
+      };
+    }
+
+    // Deterministic JSON serialization (no whitespace)
+    const jsonString = JSON.stringify(input, null, 0);
+
+    // SHA-256 hash for collision resistance
+    return createHash('sha256').update(jsonString).digest('hex');
+  }
+
+  /**
+   * Checks if a cache file is recent enough to use
+   *
+   * @param filePath - Path to the cache file
+   * @returns true if file exists and is younger than TTL, false otherwise
+   *
+   * @remarks
+   * Uses file modification time (mtime) to determine age.
+   * Returns false for ENOENT (file doesn't exist) or any other error.
+   * TTL is 24 hours (86400000 ms) as defined in CACHE_TTL_MS.
+   */
+  async #isCacheRecent(filePath: string): Promise<boolean> {
+    try {
+      const stats = await stat(filePath);
+      const age = Date.now() - stats.mtimeMs;
+      return age < this.CACHE_TTL_MS;
+    } catch {
+      // File doesn't exist or can't be read
+      return false;
+    }
+  }
+
+  /**
+   * Loads a cached PRP from disk
+   *
+   * @param taskId - The task ID to load from cache
+   * @returns Cached PRPDocument, or null if not found/invalid
+   *
+   * @remarks
+   * Reads cache metadata JSON and validates the PRPDocument.
+   * Returns null for any error (missing file, invalid JSON, schema validation failure).
+   */
+  async #loadCachedPRP(taskId: string): Promise<PRPDocument | null> {
+    try {
+      const metadataPath = this.getCacheMetadataPath(taskId);
+      const metadataContent = await readFile(metadataPath, 'utf-8');
+      const metadata: PRPCacheMetadata = JSON.parse(metadataContent);
+
+      // Validate against schema
+      return PRPDocumentSchema.parse(metadata.prp);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Saves cache metadata after PRP generation
+   *
+   * @param taskId - The task ID
+   * @param taskHash - Hash of task inputs for change detection
+   * @param prp - The generated PRPDocument
+   * @throws {Error} If directory creation or file write fails
+   *
+   * @remarks
+   * Creates .cache directory if it doesn't exist.
+   * Stores full PRPDocument in metadata for easy retrieval.
+   * Updates accessedAt timestamp for cache age tracking.
+   */
+  async #saveCacheMetadata(
+    taskId: string,
+    taskHash: string,
+    prp: PRPDocument
+  ): Promise<void> {
+    const metadataPath = this.getCacheMetadataPath(taskId);
+    const cacheDir = dirname(metadataPath);
+
+    // Create .cache directory if missing
+    await mkdir(cacheDir, { recursive: true });
+
+    const now = Date.now();
+    const metadata: PRPCacheMetadata = {
+      taskId,
+      taskHash,
+      createdAt: now,
+      accessedAt: now,
+      version: '1.0',
+      prp,
+    };
+
+    await writeFile(metadataPath, JSON.stringify(metadata, null, 2), {
+      mode: 0o644,
+    });
+  }
+
+  /**
+   * Loads cache metadata for hash verification
+   *
+   * @param taskId - The task ID
+   * @returns Cache metadata, or null if not found/invalid
+   *
+   * @remarks
+   * Separate from #loadCachedPRP() to allow hash checking before
+   * loading the full PRPDocument.
+   */
+  async #loadCacheMetadata(taskId: string): Promise<PRPCacheMetadata | null> {
+    try {
+      const metadataPath = this.getCacheMetadataPath(taskId);
+      const metadataContent = await readFile(metadataPath, 'utf-8');
+      return JSON.parse(metadataContent) as PRPCacheMetadata;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Logs cache metrics for monitoring
+   *
+   * @remarks
+   * Logs hits, misses, and hit ratio percentage.
+   * Follows TaskOrchestrator pattern from task-orchestrator.ts.
+   */
+  #logCacheMetrics(): void {
+    const total = this.#cacheHits + this.#cacheMisses;
+    const hitRatio = total > 0 ? (this.#cacheHits / total) * 100 : 0;
+
+    this.#logger.info(
+      {
+        hits: this.#cacheHits,
+        misses: this.#cacheMisses,
+        hitRatio: hitRatio.toFixed(1),
+      },
+      'PRP cache metrics'
+    );
   }
 
   /**
@@ -173,6 +400,35 @@ export class PRPGenerator {
    * ```
    */
   async generate(task: Task | Subtask, backlog: Backlog): Promise<PRPDocument> {
+    // Cache checking: Check disk cache before LLM call
+    if (!this.#noCache) {
+      const cachePath = this.getCachePath(task.id);
+      const currentHash = this.#computeTaskHash(task, backlog);
+
+      // Check if cached PRP exists and is recent
+      if (await this.#isCacheRecent(cachePath)) {
+        const cachedPRP = await this.#loadCachedPRP(task.id);
+
+        // Verify hash matches (task hasn't changed)
+        if (cachedPRP) {
+          const cachedMetadata = await this.#loadCacheMetadata(task.id);
+          if (cachedMetadata?.taskHash === currentHash) {
+            // CACHE HIT
+            this.#cacheHits++;
+            this.#logger.info({ taskId: task.id }, 'PRP cache HIT');
+            this.#logCacheMetrics();
+            return cachedPRP;
+          }
+        }
+      }
+
+      // CACHE MISS (hash mismatch or file expired)
+      this.#cacheMisses++;
+      this.#logger.debug({ taskId: task.id }, 'PRP cache MISS');
+    } else {
+      this.#logger.debug('Cache bypassed via --no-cache flag');
+    }
+
     // Retry configuration (from external research)
     const maxRetries = 3;
     const baseDelay = 1000; // 1 second
@@ -196,6 +452,12 @@ export class PRPGenerator {
 
         // Step 4: Write PRP to file (throws PRPFileError directly on failure)
         await this.#writePRPToFile(validated);
+
+        // Step 5: Save cache metadata if cache is enabled
+        if (!this.#noCache) {
+          const currentHash = this.#computeTaskHash(task, backlog);
+          await this.#saveCacheMetadata(task.id, currentHash, validated);
+        }
 
         return validated;
       } catch (error) {

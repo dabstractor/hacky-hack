@@ -31,6 +31,11 @@ Thumbs.db
 # Session management (keep structure, ignore temp files if needed)
 # Keep only current session (001_14b9dc2a33c7) and tracked session 002
 # Ignore all other plan/001_* session directories except exceptions
+plan/001_*/
+!plan/001_14b9dc2a33c7/
+plan/002_*/
+plan/003_*/
+plan/004_*/
 
 # TypeScript build artifacts
 *.tsbuildinfo

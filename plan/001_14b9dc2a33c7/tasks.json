@@ -1135,14 +1135,14 @@
           "type": "Milestone",
           "id": "P5.M2",
           "title": "Milestone 5.2: Performance Optimization",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Optimize slow operations, reduce API costs, and improve throughput.",
           "tasks": [
             {
               "type": "Task",
               "id": "P5.M2.T1",
               "title": "Optimize LLM Caching",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Ensure Groundswell caching is enabled and working effectively.",
               "subtasks": [
                 {
@@ -1158,7 +1158,7 @@
                   "type": "Subtask",
                   "id": "P5.M2.T1.S2",
                   "title": "Implement PRP cache",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M2.T1.S1"
@@ -1171,14 +1171,14 @@
               "type": "Task",
               "id": "P5.M2.T2",
               "title": "Optimize I/O Operations",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Reduce filesystem overhead and improve state management performance.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P5.M2.T2.S1",
                   "title": "Batch state updates",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M2.T1.S2"

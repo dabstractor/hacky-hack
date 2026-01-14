@@ -64,6 +64,9 @@ export class ResearchQueue {
   /** Max concurrent PRP generations */
   readonly maxSize: number;
 
+  /** Cache bypass flag from CLI --no-cache */
+  readonly #noCache: boolean;
+
   /** PRP generator instance */
   readonly #prpGenerator: PRPGenerator;
 
@@ -81,13 +84,19 @@ export class ResearchQueue {
    *
    * @param sessionManager - Session state manager
    * @param maxSize - Max concurrent PRP generations (default 3)
+   * @param noCache - Whether to bypass cache (default: false)
    * @throws {Error} If no session is active in SessionManager
    */
-  constructor(sessionManager: SessionManager, maxSize: number = 3) {
+  constructor(
+    sessionManager: SessionManager,
+    maxSize: number = 3,
+    noCache: boolean = false
+  ) {
     this.#logger = getLogger('ResearchQueue');
     this.sessionManager = sessionManager;
     this.maxSize = maxSize;
-    this.#prpGenerator = new PRPGenerator(sessionManager);
+    this.#noCache = noCache;
+    this.#prpGenerator = new PRPGenerator(sessionManager, noCache);
   }
 
   /**

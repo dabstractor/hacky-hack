@@ -148,6 +148,9 @@ export class PRPPipeline extends Workflow {
   /** Optional scope for limiting execution */
   readonly #scope?: Scope;
 
+  /** Cache bypass flag from CLI --no-cache */
+  readonly #noCache: boolean;
+
   /** Pipeline start time for duration calculation */
   #startTime: number = 0;
 
@@ -179,12 +182,14 @@ export class PRPPipeline extends Workflow {
    * @param prdPath - Path to PRD markdown file
    * @param scope - Optional scope to limit execution
    * @param mode - Execution mode: 'normal', 'bug-hunt', or 'validate' (default: 'normal')
+   * @param noCache - Whether to bypass PRP cache (default: false)
    * @throws {Error} If prdPath is empty
    */
   constructor(
     prdPath: string,
     scope?: Scope,
-    mode?: 'normal' | 'bug-hunt' | 'validate'
+    mode?: 'normal' | 'bug-hunt' | 'validate',
+    noCache: boolean = false
   ) {
     super('PRPPipeline');
 
@@ -198,6 +203,7 @@ export class PRPPipeline extends Workflow {
     this.#prdPath = prdPath;
     this.#scope = scope;
     this.mode = mode ?? 'normal';
+    this.#noCache = noCache;
 
     // SessionManager will be created in run() to catch initialization errors
     this.sessionManager = null as any;
@@ -300,7 +306,8 @@ export class PRPPipeline extends Workflow {
       // Create TaskOrchestrator now that session is initialized
       this.taskOrchestrator = new TaskOrchestratorClass(
         this.sessionManager,
-        this.#scope
+        this.#scope,
+        this.#noCache
       );
 
       // Check for PRD changes and handle delta if needed

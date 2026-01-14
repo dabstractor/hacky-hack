@@ -85,11 +85,15 @@ export class TaskOrchestrator {
   #cacheHits: number = 0;
   #cacheMisses: number = 0;
 
+  /** Cache bypass flag from CLI --no-cache */
+  readonly #noCache: boolean;
+
   /**
    * Creates a new TaskOrchestrator instance
    *
    * @param sessionManager - Session state manager for persistence
    * @param scope - Optional scope to limit execution (defaults to all items)
+   * @param noCache - Whether to bypass cache (default: false)
    * @throws {Error} If sessionManager.currentSession is null
    *
    * @remarks
@@ -97,9 +101,14 @@ export class TaskOrchestrator {
    * When scope is undefined, all items in the backlog will be executed.
    * The execution queue is populated by resolving the scope against the backlog.
    */
-  constructor(sessionManager: SessionManager, scope?: Scope) {
+  constructor(
+    sessionManager: SessionManager,
+    scope?: Scope,
+    noCache: boolean = false
+  ) {
     this.#logger = getLogger('TaskOrchestrator');
     this.sessionManager = sessionManager;
+    this.#noCache = noCache;
 
     // Load initial backlog from session state
     const currentSession = sessionManager.currentSession;
@@ -114,7 +123,11 @@ export class TaskOrchestrator {
     this.#executionQueue = this.#buildQueue(scope);
 
     // Initialize ResearchQueue with concurrency limit of 3
-    this.researchQueue = new ResearchQueue(this.sessionManager, 3);
+    this.researchQueue = new ResearchQueue(
+      this.sessionManager,
+      3,
+      this.#noCache
+    );
     this.#logger.debug({ maxSize: 3 }, 'ResearchQueue initialized');
 
     // Initialize PRPRuntime for execution

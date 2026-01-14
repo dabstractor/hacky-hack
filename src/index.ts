@@ -137,7 +137,7 @@ async function main(): Promise<number> {
   if (args.verbose) {
     logger.debug('Creating PRPPipeline instance');
   }
-  const pipeline = new PRPPipeline(args.prd, scope, args.mode);
+  const pipeline = new PRPPipeline(args.prd, scope, args.mode, args.noCache);
 
   // Run pipeline
   if (args.verbose) {

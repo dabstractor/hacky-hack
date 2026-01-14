@@ -70,6 +70,9 @@ export interface CLIArgs {
 
   /** Enable machine-readable JSON output */
   machineReadable: boolean;
+
+  /** Bypass PRP cache and regenerate all PRPs */
+  noCache: boolean;
 }
 
 // ===== MAIN FUNCTION =====
@@ -120,6 +123,7 @@ export function parseCLIArgs(): CLIArgs {
     .option('--dry-run', 'Show plan without executing', false)
     .option('--verbose', 'Enable debug logging', false)
     .option('--machine-readable', 'Enable machine-readable JSON output', false)
+    .option('--no-cache', 'Bypass cache and regenerate all PRPs', false)
     .parse(process.argv);
 
   // Get typed options
