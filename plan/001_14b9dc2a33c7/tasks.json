@@ -1200,14 +1200,14 @@
               "type": "Task",
               "id": "P5.M3.T1",
               "title": "Write User Documentation",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create comprehensive user guides and API documentation.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P5.M3.T1.S1",
                   "title": "Create README.md",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: README is user's first introduction. Must be comprehensive and clear.\n2. INPUT: Understanding of entire system from architecture docs.\n3. LOGIC: Create README.md:\n   - Project title and brief description\n   - Features list (4 engines, delta sessions, QA bug hunt)\n   - Quick Start guide (prerequisites, install, run)\n   - Usage examples (basic, scoped, delta, bug-hunt)\n   - Configuration guide (environment variables, models)\n   - Architecture overview link to docs/\n   - Contributing guidelines\n   - License information\n   - Badges (build status, coverage, version)\n4. OUTPUT: Professional README.md with all sections."
@@ -1216,7 +1216,7 @@
                   "type": "Subtask",
                   "id": "P5.M3.T1.S2",
                   "title": "Create detailed user guide",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M3.T1.S1"
