@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Milestone 1.1: Groundswell Dependency Resolution",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Establish proper Groundswell dependency link and verify all imports resolve correctly",
           "tasks": [
             {
@@ -91,7 +91,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Verify TypeScript compilation after Groundswell link",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Run TypeScript compiler to verify all Groundswell imports resolve and no compilation errors remain",
               "subtasks": [
                 {
@@ -129,7 +129,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S4",
                   "title": "Document compilation success in build log",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T2.S3"
@@ -158,7 +158,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Execute CLI with --help flag",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: CLI entry point is src/index.ts, uses Commander.js per architecture/system_context.md\n2. INPUT: None - assumes P1.M1 (Groundswell link) complete\n3. LOGIC: Execute bash: `npm run dev -- --help`. Capture stdout and stderr. Look for help output sections (Usage, Options, Commands). Check return code. Mock for testing.\n4. OUTPUT: Return { success: boolean, output: string, hasHelp: boolean }. Success if return code is 0 and output contains expected help text."
