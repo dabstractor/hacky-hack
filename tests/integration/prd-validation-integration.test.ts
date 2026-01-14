@@ -123,7 +123,7 @@ This PRD is missing required sections.
       expect(result.summary.warning).toBe(3);
 
       const structureIssues = result.issues.filter(
-        (i) => i.category === 'structure'
+        i => i.category === 'structure'
       );
       expect(structureIssues.length).toBe(3);
     });

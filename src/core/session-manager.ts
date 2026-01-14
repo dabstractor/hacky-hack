@@ -47,6 +47,7 @@ import {
 } from '../utils/task-utils.js';
 import { PRDValidator } from '../utils/prd-validator.js';
 import { ValidationError } from '../utils/errors.js';
+import { detectCircularDeps } from './dependency-validator.js';
 
 /**
  * Compiled regex for session directory matching
@@ -253,6 +254,27 @@ export class SessionManager {
     if (existingSession) {
       // 4. Load existing session
       this.#currentSession = await this.loadSession(existingSession);
+
+      // 4.5. Validate dependencies if backlog exists
+      if (this.#currentSession.taskRegistry.backlog.length > 0) {
+        try {
+          detectCircularDeps(this.#currentSession.taskRegistry);
+          this.#logger.info('[SessionManager] Dependency validation passed');
+        } catch (error) {
+          if (error instanceof ValidationError) {
+            this.#logger.error(
+              {
+                cyclePath: error.context?.cyclePath,
+                code: error.code,
+              },
+              '[SessionManager] Circular dependency detected'
+            );
+            throw error; // Re-throw with context
+          }
+          throw error; // Re-throw other errors
+        }
+      }
+
       this.#logger.info(
         { sessionId: this.#currentSession.metadata.id, prdPath: this.prdPath },
         'Session loaded'
@@ -286,6 +308,24 @@ export class SessionManager {
       taskRegistry: { backlog: [] }, // Empty until Architect Agent generates
       currentItemId: null,
     };
+
+    // 7.5. Validate dependencies (will pass for empty backlog)
+    try {
+      detectCircularDeps(this.#currentSession.taskRegistry);
+      this.#logger.info('[SessionManager] Dependency validation passed');
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        this.#logger.error(
+          {
+            cyclePath: error.context?.cyclePath,
+            code: error.code,
+          },
+          '[SessionManager] Circular dependency detected'
+        );
+        throw error; // Re-throw with context
+      }
+      throw error; // Re-throw other errors
+    }
 
     this.#logger.info({ sessionId, sessionPath }, 'Session created');
     return this.#currentSession;

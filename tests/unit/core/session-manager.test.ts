@@ -69,6 +69,7 @@ vi.mock('../../../src/core/session-utils.js', () => ({
 vi.mock('../../../src/utils/task-utils.js', () => ({
   updateItemStatus: vi.fn(),
   findItem: vi.fn(),
+  getAllSubtasks: vi.fn(() => []),
 }));
 
 // Mock the prd-validator module

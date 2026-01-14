@@ -142,6 +142,46 @@ export function getDependencies(task: Subtask, backlog: Backlog): Subtask[] {
 }
 
 /**
+ * Extract all Subtask objects from a backlog
+ *
+ * @param backlog - The backlog to extract subtasks from
+ * @returns Flat array of all Subtask objects in the backlog
+ *
+ * @remarks
+ * Recursively traverses Phase > Milestone > Task > Subtask hierarchy
+ * and returns a flat array of all Subtask objects. This is useful for
+ * operations that need to work with all subtasks, such as building
+ * dependency graphs or computing aggregate statistics.
+ *
+ * Returns empty array if backlog contains no phases or subtasks.
+ *
+ * @example
+ * ```typescript
+ * const allSubtasks = getAllSubtasks(backlog);
+ * console.log(`Total subtasks: ${allSubtasks.length}`);
+ *
+ * // Build dependency graph
+ * const graph = Object.fromEntries(
+ *   allSubtasks.map(s => [s.id, s.dependencies])
+ * );
+ * ```
+ */
+export function getAllSubtasks(backlog: Backlog): Subtask[] {
+  const allSubtasks: Subtask[] = [];
+
+  for (const phase of backlog.backlog) {
+    for (const milestone of phase.milestones) {
+      for (const task of milestone.tasks) {
+        // Collect all subtasks from this task
+        allSubtasks.push(...task.subtasks);
+      }
+    }
+  }
+
+  return allSubtasks;
+}
+
+/**
  * Return all items with the given status across all hierarchy levels
  *
  * @param backlog - The backlog to search

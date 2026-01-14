@@ -1059,7 +1059,7 @@
       "type": "Phase",
       "id": "P5",
       "title": "Phase 5: Polish & Documentation",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Complete documentation, add observability, optimize performance, and prepare for production use.",
       "milestones": [
         {
@@ -1262,7 +1262,7 @@
           "type": "Milestone",
           "id": "P5.M4",
           "title": "Milestone 5.4: Production Readiness",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Final polish: error handling, edge cases, and production configuration.",
           "tasks": [
             {
@@ -1309,7 +1309,7 @@
               "type": "Task",
               "id": "P5.M4.T2",
               "title": "Edge Case Handling",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Handle edge cases and boundary conditions.",
               "subtasks": [
                 {
@@ -1327,7 +1327,7 @@
                   "type": "Subtask",
                   "id": "P5.M4.T2.S2",
                   "title": "Handle circular dependencies",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M4.T2.S1"
@@ -1338,7 +1338,7 @@
                   "type": "Subtask",
                   "id": "P5.M4.T2.S3",
                   "title": "Handle resource limits",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P5.M4.T2.S2"

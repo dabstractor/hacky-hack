@@ -75,6 +75,8 @@ export const ErrorCodes = {
   PIPELINE_VALIDATION_INVALID_INPUT: 'PIPELINE_VALIDATION_INVALID_INPUT',
   PIPELINE_VALIDATION_MISSING_FIELD: 'PIPELINE_VALIDATION_MISSING_FIELD',
   PIPELINE_VALIDATION_SCHEMA_FAILED: 'PIPELINE_VALIDATION_SCHEMA_FAILED',
+  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY:
+    'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
 } as const;
 
 /**
@@ -431,11 +433,31 @@ export class AgentError extends PipelineError {
  * ```
  */
 export class ValidationError extends PipelineError {
-  readonly code = ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT;
+  readonly code: ErrorCode;
 
-  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
+  constructor(
+    message: string,
+    context?: PipelineErrorContext,
+    errorCodeOrCause?: ErrorCode | Error
+  ) {
+    // Determine if third argument is an error code or a cause
+    let errorCode: ErrorCode;
+    let cause: Error | undefined;
+
+    if (errorCodeOrCause) {
+      if (typeof errorCodeOrCause === 'string') {
+        errorCode = errorCodeOrCause;
+      } else {
+        cause = errorCodeOrCause;
+        errorCode = ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT;
+      }
+    } else {
+      errorCode = ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT;
+    }
+
     super(message, context, cause);
     Object.setPrototypeOf(this, ValidationError.prototype);
+    this.code = errorCode;
   }
 }
 
