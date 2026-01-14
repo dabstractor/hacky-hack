@@ -43,10 +43,13 @@ import {
   linkGroundswell,
   linkGroundswellLocally,
   verifyGroundswellSymlink,
+  verifyGroundswellNpmList,
   type GroundswellLinkResult,
   type GroundswellLocalLinkResult,
   type GroundswellSymlinkVerifyResult,
   type GroundswellSymlinkVerifyOptions,
+  type NpmListVerifyResult,
+  type NpmListVerifyOptions,
 } from '../../../src/utils/groundswell-linker.js';
 
 // =============================================================================
@@ -2629,6 +2632,854 @@ describe('verifyGroundswellSymlink', () => {
       expect(typeof result.exists).toBe('boolean');
       expect(typeof result.path).toBe('string');
       expect(typeof result.message).toBe('string');
+    });
+  });
+});
+
+// =============================================================================
+// TEST SUITE: verifyGroundswellNpmList
+// ============================================================================
+
+describe('verifyGroundswellNpmList', () => {
+  const mockProjectPath = '/home/dustin/projects/hacky-hack';
+  const mockSymlinkPath = `${mockProjectPath}/node_modules/groundswell`;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  // ========================================================================
+  // Conditional execution tests
+  // ========================================================================
+
+  describe('Conditional execution based on S4 result', () => {
+    it('should skip verification when previousResult.exists is false', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: false,
+        path: mockSymlinkPath,
+        message: 'Symlink not found',
+        error: 'ENOENT',
+      };
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.linked).toBe(false);
+      expect(spawn).not.toHaveBeenCalled();
+      expect(result.message).toContain('Skipped');
+    });
+
+    it('should include previousResult.message when skipping', async () => {
+      const customMessage = 'Custom S4 error message';
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: false,
+        path: mockSymlinkPath,
+        message: customMessage,
+        error: 'Custom error',
+      };
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.message).toContain(customMessage);
+    });
+
+    it('should execute npm list when previousResult.exists is true', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        symlinkTarget: '../../../projects/groundswell',
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: {
+            groundswell: { version: '1.0.0' },
+          },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      await resultPromise;
+
+      expect(spawn).toHaveBeenCalledWith(
+        'npm',
+        ['list', 'groundswell', '--json', '--depth=0'],
+        expect.anything()
+      );
+    });
+  });
+
+  // ========================================================================
+  // Happy path tests
+  // ========================================================================
+
+  describe('Successful npm list verification', () => {
+    it('should return linked: true when npm list shows groundswell in dependencies', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const npmOutput = {
+        version: '0.1.0',
+        name: 'hacky-hack',
+        dependencies: {
+          groundswell: {
+            version: '1.0.0',
+            resolved: 'file:../../groundswell',
+          },
+        },
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify(npmOutput),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(true);
+      expect(result.version).toBe('1.0.0');
+      expect(result.exitCode).toBe(0);
+      expect(result.message).toContain('npm list confirms');
+    });
+
+    it('should handle linked packages without version field', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const npmOutput = {
+        version: '0.1.0',
+        name: 'hacky-hack',
+        dependencies: {
+          groundswell: {
+            resolved: 'file:../../groundswell',
+            // version field may be missing for linked packages
+          },
+        },
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify(npmOutput),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(true);
+      expect(result.version).toBeUndefined();
+    });
+
+    it('should use default timeout when no options provided', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      await resultPromise;
+
+      expect(spawn).toHaveBeenCalledWith(
+        'npm',
+        ['list', 'groundswell', '--json', '--depth=0'],
+        expect.anything()
+      );
+    });
+
+    it('should accept custom timeout option', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result, { timeout: 5000 });
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(true);
+    });
+
+    it('should accept custom projectPath option', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const customProjectPath = '/custom/project/path';
+      const resultPromise = verifyGroundswellNpmList(s4Result, { projectPath: customProjectPath });
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(spawn).toHaveBeenCalledWith(
+        'npm',
+        ['list', 'groundswell', '--json', '--depth=0'],
+        expect.objectContaining({ cwd: customProjectPath })
+      );
+      expect(result.linked).toBe(true);
+    });
+
+    it('should capture stdout content from npm list command', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const expectedStdout = JSON.stringify({
+        version: '0.1.0',
+        name: 'hacky-hack',
+        dependencies: { groundswell: { version: '1.0.0' } },
+      });
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: expectedStdout,
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.stdout).toBe(expectedStdout);
+    });
+
+    it('should capture stderr content from npm list command', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const expectedStderr = 'npm notice';
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+        stderr: expectedStderr,
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.stderr).toBe(expectedStderr);
+    });
+  });
+
+  // ========================================================================
+  // Package not found tests
+  // ========================================================================
+
+  describe('Package not found scenarios', () => {
+    it('should return linked: false when package not in dependencies (exit code 1)', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const npmOutput = {
+        version: '0.1.0',
+        name: 'hacky-hack',
+        // dependencies object does not contain groundswell
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 1,
+        stdout: JSON.stringify(npmOutput),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(result.message).toContain('not found in dependency tree');
+    });
+
+    it('should handle empty dependencies object', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const npmOutput = {
+        version: '0.1.0',
+        name: 'hacky-hack',
+        dependencies: {},
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 1,
+        stdout: JSON.stringify(npmOutput),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(false);
+    });
+  });
+
+  // ========================================================================
+  // Spawn error handling tests
+  // ========================================================================
+
+  describe('Spawn error handling', () => {
+    it('should return linked: false when spawn throws synchronous error', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      vi.mocked(spawn).mockImplementation(() => {
+        throw new Error('ENOENT: npm command not found');
+      });
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.linked).toBe(false);
+      expect(result.exitCode).toBe(null);
+      expect(result.error).toContain('npm command not found');
+      expect(result.message).toContain('Failed to spawn');
+    });
+
+    it('should handle ENOENT (npm not found)', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      vi.mocked(spawn).mockImplementation(() => {
+        throw new Error('ENOENT: npm command not found');
+      });
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.linked).toBe(false);
+      expect(result.error).toContain('ENOENT');
+    });
+
+    it('should handle EACCES (permission denied)', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      vi.mocked(spawn).mockImplementation(() => {
+        throw new Error('EACCES: permission denied');
+      });
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.linked).toBe(false);
+      expect(result.error).toContain('EACCES');
+    });
+
+    it('should return empty stdout/stderr on spawn error', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      vi.mocked(spawn).mockImplementation(() => {
+        throw new Error('Spawn failed');
+      });
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.stdout).toBe('');
+      expect(result.stderr).toBe('');
+    });
+  });
+
+  // ========================================================================
+  // JSON parsing error tests
+  // ========================================================================
+
+  describe('JSON parsing errors', () => {
+    it('should handle invalid JSON output', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: '{"invalid": json here}', // Starts with { but invalid JSON
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(false);
+      expect(result.message).toContain('Failed to parse');
+    });
+
+    it('should handle malformed JSON structure', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: '{"incomplete":',
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+  });
+
+  // ========================================================================
+  // Timeout handling tests
+  // ========================================================================
+
+  describe('Timeout handling', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.useRealTimers(); // Override fake timers from outer beforeEach
+    });
+
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should return linked: false when command times out', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      let closeCallback: ((code: number | null) => void) | undefined;
+
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event: string, callback: (code: number | null) => void) => {
+          if (event === 'close') {
+            closeCallback = callback;
+          }
+        }),
+        kill: vi.fn((_signal: string) => {
+          // Emit close after kill to resolve the promise
+          if (closeCallback !== undefined) {
+            closeCallback(null);
+          }
+        }),
+        killed: false,
+      };
+
+      vi.mocked(spawn).mockReturnValue(mockChild as never);
+
+      // Use a short timeout
+      const result = await verifyGroundswellNpmList(s4Result, {
+        timeout: 100,
+      });
+
+      expect(result.linked).toBe(false);
+      expect(mockChild.kill).toHaveBeenCalledWith('SIGTERM');
+    });
+
+    it('should send SIGKILL if SIGTERM does not kill process', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const signals: string[] = [];
+
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn(),
+        kill: vi.fn((_signal: string) => {
+          signals.push(_signal);
+          // After SIGKILL, emit close to resolve the promise
+          if (_signal === 'SIGKILL') {
+            const closeCallback = mockChild.on.mock.calls.find(
+              (c: unknown[]) => c[0] === 'close'
+            )?.[1];
+            if (closeCallback !== undefined) closeCallback(null);
+          }
+        }),
+        killed: false, // Property that stays false to trigger SIGKILL
+      };
+
+      vi.mocked(spawn).mockReturnValue(mockChild as never);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result, {
+        timeout: 50,
+      });
+
+      // Wait for timeout + grace period (50ms timeout + 2000ms grace)
+      await new Promise(resolve => {
+        setTimeout(resolve, 2100);
+      });
+
+      const result = await resultPromise;
+
+      expect(signals).toContain('SIGTERM');
+      expect(signals).toContain('SIGKILL');
+      expect(result.linked).toBe(false);
+    });
+  });
+
+  // ========================================================================
+  // Result structure tests
+  // ========================================================================
+
+  describe('NpmListVerifyResult structure', () => {
+    it('should return complete NpmListVerifyResult object', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result: NpmListVerifyResult = await resultPromise;
+
+      // Check result structure
+      expect(result).toHaveProperty('linked');
+      expect(result).toHaveProperty('version');
+      expect(result).toHaveProperty('message');
+      expect(result).toHaveProperty('stdout');
+      expect(result).toHaveProperty('stderr');
+      expect(result).toHaveProperty('exitCode');
+
+      // Check types
+      expect(typeof result.linked).toBe('boolean');
+      expect(typeof result.message).toBe('string');
+      expect(typeof result.stdout).toBe('string');
+      expect(typeof result.stderr).toBe('string');
+
+      // version can be string or undefined
+      expect(
+        result.version === undefined || typeof result.version === 'string'
+      ).toBe(true);
+
+      // exitCode can be number or null
+      expect(
+        result.exitCode === null || typeof result.exitCode === 'number'
+      ).toBe(true);
+    });
+
+    it('should include linked: true in result on successful verification', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(true);
+    });
+
+    it('should include linked: false in result when package not found', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 1,
+        stdout: JSON.stringify({ version: '0.1.0', name: 'hacky-hack' }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(false);
+    });
+
+    it('should include optional error property when verification fails', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      vi.mocked(spawn).mockImplementation(() => {
+        throw new Error('Spawn error');
+      });
+
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.error).toBe('Spawn error');
+    });
+
+    it('should not include error property on successful verification', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.error).toBeUndefined();
+    });
+  });
+
+  // ========================================================================
+  // Spawn arguments tests
+  // ========================================================================
+
+  describe('Spawn arguments', () => {
+    it('should spawn npm with list command and correct arguments', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      await resultPromise;
+
+      expect(spawn).toHaveBeenCalledWith(
+        'npm',
+        ['list', 'groundswell', '--json', '--depth=0'],
+        expect.anything()
+      );
+    });
+
+    it('should use shell: false to prevent injection', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      await resultPromise;
+
+      const spawnOptions = vi.mocked(spawn).mock.calls[0]?.[2];
+      expect(spawnOptions?.shell).toBe(false);
+    });
+
+    it('should use stdio ignore, pipe, pipe', async () => {
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        message: 'Symlink verified',
+      };
+
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      await resultPromise;
+
+      const spawnOptions = vi.mocked(spawn).mock.calls[0]?.[2];
+      expect(spawnOptions?.stdio).toEqual(['ignore', 'pipe', 'pipe']);
+    });
+  });
+
+  // ========================================================================
+  // Integration with S4 tests
+  // ========================================================================
+
+  describe('Integration with S4', () => {
+    it('should support full workflow: S4 then S5', async () => {
+      // S4 result - successful symlink verification
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: true,
+        path: mockSymlinkPath,
+        symlinkTarget: '../../../projects/groundswell',
+        message: 'Symlink verified at /home/.../node_modules/groundswell',
+      };
+
+      // Mock npm list success
+      const mockChild = createMockChild({
+        exitCode: 0,
+        stdout: JSON.stringify({
+          version: '0.1.0',
+          name: 'hacky-hack',
+          dependencies: { groundswell: { version: '1.0.0' } },
+        }),
+      });
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      // S5 (npm list verification) should proceed
+      const resultPromise = verifyGroundswellNpmList(s4Result);
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result.linked).toBe(true);
+      expect(spawn).toHaveBeenCalledWith(
+        'npm',
+        ['list', 'groundswell', '--json', '--depth=0'],
+        expect.anything()
+      );
+    });
+
+    it('should fail fast if S4 symlink verification failed', async () => {
+      // S4 result - symlink not found
+      const s4Result: GroundswellSymlinkVerifyResult = {
+        exists: false,
+        path: mockSymlinkPath,
+        message: 'Symlink not found: ENOENT',
+        error: 'ENOENT',
+      };
+
+      // S5 should skip without calling spawn
+      const result = await verifyGroundswellNpmList(s4Result);
+
+      expect(result.linked).toBe(false);
+      expect(result.message).toContain('Skipped');
+      expect(spawn).not.toHaveBeenCalled();
     });
   });
 });

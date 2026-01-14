@@ -18,7 +18,7 @@
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Establish Groundswell npm link",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create npm link between local Groundswell library and hacky-hack project to resolve import dependencies",
               "subtasks": [
                 {
@@ -67,7 +67,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S5",
                   "title": "Run npm list to verify dependency resolution",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S4"
@@ -78,7 +78,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S6",
                   "title": "Document Groundswell link setup in README",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S5"
