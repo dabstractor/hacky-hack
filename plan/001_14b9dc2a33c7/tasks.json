@@ -1200,7 +1200,7 @@
               "type": "Task",
               "id": "P5.M3.T1",
               "title": "Write User Documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create comprehensive user guides and API documentation.",
               "subtasks": [
                 {
@@ -1216,7 +1216,7 @@
                   "type": "Subtask",
                   "id": "P5.M3.T1.S2",
                   "title": "Create detailed user guide",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M3.T1.S1"
@@ -1236,7 +1236,7 @@
                   "type": "Subtask",
                   "id": "P5.M3.T2.S1",
                   "title": "Create architecture documentation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M3.T1.S2"
