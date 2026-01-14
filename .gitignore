@@ -48,3 +48,4 @@ tests/**/*.{js,d.ts}
 
 # Generated API documentation (TypeDoc)
 docs/api/
+
