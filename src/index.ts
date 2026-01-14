@@ -2,6 +2,8 @@
 /**
  * Main entry point for PRP Pipeline CLI application
  *
+ * @packageDocumentation
+ *
  * @module index
  *
  * @remarks

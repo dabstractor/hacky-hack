@@ -54,3 +54,6 @@ tests/**/*.{js,d.ts}
 
 # Shell scripts (temporary/validation tools - prefer TypeScript equivalents)
 /scripts/
+
+# Generated API documentation (TypeDoc)
+docs/api/

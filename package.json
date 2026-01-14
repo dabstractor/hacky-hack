@@ -41,7 +41,12 @@
     "validate": "npm run lint && npm run format:check && npm run typecheck",
     "fix": "npm run lint:fix && npm run format",
     "=== API ===": "",
-    "validate:api": "tsx src/scripts/validate-api.ts"
+    "validate:api": "tsx src/scripts/validate-api.ts",
+    "=== Documentation ===": "",
+    "docs": "typedoc --skipErrorChecking",
+    "docs:watch": "typedoc --skipErrorChecking --watch",
+    "docs:serve": "typedoc --skipErrorChecking --serve",
+    "docs:clean": "rm -rf docs/api"
   },
   "keywords": [
     "typescript",
@@ -71,6 +76,7 @@
     "pino-pretty": "^11.3.0",
     "prettier": "^3.7.4",
     "tsx": "^4.7.0",
+    "typedoc": "^0.28.16",
     "typescript": "^5.2.0",
     "vitest": "^1.6.1"
   }

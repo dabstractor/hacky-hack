@@ -283,6 +283,10 @@ Executes Product Requirement Prompts with 4-level validation:
 
 See [PROMPTS.md](PROMPTS.md) for complete PRP concept definition.
 
+**For comprehensive architecture documentation**, see:
+- **[Architecture Documentation](docs/architecture.md)** - Detailed system architecture with Mermaid diagrams, component interactions, extensibility patterns, and API references
+- **[TypeDoc API Reference](docs/api/index.html)** - Complete API documentation for all modules, classes, and types (run `npm run docs` to generate)
+
 ## AI Agent System
 
 The PRP Pipeline uses specialized AI agents for each stage of development:

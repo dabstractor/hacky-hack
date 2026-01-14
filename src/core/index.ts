@@ -1,6 +1,8 @@
 /**
  * Core module exports
  *
+ * @packageDocumentation
+ *
  * @module core
  *
  * @remarks

@@ -1193,7 +1193,7 @@
           "type": "Milestone",
           "id": "P5.M3",
           "title": "Milestone 5.3: Documentation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Create comprehensive documentation for users and contributors.",
           "tasks": [
             {
@@ -1229,14 +1229,14 @@
               "type": "Task",
               "id": "P5.M3.T2",
               "title": "Write Developer Documentation",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create architecture documentation and contributor guides.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P5.M3.T2.S1",
                   "title": "Create architecture documentation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M3.T1.S2"
@@ -1247,7 +1247,7 @@
                   "type": "Subtask",
                   "id": "P5.M3.T2.S2",
                   "title": "Create contributor guide",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P5.M3.T2.S1"
