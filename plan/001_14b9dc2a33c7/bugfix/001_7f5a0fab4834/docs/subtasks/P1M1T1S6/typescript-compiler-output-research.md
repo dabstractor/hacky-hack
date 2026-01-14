@@ -46,16 +46,17 @@ tsc-test-file.ts(17,7): error TS2741: Property 'age' is missing in type '{ name:
 
 ### 1.3 Compiler Flags Affecting Output
 
-| Flag | Effect | Recommendation for Parsing |
-|------|--------|---------------------------|
-| `--noEmit` | Perform type checking only, no output files | **Use** - Essential for validation |
-| `--pretty false` | Disable colors and extra formatting | **Use** - Produces machine-parsable output |
-| `--pretty` (default) | Enable colors and context (default) | Avoid - Contains ANSI escape codes |
-| `--listFiles` | List all files in compilation | Optional - For debugging |
-| `--noErrorTruncation` | Disable truncating long error messages | Optional - For complete messages |
-| `--diagnostics` | Show diagnostic information | Optional - For debugging |
+| Flag                  | Effect                                      | Recommendation for Parsing                 |
+| --------------------- | ------------------------------------------- | ------------------------------------------ |
+| `--noEmit`            | Perform type checking only, no output files | **Use** - Essential for validation         |
+| `--pretty false`      | Disable colors and extra formatting         | **Use** - Produces machine-parsable output |
+| `--pretty` (default)  | Enable colors and context (default)         | Avoid - Contains ANSI escape codes         |
+| `--listFiles`         | List all files in compilation               | Optional - For debugging                   |
+| `--noErrorTruncation` | Disable truncating long error messages      | Optional - For complete messages           |
+| `--diagnostics`       | Show diagnostic information                 | Optional - For debugging                   |
 
 **Recommended command for parsing:**
+
 ```bash
 tsc --noEmit --pretty false 2>&1
 ```
@@ -67,11 +68,13 @@ tsc --noEmit --pretty false 2>&1
 ### 2.1 "Cannot Find Module" Errors (TS2307)
 
 **Pattern:**
+
 ```
 file_path(line,column): error TS2307: Cannot find module 'module-name' or its corresponding type declarations.
 ```
 
 **Variations:**
+
 ```
 # External module
 error TS2307: Cannot find module 'express'
@@ -84,53 +87,60 @@ error TS2307: Cannot find module 'lodash' or its corresponding type declarations
 ```
 
 **Regex Pattern:**
+
 ```javascript
-/TS2307:\s+Cannot find module ['"]([^'"]+)['"]/
+/TS2307:\s+Cannot find module ['"]([^'"]+)['"]/;
 ```
 
 ### 2.2 Type Assignment Errors (TS2322)
 
 **Pattern:**
+
 ```
 file_path(line,column): error TS2322: Type 'source_type' is not assignable to type 'target_type'.
 ```
 
 **Example:**
+
 ```
 tsc-test-file.ts(10,9): error TS2322: Type 'string' is not assignable to type 'number'.
 ```
 
 **Regex Pattern:**
+
 ```javascript
-/TS2322:\s+Type '([^']+)' is not assignable to type '([^']+)'/
+/TS2322:\s+Type '([^']+)' is not assignable to type '([^']+)'/;
 ```
 
 ### 2.3 Property Missing Errors (TS2741)
 
 **Pattern:**
+
 ```
 file_path(line,column): error TS2741: Property 'property_name' is missing in type 'source_type' but required in type 'target_type'.
 ```
 
 **Example:**
+
 ```
 tsc-test-file.ts(17,7): error TS2741: Property 'age' is missing in type '{ name: string; }' but required in type 'User'.
 ```
 
 **Regex Pattern:**
+
 ```javascript
-/TS2741:\s+Property '(\w+)' is missing in type '([^']+)' but required in type '([^']+)'/
+/TS2741:\s+Property '(\w+)' is missing in type '([^']+)' but required in type '([^']+)'/;
 ```
 
 ### 2.4 Common Error Code Categories
 
-| Code Range | Category | Examples |
-|------------|----------|----------|
-| TS1000-TS1999 | General Compiler Errors | TS1005, TS1108 |
-| TS2000-TS2999 | Module Resolution | TS2307, TS6053 |
-| TS2300-TS2499 | Type Checking | TS2322, TS2345, TS2741 |
-| TS2500-TS2999 | Declaration Errors | TS2304, TS2339 |
-| TS5000-TS9999 | Configuration | TS5009, TS5074, TS6053 |
+| Code Range    | Category                | Examples               |
+| ------------- | ----------------------- | ---------------------- |
+| TS1000-TS1999 | General Compiler Errors | TS1005, TS1108         |
+| TS2000-TS2999 | Module Resolution       | TS2307, TS6053         |
+| TS2300-TS2499 | Type Checking           | TS2322, TS2345, TS2741 |
+| TS2500-TS2999 | Declaration Errors      | TS2304, TS2339         |
+| TS5000-TS9999 | Configuration           | TS5009, TS5074, TS6053 |
 
 ---
 
@@ -153,7 +163,7 @@ function parseTscOutput(output) {
         line: parseInt(match[2], 10),
         column: parseInt(match[3], 10),
         code: match[4],
-        message: match[5]
+        message: match[5],
       });
     }
   }
@@ -167,7 +177,8 @@ function parseTscOutput(output) {
 **Comprehensive pattern that handles various edge cases:**
 
 ```javascript
-const TSC_ERROR_PATTERN = /^(.+?)(?:\((\d+),(\d+)\))?:\s*(error|warning)\s+(TS\d+):\s*(.+)$/;
+const TSC_ERROR_PATTERN =
+  /^(.+?)(?:\((\d+),(\d+)\))?:\s*(error|warning)\s+(TS\d+):\s*(.+)$/;
 
 function parseTscError(line) {
   const match = line.match(TSC_ERROR_PATTERN);
@@ -179,7 +190,7 @@ function parseTscError(line) {
     column: match[3] ? parseInt(match[3], 10) : null,
     severity: match[4],
     code: match[5],
-    message: match[6].trim()
+    message: match[6].trim(),
   };
 }
 ```
@@ -187,6 +198,7 @@ function parseTscError(line) {
 ### 3.3 Handling Edge Cases
 
 #### Case 1: Multiline Error Messages
+
 Some error messages span multiple lines (rare with `--pretty false`).
 
 ```javascript
@@ -196,15 +208,17 @@ Some error messages span multiple lines (rare with `--pretty false`).
 ```
 
 #### Case 2: File Paths with Spaces
+
 File paths may contain spaces or special characters.
 
 ```javascript
 // The regex must use non-greedy matching for the file path:
-/^(.+?)(?:\((\d+),(\d+)\))?:/
+/^(.+?)(?:\((\d+),(\d+)\))?:/;
 //     ^^^^ Non-greedy capture
 ```
 
 #### Case 3: Project References
+
 When using project references, errors may include the project name.
 
 ```
@@ -220,21 +234,21 @@ function runTsc(cwd = process.cwd()) {
   return new Promise((resolve, reject) => {
     const tsc = spawn('tsc', ['--noEmit', '--pretty false'], {
       cwd,
-      shell: false  // Security: don't use shell
+      shell: false, // Security: don't use shell
     });
 
     let stdout = '';
     let stderr = '';
 
-    tsc.stdout.on('data', (data) => {
+    tsc.stdout.on('data', data => {
       stdout += data.toString();
     });
 
-    tsc.stderr.on('data', (data) => {
+    tsc.stderr.on('data', data => {
       stderr += data.toString();
     });
 
-    tsc.on('close', (code) => {
+    tsc.on('close', code => {
       // Errors are in stderr, not stdout
       const errors = parseTscOutput(stderr);
 
@@ -243,11 +257,11 @@ function runTsc(cwd = process.cwd()) {
         exitCode: code,
         stdout,
         stderr,
-        errors
+        errors,
       });
     });
 
-    tsc.on('error', (error) => {
+    tsc.on('error', error => {
       reject(new Error(`Failed to spawn tsc: ${error.message}`));
     });
   });
@@ -262,7 +276,7 @@ function runTscWithTimeout(cwd, timeoutMs = 30000) {
     runTsc(cwd),
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error('tsc timeout')), timeoutMs)
-    )
+    ),
   ]);
 }
 ```
@@ -282,11 +296,13 @@ function runTscWithTimeout(cwd, timeoutMs = 30000) {
 Parses errors from tsc output to a structured JSON format. Includes a CLI tool.
 
 **Installation:**
+
 ```bash
 npm install @aivenio/tsc-output-parser
 ```
 
 **Usage:**
+
 ```bash
 # CLI
 tsc --noEmit --pretty false 2>&1 | tsc-output-parser
@@ -297,12 +313,14 @@ const errors = parser.parse(tscOutputString);
 ```
 
 **Pros:**
+
 - Zero dependencies
 - Dedicated parser for tsc output
 - CLI tool included
 - Apache 2.0 license
 
 **Cons:**
+
 - Last updated over a year ago
 - May not support latest TypeScript features
 
@@ -317,16 +335,19 @@ const errors = parser.parse(tscOutputString);
 A parser for TypeScript error logs.
 
 **Installation:**
+
 ```bash
 npm install ts-error-parser
 ```
 
 **Pros:**
+
 - Lightweight, no dependencies
 - MIT license
 - Simple implementation
 
 **Cons:**
+
 - Minimal documentation
 - Single version release (may be unmaintained)
 
@@ -341,16 +362,19 @@ npm install ts-error-parser
 Formats TypeScript error messages from Fork TS Checker Webpack Plugin. Uses Babel code frame for syntax highlighting.
 
 **Installation:**
+
 ```bash
 npm install @k88/typescript-compile-error-formatter
 ```
 
 **Pros:**
+
 - Actively maintained
 - Syntax highlighting with code frames
 - Designed for webpack integration
 
 **Cons:**
+
 - More dependencies
 - Focused on formatting, not parsing
 - Designed for webpack ecosystem
@@ -366,10 +390,12 @@ npm install @k88/typescript-compile-error-formatter
 Error formatter for TypeScript errors.
 
 **Pros:**
+
 - Zero dependencies
 - BSD-3-Clause license
 
 **Cons:**
+
 - Last updated 2019
 - Primarily for formatting, not parsing
 
@@ -384,10 +410,12 @@ Error formatter for TypeScript errors.
 Syntax highlighter for TypeScript error messages.
 
 **Pros:**
+
 - Zero dependencies
 - MIT license
 
 **Cons:**
+
 - Focused on highlighting, not parsing
 - Older package
 
@@ -412,6 +440,7 @@ While primarily a webpack plugin, it contains robust TypeScript error parsing lo
 Given the straightforward format of tsc output, building a custom parser is often better than using existing packages:
 
 **Advantages:**
+
 - Full control over parsing logic
 - Zero dependencies
 - Can tailor to specific needs
@@ -424,7 +453,7 @@ interface TscError {
   file: string;
   line: number;
   column: number;
-  code: string;  // e.g., "TS2307"
+  code: string; // e.g., "TS2307"
   message: string;
 }
 
@@ -453,7 +482,7 @@ export function parseTscOutput(output: string): TscResult {
         line: parseInt(match[2], 10),
         column: parseInt(match[3], 10),
         code: match[4],
-        message: match[5]
+        message: match[5],
       });
     }
   }
@@ -462,7 +491,7 @@ export function parseTscOutput(output: string): TscResult {
     success: errors.length === 0,
     exitCode: errors.length === 0 ? 0 : 2,
     errors,
-    rawOutput: output
+    rawOutput: output,
   };
 }
 
@@ -481,7 +510,7 @@ export async function runTsc(
 
     const tsc = spawn('tsc', ['--noEmit', '--pretty false'], {
       cwd: projectPath,
-      shell: false
+      shell: false,
     });
 
     // Set timeout
@@ -490,20 +519,20 @@ export async function runTsc(
       reject(new Error(`tsc timeout after ${timeoutMs}ms`));
     }, timeoutMs);
 
-    tsc.stdout.on('data', (data) => {
+    tsc.stdout.on('data', data => {
       stdout += data.toString();
     });
 
-    tsc.stderr.on('data', (data) => {
+    tsc.stderr.on('data', data => {
       stderr += data.toString();
     });
 
-    tsc.on('close', (code) => {
+    tsc.on('close', code => {
       clearTimeout(timeout);
       resolve(parseTscOutput(stderr));
     });
 
-    tsc.on('error', (error) => {
+    tsc.on('error', error => {
       clearTimeout(timeout);
       reject(new Error(`Failed to spawn tsc: ${error.message}`));
     });
@@ -518,8 +547,9 @@ export async function runTsc(
  * Check if error is a "Cannot find module" error
  */
 export function isModuleNotFoundError(error: TscError): boolean {
-  return error.code === 'TS2307' ||
-         error.message.includes('Cannot find module');
+  return (
+    error.code === 'TS2307' || error.message.includes('Cannot find module')
+  );
 }
 
 /**
@@ -610,6 +640,7 @@ export function getErrorCategory(code: string): string {
 ### Recommendation:
 
 **Build your own parser** rather than using existing npm packages because:
+
 - The format is simple and stable
 - Zero dependencies
 - Full control over behavior

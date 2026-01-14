@@ -9,12 +9,14 @@ This document summarizes the comprehensive task breakdown created for the hacky-
 ## Breakdown Statistics
 
 **Hierarchical Structure**:
+
 - **4 Phases** (Project-scope goals)
 - **9 Milestones** (Key objectives)
 - **19 Tasks** (Feature definitions)
 - **63 Subtasks** (Atomic implementation steps)
 
 **Story Points Distribution**:
+
 - Total: ~63 SP (assuming average 1 SP per subtask)
 - Estimated Effort: 3-5 days for a single developer
 
@@ -23,10 +25,12 @@ This document summarizes the comprehensive task breakdown created for the hacky-
 ## Phase Structure
 
 ### Phase 1: Critical Infrastructure Fixes
+
 **Status**: Ready to start
 **Priority**: CRITICAL - Application is non-functional
 
 **Milestones**:
+
 1. **Groundswell Dependency Resolution** (P1.M1)
    - Establish npm link between local Groundswell and hacky-hack
    - Verify TypeScript compilation passes
@@ -38,10 +42,12 @@ This document summarizes the comprehensive task breakdown created for the hacky-
    - **Impact**: Confirms application is functional
 
 ### Phase 2: Test Infrastructure Fixes
+
 **Status**: Planned
 **Priority**: MAJOR - Tests failing due to memory issues
 
 **Milestones**:
+
 1. **Test Memory Configuration** (P2.M1)
    - Add NODE_OPTIONS memory limits to package.json
    - Test with limited and full test suite
@@ -58,10 +64,12 @@ This document summarizes the comprehensive task breakdown created for the hacky-
    - **Impact**: Improves test reliability and memory management
 
 ### Phase 3: Code Quality Improvements
+
 **Status**: Planned
 **Priority**: MODERATE - ESLint warnings and console.log statements
 
 **Milestones**:
+
 1. **Replace Console.log with Logger** (P3.M1)
    - Replace 12 console.log statements in src/index.ts (lines 138-169)
    - Verify no no-console warnings remain
@@ -74,10 +82,12 @@ This document summarizes the comprehensive task breakdown created for the hacky-
    - **Impact**: Reduces ESLint warnings in high-priority files
 
 ### Phase 4: Validation & Documentation
+
 **Status**: Planned
 **Priority**: LOW - Final verification and documentation
 
 **Milestones**:
+
 1. **End-to-End Testing** (P4.M1)
    - Run full 1688-test suite
    - Verify no memory or promise errors
@@ -101,6 +111,7 @@ Every subtask includes a detailed `context_scope` that defines:
 4. **OUTPUT**: Return value interface for consumption by next subtask
 
 **Example**:
+
 ```json
 "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell library expected at ~/projects/groundswell\n2. INPUT: None - standalone verification task\n3. LOGIC: Execute bash to verify directory exists. Mock filesystem for testing.\n4. OUTPUT: Return { exists: boolean }. Consume in S2 for conditional logic."
 ```
@@ -110,9 +121,11 @@ Every subtask includes a detailed `context_scope` that defines:
 ## Dependency Management
 
 **Explicit Dependencies**: Every subtask lists prerequisite subtask IDs
+
 - Example: `["P1.M1.T1.S1", "P1.M1.T1.S2"]` - S3 depends on S1 and S2 completing
 
 **Story Points**: 0.5, 1, or 2 SP maximum per subtask
+
 - 0.5 SP: Simple verification or single-line change
 - 1 SP: Moderate complexity, multiple tool calls
 - 2 SP: Complex logic requiring multiple steps
@@ -153,18 +166,21 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Key Architectural Findings
 
 ### Groundswell Dependency Crisis
+
 - **97 files** import from `'groundswell'`
 - **65+ TypeScript errors** due to missing dependency
 - **Local path**: `~/projects/groundswell`
 - **Fix**: `npm link` from both directories
 
 ### Test Infrastructure Issues
+
 - **1688 total tests** (1593 passing, 58 failing, 10 errors)
 - **Memory exhaustion**: Worker termination during test runs
 - **Promise rejections**: Unhandled errors in research queue
 - **Fix**: Add 4GB memory limit, improve error handling
 
 ### Code Quality Issues
+
 - **100+ ESLint warnings** for nullable boolean checks
 - **12 console.log statements** in src/index.ts (lines 138-169)
 - **Fix**: Replace with logger, add explicit null checks
@@ -174,20 +190,24 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Implementation Order
 
 ### Immediate (Phase 1)
+
 1. Link Groundswell dependency
 2. Verify TypeScript compilation
 3. Test application startup
 
 ### High Priority (Phase 2)
+
 4. Configure test memory limits
 5. Fix promise rejections
 6. Update Vitest configuration
 
 ### Medium Priority (Phase 3)
+
 7. Replace console.log with logger
 8. Fix nullable boolean warnings (high-priority files)
 
 ### Low Priority (Phase 4)
+
 9. Run full test suite validation
 10. Complete documentation
 
@@ -196,21 +216,25 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Success Criteria
 
 ### Phase 1 Completion
+
 - ✅ All TypeScript files compile without errors
 - ✅ Application starts with --help flag
 - ✅ PRD validation command executes
 
 ### Phase 2 Completion
+
 - ✅ All 1688 tests run without memory errors
 - ✅ No unhandled promise rejection warnings
 - ✅ Test suite completes in reasonable time
 
 ### Phase 3 Completion
+
 - ✅ No console.log statements in production code
 - ✅ High-priority ESLint warnings resolved
 - ✅ Code follows implementation patterns
 
 ### Phase 4 Completion
+
 - ✅ Full test suite passes (100%)
 - ✅ ESLint shows 0 errors (warnings acceptable)
 - ✅ Documentation complete and accurate
@@ -220,19 +244,23 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Files Modified
 
 ### Package Configuration
+
 - `package.json` - Add memory limits to test scripts
 
 ### Source Code
+
 - `src/index.ts` - Replace console.log with logger (lines 138-169)
 - `src/core/research-queue.ts` - Improve error handling (lines 181-185)
 - `src/agents/prp-runtime.ts` - Fix nullable boolean check (line 313)
 - `src/cli/index.ts` - Fix nullable boolean check (line 160)
 
 ### Test Configuration
+
 - `vitest.config.ts` - Add .tsx extension, setup file
 - `tests/setup.ts` - Create global test cleanup (NEW FILE)
 
 ### Documentation
+
 - `README.md` - Add Groundswell setup instructions (if exists)
 - `BUGFIX_SUMMARY.md` - Create comprehensive fix summary (NEW FILE)
 
@@ -241,21 +269,25 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Testing Strategy
 
 ### Unit Tests
+
 - Run after each subtask when applicable
 - Focus on changed functionality
 - Use specific test file: `npm run test:run -- path/to/test.test.ts`
 
 ### Integration Tests
+
 - Run after task completion
 - Verify component interactions
 - Use: `npm run test:run -- tests/integration/`
 
 ### End-to-End Tests
+
 - Run after phase completion
 - Verify full pipeline functionality
 - Use: `npm run test:run -- tests/e2e/`
 
 ### Full Test Suite
+
 - Run before Phase 4 completion
 - Verify no regressions
 - Use: `npm run test:run` (with 4GB memory limit)
@@ -265,6 +297,7 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Risk Mitigation
 
 ### High-Risk Areas
+
 1. **Groundswell Link Failure**
    - Mitigation: Verify library exists at expected path
    - Fallback: Document manual installation steps
@@ -278,6 +311,7 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
    - Fallback: Review import paths, verify types
 
 ### Medium-Risk Areas
+
 1. **Test Failures After Fixes**
    - Mitigation: Run tests incrementally
    - Fallback: Review test expectations vs implementation
@@ -291,6 +325,7 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 ## Time Estimates
 
 ### Single Developer
+
 - **Phase 1**: 4-6 hours (critical path)
 - **Phase 2**: 6-8 hours (test infrastructure)
 - **Phase 3**: 4-6 hours (code quality)
@@ -298,6 +333,7 @@ Three comprehensive research documents created in `plan/001_14b9dc2a33c7/bugfix/
 - **Total**: 16-24 hours (~3-4 days)
 
 ### Parallel Development
+
 - If multiple developers available:
   - Dev 1: Phase 1 (blocking, must complete first)
   - Dev 2: Phase 2 (can start after Phase 1.M1)

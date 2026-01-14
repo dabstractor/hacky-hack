@@ -26,19 +26,21 @@
 
 The critical difference between `fs.stat()` and `fs.lstat()` is how they handle symbolic links:
 
-| Method | Behavior |
-|--------|----------|
-| **fs.stat()** | **Follows symlinks** - returns information about the file/directory the symlink points to |
-| **fs.lstat()** | **Does NOT follow symlinks** - returns information about the symlink itself |
+| Method         | Behavior                                                                                  |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| **fs.stat()**  | **Follows symlinks** - returns information about the file/directory the symlink points to |
+| **fs.lstat()** | **Does NOT follow symlinks** - returns information about the symlink itself               |
 
 ### When to Use Each
 
 #### Use `fs.stat()` when:
+
 - You want information about the actual file/directory, regardless of whether a symlink was used to access it
 - You're checking if a target exists and is accessible
 - You need file size, modification time, or other metadata of the target
 
 #### Use `fs.lstat()` when:
+
 - You need to detect if a path is a symlink
 - You want to check symlink permissions or metadata
 - You need to read the symlink target without following it
@@ -54,15 +56,15 @@ async function demonstrateStatVsLstat(symlinkPath: string) {
   const stats = await stat(symlinkPath);
   console.log('stat() results:');
   console.log('  isSymbolicLink():', stats.isSymbolicLink()); // Always false!
-  console.log('  isDirectory():', stats.isDirectory());        // Type of target
-  console.log('  size:', stats.size);                          // Size of target
+  console.log('  isDirectory():', stats.isDirectory()); // Type of target
+  console.log('  size:', stats.size); // Size of target
 
   // Using lstat() - does NOT follow symlinks
   const lstats = await lstat(symlinkPath);
   console.log('lstat() results:');
   console.log('  isSymbolicLink():', lstats.isSymbolicLink()); // true for symlinks
-  console.log('  isDirectory():', lstats.isDirectory());        // false for file symlinks
-  console.log('  size:', lstats.size);                          // Size of link reference
+  console.log('  isDirectory():', lstats.isDirectory()); // false for file symlinks
+  console.log('  size:', lstats.size); // Size of link reference
 }
 ```
 
@@ -90,7 +92,7 @@ lstat('/path/to/symlink', (err, stats) => {
 import { statSync, lstatSync } from 'node:fs';
 
 try {
-  const stats = statSync('/path/to/file');     // Follows symlinks
+  const stats = statSync('/path/to/file'); // Follows symlinks
   const lstats = lstatSync('/path/to/symlink'); // Does not follow symlinks
 } catch (err) {
   console.error('Error:', err);
@@ -184,28 +186,28 @@ import { lstat } from 'node:fs/promises';
 const stats = await lstat('/some/path');
 
 // Type checking methods
-stats.isFile();         // true for regular files
-stats.isDirectory();    // true for directories
+stats.isFile(); // true for regular files
+stats.isDirectory(); // true for directories
 stats.isSymbolicLink(); // true for symlinks (only with lstat!)
-stats.isBlockDevice();  // true for block devices (Unix)
+stats.isBlockDevice(); // true for block devices (Unix)
 stats.isCharacterDevice(); // true for character devices (Unix)
-stats.isFIFO();         // true for FIFO/pipe (Unix)
-stats.isSocket();       // true for socket (Unix)
+stats.isFIFO(); // true for FIFO/pipe (Unix)
+stats.isSocket(); // true for socket (Unix)
 
 // Metadata properties
-stats.dev;       // Device ID
-stats.ino;       // Inode number
-stats.mode;      // File type and mode
-stats.nlink;     // Number of hard links
-stats.uid;       // User ID (Unix)
-stats.gid;       // Group ID (Unix)
-stats.rdev;      // Device ID (if special file)
-stats.size;      // File size in bytes
-stats.blksize;   // Block size for I/O
-stats.blocks;    // Number of blocks allocated
-stats.atimeMs;   // Access time (milliseconds)
-stats.mtimeMs;   // Modification time (milliseconds)
-stats.ctimeMs;   // Change time (milliseconds)
+stats.dev; // Device ID
+stats.ino; // Inode number
+stats.mode; // File type and mode
+stats.nlink; // Number of hard links
+stats.uid; // User ID (Unix)
+stats.gid; // Group ID (Unix)
+stats.rdev; // Device ID (if special file)
+stats.size; // File size in bytes
+stats.blksize; // Block size for I/O
+stats.blocks; // Number of blocks allocated
+stats.atimeMs; // Access time (milliseconds)
+stats.mtimeMs; // Modification time (milliseconds)
+stats.ctimeMs; // Change time (milliseconds)
 stats.birthtimeMs; // Birth time (milliseconds)
 ```
 
@@ -288,6 +290,7 @@ const target2 = targetBuffer.toString('utf-8');
 ### The Challenge
 
 Symlink targets can be:
+
 - **Relative paths** (e.g., `../../other-package`)
 - **Absolute paths** (e.g., `/home/user/projects/package`)
 - **Mixed** (depending on how the link was created)
@@ -455,14 +458,14 @@ async function resolveSymlinkTargetCrossPlatform(
 
 ### Common Error Codes
 
-| Error Code | Meaning | Typical Cause |
-|------------|---------|---------------|
-| **ENOENT** | No such file or directory | Path doesn't exist |
-| **EACCES** | Permission denied | Insufficient permissions |
-| **ELOOP** | Too many symbolic links | Circular symlink references |
-| **EINVAL** | Invalid argument | Path is not a symlink (for readlink) |
-| **ENOTDIR** | Not a directory | Expected directory but found file |
-| **EPERM** | Operation not permitted | Insufficient permissions on Windows |
+| Error Code  | Meaning                   | Typical Cause                        |
+| ----------- | ------------------------- | ------------------------------------ |
+| **ENOENT**  | No such file or directory | Path doesn't exist                   |
+| **EACCES**  | Permission denied         | Insufficient permissions             |
+| **ELOOP**   | Too many symbolic links   | Circular symlink references          |
+| **EINVAL**  | Invalid argument          | Path is not a symlink (for readlink) |
+| **ENOTDIR** | Not a directory           | Expected directory but found file    |
+| **EPERM**   | Operation not permitted   | Insufficient permissions on Windows  |
 
 ### Comprehensive Error Handler
 
@@ -661,15 +664,22 @@ async function verifyNpmLink(
 ```typescript
 import { lstat } from 'node:fs/promises';
 
-type SafeResult<T> = { success: true; data: T } | { success: false; error: string };
+type SafeResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
 
-async function safeLstat(path: string): Promise<SafeResult<ReturnType<typeof lstat>>> {
+async function safeLstat(
+  path: string
+): Promise<SafeResult<ReturnType<typeof lstat>>> {
   try {
     const stats = await lstat(path);
     return { success: true, data: stats };
   } catch (error) {
     const errno = error as NodeJS.ErrnoException;
-    return { success: false, error: `Error accessing ${path}: [${errno.code}] ${errno.message}` };
+    return {
+      success: false,
+      error: `Error accessing ${path}: [${errno.code}] ${errno.message}`,
+    };
   }
 }
 
@@ -679,7 +689,10 @@ async function safeReadlink(path: string): Promise<SafeResult<string>> {
     return { success: true, data: target };
   } catch (error) {
     const errno = error as NodeJS.ErrnoException;
-    return { success: false, error: `Error reading symlink ${path}: [${errno.code}] ${errno.message}` };
+    return {
+      success: false,
+      error: `Error reading symlink ${path}: [${errno.code}] ${errno.message}`,
+    };
   }
 }
 ```
@@ -690,13 +703,13 @@ async function safeReadlink(path: string): Promise<SafeResult<string>> {
 
 ### Platform Differences
 
-| Aspect | Linux/macOS | Windows |
-|--------|-------------|---------|
-| **Symlink Type** | Native symlinks | Symlinks (requires admin/dev mode) or Junctions |
-| **Permission Requirements** | Standard file permissions | Administrator or Developer Mode |
-| **Path Format** | Forward slashes (`/`) | Backslashes (`\`) or forward slashes |
-| **Drive Letters** | None | `C:`, `D:`, etc. |
-| **Case Sensitivity** | Yes (Linux), No (macOS) | No (case-insensitive, case-preserving) |
+| Aspect                      | Linux/macOS               | Windows                                         |
+| --------------------------- | ------------------------- | ----------------------------------------------- |
+| **Symlink Type**            | Native symlinks           | Symlinks (requires admin/dev mode) or Junctions |
+| **Permission Requirements** | Standard file permissions | Administrator or Developer Mode                 |
+| **Path Format**             | Forward slashes (`/`)     | Backslashes (`\`) or forward slashes            |
+| **Drive Letters**           | None                      | `C:`, `D:`, etc.                                |
+| **Case Sensitivity**        | Yes (Linux), No (macOS)   | No (case-insensitive, case-preserving)          |
 
 ### Detecting Platform
 
@@ -1220,7 +1233,9 @@ export class SymlinkScanner {
   /**
    * Scan node_modules for linked packages
    */
-  async scanNodeModules(projectPath: string): Promise<Map<string, SymlinkScanResult>> {
+  async scanNodeModules(
+    projectPath: string
+  ): Promise<Map<string, SymlinkScanResult>> {
     const nodeModulesPath = join(projectPath, 'node_modules');
     const results = new Map<string, SymlinkScanResult>();
 

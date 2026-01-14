@@ -35,12 +35,12 @@ This research document provides patterns for implementing `verifyGroundswellNpmL
 
 ### Why Use spawn() Instead of exec() or execSync()
 
-| Method | Pros | Cons | Recommendation |
-|--------|------|------|----------------|
-| `spawn()` | Streams output, handles large data, no shell buffering, better timeout control | More verbose setup | **✅ RECOMMENDED** |
-| `exec()` | Simple API, shell features available | Buffers entire output, shell injection risk, max buffer size | ❌ Avoid for npm commands |
-| `execSync()` | Blocking, simple | Blocks event loop, no timeout control, poor UX | ❌ Never use in production |
-| `execFile()` | No shell, direct execution | Still buffers output | ⚠️ Acceptable but spawn() is better |
+| Method       | Pros                                                                           | Cons                                                         | Recommendation                      |
+| ------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------- |
+| `spawn()`    | Streams output, handles large data, no shell buffering, better timeout control | More verbose setup                                           | **✅ RECOMMENDED**                  |
+| `exec()`     | Simple API, shell features available                                           | Buffers entire output, shell injection risk, max buffer size | ❌ Avoid for npm commands           |
+| `execSync()` | Blocking, simple                                                               | Blocks event loop, no timeout control, poor UX               | ❌ Never use in production          |
+| `execFile()` | No shell, direct execution                                                     | Still buffers output                                         | ⚠️ Acceptable but spawn() is better |
 
 ---
 
@@ -432,7 +432,8 @@ function parseNpmListResult(
       }
 
       // Check if it's a symlink (linked package)
-      const isLinked = packageInfo.resolved === undefined && !packageInfo.version;
+      const isLinked =
+        packageInfo.resolved === undefined && !packageInfo.version;
 
       return {
         present: true,
@@ -525,7 +526,9 @@ const NPM_ERROR_PATTERNS = {
 /**
  * Classify npm list error from stderr
  */
-function classifyNpmError(stderr: string): keyof typeof NPM_ERROR_PATTERNS | 'unknown' {
+function classifyNpmError(
+  stderr: string
+): keyof typeof NPM_ERROR_PATTERNS | 'unknown' {
   if (stderr.includes('(empty)')) return 'MISSING';
   if (stderr.includes('extraneous')) return 'EXTRANEOUS';
   if (stderr.includes('missing peer')) return 'MISSING_PEER';
@@ -741,13 +744,13 @@ function isLinkedPackage(info: NpmDependencyInfo): boolean {
 
 ### 6.3 State Detection Matrix
 
-| State | Exit Code | stdout JSON | stderr | Detection Method |
-|-------|-----------|-------------|--------|------------------|
-| **Missing** | 1 | Empty or invalid | `(empty)` | Check stderr for "(empty)" |
-| **Installed** | 0 | Has `version` field | Empty | Check `json.dependencies[name].version` exists |
-| **Linked** | 0 | No `version`, has `resolved` path | Empty | Check `isLinkedPackage()` function |
-| **Extraneous** | 1 | Has `extraneous: true` | `extraneous` | Check `info.extraneous === true` |
-| **Error** | 1 | N/A | Error message | Parse stderr for error patterns |
+| State          | Exit Code | stdout JSON                       | stderr        | Detection Method                               |
+| -------------- | --------- | --------------------------------- | ------------- | ---------------------------------------------- |
+| **Missing**    | 1         | Empty or invalid                  | `(empty)`     | Check stderr for "(empty)"                     |
+| **Installed**  | 0         | Has `version` field               | Empty         | Check `json.dependencies[name].version` exists |
+| **Linked**     | 0         | No `version`, has `resolved` path | Empty         | Check `isLinkedPackage()` function             |
+| **Extraneous** | 1         | Has `extraneous: true`            | `extraneous`  | Check `info.extraneous === true`               |
+| **Error**      | 1         | N/A                               | Error message | Parse stderr for error patterns                |
 
 ---
 
@@ -1014,10 +1017,7 @@ function wrongMissingCheck(exitCode: number): boolean {
 /**
  * CORRECT: Check stderr for "(empty)" marker
  */
-function correctMissingCheck(
-  exitCode: number | null,
-  stderr: string
-): boolean {
+function correctMissingCheck(exitCode: number | null, stderr: string): boolean {
   return exitCode === 1 && stderr.includes('(empty)');
 }
 ```
@@ -1126,10 +1126,19 @@ export async function verifyGroundswellNpmList(
       clearTimeout(timeoutId);
 
       // Parse output
-      const parseResult = parseNpmListOutput(packageName, stdout, stderr, exitCode);
+      const parseResult = parseNpmListOutput(
+        packageName,
+        stdout,
+        stderr,
+        exitCode
+      );
 
       const result = {
-        success: exitCode === 0 && !timedOut && !killed && parseResult.state !== 'missing',
+        success:
+          exitCode === 0 &&
+          !timedOut &&
+          !killed &&
+          parseResult.state !== 'missing',
         present: parseResult.present,
         isLinked: parseResult.isLinked,
         state: parseResult.state,
@@ -1303,12 +1312,7 @@ function createMockChild(options: {
   stderr?: string;
   delay?: number;
 }): ChildProcess {
-  const {
-    exitCode = 0,
-    stdout = '',
-    stderr = '',
-    delay = 10,
-  } = options;
+  const { exitCode = 0, stdout = '', stderr = '', delay = 10 } = options;
 
   let stdoutCallback: ((data: Buffer) => void) | null = null;
   let stderrCallback: ((data: Buffer) => void) | null = null;
@@ -1379,7 +1383,8 @@ describe('verifyGroundswellNpmList', () => {
         dependencies: {
           groundswell: {
             version: '1.2.3',
-            resolved: 'https://registry.npmjs.org/groundswell/-/groundswell-1.2.3.tgz',
+            resolved:
+              'https://registry.npmjs.org/groundswell/-/groundswell-1.2.3.tgz',
           },
         },
       });
@@ -1620,6 +1625,7 @@ For implementing `verifyGroundswellNpmList()`:
 **End of Research Document**
 
 **Sources:**
+
 - `/home/dustin/projects/hacky-hack/src/utils/groundswell-linker.ts` - Production npm link implementation
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P2M1T2S1/research/child_process_best_practices.md` - MCP spawn patterns
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P4M4T2S2/research/child_process_mocking.md` - Vitest testing patterns

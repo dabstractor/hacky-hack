@@ -3,6 +3,7 @@
 ## Context from Previous Work (P1.M1.T1.S6)
 
 The previous PRP (P1.M1.T1.S6) produces `ReadmeUpdateResult` with:
+
 - `updated: boolean` - Whether README was updated
 - `path: string` - Path to README.md
 - `message: string` - Human-readable status
@@ -17,6 +18,7 @@ The previous PRP (P1.M1.T1.S6) produces `ReadmeUpdateResult` with:
 **File:** `/home/dustin/projects/hacky-hack/src/utils/groundswell-linker.ts`
 
 ### Spawn Call Pattern (Lines 766-770)
+
 ```typescript
 child = spawn('npm', ['list', 'groundswell', '--json', '--depth=0'], {
   cwd: projectPath,
@@ -26,6 +28,7 @@ child = spawn('npm', ['list', 'groundswell', '--json', '--depth=0'], {
 ```
 
 ### Timeout Escalation Pattern (Lines 789-798)
+
 ```typescript
 const timeoutId = setTimeout(() => {
   killed = true;
@@ -40,6 +43,7 @@ const timeoutId = setTimeout(() => {
 ```
 
 ### Stdout/Stderr Capture Pattern (Lines 801-814)
+
 ```typescript
 let stdout = '';
 let stderr = '';
@@ -64,6 +68,7 @@ if (child.stderr) {
 ## 2. Result Interface Pattern
 
 ### NpmListVerifyResult (Lines 200-221)
+
 ```typescript
 export interface NpmListVerifyResult {
   linked: boolean;
@@ -77,6 +82,7 @@ export interface NpmListVerifyResult {
 ```
 
 **Pattern to follow for TypeScriptCheckResult:**
+
 - Boolean status flag (e.g., `success` or `hasErrors`)
 - Optional fields for additional data
 - Human-readable `message`
@@ -89,45 +95,52 @@ export interface NpmListVerifyResult {
 ## 3. TypeScript Compiler Output Format
 
 ### Command
+
 ```bash
 npm run typecheck  # Runs: tsc --noEmit
 ```
 
 ### Output Format
+
 ```
 file_path(line,column): error TSXXXX: error_message
 ```
 
 ### Key Characteristics
+
 - All errors go to **stderr** (not stdout)
 - Exit code: `0` (success) or `2` (errors)
 - Format is consistent and machine-readable
 - Use `--pretty false` for clean output (but npm script doesn't include this)
 
 ### Example Output
+
 ```
 src/test.ts(10,9): error TS2322: Type 'string' is not assignable to type 'number'.
 src/utils.ts(14,35): error TS2307: Cannot find module 'lodash' or its corresponding type declarations.
 ```
 
 ### Common Error Codes
-| Code | Pattern | For This PRP |
-|------|---------|--------------|
-| TS2307 | Cannot find module | **Critical** - Parse for this |
-| TS2322 | Type assignment error | Count as general error |
-| TS2345 | Type mismatch | Count as general error |
-| TS2741 | Missing property | Count as general error |
+
+| Code   | Pattern               | For This PRP                  |
+| ------ | --------------------- | ----------------------------- |
+| TS2307 | Cannot find module    | **Critical** - Parse for this |
+| TS2322 | Type assignment error | Count as general error        |
+| TS2345 | Type mismatch         | Count as general error        |
+| TS2741 | Missing property      | Count as general error        |
 
 ---
 
 ## 4. Error Parsing Strategy
 
 ### Regex Pattern
+
 ```javascript
 const ERROR_PATTERN = /^(.+?)\((\d+),(\d+)\): error (TS\d+): (.+)$/;
 ```
 
 ### Parse Logic
+
 ```typescript
 function parseTypeScriptErrors(stderr: string): TypeScriptError[] {
   const lines = stderr.trim().split('\n');
@@ -142,7 +155,7 @@ function parseTypeScriptErrors(stderr: string): TypeScriptError[] {
         line: parseInt(match[2], 10),
         column: parseInt(match[3], 10),
         code: match[4], // e.g., "TS2307"
-        message: match[5]
+        message: match[5],
       });
     }
   }
@@ -152,9 +165,12 @@ function parseTypeScriptErrors(stderr: string): TypeScriptError[] {
 ```
 
 ### Detect Module-Not-Found Errors
+
 ```typescript
 function hasModuleNotFoundError(errors: TypeScriptError[]): boolean {
-  return errors.some(e => e.code === 'TS2307' && e.message.includes('Cannot find module'));
+  return errors.some(
+    e => e.code === 'TS2307' && e.message.includes('Cannot find module')
+  );
 }
 ```
 
@@ -163,6 +179,7 @@ function hasModuleNotFoundError(errors: TypeScriptError[]): boolean {
 ## 5. Testing Patterns
 
 ### Mock Setup
+
 ```typescript
 vi.mock('node:child_process', () => ({
   spawn: vi.fn(),
@@ -170,12 +187,15 @@ vi.mock('node:child_process', () => ({
 ```
 
 ### Mock ChildProcess
+
 ```typescript
-function createMockChild(options: {
-  exitCode?: number | null;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number | null;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   return {
     stdout: {
       on: vi.fn((event: string, callback: (data: Buffer) => void) => {
@@ -203,6 +223,7 @@ function createMockChild(options: {
 ```
 
 ### Test Cases Needed
+
 1. Happy path: No TypeScript errors
 2. With errors: Multiple TypeScript errors, count correctly
 3. Module not found: Detect TS2307 errors
@@ -214,10 +235,12 @@ function createMockChild(options: {
 ## 6. File Placement
 
 ### Option A: Add to groundswell-linker.ts
+
 - Pros: Follows established patterns
 - Cons: Mixed concerns (Groundswell linking + TypeScript checking)
 
 ### Option B: Create new file src/utils/typescript-checker.ts
+
 - Pros: Clear separation of concerns
 - Cons: New file
 
@@ -239,10 +262,12 @@ const TYPECHECK_ARGS = ['run', 'typecheck'];
 ## 8. Documentation URLs
 
 **TypeScript Compiler:**
+
 - https://www.typescriptlang.org/docs/handbook/compiler-options.html
 - https://github.com/microsoft/TypeScript/blob/main/src/compiler/diagnosticMessages.json
 
 **Error Codes:**
+
 - https://typescript.tv/errors/
 
 ---

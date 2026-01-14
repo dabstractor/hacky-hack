@@ -29,6 +29,7 @@ The `ls -la` command outputs one line per file/directory with the following form
 ```
 
 **Field breakdown:**
+
 - **Permissions**: 10 characters (file type + 9 permission bits)
 - **Links**: Number of hard links
 - **Owner**: File owner username
@@ -42,22 +43,26 @@ The `ls -la` command outputs one line per file/directory with the following form
 ### 1.2 Real Examples
 
 #### Regular Files
+
 ```
 -rw-r--r-- 1 dustin dustin    0 Jan 14 14:58 regular_file
 ```
 
 #### Directories
+
 ```
 drwxr-xr-x 2 dustin dustin   40 Jan 14 14:58 regular_dir
 ```
 
 #### Symlinks
+
 ```
 lrwxrwxrwx 1 dustin dustin    9 Jan 14 14:58 parent_link -> ../parent
 lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 symlink_example -> /etc/hosts
 ```
 
 #### Real npm link symlinks (from node_modules/.bin)
+
 ```
 lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn
 lrwxrwxrwx 1 dustin dustin   22 Jan 12 15:27 esbuild -> ../esbuild/bin/esbuild
@@ -73,6 +78,7 @@ lrwxrwxrwx 1 dustin dustin   23 Jan 12 16:36 eslint -> ../eslint/bin/eslint.js
 **Pattern:** Symlinks include ` -> <target>` at the end of the line.
 
 **Examples:**
+
 ```
 parent_link -> ../parent
 symlink_example -> /etc/hosts
@@ -95,7 +101,8 @@ function extractSymlinkTarget(line: string): string | null {
 }
 
 // Example
-const line = "lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 symlink -> /etc/hosts";
+const line =
+  'lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 symlink -> /etc/hosts';
 console.log(isSymlinkByArrow(line)); // true
 console.log(extractSymlinkTarget(line)); // "/etc/hosts"
 ```
@@ -125,6 +132,7 @@ The 10-character permission string has this structure:
 ```
 
 **Positions:**
+
 - Position 0: File type character
 - Positions 1-3: Owner permissions (rwx)
 - Positions 4-6: Group permissions (rwx)
@@ -132,15 +140,15 @@ The 10-character permission string has this structure:
 
 ### 3.2 File Type Characters
 
-| Character | Type |
-|-----------|------|
-| `-` | Regular file |
-| `d` | Directory |
-| `l` | **Symbolic link** |
-| `c` | Character device |
-| `b` | Block device |
-| `p` | Named pipe |
-| `s` | Socket |
+| Character | Type              |
+| --------- | ----------------- |
+| `-`       | Regular file      |
+| `d`       | Directory         |
+| `l`       | **Symbolic link** |
+| `c`       | Character device  |
+| `b`       | Block device      |
+| `p`       | Named pipe        |
+| `s`       | Socket            |
 
 **Key insight:** The first character is `l` for symbolic links.
 
@@ -157,8 +165,9 @@ function isSymlinkByPermission(line: string): boolean {
 }
 
 // Example
-const symlinkLine = "lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 symlink -> /etc/hosts";
-const fileLine = "-rw-r--r-- 1 dustin dustin    0 Jan 14 14:58 regular_file";
+const symlinkLine =
+  'lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 symlink -> /etc/hosts';
+const fileLine = '-rw-r--r-- 1 dustin dustin    0 Jan 14 14:58 regular_file';
 
 console.log(isSymlinkByPermission(symlinkLine)); // true
 console.log(isSymlinkByPermission(fileLine)); // false
@@ -214,11 +223,13 @@ async function runLsLa(directory: string): Promise<string> {
       });
     }
 
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       if (exitCode === 0) {
         resolve(stdout);
       } else {
-        reject(new Error(`ls -la failed with exit code ${exitCode}: ${stderr}`));
+        reject(
+          new Error(`ls -la failed with exit code ${exitCode}: ${stderr}`)
+        );
       }
     });
 
@@ -301,7 +312,7 @@ async function spawnLsLa(
     }
 
     // Handle close event
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timeoutId);
       resolve({ stdout, stderr, exitCode });
     });
@@ -409,7 +420,8 @@ function parseLsLine(line: string): LsEntry | null {
 }
 
 // Example usage
-const line = "lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn";
+const line =
+  'lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn';
 const entry = parseLsLine(line);
 
 console.log(entry);
@@ -508,17 +520,8 @@ function parseLsLineRegex(line: string): LsEntry | null {
     return null;
   }
 
-  const [
-    ,
-    permissions,
-    links,
-    owner,
-    group,
-    size,
-    date,
-    time,
-    nameAndTarget,
-  ] = match;
+  const [, permissions, links, owner, group, size, date, time, nameAndTarget] =
+    match;
 
   const isSymlink = permissions.charAt(0) === 'l';
   let name = nameAndTarget;
@@ -622,7 +625,9 @@ async function checkGroundswellNpmLink(): Promise<boolean> {
   }
 
   if (result.isSymlink) {
-    console.log(`node_modules/groundswell is a symlink -> ${result.symlinkTarget}`);
+    console.log(
+      `node_modules/groundswell is a symlink -> ${result.symlinkTarget}`
+    );
     return true;
   }
 
@@ -823,14 +828,14 @@ async function checkGroundswellNative(): Promise<boolean> {
 
 ### 7.2 Comparison: `ls -la` vs Native APIs
 
-| Aspect | `ls -la` Parsing | Native APIs (`lstat`/`readlink`) |
-|--------|------------------|-----------------------------------|
-| **Reliability** | Medium (format varies by system/locale) | High (OS syscall) |
-| **Performance** | Slower (spawn process) | Faster (direct syscall) |
-| **Portability** | Low (ls output varies) | High (consistent across platforms) |
-| **Error Handling** | Complex (parse exit codes, stderr) | Simple (try/catch) |
-| **Dependencies** | None (built-in commands) | None (built-in modules) |
-| **Use Case** | Legacy systems, shell scripts | All new code |
+| Aspect             | `ls -la` Parsing                        | Native APIs (`lstat`/`readlink`)   |
+| ------------------ | --------------------------------------- | ---------------------------------- |
+| **Reliability**    | Medium (format varies by system/locale) | High (OS syscall)                  |
+| **Performance**    | Slower (spawn process)                  | Faster (direct syscall)            |
+| **Portability**    | Low (ls output varies)                  | High (consistent across platforms) |
+| **Error Handling** | Complex (parse exit codes, stderr)      | Simple (try/catch)                 |
+| **Dependencies**   | None (built-in commands)                | None (built-in modules)            |
+| **Use Case**       | Legacy systems, shell scripts           | All new code                       |
 
 ### 7.3 Hybrid Approach
 
@@ -905,7 +910,7 @@ async function safeSpawnLs(path: string, timeout = 5000): Promise<string> {
       reject(new Error(`Command timed out after ${timeout}ms`));
     }, timeout);
 
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timer);
       if (timedOut) return;
 
@@ -944,7 +949,8 @@ import { describe, it, expect } from 'vitest';
 
 describe('ls -la parsing', () => {
   it('should detect symlink by permission character', () => {
-    const symlinkLine = 'lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 link -> /target';
+    const symlinkLine =
+      'lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 link -> /target';
     const fileLine = '-rw-r--r-- 1 dustin dustin    0 Jan 14 14:58 file';
 
     expect(isSymlinkByPermission(symlinkLine)).toBe(true);
@@ -952,7 +958,8 @@ describe('ls -la parsing', () => {
   });
 
   it('should detect symlink by arrow pattern', () => {
-    const symlinkLine = 'lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 link -> /target';
+    const symlinkLine =
+      'lrwxrwxrwx 1 dustin dustin   10 Jan 14 14:58 link -> /target';
     const fileLine = '-rw-r--r-- 1 dustin dustin    0 Jan 14 14:58 file';
 
     expect(isSymlinkByArrow(symlinkLine)).toBe(true);
@@ -960,14 +967,16 @@ describe('ls -la parsing', () => {
   });
 
   it('should extract symlink target', () => {
-    const line = 'lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn';
+    const line =
+      'lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn';
     const target = extractSymlinkTarget(line);
 
     expect(target).toBe('../acorn/bin/acorn');
   });
 
   it('should parse ls entry correctly', () => {
-    const line = 'lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn';
+    const line =
+      'lrwxrwxrwx 1 dustin dustin   18 Jan 12 16:12 acorn -> ../acorn/bin/acorn';
     const entry = parseLsLine(line);
 
     expect(entry).toEqual({
@@ -1047,8 +1056,10 @@ const spawnLs = (dir: string) =>
   new Promise<string>((resolve, reject) => {
     const child = spawn('ls', ['-la', dir], { shell: false });
     let stdout = '';
-    child.stdout?.on('data', (d) => (stdout += d));
-    child.on('close', (code) => (code === 0 ? resolve(stdout) : reject(new Error())));
+    child.stdout?.on('data', d => (stdout += d));
+    child.on('close', code =>
+      code === 0 ? resolve(stdout) : reject(new Error())
+    );
   });
 ```
 

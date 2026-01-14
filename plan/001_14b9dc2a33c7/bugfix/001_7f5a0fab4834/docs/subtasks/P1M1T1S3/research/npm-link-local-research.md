@@ -24,11 +24,13 @@ npm link
 ```
 
 **What happens:**
+
 - npm creates a symlink in the global `node_modules` directory
 - The symlink points to your local package directory
 - This makes the package available globally for linking
 
 **Typical global locations:**
+
 - **Linux/macOS:** `/usr/local/lib/node_modules/` or `~/.nvm/versions/node/vXX.X.X/lib/node_modules/`
 - **Windows:** `C:\Users\<username>\AppData\Roaming\npm\node_modules\`
 
@@ -43,6 +45,7 @@ npm link package-name
 ```
 
 **What happens:**
+
 - npm creates a symlink from the project's `node_modules/package-name` to the global symlink
 - Your local package is now available as if it were installed normally
 - Changes in your local package are immediately reflected
@@ -126,8 +129,15 @@ async function verifyGlobalNpmLink(packageName: string): Promise<{
 }> {
   // Get global node_modules path
   const { execSync } = require('child_process');
-  const globalPrefix = execSync('npm config get prefix', { encoding: 'utf-8' }).trim();
-  const globalNodeModules = path.join(globalPrefix, 'lib', 'node_modules', packageName);
+  const globalPrefix = execSync('npm config get prefix', {
+    encoding: 'utf-8',
+  }).trim();
+  const globalNodeModules = path.join(
+    globalPrefix,
+    'lib',
+    'node_modules',
+    packageName
+  );
 
   try {
     const isLink = await isSymlink(globalNodeModules);
@@ -284,6 +294,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
 **Solutions:**
 
 1. **Fix npm directory permissions (recommended for system npm):**
+
 ```bash
 sudo mkdir -p /usr/local/lib/node_modules
 sudo chown -R $(whoami) /usr/local/lib/node_modules
@@ -291,6 +302,7 @@ sudo chown -R $(whoami) /usr/local/bin
 ```
 
 2. **Use Node Version Manager (nvm) - Best Practice:**
+
 ```bash
 # Install nvm to avoid sudo requirements entirely
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
@@ -301,6 +313,7 @@ nvm install node
 ```
 
 3. **Change npm's default directory:**
+
 ```bash
 mkdir ~/.npm-global
 npm config set prefix '~/.npm-global'
@@ -319,6 +332,7 @@ source ~/.bashrc
    - Select "Run as administrator"
 
 2. **Configure npm permissions in PowerShell (as Administrator):**
+
 ```powershell
 # Set execution policy
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
@@ -329,6 +343,7 @@ icacls $npmPath /grant $env:USERNAME:(OI)(CI)F
 ```
 
 3. **Verify folder permissions:**
+
 ```powershell
 # Check current permissions
 icacls "$env:APPDATA\npm"
@@ -343,6 +358,7 @@ icacls "$env:APPDATA\npm"
 **Solutions:**
 
 1. **Verify package name matches:**
+
 ```bash
 # Check the name in package.json
 cat package.json | grep '"name"'
@@ -352,16 +368,18 @@ npm link actual-package-name
 ```
 
 2. **Check for main entry point:**
+
 ```json
 // package.json must have correct main field
 {
   "name": "my-package",
-  "main": "dist/index.js",  // or "index.js"
+  "main": "dist/index.js", // or "index.js"
   "types": "dist/index.d.ts"
 }
 ```
 
 3. **Clear npm and Node.js cache:**
+
 ```bash
 npm cache clean --force
 rm -rf node_modules package-lock.json
@@ -375,6 +393,7 @@ npm install
 **Solutions:**
 
 1. **Build the package before linking:**
+
 ```bash
 cd /path/to/package
 npm run build
@@ -382,6 +401,7 @@ npm link
 ```
 
 2. **Verify tsconfig.json includes the package:**
+
 ```json
 {
   "compilerOptions": {
@@ -401,12 +421,14 @@ npm link
 #### Windows Junction Points vs Symbolic Links
 
 Windows has two types of links:
+
 - **Symbolic links:** Require developer mode or admin privileges
 - **Junction points:** Work without special permissions (directory-only)
 
 npm on Windows will use junction points automatically when possible.
 
 **Enable Developer Mode (Windows 10/11):**
+
 ```
 Settings → Update & Security → For developers → Developer mode
 ```
@@ -443,6 +465,7 @@ ls -la /usr/local/lib/node_modules/package-name
 **Problem:** Package A links to Package B, but Package B depends on Package A
 
 **Symptoms:**
+
 - Module not found errors
 - Version conflicts
 - Infinite loops in module resolution
@@ -450,6 +473,7 @@ ls -la /usr/local/lib/node_modules/package-name
 **Solutions:**
 
 1. **Use peer dependencies instead of regular dependencies:**
+
 ```json
 // In package B
 {
@@ -460,6 +484,7 @@ ls -la /usr/local/lib/node_modules/package-name
 ```
 
 2. **Build packages first:**
+
 ```bash
 cd package-a && npm run build && npm link
 cd package-b && npm run build && npm link
@@ -711,7 +736,10 @@ describe('npm link integration tests', () => {
   afterEach(async () => {
     // Cleanup
     try {
-      execSync(`npm unlink -g test-package`, { cwd: packageDir, stdio: 'ignore' });
+      execSync(`npm unlink -g test-package`, {
+        cwd: packageDir,
+        stdio: 'ignore',
+      });
     } catch {
       // Ignore errors during cleanup
     }
@@ -724,7 +752,10 @@ describe('npm link integration tests', () => {
 
     // Verify global link exists
     const globalLinkExists = await isSymlink(
-      path.join(execSync('npm config get prefix', { encoding: 'utf-8' }).trim(), 'lib/node_modules/test-package')
+      path.join(
+        execSync('npm config get prefix', { encoding: 'utf-8' }).trim(),
+        'lib/node_modules/test-package'
+      )
     );
     expect(globalLinkExists).toBe(true);
 
@@ -802,11 +833,13 @@ describe('symlink verification', () => {
 ### 5.1 Development Workflow
 
 1. **Always build before linking:**
+
    ```bash
    npm run build && npm link
    ```
 
 2. **Use absolute paths for verification:**
+
    ```typescript
    const absolutePath = path.resolve(process.cwd(), 'node_modules', 'package');
    ```
@@ -834,6 +867,7 @@ describe('symlink verification', () => {
 For better local development, consider using:
 
 1. **npm workspaces** (npm 7+):
+
    ```json
    {
      "workspaces": ["packages/*"]
@@ -841,6 +875,7 @@ For better local development, consider using:
    ```
 
 2. **pnpm** (most efficient for large monorepos):
+
    ```bash
    pnpm install
    pnpm --filter @my/app link --global
@@ -855,22 +890,26 @@ For better local development, consider using:
 ## 6. Official Documentation and Resources
 
 ### npm Documentation
+
 - **npm link official docs:** https://docs.npmjs.com/cli/v10/commands/npm-link
 - **npm folders:** https://docs.npmjs.com/cli/v10/configuring-npm/folders
 - **npm developers guide:** https://docs.npmjs.com/cli/v10/using-npm/developers
 
 ### Node.js Documentation
+
 - **fs.lstat:** https://nodejs.org/api/fs.html#fslstatpath-options-callback
 - **fs.promises.lstat:** https://nodejs.org/api/fs.html#fspromiseslstatpath-options
 - **fs.Stats.isSymbolicLink:** https://nodejs.org/api/fs.html#statsissymboliclink
 - **fs.readlink:** https://nodejs.org/api/fs.html#fsreadlinkpath-options-callback
 
 ### Testing Documentation
+
 - **Jest mocking:** https://jestjs.io/docs/mock-functions
 - **Vitest mocking:** https://vitest.dev/guide/mocking.html
 - **Testing library docs:** https://testing-library.com/docs/
 
 ### Community Resources
+
 - **npm link troubleshooting:** https://github.com/npm/npm/issues
 - **Node.js symlink best practices:** https://nodejs.org/en/docs/guides/
 - **TypeScript module resolution:** https://www.typescriptlang.org/docs/handbook/module-resolution.html
@@ -920,4 +959,4 @@ const realPath = await fs.realpath(path);
 
 ---
 
-*Research compiled for task P1M1T1S3 - npm link local package development best practices*
+_Research compiled for task P1M1T1S3 - npm link local package development best practices_

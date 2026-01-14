@@ -7,12 +7,14 @@
 **Feature Goal**: Add a `documentGroundswellReadme()` function that conditionally appends Groundswell npm link setup instructions to the project README.md, but only when S5's `npm list` verification reports `linked: true`.
 
 **Deliverable**: A documented function in `src/utils/groundswell-linker.ts` that:
+
 1. Consumes `NpmListVerifyResult` from S5 as input
 2. Conditionally executes: only writes to README when `linked === true`
 3. Creates/updates README.md with "## Local Development with Groundswell" section
 4. Returns `ReadmeUpdateResult` with status information
 
 **Success Definition**:
+
 - Function exists and follows all S1-S5 patterns (conditional execution, structured result, error handling)
 - README.md is created (if missing) or updated (if exists) with proper Groundswell setup documentation
 - Documentation follows existing README.md formatting patterns (H2 headers, code blocks, tables)
@@ -26,6 +28,7 @@
 **Use Case**: A developer clones the hacky-hack repository and needs to understand how to link the local Groundswell package for development. The README should provide clear, executable instructions.
 
 **User Journey**:
+
 1. Developer clones repository
 2. Reads README.md "Local Development with Groundswell" section
 3. Follows commands to link Groundswell locally
@@ -33,6 +36,7 @@
 5. Proceeds with development
 
 **Pain Points Addressed**:
+
 - Without documentation, developers must search codebase or ask teammates how to set up Groundswell
 - Missing documentation leads to repeated setup questions and onboarding friction
 - Inconsistent setup instructions across team members
@@ -78,6 +82,7 @@ Add a `documentGroundswellReadme()` function to `src/utils/groundswell-linker.ts
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Yes** - This PRP provides:
+
 - Exact file paths and line numbers for all patterns to follow
 - Complete interface definitions for input (S5) and output (S6)
 - README.md formatting patterns with specific header levels and code block styles
@@ -158,7 +163,7 @@ Add a `documentGroundswellReadme()` function to `src/utils/groundswell-linker.ts
 ```typescript
 // CRITICAL: Use Write tool when file doesn't exist, Edit tool when it does
 // Pattern from README task description: "Use Write tool if file doesn't exist, Edit if it does"
-import { Write, Edit } from 'claude-ai-tools';  // Hypothetical import pattern
+import { Write, Edit } from 'claude-ai-tools'; // Hypothetical import pattern
 
 // CRITICAL: All groundswell-linker functions use DEFAULT_PROJECT_PATH constant
 const DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack';
@@ -168,7 +173,7 @@ const README_PATH = `${DEFAULT_PROJECT_PATH}/README.md`;
 // From verifyGroundswellNpmList() lines 750-760:
 if (!previousResult.linked) {
   return {
-    linked: false,  // For S6: updated: false
+    linked: false, // For S6: updated: false
     message: 'Skipped: Groundswell not linked by npm list verification',
     // ... other fields
   };
@@ -376,7 +381,7 @@ async function documentGroundswellReadme(
     // Create new README with Write tool
     await writeTool({
       file_path: README_PATH,
-      content: generateFullReadmeContent(),  // Includes basic headers + Groundswell section
+      content: generateFullReadmeContent(), // Includes basic headers + Groundswell section
     });
     return {
       updated: true,
@@ -398,8 +403,9 @@ async function documentGroundswellReadme(
 
   await editTool({
     file_path: README_PATH,
-    old_string: existingContent.slice(-100),  // Last 100 chars to append after
-    new_string: existingContent.slice(-100) + '\n\n' + GROUNDSWELL_README_SECTION,
+    old_string: existingContent.slice(-100), // Last 100 chars to append after
+    new_string:
+      existingContent.slice(-100) + '\n\n' + GROUNDSWELL_README_SECTION,
   });
 
   return {
@@ -557,7 +563,7 @@ git checkout README.md  # Reset to test again
 
 ### Level 4: Creative & Domain-Specific Validation
 
-```bash
+````bash
 # Documentation Quality Validation:
 
 # 1. Test README instructions manually (follow your own documentation)
@@ -589,7 +595,7 @@ cd /tmp && git clone <repo> test-hacky-hack && cd test-hacky-hack
 # Follow README instructions - should work without errors
 
 # Expected: Documentation is accurate, complete, and follows project patterns
-```
+````
 
 ## Final Validation Checklist
 

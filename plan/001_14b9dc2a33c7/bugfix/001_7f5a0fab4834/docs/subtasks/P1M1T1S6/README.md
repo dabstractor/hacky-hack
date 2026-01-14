@@ -3,16 +3,19 @@
 ## Quick Reference
 
 ### Recommended tsc Command for Parsing
+
 ```bash
 tsc --noEmit --pretty false 2>&1
 ```
 
 ### Error Format Pattern
+
 ```
 file_path(line,column): error TSXXXX: error_message
 ```
 
 ### Key Characteristics
+
 - **Output Stream:** All errors go to **stderr**
 - **Exit Code:** `0` (success) or `2` (errors)
 - **Format:** Consistent, machine-readable when using `--pretty false`
@@ -32,21 +35,27 @@ src/types.ts(17,7): error TS2741: Property 'age' is missing in type '{ name: str
 ## Common Error Patterns
 
 ### TS2307 - Cannot Find Module
+
 ```
 error TS2307: Cannot find module 'module-name' or its corresponding type declarations.
 ```
+
 **Regex:** `/TS2307:\s+Cannot find module ['"]([^'"]+)['"]/`
 
 ### TS2322 - Type Assignment Error
+
 ```
 error TS2322: Type 'string' is not assignable to type 'number'.
 ```
+
 **Regex:** `/TS2322:\s+Type '([^']+)' is not assignable to type '([^']+)'/`
 
 ### TS2741 - Missing Property
+
 ```
 error TS2741: Property 'age' is missing in type 'source' but required in type 'target'.
 ```
+
 **Regex:** `/TS2741:\s+Property '(\w+)' is missing in type '([^']+)'/`
 
 ---
@@ -54,6 +63,7 @@ error TS2741: Property 'age' is missing in type 'source' but required in type 't
 ## Recommended NPM Packages
 
 ### 1. @aivenio/tsc-output-parser (Recommended)
+
 - **Version:** 2.1.1
 - **License:** Apache 2.0
 - **Dependencies:** None
@@ -61,12 +71,14 @@ error TS2741: Property 'age' is missing in type 'source' but required in type 't
 - **CLI:** `tsc --noEmit --pretty false 2>&1 | tsc-output-parser`
 
 ### 2. ts-error-parser
+
 - **Version:** 1.0.0
 - **License:** MIT
 - **Dependencies:** None
 - **Install:** `npm install ts-error-parser`
 
 ### 3. fork-ts-checker-webpack-plugin
+
 - **For webpack integration**
 - **Reference for parsing patterns**
 - **Install:** `npm install fork-ts-checker-webpack-plugin`
@@ -89,7 +101,7 @@ function parseTscOutput(output) {
         line: parseInt(match[2], 10),
         column: parseInt(match[3], 10),
         code: match[4],
-        message: match[5]
+        message: match[5],
       });
     }
   }
@@ -97,7 +109,7 @@ function parseTscOutput(output) {
   return {
     success: errors.length === 0,
     exitCode: errors.length === 0 ? 0 : 2,
-    errors
+    errors,
   };
 }
 ```
@@ -106,13 +118,13 @@ function parseTscOutput(output) {
 
 ## Error Code Categories
 
-| Range | Category | Examples |
-|-------|----------|----------|
-| TS1000-TS1999 | Compiler | TS1005, TS1108 |
-| TS2000-TS2999 | Module | TS2307, TS6053 |
-| TS2300-TS2499 | Type | TS2322, TS2345, TS2741 |
-| TS2500-TS2999 | Declaration | TS2304, TS2339 |
-| TS5000-TS9999 | Configuration | TS5009, TS5074 |
+| Range         | Category      | Examples               |
+| ------------- | ------------- | ---------------------- |
+| TS1000-TS1999 | Compiler      | TS1005, TS1108         |
+| TS2000-TS2999 | Module        | TS2307, TS6053         |
+| TS2300-TS2499 | Type          | TS2322, TS2345, TS2741 |
+| TS2500-TS2999 | Declaration   | TS2304, TS2339         |
+| TS5000-TS9999 | Configuration | TS5009, TS5074         |
 
 ---
 
@@ -130,16 +142,19 @@ function parseTscOutput(output) {
 ## Documentation URLs
 
 ### Official TypeScript
+
 - [Compiler Options](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
 - [tsconfig.json](https://www.typescriptlang.org/tsconfig)
 - [Project Compilation](https://www.typescriptlang.org/docs/handbook/project-compilation.html)
 - [GitHub Repository](https://github.com/microsoft/TypeScript)
 
 ### Error Codes
+
 - [Diagnostic Messages](https://github.com/microsoft/TypeScript/blob/main/src/compiler/diagnosticMessages.json)
 - [Error Code Reference](https://typescript.tv/errors/)
 
 ### NPM Packages
+
 - [@aivenio/tsc-output-parser](https://www.npmjs.com/package/@aivenio/tsc-output-parser)
 - [ts-error-parser](https://www.npmjs.com/package/ts-error-parser)
 - [@k88/typescript-compile-error-formatter](https://www.npmjs.com/package/@k88/typescript-compile-error-formatter)
@@ -158,12 +173,14 @@ function parseTscOutput(output) {
 ## Testing
 
 To test the parser example:
+
 ```bash
 cd /home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S6
 node tsc-parser-example.cjs
 ```
 
 To test with real TypeScript files:
+
 ```bash
 cd /tmp
 tsc --noEmit --pretty false your-file.ts 2>&1

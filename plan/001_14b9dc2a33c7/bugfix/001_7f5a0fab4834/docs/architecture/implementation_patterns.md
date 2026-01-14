@@ -43,6 +43,7 @@ tests/
 ### Declarative Workflow Definition
 
 **Template**:
+
 ```typescript
 import { Workflow, Step } from 'groundswell';
 
@@ -53,18 +54,19 @@ const workflow = new Workflow({
     {
       name: 'step-name',
       description: 'What this step does',
-      execute: async (context) => {
+      execute: async context => {
         // Step implementation
         return result;
-      }
-    }
-  ]
+      },
+    },
+  ],
 });
 
 export default workflow;
 ```
 
 **Best Practices**:
+
 1. **Naming**: Use kebab-case for workflow names
 2. **Description**: Provide clear descriptions for each step
 3. **Error Handling**: Wrap step logic in try-catch
@@ -72,6 +74,7 @@ export default workflow;
 5. **Return Values**: Return step results for next steps
 
 **Example**: `src/workflows/prp-pipeline.ts`
+
 ```typescript
 export default new Workflow({
   name: 'prp-pipeline',
@@ -80,13 +83,13 @@ export default new Workflow({
     {
       name: 'validate-prd',
       description: 'Validate PRD structure and content',
-      execute: async (context) => {
+      execute: async context => {
         const validator = new PRDValidator(context.prdPath);
         return await validator.validate();
-      }
+      },
     },
     // ... more steps
-  ]
+  ],
 });
 ```
 
@@ -97,6 +100,7 @@ export default new Workflow({
 ### Factory-Based Agent Creation
 
 **Template**:
+
 ```typescript
 import { createAgent, type Agent } from 'groundswell';
 import { createPrompt } from 'groundswell';
@@ -105,17 +109,20 @@ import architectPrompt from './prompts/architect-prompt.js';
 const agent: Agent = createAgent({
   role: 'architect',
   systemPrompt: createPrompt(architectPrompt),
-  tools: [/* tool list */],
+  tools: [
+    /* tool list */
+  ],
   config: {
     temperature: 0.7,
-    maxTokens: 4000
-  }
+    maxTokens: 4000,
+  },
 });
 
 export default agent;
 ```
 
 **Best Practices**:
+
 1. **Role Definition**: Clear, specific role names
 2. **Prompt Separation**: Keep prompts in separate files
 3. **Tool Selection**: Only include necessary tools
@@ -123,20 +130,17 @@ export default agent;
 5. **Error Handling**: Handle agent failures gracefully
 
 **Example**: `src/agents/agent-factory.ts`
+
 ```typescript
 export function createPRPAgent(context: AgentContext): Agent {
   return createAgent({
     role: 'prp-architect',
     systemPrompt: createPrompt(architectPrompt),
-    tools: [
-      createBashTool(),
-      createGitTool(),
-      createFilesystemTool()
-    ],
+    tools: [createBashTool(), createGitTool(), createFilesystemTool()],
     config: {
       temperature: 0.7,
-      maxTokens: 4000
-    }
+      maxTokens: 4000,
+    },
   });
 }
 ```
@@ -148,6 +152,7 @@ export function createPRPAgent(context: AgentContext): Agent {
 ### Prompt Template Structure
 
 **Template**:
+
 ```typescript
 import { createPrompt } from 'groundswell';
 
@@ -178,6 +183,7 @@ You are a [ROLE_NAME]...
 ```
 
 **Best Practices**:
+
 1. **Clear Structure**: Use sections with headers
 2. **Variable Placeholders**: Use `{{VARIABLE}}` for substitution
 3. **Examples**: Provide input/output examples
@@ -185,6 +191,7 @@ You are a [ROLE_NAME]...
 5. **Output Format**: Specify exact JSON or text format
 
 **Example**: `src/agents/prompts/architect-prompt.ts`
+
 ```typescript
 export default createPrompt(`
 # Role
@@ -224,25 +231,27 @@ Return a JSON object with the following structure:
 ### MCP Tool Wrapper
 
 **Template**:
+
 ```typescript
 import { MCPHandler, type Tool, type ToolExecutor } from 'groundswell';
 
 const executor: ToolExecutor = new MCPHandler({
   name: 'tool-name',
   command: 'npx',
-  args: ['-y', '@modelcontextprotocol/server-name']
+  args: ['-y', '@modelcontextprotocol/server-name'],
 });
 
 const tool: Tool = {
   name: 'tool-name',
   description: 'Human-readable description',
-  executor: executor
+  executor: executor,
 };
 
 export default tool;
 ```
 
 **Best Practices**:
+
 1. **Error Handling**: Wrap MCP calls in try-catch
 2. **Timeout**: Set reasonable timeouts for tool execution
 3. **Logging**: Log tool execution with parameters
@@ -250,6 +259,7 @@ export default tool;
 5. **Cleanup**: Clean up resources after tool use
 
 **Example**: `src/tools/bash-mcp.ts`
+
 ```typescript
 const bashExecutor = new MCPHandler({
   name: 'bash',
@@ -257,13 +267,13 @@ const bashExecutor = new MCPHandler({
   args: ['-y', '@modelcontextprotocol/server-bash'],
   env: {
     // Environment variables for MCP server
-  }
+  },
 });
 
 export const bashTool: Tool = {
   name: 'bash',
   description: 'Execute bash commands',
-  executor: bashExecutor
+  executor: bashExecutor,
 };
 ```
 
@@ -274,6 +284,7 @@ export const bashTool: Tool = {
 ### Structured Validation
 
 **Template**:
+
 ```typescript
 export class Validator {
   validate(input: unknown): ValidationResult {
@@ -285,7 +296,7 @@ export class Validator {
         severity: 'critical',
         message: 'Validation message',
         suggestion: 'How to fix',
-        reference: 'PRD Section X'
+        reference: 'PRD Section X',
       });
     }
 
@@ -298,14 +309,15 @@ export class Validator {
       summary: {
         critical: issues.filter(i => i.severity === 'critical').length,
         warning: issues.filter(i => i.severity === 'warning').length,
-        info: issues.filter(i => i.severity === 'info').length
-      }
+        info: issues.filter(i => i.severity === 'info').length,
+      },
     };
   }
 }
 ```
 
 **Best Practices**:
+
 1. **Severity Levels**: Use critical, warning, info
 2. **Helpful Messages**: Explain what's wrong and how to fix
 3. **References**: Link to PRD sections or documentation
@@ -313,18 +325,19 @@ export class Validator {
 5. **Clear Summary**: Provide issue counts by severity
 
 **Example**: `src/core/validators/prd-validator.ts`
+
 ```typescript
 export class PRDValidator {
   async validate(): Promise<ValidationResult> {
     const issues: ValidationIssue[] = [];
 
     // Check file exists
-    if (!await fileExists(this.prdPath)) {
+    if (!(await fileExists(this.prdPath))) {
       issues.push({
         severity: 'critical',
         message: `PRD file not found: ${this.prdPath}`,
         suggestion: 'Create a PRD.md file in the project root',
-        reference: 'PRD Section 1'
+        reference: 'PRD Section 1',
       });
     }
 
@@ -335,14 +348,14 @@ export class PRDValidator {
         severity: 'critical',
         message: 'PRD file is empty',
         suggestion: 'Add PRD content to the file',
-        reference: 'PRD Section 1'
+        reference: 'PRD Section 1',
       });
     }
 
     return {
       valid: issues.filter(i => i.severity === 'critical').length === 0,
       issues,
-      summary: this.summarizeIssues(issues)
+      summary: this.summarizeIssues(issues),
     };
   }
 }
@@ -355,6 +368,7 @@ export class PRDValidator {
 ### Structured Error Handling
 
 **Template**:
+
 ```typescript
 import { getLogger, type Logger } from './utils/logger.js';
 
@@ -366,7 +380,13 @@ try {
   logger.info({ result }, 'Operation succeeded');
 } catch (error) {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  logger.error({ error: errorMessage, stack: error instanceof Error ? error.stack : undefined }, 'Operation failed');
+  logger.error(
+    {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    },
+    'Operation failed'
+  );
 
   // Re-throw or handle
   throw new Error(`Operation failed: ${errorMessage}`);
@@ -374,6 +394,7 @@ try {
 ```
 
 **Best Practices**:
+
 1. **Type Guards**: Check `error instanceof Error`
 2. **Structured Logging**: Log errors with context
 3. **Stack Traces**: Include stack traces for debugging
@@ -381,14 +402,18 @@ try {
 5. **Error Propagation**: Re-throw when appropriate
 
 **Example**: `src/core/research-queue.ts`
+
 ```typescript
 this.processNext(backlog).catch((error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  this.#logger.error({
-    taskId: task.id,
-    error: errorMessage,
-    stack: error instanceof Error ? error.stack : undefined
-  }, 'Background task failed during chaining');
+  this.#logger.error(
+    {
+      taskId: task.id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    },
+    'Background task failed during chaining'
+  );
 });
 ```
 
@@ -399,6 +424,7 @@ this.processNext(backlog).catch((error: unknown) => {
 ### Unit Test Structure
 
 **Template**:
+
 ```typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { functionToTest } from './module.js';
@@ -430,6 +456,7 @@ describe('functionToTest', () => {
 ```
 
 **Best Practices**:
+
 1. **AAA Pattern**: Arrange, Act, Assert
 2. **Descriptive Names**: Should statements describe behavior
 3. **Mock Cleanup**: Clear mocks in beforeEach
@@ -437,6 +464,7 @@ describe('functionToTest', () => {
 5. **Coverage**: Aim for 100% coverage
 
 **Example**: `tests/unit/core/research-queue.test.ts`
+
 ```typescript
 describe('ResearchQueue', () => {
   let queue: ResearchQueue;
@@ -468,6 +496,7 @@ describe('ResearchQueue', () => {
 ### Structured Logging
 
 **Template**:
+
 ```typescript
 import { getLogger, type Logger } from './utils/logger.js';
 
@@ -481,6 +510,7 @@ logger.info({ taskId: 'P1.M1.T1', status: 'completed' }, 'Task completed');
 ```
 
 **Best Practices**:
+
 1. **Context-Aware**: Create loggers with component names
 2. **Structured Data**: Pass objects as first parameter
 3. **Log Levels**: Use appropriate levels (debug, info, warn, error)
@@ -488,6 +518,7 @@ logger.info({ taskId: 'P1.M1.T1', status: 'completed' }, 'Task completed');
 5. **No console.log**: Always use logger, never console.log
 
 **Example**: `src/index.ts`
+
 ```typescript
 const logger = getLogger('App', { verbose: args.verbose });
 
@@ -504,6 +535,7 @@ logger.error({ error: errorMessage }, '❌ Pipeline failed');
 ### TypeScript Best Practices
 
 **1. Strict Type Checking**:
+
 ```typescript
 // ❌ Bad - any type
 function process(data: any) { ... }
@@ -513,6 +545,7 @@ function process(data: { id: string; name: string }) { ... }
 ```
 
 **2. Nullable Handling**:
+
 ```typescript
 // ❌ Bad - violates strict-boolean-expressions
 if (nullableString) { ... }
@@ -524,6 +557,7 @@ if (nullableString ?? defaultValue) { ... }
 ```
 
 **3. Type Guards**:
+
 ```typescript
 function isError(error: unknown): error is Error {
   return error instanceof Error;
@@ -536,6 +570,7 @@ if (isError(error)) {
 ```
 
 **4. Discriminated Unions**:
+
 ```typescript
 type Result =
   | { success: true; data: string }
@@ -557,6 +592,7 @@ function handle(result: Result) {
 ### Environment-Based Configuration
 
 **Template**:
+
 ```typescript
 interface Config {
   readonly nodeId: string;
@@ -568,12 +604,13 @@ function loadConfig(): Config {
   return {
     nodeId: process.env.NODE_ID ?? 'local',
     maxTasks: parseInt(process.env.MAX_TASKS ?? '10', 10),
-    memoryThreshold: parseInt(process.env.MEMORY_THRESHOLD ?? '1024', 10)
+    memoryThreshold: parseInt(process.env.MEMORY_THRESHOLD ?? '1024', 10),
   };
 }
 ```
 
 **Best Practices**:
+
 1. **Immutable**: Use `readonly` properties
 2. **Default Values**: Provide sensible defaults
 3. **Validation**: Validate configuration values
@@ -587,6 +624,7 @@ function loadConfig(): Config {
 ### Promise Handling
 
 **Template**:
+
 ```typescript
 // Always use try-catch for async operations
 async function operation(): Promise<Result> {
@@ -612,7 +650,9 @@ async function parallelOperationsWithErrorHandling(): Promise<Result[]> {
   const results = await Promise.allSettled(operations);
 
   return results
-    .filter((r): r is PromiseFulfilledResult<Result> => r.status === 'fulfilled')
+    .filter(
+      (r): r is PromiseFulfilledResult<Result> => r.status === 'fulfilled'
+    )
     .map(r => r.value);
 }
 ```
@@ -624,6 +664,7 @@ async function parallelOperationsWithErrorHandling(): Promise<Result[]> {
 ### File Operations
 
 **Template**:
+
 ```typescript
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -661,6 +702,7 @@ async function writeResult(path: string, data: unknown): Promise<void> {
 ### Cleanup & Disposal
 
 **Template**:
+
 ```typescript
 export class ResourceManager {
   #resources: Set<Resource> = new Set();
@@ -697,7 +739,8 @@ try {
 ### Code Documentation
 
 **Template**:
-```typescript
+
+````typescript
 /**
  * Validates a PRD file against required structure and content.
  *
@@ -718,9 +761,10 @@ try {
 export class PRDValidator {
   // ...
 }
-```
+````
 
 **Best Practices**:
+
 1. **JSDoc Comments**: Document public APIs
 2. **Type Comments**: Explain complex types
 3. **Examples**: Provide usage examples
@@ -734,6 +778,7 @@ export class PRDValidator {
 ### Optimization Techniques
 
 **1. Lazy Loading**:
+
 ```typescript
 // Load resources only when needed
 function getValidator() {
@@ -745,6 +790,7 @@ function getValidator() {
 ```
 
 **2. Batching**:
+
 ```typescript
 // Batch multiple operations
 async function processFiles(paths: string[]): Promise<Result[]> {
@@ -762,6 +808,7 @@ async function processFiles(paths: string[]): Promise<Result[]> {
 ```
 
 **3. Caching**:
+
 ```typescript
 const cache = new Map<string, Result>();
 
@@ -783,6 +830,7 @@ async function getCachedResult(key: string): Promise<Result> {
 ### Input Validation
 
 **Template**:
+
 ```typescript
 function sanitizePath(path: string): string {
   // Remove directory traversal attempts
@@ -813,6 +861,7 @@ function validateCommand(command: string): void {
 ### Common Mistakes
 
 **1. Testing Implementation Details**:
+
 ```typescript
 // ❌ Bad - tests internal structure
 it('should set internal flag', () => {
@@ -826,6 +875,7 @@ it('should return processed result', () => {
 ```
 
 **2. Fragile Tests**:
+
 ```typescript
 // ❌ Bad - depends on exact order
 it('should call functions in order', () => {
@@ -839,6 +889,7 @@ it('should produce correct result', () => {
 ```
 
 **3. Missing Cleanup**:
+
 ```typescript
 // ❌ Bad - no cleanup
 afterEach(() => {
@@ -859,6 +910,7 @@ afterEach(() => {
 ### Git Operations
 
 **Template**:
+
 ```typescript
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -893,6 +945,7 @@ async function getGitStatus(): Promise<GitStatus> {
 ### Command-Line Argument Handling
 
 **Template**:
+
 ```typescript
 import { Command } from 'commander';
 
@@ -905,7 +958,7 @@ program
   .option('--prd <path>', 'Path to PRD file')
   .option('--verbose', 'Enable verbose logging')
   .option('--scope <scope>', 'Limit execution scope')
-  .action(async (options) => {
+  .action(async options => {
     try {
       await runPipeline(options);
     } catch (error) {
@@ -918,6 +971,7 @@ program.parse();
 ```
 
 **Best Practices**:
+
 1. **Help Text**: Provide clear help messages
 2. **Defaults**: Use sensible defaults for options
 3. **Validation**: Validate command-line arguments
@@ -931,6 +985,7 @@ program.parse();
 ### Async Task Queue
 
 **Template**:
+
 ```typescript
 export class TaskQueue<T> {
   #queue: Array<T> = [];
@@ -968,20 +1023,21 @@ export class TaskQueue<T> {
 ### Health Checks
 
 **Template**:
+
 ```typescript
 export class HealthMonitor {
   async check(): Promise<HealthStatus> {
     const checks = await Promise.all([
       this.checkMemory(),
       this.checkFileHandles(),
-      this.checkDiskSpace()
+      this.checkDiskSpace(),
     ]);
 
     const healthy = checks.every(c => c.status === 'ok');
 
     return {
       status: healthy ? 'ok' : 'degraded',
-      checks
+      checks,
     };
   }
 
@@ -993,7 +1049,7 @@ export class HealthMonitor {
       status: heapUsedMB < 1024 ? 'ok' : 'warning',
       metric: 'memory',
       value: heapUsedMB,
-      unit: 'MB'
+      unit: 'MB',
     };
   }
 }
@@ -1006,12 +1062,13 @@ export class HealthMonitor {
 ### Backward Compatibility
 
 **Template**:
+
 ```typescript
 function migrateConfig(oldConfig: unknown): Config {
   if (isOldConfigFormat(oldConfig)) {
     return {
       ...oldConfig,
-      newField: oldConfig.oldField ?? defaultValue
+      newField: oldConfig.oldField ?? defaultValue,
     };
   }
 

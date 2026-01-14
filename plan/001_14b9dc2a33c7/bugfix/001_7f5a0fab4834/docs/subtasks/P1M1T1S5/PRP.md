@@ -9,6 +9,7 @@
 **Deliverable**: A `verifyGroundswellNpmList()` function in `src/utils/groundswell-linker.ts` that consumes S4's `GroundswellSymlinkVerifyResult`, executes `npm list groundswell --json --depth=0`, parses the JSON output to confirm the package appears in the dependency tree, and returns `NpmListVerifyResult` for S6 to consume.
 
 **Success Definition**:
+
 - Function returns `{ linked: true, version: string }` when npm list shows groundswell in dependencies
 - All unit tests pass (30+ tests covering happy path, errors, edge cases)
 - Integration with S4 works correctly (conditional execution based on S4's `exists` field)
@@ -23,6 +24,7 @@
 **Use Case**: As part of the Groundswell dependency setup workflow, after verifying the symlink exists (S4), the system needs to confirm that npm recognizes the linked package in its dependency tree before proceeding to S6 (documentation).
 
 **User Journey**:
+
 1. S4 verifies symlink exists at `node_modules/groundswell`
 2. S5 receives S4's result and checks if `exists: true`
 3. If S4 succeeded, S5 executes `npm list groundswell --json --depth=0`
@@ -31,6 +33,7 @@
 6. S6 consumes S5's result for documentation
 
 **Pain Points Addressed**:
+
 - Detects broken npm link configurations that have valid symlinks but aren't recognized by npm
 - Provides final validation that the link is functional from npm's perspective
 - Enables early failure before documentation or further steps
@@ -92,6 +95,7 @@ console.log(s5Result);
 ### Context Completeness Check
 
 This PRP provides:
+
 - Exact file paths and line numbers for all referenced code
 - Complete type definitions with all fields
 - Exact function signatures and naming conventions
@@ -212,8 +216,12 @@ import { lstat, readlink } from 'node:fs/promises'; // CORRECT
 
 // CRITICAL: Handle NodeJS.ErrnoException type for error.code checking
 const errno = error as NodeJS.ErrnoException;
-if (errno?.code === 'ENOENT') { /* npm command not found */ }
-if (errno?.code === 'EACCES') { /* permission denied */ }
+if (errno?.code === 'ENOENT') {
+  /* npm command not found */
+}
+if (errno?.code === 'EACCES') {
+  /* permission denied */
+}
 
 // CRITICAL: S5 is conditional on S4's exists field
 if (!previousResult.exists) {
@@ -264,7 +272,7 @@ if (child.stdout) {
 
 ### Data Models and Structure
 
-```typescript
+````typescript
 /**
  * Result of npm list verification for Groundswell
  *
@@ -316,7 +324,7 @@ export interface NpmListVerifyOptions {
   /** Project directory path (default: /home/dustin/projects/hacky-hack) */
   projectPath?: string;
 }
-```
+````
 
 ### Implementation Tasks (ordered by dependencies)
 
@@ -399,8 +407,10 @@ export async function verifyGroundswellNpmList(
   previousResult: GroundswellSymlinkVerifyResult,
   options?: NpmListVerifyOptions
 ): Promise<NpmListVerifyResult> {
-  const { timeout = DEFAULT_NPM_LIST_TIMEOUT, projectPath = DEFAULT_PROJECT_PATH } =
-    options ?? {};
+  const {
+    timeout = DEFAULT_NPM_LIST_TIMEOUT,
+    projectPath = DEFAULT_PROJECT_PATH,
+  } = options ?? {};
 
   // PATTERN: Skip if previous step failed (from linkGroundswellLocally)
   if (!previousResult.exists) {
@@ -468,7 +478,7 @@ export async function verifyGroundswellNpmList(
     }
 
     // PATTERN: Handle close event with JSON parsing
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timeoutId);
 
       // PATTERN: Handle exit code 0 or 1 with JSON output
@@ -508,7 +518,10 @@ export async function verifyGroundswellNpmList(
             stdout,
             stderr,
             exitCode,
-            error: parseError instanceof Error ? parseError.message : String(parseError),
+            error:
+              parseError instanceof Error
+                ? parseError.message
+                : String(parseError),
           });
           return;
         }
@@ -545,7 +558,7 @@ export async function verifyGroundswellNpmList(
       // Other exit codes
       resolve({
         linked: false,
-          version: undefined,
+        version: undefined,
         message: `npm list failed with exit code ${exitCode}`,
         stdout,
         stderr,
@@ -939,7 +952,9 @@ describe('verifyGroundswellNpmList', () => {
       });
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const result = await verifyGroundswellNpmList(s4Result, { timeout: 5000 });
+      const result = await verifyGroundswellNpmList(s4Result, {
+        timeout: 5000,
+      });
 
       expect(result.linked).toBe(true);
     });
@@ -1486,6 +1501,7 @@ describe('verifyGroundswellNpmList', () => {
 **Overall Confidence: 9/10**
 
 **Reasoning:**
+
 - Comprehensive research documented in P1M1T1S5/research/npm-list-research.md (36KB, 1500 lines)
 - Clear patterns established in S1-S4 implementations
 - npm list command is well-documented with stable output format
@@ -1494,6 +1510,7 @@ describe('verifyGroundswellNpmList', () => {
 - JSON parsing approach is reliable and well-tested
 
 **Risk Mitigation:**
+
 - All code patterns verified against existing implementations
 - Test patterns match existing groundswell-linker.test.ts structure
 - Error handling follows established conventions (S3's timeout pattern, S4's conditional pattern)
@@ -1501,6 +1518,7 @@ describe('verifyGroundswellNpmList', () => {
 - npm list --json output is stable across npm versions
 
 **Uncertainties:**
+
 - Integration with S6 is out of scope for this PRP
 - Actual behavior when Groundswell is not linked (will be tested during implementation)
 
@@ -1510,10 +1528,10 @@ describe('verifyGroundswellNpmList', () => {
 
 ### Key File Locations
 
-| File | Purpose | Key Content |
-|------|---------|-------------|
-| `src/utils/groundswell-linker.ts` | Implementation | Add verifyGroundswellNpmList() function |
-| `tests/unit/utils/groundswell-linker.test.ts` | Tests | Add S5 test suite |
+| File                                          | Purpose        | Key Content                             |
+| --------------------------------------------- | -------------- | --------------------------------------- |
+| `src/utils/groundswell-linker.ts`             | Implementation | Add verifyGroundswellNpmList() function |
+| `tests/unit/utils/groundswell-linker.test.ts` | Tests          | Add S5 test suite                       |
 
 ### Import Statement
 
@@ -1528,7 +1546,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 export async function verifyGroundswellNpmList(
   previousResult: GroundswellSymlinkVerifyResult,
   options?: NpmListVerifyOptions
-): Promise<NpmListVerifyResult>
+): Promise<NpmListVerifyResult>;
 ```
 
 ### Critical Constants

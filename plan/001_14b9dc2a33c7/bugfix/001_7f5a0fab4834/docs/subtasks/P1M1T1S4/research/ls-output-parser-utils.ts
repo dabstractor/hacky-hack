@@ -621,7 +621,9 @@ export async function checkGroundswellSymlink(): Promise<{
 
   // Check bin symlink
   try {
-    const binSymlinks = await spawnAndParseSymlinks('node_modules/.bin/groundswell');
+    const binSymlinks = await spawnAndParseSymlinks(
+      'node_modules/.bin/groundswell'
+    );
     result.binExists = true;
 
     if (binSymlinks.length > 0) {

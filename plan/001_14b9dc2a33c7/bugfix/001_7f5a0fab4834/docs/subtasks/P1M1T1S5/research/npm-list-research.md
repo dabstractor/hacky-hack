@@ -45,21 +45,22 @@ npm ls [<package-spec>] [<options>]  # alias
 
 ### Common Options
 
-| Option | Alias | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--json` | `-j` | Boolean | false | Output in JSON format |
-| `--parseable` | `-p` | Boolean | false | Output parseable, tab-separated format |
-| `--long` | `-l` | Boolean | false | Show extended information |
-| `--link` | | Boolean | false | Show only linked packages |
-| `--depth` | | Number | 0 (without --all), Infinity (with --all) | Maximum display depth of dependency tree |
-| `--global` | `-g` | Boolean | false | List global packages |
-| `--all` | `-a` | Boolean | false | Show all dependencies, not just direct |
-| `--omit` | | String | 'dev' if NODE_ENV=production | Omit dev, optional, or peer dependencies |
-| `--include` | | String | | Include specific dependency types |
+| Option        | Alias | Type    | Default                                  | Description                              |
+| ------------- | ----- | ------- | ---------------------------------------- | ---------------------------------------- |
+| `--json`      | `-j`  | Boolean | false                                    | Output in JSON format                    |
+| `--parseable` | `-p`  | Boolean | false                                    | Output parseable, tab-separated format   |
+| `--long`      | `-l`  | Boolean | false                                    | Show extended information                |
+| `--link`      |       | Boolean | false                                    | Show only linked packages                |
+| `--depth`     |       | Number  | 0 (without --all), Infinity (with --all) | Maximum display depth of dependency tree |
+| `--global`    | `-g`  | Boolean | false                                    | List global packages                     |
+| `--all`       | `-a`  | Boolean | false                                    | Show all dependencies, not just direct   |
+| `--omit`      |       | String  | 'dev' if NODE_ENV=production             | Omit dev, optional, or peer dependencies |
+| `--include`   |       | String  |                                          | Include specific dependency types        |
 
 ### Verified Options (npm 11.6.3)
 
 From actual testing:
+
 ```bash
 npm list --help              # Shows all available options
 npm list --depth=0           # Top-level only (default without --all)
@@ -77,6 +78,7 @@ npm list <package>           # Show specific package only
 ### 1. Default Tree Format
 
 #### Command
+
 ```bash
 npm list
 npm list --depth=0
@@ -86,6 +88,7 @@ npm list <package>
 #### Output Structure
 
 **All packages (default depth 0 without --all):**
+
 ```
 hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 ├── @types/node@20.19.28
@@ -95,25 +98,30 @@ hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 ```
 
 **Specific package (found):**
+
 ```
 hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 └── commander@14.0.2
 ```
 
 **Specific package (missing):**
+
 ```
 hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 └── (empty)
 ```
+
 **Exit Code:** 1
 
 #### Parsing Strategy
 
 **Detection Pattern:**
+
 - Package found: Contains `└── packagename@version`
 - Package missing: Contains `└── (empty)` or just shows root project
 
 **Regex Patterns:**
+
 ```typescript
 // Match package line
 const PACKAGE_PATTERN = /└── ([\w@/-]+)@([\d.]+)/;
@@ -130,17 +138,19 @@ function parseDefaultOutput(output: string): ListResult {
   return {
     found: hasPackage,
     empty: isEmpty,
-    exitCode: isEmpty ? 1 : 0
+    exitCode: isEmpty ? 1 : 0,
   };
 }
 ```
 
 #### Advantages
+
 - Human-readable
 - Shows tree structure
 - Default format, no flags needed
 
 #### Disadvantages
+
 - Brittle parsing (depends on Unicode tree characters)
 - Format may change between npm versions
 - Requires regex for extraction
@@ -151,6 +161,7 @@ function parseDefaultOutput(output: string): ListResult {
 ### 2. JSON Format (RECOMMENDED)
 
 #### Command
+
 ```bash
 npm list --json
 npm list --json --depth=0
@@ -160,6 +171,7 @@ npm list --json <package>
 #### Output Structure
 
 **All packages (depth=0):**
+
 ```json
 {
   "version": "0.1.0",
@@ -180,6 +192,7 @@ npm list --json <package>
 ```
 
 **Specific package (found):**
+
 ```json
 {
   "version": "0.1.0",
@@ -195,15 +208,18 @@ npm list --json <package>
 ```
 
 **Specific package (missing):**
+
 ```json
 {
   "version": "0.1.0",
   "name": "hacky-hack"
 }
 ```
+
 **Exit Code:** 1
 
 **No linked packages (--link flag):**
+
 ```json
 {
   "version": "0.1.0",
@@ -218,16 +234,16 @@ interface NpmListOutput {
   version: string;
   name: string;
   dependencies?: Record<string, PackageInfo>;
-  problems?: string[];      // Validation problems
-  extraneous?: boolean;     // Package not in package.json
-  invalid?: boolean;        // Package has validation issues
+  problems?: string[]; // Validation problems
+  extraneous?: boolean; // Package not in package.json
+  invalid?: boolean; // Package has validation issues
 }
 
 interface PackageInfo {
   version: string;
-  resolved?: string;        // Registry URL or local path for linked packages
-  from?: string;            // Version range requested
-  overridden?: boolean;     // Version was overridden
+  resolved?: string; // Registry URL or local path for linked packages
+  from?: string; // Version range requested
+  overridden?: boolean; // Version was overridden
   dependencies?: Record<string, PackageInfo>;
   extraneous?: boolean;
   invalid?: boolean;
@@ -251,15 +267,15 @@ interface ListResult {
 }
 
 async function verifyNpmList(packageName: string): Promise<ListResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const proc = spawn('npm', ['list', packageName, '--json', '--depth=0']);
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', (data) => stdout += data);
-    proc.stderr.on('data', (data) => stderr += data);
+    proc.stdout.on('data', data => (stdout += data));
+    proc.stderr.on('data', data => (stderr += data));
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       try {
         const output = JSON.parse(stdout);
 
@@ -271,29 +287,30 @@ async function verifyNpmList(packageName: string): Promise<ListResult> {
             success: false,
             found: false,
             linked: false,
-            error: code === 1 ? 'Package not found' : stderr
+            error: code === 1 ? 'Package not found' : stderr,
           });
           return;
         }
 
         // Check if linked (resolved contains local path or special marker)
-        const isLinked = pkgInfo.resolved?.includes('file:') ||
-                        pkgInfo.resolved?.startsWith('/') ||
-                        pkgInfo.overridden === false; // Linked packages often have this
+        const isLinked =
+          pkgInfo.resolved?.includes('file:') ||
+          pkgInfo.resolved?.startsWith('/') ||
+          pkgInfo.overridden === false; // Linked packages often have this
 
         resolve({
           success: true,
           found: true,
           version: pkgInfo.version,
           linked: isLinked,
-          path: pkgInfo.resolved
+          path: pkgInfo.resolved,
         });
       } catch (parseError) {
         resolve({
           success: false,
           found: false,
           linked: false,
-          error: `Failed to parse JSON: ${parseError}`
+          error: `Failed to parse JSON: ${parseError}`,
         });
       }
     });
@@ -305,7 +322,7 @@ async function verifyNpmList(packageName: string): Promise<ListResult> {
         success: false,
         found: false,
         linked: false,
-        error: 'Command timed out'
+        error: 'Command timed out',
       });
     }, 10000);
   });
@@ -313,6 +330,7 @@ async function verifyNpmList(packageName: string): Promise<ListResult> {
 ```
 
 #### Advantages
+
 - Structured, parseable output
 - No fragile regex needed
 - Contains metadata (version, resolved path)
@@ -321,6 +339,7 @@ async function verifyNpmList(packageName: string): Promise<ListResult> {
 - Future-proof (schema changes are less likely)
 
 #### Disadvantages
+
 - Requires JSON parsing
 - Larger output size
 - Slightly slower than default format
@@ -330,6 +349,7 @@ async function verifyNpmList(packageName: string): Promise<ListResult> {
 ### 3. Parseable Format
 
 #### Command
+
 ```bash
 npm list --parseable
 npm list -p
@@ -339,6 +359,7 @@ npm list --parseable <package>
 #### Output Structure
 
 **All packages:**
+
 ```
 /home/dustin/projects/hacky-hack
 /home/dustin/projects/hacky-hack/node_modules/@types/node
@@ -347,6 +368,7 @@ npm list --parseable <package>
 ```
 
 **Specific package:**
+
 ```
 /home/dustin/projects/hacky-hack/node_modules/commander
 ```
@@ -367,7 +389,7 @@ function parseParseableOutput(output: string, packageName: string): ListResult {
       success: false,
       found: false,
       linked: false,
-      error: 'Package not found in parseable output'
+      error: 'Package not found in parseable output',
     };
   }
 
@@ -375,17 +397,19 @@ function parseParseableOutput(output: string, packageName: string): ListResult {
     success: true,
     found: true,
     linked: false, // Can't determine link status from this format
-    path: packagePath
+    path: packagePath,
   };
 }
 ```
 
 #### Advantages
+
 - Simple, line-based output
 - Full file paths
 - Easy to parse by line splitting
 
 #### Disadvantages
+
 - **Cannot detect linked packages** (no symlink indicator)
 - No version information
 - No metadata
@@ -398,6 +422,7 @@ function parseParseableOutput(output: string, packageName: string): ListResult {
 ### Method 1: Using --link Flag
 
 #### Command
+
 ```bash
 npm list --link
 npm list --link --json
@@ -406,12 +431,14 @@ npm list --link --json
 #### Output
 
 **No linked packages (default format):**
+
 ```
 hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 └── (empty)
 ```
 
 **No linked packages (JSON format):**
+
 ```json
 {
   "version": "0.1.0",
@@ -420,12 +447,14 @@ hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 ```
 
 **With linked package (expected):**
+
 ```
 hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 └── groundswell@1.0.0 -> ../../groundswell
 ```
 
 #### Implementation
+
 ```typescript
 async function checkLinkedPackages(): Promise<string[]> {
   const result = await execCommand('npm', ['list', '--link', '--json']);
@@ -447,6 +476,7 @@ async function checkLinkedPackages(): Promise<string[]> {
 ### Method 2: Check Specific Package (RECOMMENDED)
 
 #### Command
+
 ```bash
 npm list <package> --json
 ```
@@ -454,11 +484,13 @@ npm list <package> --json
 #### Output Analysis
 
 **Linked packages have indicators:**
+
 1. `resolved` field may contain local path or `file://` protocol
 2. `overridden` field typically `false`
 3. Path in `resolved` points outside node_modules
 
 **Example linked package output (expected):**
+
 ```json
 {
   "version": "0.1.0",
@@ -474,6 +506,7 @@ npm list <package> --json
 ```
 
 #### Implementation
+
 ```typescript
 interface LinkedPackageResult {
   success: boolean;
@@ -486,7 +519,12 @@ interface LinkedPackageResult {
 async function verifyPackageLinked(
   packageName: string
 ): Promise<LinkedPackageResult> {
-  const result = await execCommand('npm', ['list', packageName, '--json', '--depth=0']);
+  const result = await execCommand('npm', [
+    'list',
+    packageName,
+    '--json',
+    '--depth=0',
+  ]);
 
   try {
     const output = JSON.parse(result.stdout);
@@ -496,26 +534,27 @@ async function verifyPackageLinked(
       return {
         success: true,
         linked: false,
-        error: `Package ${packageName} not found`
+        error: `Package ${packageName} not found`,
       };
     }
 
     // Check if linked: resolved contains file: or starts with /
-    const isLinked = pkgInfo.resolved?.includes('file:') ||
-                     pkgInfo.resolved?.startsWith('/') ||
-                     pkgInfo.resolved?.startsWith('..');
+    const isLinked =
+      pkgInfo.resolved?.includes('file:') ||
+      pkgInfo.resolved?.startsWith('/') ||
+      pkgInfo.resolved?.startsWith('..');
 
     return {
       success: true,
       linked: isLinked,
       version: pkgInfo.version,
-      path: pkgInfo.resolved
+      path: pkgInfo.resolved,
     };
   } catch (error) {
     return {
       success: false,
       linked: false,
-      error: `Failed to parse output: ${error}`
+      error: `Failed to parse output: ${error}`,
     };
   }
 }
@@ -544,7 +583,7 @@ async function verifyPackageSymlink(
       return {
         success: true,
         linked: false,
-        error: 'Package exists but is not a symlink'
+        error: 'Package exists but is not a symlink',
       };
     }
 
@@ -554,19 +593,21 @@ async function verifyPackageSymlink(
       success: true,
       linked: true,
       path: symlinkPath,
-      error: undefined
+      error: undefined,
     };
   } catch (error) {
     return {
       success: false,
       linked: false,
-      error: `Symlink check failed: ${error}`
+      error: `Symlink check failed: ${error}`,
     };
   }
 }
 
 // Combined verification
-async function verifyLinkedPackage(packageName: string): Promise<LinkedPackageResult> {
+async function verifyLinkedPackage(
+  packageName: string
+): Promise<LinkedPackageResult> {
   // Step 1: Check npm list
   const npmResult = await verifyPackageLinked(packageName);
 
@@ -581,7 +622,7 @@ async function verifyLinkedPackage(packageName: string): Promise<LinkedPackageRe
   return {
     ...npmResult,
     ...fsResult,
-    linked: npmResult.linked && fsResult.linked
+    linked: npmResult.linked && fsResult.linked,
   };
 }
 ```
@@ -592,12 +633,12 @@ async function verifyLinkedPackage(packageName: string): Promise<LinkedPackageRe
 
 ### Documented Exit Codes
 
-| Exit Code | Meaning | When It Occurs |
-|-----------|---------|----------------|
-| 0 | Success | Package found and listed successfully |
-| 1 | Package Missing | Package not found in dependency tree |
-| 1 | General Error | Various error conditions (npm returns 1 for all non-success) |
-| 127 | Command Not Found | npm executable not found in PATH |
+| Exit Code | Meaning           | When It Occurs                                               |
+| --------- | ----------------- | ------------------------------------------------------------ |
+| 0         | Success           | Package found and listed successfully                        |
+| 1         | Package Missing   | Package not found in dependency tree                         |
+| 1         | General Error     | Various error conditions (npm returns 1 for all non-success) |
+| 127       | Command Not Found | npm executable not found in PATH                             |
 
 ### Verified Exit Codes (npm 11.6.3)
 
@@ -641,15 +682,15 @@ async function execCommand(
   command: string,
   args: string[]
 ): Promise<ExecResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const proc = spawn(command, args);
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', (data) => stdout += data);
-    proc.stderr.on('data', (data) => stderr += data);
+    proc.stdout.on('data', data => (stdout += data));
+    proc.stderr.on('data', data => (stderr += data));
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       resolve({ exitCode: code, stdout, stderr });
     });
   });
@@ -667,7 +708,7 @@ async function safeNpmList(packageName: string): Promise<ListResult> {
         success: false,
         found: false,
         linked: false,
-        error: 'Package not found'
+        error: 'Package not found',
       };
     }
   }
@@ -678,7 +719,7 @@ async function safeNpmList(packageName: string): Promise<ListResult> {
       success: false,
       found: false,
       linked: false,
-      error: result.stderr || 'Unknown error'
+      error: result.stderr || 'Unknown error',
     };
   }
 
@@ -692,14 +733,14 @@ async function safeNpmList(packageName: string): Promise<ListResult> {
       found: !!pkgInfo,
       linked: pkgInfo?.resolved?.includes('file:') || false,
       version: pkgInfo?.version,
-      path: pkgInfo?.resolved
+      path: pkgInfo?.resolved,
     };
   } catch {
     return {
       success: false,
       found: false,
       linked: false,
-      error: 'Failed to parse output'
+      error: 'Failed to parse output',
     };
   }
 }
@@ -714,6 +755,7 @@ async function safeNpmList(packageName: string): Promise<ListResult> {
 **Issue:** Default format uses Unicode tree-drawing characters (├─, └─) which may not render correctly in all terminals.
 
 **Example:**
+
 ```
 hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 ├── package1@1.0.0
@@ -721,6 +763,7 @@ hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 ```
 
 **Workarounds:**
+
 1. Use `--json` format (recommended)
 2. Set `NO_UNICODE=1` environment variable:
    ```bash
@@ -732,6 +775,7 @@ hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
    ```
 
 **Impact on Parsing:**
+
 - Regex patterns must handle Unicode or use JSON format
 - Different terminals may display differently
 - Not reliable for programmatic parsing
@@ -741,10 +785,12 @@ hacky-hack@0.1.0 /home/dustin/projects/hacky-hack
 ### Edge Case 2: Missing Package Exit Code Ambiguity
 
 **Issue:** Exit code 1 can mean:
+
 - Package not found (expected)
 - Actual error (unexpected)
 
 **Example:**
+
 ```bash
 # Both return exit code 1
 npm list nonexistent-package    # Expected: not found
@@ -752,6 +798,7 @@ npm list --invalid-flag         # Unexpected: error
 ```
 
 **Detection Strategy:**
+
 ```typescript
 function isPackageNotFound(stderr: string): boolean {
   // If stderr is empty or minimal, likely just "not found"
@@ -778,7 +825,7 @@ async function robustNpmList(packageName: string): Promise<ListResult> {
         success: false,
         found: false,
         linked: false,
-        error: 'Package not found'
+        error: 'Package not found',
       };
     }
 
@@ -787,7 +834,7 @@ async function robustNpmList(packageName: string): Promise<ListResult> {
       success: false,
       found: false,
       linked: false,
-      error: result.stderr || 'Unknown error'
+      error: result.stderr || 'Unknown error',
     };
   }
 
@@ -796,7 +843,7 @@ async function robustNpmList(packageName: string): Promise<ListResult> {
     success: false,
     found: false,
     linked: false,
-    error: `Unexpected exit code: ${result.exitCode}`
+    error: `Unexpected exit code: ${result.exitCode}`,
   };
 }
 ```
@@ -808,6 +855,7 @@ async function robustNpmList(packageName: string): Promise<ListResult> {
 **Issue:** Packages installed but not in package.json show as "extraneous".
 
 **Example Output:**
+
 ```json
 {
   "dependencies": {
@@ -820,10 +868,11 @@ async function robustNpmList(packageName: string): Promise<ListResult> {
 ```
 
 **Handling:**
+
 ```typescript
 interface PackageInfo {
   version: string;
-  extraneous?: boolean;  // May be present
+  extraneous?: boolean; // May be present
   invalid?: boolean;
 }
 
@@ -839,6 +888,7 @@ function isPackageValid(pkgInfo: PackageInfo): boolean {
 **Issue:** Without `--depth=0`, output includes entire dependency tree.
 
 **Example (without depth limit):**
+
 ```json
 {
   "dependencies": {
@@ -847,7 +897,9 @@ function isPackageValid(pkgInfo: PackageInfo): boolean {
       "dependencies": {
         "package-b": {
           "version": "2.0.0",
-          "dependencies": { /* ... deep nesting ... */ }
+          "dependencies": {
+            /* ... deep nesting ... */
+          }
         }
       }
     }
@@ -856,6 +908,7 @@ function isPackageValid(pkgInfo: PackageInfo): boolean {
 ```
 
 **Solution:** Always use `--depth=0` for top-level checks:
+
 ```bash
 npm list <package> --json --depth=0
 ```
@@ -867,14 +920,18 @@ npm list <package> --json --depth=0
 **Issue:** Circular dependencies cause npm to display warnings.
 
 **Example:**
+
 ```
 npm WARN circular dependency-a@1.0.0 -> dependency-b@2.0.0 -> dependency-a@1.0.0
 ```
 
 **Impact:** Still produces valid JSON, but includes `problems` array:
+
 ```json
 {
-  "dependencies": { /* ... */ },
+  "dependencies": {
+    /* ... */
+  },
   "problems": [
     "circul dep: dependency-a@1.0.0 -> dependency-b@2.0.0 -> dependency-a@1.0.0"
   ]
@@ -882,6 +939,7 @@ npm WARN circular dependency-a@1.0.0 -> dependency-b@2.0.0 -> dependency-a@1.0.0
 ```
 
 **Handling:**
+
 ```typescript
 interface NpmListOutput {
   dependencies?: Record<string, PackageInfo>;
@@ -900,6 +958,7 @@ function hasProblems(output: NpmListOutput): boolean {
 **Issue:** Symlink paths differ between Windows and Unix.
 
 **Windows:**
+
 ```json
 {
   "resolved": "file:\\..\\..\\groundswell"
@@ -907,6 +966,7 @@ function hasProblems(output: NpmListOutput): boolean {
 ```
 
 **Unix:**
+
 ```json
 {
   "resolved": "file:../../groundswell"
@@ -914,14 +974,17 @@ function hasProblems(output: NpmListOutput): boolean {
 ```
 
 **Cross-Platform Detection:**
+
 ```typescript
 function isLinkedPackage(pkgInfo: PackageInfo): boolean {
   if (!pkgInfo.resolved) return false;
 
   // Handle both formats
-  return pkgInfo.resolved.includes('file:') ||
-         pkgInfo.resolved.includes('\\..\\') ||
-         pkgInfo.resolved.includes('/../');
+  return (
+    pkgInfo.resolved.includes('file:') ||
+    pkgInfo.resolved.includes('\\..\\') ||
+    pkgInfo.resolved.includes('/../')
+  );
 }
 ```
 
@@ -932,11 +995,13 @@ function isLinkedPackage(pkgInfo: PackageInfo): boolean {
 **Issue:** Packages from git URLs show in parentheses.
 
 **Example Output:**
+
 ```
 └── my-package@1.0.0 (git+https://github.com/user/repo.git#commit-hash)
 ```
 
 **JSON Output:**
+
 ```json
 {
   "resolved": "git+https://github.com/user/repo.git#abc123",
@@ -945,15 +1010,18 @@ function isLinkedPackage(pkgInfo: PackageInfo): boolean {
 ```
 
 **Distinguishing from Linked:**
+
 ```typescript
 function isGitDependency(pkgInfo: PackageInfo): boolean {
   return pkgInfo.resolved?.startsWith('git+') || false;
 }
 
 function isLinkedDependency(pkgInfo: PackageInfo): boolean {
-  return pkgInfo.resolved?.startsWith('file:') ||
-         pkgInfo.resolved?.startsWith('/') ||
-         pkgInfo.resolved?.startsWith('..');
+  return (
+    pkgInfo.resolved?.startsWith('file:') ||
+    pkgInfo.resolved?.startsWith('/') ||
+    pkgInfo.resolved?.startsWith('..')
+  );
 }
 ```
 
@@ -964,18 +1032,19 @@ function isLinkedDependency(pkgInfo: PackageInfo): boolean {
 **Issue:** `npm list` can be slow on projects with many dependencies.
 
 **Solution:** Always use timeout:
+
 ```typescript
 async function npmListWithTimeout(
   packageName: string,
   timeoutMs: number = 10000
 ): Promise<ListResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const proc = spawn('npm', ['list', packageName, '--json', '--depth=0']);
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', (data) => stdout += data);
-    proc.stderr.on('data', (data) => stderr += data);
+    proc.stdout.on('data', data => (stdout += data));
+    proc.stderr.on('data', data => (stderr += data));
 
     const timer = setTimeout(() => {
       proc.kill('SIGTERM');
@@ -984,11 +1053,11 @@ async function npmListWithTimeout(
         success: false,
         found: false,
         linked: false,
-        error: 'Command timed out'
+        error: 'Command timed out',
       });
     }, timeoutMs);
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       clearTimeout(timer);
       // Process result...
     });
@@ -1003,10 +1072,13 @@ async function npmListWithTimeout(
 **Issue:** Windows uses junctions, not symlinks, in some cases.
 
 **Detection:**
+
 ```typescript
 import { lstat } from 'fs/promises';
 
-async function getLinkType(path: string): Promise<'symlink' | 'junction' | 'file'> {
+async function getLinkType(
+  path: string
+): Promise<'symlink' | 'junction' | 'file'> {
   try {
     const stats = await lstat(path);
     if (stats.isSymbolicLink()) return 'symlink';
@@ -1025,6 +1097,7 @@ async function getLinkType(path: string): Promise<'symlink' | 'junction' | 'file
 **Issue:** npm can install multiple versions via deduping.
 
 **Example:**
+
 ```json
 {
   "dependencies": {
@@ -1086,7 +1159,7 @@ export async function verifyNpmListLinked(
       success: false,
       linked: false,
       exitCode: npmResult.exitCode,
-      error: npmResult.error || 'Package not found'
+      error: npmResult.error || 'Package not found',
     };
   }
 
@@ -1099,7 +1172,7 @@ export async function verifyNpmListLinked(
     version: npmResult.version,
     path: fsResult.path,
     exitCode: 0,
-    error: fsResult.error
+    error: fsResult.error,
   };
 }
 
@@ -1109,18 +1182,28 @@ export async function verifyNpmListLinked(
 async function runNpmListJson(
   packageName: string,
   timeout: number
-): Promise<{ success: boolean; found: boolean; version?: string; exitCode: number; error?: string }> {
-  return new Promise((resolve) => {
+): Promise<{
+  success: boolean;
+  found: boolean;
+  version?: string;
+  exitCode: number;
+  error?: string;
+}> {
+  return new Promise(resolve => {
     const proc = spawn('npm', ['list', packageName, '--json', '--depth=0'], {
       cwd: process.cwd(),
-      shell: false
+      shell: false,
     });
 
     let stdout = '';
     let stderr = '';
 
-    proc.stdout.on('data', (data) => { stdout += data; });
-    proc.stderr.on('data', (data) => { stderr += data; });
+    proc.stdout.on('data', data => {
+      stdout += data;
+    });
+    proc.stderr.on('data', data => {
+      stderr += data;
+    });
 
     const timer = setTimeout(() => {
       proc.kill('SIGTERM');
@@ -1129,11 +1212,11 @@ async function runNpmListJson(
         success: false,
         found: false,
         exitCode: -1,
-        error: 'Command timed out'
+        error: 'Command timed out',
       });
     }, timeout);
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       clearTimeout(timer);
 
       // Exit code 1 with JSON = package not found (not an error)
@@ -1147,7 +1230,7 @@ async function runNpmListJson(
               success: false,
               found: false,
               exitCode: code,
-              error: `Package ${packageName} not found in dependency tree`
+              error: `Package ${packageName} not found in dependency tree`,
             });
             return;
           }
@@ -1156,7 +1239,7 @@ async function runNpmListJson(
             success: true,
             found: true,
             version: pkgInfo.version,
-            exitCode: code
+            exitCode: code,
           });
           return;
         } catch (parseError) {
@@ -1164,7 +1247,7 @@ async function runNpmListJson(
             success: false,
             found: false,
             exitCode: code,
-            error: `Failed to parse JSON: ${parseError}`
+            error: `Failed to parse JSON: ${parseError}`,
           });
           return;
         }
@@ -1176,7 +1259,7 @@ async function runNpmListJson(
           success: false,
           found: false,
           exitCode: code,
-          error: stderr || 'Unknown error'
+          error: stderr || 'Unknown error',
         });
         return;
       }
@@ -1191,14 +1274,14 @@ async function runNpmListJson(
             success: true,
             found: !!pkgInfo,
             version: pkgInfo?.version,
-            exitCode: code
+            exitCode: code,
           });
         } catch (parseError) {
           resolve({
             success: false,
             found: false,
             exitCode: code,
-            error: `Failed to parse JSON: ${parseError}`
+            error: `Failed to parse JSON: ${parseError}`,
           });
         }
         return;
@@ -1209,7 +1292,7 @@ async function runNpmListJson(
         success: false,
         found: false,
         exitCode: code || -1,
-        error: `Unexpected exit code: ${code}`
+        error: `Unexpected exit code: ${code}`,
       });
     });
   });
@@ -1222,7 +1305,11 @@ async function verifySymlinkExists(
   packageName: string,
   projectPath: string
 ): Promise<{ linked: boolean; path?: string; error?: string }> {
-  const symlinkPath = require('path').join(projectPath, 'node_modules', packageName);
+  const symlinkPath = require('path').join(
+    projectPath,
+    'node_modules',
+    packageName
+  );
 
   try {
     const stats = await fs.lstat(symlinkPath);
@@ -1230,7 +1317,7 @@ async function verifySymlinkExists(
     if (!stats.isSymbolicLink()) {
       return {
         linked: false,
-        error: `Package ${packageName} exists but is not a symbolic link`
+        error: `Package ${packageName} exists but is not a symbolic link`,
       };
     }
 
@@ -1239,12 +1326,12 @@ async function verifySymlinkExists(
     return {
       linked: true,
       path: symlinkPath,
-      error: undefined
+      error: undefined,
     };
   } catch (error) {
     return {
       linked: false,
-      error: `Symlink verification failed: ${error}`
+      error: `Symlink verification failed: ${error}`,
     };
   }
 }
@@ -1275,27 +1362,35 @@ describe('verifyNpmListLinked', () => {
     // Mock successful npm list
     vi.mock('child_process', () => ({
       spawn: vi.fn(() => ({
-        stdout: { on: vi.fn((_, cb) => cb(Buffer.from(JSON.stringify({
-          version: '0.1.0',
-          name: 'hacky-hack',
-          dependencies: {
-            groundswell: {
-              version: '1.0.0',
-              resolved: 'file:../../groundswell'
-            }
-          }
-        })))) },
+        stdout: {
+          on: vi.fn((_, cb) =>
+            cb(
+              Buffer.from(
+                JSON.stringify({
+                  version: '0.1.0',
+                  name: 'hacky-hack',
+                  dependencies: {
+                    groundswell: {
+                      version: '1.0.0',
+                      resolved: 'file:../../groundswell',
+                    },
+                  },
+                })
+              )
+            )
+          ),
+        },
         stderr: { on: vi.fn() },
         on: vi.fn((event, cb) => {
           if (event === 'close') cb(0);
-        })
-      }))
+        }),
+      })),
     }));
 
     // Mock symlink exists
     vi.mock('fs/promises', () => ({
       lstat: vi.fn(() => ({ isSymbolicLink: () => true })),
-      readlink: vi.fn(() => '../../groundswell')
+      readlink: vi.fn(() => '../../groundswell'),
     }));
 
     const result = await verifyNpmListLinked(mockPackageName, mockProjectPath);
@@ -1309,15 +1404,23 @@ describe('verifyNpmListLinked', () => {
     // Mock npm list with missing package
     vi.mock('child_process', () => ({
       spawn: vi.fn(() => ({
-        stdout: { on: vi.fn((_, cb) => cb(Buffer.from(JSON.stringify({
-          version: '0.1.0',
-          name: 'hacky-hack'
-        })))) },
+        stdout: {
+          on: vi.fn((_, cb) =>
+            cb(
+              Buffer.from(
+                JSON.stringify({
+                  version: '0.1.0',
+                  name: 'hacky-hack',
+                })
+              )
+            )
+          ),
+        },
         stderr: { on: vi.fn() },
         on: vi.fn((event, cb) => {
           if (event === 'close') cb(1);
-        })
-      }))
+        }),
+      })),
     }));
 
     const result = await verifyNpmListLinked(mockPackageName, mockProjectPath);
@@ -1331,23 +1434,33 @@ describe('verifyNpmListLinked', () => {
     // Mock npm list success
     vi.mock('child_process', () => ({
       spawn: vi.fn(() => ({
-        stdout: { on: vi.fn((_, cb) => cb(Buffer.from(JSON.stringify({
-          version: '0.1.0',
-          name: 'hacky-hack',
-          dependencies: {
-            groundswell: { version: '1.0.0' }
-          }
-        })))) },
+        stdout: {
+          on: vi.fn((_, cb) =>
+            cb(
+              Buffer.from(
+                JSON.stringify({
+                  version: '0.1.0',
+                  name: 'hacky-hack',
+                  dependencies: {
+                    groundswell: { version: '1.0.0' },
+                  },
+                })
+              )
+            )
+          ),
+        },
         stderr: { on: vi.fn() },
         on: vi.fn((event, cb) => {
           if (event === 'close') cb(0);
-        })
-      }))
+        }),
+      })),
     }));
 
     // Mock symlink not found
     vi.mock('fs/promises', () => ({
-      lstat: vi.fn(() => { throw new Error('ENOENT'); })
+      lstat: vi.fn(() => {
+        throw new Error('ENOENT');
+      }),
     }));
 
     const result = await verifyNpmListLinked(mockPackageName, mockProjectPath);
@@ -1364,8 +1477,8 @@ describe('verifyNpmListLinked', () => {
       spawn: vi.fn(() => ({
         stdout: { on: vi.fn() },
         stderr: { on: vi.fn() },
-        on: vi.fn()
-      }))
+        on: vi.fn(),
+      })),
     }));
 
     const promise = verifyNpmListLinked(mockPackageName, mockProjectPath, 1000);
@@ -1423,12 +1536,14 @@ describe('verifyNpmListLinked', () => {
 ### Research Methods
 
 **Testing Environment:**
+
 - npm version: 11.6.3
 - Node.js version: 20.11.0
 - Platform: Linux 6.17.8-arch1-1
 - Project: hacky-hack@0.1.0
 
 **Commands Tested:**
+
 - `npm list` (default format)
 - `npm list --depth=0`
 - `npm list --json`
@@ -1442,6 +1557,7 @@ describe('verifyNpmListLinked', () => {
 - `npm list --json <package>` (missing)
 
 **Verification Methods:**
+
 - Direct command execution with Bash tool
 - Exit code inspection
 - Output format analysis
@@ -1455,21 +1571,25 @@ describe('verifyNpmListLinked', () => {
 ### For P1.M1.T1.S5 Implementation
 
 **Recommended Command:**
+
 ```bash
 npm list groundswell --json --depth=0
 ```
 
 **Success Criteria:**
+
 - Exit code: 0
 - JSON contains `dependencies.groundswell`
 - Symlink exists at `node_modules/groundswell`
 
 **Failure Modes:**
+
 - Exit code 1 with empty JSON: package not found
 - Exit code 1 with error message: actual error
 - No symlink: npm list succeeded but link failed
 
 **Best Practices:**
+
 1. Always use `--json` for programmatic parsing
 2. Always use `--depth=0` for top-level checks
 3. Always implement timeout (10 seconds recommended)
@@ -1493,6 +1613,7 @@ npm list groundswell --json --depth=0
 **End of Research Document**
 
 **Next Steps for P1.M1.T1.S5:**
+
 1. Implement `verifyNpmListLinked()` function using recommended approach
 2. Create unit tests with mocked child_process and fs
 3. Integrate into S5 workflow to consume S4 output

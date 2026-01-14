@@ -107,7 +107,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Analyze any remaining TypeScript errors",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"
@@ -118,7 +118,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S3",
                   "title": "Verify no module-not-found errors remain",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T2.S2"

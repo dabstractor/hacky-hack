@@ -13,6 +13,7 @@
 **Deliverable**: `linkGroundswellLocally()` function added to `src/utils/groundswell-linker.ts` with comprehensive unit tests in `tests/unit/utils/groundswell-linker.test.ts`.
 
 **Success Definition**:
+
 - Function executes `npm link groundswell` from hacky-hack project directory
 - Conditionally skips execution if S2 result.success is false
 - Returns structured `{ success: boolean, message: string, symlinkPath: string, symlinkTarget?: string, exitCode: number | null }` result
@@ -26,6 +27,7 @@
 **Use Case**: After S2 successfully creates the global npm link (`npm link` in Groundswell directory), S3 links it into the hacky-hack project (`npm link groundswell` in hacky-hack directory).
 
 **User Journey**:
+
 1. Bug hunt workflow detects missing Groundswell dependency
 2. S1 verifies Groundswell exists at `~/projects/groundswell`
 3. S2 executes `npm link` from Groundswell directory (creates global symlink)
@@ -34,6 +36,7 @@
 6. Application compiles successfully with Groundswell imports
 
 **Pain Points Addressed**:
+
 - Manual `npm link groundswell` command is error-prone and often forgotten
 - No programmatic verification that symlink was created correctly
 - Difficult to debug when npm link fails silently
@@ -72,6 +75,7 @@ Executes `npm link groundswell` from the hacky-hack project directory (`/home/du
 ### Context Completeness Check
 
 **"No Prior Knowledge" test**: A developer unfamiliar with this codebase would need:
+
 - The spawn execution pattern from `groundswell-linker.ts` (S2 implementation)
 - The input contract from S2 (`GroundswellLinkResult` interface)
 - Symlink verification patterns using `fs.lstat()` and `fs.readlink()`
@@ -359,7 +363,8 @@ export async function linkGroundswellLocally(
   previousResult: GroundswellLinkResult,
   options?: GroundswellLocalLinkOptions
 ): Promise<GroundswellLocalLinkResult> {
-  const { timeout = DEFAULT_LINK_TIMEOUT, projectPath = DEFAULT_PROJECT_PATH } = options ?? {};
+  const { timeout = DEFAULT_LINK_TIMEOUT, projectPath = DEFAULT_PROJECT_PATH } =
+    options ?? {};
 
   const symlinkPath = join(projectPath, 'node_modules', 'groundswell');
 
@@ -381,9 +386,9 @@ export async function linkGroundswellLocally(
 // SPAWN EXECUTION PATTERN (similar to S2 but different command)
 try {
   child = spawn('npm', ['link', 'groundswell'], {
-    cwd: projectPath,  // CRITICAL: Use project directory, not Groundswell directory
+    cwd: projectPath, // CRITICAL: Use project directory, not Groundswell directory
     stdio: ['ignore', 'pipe', 'pipe'],
-    shell: false,  // CRITICAL: prevents shell injection
+    shell: false, // CRITICAL: prevents shell injection
   });
 } catch (error) {
   return {
@@ -443,7 +448,8 @@ try {
 }
 
 // PROMISE-BASED OUTPUT CAPTURE PATTERN (same as S2)
-return new Promise(async resolve => {  // NOTE: async for symlink verification
+return new Promise(async resolve => {
+  // NOTE: async for symlink verification
   let stdout = '';
   let stderr = '';
   let timedOut = false;
@@ -454,7 +460,8 @@ return new Promise(async resolve => {  // NOTE: async for symlink verification
   // ... stdout/stderr capture (same as S2)
 
   // CLOSE EVENT HANDLER with symlink verification
-  child.on('close', async (exitCode) => {  // NOTE: async for await lstat/readlink
+  child.on('close', async exitCode => {
+    // NOTE: async for await lstat/readlink
     clearTimeout(timeoutId);
 
     // PATTERN: Verify symlink only if npm link succeeded
@@ -721,6 +728,7 @@ npm run dev -- --prd PRD.md --bug-hunt
 **Status**: Research Complete, Ready for Implementation
 
 **Next Steps**:
+
 1. Create implementation tasks from this PRP
 2. Implement `linkGroundswellLocally()` function in `src/utils/groundswell-linker.ts`
 3. Create comprehensive unit tests in `tests/unit/utils/groundswell-linker.test.ts`
@@ -736,16 +744,19 @@ npm run dev -- --prd PRD.md --bug-hunt
 ### Key Research Findings
 
 From `research/npm-link-local-research.md`:
+
 - **Two-step process**: S2 creates global link, S3 creates local link
 - **Symlink chain**: `node_modules/groundswell` → global → `~/projects/groundswell`
 - **Verification pattern**: Use `fs.lstat()` to detect symlinks, `fs.readlink()` to read targets
 
 From `research/symlink-verification-research.md`:
+
 - **Critical distinction**: `fs.stat()` follows symlinks, `fs.lstat()` does not
 - **isSymbolicLink()**: Only works with `lstat()` results, always returns `false` with `stat()`
 - **Error handling**: Handle ENOENT (not found), EACCES (permission), EINVAL (not symlink)
 
 From S2 PRP and implementation:
+
 - **Spawn pattern**: Use argument arrays with `shell: false` for security
 - **Timeout handling**: SIGTERM then SIGKILL after 2 second grace period
 - **Output capture**: Promise-based with stdout/stderr accumulation
@@ -762,6 +773,7 @@ From npm documentation (https://docs.npmjs.com/cli/v10/commands/npm-link):
 ### Testing Strategy
 
 From research and existing patterns:
+
 1. **Mock both spawn and fs**: Need `vi.mock('node:child_process')` and `vi.mock('node:fs/promises')`
 2. **Conditional skip tests**: Verify spawn is never called when S2 failed
 3. **Symlink verification tests**: Mock `lstat` to return `{ isSymbolicLink: () => true/false }`
@@ -772,6 +784,7 @@ From research and existing patterns:
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Validation**: This PRP provides complete context including:
+
 - Exact file paths and line numbers to reference
 - Specific code patterns to follow from S2 implementation
 - Complete symlink verification patterns from research

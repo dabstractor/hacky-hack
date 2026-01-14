@@ -7,6 +7,7 @@
 **Feature Goal**: Add a `runTypecheck()` function that executes `npm run typecheck` (which runs `tsc --noEmit`), captures stdout/stderr, parses TypeScript errors from stderr, counts errors, detects common patterns like TS2307 "Cannot find module", and returns a structured result.
 
 **Deliverable**: A new file `src/utils/typescript-checker.ts` containing:
+
 1. `TypeScriptCheckResult` interface with `success`, `errorCount`, `errors[]`, `message`, `stdout`, `stderr`, `exitCode`, `error?`
 2. `TypeScriptError` interface with `file`, `line`, `column`, `code`, `message`
 3. `runTypecheck()` function that spawns `npm run typecheck`, captures output, parses errors
@@ -15,6 +16,7 @@
 6. Comprehensive unit tests in `tests/unit/utils/typescript-checker.test.ts`
 
 **Success Definition**:
+
 - `runTypecheck()` function executes `npm run typecheck` successfully
 - Stdout and stderr are captured as strings
 - TypeScript errors are parsed from stderr using regex pattern
@@ -29,11 +31,13 @@
 **Target User**: Developers and CI/CD pipelines that need to programmatically verify TypeScript compilation status after making dependency changes (e.g., after Groundswell npm link).
 
 **Use Case**: After completing P1.M1.T1 (Groundswell npm link), run TypeScript typecheck to verify that:
+
 1. The Groundswell module is now resolvable
 2. No new TypeScript errors were introduced
 3. Existing TypeScript errors are cataloged for analysis in S2
 
 **User Journey**:
+
 1. System completes Groundswell npm link (P1.M1.T1)
 2. System calls `runTypecheck()` to verify TypeScript compilation
 3. Function executes `npm run typecheck` and captures output
@@ -41,6 +45,7 @@
 5. S2 (Analyze remaining TypeScript errors) consumes the result
 
 **Pain Points Addressed**:
+
 - Without automated typecheck, developers must manually run `npm run typecheck` after linking
 - Manual verification doesn't provide structured error data for downstream analysis
 - No programmatic way to detect if "Cannot find module" errors persist after linking
@@ -87,6 +92,7 @@ Add a `runTypecheck()` function to a new file `src/utils/typescript-checker.ts` 
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Yes** - This PRP provides:
+
 - Exact file paths and line numbers for spawn patterns to follow
 - Complete interface definitions with TypeScript syntax
 - TypeScript compiler error output format with regex pattern
@@ -170,7 +176,7 @@ Add a `runTypecheck()` function to a new file `src/utils/typescript-checker.ts` 
 // CRITICAL: npm run typecheck runs tsc --noEmit via npm, NOT tsc directly
 // This ensures the correct tsconfig.json and project context are used
 const TYPECHECK_COMMAND = 'npm';
-const TYPECHECK_ARGS = ['run', 'typecheck'];  // NOT ['tsc', '--noEmit']
+const TYPECHECK_ARGS = ['run', 'typecheck']; // NOT ['tsc', '--noEmit']
 
 // CRITICAL: TypeScript errors go to stderr, NOT stdout
 // tsc writes all error messages to stderr
@@ -186,7 +192,7 @@ const TYPECHECK_ARGS = ['run', 'typecheck'];  // NOT ['tsc', '--noEmit']
 spawn('npm', ['run', 'typecheck'], {
   cwd: projectPath,
   stdio: ['ignore', 'pipe', 'pipe'],
-  shell: false,  // ALWAYS false
+  shell: false, // ALWAYS false
 });
 
 // CRITICAL: Timeout escalation pattern - SIGTERM then SIGKILL
@@ -197,12 +203,12 @@ setTimeout(() => {
     if (!child.killed) {
       child.kill('SIGKILL');
     }
-  }, 2000);  // 2-second grace period
+  }, 2000); // 2-second grace period
 }, timeout);
 
 // CRITICAL: Guard against data capture after kill
 // Stop capturing stdout/stderr after timeout kill signal
-if (killed) return;  // In data event handlers
+if (killed) return; // In data event handlers
 
 // GOTCHA: npm run typecheck may include ANSI color codes in output
 // The npm script doesn't use --pretty false, so output may have formatting codes
@@ -488,11 +494,11 @@ function parseTypeScriptErrors(stderr: string): TypeScriptError[] {
     const match = line.match(TS_ERROR_PATTERN);
     if (match) {
       errors.push({
-        file: match[1],      // e.g., "src/test.ts" or "/home/user/project/src/test.ts"
+        file: match[1], // e.g., "src/test.ts" or "/home/user/project/src/test.ts"
         line: parseInt(match[2], 10),
         column: parseInt(match[3], 10),
-        code: match[4],      // e.g., "TS2307"
-        message: match[5],   // Full error message
+        code: match[4], // e.g., "TS2307"
+        message: match[5], // Full error message
       });
     }
   }

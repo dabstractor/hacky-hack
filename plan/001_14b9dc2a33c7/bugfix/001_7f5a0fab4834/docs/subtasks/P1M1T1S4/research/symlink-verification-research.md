@@ -151,16 +151,22 @@ import { lstat } from 'fs/promises';
 /**
  * Check multiple paths for symlinks in parallel
  */
-async function batchCheckSymlinks(paths: string[]): Promise<Map<string, boolean>> {
+async function batchCheckSymlinks(
+  paths: string[]
+): Promise<Map<string, boolean>> {
   const results = new Map<string, boolean>();
 
   await Promise.all(
-    paths.map(async (path) => {
+    paths.map(async path => {
       try {
         const stats = await lstat(path);
         results.set(path, stats.isSymbolicLink());
       } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          error.code === 'ENOENT'
+        ) {
           results.set(path, false);
         } else {
           results.set(path, false);
@@ -282,7 +288,9 @@ import { Stats } from 'fs';
 /**
  * Type guard for symlink Stats objects
  */
-function isSymbolicLinkStats(stats: Stats): stats is Stats & { isSymbolicLink: () => true } {
+function isSymbolicLinkStats(
+  stats: Stats
+): stats is Stats & { isSymbolicLink: () => true } {
   return stats.isSymbolicLink();
 }
 
@@ -305,13 +313,13 @@ async function typeGuardExample(path: string): Promise<void> {
 
 ### Key Differences
 
-| Aspect | `fs.stat()` | `fs.lstat()` |
-|--------|-------------|--------------|
-| **Behavior with symlinks** | Follows symlinks | Does NOT follow symlinks |
-| **Returns stats for** | Target file/directory | The symlink itself |
-| **Broken symlinks** | Throws error | Returns stats successfully |
-| **isSymbolicLink()** | Always returns `false` | Returns `true` for symlinks |
-| **Use case** | Working with actual files | Detecting/working with symlinks |
+| Aspect                     | `fs.stat()`               | `fs.lstat()`                    |
+| -------------------------- | ------------------------- | ------------------------------- |
+| **Behavior with symlinks** | Follows symlinks          | Does NOT follow symlinks        |
+| **Returns stats for**      | Target file/directory     | The symlink itself              |
+| **Broken symlinks**        | Throws error              | Returns stats successfully      |
+| **isSymbolicLink()**       | Always returns `false`    | Returns `true` for symlinks     |
+| **Use case**               | Working with actual files | Detecting/working with symlinks |
 
 ### Practical Example
 
@@ -628,7 +636,9 @@ async function findSymlinksViaLs(directory: string): Promise<SymlinkInfo[]> {
     return parseLsLaOutput(output);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to find symlinks in ${directory}: ${error.message}`);
+      throw new Error(
+        `Failed to find symlinks in ${directory}: ${error.message}`
+      );
     }
     throw error;
   }
@@ -669,7 +679,10 @@ async function listDirectory(directory: string): Promise<string> {
     if (isWindows) {
       // Use PowerShell on Windows
       command = 'powershell';
-      args = ['-Command', `Get-ChildItem -Force "${directory}" | Format-Table -AutoSize`];
+      args = [
+        '-Command',
+        `Get-ChildItem -Force "${directory}" | Format-Table -AutoSize`,
+      ];
     } else {
       // Use ls on Unix-like systems
       command = 'ls';
@@ -1178,7 +1191,11 @@ async function correctRaceCondition(filePath: string): Promise<void> {
         console.log(`Target: ${target}`);
       } catch (error) {
         // Handle case where file is deleted
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          error.code === 'ENOENT'
+        ) {
           console.log('Symlink was deleted');
           return;
         }
@@ -1328,7 +1345,9 @@ async function crossPlatformSymlinkCheck(filePath: string): Promise<boolean> {
         }
         if (error.code === 'EPERM') {
           // Windows requires admin privileges for symlinks
-          console.warn('Administrator privileges may be required for symlink operations');
+          console.warn(
+            'Administrator privileges may be required for symlink operations'
+          );
           return false;
         }
       }
@@ -1408,7 +1427,11 @@ export async function getSymlinkInfo(filePath: string): Promise<SymlinkInfo> {
       try {
         await stat(relativeTarget || target);
       } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          error.code === 'ENOENT'
+        ) {
           isBroken = true;
         } else {
           throw error;
@@ -1496,7 +1519,11 @@ export async function findAllSymlinks(
       }
     } catch (error) {
       // Skip directories we can't read
-      if (error instanceof Error && 'code' in error && error.code === 'EACCES') {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        error.code === 'EACCES'
+      ) {
         return;
       }
       throw error;
@@ -1594,7 +1621,6 @@ export async function verifyNpmLink(
       result.localLink.exists &&
       result.globalLink.target !== null &&
       result.localLink.target !== null;
-
   } catch (error) {
     if (error instanceof Error) {
       result.errors.push(`Verification failed: ${error.message}`);
@@ -1625,7 +1651,11 @@ async function getGlobalNodeModulesPath(): Promise<string> {
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getSymlinkInfo, findAllSymlinks, verifyNpmLink } from '../symlink-utils';
+import {
+  getSymlinkInfo,
+  findAllSymlinks,
+  verifyNpmLink,
+} from '../symlink-utils';
 import { lstat, readlink, readdir } from 'fs/promises';
 
 // Mock fs/promises
@@ -1713,9 +1743,21 @@ describe('Symlink utilities', () => {
   describe('findAllSymlinks', () => {
     it('should find all symlinks in directory', async () => {
       const mockEntries = [
-        { name: 'file1.txt', isSymbolicLink: () => false, isDirectory: () => false },
-        { name: 'symlink1', isSymbolicLink: () => true, isDirectory: () => false },
-        { name: 'symlink2', isSymbolicLink: () => true, isDirectory: () => false },
+        {
+          name: 'file1.txt',
+          isSymbolicLink: () => false,
+          isDirectory: () => false,
+        },
+        {
+          name: 'symlink1',
+          isSymbolicLink: () => true,
+          isDirectory: () => false,
+        },
+        {
+          name: 'symlink2',
+          isSymbolicLink: () => true,
+          isDirectory: () => false,
+        },
       ] as any[];
 
       vi.mocked(readdir).mockResolvedValue(mockEntries);
@@ -1802,13 +1844,13 @@ async function resolveTarget(symlinkPath: string): Promise<string> {
 
 ### Error Codes
 
-| Code | Meaning |
-|------|---------|
-| `ENOENT` | Path doesn't exist |
-| `EACCES` | Permission denied |
-| `EINVAL` | Invalid argument (not a symlink) |
-| `EPERM` | Operation not permitted |
-| `ELOOP` | Too many symbolic links encountered |
+| Code     | Meaning                             |
+| -------- | ----------------------------------- |
+| `ENOENT` | Path doesn't exist                  |
+| `EACCES` | Permission denied                   |
+| `EINVAL` | Invalid argument (not a symlink)    |
+| `EPERM`  | Operation not permitted             |
+| `ELOOP`  | Too many symbolic links encountered |
 
 ### Best Practices
 

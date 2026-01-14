@@ -3,6 +3,7 @@
 This document shows actual TypeScript compiler output with various error types, demonstrating the consistent format that makes parsing straightforward.
 
 ## Test Environment
+
 - **TypeScript Version:** 5.9.3
 - **Date:** 2026-01-14
 - **Command:** `tsc --noEmit --pretty false`
@@ -12,6 +13,7 @@ This document shows actual TypeScript compiler output with various error types, 
 ## Example 1: Mixed Error Types
 
 ### Test File (tsc-test-file.ts)
+
 ```typescript
 interface User {
   name: string;
@@ -20,7 +22,7 @@ interface User {
 
 // Error 1: Type mismatch
 function testTypeMismatch(): void {
-  const num: number = "not a number";
+  const num: number = 'not a number';
 }
 
 // Error 2: Missing module
@@ -28,7 +30,7 @@ import { nonExistentModule } from 'fake-module-that-does-not-exist';
 
 // Error 3: Property missing
 const user: User = {
-  name: "John"
+  name: 'John',
   // Missing 'age' property
 };
 
@@ -40,6 +42,7 @@ const result: string = 12345;
 ```
 
 ### Actual tsc Output
+
 ```
 tsc-test-file.ts(10,9): error TS2322: Type 'string' is not assignable to type 'number'.
 tsc-test-file.ts(14,35): error TS2307: Cannot find module 'fake-module-that-does-not-exist' or its corresponding type declarations.
@@ -49,6 +52,7 @@ tsc-test-file.ts(26,7): error TS2322: Type 'number' is not assignable to type 's
 ```
 
 ### Parsed Result
+
 ```javascript
 {
   success: false,
@@ -79,6 +83,7 @@ tsc-test-file.ts(26,7): error TS2322: Type 'number' is not assignable to type 's
 ## Example 2: Complex Type Errors
 
 ### Test File (tsc-test-complex.ts)
+
 ```typescript
 // Test property mismatch
 function complexFunction() {
@@ -88,12 +93,13 @@ function complexFunction() {
 
 // Test Promise library error (missing lib)
 async function asyncError() {
-  const promise: Promise<string> = Promise.resolve("test");
+  const promise: Promise<string> = Promise.resolve('test');
   const result: number = await promise;
 }
 ```
 
 ### Actual tsc Output
+
 ```
 tsc-test-complex.ts(4,9): error TS2741: Property 'c' is missing in type '{ a: number; b: number; }' but required in type '{ a: number; b: number; c: number; }'.
 tsc-test-complex.ts(14,36): error TS2585: 'Promise' only refers to a type, but is being used as a value here. Do you need to change your target library? Try changing the 'lib' compiler option to es2015 or later.
@@ -105,6 +111,7 @@ tsc-test-complex.ts(15,9): error TS2322: Type 'string' is not assignable to type
 ## Example 3: Module Resolution Errors Only
 
 ### Test File (module-errors.ts)
+
 ```typescript
 import express from 'express';
 import lodash from 'lodash';
@@ -113,6 +120,7 @@ import { something } from '@scope/package';
 ```
 
 ### Actual tsc Output
+
 ```
 module-errors.ts(1,22): error TS2307: Cannot find module 'express' or its corresponding type declarations.
 module-errors.ts(2,21): error TS2307: Cannot find module 'lodash' or its corresponding type declarations.
@@ -121,14 +129,10 @@ module-errors.ts(4,27): error TS2307: Cannot find module '@scope/package' or its
 ```
 
 ### Module Names Extracted
+
 ```javascript
 {
-  modules: [
-    'express',
-    'lodash',
-    './local-file',
-    '@scope/package'
-  ]
+  modules: ['express', 'lodash', './local-file', '@scope/package'];
 }
 ```
 
@@ -137,8 +141,9 @@ module-errors.ts(4,27): error TS2307: Cannot find module '@scope/package' or its
 ## Example 4: Empty Output (Success)
 
 ### Test File (success.ts)
+
 ```typescript
-const greeting: string = "Hello, World!";
+const greeting: string = 'Hello, World!';
 function add(a: number, b: number): number {
   return a + b;
 }
@@ -146,11 +151,13 @@ export { greeting, add };
 ```
 
 ### Actual tsc Output
+
 ```
 (empty - no output to stderr)
 ```
 
 ### Parsed Result
+
 ```javascript
 {
   success: true,
@@ -165,16 +172,19 @@ export { greeting, add };
 ## Example 5: File Paths with Special Characters
 
 ### Test Command
+
 ```bash
 tsc --noEmit --pretty false "path/to/file with spaces.ts"
 ```
 
 ### Actual tsc Output
+
 ```
 path/to/file with spaces.ts(5,10): error TS2322: Type 'string' is not assignable to type 'number'.
 ```
 
 ### Parsing Considerations
+
 - File paths may contain spaces
 - Use non-greedy regex: `^(.+?)(?:\((\d+),(\d+)\))?`
 - Quote file paths in subsequent operations
@@ -184,12 +194,14 @@ path/to/file with spaces.ts(5,10): error TS2322: Type 'string' is not assignable
 ## Example 6: Project Reference Errors
 
 ### Test File (src/tsconfig.app.ts)
+
 ```typescript
 // Inside a project with references
 const value: string = 123;
 ```
 
 ### Actual tsc Output
+
 ```
 src/tsconfig.app.ts(2,7): error TS2322: Type 'number' is not assignable to type 'string'.
 ```
@@ -199,6 +211,7 @@ src/tsconfig.app.ts(2,7): error TS2322: Type 'number' is not assignable to type 
 ## Parsing Examples
 
 ### Extract Module Names from TS2307 Errors
+
 ```javascript
 const output = `error TS2307: Cannot find module 'express' or its corresponding type declarations.
 error TS2307: Cannot find module './utils/helper' or its corresponding type declarations.
@@ -218,6 +231,7 @@ for (const line of lines) {
 ```
 
 ### Categorize Errors by Code Range
+
 ```javascript
 function categorizeError(code) {
   const num = parseInt(code.replace('TS', ''), 10);
@@ -231,10 +245,10 @@ function categorizeError(code) {
 }
 
 // Examples:
-categorizeError('TS1005');  // 'compiler'
-categorizeError('TS2307');  // 'module'
-categorizeError('TS2322');  // 'type'
-categorizeError('TS5074');  // 'config'
+categorizeError('TS1005'); // 'compiler'
+categorizeError('TS2307'); // 'module'
+categorizeError('TS2322'); // 'type'
+categorizeError('TS5074'); // 'config'
 ```
 
 ---
@@ -242,6 +256,7 @@ categorizeError('TS5074');  // 'config'
 ## Exit Code Behavior
 
 ### Success Case
+
 ```bash
 $ tsc --noEmit --pretty false success.ts
 $ echo $?
@@ -249,6 +264,7 @@ $ echo $?
 ```
 
 ### Error Case
+
 ```bash
 $ tsc --noEmit --pretty false errors.ts
 src/test.ts(10,9): error TS2322: Type 'string' is not assignable to type 'number'.
@@ -272,12 +288,14 @@ $ echo $?
 ## Testing the Parser
 
 Run the example parser with test data:
+
 ```bash
 cd /home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S6
 node tsc-parser-example.cjs
 ```
 
 Create your own test file:
+
 ```bash
 cat > /tmp/test-parse.ts << 'EOF'
 const x: string = 123;

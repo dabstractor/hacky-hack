@@ -9,6 +9,7 @@
 **Deliverable**: A `verifyGroundswellSymlink()` function in `src/utils/groundswell-linker.ts` that consumes S3's `GroundswellLocalLinkResult` and produces a `GroundswellSymlinkVerifyResult` for S5 to consume.
 
 **Success Definition**:
+
 - Function returns `{ exists: true, path: string }` when symlink is valid
 - All unit tests pass (30+ tests covering happy path, errors, edge cases)
 - Integration with S3 works correctly (conditional execution based on S3 result)
@@ -23,6 +24,7 @@
 **Use Case**: As part of the Groundswell dependency setup workflow, after executing `npm link groundswell`, the system needs to verify that the symlink was created correctly before proceeding to S5 (npm list verification).
 
 **User Journey**:
+
 1. S3 executes `npm link groundswell` and returns `GroundswellLocalLinkResult`
 2. S4 receives S3's result and checks if `success: true`
 3. If S3 succeeded, S4 verifies the symlink exists at `node_modules/groundswell`
@@ -30,6 +32,7 @@
 5. S5 consumes S4's result to run `npm list` command
 
 **Pain Points Addressed**:
+
 - Detects broken or missing symlinks before they cause runtime errors
 - Provides clear diagnostic information when symlink verification fails
 - Enables early failure in the dependency resolution workflow
@@ -93,6 +96,7 @@ console.log(s4Result);
 ### Context Completeness Check
 
 This PRP provides:
+
 - Exact file paths and line numbers for all referenced code
 - Complete type definitions with all fields
 - Exact function signatures and naming conventions
@@ -193,9 +197,15 @@ import { lstat, readlink } from 'node:fs/promises'; // CORRECT
 
 // CRITICAL: Handle NodeJS.ErrnoException type for error.code checking
 const errno = error as NodeJS.ErrnoException;
-if (errno?.code === 'ENOENT') { /* path doesn't exist */ }
-if (errno?.code === 'EACCES') { /* permission denied */ }
-if (errno?.code === 'EINVAL') { /* not a symlink */ }
+if (errno?.code === 'ENOENT') {
+  /* path doesn't exist */
+}
+if (errno?.code === 'EACCES') {
+  /* permission denied */
+}
+if (errno?.code === 'EINVAL') {
+  /* not a symlink */
+}
 
 // CRITICAL: S3 already does symlink verification (groundswell-linker.ts:431-444)
 // S4 is a SEPARATE explicit verification step for workflow clarity
@@ -722,6 +732,7 @@ describe('verifyGroundswellSymlink', () => {
 **Overall Confidence: 9/10**
 
 **Reasoning:**
+
 - Comprehensive research documented in S4 research files (symlink-verification-research.md, ls-output-parsing-research.md)
 - Clear patterns established in S1-S3 implementations
 - Native API approach (fs.lstat/fs.readlink) is well-documented and tested
@@ -729,6 +740,7 @@ describe('verifyGroundswellSymlink', () => {
 - Only uncertainty is integration with S5 (which is out of scope for this PRP)
 
 **Risk Mitigation:**
+
 - All code patterns verified against existing implementations
 - Test patterns match existing groundswell-linker.test.ts structure
 - Error handling follows established conventions
@@ -740,10 +752,10 @@ describe('verifyGroundswellSymlink', () => {
 
 ### Key File Locations
 
-| File | Purpose | Key Content |
-|------|---------|-------------|
-| `src/utils/groundswell-linker.ts` | Implementation | Add verifyGroundswellSymlink() function |
-| `tests/unit/utils/groundswell-linker.test.ts` | Tests | Add S4 test suite |
+| File                                          | Purpose        | Key Content                             |
+| --------------------------------------------- | -------------- | --------------------------------------- |
+| `src/utils/groundswell-linker.ts`             | Implementation | Add verifyGroundswellSymlink() function |
+| `tests/unit/utils/groundswell-linker.test.ts` | Tests          | Add S4 test suite                       |
 
 ### Import Statement
 
@@ -759,7 +771,7 @@ import { join } from 'node:path';
 export async function verifyGroundswellSymlink(
   previousResult: GroundswellLocalLinkResult,
   options?: GroundswellSymlinkVerifyOptions
-): Promise<GroundswellSymlinkVerifyResult>
+): Promise<GroundswellSymlinkVerifyResult>;
 ```
 
 ### Critical Constants

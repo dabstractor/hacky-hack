@@ -201,8 +201,10 @@ const TSC_ERROR_PATTERN = /^(.+?)\((\d+),(\d+)\): error (TS\d+): (.+)$/;
 export async function runTypecheck(
   options?: TypecheckOptions
 ): Promise<TypecheckResult> {
-  const { timeout = DEFAULT_TYPECHECK_TIMEOUT, projectPath = DEFAULT_PROJECT_PATH } =
-    options ?? {};
+  const {
+    timeout = DEFAULT_TYPECHECK_TIMEOUT,
+    projectPath = DEFAULT_PROJECT_PATH,
+  } = options ?? {};
 
   // PATTERN: Safe spawn execution (from groundswell-linker.ts)
   let child: ChildProcess;
@@ -265,7 +267,7 @@ export async function runTypecheck(
     }
 
     // PATTERN: Handle close event with result parsing
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timeoutId);
 
       // Parse TypeScript errors from stderr

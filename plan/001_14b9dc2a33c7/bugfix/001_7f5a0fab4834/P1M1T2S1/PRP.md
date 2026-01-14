@@ -7,12 +7,14 @@
 **Feature Goal**: Implement `runTypecheck()` function that executes `npm run typecheck` (which runs `tsc --noEmit`), captures stdout/stderr, parses TypeScript compiler output, and returns a structured result with error count and parsed error details.
 
 **Deliverable**:
+
 - A new function `runTypecheck()` in a TypeScript utility module
 - Returns `TypecheckResult` interface with `{ success: boolean, errorCount: number, errors: ParsedTscError[] }`
 - Unit tests with comprehensive mocking (Vitest framework)
 - Integration with existing Groundswell linker utilities pattern
 
 **Success Definition**:
+
 - Function executes `tsc --noEmit` command successfully via spawn
 - All TypeScript errors are captured and parsed correctly
 - Error count is accurate (0 for success, >0 for failures)
@@ -27,6 +29,7 @@
 **Use Case**: After completing Groundswell npm link (P1.M1.T1), verify that TypeScript compilation succeeds without module-not-found errors
 
 **User Journey**:
+
 1. Developer completes P1.M1.T1 (Groundswell link setup)
 2. Automated pipeline calls `runTypecheck()` to verify TypeScript compilation
 3. Function returns structured result indicating success/failure
@@ -34,6 +37,7 @@
 5. If failed, error count and details guide debugging
 
 **Pain Points Addressed**:
+
 - Manual verification of TypeScript compilation after npm link
 - Unparsed error output that's difficult to analyze programmatically
 - No automated detection of "Cannot find module" errors after linking
@@ -79,6 +83,7 @@ Implement `runTypecheck()` function that:
 **Before implementing, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 ✓ **Yes** - This PRP provides:
+
 - Exact file patterns to follow from groundswell-linker.ts
 - Complete spawn execution pattern with timeout handling
 - TypeScript compiler output format and parsing regex
@@ -188,34 +193,34 @@ tests/
 ```typescript
 // Core result interface
 interface TypecheckResult {
-  success: boolean;          // true if errorCount === 0
-  errorCount: number;        // Total number of TypeScript errors
-  errors: ParsedTscError[];  // Array of parsed error objects
-  stdout: string;            // Captured stdout (usually empty for tsc)
-  stderr: string;            // Raw stderr output
-  exitCode: number | null;   // Process exit code
-  error?: string;            // Error message if spawn failed
+  success: boolean; // true if errorCount === 0
+  errorCount: number; // Total number of TypeScript errors
+  errors: ParsedTscError[]; // Array of parsed error objects
+  stdout: string; // Captured stdout (usually empty for tsc)
+  stderr: string; // Raw stderr output
+  exitCode: number | null; // Process exit code
+  error?: string; // Error message if spawn failed
 }
 
 // Parsed TypeScript error
 interface ParsedTscError {
-  file: string;              // File path (relative or absolute)
-  line: number;              // Line number (1-indexed)
-  column: number;            // Column number (1-indexed)
-  code: string;              // Error code (e.g., "TS2307")
-  message: string;           // Error message
-  module?: string;           // Extracted module name (for TS2307 only)
+  file: string; // File path (relative or absolute)
+  line: number; // Line number (1-indexed)
+  column: number; // Column number (1-indexed)
+  code: string; // Error code (e.g., "TS2307")
+  message: string; // Error message
+  module?: string; // Extracted module name (for TS2307 only)
 }
 
 // Options interface
 interface TypecheckOptions {
-  timeout?: number;          // Command timeout in ms (default: 30000)
-  projectPath?: string;      // Project directory (default: DEFAULT_PROJECT_PATH)
-  filterErrorCode?: string;  // Optional: Only include specific error code (e.g., "TS2307")
+  timeout?: number; // Command timeout in ms (default: 30000)
+  projectPath?: string; // Project directory (default: DEFAULT_PROJECT_PATH)
+  filterErrorCode?: string; // Optional: Only include specific error code (e.g., "TS2307")
 }
 
 // Constants
-const DEFAULT_TYPECHECK_TIMEOUT = 30000;  // 30 seconds
+const DEFAULT_TYPECHECK_TIMEOUT = 30000; // 30 seconds
 const DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack';
 ```
 
@@ -265,7 +270,7 @@ export async function runTypecheck(
 ): Promise<TypecheckResult> {
   const {
     timeout = DEFAULT_TYPECHECK_TIMEOUT,
-    projectPath = DEFAULT_PROJECT_PATH
+    projectPath = DEFAULT_PROJECT_PATH,
   } = options ?? {};
 
   // PATTERN: Safe spawn execution
@@ -276,7 +281,7 @@ export async function runTypecheck(
     child = spawn('npm', ['run', 'typecheck'], {
       cwd: projectPath,
       stdio: ['ignore', 'pipe', 'pipe'],
-      shell: false,  // Prevents shell injection
+      shell: false, // Prevents shell injection
     });
   } catch (error) {
     return {
@@ -314,7 +319,7 @@ export async function runTypecheck(
     // PATTERN: Capture stdout with kill check
     if (child.stdout) {
       child.stdout.on('data', (data: Buffer) => {
-        if (killed) return;  // CRITICAL: Ignore data after kill
+        if (killed) return; // CRITICAL: Ignore data after kill
         stdout += data.toString();
       });
     }
@@ -322,13 +327,13 @@ export async function runTypecheck(
     // PATTERN: Capture stderr with kill check
     if (child.stderr) {
       child.stderr.on('data', (data: Buffer) => {
-        if (killed) return;  // CRITICAL: Ignore data after kill
+        if (killed) return; // CRITICAL: Ignore data after kill
         stderr += data.toString();
       });
     }
 
     // PATTERN: Handle close event with result parsing
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timeoutId);
 
       // Parse TypeScript errors from stderr
@@ -445,11 +450,11 @@ child = spawn('npx', ['tsc', '--noEmit', '--pretty', 'false'], {
 ```yaml
 UTILITIES:
   - add to: src/utils/typecheck-runner.ts (new file)
-  - pattern: "runTypecheck(options?: TypecheckOptions): Promise<TypecheckResult>"
+  - pattern: 'runTypecheck(options?: TypecheckOptions): Promise<TypecheckResult>'
 
 EXPORTS:
   - from: src/utils/typecheck-runner.ts
-  - export: "export { runTypecheck, type TypecheckResult, type ParsedTscError, type TypecheckOptions }"
+  - export: 'export { runTypecheck, type TypecheckResult, type ParsedTscError, type TypecheckOptions }'
 
 TESTS:
   - add to: tests/unit/utils/typecheck-runner.test.ts (new file)
@@ -458,7 +463,7 @@ TESTS:
 
 CONSTANTS:
   - add to: src/utils/typecheck-runner.ts
-  - pattern: "const DEFAULT_TYPECHECK_TIMEOUT = 30000"
+  - pattern: 'const DEFAULT_TYPECHECK_TIMEOUT = 30000'
 ```
 
 ---
@@ -581,7 +586,7 @@ rm src/test-temp.ts
 
 - [ ] Code is self-documenting with clear variable names
 - [ ] Error messages are informative
-- [ ] Constants use DEFAULT_ naming convention
+- [ ] Constants use DEFAULT\_ naming convention
 
 ---
 
@@ -607,6 +612,7 @@ rm src/test-temp.ts
 **8/10** - One-pass implementation success likelihood
 
 **Reasoning**:
+
 - ✅ Clear pattern reference from groundswell-linker.ts
 - ✅ Comprehensive TypeScript output parsing research available
 - ✅ Test patterns well-established in codebase
