@@ -151,7 +151,7 @@
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Test application startup with --help flag",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Verify the CLI application starts and displays help information without errors",
               "subtasks": [
                 {
@@ -167,7 +167,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Verify no runtime errors in startup",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M2.T1.S1"
@@ -178,7 +178,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
                   "title": "Verify CLI options are displayed correctly",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M2.T1.S2"
