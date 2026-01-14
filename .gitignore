@@ -31,11 +31,6 @@ Thumbs.db
 # Session management (keep structure, ignore temp files if needed)
 # Keep only current session (001_14b9dc2a33c7) and tracked session 002
 # Ignore all other plan/001_* session directories except exceptions
-plan/001_*/
-!plan/001_14b9dc2a33c7/
-!plan/002_*/
-plan/003_*/
-plan/**/artifacts/
 
 # TypeScript build artifacts
 *.tsbuildinfo
@@ -54,8 +49,3 @@ tests/**/*.{js,d.ts}
 
 # Shell scripts (temporary/validation tools - prefer TypeScript equivalents)
 /scripts/
-
-# Research code examples (not part of main codebase)
-plan/**/research/*.ts
-plan/**/docs/research_*.ts
-**/research/*_examples.ts
