@@ -39,6 +39,7 @@ import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
 import { progressTracker, type ProgressTracker } from '../utils/progress.js';
+import { retryAgentPrompt } from '../utils/retry.js';
 
 /**
  * Result returned by PRPPipeline.run()
@@ -484,10 +485,13 @@ export class PRPPipeline extends Workflow {
       // Create prompt with PRD content
       const architectPrompt = `${TASK_BREAKDOWN_PROMPT}\n\n## PRD Content\n\n${prdContent}`;
 
-      // Generate backlog
+      // Generate backlog with retry logic
       this.logger.info('[PRPPipeline] Calling Architect agent...');
       // @ts-expect-error -- Groundswell agent.prompt() type signature is incorrect, accepts string
-      const _result = await architectAgent.prompt(architectPrompt);
+      const _result = await retryAgentPrompt(
+        () => architectAgent.prompt(architectPrompt) as Promise<unknown>,
+        { agentType: 'Architect', operation: 'decomposePRD' }
+      );
 
       // Parse the result - architect agent returns { backlog: Backlog }
       // Note: The architect agent writes to $TASKS_FILE, but we can also parse from response

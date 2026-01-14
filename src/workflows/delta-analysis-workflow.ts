@@ -23,6 +23,7 @@ import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import { createQAAgent } from '../agents/agent-factory.js';
 import { createDeltaAnalysisPrompt } from '../agents/prompts/delta-analysis-prompt.js';
+import { retryAgentPrompt } from '../utils/retry.js';
 
 /**
  * Delta Analysis workflow class
@@ -122,9 +123,12 @@ export class DeltaAnalysisWorkflow extends Workflow {
         this.completedTasks
       );
 
-      // Execute analysis
+      // Execute analysis with retry logic
       // PATTERN: Type assertion needed for agent.prompt() return
-      const result = (await qaAgent.prompt(prompt)) as DeltaAnalysis;
+      const result = (await retryAgentPrompt(
+        () => qaAgent.prompt(prompt) as Promise<DeltaAnalysis>,
+        { agentType: 'QA', operation: 'deltaAnalysis' }
+      )) as DeltaAnalysis;
 
       // Store result
       this.deltaAnalysis = result;

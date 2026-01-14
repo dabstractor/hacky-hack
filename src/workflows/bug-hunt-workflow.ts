@@ -29,6 +29,7 @@ import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import { createQAAgent } from '../agents/agent-factory.js';
 import { createBugHuntPrompt } from '../agents/prompts/bug-hunt-prompt.js';
+import { retryAgentPrompt } from '../utils/retry.js';
 
 /**
  * Bug Hunt workflow class
@@ -247,8 +248,11 @@ export class BugHuntWorkflow extends Workflow {
       const prompt = createBugHuntPrompt(this.prdContent, this.completedTasks);
       this.logger.info('[BugHuntWorkflow] Bug hunt prompt created');
 
-      // PATTERN: Execute QA agent and cast results to TestResults
-      const results = (await qaAgent.prompt(prompt)) as TestResults;
+      // PATTERN: Execute QA agent with retry logic and cast results to TestResults
+      const results = (await retryAgentPrompt(
+        () => qaAgent.prompt(prompt) as Promise<TestResults>,
+        { agentType: 'QA', operation: 'bugHunt' }
+      )) as TestResults;
 
       // Store results for observability
       this.testResults = results;

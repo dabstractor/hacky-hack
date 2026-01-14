@@ -26,6 +26,7 @@ import type { Logger } from '../utils/logger.js';
 import type { Agent } from 'groundswell';
 import type { PRPDocument, ValidationGate } from '../core/models.js';
 import { BashMCP } from '../tools/bash-mcp.js';
+import { retryAgentPrompt } from '../utils/retry.js';
 
 /**
  * Result from a single validation gate execution
@@ -245,9 +246,12 @@ export class PRPExecutor {
     );
 
     try {
-      // STEP 2: Execute Coder Agent
+      // STEP 2: Execute Coder Agent with retry logic
       this.#logger.info({ prpTaskId: prp.taskId }, 'Starting PRP execution');
-      const coderResponse = await this.#coderAgent.prompt(injectedPrompt);
+      const coderResponse = await retryAgentPrompt(
+        () => this.#coderAgent.prompt(injectedPrompt),
+        { agentType: 'Coder', operation: 'executePRP' }
+      );
 
       // STEP 3: Parse JSON result
       const coderResult = this.#parseCoderResult(coderResponse as string);
@@ -442,8 +446,11 @@ Output your result in the same JSON format:
 }
     `.trim();
 
-    // Execute fix attempt
-    await this.#coderAgent.prompt(fixPrompt);
+    // Execute fix attempt with retry logic
+    await retryAgentPrompt(() => this.#coderAgent.prompt(fixPrompt), {
+      agentType: 'Coder',
+      operation: 'fixValidation',
+    });
   }
 
   /**

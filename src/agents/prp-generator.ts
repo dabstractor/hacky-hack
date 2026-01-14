@@ -21,6 +21,7 @@ import type { SessionManager } from '../core/session-manager.js';
 import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import { retryAgentPrompt } from '../utils/retry.js';
 
 /**
  * Custom error for PRP generation failures
@@ -429,69 +430,29 @@ export class PRPGenerator {
       this.#logger.debug('Cache bypassed via --no-cache flag');
     }
 
-    // Retry configuration (from external research)
-    const maxRetries = 3;
-    const baseDelay = 1000; // 1 second
-    const maxDelay = 30000; // 30 seconds
+    // Step 1: Build prompt with task context
+    const prompt = createPRPBlueprintPrompt(task, backlog, process.cwd());
 
-    // Retry loop with exponential backoff
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        // Step 1: Build prompt with task context
-        const prompt = createPRPBlueprintPrompt(task, backlog, process.cwd());
+    // Step 2: Execute Researcher Agent with centralized retry logic
+    this.#logger.info({ taskId: task.id }, 'Generating PRP');
+    const result = await retryAgentPrompt(
+      () => this.#researcherAgent.prompt(prompt),
+      { agentType: 'Researcher', operation: 'generatePRP' }
+    );
 
-        // Step 2: Execute Researcher Agent
-        this.#logger.info(
-          { taskId: task.id, attempt: attempt + 1, maxRetries },
-          'Generating PRP'
-        );
-        const result = await this.#researcherAgent.prompt(prompt);
+    // Step 3: Validate against schema (defensive programming)
+    const validated = PRPDocumentSchema.parse(result);
 
-        // Step 3: Validate against schema (defensive programming)
-        const validated = PRPDocumentSchema.parse(result);
+    // Step 4: Write PRP to file (throws PRPFileError directly on failure)
+    await this.#writePRPToFile(validated);
 
-        // Step 4: Write PRP to file (throws PRPFileError directly on failure)
-        await this.#writePRPToFile(validated);
-
-        // Step 5: Save cache metadata if cache is enabled
-        if (!this.#noCache) {
-          const currentHash = this.#computeTaskHash(task, backlog);
-          await this.#saveCacheMetadata(task.id, currentHash, validated);
-        }
-
-        return validated;
-      } catch (error) {
-        // PRPFileError should propagate directly - don't retry file write failures
-        if (error instanceof PRPFileError) {
-          throw error;
-        }
-
-        // If this was the last attempt, throw custom error
-        if (attempt === maxRetries - 1) {
-          throw new PRPGenerationError(task.id, attempt + 1, error);
-        }
-
-        // Calculate exponential backoff delay
-        const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
-
-        // Log retry attempt
-        this.#logger.warn(
-          {
-            taskId: task.id,
-            attempt: attempt + 1,
-            error: error instanceof Error ? error.message : String(error),
-            delay,
-          },
-          'PRP generation failed, retrying'
-        );
-
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
+    // Step 5: Save cache metadata if cache is enabled
+    if (!this.#noCache) {
+      const currentHash = this.#computeTaskHash(task, backlog);
+      await this.#saveCacheMetadata(task.id, currentHash, validated);
     }
 
-    // This should never be reached, but TypeScript needs it
-    throw new PRPGenerationError(task.id, maxRetries, 'Unknown error');
+    return validated;
   }
 
   /**
