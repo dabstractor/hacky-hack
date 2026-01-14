@@ -21,6 +21,7 @@
 ### 1.1 Common Diagram Types for System Architecture
 
 #### **Flowcharts (graph/flowchart)**
+
 **Best For:** High-level system architecture, decision flows, process flows
 
 ```mermaid
@@ -50,6 +51,7 @@ graph TB
 ```
 
 **Best Practices:**
+
 - Use `TB` (top-bottom) or `LR` (left-right) consistently
 - Group related components in subgraphs
 - Use descriptive node labels with `[Square Brackets]`
@@ -57,6 +59,7 @@ graph TB
 - Use `{Diamonds}` for decision points
 
 #### **Sequence Diagrams (sequenceDiagram)**
+
 **Best For:** Request/response flows, API interactions, temporal relationships
 
 ```mermaid
@@ -75,6 +78,7 @@ sequenceDiagram
 ```
 
 **Best Practices:**
+
 - Use clear, descriptive participant names
 - Show both synchronous `->` and asynchronous `-->` messages
 - Include error paths with `alt`/`else` blocks
@@ -82,6 +86,7 @@ sequenceDiagram
 - Add `Note over` for important context
 
 #### **State Diagrams (stateDiagram-v2)**
+
 **Best For:** Workflow engines, state machines, lifecycle management
 
 ```mermaid
@@ -96,6 +101,7 @@ stateDiagram-v2
 ```
 
 **Best Practices:**
+
 - Show all possible states
 - Clearly label transition triggers
 - Include initial and terminal states
@@ -103,6 +109,7 @@ stateDiagram-v2
 - Show composite/nested states for complex systems
 
 #### **Class Diagrams (classDiagram)**
+
 **Best For:** Type systems, data models, class hierarchies
 
 ```mermaid
@@ -131,6 +138,7 @@ classDiagram
 ```
 
 **Best Practices:**
+
 - Use `<<abstract>>` and `<<interface>>` stereotypes
 - Show inheritance with `<|--`
 - Show composition with `*--`
@@ -138,6 +146,7 @@ classDiagram
 - Show dependencies with `-->`
 
 #### **Entity Relationship Diagrams (erDiagram)**
+
 **Best For:** Database schemas, data models, entity relationships
 
 ```mermaid
@@ -158,6 +167,7 @@ erDiagram
 ```
 
 **Best Practices:**
+
 - Use `||--||` for one-to-one
 - Use `||--o{` for one-to-many
 - Use `}|--|{` for many-to-many
@@ -165,6 +175,7 @@ erDiagram
 - Show data types for important fields
 
 #### **Component Diagrams**
+
 **Best For:** Module structure, package organization, system boundaries
 
 ```mermaid
@@ -194,6 +205,7 @@ graph TB
 ### 1.2 Best Practices for Readable Mermaid Diagrams
 
 #### **Consistency Standards**
+
 1. **Direction**: Choose `TB` or `LR` and stick with it across all diagrams
 2. **Color Coding**: Use consistent colors for:
    - External systems: `#E1F5FE` (light blue)
@@ -214,6 +226,7 @@ graph TB
    - Use consistent spacing (not too crowded, not too sparse)
 
 #### **Annotation Guidelines**
+
 ```mermaid
 graph LR
     A[Component A] -->|HTTPS| B[Component B]
@@ -228,6 +241,7 @@ graph LR
 ```
 
 #### **Diagram Size Guidelines**
+
 - Keep diagrams under 20 nodes for readability
 - Split complex systems into multiple diagrams
 - Create overview diagrams first, then detailed diagrams
@@ -236,6 +250,7 @@ graph LR
 ### 1.3 Tools and Editors Supporting Mermaid
 
 #### **Online Editors**
+
 1. **Mermaid Live Editor**
    - URL: https://mermaid.live/
    - Features: Real-time preview, code completion, export options
@@ -252,6 +267,7 @@ graph LR
    - Best for: Mixed visual/text workflows
 
 #### **IDE Extensions**
+
 1. **VS Code**
    - Extension: `Markdown Preview Mermaid Support` (bierner.markdown-mermaid)
    - Extension: `Mermaid Editor` (tintinweb.mermaid-edit)
@@ -266,6 +282,7 @@ graph LR
    - Features: Syntax highlighting, preview commands
 
 #### **Documentation Platforms**
+
 1. **GitHub/GitLab**
    - Native Mermaid support in Markdown
    - Automatic rendering in README.md, docs, wikis
@@ -290,6 +307,7 @@ graph LR
 ### 1.4 GitHub/GitLab Markdown Rendering
 
 #### **GitHub Support**
+
 - **Supported**: Fully supported in:
   - README.md files
   - Issues and Pull Requests
@@ -299,11 +317,16 @@ graph LR
 
 - **Version**: GitHub uses Mermaid v10.6.1 (as of 2025)
 - **Syntax**:
-  ```markdown
+
+  ````markdown
   ```mermaid
   graph TD
     A[Start] --> B[End]
   ```
+  ````
+
+  ```
+
   ```
 
 - **Limitations**:
@@ -313,6 +336,7 @@ graph LR
   - Maximum diagram size limits
 
 #### **GitLab Support**
+
 - **Supported**: Fully supported in:
   - README.md, .md files
   - Issues, Merge Requests, Epics
@@ -325,7 +349,7 @@ graph LR
   - Diagram export to PNG/SVG
 
 - **Rendering**:
-  ```markdown
+  ````markdown
   ```mermaid
   sequenceDiagram
     participant User
@@ -333,9 +357,13 @@ graph LR
     User->>System: Request
     System-->>User: Response
   ```
+  ````
+  ```
+
   ```
 
 #### **Best Practices for Git Platforms**
+
 1. **Commit Diagrams as Code**: Store `.mmd` files alongside documentation
 2. **Version Control**: Track diagram changes in git history
 3. **Accessibility**: Add alt text to diagrams
@@ -355,12 +383,14 @@ mmdc -i diagram.mmd -o diagram.png
 ### 2.1 Standard Sections
 
 #### **Executive Summary (1-2 paragraphs)**
+
 - Purpose and scope of the system
 - Key architectural decisions
 - Primary stakeholders and their concerns
 - Business goals and constraints
 
 **Example Template:**
+
 ```markdown
 ## Executive Summary
 
@@ -369,24 +399,28 @@ This document describes the architecture decisions, component design,
 and integration patterns used to achieve [key goals].
 
 **Key Stakeholders:**
+
 - Development team
 - DevOps/SRE team
 - Product management
 - Security/compliance
 
 **Primary Goals:**
+
 - Scalability to [X] requests/second
 - 99.9% uptime SLA
 - Sub-100ms response times
 ```
 
 #### **System Overview**
+
 - High-level architecture diagram (C4 Context or Container level)
 - Technology stack summary
 - External dependencies
 - Deployment architecture
 
 **Recommended Diagrams:**
+
 1. **Context Diagram**: Shows system boundaries and external actors
 2. **Container Diagram**: Shows applications, data stores, and their relationships
 3. **Technology Radar**: Shows technology choices and their maturity
@@ -413,16 +447,19 @@ graph TB
 ```
 
 #### **Architectural Principles**
+
 - Design principles guiding decisions
 - Quality attributes (performance, security, maintainability)
 - Trade-offs and priorities
 - Anti-patterns to avoid
 
 **Example:**
+
 ```markdown
 ## Architectural Principles
 
 ### Quality Attributes (Priority Order)
+
 1. **Reliability**: System must remain available even during partial failures
 2. **Performance**: 95th percentile response time < 200ms
 3. **Scalability**: Horizontal scaling without code changes
@@ -430,6 +467,7 @@ graph TB
 5. **Security**: Defense in depth, zero-trust network
 
 ### Design Principles
+
 - **Separation of Concerns**: Each component has a single responsibility
 - **Loose Coupling**: Components interact through well-defined interfaces
 - **High Cohesion**: Related functionality grouped together
@@ -438,13 +476,15 @@ graph TB
 ```
 
 #### **Core Components**
+
 - Component catalog with descriptions
 - Component responsibilities
 - Interfaces and contracts
 - Dependencies and interactions
 
 **Structure Template:**
-```markdown
+
+````markdown
 ## Core Components
 
 ### Component Name
@@ -452,29 +492,36 @@ graph TB
 **Purpose:** [One-sentence description]
 
 **Responsibilities:**
+
 - [ ] Responsibility 1
 - [ ] Responsibility 2
 
 **Interface:**
+
 ```typescript
 interface ComponentInterface {
   // Method signatures
 }
 ```
+````
 
 **Dependencies:**
+
 - Depends on: [Component A, Component B]
 - Used by: [Component C, Component D]
 
 **Technical Details:**
+
 - Technology: [Framework/Library]
 - Scaling: [Horizontal/Vertical]
 - State: [Stateless/Stateful]
 
 **Related Diagrams:**
+
 - [Link to sequence diagram]
 - [Link to component diagram]
-```
+
+````
 
 #### **Data Architecture**
 - Data models and schemas
@@ -509,13 +556,15 @@ sequenceDiagram
     API->>DB: INSERT user
     DB-->>API: user_id
     API-->>Client: 201 Created
-```
+````
 
 #### Caching Strategy
+
 - **L1 Cache**: In-memory cache (TTL: 5 minutes)
 - **L2 Cache**: Redis cache (TTL: 1 hour)
 - **Cache Invalidation**: Write-through pattern
-```
+
+````
 
 #### **Communication Patterns**
 - Synchronous communication (REST, GraphQL, gRPC)
@@ -543,17 +592,19 @@ service UserService {
   rpc GetUser(GetUserRequest) returns (UserResponse);
   rpc CreateUser(CreateUserRequest) returns (UserResponse);
 }
-```
+````
 
 ### Asynchronous Communication
 
 #### Message Queue Topics
-| Topic | Producer | Consumer | Purpose |
-|-------|----------|----------|---------|
+
+| Topic        | Producer    | Consumer             | Purpose            |
+| ------------ | ----------- | -------------------- | ------------------ |
 | user.created | API Service | Notification Service | Send welcome email |
-| user.updated | API Service | Analytics Service | Track changes |
+| user.updated | API Service | Analytics Service    | Track changes      |
 
 **Event Schema:**
+
 ```json
 {
   "eventId": "uuid",
@@ -564,10 +615,12 @@ service UserService {
 ```
 
 ### Error Handling
+
 - **API Errors**: Standard HTTP status codes
 - **Retry Policy**: Exponential backoff, max 3 attempts
 - **Dead Letter Queue**: Failed messages after 3 retries
-```
+
+````
 
 #### **Security Architecture**
 - Authentication and authorization
@@ -596,19 +649,22 @@ graph LR
     style DMZ fill:#fff3e0
     style App fill:#e8f5e9
     style Data fill:#e3f2fd
-```
+````
 
 ### Data Protection
+
 - **At Rest**: AES-256 encryption
 - **In Transit**: TLS 1.3
 - **Field-Level Encryption**: PII fields encrypted
 - **Key Management**: AWS KMS / HashiCorp Vault
 
 ### Compliance
+
 - **SOC 2**: Certified (controls documented)
 - **GDPR**: Data residency, right to deletion
 - **PCI DSS**: Level 1 compliant (payment processing)
-```
+
+````
 
 #### **Deployment Architecture**
 - Infrastructure topology
@@ -644,25 +700,28 @@ graph TB
     DB -->|Replication| DRDB
 
     style DRDB fill:#ffcdd2
-```
+````
 
 ```markdown
 ## Deployment Architecture
 
 ### Infrastructure
+
 - **Cloud Provider**: AWS / GCP / Azure
 - **Regions**: Primary (us-east-1), DR (us-west-2)
 - **Networking**: VPC with private subnets
 - **Compute**: Kubernetes (EKS/GKE/AKS)
 
 ### Scaling Strategy
-| Component | Min Instances | Max Instances | Scaling Trigger |
-|-----------|---------------|---------------|-----------------|
-| API Server | 2 | 50 | CPU > 70% |
-| Worker | 1 | 20 | Queue depth > 100 |
-| Database | Multi-AZ | Multi-AZ | N/A |
+
+| Component  | Min Instances | Max Instances | Scaling Trigger   |
+| ---------- | ------------- | ------------- | ----------------- |
+| API Server | 2             | 50            | CPU > 70%         |
+| Worker     | 1             | 20            | Queue depth > 100 |
+| Database   | Multi-AZ      | Multi-AZ      | N/A               |
 
 ### Deployment Process
+
 1. **CI Pipeline**: Build, test, scan
 2. **Staging**: Deploy to staging environment
 3. **Canary**: 10% of production traffic
@@ -670,6 +729,7 @@ graph TB
 5. **Monitoring**: Automated rollback on errors
 
 ### Disaster Recovery
+
 - **RTO** (Recovery Time Objective): 4 hours
 - **RPO** (Recovery Point Objective): 15 minutes
 - **Backup Strategy**: Continuous backup to S3/GCS
@@ -677,6 +737,7 @@ graph TB
 ```
 
 #### **Operational Aspects**
+
 - Monitoring and observability
 - Logging strategy
 - Alerting and incident response
@@ -689,29 +750,34 @@ graph TB
 ### Observability
 
 #### Metrics (Prometheus/Grafana)
+
 - **RED Method**: Rate, Errors, Duration
 - **USE Method**: Utilization, Saturation, Errors
 - Key dashboards: System Overview, API Performance, Database Health
 
 #### Logging (ELK/Loki)
+
 - **Log Format**: JSON structured logs
 - **Log Levels**: ERROR, WARN, INFO, DEBUG
 - **Centralization**: All logs sent to log aggregation
 - **Retention**: 30 days hot, 1 year cold
 
 #### Tracing (Jaeger/Tempo)
+
 - **Trace Sampling**: 1% of requests (production)
 - **Span Context**: W3C Trace Context
 - **Visualization**: Service graph in tracing UI
 
 ### Alerting
-| Alert | Severity | Threshold | Escalation |
-|-------|----------|-----------|------------|
-| High Error Rate | P1 | > 5% errors | On-call immediately |
-| High Latency | P2 | p95 > 1s | On-call within 15m |
-| Disk Space Low | P3 | < 15% free | Next business day |
+
+| Alert           | Severity | Threshold   | Escalation          |
+| --------------- | -------- | ----------- | ------------------- |
+| High Error Rate | P1       | > 5% errors | On-call immediately |
+| High Latency    | P2       | p95 > 1s    | On-call within 15m  |
+| Disk Space Low  | P3       | < 15% free  | Next business day   |
 
 ### Runbooks
+
 - [Incident Response](./runbooks/incident-response.md)
 - [Database Failover](./runbooks/db-failover.md)
 - [Scaling Events](./runbooks/scaling.md)
@@ -721,13 +787,15 @@ graph TB
 
 #### **Engine Documentation Template**
 
-```markdown
+````markdown
 ## [Engine Name] Engine
 
 ### Purpose
+
 [What problems does this engine solve? What processing does it perform?]
 
 ### Architecture Overview
+
 ```mermaid
 graph TB
     Input[Input Data] --> Parser[Parser]
@@ -736,13 +804,16 @@ graph TB
     Processor --> Output[Output Handler]
     Processor --> Error[Error Handler]
 ```
+````
 
 ### Processing Pipeline
 
 #### Stage 1: Input Parsing
+
 **Purpose:** Convert raw input to structured format
 
 **Input Format:**
+
 ```json
 {
   "raw": "unstructured data"
@@ -750,6 +821,7 @@ graph TB
 ```
 
 **Output Format:**
+
 ```typescript
 interface ParsedData {
   valid: boolean;
@@ -761,28 +833,34 @@ interface ParsedData {
 **Implementation:** `src/engine/parser.ts`
 
 #### Stage 2: Validation
+
 **Purpose:** Ensure data meets business rules
 
 **Validation Rules:**
+
 - Rule 1: [Description]
 - Rule 2: [Description]
 
 **Error Handling:**
+
 - Invalid data: Reject with error details
 - Partial failures: Log and continue (if configured)
 
 #### Stage 3: Core Processing
+
 **Purpose:** [Main transformation/computation]
 
 **Algorithm:** [Link to algorithm documentation]
 
 **Performance Characteristics:**
+
 - Time Complexity: O(n log n)
 - Space Complexity: O(n)
 - Throughput: 1000 items/second
 - Latency: p50: 10ms, p95: 50ms, p99: 100ms
 
 **Configuration:**
+
 ```typescript
 interface EngineConfig {
   batchSize: number;
@@ -793,9 +871,11 @@ interface EngineConfig {
 ```
 
 #### Stage 4: Output Handling
+
 **Purpose:** Format and deliver results
 
 **Output Formats:**
+
 - JSON (default)
 - CSV (via plugin)
 - Custom (via plugin system)
@@ -803,6 +883,7 @@ interface EngineConfig {
 ### Extensibility Points
 
 #### Plugin Architecture
+
 ```typescript
 interface EnginePlugin {
   name: string;
@@ -819,12 +900,14 @@ interface EnginePlugin {
 ```
 
 **Built-in Plugins:**
+
 - [Plugin 1]: [Description]
 - [Plugin 2]: [Description]
 
 **Custom Plugin Development:** See [Plugin Development Guide](./plugins.md)
 
 ### Data Flow
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -849,6 +932,7 @@ sequenceDiagram
 ### Error Handling Strategy
 
 #### Error Categories
+
 1. **Transient Errors**: Retry automatically
    - Network timeouts
    - Temporary unavailability
@@ -864,6 +948,7 @@ sequenceDiagram
    - Non-critical enrichment fails
 
 #### Retry Policy
+
 - **Max Attempts**: 3
 - **Backoff**: Exponential (base: 100ms, multiplier: 2)
 - **Jitter**: Random jitter up to 50%
@@ -871,32 +956,39 @@ sequenceDiagram
 ### Performance Optimization
 
 #### Caching Strategy
+
 - **L1 Cache**: In-memory LRU (max: 10,000 items)
 - **L2 Cache**: Redis (TTL: 1 hour)
 - **Cache Keys**: `{resource}:{id}:{version}`
 
 #### Parallelization
+
 - **Batch Processing**: Process items in parallel batches
 - **Worker Pool**: Configurable pool size (default: CPU cores)
 - **Partitioning**: Sharded by key for ordered processing
 
 #### Profiling
+
 - **Hot Paths**: Identified via continuous profiling
 - **Optimization Targets**: Functions consuming > 5% CPU
 - **Benchmark Results**: See [benchmarks.md](./benchmarks.md)
 
 ### Monitoring
+
 **Key Metrics:**
+
 - `engine_requests_total`: Total requests processed
 - `engine_duration_seconds`: Processing duration (histogram)
 - `engine_errors_total`: Total errors (by type)
 - `engine_cache_hit_rate`: Cache effectiveness
 
 **Health Checks:**
+
 - `/health/live`: Liveness probe
 - `/health/ready`: Readiness probe (checks dependencies)
 
 ### Testing
+
 - **Unit Tests**: `npm test -- src/engine/**/*.test.ts`
 - **Integration Tests**: `npm test -- tests/engine/integration/`
 - **Performance Tests**: `npm run test:perf`
@@ -905,6 +997,7 @@ sequenceDiagram
 ### Configuration Examples
 
 **Minimal Configuration:**
+
 ```yaml
 engine:
   mode: standard
@@ -912,6 +1005,7 @@ engine:
 ```
 
 **Production Configuration:**
+
 ```yaml
 engine:
   mode: optimized
@@ -927,7 +1021,8 @@ engine:
     metrics: prometheus
     tracing: jaeger
 ```
-```
+
+````
 
 ### 2.3 Documenting Data Flows and Component Interactions
 
@@ -969,11 +1064,12 @@ graph TB
     Store2 -->|Cache Hit| Process3
     Process2 -->|Cache Miss| Process3
     Process3 -->|Response| User
-```
+````
 
 #### **Sequence Diagram Patterns**
 
 **Request-Response Pattern:**
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -997,6 +1093,7 @@ sequenceDiagram
 ```
 
 **Async Processing Pattern:**
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -1019,6 +1116,7 @@ sequenceDiagram
 ```
 
 **Error Handling Pattern:**
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -1045,15 +1143,17 @@ sequenceDiagram
 
 #### **Extension Points Documentation Template**
 
-```markdown
+````markdown
 ## Extensibility Model
 
 ### Extension Points Overview
+
 [Diagram showing all extension points]
 
 ### 1. Plugin System
 
 **Plugin Interface:**
+
 ```typescript
 interface Plugin {
   name: string;
@@ -1064,8 +1164,10 @@ interface Plugin {
   cleanup(): Promise<void>;
 }
 ```
+````
 
 **Lifecycle Hooks:**
+
 - `beforeInit`: Before engine initialization
 - `afterInit`: After engine is ready
 - `beforeProcess`: Before each item processed
@@ -1073,6 +1175,7 @@ interface Plugin {
 - `onError`: When errors occur
 
 **Plugin Discovery:**
+
 - **Directory Scan**: Auto-discover plugins in `/plugins` directory
 - **Configuration**: Explicit plugin list in config file
 - **Dependencies**: Plugin dependency resolution
@@ -1080,6 +1183,7 @@ interface Plugin {
 ### 2. Custom Processors
 
 **Processor Interface:**
+
 ```typescript
 interface Processor {
   canProcess(data: Input): boolean;
@@ -1088,6 +1192,7 @@ interface Processor {
 ```
 
 **Registration:**
+
 ```typescript
 engine.registerProcessor(new CustomProcessor());
 ```
@@ -1095,6 +1200,7 @@ engine.registerProcessor(new CustomProcessor());
 ### 3. Event System
 
 **Event Types:**
+
 ```typescript
 enum EngineEvent {
   Initialized = 'engine.initialized',
@@ -1105,8 +1211,9 @@ enum EngineEvent {
 ```
 
 **Event Subscription:**
+
 ```typescript
-engine.on(EngineEvent.ProcessingCompleted, (data) => {
+engine.on(EngineEvent.ProcessingCompleted, data => {
   // Handle event
 });
 ```
@@ -1114,8 +1221,10 @@ engine.on(EngineEvent.ProcessingCompleted, (data) => {
 ### 4. Integration Patterns
 
 #### Webhook Integration
-```markdown
+
+````markdown
 **Webhook Configuration:**
+
 ```yaml
 webhooks:
   - url: https://api.example.com/hooks
@@ -1124,8 +1233,10 @@ webhooks:
       type: bearer
       token: ${WEBHOOK_TOKEN}
 ```
+````
 
 **Webhook Payload:**
+
 ```json
 {
   "eventId": "uuid",
@@ -1137,7 +1248,8 @@ webhooks:
   }
 }
 ```
-```
+
+````
 
 #### Queue Integration
 ```markdown
@@ -1153,18 +1265,21 @@ queue:
   type: sqs
   region: us-east-1
   queueUrl: ${QUEUE_URL}
-```
+````
+
 ```
 
 ### 5. API Integration
 
 **REST API:**
 ```
+
 POST /api/v1/extensions
 GET /api/v1/extensions
 PUT /api/v1/extensions/{id}
 DELETE /api/v1/extensions/{id}
-```
+
+````
 
 **gRPC Service:**
 ```protobuf
@@ -1172,8 +1287,9 @@ service ExtensionService {
   rpc RegisterExtension(RegisterRequest) returns (RegisterResponse);
   rpc ListExtensions(ListRequest) returns (ListResponse);
 }
-```
-```
+````
+
+````
 
 #### **Integration Testing Guide**
 
@@ -1187,9 +1303,10 @@ docker-compose up -d test-db test-queue
 
 # Run integration tests
 npm run test:integration
-```
+````
 
 ### Example Integration Test
+
 ```typescript
 describe('Plugin Integration', () => {
   it('should execute plugin hooks', async () => {
@@ -1206,14 +1323,17 @@ describe('Plugin Integration', () => {
 ```
 
 ### Mock Integration Points
+
 ```typescript
 const mockService = {
-  process: jest.fn().mockResolvedValue({ data: 'mock' })
+  process: jest.fn().mockResolvedValue({ data: 'mock' }),
 };
 
 engine.registerService('external', mockService);
 ```
+
 ```
+
 ```
 
 ---
@@ -1250,12 +1370,14 @@ engine.registerService('external', mockService);
 **Purpose:** Handle user interaction and external API requests
 
 **Components:**
+
 - Web UI (React/Vue/Angular)
 - Mobile Apps (iOS/Android)
 - API Gateway (REST/GraphQL/gRPC)
 - WebSocket Server (real-time updates)
 
 **Responsibilities:**
+
 - Request validation
 - Authentication/authorization (token validation)
 - Rate limiting
@@ -1264,9 +1386,11 @@ engine.registerService('external', mockService);
 
 **Entry Points:**
 ```
+
 POST /api/v1/resources
 GET /api/v1/resources/:id
 WebSocket /ws/stream
+
 ```
 
 **Technology Stack:**
@@ -1280,12 +1404,14 @@ WebSocket /ws/stream
 **Purpose:** Orchestrate business workflows and coordinate domain operations
 
 **Components:**
+
 - Application Services
 - Workflow Engine
 - Transaction Coordinator
 - Event Aggregator
 
 **Responsibilities:**
+
 - Use case orchestration
 - Transaction management
 - Event publishing
@@ -1293,11 +1419,10 @@ WebSocket /ws/stream
 - Business rule evaluation
 
 **Example Service:**
+
 ```typescript
 class ResourceApplicationService {
-  async createResource(
-    command: CreateResourceCommand
-  ): Promise<ResourceDTO> {
+  async createResource(command: CreateResourceCommand): Promise<ResourceDTO> {
     // 1. Validate business rules
     await this.validator.validate(command);
 
@@ -1314,10 +1439,12 @@ class ResourceApplicationService {
 ```
 
 **Technology Stack:**
+
 - Framework: NestJS / Spring Boot / .NET Core
 - Messaging: RabbitMQ / Kafka / AWS SNS
 - Cache: Redis / Memcached
-```
+
+````
 
 ### Layer 3: Domain/Engine Layer
 
@@ -1367,9 +1494,10 @@ graph TB
     Entity --> Aggregate
     Processor --> DomainSvc
     DomainSvc --> Repository
-```
+````
 
 **Example Processing Engine:**
+
 ```typescript
 class DataProcessingEngine {
   async process(input: RawInput): Promise<ProcessedOutput> {
@@ -1395,10 +1523,12 @@ class DataProcessingEngine {
 ```
 
 **Technology Stack:**
+
 - Domain-Driven Design patterns
 - Validation: Zod / Joi / Yup
 - Business Rules: JSON Rules Engine / Drools
-```
+
+````
 
 ### Layer 4: Infrastructure Layer
 
@@ -1439,15 +1569,18 @@ class PostgresResourceRepository implements ResourceRepository {
     return row ? ResourceMapper.toDomain(row) : null;
   }
 }
-```
+````
 
 **Technology Stack:**
+
 - Database: PostgreSQL 15+ / MongoDB 7+
 - ORM: Prisma / TypeORM / Mongoose
 - Cache: Redis 7+
 - Queue: RabbitMQ / Kafka / AWS SQS
 - Storage: AWS S3 / Azure Blob / GCS
+
 ```
+
 ```
 
 ### 3.2 Component Interaction Diagrams
@@ -1455,6 +1588,7 @@ class PostgresResourceRepository implements ResourceRepository {
 #### **Layer Interaction Patterns**
 
 **Synchronous (Request-Response):**
+
 ```mermaid
 sequenceDiagram
     participant UI as Presentation
@@ -1475,6 +1609,7 @@ sequenceDiagram
 ```
 
 **Asynchronous (Event-Driven):**
+
 ```mermaid
 sequenceDiagram
     participant UI as Presentation
@@ -1644,6 +1779,7 @@ graph TB
 #### **TypeDoc Integration Patterns**
 
 **Project Structure:**
+
 ```
 project/
 ├── docs/
@@ -1663,6 +1799,7 @@ project/
 ```
 
 **typedoc.json Configuration:**
+
 ```json
 {
   "$schema": "https://typedoc.org/schema.json",
@@ -1693,7 +1830,8 @@ project/
 ```
 
 **Architecture Document with TypeDoc Links:**
-```markdown
+
+````markdown
 ## Core Engine Architecture
 
 ### Engine Component
@@ -1708,11 +1846,13 @@ The **Engine** is the core processing component responsible for:
 **API Documentation:** See the [Engine API Reference](../api/classes/Engine.md) for detailed method signatures.
 
 **Key Methods:**
+
 - [`Engine.process()`](../api/classes/Engine.md#process): Main processing method
 - [`Engine.validate()`](../api/classes/Engine.md#validate): Input validation
 - [`Engine.transform()`](../api/classes/Engine.md#transform): Data transformation
 
 **Related Interfaces:**
+
 - [`EngineConfig`](../api/interfaces/EngineConfig.md): Configuration options
 - [`EngineResult`](../api/interfaces/EngineResult.md): Result type
 
@@ -1723,14 +1863,16 @@ import { Engine } from '@project/core';
 
 const engine = new Engine({
   mode: 'optimized',
-  parallelism: 4
+  parallelism: 4,
 });
 
 const result = await engine.process(inputData);
 ```
+````
 
 For more examples, see the [API Examples](../api/modules/examples.html).
-```
+
+````
 
 #### **JSDoc Comment Standards**
 
@@ -1840,11 +1982,12 @@ export class Engine {
     // Implementation
   }
 }
-```
+````
 
 #### **Cross-Referencing Tags**
 
 **Supported TypeDoc Tags:**
+
 - `@see {@link ClassName}`: Link to another class
 - `@see {@link ClassName.method}`: Link to specific method
 - `@example`: Usage examples (rendered as code blocks)
@@ -1864,32 +2007,41 @@ export class Engine {
 #### **Markdown to TypeDoc Links**
 
 **Absolute Links:**
+
 ```markdown
 <!-- Link to a class -->
+
 See the [Engine class](../api/classes/Engine.md) for details.
 
 <!-- Link to a method -->
+
 The [process method](../api/classes/Engine.md#process) handles input.
 
 <!-- Link to an interface -->
+
 [EngineConfig](../api/interfaces/EngineConfig.md) specifies options.
 
 <!-- Link to a type alias -->
+
 [Result type](../api/types/Result.md) defines the output.
 ```
 
 **Relative Links with Anchors:**
+
 ```markdown
 <!-- Link to specific section -->
+
 For configuration options, see [EngineConfig.mode](../api/interfaces/EngineConfig.md#mode).
 
 <!-- Link with custom text -->
+
 For error handling, refer to the [error documentation](../api/modules/errors.html).
 ```
 
 #### **Bidirectional Linking**
 
 **From Architecture to API:**
+
 ```markdown
 ## Processing Pipeline
 
@@ -1904,6 +2056,7 @@ For complete API reference, see the [API Documentation](../api/index.html).
 ```
 
 **From API to Architecture (in JSDoc):**
+
 ```typescript
 /**
  * Main processing entry point.
@@ -1921,6 +2074,7 @@ async process(input: RawInput): Promise<Output>;
 #### **Automated Documentation Pipeline**
 
 **CI/CD Integration:**
+
 ```yaml
 # .github/workflows/docs.yml
 name: Generate Documentation
@@ -1964,6 +2118,7 @@ jobs:
 ```
 
 **Package.json Scripts:**
+
 ```json
 {
   "scripts": {
@@ -1980,6 +2135,7 @@ jobs:
 #### **Documentation Coverage Validation**
 
 **doc-coverage.json:**
+
 ```json
 {
   "coverage": {
@@ -2003,6 +2159,7 @@ jobs:
 ```
 
 **Pre-commit Hook (.husky/pre-commit):**
+
 ```bash
 #!/bin/bash
 # Ensure documentation is updated before commit
@@ -2027,6 +2184,7 @@ echo "✅ Documentation check passed"
 #### **Automated Link Validation**
 
 **markdown-link-check-config.json:**
+
 ```json
 {
   "ignorePatterns": [
@@ -2047,6 +2205,7 @@ echo "✅ Documentation check passed"
 #### **Version Strategy**
 
 **Multiple Versions:**
+
 ```bash
 docs/
 ├── v1.0.0/
@@ -2062,6 +2221,7 @@ docs/
 ```
 
 **Version Selector in Documentation:**
+
 ```html
 <!-- docs/_includes/version-selector.html -->
 <div class="version-selector">
@@ -2074,9 +2234,9 @@ docs/
 </div>
 
 <script>
-function switchVersion(version) {
-  window.location.href = `/${version}/index.html`;
-}
+  function switchVersion(version) {
+    window.location.href = `/${version}/index.html`;
+  }
 </script>
 ```
 
@@ -2090,6 +2250,7 @@ function switchVersion(version) {
 **Documentation:** https://kubernetes.io/docs/concepts/architecture/
 
 **Why It's Excellent:**
+
 - Comprehensive coverage of distributed systems architecture
 - Clear separation between concepts and implementation
 - Extensive use of diagrams for complex topics
@@ -2119,6 +2280,7 @@ function switchVersion(version) {
    - Plugin architecture
 
 **Structure Analysis:**
+
 ```
 kubernetes.io/docs/
 ├── concepts/
@@ -2141,6 +2303,7 @@ kubernetes.io/docs/
 ```
 
 **What Makes It Effective:**
+
 - **Layered Approach**: Starts high-level, drills down
 - **Visual-First**: Diagrams before text
 - **Component Catalog**: Each component has dedicated docs
@@ -2148,6 +2311,7 @@ kubernetes.io/docs/
 - **Real-World Examples**: Use cases with code samples
 
 **Best Practices Observed:**
+
 1. Consistent diagram style across all docs
 2. API documentation linked to architecture concepts
 3. Separation of "what it is" vs "how to use it"
@@ -2156,6 +2320,7 @@ kubernetes.io/docs/
 6. Multiple entry points for different audiences
 
 **Sample Architecture Diagram (Kubernetes Style):**
+
 ```mermaid
 graph TB
     subgraph "Control Plane"
@@ -2197,6 +2362,7 @@ graph TB
 **Documentation:** https://vuejs.org/guide/extras/rendering-mechanism.html
 
 **Why It's Excellent:**
+
 - Clear explanation of rendering architecture
 - Visual diagrams of reactivity system
 - Incremental complexity (basic → advanced)
@@ -2220,6 +2386,7 @@ graph TB
    - Slot system documentation
 
 **Structure Analysis:**
+
 ```
 vuejs.org/
 ├── guide/
@@ -2241,6 +2408,7 @@ vuejs.org/
 ```
 
 **What Makes It Effective:**
+
 - **Progressive Disclosure**: Start simple, add complexity
 - **Visual Learning**: Diagrams for abstract concepts
 - **Code Annotations**: Comments explain why, not what
@@ -2248,6 +2416,7 @@ vuejs.org/
 - **Comparison Guides**: Compare approaches with trade-offs
 
 **Reactivity Diagram Example:**
+
 ```mermaid
 graph LR
     Component[Component] -->|get| Proxy[Proxy]
@@ -2266,6 +2435,7 @@ graph LR
 **Documentation:** https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html
 
 **Why It's Excellent:**
+
 - Comprehensive type system documentation
 - Detailed compiler architecture explanations
 - Clear "how it works" sections
@@ -2289,6 +2459,7 @@ graph LR
    - Best practices with examples
 
 **Structure Analysis:**
+
 ```
 typescriptlang.org/
 ├── docs/
@@ -2309,6 +2480,7 @@ typescriptlang.org/
 ```
 
 **What Makes It Effective:**
+
 - **Target Audience Specific**: Guides for different backgrounds
 - **Playground Integration**: Editable examples
 - **Migration Guides**: Clear upgrade paths
@@ -2319,11 +2491,11 @@ typescriptlang.org/
 
 ### 5.4 Comparison and Key Takeaways
 
-| Project | Diagram Usage | Documentation Style | Standout Feature |
-|---------|--------------|---------------------|------------------|
-| Kubernetes | Extensive | Comprehensive, technical | Multi-level depth, extensibility focus |
-| Vue.js | Moderate | Progressive, educational | Visual learning, code examples |
-| TypeScript | Minimal | Precise, reference | Error documentation, migration guides |
+| Project    | Diagram Usage | Documentation Style      | Standout Feature                       |
+| ---------- | ------------- | ------------------------ | -------------------------------------- |
+| Kubernetes | Extensive     | Comprehensive, technical | Multi-level depth, extensibility focus |
+| Vue.js     | Moderate      | Progressive, educational | Visual learning, code examples         |
+| TypeScript | Minimal       | Precise, reference       | Error documentation, migration guides  |
 
 **Common Patterns Across Excellent Docs:**
 
@@ -2367,12 +2539,14 @@ typescriptlang.org/
 ### 6.1 Mermaid Resources
 
 **Official Documentation:**
+
 - **Main Site**: https://mermaid.js.org/
 - **Documentation**: https://mermaid.js.org/intro/
 - **Syntax Guide**: https://mermaid.js.org/syntax/flowchart.html
 - **Live Editor**: https://mermaid.live/
 
 **Diagram Type References:**
+
 - **Flowchart**: https://mermaid.js.org/syntax/flowchart.html
 - **Sequence Diagram**: https://mermaid.js.org/syntax/sequenceDiagram.html
 - **Class Diagram**: https://mermaid.js.org/syntax/classDiagram.html
@@ -2383,6 +2557,7 @@ typescriptlang.org/
 - **Git Graph**: https://mermaid.js.org/syntax/gitgraph.html
 
 **Advanced Features:**
+
 - **Styling**: https://mermaid.js.org/config/theming.html
 - **Directives**: https://mermaid.js.org/config/directives.html
 - **Interaction**: https://mermaid.js.org/config/usage.html#interaction
@@ -2390,39 +2565,46 @@ typescriptlang.org/
 ### 6.2 Architecture Documentation Frameworks
 
 **C4 Model:**
+
 - **Website**: https://c4model.com/
 - **Book**: "Software Architecture for Developers" (Simon Brown)
 - **Tools**: https://c4model.com/#Tools
 - **Example**: https://c4model.com/#Example
 
 **Arc42 Template:**
+
 - **Website**: https://arc42.org/
 - **Download**: https://arc42.org/download
 - **Overview**: https://arc42.org/overview
 - **Examples**: https://arc42.org/examples
 
 **4+1 View Model:**
+
 - **Original Paper**: https://www.ieee-software-ratings.com/Articles--The-4+1-View-Model-of-Architecture
 - **Explanation**: https://www.ibm.com/docs/en/rational-rose/2003?topic=model-4-1-view-model-architecture
 
 **Documenting Software Architectures:**
+
 - **Book**: "Documenting Software Architectures: Views and Beyond" (Paul Clements et al.)
 - **IEEE Standard**: IEEE 1471 (now ISO/IEC 42010)
 
 ### 6.3 TypeDoc Resources
 
 **Official Documentation:**
+
 - **Main Site**: https://typedoc.org/
 - **GitHub**: https://github.com/TypeStrong/TypeDoc
 - **Documentation**: https://typedoc.org/options/
 - **Tag Reference**: https://typedoc.org/tags/
 
 **Configuration:**
+
 - **typedoc.json Schema**: https://typedoc.org/schema.json
 - **Options Reference**: https://typedoc.org/options/
 - **Plugin API**: https://typedoc.org/plugins/
 
 **Plugins and Themes:**
+
 - **typedoc-plugin-markdown**: https://github.com/tgreyuk/typedoc-plugin-markdown
 - **typedoc-plugin-mermaid**: https://github.com/tgreyuk/typedoc-plugin-mermaid
 - **typedoc-plugin-sourcefile-url**: https://github.com/agestam/typedoc-plugin-sourcefile-url
@@ -2430,17 +2612,20 @@ typescriptlang.org/
 ### 6.4 Documentation Generators
 
 **Static Site Generators:**
+
 - **Docusaurus**: https://docusaurus.io/
 - **VitePress**: https://vitepress.dev/
 - **MkDocs**: https://www.mkdocs.org/
 - **GitBook**: https://www.gitbook.com/
 
 **API Documentation Tools:**
+
 - **Swagger/OpenAPI**: https://swagger.io/
 - **OpenAPI Generator**: https://openapi-generator.tech/
 - **Redoc**: https://github.com/Redocly/redoc
 
 **Diagram Tools:**
+
 - **Draw.io**: https://app.diagrams.net/
 - **PlantUML**: https://plantuml.com/
 - **Diagrams.net**: https://www.diagrams.net/
@@ -2448,29 +2633,35 @@ typescriptlang.org/
 ### 6.5 Open Source Documentation Examples
 
 **Kubernetes:**
+
 - **Architecture**: https://kubernetes.io/docs/concepts/architecture/
 - **Components**: https://kubernetes.io/docs/concepts/overview/components/
 - **Extend Kubernetes**: https://kubernetes.io/docs/concepts/extend-kubernetes/
 
 **Vue.js:**
+
 - **Rendering Mechanism**: https://vuejs.org/guide/extras/rendering-mechanism.html
 - **Reactivity in Depth**: https://vuejs.org/guide/extras/reactivity-in-depth.html
 
 **React:**
+
 - **Architecture**: https://react.dev/learn/understanding-uis-progressively
 - **Thinking in React**: https://react.dev/learn/thinking-in-react
 
 **TypeScript:**
+
 - **Handbook**: https://www.typescriptlang.org/docs/handbook/intro.html
 - **Declaration Files**: https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html
 
 **Django:**
+
 - **Design Philosophies**: https://docs.djangoproject.com/en/5.0/misc/design-philosophies/
 - **Architecture**: https://docs.djangoproject.com/en/5.0/internals/
 
 ### 6.6 Recommended Reading
 
 **Books:**
+
 1. "Software Architecture for Developers" by Simon Brown
 2. "Documenting Software Architectures" by Paul Clements
 3. "Building Evolutionary Architectures" by Ford, Parsons, Kua
@@ -2478,6 +2669,7 @@ typescriptlang.org/
 5. "The Software Architect Elevator" by Gregor Hohpe
 
 **Articles and Papers:**
+
 1. "C4 Model" by Simon Brown
 2. "Arc42 Documentation Template" by Dr. Gernot Starke
 3. "4+1 View Model" by Philippe Kruchten
@@ -2485,6 +2677,7 @@ typescriptlang.org/
 5. "You Can't Untangle Your Way to a Clean Architecture" by Kent Beck
 
 **Blogs:**
+
 1. Martin Fowler's Blog: https://martinfowler.com/
 2. High Scalability: https://www.highscalability.com/
 3. The New Stack: https://thenewstack.io/
@@ -2492,18 +2685,18 @@ typescriptlang.org/
 
 ### 6.7 Tools Summary Table
 
-| Tool | Purpose | URL | License |
-|------|---------|-----|---------|
-| Mermaid | Diagram syntax | https://mermaid.js.org/ | MIT |
-| TypeDoc | TypeScript API docs | https://typedoc.org/ | Apache-2.0 |
-| Docusaurus | Documentation site | https://docusaurus.io/ | MIT |
-| MkDocs | Documentation site | https://www.mkdocs.org/ | BSD-2-Clause |
-| Draw.io | Diagram editor | https://app.diagrams.net/ | GPLv3 |
-| PlantUML | Diagram syntax | https://plantuml.com/ | GPL-3.0 |
-| Swagger | API documentation | https://swagger.io/ | Apache-2.0 |
-| Redoc | API documentation | https://github.com/Redocly/redoc | MIT |
-| Arc42 | Documentation template | https://arc42.org/ | CC-BY-4.0 |
-| C4 Model | Architecture model | https://c4model.com/ | Creative Commons |
+| Tool       | Purpose                | URL                              | License          |
+| ---------- | ---------------------- | -------------------------------- | ---------------- |
+| Mermaid    | Diagram syntax         | https://mermaid.js.org/          | MIT              |
+| TypeDoc    | TypeScript API docs    | https://typedoc.org/             | Apache-2.0       |
+| Docusaurus | Documentation site     | https://docusaurus.io/           | MIT              |
+| MkDocs     | Documentation site     | https://www.mkdocs.org/          | BSD-2-Clause     |
+| Draw.io    | Diagram editor         | https://app.diagrams.net/        | GPLv3            |
+| PlantUML   | Diagram syntax         | https://plantuml.com/            | GPL-3.0          |
+| Swagger    | API documentation      | https://swagger.io/              | Apache-2.0       |
+| Redoc      | API documentation      | https://github.com/Redocly/redoc | MIT              |
+| Arc42      | Documentation template | https://arc42.org/               | CC-BY-4.0        |
+| C4 Model   | Architecture model     | https://c4model.com/             | Creative Commons |
 
 ---
 
@@ -2551,6 +2744,7 @@ gantt
 ### Documentation Checklist
 
 **Architecture Documentation:**
+
 - [ ] System overview diagram
 - [ ] Component catalog
 - [ ] Data flow diagrams
@@ -2563,6 +2757,7 @@ gantt
 - [ ] Cross-references to API docs
 
 **API Documentation:**
+
 - [ ] All public APIs documented
 - [ ] JSDoc comments with examples
 - [ ] Type definitions included
@@ -2574,6 +2769,7 @@ gantt
 - [ ] Version information included
 
 **Diagram Checklist:**
+
 - [ ] Consistent styling
 - [ ] Clear labels and annotations
 - [ ] Appropriate level of detail
@@ -2601,6 +2797,7 @@ Effective architecture documentation requires:
 10. **Continuous Updates**: Keep docs in sync with code
 
 **Key Resources:**
+
 - Mermaid: https://mermaid.js.org/
 - TypeDoc: https://typedoc.org/
 - C4 Model: https://c4model.com/

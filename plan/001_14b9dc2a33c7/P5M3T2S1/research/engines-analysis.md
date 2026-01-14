@@ -60,37 +60,47 @@ export class SessionManager {
   readonly planDir: string;
   #currentSession: SessionState | null = null;
   #prdHash: string | null = null;
-  #dirty: boolean = false;                      // Batching state
-  #pendingUpdates: Backlog | null = null;       // Batching state
-  #updateCount: number = 0;                    // Batching state
+  #dirty: boolean = false; // Batching state
+  #pendingUpdates: Backlog | null = null; // Batching state
+  #updateCount: number = 0; // Batching state
 }
 ```
 
 ### Key Methods
 
-| Method | Purpose | Returns |
-|--------|---------|---------|
-| `initialize()` | Hash PRD, find/create session | `Promise<SessionState>` |
-| `loadSession(path)` | Load existing session | `Promise<SessionState>` |
-| `createDeltaSession(newPRDPath)` | Handle PRD changes | `Promise<DeltaSession>` |
-| `saveBacklog(backlog)` | Persist tasks.json | `Promise<void>` |
-| `loadBacklog()` | Load tasks.json | `Promise<Backlog>` |
-| `updateItemStatus(itemId, status)` | Update task status (batched) | `Promise<Backlog>` |
-| `flushUpdates()` | Atomic batch write | `Promise<void>` |
-| `getCurrentItem()` | Get current task | `HierarchyItem \| null` |
-| `setCurrentItem(itemId)` | Set current task | `void` |
-| `hasSessionChanged()` | Check PRD modification | `boolean` |
-| `listSessions()` | List all sessions | `Promise<SessionMetadata[]>` |
-| `findLatestSession()` | Find latest session | `Promise<SessionMetadata \| null>` |
-| `findSessionByPRD(prdPath)` | Find session for PRD | `Promise<SessionMetadata \| null>` |
+| Method                             | Purpose                       | Returns                            |
+| ---------------------------------- | ----------------------------- | ---------------------------------- |
+| `initialize()`                     | Hash PRD, find/create session | `Promise<SessionState>`            |
+| `loadSession(path)`                | Load existing session         | `Promise<SessionState>`            |
+| `createDeltaSession(newPRDPath)`   | Handle PRD changes            | `Promise<DeltaSession>`            |
+| `saveBacklog(backlog)`             | Persist tasks.json            | `Promise<void>`                    |
+| `loadBacklog()`                    | Load tasks.json               | `Promise<Backlog>`                 |
+| `updateItemStatus(itemId, status)` | Update task status (batched)  | `Promise<Backlog>`                 |
+| `flushUpdates()`                   | Atomic batch write            | `Promise<void>`                    |
+| `getCurrentItem()`                 | Get current task              | `HierarchyItem \| null`            |
+| `setCurrentItem(itemId)`           | Set current task              | `void`                             |
+| `hasSessionChanged()`              | Check PRD modification        | `boolean`                          |
+| `listSessions()`                   | List all sessions             | `Promise<SessionMetadata[]>`       |
+| `findLatestSession()`              | Find latest session           | `Promise<SessionMetadata \| null>` |
+| `findSessionByPRD(prdPath)`        | Find session for PRD          | `Promise<SessionMetadata \| null>` |
 
 ### Dependencies
 
 ```typescript
 // Imports
 import { getLogger } from '../utils/logger.js';
-import type { SessionState, SessionMetadata, Backlog, Status } from './models.js';
-import { hashPRD, createSessionDirectory, readTasksJSON, writeTasksJSON } from './session-utils.js';
+import type {
+  SessionState,
+  SessionMetadata,
+  Backlog,
+  Status,
+} from './models.js';
+import {
+  hashPRD,
+  createSessionDirectory,
+  readTasksJSON,
+  writeTasksJSON,
+} from './session-utils.js';
 import { diffPRDs } from './prd-differ.js';
 import { updateItemStatus, findItem } from '../utils/task-utils.js';
 ```
@@ -99,6 +109,7 @@ import { updateItemStatus, findItem } from '../utils/task-utils.js';
 
 1. **Immutable Properties**: All public fields are `readonly`
 2. **Batching with Dirty Flag**: Updates accumulated in memory, flushed atomically
+
    ```typescript
    async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
      const updated = updateItemStatusUtil(currentBacklog, itemId, status);
@@ -166,8 +177,8 @@ export class TaskOrchestrator {
   #backlog: Backlog;
   #scope: Scope | undefined;
   #executionQueue: HierarchyItem[];
-  readonly researchQueue: ResearchQueue;      // Parallel PRP generation
-  readonly #prpRuntime: PRPRuntime;            // Execution engine
+  readonly researchQueue: ResearchQueue; // Parallel PRP generation
+  readonly #prpRuntime: PRPRuntime; // Execution engine
   #cacheHits: number = 0;
   #cacheMisses: number = 0;
   readonly #noCache: boolean;
@@ -176,25 +187,32 @@ export class TaskOrchestrator {
 
 ### Key Methods
 
-| Method | Purpose | Returns |
-|--------|---------|---------|
-| `processNextItem()` | Process next item in queue | `Promise<boolean>` |
-| `setStatus(itemId, status, reason?)` | Update status with logging | `Promise<void>` |
-| `canExecute(subtask)` | Check if dependencies satisfied | `boolean` |
-| `getBlockingDependencies(subtask)` | Get incomplete dependencies | `Subtask[]` |
-| `waitForDependencies(subtask, opts)` | Poll for dependency completion | `Promise<void>` |
-| `setScope(scope)` | Change execution scope | `Promise<void>` |
-| `executePhase(phase)` | Set phase to Implementing | `Promise<void>` |
-| `executeMilestone(milestone)` | Set milestone to Implementing | `Promise<void>` |
-| `executeTask(task)` | Enqueue subtasks for PRP generation | `Promise<void>` |
-| `executeSubtask(subtask)` | Execute subtask (main execution unit) | `Promise<void>` |
+| Method                               | Purpose                               | Returns            |
+| ------------------------------------ | ------------------------------------- | ------------------ |
+| `processNextItem()`                  | Process next item in queue            | `Promise<boolean>` |
+| `setStatus(itemId, status, reason?)` | Update status with logging            | `Promise<void>`    |
+| `canExecute(subtask)`                | Check if dependencies satisfied       | `boolean`          |
+| `getBlockingDependencies(subtask)`   | Get incomplete dependencies           | `Subtask[]`        |
+| `waitForDependencies(subtask, opts)` | Poll for dependency completion        | `Promise<void>`    |
+| `setScope(scope)`                    | Change execution scope                | `Promise<void>`    |
+| `executePhase(phase)`                | Set phase to Implementing             | `Promise<void>`    |
+| `executeMilestone(milestone)`        | Set milestone to Implementing         | `Promise<void>`    |
+| `executeTask(task)`                  | Enqueue subtasks for PRP generation   | `Promise<void>`    |
+| `executeSubtask(subtask)`            | Execute subtask (main execution unit) | `Promise<void>`    |
 
 ### Dependencies
 
 ```typescript
 // Imports
 import type { SessionManager } from './session-manager.js';
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from './models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from './models.js';
 import { getDependencies } from '../utils/task-utils.js';
 import type { Scope } from './scope-resolver.js';
 import { resolveScope } from './scope-resolver.js';
@@ -206,6 +224,7 @@ import { PRPRuntime } from '../agents/prp-runtime.js';
 ### State Management Patterns
 
 1. **DFS Pre-Order Traversal**:
+
    ```typescript
    async processNextItem(): Promise<boolean> {
      if (this.#executionQueue.length === 0) return false;
@@ -217,6 +236,7 @@ import { PRPRuntime } from '../agents/prp-runtime.js';
    ```
 
 2. **Type-Safe Dispatch**:
+
    ```typescript
    async #delegateByType(item: HierarchyItem): Promise<void> {
      switch (item.type) {
@@ -301,27 +321,32 @@ const GIT_MCP = new GitMCP();
 const MCP_TOOLS = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP];
 
 // Factory functions
-export function createArchitectAgent(): Agent
-export function createResearcherAgent(): Agent
-export function createCoderAgent(): Agent
-export function createQAAgent(): Agent
+export function createArchitectAgent(): Agent;
+export function createResearcherAgent(): Agent;
+export function createCoderAgent(): Agent;
+export function createQAAgent(): Agent;
 ```
 
 #### Agent Personas
 
-| Persona | System Prompt | Token Limit | Purpose |
-|---------|---------------|-------------|---------|
-| `architect` | TASK_BREAKDOWN_PROMPT | 8192 | PRD analysis, task breakdown |
-| `researcher` | PRP_BLUEPRINT_PROMPT | 4096 | PRP generation, research |
-| `coder` | PRP_BUILDER_PROMPT | 4096 | Code implementation |
-| `qa` | BUG_HUNT_PROMPT | 4096 | Validation, bug hunting |
+| Persona      | System Prompt         | Token Limit | Purpose                      |
+| ------------ | --------------------- | ----------- | ---------------------------- |
+| `architect`  | TASK_BREAKDOWN_PROMPT | 8192        | PRD analysis, task breakdown |
+| `researcher` | PRP_BLUEPRINT_PROMPT  | 4096        | PRP generation, research     |
+| `coder`      | PRP_BUILDER_PROMPT    | 4096        | Code implementation          |
+| `qa`         | BUG_HUNT_PROMPT       | 4096        | Validation, bug hunting      |
 
 #### Dependencies
 
 ```typescript
 import { configureEnvironment, getModel } from '../config/environment.js';
 import { createAgent, type Agent } from 'groundswell';
-import { TASK_BREAKDOWN_PROMPT, PRP_BLUEPRINT_PROMPT, PRP_BUILDER_PROMPT, BUG_HUNT_PROMPT } from './prompts.js';
+import {
+  TASK_BREAKDOWN_PROMPT,
+  PRP_BLUEPRINT_PROMPT,
+  PRP_BUILDER_PROMPT,
+  BUG_HUNT_PROMPT,
+} from './prompts.js';
 import { BashMCP } from '../tools/bash-mcp.js';
 import { FilesystemMCP } from '../tools/filesystem-mcp.js';
 import { GitMCP } from '../tools/git-mcp.js';
@@ -346,22 +371,22 @@ export class PRPGenerator {
   readonly #noCache: boolean;
   #cacheHits: number = 0;
   #cacheMisses: number = 0;
-  readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000;  // 24 hours
+  readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 }
 ```
 
 #### Key Methods
 
-| Method | Purpose | Returns |
-|--------|---------|---------|
-| `generate(task, backlog)` | Generate PRP with cache check | `Promise<PRPDocument>` |
-| `getCachePath(taskId)` | Get PRP markdown file path | `string` |
-| `getCacheMetadataPath(taskId)` | Get cache JSON path | `string` |
-| `#computeTaskHash(task, backlog)` | Compute SHA-256 hash | `string` |
-| `#isCacheRecent(filePath)` | Check cache age | `Promise<boolean>` |
-| `#loadCachedPRP(taskId)` | Load from disk cache | `Promise<PRPDocument \| null>` |
-| `#saveCacheMetadata(taskId, hash, prp)` | Save cache metadata | `Promise<void>` |
-| `#writePRPToFile(prp)` | Write PRP markdown | `Promise<void>` |
+| Method                                  | Purpose                       | Returns                        |
+| --------------------------------------- | ----------------------------- | ------------------------------ |
+| `generate(task, backlog)`               | Generate PRP with cache check | `Promise<PRPDocument>`         |
+| `getCachePath(taskId)`                  | Get PRP markdown file path    | `string`                       |
+| `getCacheMetadataPath(taskId)`          | Get cache JSON path           | `string`                       |
+| `#computeTaskHash(task, backlog)`       | Compute SHA-256 hash          | `string`                       |
+| `#isCacheRecent(filePath)`              | Check cache age               | `Promise<boolean>`             |
+| `#loadCachedPRP(taskId)`                | Load from disk cache          | `Promise<PRPDocument \| null>` |
+| `#saveCacheMetadata(taskId, hash, prp)` | Save cache metadata           | `Promise<void>`                |
+| `#writePRPToFile(prp)`                  | Write PRP markdown            | `Promise<void>`                |
 
 #### Caching Strategy
 
@@ -396,21 +421,21 @@ export class PRPExecutor {
 
 #### Key Methods
 
-| Method | Purpose | Returns |
-|--------|---------|---------|
-| `execute(prp, prpPath)` | Execute PRP with validation + retry | `Promise<ExecutionResult>` |
-| `#runValidationGates(prp)` | Run 4-level validation sequentially | `Promise<ValidationGateResult[]>` |
-| `#fixAndRetry(prp, failedGates, attempt)` | Trigger fix attempt | `Promise<void>` |
-| `#parseCoderResult(response)` | Parse JSON from agent | `{ result: string, message: string }` |
+| Method                                    | Purpose                             | Returns                               |
+| ----------------------------------------- | ----------------------------------- | ------------------------------------- |
+| `execute(prp, prpPath)`                   | Execute PRP with validation + retry | `Promise<ExecutionResult>`            |
+| `#runValidationGates(prp)`                | Run 4-level validation sequentially | `Promise<ValidationGateResult[]>`     |
+| `#fixAndRetry(prp, failedGates, attempt)` | Trigger fix attempt                 | `Promise<void>`                       |
+| `#parseCoderResult(response)`             | Parse JSON from agent               | `{ result: string, message: string }` |
 
 #### Validation Gates
 
-| Level | Description | Command | Manual? |
-|-------|-------------|---------|---------|
-| 1 | Syntax & Style | linting, type checking | No |
-| 2 | Unit Tests | component validation | No |
-| 3 | Integration Testing | system validation | No |
-| 4 | Manual/Creative | end-to-end workflows | Yes |
+| Level | Description         | Command                | Manual? |
+| ----- | ------------------- | ---------------------- | ------- |
+| 1     | Syntax & Style      | linting, type checking | No      |
+| 2     | Unit Tests          | component validation   | No      |
+| 3     | Integration Testing | system validation      | No      |
+| 4     | Manual/Creative     | end-to-end workflows   | Yes     |
 
 #### Fix-and-Retry Logic
 
@@ -448,11 +473,11 @@ export class PRPRuntime {
 
 #### Key Methods
 
-| Method | Purpose | Returns |
-|--------|---------|---------|
-| `executeSubtask(subtask, backlog)` | Full inner loop execution | `Promise<ExecutionResult>` |
-| `#writeArtifacts(artifactsDir, result)` | Write validation results | `Promise<void>` |
-| `#formatExecutionSummary(result)` | Format markdown summary | `string` |
+| Method                                  | Purpose                   | Returns                    |
+| --------------------------------------- | ------------------------- | -------------------------- |
+| `executeSubtask(subtask, backlog)`      | Full inner loop execution | `Promise<ExecutionResult>` |
+| `#writeArtifacts(artifactsDir, result)` | Write validation results  | `Promise<void>`            |
+| `#formatExecutionSummary(result)`       | Format markdown summary   | `string`                   |
 
 #### Execution Flow
 
@@ -525,20 +550,20 @@ export class PRPPipeline extends Workflow {
 
 ### Key Methods
 
-| Method | Purpose | Returns |
-|--------|---------|---------|
-| `run()` | Main entry point | `Promise<PipelineResult>` |
-| `initializeSession()` | Detect/create session | `Promise<void>` |
-| `handleDelta()` | Handle PRD changes | `Promise<void>` |
-| `decomposePRD()` | Generate task backlog | `Promise<void>` |
-| `executeBacklog()` | Process all tasks | `Promise<void>` |
-| `runQACycle()` | QA bug hunt | `Promise<void>` |
-| `cleanup()` | State preservation | `Promise<void>` |
-| `#countTasks()` | Count total subtasks | `number` |
-| `#countCompletedTasks()` | Count completed | `number` |
-| `#countFailedTasks()` | Count failed | `number` |
-| `#allTasksComplete()` | Check completion | `boolean` |
-| `#summarizePhases()` | Build phase summary | `PhaseSummary[]` |
+| Method                   | Purpose               | Returns                   |
+| ------------------------ | --------------------- | ------------------------- |
+| `run()`                  | Main entry point      | `Promise<PipelineResult>` |
+| `initializeSession()`    | Detect/create session | `Promise<void>`           |
+| `handleDelta()`          | Handle PRD changes    | `Promise<void>`           |
+| `decomposePRD()`         | Generate task backlog | `Promise<void>`           |
+| `executeBacklog()`       | Process all tasks     | `Promise<void>`           |
+| `runQACycle()`           | QA bug hunt           | `Promise<void>`           |
+| `cleanup()`              | State preservation    | `Promise<void>`           |
+| `#countTasks()`          | Count total subtasks  | `number`                  |
+| `#countCompletedTasks()` | Count completed       | `number`                  |
+| `#countFailedTasks()`    | Count failed          | `number`                  |
+| `#allTasksComplete()`    | Check completion      | `boolean`                 |
+| `#summarizePhases()`     | Build phase summary   | `PhaseSummary[]`          |
 
 ### Dependencies
 
@@ -558,12 +583,14 @@ import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 ### State Management Patterns
 
 1. **Groundswell Workflow Decorators**:
+
    ```typescript
    @Step({ trackTiming: true, name: 'handleDelta' })
    async handleDelta(): Promise<void> { ... }
    ```
 
 2. **Graceful Shutdown**:
+
    ```typescript
    #setupSignalHandlers(): void {
      this.#sigintHandler = () => {
@@ -579,7 +606,9 @@ import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 3. **Progress Tracking**:
    ```typescript
    this.#progressTracker = progressTracker({
-     backlog, logInterval: 5, barWidth: 40
+     backlog,
+     logInterval: 5,
+     barWidth: 40,
    });
    this.#progressTracker?.recordComplete(currentItemId);
    ```

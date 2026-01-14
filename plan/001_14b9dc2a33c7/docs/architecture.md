@@ -196,7 +196,7 @@ Subtasks declare dependencies using the `dependencies` array:
 
 ```typescript
 interface Subtask {
-  readonly dependencies: string[];  // e.g., ['P1.M1.T1.S1', 'P1.M1.T1.S2']
+  readonly dependencies: string[]; // e.g., ['P1.M1.T1.S1', 'P1.M1.T1.S2']
 }
 ```
 
@@ -235,12 +235,12 @@ The Agent Runtime manages LLM agent creation, configuration, and execution with 
 
 #### Agent Types
 
-| Agent | Persona | Responsibility |
-|-------|---------|----------------|
-| **Architect** | System Designer | Generates task backlog from PRD |
-| **Researcher** | Context Gatherer | Generates PRPs for subtasks |
-| **Coder** | Implementation Expert | Executes PRPs to produce code |
-| **QA** | Quality Assurance | Finds and fixes bugs |
+| Agent          | Persona               | Responsibility                  |
+| -------------- | --------------------- | ------------------------------- |
+| **Architect**  | System Designer       | Generates task backlog from PRD |
+| **Researcher** | Context Gatherer      | Generates PRPs for subtasks     |
+| **Coder**      | Implementation Expert | Executes PRPs to produce code   |
+| **QA**         | Quality Assurance     | Finds and fixes bugs            |
 
 #### Tool System
 
@@ -254,6 +254,7 @@ interface MCPTool {
 ```
 
 Available tools:
+
 - **BashMCP**: Execute shell commands
 - **FilesystemMCP**: Read/write files
 - **GitMCP**: Git operations
@@ -445,7 +446,7 @@ type HierarchyItem = Phase | Milestone | Task | Subtask;
 
 // Four-level hierarchy
 interface Phase {
-  readonly id: string;              // P1
+  readonly id: string; // P1
   readonly type: 'Phase';
   readonly milestones: Milestone[];
   readonly status: Status;
@@ -454,7 +455,7 @@ interface Phase {
 }
 
 interface Milestone {
-  readonly id: string;              // P1.M1
+  readonly id: string; // P1.M1
   readonly type: 'Milestone';
   readonly tasks: Task[];
   readonly status: Status;
@@ -463,7 +464,7 @@ interface Milestone {
 }
 
 interface Task {
-  readonly id: string;              // P1.M1.T1
+  readonly id: string; // P1.M1.T1
   readonly type: 'Task';
   readonly subtasks: Subtask[];
   readonly status: Status;
@@ -472,17 +473,22 @@ interface Task {
 }
 
 interface Subtask {
-  readonly id: string;              // P1.M1.T1.S1
+  readonly id: string; // P1.M1.T1.S1
   readonly type: 'Subtask';
-  readonly dependencies: string[];  // Dependency IDs
+  readonly dependencies: string[]; // Dependency IDs
   readonly status: Status;
   readonly title: string;
   readonly story_points: number;
-  readonly context_scope: string;   // Isolation instructions
+  readonly context_scope: string; // Isolation instructions
 }
 
 // Lifecycle status
-type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed';
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed';
 ```
 
 #### Session Types
@@ -496,9 +502,9 @@ interface SessionState {
 }
 
 interface SessionMetadata {
-  readonly id: string;              // 001_14b9dc2a33c7
-  readonly hash: string;            // First 12 chars of SHA-256
-  readonly path: string;            // Absolute path
+  readonly id: string; // 001_14b9dc2a33c7
+  readonly hash: string; // First 12 chars of SHA-256
+  readonly path: string; // Absolute path
   readonly createdAt: Date;
   readonly parentSession: string | null;
 }
@@ -553,13 +559,13 @@ const coderAgent = createAgent({
   apiKey: process.env.ANTHROPIC_API_KEY,
   model: 'claude-opus-4-5-20251101',
   maxTokens: 8192,
-  systemPrompt: 'You are an expert software developer...'
+  systemPrompt: 'You are an expert software developer...',
 });
 
 const response = await coderAgent.generate({
   prompt: 'Implement a REST API endpoint',
   tools: [bashTool, fileTool, gitTool],
-  responseFormat: { type: 'text' }
+  responseFormat: { type: 'text' },
 });
 ```
 
@@ -575,17 +581,17 @@ mcp.registerTool({
   name: 'execute_command',
   description: 'Execute shell command',
   inputSchema: z.object({
-    command: z.string()
+    command: z.string(),
   }),
-  handler: async (input) => {
+  handler: async input => {
     return { output: await exec(input.command) };
-  }
+  },
 });
 
 // Use with agent
 const response = await agent.generate({
   prompt: 'List files',
-  tools: mcp.getTools()
+  tools: mcp.getTools(),
 });
 ```
 
@@ -598,6 +604,7 @@ Cache Key = SHA-256(system prompt + user prompt + responseFormat)
 ```
 
 **Performance Impact**:
+
 - **Cache Hit**: <10ms, 0 API calls
 - **Cache Miss**: 1-5 seconds, 1 API call
 - **Typical Hit Rate**: 80-95% on subsequent runs
@@ -626,14 +633,14 @@ export class SecurityAgent {
       apiKey: process.env.ANTHROPIC_API_KEY!,
       model: 'claude-opus-4-5-20251101',
       systemPrompt: `You are a security expert.
-        Analyze code for vulnerabilities, suggest fixes.`
+        Analyze code for vulnerabilities, suggest fixes.`,
     });
   }
 
   async analyze(code: string): Promise<SecurityReport> {
     const response = await this.#agent.generate({
       prompt: `Analyze this code:\n\n${code}`,
-      responseFormat: { type: 'json' }
+      responseFormat: { type: 'json' },
     });
     return JSON.parse(response.text);
   }
@@ -657,7 +664,7 @@ export async function securityGate(
   if (report.vulnerabilities.length > 0) {
     return {
       passed: false,
-      errors: report.vulnerabilities.map(v => v.description)
+      errors: report.vulnerabilities.map(v => v.description),
     };
   }
 
@@ -685,15 +692,15 @@ export const dockerTool = {
   description: 'Execute Docker commands',
   inputSchema: z.object({
     command: z.enum(['ps', 'images', 'build', 'run']),
-    args: z.string().optional()
+    args: z.string().optional(),
   }),
-  handler: async (input) => {
+  handler: async input => {
     const cmd = input.args
       ? `docker ${input.command} ${input.args}`
       : `docker ${input.command}`;
     const { stdout } = await execAsync(cmd);
     return { output: stdout };
-  }
+  },
 };
 ```
 
@@ -706,23 +713,17 @@ Add new scope types:
 export interface Scope {
   type: 'all' | 'phase' | 'milestone' | 'task' | 'subtask' | 'pattern';
   id?: string;
-  pattern?: RegExp;  // NEW: Pattern-based scope
+  pattern?: RegExp; // NEW: Pattern-based scope
 }
 
-export function resolveScope(
-  backlog: Backlog,
-  scope: Scope
-): HierarchyItem[] {
+export function resolveScope(backlog: Backlog, scope: Scope): HierarchyItem[] {
   if (scope.type === 'pattern' && scope.pattern) {
     return findMatchingItems(backlog, scope.pattern);
   }
   // ... existing logic
 }
 
-function findMatchingItems(
-  backlog: Backlog,
-  pattern: RegExp
-): HierarchyItem[] {
+function findMatchingItems(backlog: Backlog, pattern: RegExp): HierarchyItem[] {
   const matches: HierarchyItem[] = [];
 
   function search(items: HierarchyItem[]) {
@@ -755,10 +756,10 @@ export interface CommitStrategy {
 
 export const semanticCommitStrategy: CommitStrategy = {
   shouldCommit: (_, changes) => changes.length > 0,
-  generateMessage: (changes) => {
+  generateMessage: changes => {
     const types = changes.map(c => c.type).join(', ');
     return `chore: update ${types}`;
-  }
+  },
 };
 
 export async function smartCommit(
@@ -842,6 +843,7 @@ Cache Key = SHA-256(system prompt + user prompt + responseFormat)
 ```
 
 **Benefits**:
+
 - **Transparent**: No configuration needed
 - **Deterministic**: Same inputs always hit cache
 - **Cross-Session**: Cache persists across pipeline runs
@@ -856,10 +858,10 @@ npm run dev -- --prd ./PRD.md --no-cache
 
 ```typescript
 interface CacheMetrics {
-  hits: number;          // L1 cache hits
-  misses: number;        // L1 cache misses
-  hitRatio: number;      // hits / (hits + misses)
-  groundswellHits: number;  // L3 cache hits
+  hits: number; // L1 cache hits
+  misses: number; // L1 cache misses
+  hitRatio: number; // hits / (hits + misses)
+  groundswellHits: number; // L3 cache hits
 }
 ```
 
@@ -1015,7 +1017,7 @@ npm run dev -- --prd ./PRD.md
 ```typescript
 interface Scope {
   type: 'all' | 'phase' | 'milestone' | 'task' | 'subtask';
-  id?: string;  // e.g., "P3.M4"
+  id?: string; // e.g., "P3.M4"
 }
 
 function resolveScope(backlog: Backlog, scope: Scope): HierarchyItem[] {
@@ -1056,7 +1058,7 @@ export function createCoderAgent(): Agent {
     maxTokens: 8192,
     systemPrompt: `You are an expert software developer.
     Execute PRPs precisely. Follow patterns. Test your code.`,
-    tools: [bashTool, fileTool, gitTool, searchTool]
+    tools: [bashTool, fileTool, gitTool, searchTool],
   });
 }
 ```
@@ -1078,9 +1080,9 @@ const fileTool: MCPTool = {
   inputSchema: z.object({
     action: z.enum(['read', 'write']),
     path: z.string(),
-    content: z.string().optional()
+    content: z.string().optional(),
   }),
-  handler: async (input) => {
+  handler: async input => {
     if (input.action === 'read') {
       const content = await fs.readFile(input.path, 'utf-8');
       return { success: true, content };
@@ -1088,7 +1090,7 @@ const fileTool: MCPTool = {
       await fs.writeFile(input.path, input.content);
       return { success: true };
     }
-  }
+  },
 };
 ```
 
@@ -1128,12 +1130,12 @@ graph LR
 
 ### API Cost Optimization
 
-| Strategy | Impact | Implementation |
-|----------|--------|----------------|
-| **Groundswell Cache** | 40-60% cost reduction | Automatic, transparent |
-| **Research Queue** | 30-50% reduction | In-memory PRP cache |
-| **Parallel Research** | Faster execution | 3 concurrent PRP generations |
-| **Scope Execution** | Targeted spend | `--scope` flag |
+| Strategy              | Impact                | Implementation               |
+| --------------------- | --------------------- | ---------------------------- |
+| **Groundswell Cache** | 40-60% cost reduction | Automatic, transparent       |
+| **Research Queue**    | 30-50% reduction      | In-memory PRP cache          |
+| **Parallel Research** | Faster execution      | 3 concurrent PRP generations |
+| **Scope Execution**   | Targeted spend        | `--scope` flag               |
 
 ### Latency Optimization
 
@@ -1210,13 +1212,13 @@ For complete API reference, see the [TypeDoc Generated Documentation](./api/inde
 
 #### Core Modules
 
-| Module | Description | Link |
-|--------|-------------|------|
-| **SessionManager** | State management, session persistence | [API](./api/classes/core_session_manager.SessionManager.html) |
+| Module               | Description                              | Link                                                              |
+| -------------------- | ---------------------------------------- | ----------------------------------------------------------------- |
+| **SessionManager**   | State management, session persistence    | [API](./api/classes/core_session_manager.SessionManager.html)     |
 | **TaskOrchestrator** | Backlog traversal, dependency resolution | [API](./api/classes/core_task_orchestrator.TaskOrchestrator.html) |
-| **PRPPipeline** | Main pipeline orchestration | [API](./api/classes/workflows_prp_pipeline.PRPPipeline.html) |
-| **PRPRuntime** | PRP execution, validation gates | [API](./api/classes/agents_prp_runtime.PRPRuntime.html) |
-| **Models** | Type definitions | [API](./api/modules/core_models.html) |
+| **PRPPipeline**      | Main pipeline orchestration              | [API](./api/classes/workflows_prp_pipeline.PRPPipeline.html)      |
+| **PRPRuntime**       | PRP execution, validation gates          | [API](./api/classes/agents_prp_runtime.PRPRuntime.html)           |
+| **Models**           | Type definitions                         | [API](./api/modules/core_models.html)                             |
 
 ### Generating API Docs
 

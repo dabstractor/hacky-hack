@@ -30,14 +30,15 @@ The codebase uses a centralized factory pattern for creating agents. This patter
 - **MCP tool integration** via singleton instances
 
 **Key Pattern**:
+
 ```typescript
 // Factory function creates persona-specific agents
 export function createArchitectAgent(): Agent {
   const baseConfig = createBaseConfig('architect');
   const config = {
     ...baseConfig,
-    system: TASK_BREAKDOWN_PROMPT,  // Persona-specific system prompt
-    mcps: MCP_TOOLS,                // All agents get same tool set
+    system: TASK_BREAKDOWN_PROMPT, // Persona-specific system prompt
+    mcps: MCP_TOOLS, // All agents get same tool set
   };
   return createAgent(config);
 }
@@ -46,22 +47,30 @@ export function createArchitectAgent(): Agent {
 **Extension Point**: Adding a new agent persona
 
 1. **Add persona type**:
+
 ```typescript
-export type AgentPersona = 'architect' | 'researcher' | 'coder' | 'qa' | 'security_auditor';
+export type AgentPersona =
+  | 'architect'
+  | 'researcher'
+  | 'coder'
+  | 'qa'
+  | 'security_auditor';
 ```
 
 2. **Define token limit**:
+
 ```typescript
 const PERSONA_TOKEN_LIMITS = {
   architect: 8192,
   researcher: 4096,
   coder: 4096,
   qa: 4096,
-  security_auditor: 6144,  // New persona
+  security_auditor: 6144, // New persona
 } as const;
 ```
 
 3. **Create system prompt** in `/home/dustin/projects/hacky-hack/src/agents/prompts.ts`:
+
 ```typescript
 export const SECURITY_AUDITOR_PROMPT = `
 You are a Security Auditor agent specializing in identifying vulnerabilities,
@@ -78,6 +87,7 @@ Your responsibilities:
 ```
 
 4. **Create factory function**:
+
 ```typescript
 export function createSecurityAuditorAgent(): Agent {
   const baseConfig = createBaseConfig('security_auditor');
@@ -86,7 +96,10 @@ export function createSecurityAuditorAgent(): Agent {
     system: SECURITY_AUDITOR_PROMPT,
     mcps: MCP_TOOLS,
   };
-  logger.debug({ persona: 'security_auditor', model: config.model }, 'Creating agent');
+  logger.debug(
+    { persona: 'security_auditor', model: config.model },
+    'Creating agent'
+  );
   return createAgent(config);
 }
 ```
@@ -119,7 +132,8 @@ interface BashToolResult {
 // 3. Define tool schema (JSON Schema for validation)
 const bashTool: Tool = {
   name: 'execute_bash',
-  description: 'Execute shell commands with optional working directory and timeout...',
+  description:
+    'Execute shell commands with optional working directory and timeout...',
   input_schema: {
     type: 'object',
     properties: {
@@ -132,7 +146,9 @@ const bashTool: Tool = {
 };
 
 // 4. Implement executor function
-async function executeBashCommand(input: BashToolInput): Promise<BashToolResult> {
+async function executeBashCommand(
+  input: BashToolInput
+): Promise<BashToolResult> {
   // Implementation
 }
 
@@ -149,7 +165,11 @@ export class BashMCP extends MCPHandler {
     });
 
     // Register executor
-    this.registerToolExecutor('bash', 'execute_bash', executeBashCommand as ToolExecutor);
+    this.registerToolExecutor(
+      'bash',
+      'execute_bash',
+      executeBashCommand as ToolExecutor
+    );
   }
 
   // Optional: Direct method for non-MCP usage
@@ -197,9 +217,17 @@ const dockerBuildTool: Tool = {
 };
 
 // Executor
-async function dockerBuild(input: { path: string; tag: string }): Promise<DockerToolResult> {
+async function dockerBuild(input: {
+  path: string;
+  tag: string;
+}): Promise<DockerToolResult> {
   try {
-    const result = await spawn('docker', ['build', '-t', input.tag, input.path]);
+    const result = await spawn('docker', [
+      'build',
+      '-t',
+      input.tag,
+      input.path,
+    ]);
     return { success: true, output: result.toString() };
   } catch (error) {
     return { success: false, error: String(error) };
@@ -217,12 +245,17 @@ export class DockerMCP extends MCPHandler {
       tools: [dockerBuildTool],
     });
 
-    this.registerToolExecutor('docker', 'docker_build', dockerBuild as ToolExecutor);
+    this.registerToolExecutor(
+      'docker',
+      'docker_build',
+      dockerBuild as ToolExecutor
+    );
   }
 }
 ```
 
 **Integration**:
+
 ```typescript
 // In agent-factory.ts
 import { DockerMCP } from '../tools/docker-mcp.js';
@@ -246,19 +279,30 @@ export class FilesystemMCP extends MCPHandler {
     this.registerServer({
       name: 'filesystem',
       transport: 'inprocess',
-      tools: [
-        fileReadTool,
-        fileWriteTool,
-        globFilesTool,
-        grepSearchTool
-      ],
+      tools: [fileReadTool, fileWriteTool, globFilesTool, grepSearchTool],
     });
 
     // Register each executor
-    this.registerToolExecutor('filesystem', 'file_read', readFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'file_write', writeFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'glob_files', globFiles as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'grep_search', grepSearch as ToolExecutor);
+    this.registerToolExecutor(
+      'filesystem',
+      'file_read',
+      readFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'file_write',
+      writeFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'glob_files',
+      globFiles as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'grep_search',
+      grepSearch as ToolExecutor
+    );
   }
 }
 ```
@@ -294,6 +338,7 @@ export class BugHuntWorkflow extends Workflow {
 ```
 
 **Decorator Options**:
+
 - `trackTiming: boolean` - Enable execution time tracking
 - `name?: string` - Custom step name for logging (defaults to method name)
 
@@ -315,8 +360,8 @@ export class PRPPipeline extends Workflow {
 
   // State changes trigger snapshots
   async executeBacklog(): Promise<void> {
-    this.currentPhase = 'executing';  // Observed
-    this.completedTasks++;             // Observed
+    this.currentPhase = 'executing'; // Observed
+    this.completedTasks++; // Observed
   }
 }
 ```
@@ -463,7 +508,8 @@ export interface DeployConfig {
 
 export class DeployWorkflow extends Workflow {
   config: DeployConfig;
-  deployStatus: 'pending' | 'building' | 'deploying' | 'complete' | 'failed' = 'pending';
+  deployStatus: 'pending' | 'building' | 'deploying' | 'complete' | 'failed' =
+    'pending';
   deployUrl: string | null = null;
 
   constructor(config: DeployConfig) {
@@ -528,10 +574,11 @@ export class DeployWorkflow extends Workflow {
 **Import**: `import { Workflow, Step } from 'groundswell';`
 
 **Required Methods**:
+
 ```typescript
 export class MyWorkflow extends Workflow {
   constructor(name: string) {
-    super(name);  // Required: Pass workflow name to base class
+    super(name); // Required: Pass workflow name to base class
   }
 
   async run(): Promise<ReturnType> {
@@ -550,6 +597,7 @@ export class MyWorkflow extends Workflow {
 ```
 
 **Built-in Properties** (from Workflow base class):
+
 - `logger: Logger` - Structured logger with workflow context
 - `status: 'idle' | 'running' | 'completed' | 'failed'` - Workflow status
 - `setStatus(status: string): void` - Update workflow status
@@ -570,7 +618,7 @@ const agent = createAgent({
   enableCache: true,
   enableReflection: true,
   maxTokens: 4096,
-  mcps: [BASH_MCP, FILESYSTEM_MCP],  // MCP tools
+  mcps: [BASH_MCP, FILESYSTEM_MCP], // MCP tools
   env: {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
     ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL ?? '',
@@ -582,6 +630,7 @@ const result = await agent.prompt('Hello, world!');
 ```
 
 **Agent Options Interface**:
+
 ```typescript
 interface AgentOptions {
   name: string;
@@ -625,12 +674,15 @@ const TestResultsSchema = z.object({
 });
 
 // Create typed prompt
-export function createBugHuntPrompt(prd: string, completedTasks: Task[]): Prompt<TestResults> {
+export function createBugHuntPrompt(
+  prd: string,
+  completedTasks: Task[]
+): Prompt<TestResults> {
   return createPrompt({
     user: constructUserPrompt(prd, completedTasks),
     system: BUG_HUNT_PROMPT,
-    responseFormat: TestResultsSchema,  // Zod schema for validation
-    enableReflection: true,             // Error recovery for structured output
+    responseFormat: TestResultsSchema, // Zod schema for validation
+    enableReflection: true, // Error recovery for structured output
   });
 }
 
@@ -642,6 +694,7 @@ const result = await qaAgent.prompt(prompt);
 ```
 
 **Key Features**:
+
 - **Type-safe responses**: Groundswell validates LLM output against Zod schema
 - **Reflection mode**: Automatically retries on validation failures
 - **User and system prompts**: Separate for clarity
@@ -651,6 +704,7 @@ const result = await qaAgent.prompt(prompt);
 **Base Class**: `MCPHandler` from Groundswell
 
 **Registration Pattern**:
+
 ```typescript
 import { MCPHandler, type Tool, type ToolExecutor } from 'groundswell';
 
@@ -661,13 +715,21 @@ export class MyCustomMCP extends MCPHandler {
     // Step 1: Register server
     this.registerServer({
       name: 'myserver',
-      transport: 'inprocess',  // or 'stdio' for external processes
+      transport: 'inprocess', // or 'stdio' for external processes
       tools: [tool1, tool2, tool3],
     });
 
     // Step 2: Register executors
-    this.registerToolExecutor('myserver', 'tool1', tool1Executor as ToolExecutor);
-    this.registerToolExecutor('myserver', 'tool2', tool2Executor as ToolExecutor);
+    this.registerToolExecutor(
+      'myserver',
+      'tool1',
+      tool1Executor as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'myserver',
+      'tool2',
+      tool2Executor as ToolExecutor
+    );
   }
 
   // Optional: Direct method for non-MCP usage
@@ -678,19 +740,23 @@ export class MyCustomMCP extends MCPHandler {
 ```
 
 **Tool Schema Interface**:
+
 ```typescript
 interface Tool {
   name: string;
   description: string;
   input_schema: {
     type: 'object';
-    properties: Record<string, {
-      type: string;
-      description?: string;
-      enum?: string[];
-      minimum?: number;
-      maximum?: number;
-    }>;
+    properties: Record<
+      string,
+      {
+        type: string;
+        description?: string;
+        enum?: string[];
+        minimum?: number;
+        maximum?: number;
+      }
+    >;
     required: string[];
   };
 }
@@ -724,19 +790,21 @@ export function configureEnvironment(): void {
 ```
 
 **Model Selection**:
+
 ```typescript
 export function getModel(tier: ModelTier): string {
-  const envVar = MODEL_ENV_VARS[tier];  // e.g., 'ANTHROPIC_DEFAULT_OPUS_MODEL'
+  const envVar = MODEL_ENV_VARS[tier]; // e.g., 'ANTHROPIC_DEFAULT_OPUS_MODEL'
   return process.env[envVar] ?? MODEL_NAMES[tier];
 }
 
 // Usage
-const opusModel = getModel('opus');      // 'GLM-4.7' or env override
-const sonnetModel = getModel('sonnet');  // 'GLM-4.7' or env override
-const haikuModel = getModel('haiku');    // 'GLM-4.5-Air' or env override
+const opusModel = getModel('opus'); // 'GLM-4.7' or env override
+const sonnetModel = getModel('sonnet'); // 'GLM-4.7' or env override
+const haikuModel = getModel('haiku'); // 'GLM-4.5-Air' or env override
 ```
 
 **Environment Variables**:
+
 ```bash
 # Required
 ANTHROPIC_AUTH_TOKEN=sk-...      # Shell convention
@@ -752,6 +820,7 @@ ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.5-Air
 ### 4.2 Cache Configuration (enableCache Patterns)
 
 **Agent-level cache control**:
+
 ```typescript
 // In agent-factory.ts
 export function createBaseConfig(persona: AgentPersona): AgentConfig {
@@ -768,6 +837,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ```
 
 **PRP-level cache bypass**:
+
 ```typescript
 // In PRPPipeline constructor
 constructor(
@@ -792,6 +862,7 @@ this.taskOrchestrator = new TaskOrchestratorClass(
 ### 4.3 State Persistence (@ObservedState Patterns)
 
 **Workflow state**:
+
 ```typescript
 export class PRPPipeline extends Workflow {
   // Public fields are automatically observed
@@ -801,8 +872,8 @@ export class PRPPipeline extends Workflow {
 
   async executeBacklog(): Promise<void> {
     // State changes trigger snapshots
-    this.completedTasks++;  // Observed
-    this.currentPhase = 'executing';  // Observed
+    this.completedTasks++; // Observed
+    this.currentPhase = 'executing'; // Observed
   }
 
   @Step({ trackTiming: true })
@@ -817,6 +888,7 @@ export class PRPPipeline extends Workflow {
 ```
 
 **Session-level persistence**:
+
 ```typescript
 // SessionManager handles state persistence
 class SessionManager {
@@ -844,7 +916,12 @@ class SessionManager {
 ```typescript
 // /home/dustin/projects/hacky-hack/src/agents/agent-factory.ts
 
-export type AgentPersona = 'architect' | 'researcher' | 'coder' | 'qa' | 'security_auditor';
+export type AgentPersona =
+  | 'architect'
+  | 'researcher'
+  | 'coder'
+  | 'qa'
+  | 'security_auditor';
 
 const PERSONA_TOKEN_LIMITS = {
   architect: 8192,
@@ -861,7 +938,10 @@ export function createSecurityAuditorAgent(): Agent {
     system: SECURITY_AUDITOR_PROMPT,
     mcps: MCP_TOOLS,
   };
-  logger.debug({ persona: 'security_auditor', model: config.model }, 'Creating agent');
+  logger.debug(
+    { persona: 'security_auditor', model: config.model },
+    'Creating agent'
+  );
   return createAgent(config);
 }
 ```
@@ -916,7 +996,7 @@ export interface SecurityAuditResult {
     recommendation: string;
   }>;
   summary: string;
-  overallScore: number;  // 0-100
+  overallScore: number; // 0-100
 }
 
 export class SecurityAuditWorkflow extends Workflow {
@@ -932,16 +1012,25 @@ export class SecurityAuditWorkflow extends Workflow {
 
   @Step({ trackTiming: true })
   async analyzeCode(): Promise<SecurityAuditResult> {
-    this.logger.info('[SecurityAuditWorkflow] Analyzing code for vulnerabilities');
+    this.logger.info(
+      '[SecurityAuditWorkflow] Analyzing code for vulnerabilities'
+    );
 
     const agent = createSecurityAuditorAgent();
-    const prompt = createSecurityAuditPrompt(this.codebase, this.completedTasks);
-    const result = await agent.prompt(prompt) as SecurityAuditResult;
+    const prompt = createSecurityAuditPrompt(
+      this.codebase,
+      this.completedTasks
+    );
+    const result = (await agent.prompt(prompt)) as SecurityAuditResult;
 
     this.auditResults = result;
 
-    this.logger.info(`[SecurityAuditWorkflow] Found ${result.vulnerabilities.length} vulnerabilities`);
-    this.logger.info(`[SecurityAuditWorkflow] Security score: ${result.overallScore}/100`);
+    this.logger.info(
+      `[SecurityAuditWorkflow] Found ${result.vulnerabilities.length} vulnerabilities`
+    );
+    this.logger.info(
+      `[SecurityAuditWorkflow] Security score: ${result.overallScore}/100`
+    );
 
     return result;
   }
@@ -1010,7 +1099,7 @@ interface DockerBuildInput {
 interface DockerRunInput {
   image: string;
   name?: string;
-  ports?: string[];  // ['8080:80']
+  ports?: string[]; // ['8080:80']
   environment?: Record<string, string>;
   detach?: boolean;
 }
@@ -1098,7 +1187,9 @@ const dockerRunTool: Tool = {
 
 // ===== TOOL EXECUTORS =====
 
-async function dockerBuild(input: DockerBuildInput): Promise<DockerBuildResult> {
+async function dockerBuild(
+  input: DockerBuildInput
+): Promise<DockerBuildResult> {
   const { path, tag, dockerfile = 'Dockerfile', args } = input;
 
   try {
@@ -1168,15 +1259,15 @@ function spawnDocker(args: string[]): Promise<string> {
     let stdout = '';
     let stderr = '';
 
-    proc.stdout?.on('data', (data) => {
+    proc.stdout?.on('data', data => {
       stdout += data.toString();
     });
 
-    proc.stderr?.on('data', (data) => {
+    proc.stderr?.on('data', data => {
       stderr += data.toString();
     });
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       if (code === 0) {
         resolve(stdout);
       } else {
@@ -1203,13 +1294,22 @@ export class DockerMCP extends MCPHandler {
       tools: [dockerBuildTool, dockerRunTool],
     });
 
-    this.registerToolExecutor('docker', 'docker_build', dockerBuild as ToolExecutor);
-    this.registerToolExecutor('docker', 'docker_run', dockerRun as ToolExecutor);
+    this.registerToolExecutor(
+      'docker',
+      'docker_build',
+      dockerBuild as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'docker',
+      'docker_run',
+      dockerRun as ToolExecutor
+    );
   }
 }
 ```
 
 **Integration**:
+
 ```typescript
 // In agent-factory.ts
 import { DockerMCP } from '../tools/docker-mcp.js';
@@ -1261,7 +1361,15 @@ export interface DeployResult {
 export class DeployWorkflow extends Workflow {
   // Public state fields
   config: DeployConfig;
-  deployStatus: 'pending' | 'building' | 'pushing' | 'deploying' | 'verifying' | 'complete' | 'failed' | 'rolling_back' = 'pending';
+  deployStatus:
+    | 'pending'
+    | 'building'
+    | 'pushing'
+    | 'deploying'
+    | 'verifying'
+    | 'complete'
+    | 'failed'
+    | 'rolling_back' = 'pending';
   deploymentUrl: string | null = null;
   deploymentId: string | null = null;
   imageId: string | null = null;
@@ -1280,7 +1388,9 @@ export class DeployWorkflow extends Workflow {
     this.docker = new DockerMCP();
 
     const correlationId = `deploy-${Date.now()}`;
-    this.correlationLogger = getLogger('DeployWorkflow').child({ correlationId });
+    this.correlationLogger = getLogger('DeployWorkflow').child({
+      correlationId,
+    });
 
     this.correlationLogger.info('[DeployWorkflow] Initialized', {
       environment: config.environment,
@@ -1321,7 +1431,9 @@ export class DeployWorkflow extends Workflow {
   @Step({ trackTiming: true })
   async deploy(): Promise<void> {
     this.deployStatus = 'deploying';
-    this.logger.info(`[DeployWorkflow] Deploying to ${this.config.environment}...`);
+    this.logger.info(
+      `[DeployWorkflow] Deploying to ${this.config.environment}...`
+    );
 
     const deployResult = await this.docker.executeTool('docker__docker_run', {
       image: `${this.config.registry}/${this.config.serviceName}:${this.config.dockerTag}`,
@@ -1334,7 +1446,9 @@ export class DeployWorkflow extends Workflow {
     }
 
     this.deploymentId = deployResult.containerId;
-    this.logger.info(`[DeployWorkflow] Deployed container: ${this.deploymentId}`);
+    this.logger.info(
+      `[DeployWorkflow] Deployed container: ${this.deploymentId}`
+    );
   }
 
   @Step({ trackTiming: true })
@@ -1377,7 +1491,9 @@ export class DeployWorkflow extends Workflow {
       this.setStatus('completed');
 
       const duration = Date.now() - startTime;
-      this.logger.info(`[DeployWorkflow] Deployment completed in ${duration}ms`);
+      this.logger.info(
+        `[DeployWorkflow] Deployment completed in ${duration}ms`
+      );
 
       return {
         success: true,
@@ -1408,6 +1524,7 @@ export class DeployWorkflow extends Workflow {
 ```
 
 **Usage**:
+
 ```typescript
 const deployWorkflow = new DeployWorkflow({
   environment: 'production',
@@ -1560,16 +1677,16 @@ class TaskOrchestrator {
 
 ### File Locations Reference
 
-| Component | Location |
-|-----------|----------|
-| Agent Factory | `/src/agents/agent-factory.ts` |
-| System Prompts | `/src/agents/prompts.ts` |
-| Prompt Generators | `/src/agents/prompts/*.ts` |
-| MCP Tools | `/src/tools/*-mcp.ts` |
-| Workflows | `/src/workflows/*.ts` |
-| Data Models | `/src/core/models.ts` |
-| Environment Config | `/src/config/environment.ts` |
-| State Management | `/src/core/session-manager.ts` |
+| Component          | Location                       |
+| ------------------ | ------------------------------ |
+| Agent Factory      | `/src/agents/agent-factory.ts` |
+| System Prompts     | `/src/agents/prompts.ts`       |
+| Prompt Generators  | `/src/agents/prompts/*.ts`     |
+| MCP Tools          | `/src/tools/*-mcp.ts`          |
+| Workflows          | `/src/workflows/*.ts`          |
+| Data Models        | `/src/core/models.ts`          |
+| Environment Config | `/src/config/environment.ts`   |
+| State Management   | `/src/core/session-manager.ts` |
 
 ### Groundswell Imports
 
@@ -1581,8 +1698,8 @@ import { createPrompt, type Prompt } from 'groundswell';
 import { MCPHandler, type Tool, type ToolExecutor } from 'groundswell';
 
 // Decorators (imported separately)
-import { Step } from 'groundswell';  // @Step decorator
-import { ObservedState } from 'groundswell';  // @ObservedState decorator
+import { Step } from 'groundswell'; // @Step decorator
+import { ObservedState } from 'groundswell'; // @ObservedState decorator
 ```
 
 ---

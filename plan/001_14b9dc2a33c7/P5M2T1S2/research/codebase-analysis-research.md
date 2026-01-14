@@ -12,11 +12,13 @@ This document consolidates codebase analysis for implementing PRP caching in the
 ## 1. PRPGenerator Current Implementation
 
 ### Location
+
 **File:** `/home/dustin/projects/hacky-hack/src/agents/prp-generator.ts`
 
 ### Key Methods
 
 #### `generate()` Method (Lines 175-233)
+
 ```typescript
 async generate(task: Task | Subtask, backlog: Backlog): Promise<PRPDocument> {
   const maxRetries = 3;
@@ -40,6 +42,7 @@ async generate(task: Task | Subtask, backlog: Backlog): Promise<PRPDocument> {
 **Cache Integration Point:** Add cache check at the start of this method, before `createPRPBlueprintPrompt()`.
 
 #### `#writePRPToFile()` Method (Lines 249-271)
+
 ```typescript
 async #writePRPToFile(prp: PRPDocument): Promise<void> {
   const filename = prp.taskId.replace(/\./g, '_') + '.md';
@@ -61,6 +64,7 @@ async #writePRPToFile(prp: PRPDocument): Promise<void> {
 ## 2. Session Manager Integration
 
 ### Current Session Path Access
+
 **File:** `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 
 ```typescript
@@ -74,6 +78,7 @@ export class SessionManager {
 ```
 
 **Usage in PRPGenerator:**
+
 ```typescript
 constructor(sessionManager: SessionManager) {
   this.sessionManager = sessionManager;
@@ -87,6 +92,7 @@ constructor(sessionManager: SessionManager) {
 ## 3. File System Hashing Patterns
 
 ### PRD Hash Function (Reference)
+
 **File:** `/home/dustin/projects/hacky-hack/src/core/session-utils.ts` (Lines 161-168)
 
 ```typescript
@@ -101,16 +107,21 @@ export async function hashPRD(prdPath: string): Promise<string> {
 ```
 
 **Pattern for PRP Cache Key:**
+
 ```typescript
 import { createHash } from 'node:crypto';
 
 function hashTaskInputs(task: Task | Subtask, backlog: Backlog): string {
-  const inputString = JSON.stringify({
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    acceptanceCriteria: task.acceptanceCriteria,
-  }, null, 0); // No whitespace for determinism
+  const inputString = JSON.stringify(
+    {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      acceptanceCriteria: task.acceptanceCriteria,
+    },
+    null,
+    0
+  ); // No whitespace for determinism
 
   return createHash('sha256').update(inputString).digest('hex');
 }
@@ -121,6 +132,7 @@ function hashTaskInputs(task: Task | Subtask, backlog: Backlog): string {
 ## 4. File Modification Time Checking
 
 ### Using stat() for mtime
+
 **File:** `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` (Lines 283-284)
 
 ```typescript
@@ -129,10 +141,14 @@ const createdAt = stats.mtime; // Use modification time as creation time
 ```
 
 **Pattern for PRP Cache Age Check:**
+
 ```typescript
 import { stat } from 'node:fs/promises';
 
-async function isCacheRecent(filePath: string, maxAgeMs: number): Promise<boolean> {
+async function isCacheRecent(
+  filePath: string,
+  maxAgeMs: number
+): Promise<boolean> {
   try {
     const stats = await stat(filePath);
     const age = Date.now() - stats.mtimeMs;
@@ -148,6 +164,7 @@ async function isCacheRecent(filePath: string, maxAgeMs: number): Promise<boolea
 ## 5. Session Directory Structure
 
 ### Directory Layout
+
 ```
 plan/
 └── 001_14b9dc2a33c7/
@@ -188,6 +205,7 @@ export interface PRPDocument {
 ## 7. Cache Metadata Format
 
 **Recommended Structure:**
+
 ```typescript
 interface PRPCacheEntry {
   taskId: string;
@@ -232,6 +250,7 @@ logger.info(
 **File:** `/home/dustin/projects/hacky-hack/src/cli/index.ts`
 
 **Add noCache option:**
+
 ```typescript
 export interface CLIArgs {
   // ... existing fields
@@ -250,6 +269,7 @@ export function parseCLIArgs(): CLIArgs {
 ```
 
 **Pass to PRPPipeline:**
+
 ```typescript
 const pipeline = new PRPPipeline(args, sessionManager);
 ```
@@ -259,6 +279,7 @@ const pipeline = new PRPPipeline(args, sessionManager);
 ## 10. Existing Cache Patterns in Codebase
 
 ### Research Queue Cache (Lines 73-77)
+
 **File:** `/home/dustin/projects/hacky-hack/src/core/research-queue.ts`
 
 ```typescript
@@ -269,6 +290,7 @@ readonly results: Map<string, PRPDocument> = new Map();
 **Pattern:** Use Map for in-memory cache with separate Promise tracking.
 
 ### Task Orchestrator Cache Metrics (Lines 85-86, 584-598)
+
 **File:** `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 
 ```typescript
@@ -291,6 +313,7 @@ readonly results: Map<string, PRPDocument> = new Map();
 ## 11. Key Implementation Requirements
 
 ### 1. Cache Path Method
+
 ```typescript
 getCachePath(taskId: string): string {
   return join(this.sessionPath, 'prps', `${taskId.replace(/\./g, '_')}.md`);
@@ -298,6 +321,7 @@ getCachePath(taskId: string): string {
 ```
 
 ### 2. Cache Metadata Path
+
 ```typescript
 getCacheMetadataPath(taskId: string): string {
   return join(this.sessionPath, 'prps', '.cache', `${taskId.replace(/\./g, '_')}.json`);
@@ -305,6 +329,7 @@ getCacheMetadataPath(taskId: string): string {
 ```
 
 ### 3. Task Input Hash
+
 ```typescript
 #computeTaskHash(task: Task | Subtask, backlog: Backlog): string {
   const input = {
@@ -318,6 +343,7 @@ getCacheMetadataPath(taskId: string): string {
 ```
 
 ### 4. Cache Entry Structure
+
 ```typescript
 interface PRPCacheMetadata {
   readonly taskId: string;
@@ -333,6 +359,7 @@ interface PRPCacheMetadata {
 ## 12. Testing Patterns
 
 ### File System Mock Pattern
+
 ```typescript
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
@@ -349,6 +376,7 @@ mockStat.mockResolvedValue({
 ```
 
 ### Cache Verification Pattern
+
 ```typescript
 it('should use cached PRP when hash matches and file is recent', async () => {
   const cachedPRP = createTestPRPDocument('P1.M1.T1.S1');

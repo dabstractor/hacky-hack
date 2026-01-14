@@ -1193,7 +1193,7 @@
           "type": "Milestone",
           "id": "P5.M3",
           "title": "Milestone 5.3: Documentation",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Create comprehensive documentation for users and contributors.",
           "tasks": [
             {
@@ -1229,7 +1229,7 @@
               "type": "Task",
               "id": "P5.M3.T2",
               "title": "Write Developer Documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create architecture documentation and contributor guides.",
               "subtasks": [
                 {
@@ -1247,7 +1247,7 @@
                   "type": "Subtask",
                   "id": "P5.M3.T2.S2",
                   "title": "Create contributor guide",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P5.M3.T2.S1"
@@ -1276,7 +1276,7 @@
                   "type": "Subtask",
                   "id": "P5.M4.T1.S1",
                   "title": "Create error hierarchy",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD section 7.5 - Stronger retry logic and exception handling.\n2. INPUT: Existing error handling (throw new Error()).\n3. LOGIC: Create src/utils/errors.ts:\n   - Export class PipelineError extends Error - Base error class\n   - Export class SessionError extends PipelineError - Session management errors\n   - Export class TaskError extends PipelineError - Task execution errors\n   - Export class AgentError extends PipelineError - LLM agent errors\n   - Export class ValidationError extends PipelineError - Validation failures\n   - Each error includes context (object with relevant data)\n   - Add error codes for programmatic handling\n   - Implement toJSON() for structured logging\n4. OUTPUT: Error hierarchy with context and codes."

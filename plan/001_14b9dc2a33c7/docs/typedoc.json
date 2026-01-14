@@ -5,7 +5,12 @@
   "name": "PRP Pipeline API Documentation",
   "theme": "default",
   "readme": "README.md",
-  "exclude": ["**/*.test.ts", "**/node_modules/**", "**/dist/**", "**/tests/**"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/tests/**"
+  ],
   "excludePrivate": true,
   "excludeProtected": false,
   "excludeInternal": true,

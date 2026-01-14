@@ -309,17 +309,17 @@ plan/001_14b9dc2a33c7/prps/
 // Cache entry metadata (stored alongside PRP markdown)
 interface PRPCacheMetadata {
   readonly taskId: string;
-  readonly taskHash: string;       // SHA-256 of task inputs
-  readonly createdAt: number;      // Timestamp when PRP was generated
-  readonly accessedAt: number;     // Last cache access timestamp
-  readonly version: string;        // Cache format version (for migrations)
+  readonly taskHash: string; // SHA-256 of task inputs
+  readonly createdAt: number; // Timestamp when PRP was generated
+  readonly accessedAt: number; // Last cache access timestamp
+  readonly version: string; // Cache format version (for migrations)
 }
 
 // Cache metrics (tracked in memory, logged periodically)
 interface PRPCacheMetrics {
   readonly hits: number;
   readonly misses: number;
-  readonly hitRatio: number;       // Percentage (0-100)
+  readonly hitRatio: number; // Percentage (0-100)
 }
 
 // Task input for hashing (must include all fields affecting PRP output)
@@ -335,11 +335,11 @@ export class PRPGenerator {
   readonly #logger: Logger;
   readonly sessionManager: SessionManager;
   readonly sessionPath: string;
-  readonly #noCache: boolean;          // NEW: Cache bypass flag
+  readonly #noCache: boolean; // NEW: Cache bypass flag
 
   #researcherAgent: Agent;
-  #cacheHits: number = 0;              // NEW: Cache hit counter
-  #cacheMisses: number = 0;            // NEW: Cache miss counter
+  #cacheHits: number = 0; // NEW: Cache hit counter
+  #cacheMisses: number = 0; // NEW: Cache miss counter
 }
 ```
 

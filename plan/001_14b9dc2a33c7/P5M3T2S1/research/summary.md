@@ -5,6 +5,7 @@
 ## Key Findings
 
 ### Current Status
+
 - **TypeDoc**: ❌ NOT INSTALLED
 - **Documentation Quality**: ✅ EXCELLENT (855 JSDoc tags across 38 files)
 - **Documentation Patterns**: Consistent use of `@module`, `@remarks`, `@example`, `@param`, `@returns`
@@ -12,6 +13,7 @@
 ### What Needs to Be Done
 
 1. **Install TypeDoc** (5 min)
+
    ```bash
    npm install --save-dev typedoc
    ```
@@ -25,6 +27,7 @@
    - Ensure all public types are exported
 
 4. **Generate Documentation** (5 min)
+
    ```bash
    npm run docs
    ```
@@ -115,6 +118,7 @@ See the full research document at:
 `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P5M3T2S1/research/typedoc-research.md`
 
 Complete with:
+
 - Detailed configuration examples
 - GitHub Actions workflow
 - CI/CD integration

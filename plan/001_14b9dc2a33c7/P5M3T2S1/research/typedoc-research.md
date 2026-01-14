@@ -11,6 +11,7 @@
 This research document analyzes the hacky-hack codebase to determine TypeDoc/API documentation setup requirements. The codebase has excellent existing JSDoc/TSDoc documentation patterns but lacks TypeDoc installation and configuration.
 
 **Key Findings:**
+
 - **TypeDoc Status**: NOT installed (verified via npm list)
 - **Documentation Quality**: EXCELLENT - 855 JSDoc tags across 38 files
 - **Documentation Pattern**: Consistent use of `@module`, `@remarks`, `@example`, `@param`, `@returns`
@@ -23,12 +24,14 @@ This research document analyzes the hacky-hack codebase to determine TypeDoc/API
 ### 1.1 Current Status
 
 **Installation Status**: ❌ NOT INSTALLED
+
 ```bash
 npm list typedoc 2>/dev/null
 # Result: (empty)
 ```
 
 **Configuration Files**: ❌ NONE FOUND
+
 - No `typedoc.json` in project root
 - No `typedoc.ts` in project root
 - No TypeDoc config in `package.json`
@@ -63,6 +66,7 @@ npm list typedoc 2>/dev/null
 **Total JSDoc Tags Found**: 855 across 38 files
 
 **Top Documented Files**:
+
 1. `src/core/models.ts` - 146 tags (comprehensive type definitions)
 2. `src/core/session-manager.ts` - 67 tags (session management)
 3. `src/agents/prp-generator.ts` - 49 tags (PRP generation)
@@ -75,7 +79,7 @@ npm list typedoc 2>/dev/null
 
 **File**: `src/core/models.ts`
 
-```typescript
+````typescript
 /**
  * Type definitions for task hierarchy models
  *
@@ -104,9 +108,10 @@ npm list typedoc 2>/dev/null
  * };
  * ```
  */
-```
+````
 
 **Pattern Strengths**:
+
 - ✅ Clear `@module` declaration
 - ✅ Detailed `@remarks` section
 - ✅ Runnable `@example` code
@@ -116,7 +121,7 @@ npm list typedoc 2>/dev/null
 
 **File**: `src/core/models.ts`
 
-```typescript
+````typescript
 /**
  * Leaf node in the task hierarchy - the smallest unit of work
  *
@@ -208,9 +213,10 @@ export interface Subtask {
    */
   readonly context_scope: string;
 }
-```
+````
 
 **Pattern Strengths**:
+
 - ✅ High-level description
 - ✅ Detailed `@remarks` for context
 - ✅ `@see` references to external docs
@@ -223,7 +229,7 @@ export interface Subtask {
 
 **File**: `src/core/session-manager.ts`
 
-```typescript
+````typescript
 /**
  * Session Manager for PRP Pipeline state management
  *
@@ -277,9 +283,10 @@ export class SessionManager {
     // ...
   }
 }
-```
+````
 
 **Pattern Strengths**:
+
 - ✅ Class-level `@remarks` explaining responsibilities
 - ✅ Field-level JSDoc comments
 - ✅ Constructor parameter documentation with defaults
@@ -290,6 +297,7 @@ export class SessionManager {
 ### 2.3 Consistent Tag Usage
 
 **Standard Tags Used**:
+
 - `@module` - Module declaration
 - `@remarks` - Detailed explanations
 - `@example` - Code examples (855 occurrences)
@@ -304,6 +312,7 @@ export class SessionManager {
 - `@private` - Private method markers
 
 **Advanced Tags Used**:
+
 - Custom constraint tags (`@format`, `@min`, `@max`)
 - Markdown in `@remarks` (bold, code blocks, lists)
 - External links in `@see` tags
@@ -388,12 +397,14 @@ Based on codebase analysis, the following components need comprehensive API docs
 ### 3.2 Documentation Categories
 
 **User-Facing APIs** (Primary Focus):
+
 - SessionManager public methods
 - TaskOrchestrator public API
 - PRPPipeline workflow interface
 - Type exports from `src/core/models.ts`
 
 **Internal APIs** (Secondary Focus):
+
 - Agent factory functions
 - MCP tool interfaces
 - Utility functions
@@ -410,11 +421,13 @@ Based on codebase analysis, the following components need comprehensive API docs
 **Type**: Dev dependency
 
 **Installation Command**:
+
 ```bash
 npm install --save-dev typedoc
 ```
 
 **Verification**:
+
 ```bash
 npx typedoc --version
 ```
@@ -424,6 +437,7 @@ npx typedoc --version
 **Recommended**: `typedoc.json` (JSON format for compatibility)
 
 **Basic Configuration**:
+
 ```json
 {
   "$schema": "https://typedoc.org/schema.json",
@@ -455,7 +469,13 @@ npx typedoc --version
   ],
   "categorizeByGroup": true,
   "defaultCategory": "Other",
-  "categoryOrder": ["Session Management", "Task Execution", "Agents", "Types", "*"],
+  "categoryOrder": [
+    "Session Management",
+    "Task Execution",
+    "Agents",
+    "Types",
+    "*"
+  ],
   "includeVersion": true,
   "hostedBaseUrl": "https://github.com/YOUR_USERNAME/hacky-hack/blob/main/"
 }
@@ -464,6 +484,7 @@ npx typedoc --version
 ### 4.3 Advanced Configuration Options
 
 **Navigation**:
+
 ```json
 {
   "navigation": {
@@ -474,16 +495,15 @@ npx typedoc --version
 ```
 
 **Search**:
+
 ```json
 {
-  "search": [
-    "search",
-    "keyboard"
-  ]
+  "search": ["search", "keyboard"]
 }
 ```
 
 **Markdown Handling**:
+
 ```json
 {
   "markdownItOptions": {
@@ -496,6 +516,7 @@ npx typedoc --version
 ### 4.4 NPM Scripts Integration
 
 **Add to `package.json`**:
+
 ```json
 {
   "scripts": {
@@ -510,6 +531,7 @@ npx typedoc --version
 ```
 
 **Usage**:
+
 ```bash
 # Generate API docs
 npm run docs
@@ -529,7 +551,8 @@ npm run docs:clean && npm run docs
 #### Entry Points
 
 **Recommended Structure** (`src/index.ts`):
-```typescript
+
+````typescript
 /**
  * PRP Pipeline - Autonomous AI-powered development system
  *
@@ -563,13 +586,14 @@ export type {
   Subtask,
   Status,
   SessionState,
-  PRPDocument
+  PRPDocument,
 } from './core/models.js';
-```
+````
 
 #### Module Organization
 
 **Recommended Category Tags**:
+
 ```typescript
 /**
  * @module core/session-manager
@@ -585,6 +609,7 @@ export type {
 #### Type Exports
 
 **Explicit Type Exports**:
+
 ```typescript
 // In src/core/index.ts
 export type { Backlog, Phase, Milestone, Task, Subtask, Status };
@@ -601,6 +626,7 @@ export type { PRPDocument, ValidationGate, SuccessCriterion };
 ### 5.1 Linking from README.md
 
 **Add API Documentation Section**:
+
 ```markdown
 ## API Documentation
 
@@ -620,10 +646,12 @@ Full API documentation is available at **[docs/api/index.html](docs/api/index.ht
 **In `plan/001_14b9dc2a33c7/architecture/`**:
 
 Add API reference links to architecture docs:
+
 ```markdown
 ## Session Manager Architecture
 
 For complete API reference, see:
+
 - [SessionManager API](../../../docs/api/classes/core_session_manager.SessionManager.html)
 - [SessionState Type](../../../docs/api/interfaces/core_models.SessionState.html)
 ```
@@ -631,6 +659,7 @@ For complete API reference, see:
 ### 5.3 Cross-Reference Pattern
 
 **Link Format**:
+
 ```markdown
 - Relative: `../api/classes/SessionManager.html`
 - Absolute: `/docs/api/modules/core_session_manager.html`
@@ -644,11 +673,13 @@ For complete API reference, see:
 ### 6.1 GitHub Pages (Recommended)
 
 **Setup**:
+
 1. Generate docs to `docs/api` directory
 2. Enable GitHub Pages from `docs/` folder
 3. Push to `gh-pages` branch or use main branch
 
 **Workflow** (`.github/workflows/docs.yml`):
+
 ```yaml
 name: Generate API Docs
 
@@ -677,11 +708,13 @@ jobs:
 ### 6.2 Alternative Hosting Options
 
 **Vercel/Netlify**:
+
 - Connect GitHub repository
 - Set publish directory to `docs/api`
 - Auto-deploy on push to main
 
 **Self-Hosted**:
+
 - Use any static file server
 - Serve `docs/api` directory
 
@@ -692,6 +725,7 @@ jobs:
 ### Phase 1: Installation (5 minutes)
 
 1. Install TypeDoc:
+
    ```bash
    npm install --save-dev typedoc
    ```
@@ -717,6 +751,7 @@ jobs:
 ### Phase 4: Build and Deploy (15 minutes)
 
 1. Generate docs:
+
    ```bash
    npm run docs
    ```
@@ -820,7 +855,7 @@ jobs:
 
 ### 8.3 Enhanced src/index.ts
 
-```typescript
+````typescript
 /**
  * PRP Pipeline - Autonomous AI-powered development system
  *
@@ -890,7 +925,7 @@ export type {
   RequirementChange,
   TestResults,
   Bug,
-  BugSeverity
+  BugSeverity,
 } from './core/models.js';
 
 // Re-export Zod schemas for validation
@@ -910,9 +945,9 @@ export {
   DeltaAnalysisSchema,
   BugSeverityEnum,
   BugSchema,
-  TestResultsSchema
+  TestResultsSchema,
 } from './core/models.js';
-```
+````
 
 ---
 
@@ -981,6 +1016,7 @@ src/
 ### 10.1 Documentation Standards
 
 **Required for All Public APIs**:
+
 - ✅ Module-level `@module` tag
 - ✅ Class/Interface description
 - ✅ `@remarks` for detailed explanation
@@ -990,6 +1026,7 @@ src/
 - ✅ `@example` for complex APIs
 
 **Optional but Recommended**:
+
 - `@category` tag for organization
 - `@see` for cross-references
 - `@deprecated` for obsolete APIs
@@ -998,6 +1035,7 @@ src/
 ### 10.2 Pre-commit Hooks
 
 **Husky Setup** (optional):
+
 ```bash
 npm install --save-dev husky lint-staged
 npx husky install
@@ -1005,6 +1043,7 @@ npx husky add .husky/pre-commit "npx lint-staged"
 ```
 
 **`.lintstagedrc.json`**:
+
 ```json
 {
   "src/**/*.ts": [
@@ -1018,6 +1057,7 @@ npx husky add .husky/pre-commit "npx lint-staged"
 ### 10.3 CI/CD Integration
 
 **Add to `.github/workflows/ci.yml`**:
+
 ```yaml
 name: CI
 
@@ -1062,15 +1102,19 @@ jobs:
 ### 11.1 Common Issues
 
 **Issue**: TypeDoc doesn't generate documentation
+
 - **Solution**: Check `entryPoints` in typedoc.json, ensure files exist
 
 **Issue**: Missing type exports
+
 - **Solution**: Add explicit `export type` statements in `src/index.ts`
 
 **Issue**: Broken links in generated docs
+
 - **Solution**: Use `@see` tags with correct relative/absolute paths
 
 **Issue**: Private members showing in docs
+
 - **Solution**: Set `excludePrivate: true` in typedoc.json
 
 ### 11.2 TypeDoc Version Compatibility
@@ -1087,19 +1131,20 @@ All compatible - no issues expected.
 
 ### 12.1 Current State Assessment
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| **TypeDoc Installed** | ❌ No | Needs installation |
-| **Configuration** | ❌ No | typedoc.json needed |
-| **JSDoc Coverage** | ✅ Excellent | 855 tags across 38 files |
-| **Documentation Quality** | ✅ Excellent | Consistent patterns, thorough |
-| **Type Exports** | ⚠️ Partial | Needs explicit exports in index.ts |
-| **Entry Point** | ⚠️ Partial | src/index.ts needs @packageDocumentation |
-| **Hosting** | ❌ No | GitHub Pages setup needed |
+| Aspect                    | Status       | Notes                                    |
+| ------------------------- | ------------ | ---------------------------------------- |
+| **TypeDoc Installed**     | ❌ No        | Needs installation                       |
+| **Configuration**         | ❌ No        | typedoc.json needed                      |
+| **JSDoc Coverage**        | ✅ Excellent | 855 tags across 38 files                 |
+| **Documentation Quality** | ✅ Excellent | Consistent patterns, thorough            |
+| **Type Exports**          | ⚠️ Partial   | Needs explicit exports in index.ts       |
+| **Entry Point**           | ⚠️ Partial   | src/index.ts needs @packageDocumentation |
+| **Hosting**               | ❌ No        | GitHub Pages setup needed                |
 
 ### 12.2 Recommended Action Items
 
 **Immediate (Priority 1)**:
+
 1. ✅ Install TypeDoc: `npm install --save-dev typedoc`
 2. ✅ Create `typedoc.json` with recommended configuration
 3. ✅ Add npm scripts: `docs`, `docs:watch`, `docs:serve`
@@ -1107,6 +1152,7 @@ All compatible - no issues expected.
 5. ✅ Generate initial docs: `npm run docs`
 
 **Short-term (Priority 2)**:
+
 1. Add `@category` tags to modules for organization
 2. Ensure all public types exported from `src/index.ts`
 3. Add API docs section to README.md
@@ -1114,6 +1160,7 @@ All compatible - no issues expected.
 5. Add docs generation to CI/CD
 
 **Long-term (Priority 3)**:
+
 1. Add pre-commit hooks for JSDoc validation
 2. Create custom TypeDoc theme (optional)
 3. Add interactive examples (optional)
@@ -1121,13 +1168,13 @@ All compatible - no issues expected.
 
 ### 12.3 Estimated Effort
 
-| Phase | Time | Complexity |
-|-------|------|------------|
-| Installation & Config | 20 min | Low |
-| Documentation Enhancement | 1-2 hours | Medium |
-| Build & Deploy Setup | 30 min | Low |
-| CI/CD Integration | 30 min | Low |
-| **Total** | **2.5-3.5 hours** | **Low-Medium** |
+| Phase                     | Time              | Complexity     |
+| ------------------------- | ----------------- | -------------- |
+| Installation & Config     | 20 min            | Low            |
+| Documentation Enhancement | 1-2 hours         | Medium         |
+| Build & Deploy Setup      | 30 min            | Low            |
+| CI/CD Integration         | 30 min            | Low            |
+| **Total**                 | **2.5-3.5 hours** | **Low-Medium** |
 
 ### 12.4 Success Criteria
 

@@ -188,29 +188,29 @@ npm run dev -- --prd ./PRD.md --no-cache
 
 ## CLI Options
 
-| Option | Alias | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--prd <path>` | `-p` | string | `./PRD.md` | Path to PRD file |
-| `--scope <scope>` | `-s` | string | - | Execute specific scope (e.g., `P3.M4`) |
-| `--mode <mode>` | `-m` | string | `normal` | Execution mode: `normal`, `delta`, `bug-hunt`, `validate` |
-| `--continue` | `-c` | boolean | false | Resume from previous session |
-| `--dry-run` | `-d` | boolean | false | Show plan without executing |
-| `--verbose` | `-v` | boolean | false | Enable debug logging |
-| `--machine-readable` | - | boolean | false | Enable machine-readable JSON output |
-| `--no-cache` | - | boolean | false | Bypass PRP cache and regenerate all PRPs |
-| `--help` | `-h` | boolean | false | Show help |
+| Option               | Alias | Type    | Default    | Description                                               |
+| -------------------- | ----- | ------- | ---------- | --------------------------------------------------------- |
+| `--prd <path>`       | `-p`  | string  | `./PRD.md` | Path to PRD file                                          |
+| `--scope <scope>`    | `-s`  | string  | -          | Execute specific scope (e.g., `P3.M4`)                    |
+| `--mode <mode>`      | `-m`  | string  | `normal`   | Execution mode: `normal`, `delta`, `bug-hunt`, `validate` |
+| `--continue`         | `-c`  | boolean | false      | Resume from previous session                              |
+| `--dry-run`          | `-d`  | boolean | false      | Show plan without executing                               |
+| `--verbose`          | `-v`  | boolean | false      | Enable debug logging                                      |
+| `--machine-readable` | -     | boolean | false      | Enable machine-readable JSON output                       |
+| `--no-cache`         | -     | boolean | false      | Bypass PRP cache and regenerate all PRPs                  |
+| `--help`             | `-h`  | boolean | false      | Show help                                                 |
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | - | Your Anthropic API key (mapped from `ANTHROPIC_AUTH_TOKEN`) |
-| `ANTHROPIC_BASE_URL` | No | `https://api.z.ai/api/anthropic` | API endpoint |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL` | No | `glm-4.7` | Model for Architect agent |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No | `glm-4.7` | Model for Researcher/Coder agents |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | No | `glm-4.5-air` | Model for simple operations |
+| Variable                         | Required | Default                          | Description                                                 |
+| -------------------------------- | -------- | -------------------------------- | ----------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`              | Yes      | -                                | Your Anthropic API key (mapped from `ANTHROPIC_AUTH_TOKEN`) |
+| `ANTHROPIC_BASE_URL`             | No       | `https://api.z.ai/api/anthropic` | API endpoint                                                |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `glm-4.7`                        | Model for Architect agent                                   |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `glm-4.7`                        | Model for Researcher/Coder agents                           |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `glm-4.5-air`                    | Model for simple operations                                 |
 
 ### Setup
 
@@ -262,20 +262,26 @@ flowchart LR
 ### Core Components
 
 #### Session Manager
+
 Handles state persistence, session directories (`plan/{sequence}_{hash}/`), and PRD change detection. Creates delta sessions when PRDs are modified.
 
 #### Task Orchestrator
+
 Manages task hierarchy traversal (depth-first, pre-order), dependency resolution, and scope-based execution. Coordinates the flow from PRD to implemented code.
 
 #### Agent Factory
+
 Creates specialized AI agents:
+
 - **Architect**: Decomposes PRDs into hierarchical task backlogs
 - **Researcher**: Generates PRPs from subtasks through codebase research
 - **Coder**: Implements PRPs with validation gates
 - **QA**: Performs bug hunts and generates test reports
 
 #### PRP Runtime
+
 Executes Product Requirement Prompts with 4-level validation:
+
 1. **Level 1**: Syntax & Style (linting, type check)
 2. **Level 2**: Unit Tests (component validation)
 3. **Level 3**: Integration Tests (system validation)
@@ -284,6 +290,7 @@ Executes Product Requirement Prompts with 4-level validation:
 See [PROMPTS.md](PROMPTS.md) for complete PRP concept definition.
 
 **For comprehensive architecture documentation**, see:
+
 - **[Architecture Documentation](docs/architecture.md)** - Detailed system architecture with Mermaid diagrams, component interactions, extensibility patterns, and API references
 - **[TypeDoc API Reference](docs/api/index.html)** - Complete API documentation for all modules, classes, and types (run `npm run docs` to generate)
 
@@ -291,12 +298,12 @@ See [PROMPTS.md](PROMPTS.md) for complete PRP concept definition.
 
 The PRP Pipeline uses specialized AI agents for each stage of development:
 
-| Agent | Purpose | Input | Output | Invoked When |
-|-------|---------|-------|--------|--------------|
-| **Architect** | Decompose PRD into tasks | PRD.md | tasks.json | New session |
-| **Researcher** | Generate PRPs | Subtask context | PRP.md | Subtask starts |
-| **Coder** | Implement PRPs | PRP.md | Code changes | PRP generated |
-| **QA** | Find bugs | Completed code | TEST_RESULTS.md | All tasks complete |
+| Agent          | Purpose                  | Input           | Output          | Invoked When       |
+| -------------- | ------------------------ | --------------- | --------------- | ------------------ |
+| **Architect**  | Decompose PRD into tasks | PRD.md          | tasks.json      | New session        |
+| **Researcher** | Generate PRPs            | Subtask context | PRP.md          | Subtask starts     |
+| **Coder**      | Implement PRPs           | PRP.md          | Code changes    | PRP generated      |
+| **QA**         | Find bugs                | Completed code  | TEST_RESULTS.md | All tasks complete |
 
 ### PRP Concept
 
@@ -430,20 +437,20 @@ npm run typecheck
 
 ### Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Run pipeline with PRD |
-| `npm run dev:watch` | Run with hot reload |
-| `npm run dev:debug` | Run with debug inspector |
-| `npm run build` | Build the project |
-| `npm run typecheck` | Type check without compilation |
-| `npm test` | Run tests in watch mode |
-| `npm run test:run` | Run tests once |
-| `npm run test:coverage` | Generate coverage report |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format code with Prettier |
-| `npm run validate` | Run all validation checks |
-| `npm run fix` | Auto-fix linting and formatting |
+| Script                  | Description                     |
+| ----------------------- | ------------------------------- |
+| `npm run dev`           | Run pipeline with PRD           |
+| `npm run dev:watch`     | Run with hot reload             |
+| `npm run dev:debug`     | Run with debug inspector        |
+| `npm run build`         | Build the project               |
+| `npm run typecheck`     | Type check without compilation  |
+| `npm test`              | Run tests in watch mode         |
+| `npm run test:run`      | Run tests once                  |
+| `npm run test:coverage` | Generate coverage report        |
+| `npm run lint`          | Run ESLint                      |
+| `npm run format`        | Format code with Prettier       |
+| `npm run validate`      | Run all validation checks       |
+| `npm run fix`           | Auto-fix linting and formatting |
 
 ### Running Tests
 
@@ -476,55 +483,16 @@ npm run build:watch
 
 ## Contributing
 
-We welcome contributions! Here's how to get started:
+We welcome contributions! See [docs/contributing.md](docs/contributing.md) for complete contributor guidelines, including:
 
-### Development Setup
-
-```bash
-# Fork and clone
-git clone https://github.com/YOUR_USERNAME/hacky-hack.git
-cd hacky-hack
-
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Type check
-npm run typecheck
-```
-
-### Pull Request Process
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Style
-
-- TypeScript with strict type checking
-- Prettier for formatting
-- ESLint for linting
-- 100 character line limit
-- Follow existing code patterns and naming conventions
-
-### Bug Reporting
-
-Please include:
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Environment details (Node version, OS, etc.)
-
-### Feature Requests
-
-Please describe:
-- The use case
-- Why this feature would be useful
-- Any alternative solutions considered
+- Development setup instructions
+- Code organization overview
+- Testing guide (100% coverage requirement)
+- Code style (ESLint, Prettier, TypeScript)
+- Adding new agent personas
+- Adding new MCP tools
+- Pull request process
+- Release process
 
 ## License
 

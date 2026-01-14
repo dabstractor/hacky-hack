@@ -90,11 +90,13 @@ Based on the [master PRD](../PRD.md), a comprehensive PRD should include these s
 #### 1. Be Specific and Measurable
 
 **Poor:**
+
 ```markdown
 The system should be fast.
 ```
 
 **Better:**
+
 ```markdown
 The system should respond to API requests within 100ms for 95% of requests.
 ```
@@ -107,6 +109,7 @@ Each feature should have clear acceptance criteria:
 ## Feature: User Authentication
 
 **Acceptance Criteria:**
+
 - [ ] Users can log in with email/password
 - [ ] Session tokens expire after 24 hours
 - [ ] Failed login attempts are logged
@@ -130,6 +133,7 @@ The Architect Agent will validate your PRD against the current codebase. Help it
 - **Architectural persistence**: Research findings stored in `$SESSION_DIR/architecture/`
 
 **What you should do:**
+
 - Clearly specify which parts of the codebase are relevant
 - Include links to existing documentation or examples
 - Mention any external dependencies or APIs
@@ -181,6 +185,7 @@ Build a real-time notification system that delivers messages to users via WebSoc
 **User Story:** As a user, I want to maintain a persistent connection so I receive real-time updates.
 
 **Acceptance Criteria:**
+
 - [ ] WebSocket connections established at `/ws`
 - [ ] Automatic reconnection with exponential backoff
 - [ ] Heartbeat every 30 seconds to detect stale connections
@@ -190,6 +195,7 @@ Build a real-time notification system that delivers messages to users via WebSoc
 **User Story:** As a user, I want to receive notifications instantly when they're sent.
 
 **Acceptance Criteria:**
+
 - [ ] Messages delivered within 100ms 95% of the time
 - [ ] At-least-once delivery guarantee
 - [ ] Deduplication of duplicate messages
@@ -215,13 +221,13 @@ Build a real-time notification system that delivers messages to users via WebSoc
 
 ### Common PRD Pitfalls
 
-| Pitfall | Consequence | Solution |
-|---------|-------------|----------|
-| Over-specifying implementation | Limits agent creativity | Focus on WHAT, not HOW |
-| Under-specifying acceptance criteria | Ambiguous success | Add specific, measurable criteria |
-| Missing architectural context | Implementation drift | Include system overview |
-| Ignoring existing codebase | Conflicts and rework | Research before planning |
-| Creating "write tests" tasks | Redundant work | Tests are implicit |
+| Pitfall                              | Consequence             | Solution                          |
+| ------------------------------------ | ----------------------- | --------------------------------- |
+| Over-specifying implementation       | Limits agent creativity | Focus on WHAT, not HOW            |
+| Under-specifying acceptance criteria | Ambiguous success       | Add specific, measurable criteria |
+| Missing architectural context        | Implementation drift    | Include system overview           |
+| Ignoring existing codebase           | Conflicts and rework    | Research before planning          |
+| Creating "write tests" tasks         | Redundant work          | Tests are implicit                |
 
 ---
 
@@ -274,12 +280,12 @@ plan/
 
 **Key Files:**
 
-| File | Purpose | Mutable |
-|------|---------|---------|
-| `tasks.json` | Task hierarchy and status | **Never delete** during cleanup |
-| `prd_snapshot.md` | PRD content for delta detection | **Never delete** during cleanup |
-| `parent_session.txt` | Links delta sessions | **Never delete** during cleanup |
-| `PRP/*.md` | Generated PRPs | Can be cached, regenerated with `--no-cache` |
+| File                 | Purpose                         | Mutable                                      |
+| -------------------- | ------------------------------- | -------------------------------------------- |
+| `tasks.json`         | Task hierarchy and status       | **Never delete** during cleanup              |
+| `prd_snapshot.md`    | PRD content for delta detection | **Never delete** during cleanup              |
+| `parent_session.txt` | Links delta sessions            | **Never delete** during cleanup              |
+| `PRP/*.md`           | Generated PRPs                  | Can be cached, regenerated with `--no-cache` |
 
 ### Session Lifecycle
 
@@ -424,6 +430,7 @@ npm run dev -- --prd ./PRD.md
 **Step 4: Only changed tasks execute**
 
 The system skips completed tasks and only executes:
+
 - New tasks (for new requirements)
 - Modified tasks (for changed requirements)
 - Dependencies of the above
@@ -437,6 +444,7 @@ session1 (initial) → delta1 (first change) → delta2 (second change)
 ```
 
 Each delta session:
+
 - Links to its parent via `parent_session.txt`
 - Preserves all completed work
 - Can be independently resumed
@@ -464,6 +472,7 @@ npm run dev -- --prd ./PRD.md  # Creates 003_ghi... (child of 002_def...)
 ## Features
 
 ### User Authentication
+
 - Email/password login
 - Session management
 ```
@@ -474,6 +483,7 @@ npm run dev -- --prd ./PRD.md  # Creates 003_ghi... (child of 002_def...)
 ## Features
 
 ### User Authentication
+
 - Email/password login
 - Session management
 - **Two-factor authentication (NEW)**
@@ -507,13 +517,13 @@ Execute specific portions of your project using scope syntax. This is useful for
 
 ### Scope Syntax Reference
 
-| Scope | Format | Example | Executes |
-|-------|--------|---------|----------|
-| Phase | `P{N}` | `P1` | All tasks in Phase 1 |
-| Milestone | `P{N}.M{N}` | `P1.M1` | All tasks in Milestone 1 of Phase 1 |
-| Task | `P{N}.M{N}.T{N}` | `P1.M1.T1` | All subtasks in Task 1 of Milestone 1 of Phase 1 |
-| Subtask | `P{N}.M{N}.T{N}.S{N}` | `P1.M1.T1.S1` | Only Subtask 1 |
-| All | `all` | `all` | Entire backlog |
+| Scope     | Format                | Example       | Executes                                         |
+| --------- | --------------------- | ------------- | ------------------------------------------------ |
+| Phase     | `P{N}`                | `P1`          | All tasks in Phase 1                             |
+| Milestone | `P{N}.M{N}`           | `P1.M1`       | All tasks in Milestone 1 of Phase 1              |
+| Task      | `P{N}.M{N}.T{N}`      | `P1.M1.T1`    | All subtasks in Task 1 of Milestone 1 of Phase 1 |
+| Subtask   | `P{N}.M{N}.T{N}.S{N}` | `P1.M1.T1.S1` | Only Subtask 1                                   |
+| All       | `all`                 | `all`         | Entire backlog                                   |
 
 **Important:** Scope is case-sensitive. Use exact format with uppercase P, M, T, S.
 
@@ -674,6 +684,7 @@ npm run format:check
 **Expected:** Zero syntax errors, zero type errors
 
 **If Failing:**
+
 - Fix syntax issues
 - Fix type annotations
 - Re-run validation
@@ -696,6 +707,7 @@ npm run test:coverage
 **Expected:** All tests pass
 
 **If Failing:**
+
 - Fix failing tests
 - Ensure test coverage is adequate
 - Re-run validation
@@ -718,6 +730,7 @@ npm run test:api
 **Expected:** All integrations working, no connection errors
 
 **If Failing:**
+
 - Check service configuration
 - Verify environment variables
 - Test API connectivity
@@ -739,6 +752,7 @@ npm run test:e2e
 **Expected:** All creative validations pass, performance meets requirements
 
 **If Failing:**
+
 - Review requirements
 - Update implementation
 - Add additional tests
@@ -762,11 +776,13 @@ npm run dev -- --prd ./PRD.md --mode bug-hunt
 **Bug Hunt Phases:**
 
 **Phase 1: Scope Analysis**
+
 - Understand PRD requirements
 - Map requirements to implementation
 - Identify expected behaviors
 
 **Phase 2: E2E Testing**
+
 - Happy path testing (primary use cases)
 - Edge case testing (boundaries, empty inputs, unicode)
 - Workflow testing (complete user journeys)
@@ -775,6 +791,7 @@ npm run dev -- --prd ./PRD.md --mode bug-hunt
 - State testing (transitions and persistence)
 
 **Phase 3: Adversarial Testing**
+
 - Unexpected inputs (undefined scenarios)
 - Missing features (PRD requirements not implemented)
 - Incomplete features (partial implementations)
@@ -792,11 +809,13 @@ npm run dev -- --prd ./PRD.md --mode bug-hunt
 # Bug Fix Requirements
 
 ## Overview
+
 Found 3 critical bugs, 2 major bugs, 1 minor bug.
 
 ## Critical Issues (Must Fix)
 
 ### Issue 1: Database Connection Leak
+
 **Severity**: Critical
 **PRD Reference**: Section 4.2 - Connection Management
 
@@ -805,6 +824,7 @@ Found 3 critical bugs, 2 major bugs, 1 minor bug.
 **Actual Behavior**: Connections remain open, causing connection pool exhaustion.
 
 **Steps to Reproduce**:
+
 1. Run pipeline with `--scope P1.M1`
 2. Check database connection count
 3. Observe 100+ open connections
@@ -812,17 +832,18 @@ Found 3 critical bugs, 2 major bugs, 1 minor bug.
 **Suggested Fix**: Implement connection pooling with proper lifecycle management.
 
 ## Major Issues (Should Fix)
+
 [...]
 ```
 
 **Severity Levels:**
 
-| Severity | Meaning | Action Required |
-|----------|---------|-----------------|
-| Critical | Blocks core functionality | Must fix immediately |
-| Major | Significant impact on UX | Should fix before release |
-| Minor | Small inconvenience | Nice to fix |
-| Cosmetic | Visual issues only | Optional |
+| Severity | Meaning                   | Action Required           |
+| -------- | ------------------------- | ------------------------- |
+| Critical | Blocks core functionality | Must fix immediately      |
+| Major    | Significant impact on UX  | Should fix before release |
+| Minor    | Small inconvenience       | Nice to fix               |
+| Cosmetic | Visual issues only        | Optional                  |
 
 ---
 
@@ -848,6 +869,7 @@ cat plan/001_hash/tasks.json | jq '.backlog[] | select(.status == "Failed")'
 #### "Pipeline won't start"
 
 **What you see:**
+
 ```bash
 $ npm run dev -- --prd ./PRD.md
 Error: PRD file not found
@@ -857,6 +879,7 @@ Error: PRD file not found
 The PRD file path is incorrect or the file doesn't exist.
 
 **How to fix:**
+
 ```bash
 # Use absolute or relative path
 npm run dev -- --prd /full/path/to/PRD.md
@@ -871,6 +894,7 @@ ls PRD.md
 #### "Task fails repeatedly"
 
 **What you see:**
+
 ```
 [Task Orchestrator] P1.M1.T1.S1 failed
 [Task Orchestrator] Retrying...
@@ -881,6 +905,7 @@ ls PRD.md
 The PRP for this task may have incomplete context, or there's a genuine implementation issue.
 
 **How to fix:**
+
 ```bash
 # 1. Check the PRP for this task
 cat plan/001_hash/PRP/P1.M1.T1.S1.md
@@ -900,11 +925,13 @@ npm run dev -- --prd ./PRD.md --scope P1.M1.T1.S1 --verbose --no-cache
 Pipeline takes much longer than expected.
 
 **Why it happens:**
+
 - Large PRD with many tasks
 - No caching enabled
 - Sequential execution without parallel research
 
 **How to fix:**
+
 ```bash
 # 1. Use scope to execute smaller portions
 npm run dev -- --prd ./PRD.md --scope P1
@@ -924,17 +951,20 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
 #### "Session not found"
 
 **What you see:**
+
 ```bash
 [Session Manager] Session not found
 Error: Cannot resume session
 ```
 
 **Why it happens:**
+
 - Using `--continue` without an existing session
 - Session directory was deleted
 - PRD hash doesn't match any existing session
 
 **How to fix:**
+
 ```bash
 # 1. List available sessions
 ls plan/
@@ -954,10 +984,12 @@ npm run dev -- --prd ./PRD.md
 Delta mode runs but no new tasks are created despite PRD changes.
 
 **Why it happens:**
+
 - PRD changes don't affect requirements (e.g., formatting only)
 - Delta analysis didn't detect semantic changes
 
 **How to fix:**
+
 ```bash
 # 1. Verify PRD actually changed
 git diff PRD.md
@@ -977,11 +1009,13 @@ npm run dev -- --prd ./PRD.md --scope all
 No output for extended period during agent execution.
 
 **Why it happens:**
+
 - LLM API request is taking time
 - Agent is processing complex task
 - Network connectivity issue
 
 **How to fix:**
+
 ```bash
 # 1. Enable verbose mode to see progress
 npm run dev -- --prd ./PRD.md --verbose
@@ -999,13 +1033,13 @@ npm run dev -- --prd ./PRD.md --continue
 
 ### Error Messages Reference
 
-| Error | Meaning | Solution |
-|-------|---------|----------|
-| `PRD hash changed` | PRD was modified | Run in delta mode or continue |
-| `Session not found` | Invalid session directory | Check --continue or run fresh |
-| `Scope parse error` | Invalid scope syntax | Use format: P1, P1.M1, P1.M1.T1.S1 |
-| `Agent timeout` | LLM request took too long | Increase API_TIMEOUT_MS or simplify PRP |
-| `Cannot create delta session` | No current session loaded | Run normal mode first |
+| Error                         | Meaning                   | Solution                                |
+| ----------------------------- | ------------------------- | --------------------------------------- |
+| `PRD hash changed`            | PRD was modified          | Run in delta mode or continue           |
+| `Session not found`           | Invalid session directory | Check --continue or run fresh           |
+| `Scope parse error`           | Invalid scope syntax      | Use format: P1, P1.M1, P1.M1.T1.S1      |
+| `Agent timeout`               | LLM request took too long | Increase API_TIMEOUT_MS or simplify PRP |
+| `Cannot create delta session` | No current session loaded | Run normal mode first                   |
 
 ### Getting Help
 
@@ -1075,6 +1109,7 @@ npm run dev -- --prd ./PRD.md --no-cache
 **Cache Invalidation:**
 
 Cache is automatically invalidated when:
+
 - Task content changes
 - Dependencies change
 - Task is modified during delta session
@@ -1165,7 +1200,7 @@ Default is 3 concurrent PRP generations. Adjust in code if needed:
 // In task-orchestrator.ts
 this.researchQueue = new ResearchQueue(
   this.sessionManager,
-  3,  // <-- Max concurrent research
+  3, // <-- Max concurrent research
   this.#noCache
 );
 ```
@@ -1237,12 +1272,12 @@ npm run dev -- --prd ./PRD.md --verbose
 
 **Key Metrics to Track:**
 
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| Cache Hit Ratio | >80% | Verbose logs show "Cache metrics" |
-| Batch Efficiency | >95% | Verbose logs show "Batch write" stats |
-| Research Queue Utilization | >50% | Verbose logs show queue stats |
-| Task Execution Time | Varies | Per-task timing in logs |
+| Metric                     | Target | How to Measure                        |
+| -------------------------- | ------ | ------------------------------------- |
+| Cache Hit Ratio            | >80%   | Verbose logs show "Cache metrics"     |
+| Batch Efficiency           | >95%   | Verbose logs show "Batch write" stats |
+| Research Queue Utilization | >50%   | Verbose logs show queue stats         |
+| Task Execution Time        | Varies | Per-task timing in logs               |
 
 **Example Metrics Output:**
 
@@ -1268,25 +1303,27 @@ This guide helps you migrate from the bash version (v0) to the TypeScript implem
 
 ### What's Changed
 
-| Aspect | v0 (Bash) | v1 (TypeScript) |
-|--------|-----------|-----------------|
-| **Runtime** | Bash script | Node.js / TypeScript |
-| **Invocation** | `./prp-pipeline.sh` | `npm run dev --` |
-| **Configuration** | Shell functions | Environment variables |
-| **State** | JSON files | Same + enhanced |
-| **Performance** | Sequential | Parallel + caching |
-| **Session Directory** | `.sessions/` | `plan/` |
+| Aspect                | v0 (Bash)           | v1 (TypeScript)       |
+| --------------------- | ------------------- | --------------------- |
+| **Runtime**           | Bash script         | Node.js / TypeScript  |
+| **Invocation**        | `./prp-pipeline.sh` | `npm run dev --`      |
+| **Configuration**     | Shell functions     | Environment variables |
+| **State**             | JSON files          | Same + enhanced       |
+| **Performance**       | Sequential          | Parallel + caching    |
+| **Session Directory** | `.sessions/`        | `plan/`               |
 
 ### Breaking Changes
 
 #### 1. Command Invocation
 
 **Before (v0):**
+
 ```bash
 ./prp-pipeline.sh --prd PRD.md
 ```
 
 **After (v1):**
+
 ```bash
 npm run dev -- --prd PRD.md
 # Note the -- separator for npm scripts
@@ -1297,12 +1334,14 @@ npm run dev -- --prd PRD.md
 #### 2. Session Directory
 
 **Before (v0):**
+
 ```
 .sessions/
 └── hash/
 ```
 
 **After (v1):**
+
 ```
 plan/
 └── 001_hash/
@@ -1313,12 +1352,14 @@ plan/
 #### 3. Configuration
 
 **Before (v0):**
+
 ```bash
 # Edited in script
 PRP_MODEL="claude-sonnet-4"
 ```
 
 **After (v1):**
+
 ```bash
 # Environment variables
 export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
@@ -1328,18 +1369,19 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
 
 ### Command Mapping
 
-| v0 Command | v1 Equivalent | Notes |
-|------------|---------------|-------|
+| v0 Command          | v1 Equivalent    | Notes              |
+| ------------------- | ---------------- | ------------------ |
 | `./prp-pipeline.sh` | `npm run dev --` | Use -- for options |
-| `--continue` | `--continue` | Same |
-| `--scope P1` | `--scope P1` | Same |
-| N/A | `--dry-run` | New feature |
-| N/A | `--no-cache` | New feature |
-| N/A | `--mode delta` | New feature |
+| `--continue`        | `--continue`     | Same               |
+| `--scope P1`        | `--scope P1`     | Same               |
+| N/A                 | `--dry-run`      | New feature        |
+| N/A                 | `--no-cache`     | New feature        |
+| N/A                 | `--mode delta`   | New feature        |
 
 ### Feature Comparison
 
 **Same Features:**
+
 - PRD decomposition
 - Task hierarchy (Phase > Milestone > Task > Subtask)
 - Scope-based execution
@@ -1347,6 +1389,7 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
 - Graceful shutdown
 
 **New Features in v1:**
+
 - **PRP Caching**: Generated PRPs cached and reused
 - **I/O Batching**: State updates batched for performance
 - **Parallel Research**: Research next task while current executes
@@ -1356,6 +1399,7 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
 - **Type Safety**: TypeScript for compile-time error detection
 
 **Removed Features:**
+
 - None - feature parity maintained
 
 ### Before/After Examples
@@ -1363,11 +1407,13 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
 **Running a Milestone:**
 
 **Before (v0):**
+
 ```bash
 ./prp-pipeline.sh --prd PRD.md --scope P1.M1
 ```
 
 **After (v1):**
+
 ```bash
 npm run dev -- --prd PRD.md --scope P1.M1
 # Same scope syntax, different invocation
@@ -1376,11 +1422,13 @@ npm run dev -- --prd PRD.md --scope P1.M1
 **Resuming a Session:**
 
 **Before (v0):**
+
 ```bash
 ./prp-pipeline.sh --prd PRD.md --continue
 ```
 
 **After (v1):**
+
 ```bash
 npm run dev -- --prd PRD.md --continue
 # Identical command syntax
@@ -1389,11 +1437,13 @@ npm run dev -- --prd PRD.md --continue
 **Delta Session:**
 
 **Before (v0):**
+
 ```bash
 # Not supported in v0
 ```
 
 **After (v1):**
+
 ```bash
 # Automatic when PRD changes
 npm run dev -- --prd PRD.md --mode delta

@@ -37,6 +37,7 @@ description: |
 ## User Persona
 
 **Target User**: Developers and technical project managers who have read the README.md and want to:
+
 - Write their own PRDs for the pipeline
 - Understand advanced features like delta sessions and scope-based execution
 - Troubleshoot common issues
@@ -44,6 +45,7 @@ description: |
 - Optimize pipeline performance
 
 **Use Case**: A user has successfully run the basic pipeline and now wants to:
+
 1. Write a custom PRD for their project
 2. Use delta sessions to handle changing requirements
 3. Run specific portions of their project with scoped execution
@@ -282,127 +284,211 @@ plan/001_14b9dc2a33c7/P5M3T1S2/
 # CRITICAL: User Guide Documentation Gotchas
 
 # 1. PRD vs PRP Concept Distinction
+
 # - PRD = Product Requirements Document (user writes)
+
 # - PRP = Product Requirement Prompt (system generates from tasks)
+
 # - PRD describes WHAT to build, PRP describes HOW with context
+
 # Gotcha: Users often confuse these - clearly distinguish in documentation
 
 # 2. Tests Are Implicit
+
 # - Do NOT create "write tests" subtasks in PRDs
+
 # - Tests are part of every subtask's workflow
+
 # - Pattern: Write failing test → Implement → Pass test → Refactor
+
 # Gotcha: This is a key architectural decision - emphasize it
 
 # 3. Research-Driven Architecture (NEW PRIORITY)
+
 # - Architect agent spawns subagents to research BEFORE breaking down
+
 # - Findings stored in $SESSION_DIR/architecture/ for downstream use
+
 # - Cannot plan what you don't understand
+
 # Gotcha: This is a RECENT change - emphasize in PRD writing guide
 
 # 4. Session State Files Are Immutable
+
 # - tasks.json is single source of truth - NEVER deleted during cleanup
+
 # - PRD snapshot preserved for delta detection
+
 # - delta_from.txt links delta sessions to parent
+
 # Gotcha: Users may try to manually edit tasks.json - warn against this
 
 # 5. Delta Session Behavior
+
 # - Only processes CHANGES (new, modified, removed requirements)
+
 # - Preserves completed work from parent session
+
 # - Can chain: session1 → delta1 → delta2
+
 # Gotcha: Delta sessions are NOT full re-runs - explain the difference
 
 # 6. Scope Syntax Is Exact
+
 # - Format: P1 (phase), P1.M1 (milestone), P1.M1.T1 (task), P1.M1.T1.S1 (subtask)
+
 # - Case-sensitive: use uppercase P, M, T, S
+
 # - Use 'all' for complete execution
+
 # Gotcha: Wrong format will cause scope parsing to fail
 
 # 7. Four Agent Personas
+
 # - Architect: Breaks down PRD into hierarchy (uses Opus model)
+
 # - Researcher: Creates PRPs from tasks (uses Sonnet model)
+
 # - Coder: Executes PRPs to code (uses Sonnet model)
+
 # - QA: Bug hunting and validation (uses Sonnet model)
+
 # Gotcha: "Researcher" generates PRPs, "Coder" implements them
 
 # 8. 4-Level Progressive Validation
+
 # - Level 1: Syntax & Style (linting, type check) - Run after EACH file
+
 # - Level 2: Unit Tests (component validation)
+
 # - Level 3: Integration Tests (system validation)
+
 # - Level 4: Manual/E2E (creative validation)
+
 # Gotcha: Each level MUST pass before proceeding to next
 
 # 9. Bug Hunt Mode Behavior
+
 # - Runs QA even with incomplete tasks
+
 # - Generates TEST_RESULTS.md ONLY if critical/major bugs found
+
 # - Absence of file = success (no bugs)
+
 # - Triggers fix cycle if bugs found
+
 # Gotcha: No file doesn't mean "failed" - it means success
 
 # 10. PRP Caching (New in TypeScript Version)
+
 # - Generated PRPs are cached and reused
+
 # - Cache key based on task content + dependencies
+
 # - Bypass with --no-cache flag
+
 # Gotcha: This is a NEW optimization - not in bash version
 
 # 11. I/O Batching (New in TypeScript Version)
+
 # - State updates are batched for performance
+
 # - Reduces filesystem operations
+
 # - Atomic flush operations
+
 # Gotcha: This is a NEW optimization - improves performance for large projects
 
 # 12. Parallel Research (New in TypeScript Version)
+
 # - N+1 pattern: Research next task while current executes
+
 # - Fire-and-forget with .catch() error handling
+
 # - Promise deduplication prevents duplicate work
+
 # Gotcha: This is a NEW optimization - reduces overall execution time
 
 # 13. Environment Variable Mapping
+
 # - ANTHROPIC_AUTH_TOKEN (shell) maps to ANTHROPIC_API_KEY (SDK)
+
 # - ANTHROPIC_BASE_URL defaults to z.ai endpoint
+
 # - Model tiers: opus (GLM-4.7), sonnet (GLM-4.7), haiku (GLM-4.5-Air)
+
 # Gotcha: z.ai is the provider, not api.anthropic.com
 
 # 14. Session Directory Structure
-# - Format: plan/{sequence}_{hash}/
+
+# - Format: plan/{sequence}\_{hash}/
+
 # - hash is SHA-256 of PRD content
+
 # - sequence auto-increments
+
 # - Contains: tasks.json, prd_snapshot.md, architecture/, prps/, artifacts/
+
 # Gotcha: Users may not understand where sessions are stored
 
 # 15. Max Subtask Size: 2 Story Points
+
 # - Architect agent limits subtasks to 0.5, 1, or 2 SP
+
 # - Larger tasks must be broken down further
+
 # - Ensures implementable units
+
 # Gotcha: This is a constraint - affects PRD writing
 
 # 16. Graceful Shutdown
+
 # - SIGINT (Ctrl+C) triggers graceful shutdown
+
 # - Completes current task before exiting
+
 # - Preserves state for resumption
+
 # Gotcha: Users may panic on Ctrl+C - explain it's safe
 
 # 17. Git Auto-Commit
+
 # - Automatic commits after each task completion
+
 # - Smart commit messages generated from context
+
 # - Uses commit-claude alias
+
 # Gotcha: Commits happen automatically - users should know
 
 # 18. Migration from Bash Version
+
 # - Bash version was v0, TypeScript is v1
+
 # - Feature parity + new optimizations
+
 # - Different invocation (npm run dev vs bash script)
+
 # Gotcha: Command syntax is different - clear migration needed
 
 # 19. Documentation Structure (Diátaxis Framework)
+
 # - User guide = How-To (30%) + Reference (30%) + Explanation (20%)
+
 # - README = Tutorials (20%) + basic How-To
+
 # - Don't repeat Quick Start in user guide
+
 # Gotcha: User guide builds upon README, not replaces it
 
 # 20. Troubleshooting Organization
+
 # - Organize by SYMPTOM (what user sees), not internal cause
+
 # - "Can't connect to server" not "TCP handshake timeout"
+
 # - Provide quick diagnostics first
+
 # Gotcha: Users don't know internals - describe what they see
 ```
 
@@ -422,27 +508,32 @@ docs/user-guide.md Structure:
 # User Guide
 
 ## Table of Contents
+
 - Auto-generated from section headers
 
 ## 1. Writing PRDs
+
 - PRD structure and sections
 - Best practices for requirements
 - Example PRD with annotations
 - Common pitfalls to avoid
 
 ## 2. Session Management
+
 - What is a session?
 - Session directory structure
 - State persistence
 - Session lifecycle
 
 ## 3. Delta Workflow
+
 - What are delta sessions?
 - When to use delta mode
 - Step-by-step delta workflow
 - Delta session chaining
 
 ## 4. Scope-Based Execution
+
 - Scope syntax reference
 - Phase execution
 - Milestone execution
@@ -451,12 +542,14 @@ docs/user-guide.md Structure:
 - Use cases and examples
 
 ## 5. QA and Bug Hunt
+
 - QA workflow overview
 - 4-level validation system
 - Bug hunt mode
 - Interpreting TEST_RESULTS.md
 
 ## 6. Troubleshooting
+
 - Quick diagnostics
 - Common issues (by symptom)
 - Error messages reference
@@ -464,6 +557,7 @@ docs/user-guide.md Structure:
 - Getting help
 
 ## 7. Performance Tuning
+
 - PRP caching
 - I/O batching
 - Parallel research
@@ -471,6 +565,7 @@ docs/user-guide.md Structure:
 - Metrics and monitoring
 
 ## 8. Migration Guide (v0 to v1)
+
 - What's changed
 - Breaking changes
 - Command mapping
@@ -629,8 +724,9 @@ Task 14: FORMAT and polish
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # ===== SECTION PATTERN: Writing PRDs =====
+
 ## Writing PRDs
 
 A well-written PRD is the foundation of successful autonomous development. This section covers how to write effective PRDs for the PRP Pipeline.
@@ -652,11 +748,14 @@ Based on the [master PRD](../PRD.md), a PRD should include:
 
 ```markdown
 # Poor
+
 "The system should be fast."
 
 # Better
+
 "The system should respond to API requests within 100ms for 95% of requests."
 ```
+````
 
 **2. Include Acceptance Criteria**
 
@@ -666,6 +765,7 @@ Each feature should have clear acceptance criteria:
 ## Feature: User Authentication
 
 **Acceptance Criteria:**
+
 - [ ] Users can log in with email/password
 - [ ] Session tokens expire after 24 hours
 - [ ] Failed login attempts are logged
@@ -699,14 +799,15 @@ See the [master PRD](../PRD.md) for a complete example. Key highlights:
 
 ### Common Pitfalls
 
-| Pitfall | Consequence | Solution |
-|---------|-------------|----------|
-| Over-specifying implementation | Limits agent creativity | Focus on WHAT, not HOW |
-| Under-specifying acceptance criteria | Ambiguous success | Add specific, measurable criteria |
-| Missing architectural context | Implementation drift | Include system overview |
-| Ignoring existing codebase | Conflicts and rework | Research before planning |
+| Pitfall                              | Consequence             | Solution                          |
+| ------------------------------------ | ----------------------- | --------------------------------- |
+| Over-specifying implementation       | Limits agent creativity | Focus on WHAT, not HOW            |
+| Under-specifying acceptance criteria | Ambiguous success       | Add specific, measurable criteria |
+| Missing architectural context        | Implementation drift    | Include system overview           |
+| Ignoring existing codebase           | Conflicts and rework    | Research before planning          |
 
 # ===== SECTION PATTERN: Delta Workflow =====
+
 ## Delta Workflow
 
 Delta sessions allow you to modify your PRD mid-project and only re-execute the changes.
@@ -723,6 +824,7 @@ When you modify `PRD.md`, the pipeline detects the change and creates a **delta 
 ### When to Use Delta Mode
 
 Use delta mode when:
+
 - You've discovered a missing requirement
 - You need to modify an existing feature
 - You want to remove something you no longer need
@@ -759,6 +861,7 @@ npm run dev -- --prd ./PRD.md
 **4. Only changed tasks execute**
 
 The system will skip completed tasks and only execute:
+
 - New tasks (for new requirements)
 - Modified tasks (for changed requirements)
 - Dependencies of the above
@@ -772,6 +875,7 @@ session1 (initial) → delta1 (first change) → delta2 (second change)
 ```
 
 Each delta session:
+
 - Links to its parent via `delta_from.txt`
 - Preserves all completed work
 - Can be independently resumed
@@ -779,66 +883,76 @@ Each delta session:
 ### Example: Adding a New Feature
 
 **Before (original PRD):**
+
 ```markdown
 ## Features
 
 ### User Authentication
+
 - Email/password login
 - Session management
 ```
 
 **After (modified PRD):**
+
 ```markdown
 ## Features
 
 ### User Authentication
+
 - Email/password login
 - Session management
 - **Two-factor authentication (NEW)**
 ```
 
 **Result:**
+
 - Delta session created
 - New task added for 2FA
 - Existing tasks preserved
 - Only new 2FA task executes
 
 # ===== SECTION PATTERN: Scope-Based Execution =====
+
 ## Scope-Based Execution
 
 Execute specific portions of your project using scope syntax.
 
 ### Scope Syntax Reference
 
-| Scope | Format | Example | Executes |
-|-------|--------|---------|----------|
-| Phase | `P{N}` | `P1` | All tasks in Phase 1 |
-| Milestone | `P{N}.M{N}` | `P1.M1` | All tasks in Milestone 1 of Phase 1 |
-| Task | `P{N}.M{N}.T{N}` | `P1.M1.T1` | All subtasks in Task 1 of Milestone 1 of Phase 1 |
-| Subtask | `P{N}.M{N}.T{N}.S{N}` | `P1.M1.T1.S1` | Only Subtask 1 |
-| All | `all` | `all` | Entire backlog |
+| Scope     | Format                | Example       | Executes                                         |
+| --------- | --------------------- | ------------- | ------------------------------------------------ |
+| Phase     | `P{N}`                | `P1`          | All tasks in Phase 1                             |
+| Milestone | `P{N}.M{N}`           | `P1.M1`       | All tasks in Milestone 1 of Phase 1              |
+| Task      | `P{N}.M{N}.T{N}`      | `P1.M1.T1`    | All subtasks in Task 1 of Milestone 1 of Phase 1 |
+| Subtask   | `P{N}.M{N}.T{N}.S{N}` | `P1.M1.T1.S1` | Only Subtask 1                                   |
+| All       | `all`                 | `all`         | Entire backlog                                   |
 
 ### Examples
 
 **Execute a Phase:**
+
 ```bash
 npm run dev -- --prd ./PRD.md --scope P1
 # Executes all milestones, tasks, and subtasks in Phase 1
 ```
 
 **Execute a Milestone:**
+
 ```bash
 npm run dev -- --prd ./PRD.md --scope P3.M4
 # Executes all tasks and subtasks in Milestone 4 of Phase 3
 ```
 
 **Execute a Single Subtask:**
+
 ```bash
 npm run dev -- --prd ./PRD.md --scope P1.M1.T1.S1
 # Executes only Subtask 1 (useful for debugging or re-running)
 ```
 
 **Dry Run with Scope:**
+
 ```bash
 npm run dev -- --prd ./PRD.md --scope P1.M1 --dry-run
 # Shows what would execute without running
@@ -852,6 +966,7 @@ npm run dev -- --prd ./PRD.md --scope P1.M1 --dry-run
 - **Demo**: Prepare specific functionality
 
 # ===== SECTION PATTERN: Troubleshooting =====
+
 ## Troubleshooting
 
 This section helps you diagnose and resolve common issues.
@@ -874,6 +989,7 @@ cat plan/001_hash/tasks.json | jq '.backlog[] | select(.status == "Failed")'
 #### "Pipeline won't start"
 
 **What you see:**
+
 ```bash
 $ npm run dev -- --prd ./PRD.md
 Error: PRD.md not found
@@ -883,6 +999,7 @@ Error: PRD.md not found
 The PRD file path is incorrect or the file doesn't exist.
 
 **How to fix:**
+
 ```bash
 # Use absolute or relative path
 npm run dev -- --prd /full/path/to/PRD.md
@@ -895,6 +1012,7 @@ ls PRD.md
 #### "Task fails repeatedly"
 
 **What you see:**
+
 ```
 [Task Orchestrator] P1.M1.T1.S1 failed
 [Task Orchestrator] Retrying...
@@ -905,6 +1023,7 @@ ls PRD.md
 The PRP for this task may have incomplete context, or there's a genuine implementation issue.
 
 **How to fix:**
+
 ```bash
 # 1. Check the PRP for this task
 cat plan/001_hash/prps/P1.M1.T1.S1.md
@@ -922,11 +1041,13 @@ npm run dev -- --prd ./PRD.md --scope P1.M1.T1.S1 --verbose
 Pipeline takes much longer than expected.
 
 **Why it happens:**
+
 - Large PRD with many tasks
 - No caching enabled
 - Sequential execution
 
 **How to fix:**
+
 ```bash
 # 1. Use scope to execute smaller portions
 npm run dev -- --prd ./PRD.md --scope P1
@@ -943,12 +1064,12 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
 
 ### Error Messages Reference
 
-| Error | Meaning | Solution |
-|-------|---------|----------|
-| `PRD hash changed` | PRD was modified | Run in delta mode or continue |
-| `Session not found` | Invalid session directory | Check --continue or run fresh |
-| `Scope parse error` | Invalid scope syntax | Use format: P1, P1.M1, P1.M1.T1.S1 |
-| `Agent timeout` | LLM request took too long | Increase API_TIMEOUT_MS or simplify PRP |
+| Error               | Meaning                   | Solution                                |
+| ------------------- | ------------------------- | --------------------------------------- |
+| `PRD hash changed`  | PRD was modified          | Run in delta mode or continue           |
+| `Session not found` | Invalid session directory | Check --continue or run fresh           |
+| `Scope parse error` | Invalid scope syntax      | Use format: P1, P1.M1, P1.M1.T1.S1      |
+| `Agent timeout`     | LLM request took too long | Increase API_TIMEOUT_MS or simplify PRP |
 
 ### Getting Help
 
@@ -960,30 +1081,33 @@ If you can't resolve the issue:
 4. **Create issue**: Include verbose output and PRD snippet
 
 # ===== SECTION PATTERN: Migration Guide =====
+
 ## Migration Guide (v0 to v1)
 
 This guide helps you migrate from the bash version (v0) to the TypeScript implementation (v1).
 
 ### What's Changed
 
-| Aspect | v0 (Bash) | v1 (TypeScript) |
-|--------|-----------|-----------------|
-| Runtime | Bash script | Node.js / TypeScript |
-| Invocation | `./prp-pipeline.sh` | `npm run dev --` |
-| Configuration | Shell functions | Environment variables |
-| State | JSON files | Same + enhanced |
-| Performance | Sequential | Parallel + caching |
+| Aspect        | v0 (Bash)           | v1 (TypeScript)       |
+| ------------- | ------------------- | --------------------- |
+| Runtime       | Bash script         | Node.js / TypeScript  |
+| Invocation    | `./prp-pipeline.sh` | `npm run dev --`      |
+| Configuration | Shell functions     | Environment variables |
+| State         | JSON files          | Same + enhanced       |
+| Performance   | Sequential          | Parallel + caching    |
 
 ### Breaking Changes
 
 **1. Command Invocation**
 
 **Before (v0):**
+
 ```bash
 ./prp-pipeline.sh --prd PRD.md
 ```
 
 **After (v1):**
+
 ```bash
 npm run dev -- --prd PRD.md
 # Note the -- separator for npm scripts
@@ -992,12 +1116,14 @@ npm run dev -- --prd PRD.md
 **2. Session Directory**
 
 **Before (v0):**
+
 ```
 .sessions/
 └── hash/
 ```
 
 **After (v1):**
+
 ```
 plan/
 └── 001_hash/
@@ -1006,12 +1132,14 @@ plan/
 **3. Configuration**
 
 **Before (v0):**
+
 ```bash
 # Edited in script
 PRP_MODEL="claude-sonnet-4"
 ```
 
 **After (v1):**
+
 ```bash
 # Environment variables
 export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
@@ -1019,14 +1147,14 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
 
 ### Command Mapping
 
-| v0 Command | v1 Equivalent | Notes |
-|------------|---------------|-------|
+| v0 Command          | v1 Equivalent    | Notes              |
+| ------------------- | ---------------- | ------------------ |
 | `./prp-pipeline.sh` | `npm run dev --` | Use -- for options |
-| `--continue` | `--continue` | Same |
-| `--scope P1` | `--scope P1` | Same |
-| `N/A` | `--dry-run` | New feature |
-| `N/A` | `--no-cache` | New feature |
-| `N/A` | `--mode delta` | New feature |
+| `--continue`        | `--continue`     | Same               |
+| `--scope P1`        | `--scope P1`     | Same               |
+| `N/A`               | `--dry-run`      | New feature        |
+| `N/A`               | `--no-cache`     | New feature        |
+| `N/A`               | `--mode delta`   | New feature        |
 
 ### New Features in v1
 
@@ -1039,11 +1167,13 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
 ### Before/After Examples
 
 **Running a Milestone (v0):**
+
 ```bash
 ./prp-pipeline.sh --prd PRD.md --scope P1.M1
 ```
 
 **Running a Milestone (v1):**
+
 ```bash
 npm run dev -- --prd PRD.md --scope P1.M1
 # Same scope syntax, different invocation
@@ -1067,15 +1197,19 @@ git checkout main
 **Data compatibility:** Sessions are NOT compatible between v0 and v1 due to internal changes.
 
 # ===== GOTCHA: Cross-Reference Pattern =====
+
 # Use descriptive link text, not "click here"
+
 # Pattern: [descriptive text](path/to/file#section)
 
 # Examples:
-- [PRD structure](#prd-structure)  ✓ Good
-- [Click here](#prd-structure)     ✗ Bad
-- See the [PRD](../PRD.md) for example  ✓ Good
-- Click [here](../PRD.md)          ✗ Bad
-```
+
+- [PRD structure](#prd-structure) ✓ Good
+- [Click here](#prd-structure) ✗ Bad
+- See the [PRD](../PRD.md) for example ✓ Good
+- Click [here](../PRD.md) ✗ Bad
+
+````
 
 ### Integration Points
 
@@ -1101,7 +1235,7 @@ RESEARCH_ARTIFACTS:
   - preserve: plan/001_14b9dc2a33c7/P5M3T1S2/research/
   - reference: user-guide-research.md for patterns
   - reference: prompts-analysis.md for agent descriptions
-```
+````
 
 ---
 
@@ -1109,7 +1243,7 @@ RESEARCH_ARTIFACTS:
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
-```bash
+````bash
 # Verify markdown is well-formed
 npx markdownlint docs/user-guide.md --fix 2>/dev/null || echo "markdownlint not installed, skipping"
 
@@ -1126,7 +1260,7 @@ npx markdownlint docs/user-guide.md --fix 2>/dev/null || echo "markdownlint not 
 #   - Check table formatting (pipes and alignment)
 #   - Verify code block closing
 #   - Re-run validation
-```
+````
 
 ### Level 2: Link Validation (Content Validation)
 

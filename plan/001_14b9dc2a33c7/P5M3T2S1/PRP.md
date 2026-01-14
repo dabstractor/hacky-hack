@@ -7,6 +7,7 @@
 **Feature Goal**: Create comprehensive architecture documentation (`docs/architecture.md`) that enables contributors to understand the PRP Pipeline system design, component interactions, data flows, and extensibility patterns.
 
 **Deliverable**: A single `docs/architecture.md` file containing:
+
 - System overview with Mermaid diagrams
 - Detailed explanation of the four core processing engines
 - Data flow diagrams (PRD → Backlog → PRPs → Code)
@@ -16,6 +17,7 @@
 - Links to generated TypeDoc API documentation
 
 **Success Definition**:
+
 - Documentation is readable by someone unfamiliar with the codebase
 - All Mermaid diagrams render correctly in GitHub markdown
 - All sections reference specific file paths and code examples
@@ -31,6 +33,7 @@
 **Use Case**: Understanding system architecture to contribute effectively, extend functionality, or debug issues
 
 **User Journey**:
+
 1. Developer joins project
 2. Reads README.md for project overview
 3. Consults docs/architecture.md for deep technical understanding
@@ -38,6 +41,7 @@
 5. Uses extensibility patterns to add new features
 
 **Pain Points Addressed**:
+
 - Complex multi-agent system is difficult to understand without diagrams
 - Data flow from PRD to code spans multiple engines
 - Groundswell framework patterns need documentation
@@ -64,100 +68,124 @@ Create a comprehensive architecture documentation file at `docs/architecture.md`
 # Architecture Documentation
 
 ## 1. System Overview
+
 - High-level architecture description
 - System overview diagram (Mermaid flowchart)
 - Key design principles
 
 ## 2. Four Core Processing Engines
+
 ### 2.1 Session Manager
+
 - Purpose and responsibilities
 - Architecture diagram
 - Key methods and data flow
 - State management patterns
 
 ### 2.2 Task Orchestrator
+
 - Purpose and responsibilities
 - Architecture diagram
 - Task traversal algorithm
 - Dependency resolution
 
 ### 2.3 Agent Runtime
+
 - Purpose and responsibilities
 - Architecture diagram
 - Agent factory pattern
 - Tool integration
 
 ### 2.4 Pipeline Controller
+
 - Purpose and responsibilities
 - Architecture diagram
 - Workflow orchestration
 - Error handling
 
 ## 3. Data Flow
+
 ### 3.1 PRD to Backlog Flow
+
 - Architect agent workflow
 - Mermaid sequence diagram
 
 ### 3.2 Backlog to PRPs Flow
+
 - Researcher agent workflow
 - Parallel research pattern
 
 ### 3.3 PRPs to Code Flow
+
 - Coder agent workflow
 - Validation gates
 
 ### 3.4 Complete Pipeline Flow
+
 - End-to-end Mermaid diagram
 
 ## 4. Component Interactions
+
 - Interaction diagram (Mermaid sequence)
 - API contracts between engines
 - Event flow
 
 ## 5. Groundswell Integration
+
 ### 5.1 Framework Patterns
+
 - Workflow base class
 - @Step decorator
 - @ObservedState decorator
 - @Task decorator
 
 ### 5.2 Agent Creation
+
 - createAgent() pattern
 - Prompt creation with Zod schemas
 - MCPHandler for tools
 
 ### 5.3 Tool Integration
+
 - MCP tool pattern
 - Tool registration
 - Tool execution
 
 ## 6. Extensibility Points
+
 ### 6.1 Adding New Agent Personas
+
 - Step-by-step guide
 - Code examples
 
 ### 6.2 Adding New MCP Tools
+
 - Step-by-step guide
 - Code examples
 
 ### 6.3 Creating Custom Workflows
+
 - Step-by-step guide
 - Code examples
 
 ### 6.4 Extending Data Models
+
 - Step-by-step guide
 - Code examples
 
 ## 7. API Documentation
+
 - Link to TypeDoc-generated API docs
 - Quick reference links
 
 ## 8. Performance Considerations
+
 - Caching strategy
 - Parallel execution
 - I/O optimization
 
 ## 9. Security Considerations
+
 - Token handling
 - State privacy
 - Audit trail
@@ -181,6 +209,7 @@ Create a comprehensive architecture documentation file at `docs/architecture.md`
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP includes:
+
 - Complete diagram specifications in Mermaid format
 - Exact file paths for all components
 - Code examples for extensibility patterns
@@ -351,36 +380,55 @@ hacky-hack/
 # CRITICAL: Mermaid Diagram Rendering in GitHub
 
 # GitHub has specific Mermaid version support (as of 2026-01-13):
+
 # - Flowcharts (flowchart LR/TD): FULLY SUPPORTED
+
 # - Sequence diagrams (sequenceDiagram): FULLY SUPPORTED
+
 # - Class diagrams (classDiagram): FULLY SUPPORTED
+
 # - State diagrams (stateDiagram-v2): SUPPORTED
+
 # - Entity Relationship (erDiagram): SUPPORTED
+
 # - User Journey (journey): SUPPORTED
+
 # - Gantt charts (gantt): SUPPORTED
+
 # - Pie charts (pie): SUPPORTED
+
 # - Mind maps (mindmap): EXPERIMENTAL (avoid)
+
 # - C4 diagrams (C4): NOT SUPPORTED (use flowchart instead)
 
 # CRITICAL: TypeDoc Linking Pattern
 
 # Relative links from docs/architecture.md to docs/api/:
+
 # - Use relative paths: ../api/classes/SessionManager.html
+
 # - NOT absolute: /docs/api/classes/SessionManager.html
+
 # - Reason: Works both locally and on GitHub Pages
 
 # CRITICAL: File Path References
 
 # When referencing source files in docs:
+
 # - Use forward slashes: src/core/session-manager.ts
+
 # - Include line numbers for specific methods: src/core/session-manager.ts:120
+
 # - Reason: GitHub auto-links these paths
 
 # CRITICAL: Zod Schema Syntax
 
 # When showing Zod schemas in examples:
+
 # - Use z.object(), z.array(), z.string(), z.enum(), etc.
+
 # - Import from 'zod' (already in dependencies)
+
 # - Reference: src/core/models.ts lines 1-500
 ```
 
@@ -393,6 +441,7 @@ hacky-hack/
 No new data models required. This task creates documentation only.
 
 Key concepts to document:
+
 - **Four Engines Pattern**: Session Manager → Task Orchestrator → Agent Runtime → Pipeline Controller
 - **Data Flow**: PRD.md → Architect Agent → tasks.json → Researcher Agent → PRP.md → Coder Agent → Code
 - **Validation Gates**: Level 1 (Syntax) → Level 2 (Unit) → Level 3 (Integration) → Level 4 (Manual)
@@ -401,7 +450,7 @@ Key concepts to document:
 
 ### Implementation Tasks (Ordered by Dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE typedoc.json configuration file
   - IMPLEMENT: TypeDoc configuration following research/typedoc-research.md section A.1
   - FOLLOW pattern: research/typedoc-research.md (Complete typedoc.json example)
@@ -521,16 +570,17 @@ Task 7: VALIDATE documentation completeness
   - CHECK: All code examples are syntactically correct TypeScript
   - CHECK: TypeDoc links work (docs/api/ exists and is accessible)
   - CHECK: README.md link works
-```
+````
 
 ---
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Mermaid Diagram Patterns (from research/architecture-docs-research.md)
 
 ## System Overview Diagram (Flowchart)
+
 ```mermaid
 flowchart LR
     A[PRD.md] --> B[Architect Agent]
@@ -553,8 +603,10 @@ flowchart LR
     style E fill:#e1f5fe
     style F fill:#e1f5fe
 ```
+````
 
 ## Sequence Diagram (Data Flow)
+
 ```mermaid
 sequenceDiagram
     participant SM as SessionManager
@@ -577,6 +629,7 @@ sequenceDiagram
 ```
 
 ## Class Diagram (Engine Structure)
+
 ```mermaid
 classDiagram
     class SessionManager {
@@ -615,7 +668,8 @@ classDiagram
     TaskOrchestrator --> PRPGenerator: uses
     TaskOrchestrator --> PRPExecutor: uses
 ```
-```
+
+````
 
 ---
 
@@ -642,7 +696,7 @@ docs/architecture.md:
   - create in: docs/ directory
   - link to: ../api/index.html (TypeDoc docs)
   - link to: src/ files (GitHub source links)
-```
+````
 
 ---
 
@@ -717,6 +771,7 @@ grep -n "docs/architecture.md" README.md
 # Review Checklist
 
 ## Content Quality
+
 - [ ] All four engines are documented with diagrams
 - [ ] Data flow is clear from PRD to code
 - [ ] Groundswell integration is explained
@@ -724,18 +779,21 @@ grep -n "docs/architecture.md" README.md
 - [ ] TypeDoc links are correct
 
 ## Diagram Quality
+
 - [ ] All Mermaid diagrams render in GitHub
 - [ ] Diagrams use consistent styling
 - [ ] Diagrams are focused (not overloaded)
 - [ ] Diagram text is readable
 
 ## Code Examples
+
 - [ ] All examples are valid TypeScript
 - [ ] File paths are accurate
 - [ ] Examples are concise and clear
 - [ ] Examples include context
 
 ## Cross-References
+
 - [ ] All file paths link correctly
 - [ ] API docs links work
 - [ ] README.md link works
@@ -807,6 +865,7 @@ grep -n "docs/architecture.md" README.md
 **8.5/10** for one-pass implementation success
 
 **Rationale**:
+
 - ✅ Comprehensive research provides complete context
 - ✅ Mermaid diagram templates are ready to use
 - ✅ Code examples are extracted from actual codebase
@@ -816,6 +875,7 @@ grep -n "docs/architecture.md" README.md
 - ⚠️ Diagram complexity may require adjustment for readability
 
 **Risk Mitigation**:
+
 - Test all Mermaid diagrams in https://mermaid.live/ before committing
 - Keep diagrams focused and simple
 - Use consistent styling across all diagrams

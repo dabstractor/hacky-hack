@@ -303,15 +303,15 @@ export class SessionManager {
   #prdHash: string | null = null;
 
   // NEW: Batching state
-  #dirty: boolean = false;          // Flag indicating pending changes
-  #pendingUpdates: Backlog | null = null;  // Latest accumulated state
-  #updateCount: number = 0;         // Count of accumulated updates (for stats)
+  #dirty: boolean = false; // Flag indicating pending changes
+  #pendingUpdates: Backlog | null = null; // Latest accumulated state
+  #updateCount: number = 0; // Count of accumulated updates (for stats)
 }
 
 // Batch write statistics (for logging)
 interface BatchWriteStats {
-  readonly itemsWritten: number;    // Number of updates accumulated
-  readonly writeOpsSaved: number;   // How many writes were avoided
+  readonly itemsWritten: number; // Number of updates accumulated
+  readonly writeOpsSaved: number; // How many writes were avoided
 }
 ```
 

@@ -14,19 +14,19 @@ The PRP (Product Requirement Prompt) Pipeline uses **11 distinct system prompts*
 
 ## Table of All Prompts
 
-| # | Prompt Name | Agent/Persona | Purpose | Key Concepts |
-|---|-------------|---------------|---------|--------------|
-| 1 | PRP_README | Concept Definition | Defines what a PRP is and how it differs from PRD | Context, Implementation Details, Validation Gates |
-| 2 | TASK_BREAKDOWN_SYSTEM_PROMPT | Architect | Breaks down PRDs into hierarchical task structure | Phase > Milestone > Task > Subtask, Research-Driven Architecture |
-| 3 | TASK_BREAKDOWN_PROMPT | Architect Execution | Orchestrates PRD analysis and task decomposition | Spawn subagents, Store findings in $SESSION_DIR/architecture/ |
-| 4 | PRP_CREATE_PROMPT | Researcher | Creates detailed PRPs for individual work items | Codebase analysis, External research, Context curation |
-| 5 | PRP_EXECUTE_PROMPT | Coder/Builder | Executes PRPs to implement features | One-pass implementation, Progressive validation (4 levels) |
-| 6 | CLEANUP_PROMPT | Utility | Prepares workspace for git commit | File organization, Critical file preservation |
-| 7 | DELTA_PRD_GENERATION_PROMPT | Session Manager | Creates delta PRDs for incremental changes | Diff analysis, Reference completed work |
-| 8 | TASK_UPDATE_PROMPT | Session Manager | Updates task hierarchy mid-implementation | Impact analysis, Preserve completed work |
-| 9 | PREVIOUS_SESSION_CONTEXT_PROMPT | Research Context | Awareness of prior session research | Leverage existing research, Avoid duplication |
-| 10 | VALIDATION_PROMPT | QA Agent | Comprehensive project validation | E2E testing, User workflows, Validation script generation |
-| 11 | BUG_FINDING_PROMPT | Adversarial QA | Creative bug hunting against PRD scope | Edge cases, Adversarial testing, Bug report generation |
+| #   | Prompt Name                     | Agent/Persona       | Purpose                                           | Key Concepts                                                     |
+| --- | ------------------------------- | ------------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| 1   | PRP_README                      | Concept Definition  | Defines what a PRP is and how it differs from PRD | Context, Implementation Details, Validation Gates                |
+| 2   | TASK_BREAKDOWN_SYSTEM_PROMPT    | Architect           | Breaks down PRDs into hierarchical task structure | Phase > Milestone > Task > Subtask, Research-Driven Architecture |
+| 3   | TASK_BREAKDOWN_PROMPT           | Architect Execution | Orchestrates PRD analysis and task decomposition  | Spawn subagents, Store findings in $SESSION_DIR/architecture/    |
+| 4   | PRP_CREATE_PROMPT               | Researcher          | Creates detailed PRPs for individual work items   | Codebase analysis, External research, Context curation           |
+| 5   | PRP_EXECUTE_PROMPT              | Coder/Builder       | Executes PRPs to implement features               | One-pass implementation, Progressive validation (4 levels)       |
+| 6   | CLEANUP_PROMPT                  | Utility             | Prepares workspace for git commit                 | File organization, Critical file preservation                    |
+| 7   | DELTA_PRD_GENERATION_PROMPT     | Session Manager     | Creates delta PRDs for incremental changes        | Diff analysis, Reference completed work                          |
+| 8   | TASK_UPDATE_PROMPT              | Session Manager     | Updates task hierarchy mid-implementation         | Impact analysis, Preserve completed work                         |
+| 9   | PREVIOUS_SESSION_CONTEXT_PROMPT | Research Context    | Awareness of prior session research               | Leverage existing research, Avoid duplication                    |
+| 10  | VALIDATION_PROMPT               | QA Agent            | Comprehensive project validation                  | E2E testing, User workflows, Validation script generation        |
+| 11  | BUG_FINDING_PROMPT              | Adversarial QA      | Creative bug hunting against PRD scope            | Edge cases, Adversarial testing, Bug report generation           |
 
 ---
 
@@ -38,17 +38,17 @@ The PRP (Product Requirement Prompt) Pipeline uses **11 distinct system prompts*
 
 ### Core Philosophy
 
-> *"Over-specifying what to build while under-specifying the context, and how to build it, is why so many AI-driven coding attempts stall at 80%."*
+> _"Over-specifying what to build while under-specifying the context, and how to build it, is why so many AI-driven coding attempts stall at 80%."_
 
 ### PRP vs Traditional PRD
 
-| Aspect | Traditional PRD | PRP |
-|--------|----------------|-----|
-| **Goal & Justification** | ✓ Included | ✓ Included |
-| **How to Build** | ❌ Deliberately avoided | ✓ Explicitly stated |
-| **Context** | ❌ Minimal | ✓ Precise file paths, content, library versions |
-| **Implementation Strategy** | ❌ Not specified | ✓ API endpoints, test runners, agent patterns |
-| **Validation** | ❌ Not specified | ✓ Deterministic checks (pytest, ruff, type passes) |
+| Aspect                      | Traditional PRD         | PRP                                                |
+| --------------------------- | ----------------------- | -------------------------------------------------- |
+| **Goal & Justification**    | ✓ Included              | ✓ Included                                         |
+| **How to Build**            | ❌ Deliberately avoided | ✓ Explicitly stated                                |
+| **Context**                 | ❌ Minimal              | ✓ Precise file paths, content, library versions    |
+| **Implementation Strategy** | ❌ Not specified        | ✓ API endpoints, test runners, agent patterns      |
+| **Validation**              | ❌ Not specified        | ✓ Deterministic checks (pytest, ruff, type passes) |
 
 ### Three AI-Critical Layers
 
@@ -93,6 +93,7 @@ The PRP (Product Requirement Prompt) Pipeline uses **11 distinct system prompts*
 **Role:** Lead Technical Architect and Project Management Synthesizer
 
 **Hierarchy Created:**
+
 ```
 Phase (Weeks to months)
   └─ Milestone (1 to 12 weeks)
@@ -123,11 +124,13 @@ Phase (Weeks to months)
    - Define: INPUT, OUTPUT, MOCKING
 
 **Output Format:**
+
 - Must write JSON to `./$TASKS_FILE` (current working directory)
 - Do NOT output JSON to conversation
 - Use file writing tools to create the file
 
 **Status Values:**
+
 - Planned, Researching, Ready, Implementing, Complete, Failed
 
 #### Prompt: TASK_BREAKDOWN_PROMPT
@@ -135,6 +138,7 @@ Phase (Weeks to months)
 **Purpose:** Execution prompt that triggers the architect's workflow
 
 **Process:**
+
 1. Analyze the PRD
 2. Spawn subagents immediately to research codebase state and external docs
 3. Store high-level research findings in `$SESSION_DIR/architecture/`
@@ -152,6 +156,7 @@ Phase (Weeks to months)
 **Role:** Create comprehensive PRPs for individual work items
 
 **Critical Understanding:**
+
 - Executing AI agent only receives: PRP content, training data, codebase access
 - **Incomplete context = implementation failure**
 - Research and context curation directly determines success
@@ -197,10 +202,12 @@ Phase (Weeks to months)
 - Information Density Standards
 
 **Success Metrics:**
+
 - Confidence Score: 1-10 for one-pass implementation success
 - Validation: Enables unfamiliar AI agent to implement successfully
 
 **Template Structure Includes:**
+
 - Goal (Feature Goal, Deliverable, Success Definition)
 - User Persona
 - Why (Business value)
@@ -222,6 +229,7 @@ Phase (Weeks to months)
 **Mission:** One-Pass Implementation Success
 
 **How PRPs Enable Success:**
+
 - Context Completeness: Everything needed, nothing guessed
 - Progressive Validation: 4-level gates catch errors early
 - Pattern Consistency: Follow existing codebase approaches
@@ -263,11 +271,13 @@ Phase (Weeks to months)
    - Confirm Anti-Patterns avoided
 
 **Failure Protocol:**
+
 - Use patterns and gotchas from PRP to fix issues
 - Re-run validation until passing
 - If fundamental issue found, halt with 10th-grade-level explanation
 
 **Output Format:**
+
 ```json
 {
    "result": "success" | "error" | "issue",
@@ -286,18 +296,21 @@ Phase (Weeks to months)
 **Process:**
 
 **Step 0: Discover Real User Workflows**
+
 - Read workflow documentation (README.md, CLAUDE.md, docs/)
 - Identify external integrations (CLIs, APIs, services)
 - Extract complete user journeys
 - **E2E tests should mirror actual workflows, not just internal APIs**
 
 **Step 1: Deep Codebase Analysis**
+
 - What validation tools exist (linting, type checking, style, unit tests)
 - What the application does (frontend, backend, database, infrastructure)
 - Review planning documents (tasks.json, PRD)
 
 **Step 2: Generate Validation Script**
 Create `validate.sh` with phases (ONLY include phases that exist):
+
 - Phase 1: Linting
 - Phase 2: Type Checking
 - Phase 3: Style Checking
@@ -305,16 +318,19 @@ Create `validate.sh` with phases (ONLY include phases that exist):
 - Phase 5: End-to-End Testing (BE CREATIVE AND COMPREHENSIVE)
 
 **E2E Testing Three Levels:**
+
 1. Internal APIs (adapters, database, commands)
 2. External Integrations (CLIs, platform APIs)
 3. Complete User Journeys (follow docs start-to-finish)
 
 **Step 3: Validation & Reporting**
+
 - Execute validation script
 - Manually simulate workflows if needed
 - Generate Bug Tracker Report (itemized list)
 
 **Output:**
+
 - Write validation script to `./validate.sh` (exact path)
 - Write bug report to `./validation_report.md` (exact path)
 - Files are temporary, deleted after validation
@@ -328,12 +344,14 @@ Create `validate.sh` with phases (ONLY include phases that exist):
 **Phases:**
 
 **Phase 1: PRD Scope Analysis**
+
 - Deeply understand original PRD requirements
 - Map requirements to what should be implemented
 - Identify expected user journeys and workflows
 - Note edge cases and corner cases
 
 **Phase 2: Creative End-to-End Testing**
+
 - Happy Path Testing
 - Edge Case Testing (empty inputs, max values, unicode, special chars)
 - Workflow Testing
@@ -344,6 +362,7 @@ Create `validate.sh` with phases (ONLY include phases that exist):
 - Regression Testing
 
 **Phase 3: Adversarial Testing**
+
 - Unexpected Inputs
 - Missing Features
 - Incomplete Features
@@ -354,14 +373,18 @@ Create `validate.sh` with phases (ONLY include phases that exist):
 Write structured bug report to `./$BUG_RESULTS_FILE`
 
 **Bug Report Format:**
+
 ```markdown
 # Bug Fix Requirements
 
 ## Overview
+
 Brief summary and quality assessment
 
 ## Critical Issues (Must Fix)
+
 ### Issue 1: [Title]
+
 **Severity**: Critical
 **PRD Reference**: [Section]
 **Expected Behavior**: ...
@@ -370,12 +393,15 @@ Brief summary and quality assessment
 **Suggested Fix**: ...
 
 ## Major Issues (Should Fix)
+
 [Same format]
 
 ## Minor Issues (Nice to Fix)
+
 [Same format]
 
 ## Testing Summary
+
 - Total tests performed: X
 - Passing: X
 - Failing: X
@@ -384,6 +410,7 @@ Brief summary and quality assessment
 ```
 
 **CRITICAL OUTPUT RULE:**
+
 - **If Critical/Major bugs found**: MUST write to `./$BUG_RESULTS_FILE`
 - **If NO Critical/Major bugs**: Do NOT write any file. Leave no trace.
 - Presence/absence of file controls entire bugfix pipeline
@@ -397,6 +424,7 @@ Brief summary and quality assessment
 **Purpose:** Clean up, organize files, and prepare for commit
 
 **Critical Files to NEVER DELETE:**
+
 - `$SESSION_DIR/tasks.json` - Pipeline state tracking
 - `$SESSION_DIR/bug_hunt_tasks.json` - Bug fix pipeline state
 - `$SESSION_DIR/prd_snapshot.md` - PRD snapshot
@@ -406,11 +434,13 @@ Brief summary and quality assessment
 - Any file matching `*tasks*.json` pattern
 
 **Documentation Organization:**
+
 - Move markdown docs to `$SESSION_DIR/docs/`
 - Keep in root: README.md, PRD.md, core config files
 - Never delete git-tracked files (check with `git ls-files`)
 
 **Delete or Gitignore:**
+
 - Temporary files
 - Build artifacts
 - Dependency directories
@@ -421,12 +451,14 @@ Brief summary and quality assessment
 **Purpose:** Generate delta PRD from changes between sessions
 
 **Inputs:**
+
 - Previous PRD (from completed session)
 - Current PRD
 - Previous session's completed tasks
 - Previous session's architecture research
 
 **Instructions:**
+
 1. DIFF ANALYSIS: Identify changes
 2. SCOPE DELTA: Focus on new/modified/removed requirements
 3. REFERENCE COMPLETED WORK: Reference existing implementations
@@ -438,6 +470,7 @@ Brief summary and quality assessment
 **Purpose:** Update tasks for PRD changes mid-implementation
 
 **Process:**
+
 1. IDENTIFY CHANGES: new, modified, removed requirements
 2. IMPACT ANALYSIS: Determine which tasks affected
 3. PRIORITIZE UPDATES: Completed tasks get HIGHEST priority
@@ -445,6 +478,7 @@ Brief summary and quality assessment
 5. MAINTAIN COHERENCE: Ensure dependencies still valid
 
 **Rules:**
+
 - Preserve status of unaffected tasks
 - Add new tasks for new requirements
 - Mark obsolete tasks for removed requirements
@@ -455,6 +489,7 @@ Brief summary and quality assessment
 **Purpose:** Awareness of prior session research
 
 **Critical Guidance:**
+
 - Documentation from previous sessions takes PRIORITY over web searches
 - FIRST check `$PREV_SESSION_DIR/architecture/` for existing research
 - FIRST check `$PREV_SESSION_DIR/docs/` for implementation notes
@@ -466,11 +501,13 @@ Brief summary and quality assessment
 ## Key Gotchas and Important Notes
 
 ### From PRP_README
+
 - Context is non-negotiable - missing context = failed implementation
 - PRPs can be small (single task) or large (multiple tasks)
 - True power is chaining tasks together for complex features
 
 ### From Architect Prompts
+
 - **NEW PRIORITY: Research-Driven Architecture** - Cannot plan what you don't understand
 - Must spawn subagents to validate before breaking down
 - Store findings in `$SESSION_DIR/architecture/` for downstream agents
@@ -479,6 +516,7 @@ Brief summary and quality assessment
 - Tests are implicit, don't create "write tests" subtasks
 
 ### From Researcher Prompt
+
 - Incomplete context = implementation failure
 - Optimize for chance of success, not speed
 - Use batch tools to spawn subagents for parallel research
@@ -488,6 +526,7 @@ Brief summary and quality assessment
 - URLs should include section anchors
 
 ### From Coder Prompt
+
 - **CRITICAL FIRST STEP**: Load PRP before doing anything
 - Trust PRP's context and guidance
 - Never guess - verify codebase patterns yourself
@@ -497,6 +536,7 @@ Brief summary and quality assessment
 - If fundamental issue, halt with 10th-grade-level explanation
 
 ### From QA Prompts
+
 - E2E tests should mirror actual user workflows from docs, not just internal APIs
 - Test three levels: Internal APIs, External Integrations, Complete Journeys
 - Be creative and comprehensive in validation
@@ -504,6 +544,7 @@ Brief summary and quality assessment
 - Bug report should be actionable as a PRD for fixes
 
 ### From Session Management
+
 - NEVER delete files matching `*tasks*.json` pattern
 - Check `git ls-files` before deleting anything
 - Move docs to `$SESSION_DIR/docs/` before commit
@@ -601,26 +642,31 @@ PRD.md
 The base PRP template includes the following sections:
 
 ### 1. Goal
+
 - Feature Goal (specific, measurable end state)
 - Deliverable (concrete artifact)
 - Success Definition (how to know it's complete)
 
 ### 2. User Persona (if applicable)
+
 - Target User
 - Use Case
 - User Journey
 - Pain Points Addressed
 
 ### 3. Why
+
 - Business value and user impact
 - Integration with existing features
 - Problems solved and for whom
 
 ### 4. What
+
 - User-visible behavior and technical requirements
 - Success Criteria
 
 ### 5. All Needed Context
+
 - Context Completeness Check ("No Prior Knowledge" test)
 - Documentation & References (YAML format with URLs, files, gotchas)
 - Current Codebase tree (tree output)
@@ -628,18 +674,21 @@ The base PRP template includes the following sections:
 - Known Gotchas of codebase & Library Quirks
 
 ### 6. Implementation Blueprint
+
 - Data models and structure
 - Implementation Tasks (ordered by dependencies, YAML format)
 - Implementation Patterns & Key Details
 - Integration Points
 
 ### 7. Validation Loop
+
 - Level 1: Syntax & Style (Immediate Feedback)
 - Level 2: Unit Tests (Component Validation)
 - Level 3: Integration Testing (System Validation)
 - Level 4: Creative & Domain-Specific Validation
 
 ### 8. Final Validation Checklist
+
 - Technical Validation
 - Feature Validation
 - Code Quality Validation
@@ -652,18 +701,21 @@ The base PRP template includes the following sections:
 ## Validation System (4-Level Progressive)
 
 ### Level 1: Syntax & Style
+
 - Ruff linting with auto-fix
 - Mypy type checking
 - Ruff formatting
 - **Run after each file creation - fix before proceeding**
 
 ### Level 2: Unit Tests
+
 - Test each component as created
 - Full test suite for affected areas
 - Coverage validation if available
 - **All tests must pass**
 
 ### Level 3: Integration Testing
+
 - Service startup validation
 - Health check validation
 - Feature-specific endpoint testing
@@ -672,6 +724,7 @@ The base PRP template includes the following sections:
 - **All integrations working, no connection errors**
 
 ### Level 4: Creative & Domain-Specific
+
 - Playwright MCP (web interfaces)
 - Docker MCP (containerized services)
 - Database MCP (data operations)
@@ -686,6 +739,7 @@ The base PRP template includes the following sections:
 ## JSON Schema Reference
 
 ### tasks.json Structure
+
 ```json
 {
   "backlog": [
@@ -780,6 +834,7 @@ The base PRP template includes the following sections:
 
 **Document Status:** Complete
 **Next Steps:** Use this analysis to create user guide sections on:
+
 1. How to write effective PRDs
 2. Understanding the PRP concept
 3. The 4-agent workflow

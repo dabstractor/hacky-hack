@@ -33,6 +33,7 @@ description: |
 **Target User**: Developers and technical project managers who want to use autonomous AI agents to implement software projects from PRDs.
 
 **Use Case**: A user discovers this project on GitHub and needs to quickly understand:
+
 1. What this tool does
 2. How to get it running
 3. How to use it for their own project
@@ -235,150 +236,251 @@ plan/001_14b9dc2a33c7/P5M3T1S1/
 
 ### Known Gotchas & Library Quirks
 
-```markdown
+````markdown
 # CRITICAL: README.md Formatting Gotchas
 
 # 1. GitHub Flavored Markdown (GFM) - This is GitHub
+
 # - Uses GitHub Flavored Markdown, not standard Markdown
+
 # - Supports: task lists, tables, strikethrough, autolinks
+
 # - Supports: Mermaid diagrams (use ```mermaid blocks)
+
 # - Does NOT support: HTML comments in some contexts
+
 # Gotcha: Test Mermaid diagrams in GitHub preview before finalizing
 
 # 2. Badge Link Formats
+
 # - Shields.io uses flat-square style for modern look
+
 # - All badges should be clickable links
+
 # - Group related badges with <br/> for logical rows
+
 # Pattern: [![alt](image_url)](link_url)
+
 # Gotcha: Use placeholder URLs for CI until workflows are set up
 
 # 3. Code Block Language Tags
+
 # - Use specific language tags for syntax highlighting
+
 # - bash for shell commands, typescript for TS code, json for JSON
+
 # - sh-session for terminal sessions with prompts (like oclif)
-# Pattern: ```bash, ```typescript, ```json
-# Gotcha: Don't use ```sh for interactive terminal - use ```sh-session or just show bash
+
+# Pattern: `bash, `typescript, ```json
+
+# Gotcha: Don't use `sh for interactive terminal - use `sh-session or just show bash
 
 # 4. Anchor Links
+
 # - GitHub auto-generates anchors from headers
+
 # - Format: #header-name with lowercase, hyphens for spaces
+
 # - Special characters are stripped
+
 # Pattern: ## Quick Start → #quick-start
+
 # Gotcha: Test internal links after creating - GitHub may format differently
 
 # 5. Relative Links
+
 # - Use relative paths for internal docs
+
 # - Pattern: [Architecture](#architecture), [PROMPTS.md](PROMPTS.md)
+
 # - For subdirectories: [Docs](docs/README.md)
+
 # Gotcha: Don't use absolute paths for repository links
 
 # 6. Code Examples in README
+
 # - Must match actual implementation exactly
+
 # - Verify all CLI commands work before adding
+
 # - Use actual output from real runs
+
 # Pattern: Run `npm run dev -- --help` to get actual options
+
 # Gotcha: Documentation lying about features destroys trust
 
 # 7. CLI Options from package.json Scripts
+
 # - Scripts section has actual command patterns
+
 # - npm run dev is the main entry point
+
 # - All options use -- separator for npm scripts
+
 # Pattern: npm run dev -- [options]
+
 # Gotcha: Don't forget the -- separator in examples
 
 # 8. Environment Variables
+
 # - ANTHROPIC_API_KEY is the primary credential
+
 # - ANTHROPIC_BASE_URL defaults to z.ai endpoint
+
 # - Model tiers: opus (GLM-4.7), sonnet (GLM-4.7), haiku (GLM-4.5-Air)
+
 # Pattern: Document all three with model naming
+
 # Gotcha: z.ai is the Anthropic-compatible provider, not api.anthropic.com
 
 # 9. Scope Format
+
 # - Scope syntax: P1 (phase), P1.M1 (milestone), P1.M1.T1 (task), P1.M1.T1.S1 (subtask)
+
 # - Use 'all' for complete execution
+
 # Pattern: --scope P3.M4 for milestone execution
+
 # Gotcha: Scope parsing is case-sensitive, use exact format
 
 # 10. Mode Options
+
 # - normal: Standard PRP pipeline execution
+
 # - bug-hunt: Run QA even with incomplete tasks
+
 # - validate: Skip QA, validate only
+
 # Pattern: --mode bug-hunt
+
 # Gotcha: bug-hunt mode will run QA on incomplete work (intentional)
 
 # 11. Session Persistence
-# - Sessions stored in plan/{sequence}_{hash}/
+
+# - Sessions stored in plan/{sequence}\_{hash}/
+
 # - tasks.json is the single source of truth
+
 # - Delta sessions link via delta_from.txt
+
 # Pattern: Explain session directory structure clearly
+
 # Gotcha: Users may not understand where sessions are stored
 
 # 12. Four Agent Types
+
 # - Architect: Creates task hierarchy from PRD
+
 # - Researcher: Generates PRPs from tasks
+
 # - Coder: Implements PRPs (the Builder)
+
 # - QA: Bug hunting and validation
+
 # Pattern: Use consistent capitalization and naming
+
 # Gotcha: "Researcher" is the PRP generator, "Coder" is the PRP executor
 
 # 13. 4-Level Validation
+
 # - Level 1: Syntax & Style (linting, type check)
+
 # - Level 2: Unit Tests (component validation)
+
 # - Level 3: Integration Tests (system validation)
+
 # - Level 4: Manual/E2E (creative validation)
+
 # Pattern: Document all four levels in Architecture section
+
 # Gotcha: Level 4 is "creative" not just manual - includes adversarial testing
 
 # 14. Git Integration
+
 # - Automatic commits after each task completion
+
 # - Smart commit messages generated from context
+
 # - Graceful shutdown preserves state
+
 # Pattern: Mention git-auto-commit feature
+
 # Gotcha: Users should know commits happen automatically
 
 # 15. Performance Features (from P5.M2)
+
 # - PRP caching: Reuse generated PRPs (P5.M2.T1.S2)
+
 # - I/O batching: Batch state updates (P5.M2.T2.S1)
+
 # - Parallel research: N+1 parallel agent spawning
+
 # Pattern: Mention optimization features
+
 # Gotcha: These are NEW features - not in original README
 
 # 16. Badge URLs (Placeholders)
+
 # - CI badges: Use placeholder GitHub Actions URLs
+
 # - Coverage: Use placeholder Codecov URL
+
 # - Version: Use badge.fury with package name
+
 # - Security: Use OpenSSF Scorecard URL
+
 # Pattern: [![CI](https://github.com/YOUR_USERNAME/hacky-hack/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/hacky-hack/actions/workflows/ci.yml)
+
 # Gotcha: Replace YOUR_USERNAME with actual repo owner
 
 # 17. Mermaid Diagram Syntax
+
 # - Use flowchart LR for left-to-right diagrams
+
 # - Use subgraph for component grouping
+
 # - Use proper arrow types: --> for flow, -.-> for dotted
-# Pattern: ```mermaid\nflowchart LR\n    A[PRD] --> B[Architect]\n```
+
+# Pattern: `mermaid\nflowchart LR\n    A[PRD] --> B[Architect]\n`
+
 # Gotcha: Test in GitHub preview - local renderers may differ
 
 # 18. License
+
 # - Project uses MIT license (from package.json)
+
 # - Include full MIT license text at bottom
+
 # - Copyright year is 2026
+
 # Pattern: Standard MIT license text
+
 # Gotcha: Don't forget to update copyright year if needed
 
 # 19. Contributing Section
+
 # - Keep it brief - don't repeat entire CONTRIBUTING.md if it exists
+
 # - Link to CONTRIBUTING.md if present, include brief summary if not
+
 # - Include: fork, branch, commit, PR flow
+
 # Pattern: ## Contributing\n\nWe welcome contributions! [...]
+
 # Gotcha: No CONTRIBUTING.md exists yet - include basic guidelines
 
 # 20. Feature List Accuracy
+
 # - All features listed should actually work
+
 # - Check tasks.json - only Complete features should be listed
+
 # - Phase 5 is "Planned" - mark as "Coming Soon" if not complete
+
 # Pattern: Use present tense for working features, future tense for planned
+
 # Gotcha: Don't promise features that aren't implemented yet
-```
+````
 
 ---
 
@@ -570,9 +672,11 @@ Task 20: FINAL review against work item description
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # ===== BADGE CLUSTER PATTERN =====
+
 # Place at top after title
+
 <p align="center">
   <a href="https://github.com/YOUR_USERNAME/hacky-hack/actions/workflows/ci.yml">
     <img alt="CI Status" src="https://github.com/YOUR_USERNAME/hacky-hack/actions/workflows/ci.yml/badge.svg">
@@ -596,6 +700,7 @@ Task 20: FINAL review against work item description
 </p>
 
 # ===== QUICK START PATTERN =====
+
 ## Quick Start
 
 Get running in under 2 minutes:
@@ -616,6 +721,7 @@ cd hacky-hack
 # Install dependencies
 npm install
 ```
+````
 
 ### Run Your First Pipeline
 
@@ -632,6 +738,7 @@ That's it! The pipeline will analyze your PRD, generate tasks, and implement the
 **Next Steps**: Check out [Usage Examples](#usage-examples) or [Configuration](#configuration).
 
 # ===== USAGE EXAMPLES PATTERN =====
+
 ## Usage Examples
 
 ### Basic Pipeline Execution
@@ -691,31 +798,33 @@ npm run dev -- --prd ./PRD.md --dry-run
 ```
 
 # ===== CLI OPTIONS TABLE PATTERN =====
+
 ### CLI Options
 
-| Option | Alias | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--prd <path>` | `-p` | string | `./PRD.md` | Path to PRD file |
-| `--scope <scope>` | `-s` | string | - | Execute specific scope (e.g., `P3.M4`) |
-| `--mode <mode>` | `-m` | string | `normal` | Execution mode: `normal`, `delta`, `bug-hunt`, `validate` |
-| `--continue` | `-c` | boolean | false | Resume from previous session |
-| `--dry-run` | `-d` | boolean | false | Show plan without executing |
-| `--verbose` | `-v` | boolean | false | Enable debug logging |
-| `--no-cache` | - | boolean | false | Bypass PRP cache |
-| `--help` | `-h` | boolean | false | Show help |
+| Option            | Alias | Type    | Default    | Description                                               |
+| ----------------- | ----- | ------- | ---------- | --------------------------------------------------------- |
+| `--prd <path>`    | `-p`  | string  | `./PRD.md` | Path to PRD file                                          |
+| `--scope <scope>` | `-s`  | string  | -          | Execute specific scope (e.g., `P3.M4`)                    |
+| `--mode <mode>`   | `-m`  | string  | `normal`   | Execution mode: `normal`, `delta`, `bug-hunt`, `validate` |
+| `--continue`      | `-c`  | boolean | false      | Resume from previous session                              |
+| `--dry-run`       | `-d`  | boolean | false      | Show plan without executing                               |
+| `--verbose`       | `-v`  | boolean | false      | Enable debug logging                                      |
+| `--no-cache`      | -     | boolean | false      | Bypass PRP cache                                          |
+| `--help`          | `-h`  | boolean | false      | Show help                                                 |
 
 # ===== CONFIGURATION SECTION PATTERN =====
+
 ## Configuration
 
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | - | Your Anthropic API key (mapped from ANTHROPIC_AUTH_TOKEN) |
-| `ANTHROPIC_BASE_URL` | No | `https://api.z.ai/api/anthropic` | API endpoint |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL` | No | `glm-4.7` | Model for Architect agent |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No | `glm-4.7` | Model for Researcher/Coder agents |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | No | `glm-4.5-air` | Model for simple operations |
+| Variable                         | Required | Default                          | Description                                               |
+| -------------------------------- | -------- | -------------------------------- | --------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`              | Yes      | -                                | Your Anthropic API key (mapped from ANTHROPIC_AUTH_TOKEN) |
+| `ANTHROPIC_BASE_URL`             | No       | `https://api.z.ai/api/anthropic` | API endpoint                                              |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `glm-4.7`                        | Model for Architect agent                                 |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `glm-4.7`                        | Model for Researcher/Coder agents                         |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `glm-4.5-air`                    | Model for simple operations                               |
 
 ### Setup
 
@@ -734,6 +843,7 @@ echo "ANTHROPIC_API_KEY=your-api-key-here" > .env
 - **Haiku** (GLM-4.5-Air): Fastest, used for simple operations
 
 # ===== ARCHITECTURE DIAGRAM PATTERN =====
+
 ## Architecture Overview
 
 ### System Flow
@@ -765,20 +875,25 @@ flowchart LR
 ### Core Components
 
 #### Session Manager
+
 Handles state persistence, session directories, and PRD change detection.
 
 #### Task Orchestrator
+
 Manages task hierarchy traversal, dependency resolution, and scope-based execution.
 
 #### Agent Factory
+
 Creates specialized AI agents: Architect, Researcher, Coder, and QA.
 
 #### PRP Runtime
+
 Executes Product Requirement Prompts with validation gates.
 
 See [PROMPTS.md](PROMPTS.md) for complete PRP concept definition.
 
 # ===== PROJECT STRUCTURE PATTERN =====
+
 ## Project Structure
 
 ```
@@ -799,6 +914,7 @@ hacky-hack/
 ```
 
 # ===== CONTRIBUTING SECTION PATTERN =====
+
 ## Contributing
 
 We welcome contributions! Here's how to get started:
@@ -836,6 +952,7 @@ npm run typecheck
 - 100 character line limit
 
 # ===== LICENSE SECTION PATTERN =====
+
 ## License
 
 MIT License
@@ -861,11 +978,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 # ===== GOTCHA: Badge URLs =====
+
 # Replace YOUR_USERNAME with actual repository owner
+
 # CI badge won't work until GitHub Actions workflow is created
+
 # Coverage badge won't work until Codecov is set up
+
 # Version badge shows "unknown" until package is published to npm
-```
+
+````
 
 ### Integration Points
 
@@ -899,7 +1021,7 @@ TASKS_JSON:
   - reference: Current system status
   - use_in: Feature list accuracy
   - verify: Only Complete features are listed as working
-```
+````
 
 ---
 
