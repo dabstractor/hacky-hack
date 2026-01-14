@@ -1066,7 +1066,7 @@
           "type": "Milestone",
           "id": "P5.M1",
           "title": "Milestone 5.1: Observability and Logging",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Implement structured logging, metrics collection, and progress reporting.",
           "tasks": [
             {
@@ -1102,7 +1102,7 @@
               "type": "Task",
               "id": "P5.M1.T2",
               "title": "Implement Progress Reporting",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Create real-time progress indicators for pipeline execution.",
               "subtasks": [
                 {
@@ -1120,7 +1120,7 @@
                   "type": "Subtask",
                   "id": "P5.M1.T2.S2",
                   "title": "Integrate progress with pipeline",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P5.M1.T2.S1"
