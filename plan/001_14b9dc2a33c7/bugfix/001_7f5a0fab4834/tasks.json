@@ -45,7 +45,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
                   "title": "Link Groundswell in hacky-hack project",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2"
@@ -56,12 +56,12 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S4",
                   "title": "Verify Groundswell symlink in node_modules",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S3"
                   ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Symlink must exist at node_modules/groundswell per architecture/system_context.md\n2. INPUT: { success: boolean, message: string } from S3. Only proceed if success is true.\n3. LOGIC: Execute bash: `ls -la node_modules/groundswell`. Verify output contains symbolic link indicator (->). Mock filesystem check for testing.\n4. OUTPUT: Return { exists: boolean, path: string }. Must have exists: true for milestone completion. Consume in S5."
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Symlink must exist at node_modules/groundswell per architecture/system_context.md\n2. INPUT: { success: boolean, message: string } from S3. Only proceed if success is true.\n3. LOGIC: Execute bash: `ls -la node_modules/groundswell`. Verify output contains symbolic link indicator (->). Mock filesystem check for testing.\n4. OUTPUT: Return { exists: boolean, path: string }. Must have exists: true for milestone completion. Consume in S5.\n\nRESEARCH COMPLETED: Comprehensive ls -la parsing research documented in P1M1T1S4/research/ls-output-parsing-research.md including:\n- ls -la output format breakdown with real examples\n- Symlink detection patterns (permission 'l' and arrow '->')\n- Regex patterns for parsing: SYMLINK_ARROW_PATTERN, SYMLINK_PERMISSION_PATTERN\n- spawn() execution patterns with timeout handling\n- Complete TypeScript utilities in ls-output-parser-utils.ts\n- Alternative approach using native fs.lstat() recommended for production\n- Cross-platform considerations and testing examples\n\nFindings applied: Research documented in ls-output-parsing-research.md (26KB) and ls-output-parser-utils.ts (18KB) with production-ready code for symlink detection via ls -la parsing."
                 },
                 {
                   "type": "Subtask",
