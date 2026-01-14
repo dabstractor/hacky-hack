@@ -349,6 +349,7 @@ graph LR
   - Diagram export to PNG/SVG
 
 - **Rendering**:
+
   ````markdown
   ```mermaid
   sequenceDiagram
@@ -358,6 +359,7 @@ graph LR
     System-->>User: Response
   ```
   ````
+
   ```
 
   ```
