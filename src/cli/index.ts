@@ -73,6 +73,9 @@ export interface CLIArgs {
 
   /** Bypass PRP cache and regenerate all PRPs */
   noCache: boolean;
+
+  /** Treat all errors as non-fatal and continue pipeline execution */
+  continueOnError: boolean;
 }
 
 // ===== MAIN FUNCTION =====
@@ -124,6 +127,7 @@ export function parseCLIArgs(): CLIArgs {
     .option('--verbose', 'Enable debug logging', false)
     .option('--machine-readable', 'Enable machine-readable JSON output', false)
     .option('--no-cache', 'Bypass cache and regenerate all PRPs', false)
+    .option('--continue-on-error', 'Treat all errors as non-fatal', false)
     .parse(process.argv);
 
   // Get typed options

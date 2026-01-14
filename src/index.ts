@@ -139,7 +139,13 @@ async function main(): Promise<number> {
   if (args.verbose) {
     logger.debug('Creating PRPPipeline instance');
   }
-  const pipeline = new PRPPipeline(args.prd, scope, args.mode, args.noCache);
+  const pipeline = new PRPPipeline(
+    args.prd,
+    scope,
+    args.mode,
+    args.noCache,
+    args.continueOnError
+  );
 
   // Run pipeline
   if (args.verbose) {
@@ -161,18 +167,37 @@ async function main(): Promise<number> {
   }
 
   if (!result.success) {
-    // Pipeline failed
+    // Pipeline failed with fatal error
     logger.info(`\n❌ Pipeline failed`);
     if (result.error) {
       logger.info(`Error: ${result.error}`);
     }
     logger.info(`📊 Failed tasks: ${result.failedTasks}/${result.totalTasks}`);
     logger.info(`💾 Session: ${result.sessionPath}`);
+    if (result.hasFailures && result.sessionPath) {
+      logger.info(`\n📄 Error report: ${result.sessionPath}/ERROR_REPORT.md`);
+    }
     if (args.continue) {
       logger.info(`\n🚀 To retry, run:`);
       logger.info(`   npm run dev -- --prd ${args.prd} --continue`);
     }
     return 1;
+  }
+
+  if (result.hasFailures) {
+    // Pipeline completed but some tasks failed
+    logger.info(`\n⚠️  Pipeline completed with failures`);
+    logger.info(
+      `📊 Tasks: ${result.completedTasks}/${result.totalTasks} completed, ${result.failedTasks} failed`
+    );
+    logger.info(`⏱️  Duration: ${(result.duration / 1000).toFixed(1)}s`);
+    logger.info(`💾 Session: ${result.sessionPath}`);
+    logger.info(`\n📄 Error report: ${result.sessionPath}/ERROR_REPORT.md`);
+    logger.info(`\n🚀 To retry failed tasks, run:`);
+    logger.info(
+      `   npm run dev -- --prd ${args.prd} --continue --scope <task-id>`
+    );
+    return 1; // Exit with error code when any tasks failed
   }
 
   // Pipeline succeeded

@@ -31,6 +31,14 @@ import type { Backlog, Status, DeltaAnalysis, Task } from '../core/models.js';
 import type { Scope } from '../core/scope-resolver.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
+import {
+  isPipelineError,
+  isSessionError,
+  isTaskError,
+  isAgentError,
+  isValidationError,
+  ErrorCodes,
+} from '../utils/errors.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
 import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
@@ -47,6 +55,8 @@ import { retryAgentPrompt } from '../utils/retry.js';
 export interface PipelineResult {
   /** Whether pipeline completed successfully */
   success: boolean;
+  /** Whether any tasks failed during execution */
+  hasFailures: boolean;
   /** Path to session directory */
   sessionPath: string;
   /** Total number of subtasks in backlog */
@@ -85,6 +95,30 @@ export interface PhaseSummary {
   totalMilestones: number;
   /** Number of milestones completed */
   completedMilestones: number;
+}
+
+/**
+ * Error tracking record for failed tasks
+ *
+ * @remarks
+ * Captures complete context about task failures for error reporting.
+ * Stored in failedTasks Map keyed by task ID.
+ */
+interface TaskFailure {
+  /** Task ID that failed */
+  taskId: string;
+  /** Task title */
+  taskTitle: string;
+  /** Error that caused failure */
+  error: Error;
+  /** Error code from error hierarchy (if available) */
+  errorCode?: string;
+  /** Timestamp of failure */
+  timestamp: Date;
+  /** Phase ID where failure occurred */
+  phase?: string;
+  /** Milestone ID where failure occurred */
+  milestone?: string;
 }
 
 /**
@@ -152,6 +186,12 @@ export class PRPPipeline extends Workflow {
   /** Cache bypass flag from CLI --no-cache */
   readonly #noCache: boolean;
 
+  /** Continue-on-error flag from CLI --continue-on-error */
+  readonly #continueOnError: boolean;
+
+  /** Map of failed tasks to error context for error reporting */
+  #failedTasks: Map<string, TaskFailure> = new Map();
+
   /** Pipeline start time for duration calculation */
   #startTime: number = 0;
 
@@ -184,13 +224,15 @@ export class PRPPipeline extends Workflow {
    * @param scope - Optional scope to limit execution
    * @param mode - Execution mode: 'normal', 'bug-hunt', or 'validate' (default: 'normal')
    * @param noCache - Whether to bypass PRP cache (default: false)
+   * @param continueOnError - Whether to treat all errors as non-fatal (default: false)
    * @throws {Error} If prdPath is empty
    */
   constructor(
     prdPath: string,
     scope?: Scope,
     mode?: 'normal' | 'bug-hunt' | 'validate',
-    noCache: boolean = false
+    noCache: boolean = false,
+    continueOnError: boolean = false
   ) {
     super('PRPPipeline');
 
@@ -205,6 +247,7 @@ export class PRPPipeline extends Workflow {
     this.#scope = scope;
     this.mode = mode ?? 'normal';
     this.#noCache = noCache;
+    this.#continueOnError = continueOnError;
 
     // SessionManager will be created in run() to catch initialization errors
     this.sessionManager = null as any;
@@ -272,6 +315,133 @@ export class PRPPipeline extends Workflow {
     this.logger.debug('[PRPPipeline] Signal handlers registered');
   }
 
+  /**
+   * Determines if an error should be treated as fatal
+   *
+   * @param error - Unknown error to evaluate
+   * @returns true if error is fatal (should abort pipeline), false otherwise
+   *
+   * @remarks
+   * Fatal errors abort the pipeline immediately. Non-fatal errors are tracked
+   * and execution continues.
+   *
+   * Fatal error types:
+   * - Session load/save failures (when --continue-on-error is false)
+   * - Validation errors for PRD parsing
+   *
+   * Non-fatal error types:
+   * - Task execution failures (TaskError)
+   * - Agent LLM failures (AgentError)
+   * - All other errors when --continue-on-error is true
+   *
+   * @private
+   */
+  #isFatalError(error: unknown): boolean {
+    // If --continue-on-error flag is set, treat all errors as non-fatal
+    if (this.#continueOnError) {
+      this.logger.warn(
+        '[PRPPipeline] --continue-on-error enabled: treating error as non-fatal'
+      );
+      return false;
+    }
+
+    // Null/undefined check
+    if (error == null || typeof error !== 'object') {
+      return false; // Non-object errors are non-fatal
+    }
+
+    // Check for PipelineError from error hierarchy
+    if (isPipelineError(error)) {
+      // FATAL: Session errors that prevent pipeline execution
+      if (isSessionError(error)) {
+        return (
+          error.code === ErrorCodes.PIPELINE_SESSION_LOAD_FAILED ||
+          error.code === ErrorCodes.PIPELINE_SESSION_SAVE_FAILED
+        );
+      }
+
+      // FATAL: Validation errors for PRD parsing
+      if (isValidationError(error)) {
+        return (
+          error.code === ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT &&
+          error.context?.operation === 'parse_prd'
+        );
+      }
+
+      // NON-FATAL: Task and Agent errors are individual failures
+      if (isTaskError(error) || isAgentError(error)) {
+        return false;
+      }
+    }
+
+    // Default: non-fatal (continue on unknown errors)
+    return false;
+  }
+
+  /**
+   * Tracks a task failure in the failedTasks Map
+   *
+   * @param taskId - ID of the task that failed
+   * @param error - Error that caused the failure
+   * @param context - Optional context about the failure
+   *
+   * @remarks
+   * Creates a TaskFailure record with all available context and stores it
+   * in the failedTasks Map. Logs the error with full context for debugging.
+   *
+   * @private
+   */
+  #trackFailure(
+    taskId: string,
+    error: unknown,
+    context?: { phase?: string; milestone?: string; taskTitle?: string }
+  ): void {
+    // Extract error information
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    let errorCode: string | undefined;
+
+    // Extract error code from PipelineError
+    if (isPipelineError(error)) {
+      errorCode = error.code;
+    }
+
+    // Check for Node.js error codes
+    if (error instanceof Object && 'code' in error) {
+      errorCode = (error as { code: string }).code;
+    }
+
+    // Get task title from context or use taskId as fallback
+    const taskTitle = context?.taskTitle ?? taskId;
+
+    // Create failure record
+    const failure: TaskFailure = {
+      taskId,
+      taskTitle,
+      error: errorObj,
+      errorCode,
+      timestamp: new Date(),
+      phase: context?.phase,
+      milestone: context?.milestone,
+    };
+
+    // Store in failed tasks Map
+    this.#failedTasks.set(taskId, failure);
+
+    // Log with full context
+    this.logger.error(
+      {
+        taskId,
+        taskTitle: failure.taskTitle,
+        errorCode,
+        errorMessage: errorObj.message,
+        ...(errorObj.stack && { stack: errorObj.stack }),
+        timestamp: failure.timestamp.toISOString(),
+        ...context,
+      },
+      '[PRPPipeline] Task failure tracked'
+    );
+  }
+
   // ========================================================================
   // Step Methods
   // ========================================================================
@@ -324,10 +494,25 @@ export class PRPPipeline extends Workflow {
 
       this.logger.info('[PRPPipeline] Session initialized successfully');
     } catch (error) {
-      this.logger.error(
-        `[PRPPipeline] Session initialization failed: ${error}`
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if error is fatal
+      if (this.#isFatalError(error)) {
+        this.logger.error(
+          `[PRPPipeline] Fatal session initialization error: ${errorMessage}`
+        );
+        throw error; // Re-throw to abort pipeline
+      }
+
+      // Non-fatal: track failure and continue
+      this.#trackFailure('initializeSession', error, {
+        phase: this.currentPhase,
+      });
+      this.logger.warn(
+        `[PRPPipeline] Non-fatal session initialization error, continuing: ${errorMessage}`
       );
-      throw error;
+      this.currentPhase = 'session_failed';
     }
   }
 
@@ -436,8 +621,24 @@ export class PRPPipeline extends Workflow {
       // Update phase
       this.currentPhase = 'session_initialized';
     } catch (error) {
-      this.logger.error(`[PRPPipeline] Delta handling failed: ${error}`);
-      throw error;
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if error is fatal
+      if (this.#isFatalError(error)) {
+        this.logger.error(
+          `[PRPPipeline] Fatal delta handling error: ${errorMessage}`
+        );
+        throw error; // Re-throw to abort pipeline
+      }
+
+      // Non-fatal: track failure and continue
+      this.#trackFailure('handleDelta', error, {
+        phase: this.currentPhase,
+      });
+      this.logger.warn(
+        `[PRPPipeline] Non-fatal delta handling error, continuing: ${errorMessage}`
+      );
     }
   }
 
@@ -519,8 +720,25 @@ export class PRPPipeline extends Workflow {
       this.currentPhase = 'prd_decomposed';
       this.logger.info('[PRPPipeline] PRD decomposition complete');
     } catch (error) {
-      this.logger.error(`[PRPPipeline] PRD decomposition failed: ${error}`);
-      throw error;
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if error is fatal
+      if (this.#isFatalError(error)) {
+        this.logger.error(
+          `[PRPPipeline] Fatal PRD decomposition error: ${errorMessage}`
+        );
+        throw error; // Re-throw to abort pipeline
+      }
+
+      // Non-fatal: track failure and continue
+      this.#trackFailure('decomposePRD', error, {
+        phase: this.currentPhase,
+      });
+      this.logger.warn(
+        `[PRPPipeline] Non-fatal PRD decomposition error, continuing: ${errorMessage}`
+      );
+      this.currentPhase = 'prd_decomposition_failed';
     }
   }
 
@@ -564,48 +782,75 @@ export class PRPPipeline extends Workflow {
 
       // Process items until queue is empty or shutdown requested
       while (await this.taskOrchestrator.processNextItem()) {
-        iterations++;
+        // WRAP: Loop body in try-catch to continue on individual task failures
+        try {
+          iterations++;
 
-        // Safety check
-        if (iterations > maxIterations) {
-          throw new Error(`Execution exceeded ${maxIterations} iterations`);
-        }
+          // Safety check
+          if (iterations > maxIterations) {
+            throw new Error(`Execution exceeded ${maxIterations} iterations`);
+          }
 
-        // Update completed tasks count
-        this.completedTasks = this.#countCompletedTasks();
+          // Update completed tasks count
+          this.completedTasks = this.#countCompletedTasks();
 
-        // Track task completion for progress
-        const currentItemId = this.taskOrchestrator.currentItemId ?? 'unknown';
-        this.#progressTracker?.recordComplete(currentItemId);
+          // Track task completion for progress
+          const currentItemId =
+            this.taskOrchestrator.currentItemId ?? 'unknown';
+          this.#progressTracker?.recordComplete(currentItemId);
 
-        // Log progress every 5 tasks
-        if (this.completedTasks % 5 === 0) {
-          this.logger.info(
-            `[PRPPipeline] ${this.#progressTracker?.formatProgress()}`
+          // Log progress every 5 tasks
+          if (this.completedTasks % 5 === 0) {
+            this.logger.info(
+              `[PRPPipeline] ${this.#progressTracker?.formatProgress()}`
+            );
+          }
+
+          // Check for shutdown request after each task
+          if (this.shutdownRequested) {
+            this.logger.info(
+              '[PRPPipeline] Shutdown requested, finishing current task'
+            );
+
+            // Log progress state at shutdown
+            const progress = this.#progressTracker?.getProgress();
+            this.logger.info(
+              `[PRPPipeline] Shutting down: ${progress?.completed}/${progress?.total} tasks complete (${progress?.percentage.toFixed(1)}%)`
+            );
+
+            this.currentPhase = 'shutdown_interrupted';
+            break;
+          }
+
+          // Log progress every 10 items (kept for compatibility)
+          if (iterations % 10 === 0) {
+            this.logger.info(
+              `[PRPPipeline] Processed ${iterations} items, ${this.completedTasks}/${this.totalTasks} tasks complete`
+            );
+          }
+        } catch (taskError) {
+          // CATCH: Individual task failure - track and continue
+          const currentItemId =
+            this.taskOrchestrator.currentItemId ?? `iteration-${iterations}`;
+          const taskId = currentItemId;
+
+          this.#trackFailure(taskId, taskError, {
+            phase: this.currentPhase,
+          });
+
+          this.logger.warn(
+            {
+              taskId,
+              error:
+                taskError instanceof Error
+                  ? taskError.message
+                  : String(taskError),
+            },
+            '[PRPPipeline] Task failed, continuing to next task'
           );
-        }
 
-        // Check for shutdown request after each task
-        if (this.shutdownRequested) {
-          this.logger.info(
-            '[PRPPipeline] Shutdown requested, finishing current task'
-          );
-
-          // Log progress state at shutdown
-          const progress = this.#progressTracker?.getProgress();
-          this.logger.info(
-            `[PRPPipeline] Shutting down: ${progress?.completed}/${progress?.total} tasks complete (${progress?.percentage.toFixed(1)}%)`
-          );
-
-          this.currentPhase = 'shutdown_interrupted';
-          break;
-        }
-
-        // Log progress every 10 items (kept for compatibility)
-        if (iterations % 10 === 0) {
-          this.logger.info(
-            `[PRPPipeline] Processed ${iterations} items, ${this.completedTasks}/${this.totalTasks} tasks complete`
-          );
+          // Continue to next iteration - don't re-throw
+          // TaskOrchestrator already set status to Failed
         }
       }
 
@@ -634,8 +879,22 @@ export class PRPPipeline extends Workflow {
         this.logger.info('[PRPPipeline] Backlog execution complete');
       }
     } catch (error) {
-      this.logger.error(`[PRPPipeline] Backlog execution failed: ${error}`);
-      throw error;
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if error is fatal
+      if (this.#isFatalError(error)) {
+        this.logger.error(
+          `[PRPPipeline] Fatal backlog execution error: ${errorMessage}`
+        );
+        throw error; // Re-throw to abort pipeline
+      }
+
+      // Non-fatal: track and continue
+      this.#trackFailure('executeBacklog', error, { phase: this.currentPhase });
+      this.logger.warn(
+        `[PRPPipeline] Non-fatal backlog error, continuing: ${errorMessage}`
+      );
     }
   }
 
@@ -905,8 +1164,24 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
 
       this.logger.info('[PRPPipeline] QA cycle complete');
     } catch (error) {
-      // QA failure is non-fatal - log and continue
-      this.logger.warn(`[PRPPipeline] QA cycle failed (non-fatal): ${error}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if error is fatal
+      if (this.#isFatalError(error)) {
+        this.logger.error(
+          `[PRPPipeline] Fatal QA cycle error: ${errorMessage}`
+        );
+        throw error; // Re-throw to abort pipeline
+      }
+
+      // QA failure is non-fatal - track and continue
+      this.#trackFailure('runQACycle', error, {
+        phase: this.currentPhase,
+      });
+      this.logger.warn(
+        `[PRPPipeline] QA cycle failed (non-fatal): ${errorMessage}`
+      );
       this.#bugsFound = 0;
       this.currentPhase = 'qa_failed';
     }
@@ -1022,6 +1297,148 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
     }
   }
 
+  /**
+   * Generates error report if any failures occurred
+   *
+   * @remarks
+   * Creates ERROR_REPORT.md in the session directory with:
+   * - Summary of total/completed/failed tasks
+   * - List of all failed tasks with error details
+   * - Error categories breakdown
+   * - Recommendations for fixing failures
+   *
+   * Only generates report if failedTasks Map is non-empty.
+   *
+   * @private
+   */
+  async #generateErrorReport(): Promise<void> {
+    // No failures - skip report generation
+    if (this.#failedTasks.size === 0) {
+      return;
+    }
+
+    this.logger.info(
+      { failureCount: this.#failedTasks.size },
+      '[PRPPipeline] Generating error report'
+    );
+
+    const sessionPath = this.sessionManager.currentSession?.metadata.path;
+    if (!sessionPath) {
+      this.logger.warn(
+        '[PRPPipeline] Session path not available for error report'
+      );
+      return;
+    }
+
+    // Build error report data
+    const failures = Array.from(this.#failedTasks.values());
+
+    // Categorize by error type
+    const errorCategories = {
+      taskError: 0,
+      agentError: 0,
+      validationError: 0,
+      sessionError: 0,
+      other: 0,
+    };
+
+    for (const failure of failures) {
+      if (isTaskError(failure.error)) {
+        errorCategories.taskError++;
+      } else if (isAgentError(failure.error)) {
+        errorCategories.agentError++;
+      } else if (isValidationError(failure.error)) {
+        errorCategories.validationError++;
+      } else if (isSessionError(failure.error)) {
+        errorCategories.sessionError++;
+      } else {
+        errorCategories.other++;
+      }
+    }
+
+    const successRate =
+      this.totalTasks > 0
+        ? ((this.completedTasks / this.totalTasks) * 100).toFixed(1)
+        : '0.0';
+
+    // Generate markdown content
+    const content = `# Error Report
+
+**Generated**: ${new Date().toISOString()}
+**Pipeline Mode**: ${this.mode}
+**Continue on Error**: ${this.#continueOnError ? 'Yes' : 'No'}
+
+## Summary
+
+| Metric | Count |
+|--------|-------|
+| Total Tasks | ${this.totalTasks} |
+| Completed | ${this.completedTasks} |
+| Failed | ${this.#failedTasks.size} |
+| Success Rate | ${successRate}% |
+
+## Failed Tasks
+
+${failures
+  .map((failure, index) => {
+    const errorType = failure.errorCode
+      ? `${failure.error.constructor.name} (${failure.errorCode})`
+      : failure.error.constructor.name;
+
+    return `### ${index + 1}. ${failure.taskId}: ${failure.taskTitle}
+
+**Phase**: ${failure.phase || 'Unknown'}
+**Milestone**: ${failure.milestone || 'N/A'}
+**Error Type**: ${errorType}
+**Timestamp**: ${failure.timestamp.toISOString()}
+
+**Error Message**:
+\`\`\`
+${failure.error.message}
+\`\`\`
+
+${
+  failure.error.stack
+    ? `**Stack Trace**:
+\`\`\`
+${failure.error.stack.split('\n').slice(0, 5).join('\n')}
+...
+\`\`\`
+`
+    : ''
+}
+`;
+  })
+  .join('\n---\n')}
+
+## Error Categories
+
+- **TaskError**: ${errorCategories.taskError} tasks
+- **AgentError**: ${errorCategories.agentError} tasks
+- **ValidationError**: ${errorCategories.validationError} tasks
+- **SessionError**: ${errorCategories.sessionError} tasks
+- **Other**: ${errorCategories.other} tasks
+
+## Recommendations
+
+1. Review failed tasks above for common patterns
+2. Check error messages and stack traces for root causes
+3. Fix underlying issues (code, configuration, environment)
+4. Re-run pipeline with \`--scope <task-id>\` to retry specific tasks
+5. Use \`--continue-on-error\` flag to maximize progress on re-run
+
+**Report Location**: ${sessionPath}/ERROR_REPORT.md
+`;
+
+    // Write error report to session directory
+    const { resolve } = await import('node:path');
+    const { writeFile } = await import('node:fs/promises');
+    const reportPath = resolve(sessionPath, 'ERROR_REPORT.md');
+
+    await writeFile(reportPath, content, 'utf-8');
+    this.logger.info(`[PRPPipeline] Error report written to ${reportPath}`);
+  }
+
   // ========================================================================
   // Main Entry Point
   // ========================================================================
@@ -1083,12 +1500,16 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
       this.logger.info('[PRPPipeline] Workflow completed successfully');
       this.logger.info(`[PRPPipeline] Duration: ${duration.toFixed(0)}ms`);
 
+      // GENERATE: Error report if any failures occurred
+      await this.#generateErrorReport();
+
       return {
-        success: true,
+        success: this.#failedTasks.size === 0,
+        hasFailures: this.#failedTasks.size > 0,
         sessionPath,
         totalTasks: this.totalTasks,
         completedTasks: this.completedTasks,
-        failedTasks: this.#countFailedTasks(),
+        failedTasks: this.#failedTasks.size,
         finalPhase: this.currentPhase,
         duration,
         phases: this.#summarizePhases(),
@@ -1104,12 +1525,16 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
 
       this.logger.error(`[PRPPipeline] Workflow failed: ${errorMessage}`);
 
+      // GENERATE: Error report even on fatal error
+      await this.#generateErrorReport();
+
       return {
         success: false,
+        hasFailures: this.#failedTasks.size > 0,
         sessionPath: this.sessionManager?.currentSession?.metadata.path ?? '',
         totalTasks: this.totalTasks,
         completedTasks: this.completedTasks,
-        failedTasks: this.#countFailedTasks(),
+        failedTasks: this.#failedTasks.size,
         finalPhase: this.currentPhase,
         duration,
         phases: [],

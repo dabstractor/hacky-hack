@@ -1,7 +1,6 @@
 ---
-name: "Retry Logic Implementation - Exponential Backoff with Transient Error Detection"
+name: 'Retry Logic Implementation - Exponential Backoff with Transient Error Detection'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: `src/utils/retry.ts` with exported `RetryOptions` interface, `retry<T>()` function, and `isTransientError()` predicate, plus integration at 7 agent prompt call sites and MCP tool executions.
 
 **Success Definition**:
+
 - All agent `.prompt()` calls wrapped with retry logic
 - MCP tool executions wrapped with retry logic
 - Only transient errors trigger retries (network, timeout)
@@ -26,6 +26,7 @@ description: |
 **Use Case**: When LLM API calls or MCP tool operations fail due to temporary network issues, rate limits, or service interruptions, the operation automatically retries with exponential backoff before failing permanently.
 
 **User Journey**:
+
 1. Agent `.prompt()` call fails with transient error (timeout, network reset)
 2. Retry utility catches error and checks if retryable
 3. Exponential backoff delay calculated with jitter
@@ -34,6 +35,7 @@ description: |
 6. On success: operation continues; on final failure: error propagated
 
 **Pain Points Addressed**:
+
 - Zero error resilience around agent prompt calls
 - No retry logic for MCP tool executions
 - Pipeline fails on transient network issues
@@ -272,11 +274,11 @@ tests/
 ```typescript
 // Retry configuration interface
 export interface RetryOptions {
-  maxAttempts?: number;      // Default: 3
-  baseDelay?: number;        // Default: 1000ms
-  maxDelay?: number;         // Default: 30000ms
-  backoffFactor?: number;    // Default: 2
-  jitterFactor?: number;     // Default: 0.1 (10% jitter)
+  maxAttempts?: number; // Default: 3
+  baseDelay?: number; // Default: 1000ms
+  maxDelay?: number; // Default: 30000ms
+  backoffFactor?: number; // Default: 2
+  jitterFactor?: number; // Default: 0.1 (10% jitter)
   isRetryable?: (error: unknown) => boolean;
   onRetry?: (attempt: number, error: unknown, delay: number) => void;
 }
@@ -426,14 +428,14 @@ export interface RetryOptions {
 // TRANSIENT ERROR CONSTANTS (Task 1)
 // ============================================================================
 const TRANSIENT_ERROR_CODES = new Set([
-  'ECONNRESET',    // Connection reset by peer
-  'ECONNREFUSED',  // Connection refused
-  'ETIMEDOUT',     // Connection timeout
-  'ENOTFOUND',     // DNS lookup failed
-  'EPIPE',         // Broken pipe
-  'EAI_AGAIN',     // DNS temporary failure
-  'EHOSTUNREACH',  // Host unreachable
-  'ENETUNREACH',   // Network unreachable
+  'ECONNRESET', // Connection reset by peer
+  'ECONNREFUSED', // Connection refused
+  'ETIMEDOUT', // Connection timeout
+  'ENOTFOUND', // DNS lookup failed
+  'EPIPE', // Broken pipe
+  'EAI_AGAIN', // DNS temporary failure
+  'EHOSTUNREACH', // Host unreachable
+  'ENETUNREACH', // Network unreachable
 ]);
 
 const RETRYABLE_HTTP_STATUS_CODES = new Set([
@@ -449,7 +451,7 @@ const RETRYABLE_HTTP_STATUS_CODES = new Set([
 // SLEEP UTILITY (Task 1)
 // ============================================================================
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // ============================================================================
@@ -531,7 +533,7 @@ export function isTransientError(error: unknown): boolean {
     'etimedout',
   ];
 
-  return TRANSIENT_PATTERNS.some((pattern) => message.includes(pattern));
+  return TRANSIENT_PATTERNS.some(pattern => message.includes(pattern));
 }
 
 // NEVER RETRY these errors:
@@ -570,7 +572,7 @@ export function isPermanentError(error: unknown): boolean {
     'parse error',
   ];
 
-  return PERMANENT_PATTERNS.some((pattern) => message.includes(pattern));
+  return PERMANENT_PATTERNS.some(pattern => message.includes(pattern));
 }
 
 // ============================================================================
@@ -641,7 +643,8 @@ const logger = getLogger('retry');
 
 export function createDefaultOnRetry(operationName: string) {
   return (attempt: number, error: unknown, delay: number) => {
-    const errorName = error instanceof Error ? error.constructor.name : 'UnknownError';
+    const errorName =
+      error instanceof Error ? error.constructor.name : 'UnknownError';
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     logger.warn(
@@ -684,7 +687,7 @@ export async function retryMcpTool<T>(
     maxAttempts: 2,
     baseDelay: 500,
     maxDelay: 5000,
-    isRetryable: (error) => {
+    isRetryable: error => {
       // MCP tool errors may have different structure
       if (error == null || typeof error !== 'object') {
         return false;
