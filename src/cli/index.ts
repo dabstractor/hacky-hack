@@ -76,6 +76,9 @@ export interface CLIArgs {
 
   /** Treat all errors as non-fatal and continue pipeline execution */
   continueOnError: boolean;
+
+  /** Validate PRD syntax and structure without executing */
+  validatePrd: boolean;
 }
 
 // ===== MAIN FUNCTION =====
@@ -128,6 +131,11 @@ export function parseCLIArgs(): CLIArgs {
     .option('--machine-readable', 'Enable machine-readable JSON output', false)
     .option('--no-cache', 'Bypass cache and regenerate all PRPs', false)
     .option('--continue-on-error', 'Treat all errors as non-fatal', false)
+    .option(
+      '--validate-prd',
+      'Validate PRD and exit without running pipeline',
+      false
+    )
     .parse(process.argv);
 
   // Get typed options

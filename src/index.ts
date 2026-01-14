@@ -40,6 +40,7 @@ import { parseCLIArgs, type CLIArgs } from './cli/index.js';
 import { PRPPipeline } from './workflows/prp-pipeline.js';
 import { parseScope, type Scope } from './core/scope-resolver.js';
 import { getLogger, type Logger } from './utils/logger.js';
+import { PRDValidator } from './utils/prd-validator.js';
 
 // ============================================================================
 // GLOBAL ERROR HANDLERS
@@ -124,6 +125,51 @@ async function main(): Promise<number> {
       logger.info(`  Resume: enabled`);
     }
     return 0;
+  }
+
+  // Handle --validate-prd mode: early exit after validation
+  if (args.validatePrd) {
+    logger.info('🔍 Validating PRD...');
+
+    const validator = new PRDValidator();
+    const result = await validator.validate(args.prd);
+
+    // Print validation report
+    console.log('\n' + '='.repeat(60));
+    console.log('PRD Validation Report');
+    console.log('='.repeat(60));
+    console.log(`File: ${result.prdPath}`);
+    console.log(`Status: ${result.valid ? '✅ VALID' : '❌ INVALID'}`);
+    console.log(`\nSummary:`);
+    console.log(`  Critical: ${result.summary.critical}`);
+    console.log(`  Warnings: ${result.summary.warning}`);
+    console.log(`  Info: ${result.summary.info}`);
+
+    if (result.issues.length > 0) {
+      console.log(`\nIssues:`);
+      for (const issue of result.issues) {
+        const icon =
+          issue.severity === 'critical'
+            ? '❌'
+            : issue.severity === 'warning'
+              ? '⚠️'
+              : 'ℹ️';
+        console.log(
+          `\n${icon} [${issue.severity.toUpperCase()}] ${issue.message}`
+        );
+        if (issue.suggestion) {
+          console.log(`   Suggestion: ${issue.suggestion}`);
+        }
+        if (issue.reference) {
+          console.log(`   Reference: ${issue.reference}`);
+        }
+      }
+    }
+
+    console.log('='.repeat(60) + '\n');
+
+    // Exit with appropriate code
+    return result.valid ? 0 : 1;
   }
 
   // Parse scope if provided

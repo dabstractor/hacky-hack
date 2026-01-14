@@ -45,6 +45,8 @@ import {
   updateItemStatus as updateItemStatusUtil,
   findItem,
 } from '../utils/task-utils.js';
+import { PRDValidator } from '../utils/prd-validator.js';
+import { ValidationError } from '../utils/errors.js';
 
 /**
  * Compiled regex for session directory matching
@@ -211,11 +213,45 @@ export class SessionManager {
     // Cache the PRD hash for later change detection
     this.#prdHash = sessionHash;
 
-    // 2. Search for existing session with matching hash
+    // 2. Validate PRD content and structure
+    const validator = new PRDValidator();
+    const validationResult = await validator.validate(this.prdPath);
+
+    if (!validationResult.valid) {
+      // Find first critical issue for error message
+      const criticalIssue = validationResult.issues.find(
+        i => i.severity === 'critical'
+      );
+
+      throw new ValidationError(
+        `PRD validation failed: ${criticalIssue?.message || 'Unknown error'}`,
+        {
+          prdPath: this.prdPath,
+          validationIssues: validationResult.issues,
+          summary: validationResult.summary,
+          suggestion: criticalIssue?.suggestion,
+        }
+      );
+    }
+
+    // Log validation result if warnings
+    if (validationResult.summary.warning > 0) {
+      this.#logger.warn(
+        {
+          warnings: validationResult.summary.warning,
+          issues: validationResult.issues.filter(i => i.severity === 'warning'),
+        },
+        '[SessionManager] PRD validated with warnings'
+      );
+    } else {
+      this.#logger.info('[SessionManager] PRD validation passed');
+    }
+
+    // 3. Search for existing session with matching hash
     const existingSession = await this.#findSessionByHash(sessionHash);
 
     if (existingSession) {
-      // 3. Load existing session
+      // 4. Load existing session
       this.#currentSession = await this.loadSession(existingSession);
       this.#logger.info(
         { sessionId: this.#currentSession.metadata.id, prdPath: this.prdPath },
@@ -224,17 +260,17 @@ export class SessionManager {
       return this.#currentSession;
     }
 
-    // 4. Create new session
+    // 5. Create new session
     const sequence = await this.#getNextSequence();
     const sessionPath = await createSessionDirectory(this.prdPath, sequence);
 
-    // 5. Write PRD snapshot
+    // 6. Write PRD snapshot
     const prdContent = await readFile(this.prdPath, 'utf-8');
     await writeFile(resolve(sessionPath, 'prd_snapshot.md'), prdContent, {
       mode: 0o644,
     });
 
-    // 6. Create SessionState with empty task registry
+    // 7. Create SessionState with empty task registry
     const sessionId = `${String(sequence).padStart(3, '0')}_${sessionHash}`;
     const metadata: SessionMetadata = {
       id: sessionId,

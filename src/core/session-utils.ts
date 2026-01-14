@@ -114,17 +114,16 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
  * Reads a file with strict UTF-8 validation
  *
  * @remarks
- * Internal helper that reads a file as a buffer and validates UTF-8 encoding
- * using TextDecoder with fatal: true. This prevents silent data corruption
- * from invalid UTF-8 sequences.
+ * Reads a file as a buffer and validates UTF-8 encoding using TextDecoder
+ * with fatal: true. This prevents silent data corruption from invalid UTF-8
+ * sequences.
  *
  * @param path - File path to read
  * @param operation - Description of operation for error messages
  * @returns Promise resolving to file content as string
  * @throws {SessionFileError} If file cannot be read or contains invalid UTF-8
- * @internal
  */
-async function readUTF8FileStrict(
+export async function readUTF8FileStrict(
   path: string,
   operation: string
 ): Promise<string> {

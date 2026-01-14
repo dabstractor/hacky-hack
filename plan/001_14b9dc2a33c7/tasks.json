@@ -1316,7 +1316,7 @@
                   "type": "Subtask",
                   "id": "P5.M4.T2.S1",
                   "title": "Handle empty and malformed PRDs",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M4.T1.S3"
@@ -1327,7 +1327,7 @@
                   "type": "Subtask",
                   "id": "P5.M4.T2.S2",
                   "title": "Handle circular dependencies",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P5.M4.T2.S1"

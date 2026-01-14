@@ -23,6 +23,8 @@ import {
   updateItemStatus as updateItemStatusUtil,
   findItem,
 } from '../../../src/utils/task-utils.js';
+import { PRDValidator } from '../../../src/utils/prd-validator.js';
+import { ValidationError } from '../../../src/utils/errors.js';
 import type { Backlog } from '../../../src/core/models.js';
 import { Status } from '../../../src/core/models.js';
 
@@ -69,6 +71,12 @@ vi.mock('../../../src/utils/task-utils.js', () => ({
   findItem: vi.fn(),
 }));
 
+// Mock the prd-validator module
+vi.mock('../../../src/utils/prd-validator.js', () => ({
+  PRDValidator: vi.fn(),
+  default: vi.fn(),
+}));
+
 // Import mocked modules
 import { readFile, writeFile, stat, readdir } from 'node:fs/promises';
 import { statSync } from 'node:fs';
@@ -86,6 +94,15 @@ const mockReadTasksJSON = readTasksJSON as any;
 const mockWriteTasksJSON = writeTasksJSON as any;
 const mockUpdateItemStatusUtil = updateItemStatusUtil as any;
 const mockFindItem = findItem as any;
+
+// Mock PRDValidator class
+const mockPRDValidator = PRDValidator as any;
+const mockValidate = vi.fn();
+
+// Setup mock validator instance
+mockPRDValidator.mockImplementation(() => ({
+  validate: mockValidate,
+}));
 
 // Factory functions for test data
 const createTestSubtask = (
@@ -273,6 +290,14 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
+      // Mock successful validation
+      mockValidate.mockResolvedValue({
+        valid: true,
+        prdPath: '/test/PRD.md',
+        issues: [],
+        summary: { critical: 0, warning: 0, info: 0 },
+        validatedAt: new Date(),
+      });
 
       // EXECUTE
       const manager = new SessionManager('/test/PRD.md');
@@ -290,6 +315,86 @@ describe('SessionManager', () => {
       mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
+      // Mock successful validation by default
+      mockValidate.mockResolvedValue({
+        valid: true,
+        prdPath: '/test/PRD.md',
+        issues: [],
+        summary: { critical: 0, warning: 0, info: 0 },
+        validatedAt: new Date(),
+      });
+    });
+
+    it('should validate PRD before processing', async () => {
+      // SETUP: No existing sessions
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+
+      // EXECUTE
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // VERIFY
+      expect(mockValidate).toHaveBeenCalledWith('/test/PRD.md');
+    });
+
+    it('should throw ValidationError for invalid PRD', async () => {
+      // SETUP: Mock validation failure
+      mockValidate.mockResolvedValue({
+        valid: false,
+        prdPath: '/test/PRD.md',
+        issues: [
+          {
+            severity: 'critical',
+            category: 'content',
+            message: 'PRD content is too short (10 chars). Minimum: 100 chars',
+            field: 'content',
+            expected: 'At least 100 characters',
+            actual: '10 characters',
+            suggestion: 'Add more content to your PRD.',
+          },
+        ],
+        summary: { critical: 1, warning: 0, info: 0 },
+        validatedAt: new Date(),
+      });
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      await expect(manager.initialize()).rejects.toThrow(ValidationError);
+    });
+
+    it('should include validation context in ValidationError', async () => {
+      // SETUP: Mock validation failure
+      mockValidate.mockResolvedValue({
+        valid: false,
+        prdPath: '/test/PRD.md',
+        issues: [
+          {
+            severity: 'critical',
+            category: 'content',
+            message: 'PRD content is too short',
+            suggestion: 'Add more content',
+          },
+        ],
+        summary: { critical: 1, warning: 0, info: 0 },
+        validatedAt: new Date(),
+      });
+
+      // EXECUTE & VERIFY
+      const manager = new SessionManager('/test/PRD.md');
+      try {
+        await manager.initialize();
+        expect.fail('Should have thrown ValidationError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect((error as ValidationError).code).toBe(
+          'PIPELINE_VALIDATION_INVALID_INPUT'
+        );
+        expect((error as ValidationError).context).toHaveProperty('prdPath');
+        expect((error as ValidationError).context).toHaveProperty(
+          'validationIssues'
+        );
+      }
     });
 
     it('should hash PRD using hashPRD()', async () => {
