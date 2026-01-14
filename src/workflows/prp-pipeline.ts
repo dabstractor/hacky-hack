@@ -983,6 +983,10 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
       // Save current state
       const backlog = this.sessionManager.currentSession?.taskRegistry;
       if (backlog) {
+        // FLUSH: Flush any pending batch updates before shutdown
+        await this.sessionManager.flushUpdates();
+        this.logger.debug('[PRPPipeline] Pending updates flushed on shutdown');
+
         await this.sessionManager.saveBacklog(backlog);
         this.logger.info('[PRPPipeline] ✅ State saved successfully');
 

@@ -715,6 +715,9 @@ export class TaskOrchestrator {
           error instanceof Error ? error.message : String(error);
         this.#logger.error({ error: errorMessage }, 'Smart commit failed');
       }
+
+      // FLUSH: Batch write after subtask completes (success or failure)
+      await this.sessionManager.flushUpdates();
     } catch (error) {
       // PATTERN: Set 'Failed' status on exception with error details
       const errorMessage =
@@ -734,6 +737,9 @@ export class TaskOrchestrator {
         },
         'Subtask execution failed'
       );
+
+      // FLUSH: Still flush on error to preserve failure state
+      await this.sessionManager.flushUpdates();
 
       // PATTERN: Re-throw error for upstream handling
       throw error;

@@ -103,6 +103,15 @@ export class SessionManager {
   /** Cached PRD hash for change detection (null until initialize called) */
   #prdHash: string | null = null;
 
+  /** Batching state: flag indicating pending changes */
+  #dirty: boolean = false;
+
+  /** Batching state: latest accumulated backlog state */
+  #pendingUpdates: Backlog | null = null;
+
+  /** Batching state: count of accumulated updates (for stats) */
+  #updateCount: number = 0;
+
   /**
    * Creates a new SessionManager instance
    *
@@ -417,6 +426,80 @@ export class SessionManager {
   }
 
   /**
+   * Flushes accumulated batch updates to disk atomically
+   *
+   * @remarks
+   * Persists all pending status updates in a single atomic write operation.
+   * Logs batch statistics including items written and write operations saved.
+   * Safe to call multiple times - no-op if no pending changes.
+   *
+   * Preserves dirty state on error to allow retry on next flush.
+   *
+   * @throws {Error} If no session is loaded
+   * @throws {SessionFileError} If write fails (dirty state preserved)
+   *
+   * @example
+   * ```typescript
+   * await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+   * await manager.updateItemStatus('P1.M1.T1.S2', 'Complete');
+   * // Both updates accumulated in memory
+   * await manager.flushUpdates(); // Single write operation
+   * // Log: "Batch write complete: 2 items in 1 operation (1 write ops saved)"
+   * ```
+   */
+  async flushUpdates(): Promise<void> {
+    // Early return if no pending changes
+    if (!this.#dirty) {
+      this.#logger.debug('No pending updates to flush');
+      return;
+    }
+
+    if (!this.#pendingUpdates) {
+      this.#logger.warn(
+        'Dirty flag set but no pending updates - skipping flush'
+      );
+      this.#dirty = false;
+      return;
+    }
+
+    try {
+      // Persist accumulated updates atomically
+      await this.saveBacklog(this.#pendingUpdates);
+
+      // Calculate stats for logging
+      const itemsWritten = this.#updateCount;
+      const writeOpsSaved = Math.max(0, itemsWritten - 1);
+
+      // Log batch write completion
+      this.#logger.info(
+        {
+          itemsWritten,
+          writeOpsSaved,
+          efficiency:
+            itemsWritten > 0
+              ? `${((writeOpsSaved / itemsWritten) * 100).toFixed(1)}%`
+              : '0%',
+        },
+        'Batch write complete'
+      );
+
+      // Reset batching state
+      this.#dirty = false;
+      this.#pendingUpdates = null;
+      this.#updateCount = 0;
+
+      this.#logger.debug('Batching state reset');
+    } catch (error) {
+      // Preserve dirty state on error - allow retry
+      this.#logger.error(
+        { error, pendingCount: this.#updateCount },
+        'Batch write failed - pending updates preserved for retry'
+      );
+      throw error; // Re-throw for caller to handle
+    }
+  }
+
+  /**
    * Loads backlog from tasks.json
    *
    * @remarks
@@ -447,19 +530,19 @@ export class SessionManager {
    *
    * @remarks
    * Uses immutable update pattern from task-utils.ts to create a new
-   * backlog with updated status, then persists to disk and updates
-   * the internal session state.
+   * backlog with updated status. Accumulates updates in memory for
+   * batch flushing - caller must call flushUpdates() to persist changes.
    *
    * @param itemId - Item ID to update (e.g., "P1.M1.T1.S1")
    * @param status - New status value
-   * @returns Updated Backlog after save
+   * @returns Updated Backlog (not yet persisted to disk)
    * @throws {Error} If no session is loaded
-   * @throws {SessionFileError} If write fails
    *
    * @example
    * ```typescript
    * const updated = await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
-   * // Status updated in memory and persisted to tasks.json
+   * // Status updated in memory but NOT persisted to disk
+   * await manager.flushUpdates(); // Persist all pending updates
    * ```
    */
   async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
@@ -473,14 +556,25 @@ export class SessionManager {
     // Immutable update using utility function
     const updated = updateItemStatusUtil(currentBacklog, itemId, status);
 
-    // Persist to disk atomically
-    await this.saveBacklog(updated);
+    // BATCHING: Accumulate in memory instead of immediate write
+    this.#pendingUpdates = updated;
+    this.#dirty = true;
+    this.#updateCount++;
 
-    // Update internal session state by creating new object (readonly properties)
+    // Update internal session state
     this.#currentSession = {
       ...this.#currentSession,
       taskRegistry: updated,
     };
+
+    // Log the batched update (debug level - high frequency)
+    this.#logger.debug(
+      { itemId, status, pendingCount: this.#updateCount },
+      'Status update batched'
+    );
+
+    // NOTE: No longer calling await this.saveBacklog(updated)
+    // Caller must call flushUpdates() to persist changes
 
     return updated;
   }

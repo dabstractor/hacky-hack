@@ -199,6 +199,7 @@ function createMockSessionManager(
     hasSessionChanged: vi.fn().mockReturnValue(hasSessionChanged),
     createDeltaSession: vi.fn().mockResolvedValue(session),
     prdPath: '/test/prd.md',
+    flushUpdates: vi.fn().mockResolvedValue(undefined),
   };
   // Set the mock instance to be returned by SessionManager constructor
   MockSessionManagerClass.mockImplementation(() => mock);

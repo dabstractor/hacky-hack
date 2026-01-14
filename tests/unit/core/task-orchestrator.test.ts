@@ -161,6 +161,7 @@ const createMockSessionManager = (currentSession: any): SessionManager => {
     currentSession,
     updateItemStatus: vi.fn().mockResolvedValue(currentSession?.taskRegistry),
     loadBacklog: vi.fn().mockResolvedValue(currentSession?.taskRegistry),
+    flushUpdates: vi.fn().mockResolvedValue(undefined),
   } as unknown as SessionManager;
   return mockManager;
 };

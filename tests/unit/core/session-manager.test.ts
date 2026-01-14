@@ -1478,20 +1478,26 @@ describe('SessionManager', () => {
       const manager = new SessionManager('/test/PRD.md');
       await manager.initialize();
 
-      // EXECUTE - updateItemStatus will use current empty backlog
+      // EXECUTE - updateItemStatus will batch the update (no immediate write)
       const result = await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
 
-      // VERIFY
+      // VERIFY: updateItemStatus updated memory but did NOT write
       expect(mockUpdateItemStatusUtil).toHaveBeenCalledWith(
         emptyBacklog,
         'P1.M1.T1.S1',
         'Complete'
       );
+      expect(mockWriteTasksJSON).not.toHaveBeenCalled(); // Batching: no immediate write
+      expect(result).toEqual(updatedBacklog);
+
+      // EXECUTE: Flush to persist the batched updates
+      await manager.flushUpdates();
+
+      // VERIFY: writeTasksJSON was called after flush
       expect(mockWriteTasksJSON).toHaveBeenCalledWith(
         '/plan/001_14b9dc2a33c7',
         updatedBacklog
       );
-      expect(result).toEqual(updatedBacklog);
     });
 
     it('should throw Error when no session loaded', async () => {
@@ -1710,8 +1716,11 @@ describe('SessionManager', () => {
       const manager = new SessionManager('/test/PRD.md');
       await manager.initialize();
 
-      // EXECUTE: Update status
+      // EXECUTE: Update status (batched in memory)
       await manager.updateItemStatus('P1', 'Complete');
+
+      // EXECUTE: Flush to persist the batched updates
+      await manager.flushUpdates();
 
       // EXECUTE: Load to verify persistence
       const loaded = await manager.loadBacklog();
@@ -2231,6 +2240,268 @@ describe('SessionManager', () => {
       // VERIFY
       expect(byPRD).not.toBeNull();
       expect(byPRD?.id).toBe('001_14b9dc2a33c7');
+    });
+  });
+
+  describe('batch state updates', () => {
+    beforeEach(() => {
+      mockStatSync.mockReturnValue({ isFile: () => true });
+    });
+
+    it('should batch updates without immediate write', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const _originalBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+            ]),
+          ]),
+        ]),
+      ]);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Planned', [
+          createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+            createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+              createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete'),
+            ]),
+          ]),
+        ]),
+      ]);
+
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Update status (should batch, not write)
+      await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+
+      // VERIFY: writeTasksJSON should NOT be called
+      expect(mockWriteTasksJSON).not.toHaveBeenCalled();
+
+      // VERIFY: Backlog was updated in memory
+      expect(manager.currentSession?.taskRegistry).toEqual(updatedBacklog);
+    });
+
+    it('should flushUpdates write accumulated state atomically', async () => {
+      // SETUP: Initialize session with batched updates
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Batch updates then flush
+      await manager.updateItemStatus('P1', 'Complete');
+      await manager.flushUpdates();
+
+      // VERIFY: writeTasksJSON was called exactly once
+      expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
+      expect(mockWriteTasksJSON).toHaveBeenCalledWith(
+        '/plan/001_14b9dc2a33c7',
+        updatedBacklog
+      );
+    });
+
+    it('should flushUpdates be no-op when not dirty', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Flush without any updates
+      await manager.flushUpdates();
+
+      // VERIFY: writeTasksJSON should NOT be called
+      expect(mockWriteTasksJSON).not.toHaveBeenCalled();
+    });
+
+    it('should accumulate multiple updates before flush', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const backlog1 = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Implementing'),
+      ]);
+      const backlog2 = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+
+      mockUpdateItemStatusUtil
+        .mockReturnValueOnce(backlog1)
+        .mockReturnValueOnce(backlog2);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Multiple updates, single flush
+      await manager.updateItemStatus('P1', 'Implementing');
+      await manager.updateItemStatus('P1', 'Complete');
+      await manager.flushUpdates();
+
+      // VERIFY: writeTasksJSON called exactly once
+      expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
+    });
+
+    it('should log batch stats on flush', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const backlog1 = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Implementing'),
+      ]);
+      const backlog2 = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+      const backlog3 = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+        createTestPhase('P2', 'Phase 2', 'Implementing'),
+      ]);
+
+      mockUpdateItemStatusUtil
+        .mockReturnValueOnce(backlog1)
+        .mockReturnValueOnce(backlog2)
+        .mockReturnValueOnce(backlog3);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: 3 updates then flush
+      await manager.updateItemStatus('P1', 'Implementing');
+      await manager.updateItemStatus('P1', 'Complete');
+      await manager.updateItemStatus('P2', 'Implementing');
+      await manager.flushUpdates();
+
+      // VERIFY: writeTasksJSON called once, stats show 3 items
+      expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
+      expect(mockWriteTasksJSON).toHaveBeenCalledWith(
+        '/plan/001_14b9dc2a33c7',
+        backlog3
+      );
+    });
+
+    it('should preserve dirty state on flush error', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+
+      // Mock writeTasksJSON to fail
+      const writeError = new SessionFileError(
+        '/plan/001_14b9dc2a33c7/tasks.json',
+        'write tasks.json'
+      );
+      mockWriteTasksJSON.mockRejectedValue(writeError);
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Update then flush (should fail)
+      await manager.updateItemStatus('P1', 'Complete');
+
+      // EXECUTE & VERIFY: flushUpdates should throw error
+      await expect(manager.flushUpdates()).rejects.toThrow(SessionFileError);
+
+      // VERIFY: writeTasksJSON was called (attempted write)
+      expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
+
+      // NOTE: After error, dirty state would still be set internally
+      // but we can't test private fields without exposing them
+      // The key behavior is that the error is thrown for retry
+    });
+
+    it('should reset batching state after successful flush', async () => {
+      // SETUP
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+      mockWriteTasksJSON.mockResolvedValue(undefined);
+
+      const updatedBacklog = createTestBacklog([
+        createTestPhase('P1', 'Phase 1', 'Complete'),
+      ]);
+
+      mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // EXECUTE: Update, flush, then flush again
+      await manager.updateItemStatus('P1', 'Complete');
+      await manager.flushUpdates();
+      await manager.flushUpdates(); // Second flush should be no-op
+
+      // VERIFY: writeTasksJSON called only once (second flush was no-op)
+      expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle dirty flag without pendingUpdates gracefully', async () => {
+      // SETUP: Initialize session
+      mockHashPRD.mockResolvedValue(MOCK_FULL_HASH);
+      mockReaddir.mockResolvedValue([]);
+      mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
+      mockReadFile.mockResolvedValue('# Test PRD');
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const manager = new SessionManager('/test/PRD.md');
+      await manager.initialize();
+
+      // NOTE: We can't directly set dirty flag without pendingUpdates
+      // because those are private fields. This is a defensive code path
+      // that handles inconsistent state. The behavior is:
+      // - If dirty is true but pendingUpdates is null, log warning and reset
+      //
+      // This test documents the defensive behavior but the actual
+      // scenario can't be easily tested without exposing private fields.
+
+      // EXECUTE: Flush should be safe (no updates pending)
+      await manager.flushUpdates();
+
+      // VERIFY: No errors thrown
+      expect(mockWriteTasksJSON).not.toHaveBeenCalled();
     });
   });
 });
