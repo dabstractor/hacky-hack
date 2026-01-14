@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Milestone 1.1: Groundswell Dependency Resolution",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Establish proper Groundswell dependency link and verify all imports resolve correctly",
           "tasks": [
             {
@@ -91,7 +91,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Verify TypeScript compilation after Groundswell link",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Run TypeScript compiler to verify all Groundswell imports resolve and no compilation errors remain",
               "subtasks": [
                 {
@@ -118,7 +118,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S3",
                   "title": "Verify no module-not-found errors remain",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T2.S2"
@@ -129,7 +129,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S4",
                   "title": "Document compilation success in build log",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T2.S3"
