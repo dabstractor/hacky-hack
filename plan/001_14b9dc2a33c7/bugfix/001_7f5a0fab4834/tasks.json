@@ -1,0 +1,859 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Phase 1: Critical Infrastructure Fixes",
+      "status": "Ready",
+      "description": "Fix critical issues that prevent the application from running. This phase addresses the missing Groundswell dependency and related TypeScript compilation failures.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Milestone 1.1: Groundswell Dependency Resolution",
+          "status": "Ready",
+          "description": "Establish proper Groundswell dependency link and verify all imports resolve correctly",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Establish Groundswell npm link",
+              "status": "Planned",
+              "description": "Create npm link between local Groundswell library and hacky-hack project to resolve import dependencies",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Verify Groundswell library exists at expected path",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell library is expected at ~/projects/groundswell per architecture/system_context.md\n2. INPUT: None - standalone verification task\n3. LOGIC: Execute bash command to verify directory exists at ~/projects/groundswell. Check for package.json and dist/index.js files. Mock filesystem check if needed for testing.\n4. OUTPUT: Return boolean exists: true if directory is found, false otherwise. Consume output in S2 to determine if setup can proceed."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Create npm link from Groundswell directory",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell must be linked as global npm package per architecture/external_deps.md\n2. INPUT: exists: boolean from S1. If false, throw error with helpful message.\n3. LOGIC: Execute bash commands: `cd ~/projects/groundswell && npm link`. Capture stdout/stderr. Verify success by checking return code. Mock bash execution for testing.\n4. OUTPUT: Return { success: boolean, message: string }. Success if npm link completes without errors. Consume in S3 for conditional logic."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S3",
+                  "title": "Link Groundswell in hacky-hack project",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Must create symlink in node_modules/groundswell per architecture/external_deps.md\n2. INPUT: { success: boolean, message: string } from S2. If success is false, skip this subtask.\n3. LOGIC: Execute bash commands: `cd ~/projects/hacky-hack && npm link groundswell`. Capture output. Mock bash execution for testing.\n4. OUTPUT: Return { success: boolean, message: string }. Verify symlink exists. Consume in S4 for validation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S4",
+                  "title": "Verify Groundswell symlink in node_modules",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Symlink must exist at node_modules/groundswell per architecture/system_context.md\n2. INPUT: { success: boolean, message: string } from S3. Only proceed if success is true.\n3. LOGIC: Execute bash: `ls -la node_modules/groundswell`. Verify output contains symbolic link indicator (->). Mock filesystem check for testing.\n4. OUTPUT: Return { exists: boolean, path: string }. Must have exists: true for milestone completion. Consume in S5."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S5",
+                  "title": "Run npm list to verify dependency resolution",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T1.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: npm list should show groundswell as linked package per architecture/external_deps.md\n2. INPUT: { exists: boolean, path: string } from S4. Only verify if exists is true.\n3. LOGIC: Execute bash: `npm list groundswell`. Parse output to confirm it shows linked version (not empty). Mock command execution for testing.\n4. OUTPUT: Return { linked: boolean, version: string }. Final validation that link is functional. Consume in S6."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S6",
+                  "title": "Document Groundswell link setup in README",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S5"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Setup instructions should be documented per architecture/external_deps.md\n2. INPUT: { linked: boolean, version: string } from S5. Only document if linked is true.\n3. LOGIC: Check if README.md exists. If not, create it. Append section \"## Development Setup\" with npm link commands. Use Write tool if file doesn't exist, Edit if it does.\n4. OUTPUT: Return { updated: boolean, path: string }. Documentation complete flag for milestone tracking."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Verify TypeScript compilation after Groundswell link",
+              "status": "Planned",
+              "description": "Run TypeScript compiler to verify all Groundswell imports resolve and no compilation errors remain",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Run TypeScript typecheck command",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: npm run typecheck runs tsc --noEmit per package.json\n2. INPUT: None - assumes P1.M1.T1 (Groundswell link) is complete\n3. LOGIC: Execute bash: `npm run typecheck`. Capture stdout and stderr. Count TypeScript errors. Parse for common patterns like 'Cannot find module'. Mock command for testing.\n4. OUTPUT: Return { success: boolean, errorCount: number, errors: string[] }. Success if errorCount is 0. Consume in S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S2",
+                  "title": "Analyze any remaining TypeScript errors",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 65+ files had 'Cannot find module groundswell' errors per Bug Fix Issue 1\n2. INPUT: { success: boolean, errorCount: number, errors: string[] } from S1. If success is true, skip to S3.\n3. LOGIC: Parse errors array. Categorize by error type: module-not-found, type-mismatch, other. Extract file paths and line numbers. Group by file. Use Grep to find affected files if needed.\n4. OUTPUT: Return { categories: Record<string, number>, files: string[], remainingErrors: string[] }. Consume in S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S3",
+                  "title": "Verify no module-not-found errors remain",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All 'Cannot find module groundswell' errors must be resolved per Issue 1\n2. INPUT: { categories: Record<string, number>, files: string[], remainingErrors: string[] } from S2. If S1 returned success: true, output { resolved: true }.\n3. LOGIC: Check categories for 'module-not-found' count. If > 0, milestone incomplete. If 0, verify by checking random sample of files (src/workflows/prp-pipeline.ts, src/agents/agent-factory.ts). Use Read tool to verify imports.\n4. OUTPUT: Return { resolved: boolean, remainingCount: number }. Critical milestone completion flag."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S4",
+                  "title": "Document compilation success in build log",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Success criteria include clean TypeScript compilation per architecture/system_context.md\n2. INPUT: { resolved: boolean, remainingCount: number } from S3. Only log if resolved is true.\n3. LOGIC: Create or append to BUILD_LOG.md. Add timestamp, commit hash (if available), compilation result. Format as markdown table. Use Write tool to create file if not exists.\n4. OUTPUT: Return { logged: boolean, path: string }. Documentation complete flag for milestone tracking."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Milestone 1.2: Application Startup Verification",
+          "status": "Planned",
+          "description": "Verify that the application can start and respond to basic CLI commands",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Test application startup with --help flag",
+              "status": "Planned",
+              "description": "Verify the CLI application starts and displays help information without errors",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Execute CLI with --help flag",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: CLI entry point is src/index.ts, uses Commander.js per architecture/system_context.md\n2. INPUT: None - assumes P1.M1 (Groundswell link) complete\n3. LOGIC: Execute bash: `npm run dev -- --help`. Capture stdout and stderr. Look for help output sections (Usage, Options, Commands). Check return code. Mock for testing.\n4. OUTPUT: Return { success: boolean, output: string, hasHelp: boolean }. Success if return code is 0 and output contains expected help text."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Verify no runtime errors in startup",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Should not see 'Cannot find module groundswell' errors per Issue 1\n2. INPUT: { success: boolean, output: string, hasHelp: boolean } from S1. Only check errors if success is true.\n3. LOGIC: Parse stderr for error patterns: 'ERR_MODULE_NOT_FOUND', 'Cannot find', 'Error:'. Check output stack traces. Use Regex to identify error patterns.\n4. OUTPUT: Return { hasErrors: boolean, errorTypes: string[] }. Clean startup if hasErrors is false."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S3",
+                  "title": "Verify CLI options are displayed correctly",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expected CLI options: --prd, --verbose, --scope, --validate-prd per architecture/implementation_patterns.md\n2. INPUT: { hasErrors: boolean, errorTypes: string[] } from S2. Only verify if hasErrors is false.\n3. LOGIC: Parse help output for option flags. Look for '--prd', '--verbose', '--scope', '--validate-prd'. Verify descriptions present. Use string matching/Regex.\n4. OUTPUT: Return { optionsPresent: string[], allOptionsPresent: boolean }. All expected options should be in optionsPresent array."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Test PRD validation command",
+              "status": "Planned",
+              "description": "Verify the --validate-prd command works correctly with a test PRD file",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Create test PRD file for validation",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD structure defined in Bug Fix PRD, uses markdown format\n2. INPUT: None - standalone setup task\n3. LOGIC: Create TEST_PRD.md in project root. Include basic PRD sections: # PROJECT INITIATION, ## Overview, ## Instructions. Use Write tool to create file.\n4. OUTPUT: Return { created: boolean, path: string }. Test PRD ready for validation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S2",
+                  "title": "Run PRD validation command",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Command is `npm run dev -- --prd PRD.md --validate-prd` per Issue 1\n2. INPUT: { created: boolean, path: string } from S1. Use path from S1.\n3. LOGIC: Execute bash: `npm run dev -- --prd TEST_PRD.md --validate-prd`. Capture stdout and stderr. Look for validation report output. Mock for testing.\n4. OUTPUT: Return { success: boolean, validationReport: string, valid: boolean }. Success if command completes without crashing."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S3",
+                  "title": "Verify validation report output format",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Validation report uses structured logger output per Issue 5 (console.log problem)\n2. INPUT: { success: boolean, validationReport: string, valid: boolean } from S2. Only check format if success is true.\n3. LOGIC: Parse validation report. Look for sections: 'PRD Validation Report', 'File:', 'Status:', 'Summary:', 'Issues:'. Verify structured formatting. Use Regex to identify sections.\n4. OUTPUT: Return { formatValid: boolean, sectionsPresent: string[] }. Report should have all expected sections."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S4",
+                  "title": "Verify no console.log statements in output",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Issue 5 identifies console.log statements in src/index.ts:138-169 that should use logger\n2. INPUT: { formatValid: boolean, sectionsPresent: string[] } from S3. Check for console.log regardless of format.\n3. LOGIC: Check if logger is being used (look for structured output). If console.log detected, note for Phase 3 fix. Use string patterns: 'console.log' vs 'logger.info'. This is verification, not fix.\n4. OUTPUT: Return { usesLogger: boolean, hasConsoleLog: boolean }. If hasConsoleLog is true, creates issue for Phase 3."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "Phase 2: Test Infrastructure Fixes",
+      "status": "Planned",
+      "description": "Fix major issues with the test suite including memory exhaustion, promise rejections, and failing tests",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Milestone 2.1: Test Memory Configuration",
+          "status": "Planned",
+          "description": "Configure Node.js memory limits for test execution to prevent worker termination",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Add memory limits to package.json test scripts",
+              "status": "Planned",
+              "description": "Update all test scripts in package.json to include NODE_OPTIONS with increased heap size",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Read current package.json test scripts",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test scripts need memory limits per Issue 2 - 'Worker terminated due to reaching memory limit'\n2. INPUT: None - reads package.json directly\n3. LOGIC: Use Read tool to open package.json. Extract scripts section. Identify test-related scripts: test, test:run, test:watch, test:coverage. Parse current command values.\n4. OUTPUT: Return { scripts: Record<string, string>, testScripts: string[] }. List of current test script commands."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Update test script with NODE_OPTIONS memory limit",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Recommended fix is NODE_OPTIONS=\"--max-old-space-size=4096\" per Issue 2\n2. INPUT: { scripts: Record<string, string>, testScripts: string[] } from S1. Modify each test script.\n3. LOGIC: For each test script, prepend `NODE_OPTIONS=\"--max-old-space-size=4096\" ` to command. Preserve existing command structure. Use Edit tool to modify package.json scripts section.\n4. OUTPUT: Return { updated: string[], updatedScripts: Record<string, string> }. List of updated script names."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S3",
+                  "title": "Verify package.json syntax is valid",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Invalid JSON will break npm commands\n2. INPUT: { updated: string[], updatedScripts: Record<string, string> } from S2\n3. LOGIC: Execute bash: `node --check package.json` or `npm run test:run -- --help` to verify JSON is valid. Try parsing JSON. Check for syntax errors.\n4. OUTPUT: Return { valid: boolean, syntaxError: string | null }. Must be valid for milestone completion."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T2",
+              "title": "Test memory configuration with limited test run",
+              "status": "Planned",
+              "description": "Run a subset of tests to verify memory limits are working and no worker termination occurs",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Run single test file to verify no memory issues",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Tests were failing with 'JS heap out of memory' per Issue 2\n2. INPUT: None - assumes P2.M1.T1 (memory limit update) complete\n3. LOGIC: Execute bash: `npm run test:run -- tests/unit/utils/resource-monitor.test.ts`. Capture output. Look for 'Worker terminated', 'heap out of memory'. Check return code. Mock for testing.\n4. OUTPUT: Return { success: boolean, hasMemoryError: boolean, output: string }. Success if no memory errors."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S2",
+                  "title": "Run full test suite and monitor memory usage",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Full suite has 1688 tests, previously caused worker termination per Issue 2\n2. INPUT: { success: boolean, hasMemoryError: boolean, output: string } from S1. Only run full suite if single test passes.\n3. LOGIC: Execute bash: `npm run test:run`. Monitor execution time. Capture final output. Parse for 'heap out of memory', 'Worker terminated', test results summary. Use Bash tool with timeout.\n4. OUTPUT: Return { completed: boolean, memoryErrors: boolean, testResults: { pass: number, fail: number } }. Full suite should complete without memory errors."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S3",
+                  "title": "Compare before/after memory usage",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 4GB memory limit should prevent exhaustion per Issue 2 suggested fix\n2. INPUT: { completed: boolean, memoryErrors: boolean, testResults: { pass: number, fail: number } } from S2\n3. LOGIC: Note memory usage from test output if available. Document improvement (before: worker terminated, after: completed). Log findings for documentation.\n4. OUTPUT: Return { improved: boolean, beforeState: string, afterState: string }. Improved should be true if tests complete."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M2",
+          "title": "Milestone 2.2: Fix Promise Rejection Issues",
+          "status": "Planned",
+          "description": "Resolve unhandled promise rejections in research queue and improve error handling",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Fix research queue promise error handling",
+              "status": "Planned",
+              "description": "Update src/core/research-queue.ts to properly handle and log promise errors in background processing",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Read research-queue.ts error handling code",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Lines 181-185 have unhandled promise rejection per Issue 3 and test infrastructure report\n2. INPUT: None - reads src/core/research-queue.ts directly\n3. LOGIC: Use Read tool to open src/core/research-queue.ts. Focus on lines 180-190. Examine catch block structure. Look for error logging without propagation. Identify the .catch() in finally block.\n4. OUTPUT: Return { currentCode: string, lineNumber: number, hasErrorLogging: boolean }. Current error handling implementation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S2",
+                  "title": "Improve error logging with more context",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Error handling should include taskId, error message, and stack trace per implementation_patterns.md\n2. INPUT: { currentCode: string, lineNumber: number, hasErrorLogging: boolean } from S1\n3. LOGIC: Use Edit tool to modify catch block at lines 181-185. Add structured logging: taskId (from closure), error message, stack trace. Use logger.error with object parameter. Preserve existing error flow.\n4. OUTPUT: Return { updated: boolean, newCode: string }. Enhanced error logging implementation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S3",
+                  "title": "Verify no unhandled promise rejections remain",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Issue 3 reports 'PromiseRejectionHandledWarning' during test execution\n2. INPUT: { updated: boolean, newCode: string } from S2\n3. LOGIC: Use Grep to search for '.catch(' in src/core/research-queue.ts. Verify all catch blocks have proper error handling. Check for empty catch blocks or catch without logging. Mock for testing.\n4. OUTPUT: Return { allHandled: boolean, catchBlocks: number }. All promise rejections should be handled."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T2",
+              "title": "Fix failing research-queue unit test",
+              "status": "Planned",
+              "description": "Update test expectations in tests/unit/core/research-queue.test.ts to match actual implementation",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S1",
+                  "title": "Read failing test to understand mismatch",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test expects { currentSession } but receives { currentSession, false } per Issue 6\n2. INPUT: None - reads tests/unit/core/research-queue.test.ts directly\n3. LOGIC: Use Read tool to open tests/unit/core/research-queue.test.ts. Search for 'should create PRPGenerator with sessionManager'. Examine the test expectation (spy mock call). Identify parameter mismatch.\n4. OUTPUT: Return { testLine: number, expectedParams: string[], actualParams: string[], testCode: string }. Details of the failing test."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S2",
+                  "title": "Read PRPGenerator implementation to understand actual signature",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRPGenerator constructor has changed to include second parameter\n2. INPUT: { testLine: number, expectedParams: string[], actualParams: string[], testCode: string } from S1\n3. LOGIC: Use Grep to find PRPGenerator constructor/class definition. Read the file containing it. Examine constructor parameters. Look for sessionManager parameter and any additional parameters. Identify the false parameter's purpose.\n4. OUTPUT: Return { constructorSignature: string, parameters: string[], secondParamPurpose: string }. Actual constructor signature."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S3",
+                  "title": "Update test expectations to match implementation",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test expectations should match actual implementation per Issue 6 suggested fix\n2. INPUT: { constructorSignature: string, parameters: string[], secondParamPurpose: string } from S2\n3. LOGIC: Use Edit tool to modify test expectation. Change `.toHaveBeenCalledWith([{ currentSession: { ... } }])` to `.toHaveBeenCalledWith([{ currentSession: { ... } }, false])`. Update mock if needed. Preserve test intent.\n4. OUTPUT: Return { updated: boolean, newTestExpectation: string }. Test expectation now matches implementation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S4",
+                  "title": "Run updated test to verify it passes",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M2.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Specific test should pass after expectation update per Issue 6\n2. INPUT: { updated: boolean, newTestExpectation: string } from S3\n3. LOGIC: Execute bash: `npm run test:run -- tests/unit/core/research-queue.test.ts`. Capture output. Parse for the specific test name. Check if it passes or fails. Mock for testing.\n4. OUTPUT: Return { passed: boolean, output: string }. Test should pass after fix."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M3",
+          "title": "Milestone 2.3: Vitest Configuration Improvements",
+          "status": "Planned",
+          "description": "Update Vitest configuration to fix module resolution and improve test reliability",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M3.T1",
+              "title": "Fix module resolution in vitest.config.ts",
+              "status": "Planned",
+              "description": "Ensure all module extensions are properly configured and Groundswell alias is correct",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S1",
+                  "title": "Read current vitest.config.ts",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Module resolution error for .ts files per test infrastructure report\n2. INPUT: None - reads vitest.config.ts directly\n3. LOGIC: Use Read tool to open vitest.config.ts. Examine resolve.alias section. Check resolve.extensions. Look for groundswell alias. Identify missing .tsx extension if any.\n4. OUTPUT: Return { currentAliases: Record<string, string>, extensions: string[], hasGroundswellAlias: boolean }. Current configuration state."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S2",
+                  "title": "Add .tsx extension to resolve.extensions",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Extensions should include .ts, .js, .tsx per test infrastructure report suggested fix\n2. INPUT: { currentAliases: Record<string, string>, extensions: string[], hasGroundswellAlias: boolean } from S1\n3. LOGIC: If extensions array doesn't include '.tsx', use Edit tool to add it. Ensure order is ['.ts', '.js', '.tsx'] or similar. Preserve existing extensions.\n4. OUTPUT: Return { updated: boolean, newExtensions: string[] }. Updated extensions array."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S3",
+                  "title": "Verify groundswell alias points to correct location",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell alias should point to ../groundswell/dist/index.js per architecture/external_deps.md\n2. INPUT: { updated: boolean, newExtensions: string[] } from S2 (and currentAliases from S1)\n3. LOGIC: Check groundswell alias path. Verify it points to ../groundswell/dist/index.js. If incorrect, use Edit to fix. Ensure it uses URL.pathname format for Vitest. Mock path validation for testing.\n4. OUTPUT: Return { verified: boolean, aliasPath: string }. Alias should be correct and verified."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M3.T2",
+              "title": "Add test setup file for global cleanup",
+              "status": "Planned",
+              "description": "Create tests/setup.ts with global beforeEach/afterEach hooks to prevent memory leaks",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S1",
+                  "title": "Create tests/setup.ts with global test hooks",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Global setup helps with memory cleanup per test infrastructure report\n2. INPUT: None - creates new setup file\n3. LOGIC: Use Write tool to create tests/setup.ts. Import beforeEach, afterEach from vitest. Add beforeEach to clear mocks. Add afterEach to call global.gc() if available. Add cleanup comments. Follow implementation_patterns.md testing patterns.\n4. OUTPUT: Return { created: boolean, path: string, hasGlobalCleanup: boolean }. Setup file created with cleanup hooks."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S2",
+                  "title": "Configure vitest.config.ts to use setup file",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Vitest needs setupFiles configuration per test infrastructure report\n2. INPUT: { created: boolean, path: string, hasGlobalCleanup: boolean } from S1\n3. LOGIC: Use Read tool to open vitest.config.ts. Look for setupFiles option. If not present, use Edit to add it. Set to ['./tests/setup.ts']. Ensure proper location in config object.\n4. OUTPUT: Return { configured: boolean, configPath: string }. Setup file configured in Vitest."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S3",
+                  "title": "Run tests to verify setup file is loaded",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M3.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Setup file should execute before all tests\n2. INPUT: { configured: boolean, configPath: string } from S2\n3. LOGIC: Execute bash: `npm run test:run -- tests/unit/utils/resource-monitor.test.ts`. Monitor for setup file execution (add temp console.log if needed). Check for errors in setup. Mock for testing.\n4. OUTPUT: Return { loaded: boolean, error: string | null }. Setup file should load without errors."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "Phase 3: Code Quality Improvements",
+      "status": "Planned",
+      "description": "Fix minor code quality issues including ESLint warnings, console.log statements, and improve code consistency",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "Milestone 3.1: Replace Console.log with Logger",
+          "status": "Planned",
+          "description": "Replace all console.log statements in src/index.ts with structured logger calls",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "Identify all console.log statements in src/index.ts",
+              "status": "Planned",
+              "description": "Locate and catalog all console.log statements that need to be replaced",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Read src/index.ts to find console.log statements",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Console.log statements at lines 138-169 per Issue 5\n2. INPUT: None - reads src/index.ts directly\n3. LOGIC: Use Read tool to open src/index.ts. Use Grep with pattern 'console.log' and path 'src/index.ts'. Extract line numbers and context. Count total occurrences. Group by purpose (validation report, errors, etc).\n4. OUTPUT: Return { statements: Array<{line: number, code: string, purpose: string}>, count: number }. All console.log locations."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S2",
+                  "title": "Verify logger is imported in src/index.ts",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Logger should be imported from ./utils/logger.js per implementation_patterns.md\n2. INPUT: { statements: Array<{line, code, purpose}>, count: number } from S1\n3. LOGIC: Use Grep to search for 'import.*logger' in src/index.ts. Check if getLogger is imported. Verify logger variable exists. If not imported, note for S3.\n4. OUTPUT: Return { imported: boolean, importLine: number | null, loggerVariable: string | null }. Logger import status."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S3",
+                  "title": "Plan console.log to logger mapping",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Different console.log types map to different log levels per code quality report\n2. INPUT: { statements: Array, count: number } from S1, { imported: boolean } from S2\n3. LOGIC: Analyze each console.log statement. Determine appropriate log level: info for general output, warn for warnings, error for errors. Plan if multiple console.log should be combined into single logger call. Create mapping plan.\n4. OUTPUT: Return { mapping: Array<{line: number, loggerLevel: string, newCode: string}> }. Replacement plan."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M1.T2",
+              "title": "Replace console.log statements with logger calls",
+              "status": "Planned",
+              "description": "Update src/index.ts to use logger.info() instead of console.log() for validation report",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S1",
+                  "title": "Replace validation report console.log statements (lines 138-169)",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 12 console.log statements for validation report per Issue 5\n2. INPUT: None - assumes P3.M1.T1 (mapping) complete\n3. LOGIC: Use Edit tool to replace each console.log. For structured output, use logger.info with object parameter. For simple strings, use logger.info('message'). Preserve formatting (newlines, separators). Example: logger.info(`Status: ${result.valid ? '✅ VALID' : '❌ INVALID'}`).\n4. OUTPUT: Return { replaced: number, newCode: string[] }. Count of replaced statements."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S2",
+                  "title": "Verify no console.log statements remain in src/index.ts",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All console.log should be replaced per Issue 5 fix requirement\n2. INPUT: { replaced: number, newCode: string[] } from S1\n3. LOGIC: Use Grep with pattern 'console.log' and path 'src/index.ts'. Count remaining occurrences. Should be 0 (or only allowed ones like console.warn, console.error). If any remain, check if they should be replaced.\n4. OUTPUT: Return { remainingCount: number, allReplaced: boolean }. All console.log should be replaced."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S3",
+                  "title": "Run ESLint to verify no no-console warnings",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint rule no-console should not trigger after fix per Issue 5\n2. INPUT: { remainingCount: number, allReplaced: boolean } from S2. Only run if allReplaced is true.\n3. LOGIC: Execute bash: `npm run lint -- src/index.ts`. Capture output. Parse for 'no-console' warnings. Check if src/index.ts has any console warnings. Mock for testing.\n4. OUTPUT: Return { noWarnings: boolean, warningCount: number }. Should have no console warnings for src/index.ts."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Milestone 3.2: Fix Nullable Boolean Check Warnings",
+          "status": "Planned",
+          "description": "Fix ESLint strict-boolean-expressions warnings in high-priority files",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "Fix nullable boolean checks in src/agents/prp-runtime.ts",
+              "status": "Planned",
+              "description": "Update line 313 to explicitly handle nullable string in conditional",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Read prp-runtime.ts line 313 to understand context",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Line 313 has nullable string warning per Issue 4\n2. INPUT: None - reads src/agents/prp-runtime.ts directly\n3. LOGIC: Use Read tool to open src/agents/prp-runtime.ts. Focus on lines 310-320. Examine the conditional showing error display formatting. Understand context (error display formatting). Identify why it's nullable.\n4. OUTPUT: Return { currentCode: string, context: string, isNullable: boolean }. Code context for fix."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S2",
+                  "title": "Apply explicit null check to fix warning",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Fix pattern is variable with null check per implementation_patterns.md\n2. INPUT: { currentCode: string, context: string, isNullable: boolean } from S1\n3. LOGIC: Use Edit tool to update line 313. Replace ternary with explicit check using result.error && result.error.trim() or nullish coalescing result.error ?? empty string. Choose pattern that best fits context. Preserve logic.\n4. OUTPUT: Return { updated: boolean, newCode: string }. Fixed code."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S3",
+                  "title": "Verify ESLint warning is resolved",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint should not report warning for line 313 after fix per Issue 4\n2. INPUT: { updated: boolean, newCode: string } from S2\n3. LOGIC: Execute bash: `npm run lint -- src/agents/prp-runtime.ts`. Parse output for line 313 warning. Check if 'strict-boolean-expressions' warning still present. Mock for testing.\n4. OUTPUT: Return { warningResolved: boolean, hasOtherWarnings: boolean }. Warning should be resolved."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M2.T2",
+              "title": "Fix nullable boolean checks in src/cli/index.ts",
+              "status": "Planned",
+              "description": "Update line 160 to explicitly handle nullable string in conditional",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S1",
+                  "title": "Read cli/index.ts line 160 to understand context",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Line 160 has nullable string warning per Issue 4\n2. INPUT: None - reads src/cli/index.ts directly\n3. LOGIC: Use Read tool to open src/cli/index.ts. Focus on lines 155-165. Examine the conditional involving `options.scope`. Understand context (CLI scope validation). Identify why it's nullable.\n4. OUTPUT: Return { currentCode: string, context: string, isNullable: boolean }. Code context for fix."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S2",
+                  "title": "Apply explicit null check to fix warning",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Fix pattern is `variable && variable` for strings per implementation_patterns.md\n2. INPUT: { currentCode: string, context: string, isNullable: boolean } from S1\n3. LOGIC: Use Edit tool to update line 160. If code is `if (options.scope)`, change to `if (options.scope && options.scope.trim())`. Or use optional chaining: `if (options.scope?.length)`. Choose pattern that fits validation logic. Preserve logic.\n4. OUTPUT: Return { updated: boolean, newCode: string }. Fixed code."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S3",
+                  "title": "Verify ESLint warning is resolved",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint should not report warning for line 160 after fix per Issue 4\n2. INPUT: { updated: boolean, newCode: string } from S2\n3. LOGIC: Execute bash: `npm run lint -- src/cli/index.ts`. Parse output for line 160 warning. Check if 'strict-boolean-expressions' warning still present. Mock for testing.\n4. OUTPUT: Return { warningResolved: boolean, hasOtherWarnings: boolean }. Warning should be resolved."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M2.T3",
+              "title": "Audit remaining files for nullable boolean warnings",
+              "status": "Planned",
+              "description": "Catalog all remaining ESLint warnings to determine fix priority",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T3.S1",
+                  "title": "Run ESLint to capture all strict-boolean-expressions warnings",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 100+ warnings across multiple files per Issue 4\n2. INPUT: None - runs ESLint directly\n3. LOGIC: Execute bash: `npm run lint 2>&1 | grep -A 2 'strict-boolean-expressions'`. Capture all warnings. Parse to extract file paths and line numbers. Group by file. Count warnings per file.\n4. OUTPUT: Return { warnings: Array<{file: string, line: number, message: string}>, total: number, byFile: Record<string, number> }. All warnings catalog."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T3.S2",
+                  "title": "Categorize warnings by severity and fix effort",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Some warnings are trivial fixes, others require logic changes\n2. INPUT: { warnings: Array, total: number, byFile: Record } from S1\n3. LOGIC: Analyze each warning. Categorize: trivial (add && check), moderate (change logic), complex (refactor needed). Estimate fix effort per category. Prioritize files with most warnings. Create priority list.\n4. OUTPUT: Return { categories: Record<string, number>, priorityFiles: string[], totalEffort: string }. Warning categorization."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T3.S3",
+                  "title": "Document warning fix recommendations",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M2.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Documentation helps prioritize future fixes\n2. INPUT: { categories: Record, priorityFiles: string[], totalEffort: string } from S2\n3. LOGIC: Create ESLINT_WARNINGS.md in plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/architecture/. Document: total count, categories, priority files, recommended fix order, common fix patterns. Use Write tool.\n4. OUTPUT: Return { documented: boolean, path: string, recommendations: string[] }. Warning fix documentation created."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P4",
+      "title": "Phase 4: Validation & Documentation",
+      "status": "Planned",
+      "description": "Final validation that all fixes are working and documentation is complete",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P4.M1",
+          "title": "Milestone 4.1: End-to-End Testing",
+          "status": "Planned",
+          "description": "Run complete test suite and verify all fixes are working correctly",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M1.T1",
+              "title": "Run full test suite with memory limits",
+              "status": "Planned",
+              "description": "Execute all 1688 tests and verify no memory exhaustion or promise rejection errors",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S1",
+                  "title": "Execute full test suite",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Full suite has 1688 tests, previously had memory issues per Issue 2\n2. INPUT: None - assumes all previous phases complete\n3. LOGIC: Execute bash: `npm run test:run`. Monitor execution time (may take several minutes). Capture full output. Parse for test summary: pass/fail counts, errors, warnings. Look for memory errors, promise rejections. Use Bash with high timeout.\n4. OUTPUT: Return { completed: boolean, results: {pass: number, fail: number}, hasMemoryErrors: boolean, hasPromiseRejections: boolean, executionTime: number }. Full test results."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S2",
+                  "title": "Verify test pass rate is acceptable",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Target is 1688 passing tests per Bug Fix PRD test summary\n2. INPUT: { completed: boolean, results: {pass, fail}, ... } from S1\n3. LOGIC: Calculate pass rate: pass / (pass + fail) * 100. Compare to baseline (1593/1688 = 94.3%). Verify new pass rate equals or exceeds baseline. Identify which tests still fail (if any). Check if failures are expected.\n4. OUTPUT: Return { passRate: number, improved: boolean, failingTests: string[] }. Test pass rate analysis."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S3",
+                  "title": "Verify no memory or promise errors",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Should have no 'heap out of memory' or 'PromiseRejectionHandledWarning' per Issues 2-3\n2. INPUT: { completed: boolean, hasMemoryErrors: boolean, hasPromiseRejections: boolean } from S1\n3. LOGIC: Check hasMemoryErrors and hasPromiseRejections flags. Parse output for error patterns. Verify Issues 2 and 3 are resolved. Document any remaining issues. If errors persist, create follow-up tasks.\n4. OUTPUT: Return { memoryIssuesResolved: boolean, promiseIssuesResolved: boolean, remainingIssues: string[] }. Issue resolution status."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M1.T2",
+              "title": "Run ESLint and verify code quality",
+              "status": "Planned",
+              "description": "Execute ESLint on entire codebase and verify only acceptable warnings remain",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T2.S1",
+                  "title": "Run ESLint on entire codebase",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint checks code quality per Issue 4-5\n2. INPUT: None - assumes Phase 3 (code quality) complete\n3. LOGIC: Execute bash: `npm run lint`. Capture all output. Parse for error count, warning count. Count by rule: strict-boolean-expressions, no-console, other. Identify files with most warnings.\n4. OUTPUT: Return { errorCount: number, warningCount: number, byRule: Record<string, number>, topFiles: string[] }. Full ESLint results."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T2.S2",
+                  "title": "Verify no ESLint errors",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Code should have 0 ESLint errors (warnings acceptable) per architecture/implementation_patterns.md\n2. INPUT: { errorCount: number, warningCount: number } from S1\n3. LOGIC: Check errorCount. If > 0, review errors. Determine if critical or can be deferred. Verify no critical blocking errors. Document any errors that remain.\n4. OUTPUT: Return { hasErrors: boolean, errors: string[], acceptable: boolean }. ESLint error status."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T2.S3",
+                  "title": "Verify high-priority warnings are fixed",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: no-console warnings should be 0 per Issue 5 fix\n2. INPUT: { errorCount: number, warningCount: number, byRule: Record } from S1\n3. LOGIC: Check byRule for 'no-console' count. Should be 0 for src/index.ts. Check byRule for 'strict-boolean-expressions' in src/agents/prp-runtime.ts and src/cli/index.ts - should be reduced. Verify Phase 3 fixes are effective.\n4. OUTPUT: Return { consoleWarnings: number, priorityWarnings: number, highPriorityFixed: boolean }. Warning fix verification."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P4.M2",
+          "title": "Milestone 4.2: Documentation & Handoff",
+          "status": "Planned",
+          "description": "Complete all documentation and prepare summary of bug fixes",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M2.T1",
+              "title": "Create bug fix summary document",
+              "status": "Planned",
+              "description": "Document all fixes applied and remaining issues for future reference",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T1.S1",
+                  "title": "Create BUGFIX_SUMMARY.md in plan directory",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Summary should document all fixes from phases 1-3\n2. INPUT: None - compiles information from all phases\n3. LOGIC: Use Write tool to create plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/BUGFIX_SUMMARY.md. Include sections: Issues Fixed (Critical, Major, Minor), Files Modified, Testing Results, Remaining Issues, Recommendations. Format as markdown.\n4. OUTPUT: Return { created: boolean, path: string, sections: string[] }. Summary document created."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T1.S2",
+                  "title": "Document Groundswell setup procedure",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Setup procedure was documented in P1.M1.T1.S6 but should be in summary\n2. INPUT: { created: boolean, path: string } from S1\n3. LOGIC: Use Edit tool to append to BUGFIX_SUMMARY.md. Add section: '## Groundswell Dependency Setup'. Include step-by-step npm link instructions. Include verification commands. Reference architecture/external_deps.md.\n4. OUTPUT: Return { documented: boolean, section: string }. Setup procedure documented."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T1.S3",
+                  "title": "Document test infrastructure improvements",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Memory limits and setup file added in Phase 2\n2. INPUT: None - compiles Phase 2 changes\n3. LOGIC: Use Edit tool to append to BUGFIX_SUMMARY.md. Add section: '## Test Infrastructure Improvements'. Include: NODE_OPTIONS changes, setup file creation, vitest config updates. Reference test infrastructure report.\n4. OUTPUT: Return { documented: boolean, section: string }. Test improvements documented."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T1.S4",
+                  "title": "Document code quality improvements",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M2.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Console.log and nullable boolean fixes from Phase 3\n2. INPUT: None - compiles Phase 3 changes\n3. LOGIC: Use Edit tool to append to BUGFIX_SUMMARY.md. Add section: '## Code Quality Improvements'. Include: console.log replacements, nullable boolean fixes, ESLint warning reductions. List files modified.\n4. OUTPUT: Return { documented: boolean, section: string }. Code quality improvements documented."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M2.T2",
+              "title": "Update architecture documentation with fixes",
+              "status": "Planned",
+              "description": "Ensure architecture docs reflect current state after all bug fixes",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T2.S1",
+                  "title": "Update system_context.md with fix status",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: system_context.md should reflect that issues are now resolved\n2. INPUT: None - updates architecture documentation\n3. LOGIC: Use Read tool to open plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/architecture/system_context.md. Use Edit tool to update 'Fix Priority Hierarchy' section to mark completed items. Update 'Current Status' from 'Non-functional' to 'Functional'. Add 'Bug Fixes Applied' section.\n4. OUTPUT: Return { updated: boolean, changes: string[] }. Documentation updated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T2.S2",
+                  "title": "Verify all documentation is consistent",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Docs should be consistent across all files\n2. INPUT: { updated: boolean, changes: string[] } from S1\n3. LOGIC: Use Grep to search for 'Non-functional', 'missing groundswell', 'worker terminated' in architecture docs. Verify these outdated references are updated or removed. Cross-check system_context.md, external_deps.md, implementation_patterns.md.\n4. OUTPUT: Return { consistent: boolean, outdatedReferences: string[] }. Documentation consistency verified."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
