@@ -79,6 +79,12 @@ export interface CLIArgs {
 
   /** Validate PRD syntax and structure without executing */
   validatePrd: boolean;
+
+  /** Maximum number of tasks to execute (optional) */
+  maxTasks?: number;
+
+  /** Maximum execution duration in milliseconds (optional) */
+  maxDuration?: number;
 }
 
 // ===== MAIN FUNCTION =====
@@ -136,6 +142,8 @@ export function parseCLIArgs(): CLIArgs {
       'Validate PRD and exit without running pipeline',
       false
     )
+    .option('--max-tasks <number>', 'Maximum number of tasks to execute')
+    .option('--max-duration <ms>', 'Maximum execution duration in milliseconds')
     .parse(process.argv);
 
   // Get typed options
@@ -164,6 +172,22 @@ export function parseCLIArgs(): CLIArgs {
       }
       // Re-throw unexpected errors
       throw error;
+    }
+  }
+
+  // Validate maxTasks
+  if (options.maxTasks !== undefined) {
+    if (!Number.isInteger(options.maxTasks) || options.maxTasks <= 0) {
+      logger.error('--max-tasks must be a positive integer');
+      process.exit(1);
+    }
+  }
+
+  // Validate maxDuration
+  if (options.maxDuration !== undefined) {
+    if (!Number.isInteger(options.maxDuration) || options.maxDuration <= 0) {
+      logger.error('--max-duration must be a positive integer (milliseconds)');
+      process.exit(1);
     }
   }
 

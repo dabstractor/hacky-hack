@@ -48,6 +48,10 @@ import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
 import { progressTracker, type ProgressTracker } from '../utils/progress.js';
 import { retryAgentPrompt } from '../utils/retry.js';
+import {
+  ResourceMonitor,
+  type ResourceConfig,
+} from '../utils/resource-monitor.js';
 
 /**
  * Result returned by PRPPipeline.run()
@@ -78,7 +82,7 @@ export interface PipelineResult {
   /** Whether execution was interrupted by shutdown signal */
   shutdownInterrupted: boolean;
   /** Reason for shutdown (if interrupted) */
-  shutdownReason?: 'SIGINT' | 'SIGTERM';
+  shutdownReason?: 'SIGINT' | 'SIGTERM' | 'RESOURCE_LIMIT';
 }
 
 /**
@@ -171,7 +175,7 @@ export class PRPPipeline extends Workflow {
   currentTaskId: string | null = null;
 
   /** Reason for shutdown request */
-  shutdownReason: 'SIGINT' | 'SIGTERM' | null = null;
+  shutdownReason: 'SIGINT' | 'SIGTERM' | 'RESOURCE_LIMIT' | null = null;
 
   // ========================================================================
   // Private Fields
@@ -188,6 +192,18 @@ export class PRPPipeline extends Workflow {
 
   /** Continue-on-error flag from CLI --continue-on-error */
   readonly #continueOnError: boolean;
+
+  /** Maximum tasks limit from CLI --max-tasks */
+  readonly #maxTasks?: number;
+
+  /** Maximum duration limit from CLI --max-duration (milliseconds) */
+  readonly #maxDuration?: number;
+
+  /** Resource monitor instance */
+  #resourceMonitor?: import('../utils/resource-monitor.js').ResourceMonitor;
+
+  /** Whether resource limit was reached */
+  #resourceLimitReached: boolean = false;
 
   /** Map of failed tasks to error context for error reporting */
   #failedTasks: Map<string, TaskFailure> = new Map();
@@ -225,6 +241,8 @@ export class PRPPipeline extends Workflow {
    * @param mode - Execution mode: 'normal', 'bug-hunt', or 'validate' (default: 'normal')
    * @param noCache - Whether to bypass PRP cache (default: false)
    * @param continueOnError - Whether to treat all errors as non-fatal (default: false)
+   * @param maxTasks - Maximum number of tasks to execute (optional)
+   * @param maxDuration - Maximum execution duration in milliseconds (optional)
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -232,7 +250,9 @@ export class PRPPipeline extends Workflow {
     scope?: Scope,
     mode?: 'normal' | 'bug-hunt' | 'validate',
     noCache: boolean = false,
-    continueOnError: boolean = false
+    continueOnError: boolean = false,
+    maxTasks?: number,
+    maxDuration?: number
   ) {
     super('PRPPipeline');
 
@@ -248,6 +268,8 @@ export class PRPPipeline extends Workflow {
     this.mode = mode ?? 'normal';
     this.#noCache = noCache;
     this.#continueOnError = continueOnError;
+    this.#maxTasks = maxTasks;
+    this.#maxDuration = maxDuration;
 
     // SessionManager will be created in run() to catch initialization errors
     this.sessionManager = null as any;
@@ -260,6 +282,19 @@ export class PRPPipeline extends Workflow {
     this.correlationLogger = getLogger('PRPPipeline').child({
       correlationId: this.#correlationId,
     });
+
+    // Create resource monitor if limits specified
+    if (maxTasks || maxDuration) {
+      this.#resourceMonitor = new ResourceMonitor({
+        maxTasks,
+        maxDuration,
+      });
+      this.#resourceMonitor.start();
+      this.logger.info(
+        { maxTasks, maxDuration },
+        '[PRPPipeline] Resource monitoring enabled'
+      );
+    }
 
     // Setup signal handlers for graceful shutdown
     this.#setupSignalHandlers();
@@ -799,11 +834,39 @@ export class PRPPipeline extends Workflow {
             this.taskOrchestrator.currentItemId ?? 'unknown';
           this.#progressTracker?.recordComplete(currentItemId);
 
+          // CRITICAL: Record task completion in resource monitor
+          if (this.#resourceMonitor) {
+            this.#resourceMonitor.recordTaskComplete();
+          }
+
           // Log progress every 5 tasks
           if (this.completedTasks % 5 === 0) {
             this.logger.info(
               `[PRPPipeline] ${this.#progressTracker?.formatProgress()}`
             );
+          }
+
+          // CRITICAL: Check for resource limits after each task
+          if (this.#resourceMonitor?.shouldStop()) {
+            const status = this.#resourceMonitor.getStatus();
+            this.logger.warn(
+              {
+                limitType: status.limitType,
+                tasksCompleted: this.completedTasks,
+                snapshot: status.snapshot,
+              },
+              '[PRPPipeline] Resource limit reached, initiating graceful shutdown'
+            );
+
+            if (status.suggestion) {
+              this.logger.info(`[PRPPipeline] Suggestion: ${status.suggestion}`);
+            }
+
+            this.#resourceLimitReached = true;
+            this.shutdownRequested = true;
+            this.shutdownReason = 'RESOURCE_LIMIT';
+            this.currentPhase = 'resource_limit_reached';
+            break;
           }
 
           // Check for shutdown request after each task
@@ -1227,6 +1290,12 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
     this.logger.info('[PRPPipeline] Starting cleanup and state preservation');
 
     try {
+      // CRITICAL: Stop resource monitoring
+      if (this.#resourceMonitor) {
+        this.#resourceMonitor.stop();
+        this.logger.debug('[PRPPipeline] Resource monitoring stopped');
+      }
+
       // Log progress state before shutdown
       const progress = this.#progressTracker?.getProgress();
       if (progress) {
@@ -1287,6 +1356,11 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
       if (this.#sigtermHandler) {
         process.off('SIGTERM', this.#sigtermHandler);
         this.logger.debug('[PRPPipeline] SIGTERM handler removed');
+      }
+
+      // Check if resource limit was reached and generate report
+      if (this.#resourceLimitReached) {
+        await this.#generateResourceLimitReport();
       }
 
       this.currentPhase = 'shutdown_complete';
@@ -1437,6 +1511,118 @@ ${failure.error.stack.split('\n').slice(0, 5).join('\n')}
 
     await writeFile(reportPath, content, 'utf-8');
     this.logger.info(`[PRPPipeline] Error report written to ${reportPath}`);
+  }
+
+  /**
+   * Generates resource limit report when resource limit is reached
+   *
+   * @remarks
+   * Creates RESOURCE_LIMIT_REPORT.md in the session directory with:
+   * - Resource snapshot (file handles, memory)
+   * - Task progress summary
+   * - Actionable suggestions for resolution
+   * - Resume instructions
+   *
+   * Only generates report if resource limit was reached.
+   *
+   * @private
+   */
+  async #generateResourceLimitReport(): Promise<void> {
+    const status = this.#resourceMonitor?.getStatus();
+    if (!status || !status.shouldStop) {
+      return;
+    }
+
+    const sessionPath = this.sessionManager.currentSession?.metadata.path;
+    if (!sessionPath) {
+      this.logger.warn(
+        '[PRPPipeline] Session path not available for resource report'
+      );
+      return;
+    }
+
+    const progress = this.#progressTracker?.getProgress();
+    const snapshot = status.snapshot;
+
+    const content = `# Resource Limit Report
+
+**Generated**: ${new Date().toISOString()}
+**Limit Type**: ${status.limitType}
+**Tasks Completed**: ${progress?.completed ?? 0} / ${progress?.total ?? 0}
+
+## Summary
+
+The pipeline reached a resource limit and gracefully shut down to prevent system exhaustion.
+
+### Resource Snapshot
+
+| Metric | Value |
+|--------|-------|
+| File Handles | ${snapshot.fileHandles} |
+| File Handle Limit | ${
+  snapshot.fileHandleUlimit > 0
+    ? snapshot.fileHandleUlimit
+    : 'N/A (Windows)'
+} |
+| File Handle Usage | ${(snapshot.fileHandleUsage * 100).toFixed(1)}% |
+| Heap Used | ${(snapshot.heapUsed / 1024 / 1024).toFixed(1)} MB |
+| Heap Total | ${(snapshot.heapTotal / 1024 / 1024).toFixed(1)} MB |
+| System Memory Used | ${(
+    (1 - snapshot.systemFree / snapshot.systemTotal) *
+    100
+  ).toFixed(1)}% |
+
+### Progress
+
+- **Completed**: ${progress?.completed ?? 0} tasks
+- **Remaining**: ${progress?.remaining ?? 0} tasks
+- **Completion**: ${progress?.percentage.toFixed(1) ?? 0}%
+- **Elapsed**: ${
+    progress?.elapsed
+      ? (progress.elapsed / 1000).toFixed(1) + 's'
+      : 'N/A'
+  }
+
+## Recommendations
+
+${status.suggestion ? `- ${status.suggestion}` : ''}
+
+### How to Resume
+
+\`\`\`bash
+# Resume from where the pipeline stopped
+node dist/index.js --prd PRD.md --continue
+\`\`\`
+
+### If Hitting File Handle Limits
+
+\`\`\`bash
+# Increase file handle limit (Linux/macOS)
+ulimit -n 4096
+
+# Then re-run the pipeline
+node dist/index.js --prd PRD.md --continue
+\`\`\`
+
+### If Hitting Memory Limits
+
+1. Consider splitting your PRD into smaller phases
+2. Use \`--scope P1.M1\` to limit execution to specific milestones
+3. Increase system memory or close other applications
+
+---
+
+Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
+`;
+
+    const { resolve } = await import('node:path');
+    const { writeFile } = await import('node:fs/promises');
+    const reportPath = resolve(sessionPath, 'RESOURCE_LIMIT_REPORT.md');
+
+    await writeFile(reportPath, content, 'utf-8');
+    this.logger.info(
+      `[PRPPipeline] Resource limit report written to ${reportPath}`
+    );
   }
 
   // ========================================================================

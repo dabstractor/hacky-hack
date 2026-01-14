@@ -190,7 +190,9 @@ async function main(): Promise<number> {
     scope,
     args.mode,
     args.noCache,
-    args.continueOnError
+    args.continueOnError,
+    args.maxTasks,
+    args.maxDuration
   );
 
   // Run pipeline
