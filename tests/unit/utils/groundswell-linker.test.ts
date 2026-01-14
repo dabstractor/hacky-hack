@@ -28,6 +28,9 @@ vi.mock('node:child_process', () => ({
 vi.mock('node:fs/promises', () => ({
   lstat: vi.fn(),
   readlink: vi.fn(),
+  access: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
 }));
 
 // Mock groundswell-verifier module
@@ -37,19 +40,21 @@ vi.mock('../../../src/utils/groundswell-verifier.js', () => ({
 
 // Import mocked modules
 import { spawn } from 'node:child_process';
-import { lstat, readlink } from 'node:fs/promises';
+import { access, lstat, readFile, readlink, writeFile } from 'node:fs/promises';
 import { verifyGroundswellExists } from '../../../src/utils/groundswell-verifier.js';
 import {
   linkGroundswell,
   linkGroundswellLocally,
   verifyGroundswellSymlink,
   verifyGroundswellNpmList,
+  documentGroundswellReadme,
   type GroundswellLinkResult,
   type GroundswellLocalLinkResult,
   type GroundswellSymlinkVerifyResult,
   type GroundswellSymlinkVerifyOptions,
   type NpmListVerifyResult,
-  type NpmListVerifyOptions,
+  type ReadmeUpdateResult,
+  type ReadmeUpdateOptions,
 } from '../../../src/utils/groundswell-linker.js';
 
 // =============================================================================
@@ -1473,11 +1478,13 @@ describe('linkGroundswellLocally', () => {
         const mockChild = {
           stdout: { on: vi.fn() },
           stderr: { on: vi.fn() },
-          on: vi.fn((event: string, callback: (code: number | null) => void) => {
-            if (event === 'close') {
-              closeCallback = callback;
+          on: vi.fn(
+            (event: string, callback: (code: number | null) => void) => {
+              if (event === 'close') {
+                closeCallback = callback;
+              }
             }
-          }),
+          ),
           kill: vi.fn((_signal: string) => {
             // Emit close after kill to resolve the promise
             if (closeCallback !== undefined) {
@@ -2836,7 +2843,9 @@ describe('verifyGroundswellNpmList', () => {
       });
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const resultPromise = verifyGroundswellNpmList(s4Result, { timeout: 5000 });
+      const resultPromise = verifyGroundswellNpmList(s4Result, {
+        timeout: 5000,
+      });
       await vi.runAllTimersAsync();
       const result = await resultPromise;
 
@@ -2861,7 +2870,9 @@ describe('verifyGroundswellNpmList', () => {
       vi.mocked(spawn).mockReturnValue(mockChild);
 
       const customProjectPath = '/custom/project/path';
-      const resultPromise = verifyGroundswellNpmList(s4Result, { projectPath: customProjectPath });
+      const resultPromise = verifyGroundswellNpmList(s4Result, {
+        projectPath: customProjectPath,
+      });
       await vi.runAllTimersAsync();
       const result = await resultPromise;
 
@@ -3480,6 +3491,346 @@ describe('verifyGroundswellNpmList', () => {
       expect(result.linked).toBe(false);
       expect(result.message).toContain('Skipped');
       expect(spawn).not.toHaveBeenCalled();
+    });
+  });
+});
+
+// =============================================================================
+// S6: documentGroundswellReadme() TESTS
+// ============================================================================
+
+describe('documentGroundswellReadme', () => {
+  const mockProjectPath = '/home/dustin/projects/hacky-hack';
+  const mockReadmePath = `${mockProjectPath}/README.md`;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ========================================================================
+  // Happy path tests
+  // ========================================================================
+
+  describe('Successful README update', () => {
+    it('should return updated: true when README exists and S5 linked', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{"dependencies":{"groundswell":{"version":"1.0.0"}}}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(access).mockResolvedValue(undefined);
+      vi.mocked(readFile).mockResolvedValue(
+        '# Test Project\n\n## License\nMIT\n'
+      );
+      vi.mocked(writeFile).mockResolvedValue(undefined);
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(true);
+      expect(result.path).toBe(mockReadmePath);
+      expect(result.message).toContain(
+        'updated with Groundswell setup documentation'
+      );
+      expect(writeFile).toHaveBeenCalledWith(
+        mockReadmePath,
+        expect.stringContaining('## Local Development with Groundswell'),
+        'utf-8'
+      );
+    });
+
+    it('should create new README when it does not exist', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const enoentError = new Error('File not found') as NodeJS.ErrnoException;
+      enoentError.code = 'ENOENT';
+      vi.mocked(access).mockRejectedValue(enoentError);
+      vi.mocked(writeFile).mockResolvedValue(undefined);
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(true);
+      expect(result.message).toContain(
+        'created with Groundswell setup documentation'
+      );
+      expect(writeFile).toHaveBeenCalledWith(
+        mockReadmePath,
+        expect.stringContaining('## Local Development with Groundswell'),
+        'utf-8'
+      );
+    });
+
+    it('should skip update if README already contains Groundswell section', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(access).mockResolvedValue(undefined);
+      vi.mocked(readFile).mockResolvedValue(
+        '# Test\n\n## Local Development with Groundswell\n\nSetup instructions...\n'
+      );
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.message).toContain(
+        'already contains Groundswell documentation'
+      );
+      expect(writeFile).not.toHaveBeenCalled();
+    });
+  });
+
+  // ========================================================================
+  // Conditional execution tests
+  // ========================================================================
+
+  describe('Conditional execution based on S5 result', () => {
+    it('should skip when S5 linked is false', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: false,
+        message: 'npm list: groundswell not found in dependency tree',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 1,
+        error: 'Package not found',
+      };
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.message).toContain(
+        'Skipped: Groundswell not linked by npm list verification'
+      );
+      expect(access).not.toHaveBeenCalled();
+      expect(readFile).not.toHaveBeenCalled();
+      expect(writeFile).not.toHaveBeenCalled();
+    });
+  });
+
+  // ========================================================================
+  // Options tests
+  // ========================================================================
+
+  describe('Options configuration', () => {
+    it('should use custom project path from options', async () => {
+      const customPath = '/custom/project/path';
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const enoentError = new Error('File not found') as NodeJS.ErrnoException;
+      enoentError.code = 'ENOENT';
+      vi.mocked(access).mockRejectedValue(enoentError);
+      vi.mocked(writeFile).mockResolvedValue(undefined);
+
+      const options: ReadmeUpdateOptions = { projectPath: customPath };
+      const result: ReadmeUpdateResult = await documentGroundswellReadme(
+        s5Result,
+        options
+      );
+
+      expect(result.path).toBe(`${customPath}/README.md`);
+      expect(access).toHaveBeenCalledWith(`${customPath}/README.md`);
+    });
+
+    it('should use custom README file name from options', async () => {
+      const customReadmeName = 'CUSTOM_README.md';
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const enoentError = new Error('File not found') as NodeJS.ErrnoException;
+      enoentError.code = 'ENOENT';
+      vi.mocked(access).mockRejectedValue(enoentError);
+      vi.mocked(writeFile).mockResolvedValue(undefined);
+
+      const options: ReadmeUpdateOptions = { readmeFileName: customReadmeName };
+      const result: ReadmeUpdateResult = await documentGroundswellReadme(
+        s5Result,
+        options
+      );
+
+      expect(result.path).toBe(`${mockProjectPath}/${customReadmeName}`);
+      expect(access).toHaveBeenCalledWith(
+        `${mockProjectPath}/${customReadmeName}`
+      );
+    });
+  });
+
+  // ========================================================================
+  // Error handling tests
+  // ========================================================================
+
+  describe('Error handling', () => {
+    it('should handle EACCES (permission denied) on access check', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const eaccesError = new Error(
+        'Permission denied'
+      ) as NodeJS.ErrnoException;
+      eaccesError.code = 'EACCES';
+      vi.mocked(access).mockRejectedValue(eaccesError);
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.error).toContain('Permission denied');
+      expect(result.message).toContain('Failed to check README existence');
+    });
+
+    it('should handle writeFile error when creating new README', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const enoentError = new Error('File not found') as NodeJS.ErrnoException;
+      enoentError.code = 'ENOENT';
+      vi.mocked(access).mockRejectedValue(enoentError);
+
+      const enospcError = new Error(
+        'No space left on device'
+      ) as NodeJS.ErrnoException;
+      enospcError.code = 'ENOSPC';
+      vi.mocked(writeFile).mockRejectedValue(enospcError);
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.error).toContain('No space left on device');
+      expect(result.message).toContain('Failed to create README.md');
+    });
+
+    it('should handle readFile error when checking existing README', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(access).mockResolvedValue(undefined);
+
+      const readError = new Error('Read error') as NodeJS.ErrnoException;
+      readError.code = 'EIO';
+      vi.mocked(readFile).mockRejectedValue(readError);
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.error).toContain('Read error');
+      expect(result.message).toContain('Failed to update README.md');
+    });
+
+    it('should handle generic error on access check', async () => {
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      const genericError = new Error('Unknown error');
+      vi.mocked(access).mockRejectedValue(genericError);
+
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.error).toContain('Unknown error');
+      expect(result.message).toContain('Failed to check README existence');
+    });
+  });
+
+  // ========================================================================
+  // Integration with S5 tests
+  // ========================================================================
+
+  describe('Integration with S5', () => {
+    it('should support full workflow: S5 then S6', async () => {
+      // S5 result - successful npm list verification
+      const s5Result: NpmListVerifyResult = {
+        linked: true,
+        version: '1.0.0',
+        message: 'npm list confirms groundswell is linked',
+        stdout: '{"dependencies":{"groundswell":{"version":"1.0.0"}}}',
+        stderr: '',
+        exitCode: 0,
+      };
+
+      vi.mocked(access).mockResolvedValue(undefined);
+      vi.mocked(readFile).mockResolvedValue('# Test\n\n## License\nMIT\n');
+      vi.mocked(writeFile).mockResolvedValue(undefined);
+
+      // S6 (document README) should proceed
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(true);
+      expect(result.message).toContain(
+        'updated with Groundswell setup documentation'
+      );
+      expect(writeFile).toHaveBeenCalled();
+    });
+
+    it('should fail fast if S5 npm list verification failed', async () => {
+      // S5 result - npm list failed
+      const s5Result: NpmListVerifyResult = {
+        linked: false,
+        message: 'npm list: groundswell not found in dependency tree',
+        stdout: '{}',
+        stderr: '',
+        exitCode: 1,
+        error: 'Package not found',
+      };
+
+      // S6 should skip without file operations
+      const result: ReadmeUpdateResult =
+        await documentGroundswellReadme(s5Result);
+
+      expect(result.updated).toBe(false);
+      expect(result.message).toContain('Skipped');
+      expect(access).not.toHaveBeenCalled();
+      expect(readFile).not.toHaveBeenCalled();
+      expect(writeFile).not.toHaveBeenCalled();
     });
   });
 });

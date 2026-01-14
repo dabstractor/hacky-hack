@@ -24,7 +24,7 @@
  */
 
 import { spawn, type ChildProcess } from 'node:child_process';
-import { lstat, readlink } from 'node:fs/promises';
+import { access, lstat, readFile, readlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { verifyGroundswellExists } from './groundswell-verifier.js';
 
@@ -234,6 +234,51 @@ export interface NpmListVerifyOptions {
   projectPath?: string;
 }
 
+/**
+ * Result of README.md update with Groundswell setup documentation
+ *
+ * @remarks
+ * Returned by {@link documentGroundswellReadme} to indicate whether
+ * README.md was created or updated with Groundswell setup documentation.
+ *
+ * @example
+ * ```typescript
+ * const result = await documentGroundswellReadme(s5Result);
+ * if (result.updated) {
+ *   console.log('README updated successfully');
+ * } else {
+ *   console.log(`Skipped: ${result.message}`);
+ * }
+ * ```
+ */
+export interface ReadmeUpdateResult {
+  /** Whether README.md was created or updated */
+  updated: boolean;
+
+  /** Absolute path to README.md */
+  path: string;
+
+  /** Human-readable status message */
+  message: string;
+
+  /** Error message if update failed */
+  error?: string;
+}
+
+/**
+ * Optional configuration for documentGroundswellReadme()
+ *
+ * @remarks
+ * Optional configuration for the documentGroundswellReadme function.
+ */
+export interface ReadmeUpdateOptions {
+  /** Project directory path (default: /home/dustin/projects/hacky-hack) */
+  projectPath?: string;
+
+  /** README file name (default: README.md) */
+  readmeFileName?: string;
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -264,6 +309,59 @@ const DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack';
  * a safe margin for slower systems or large dependency trees.
  */
 const DEFAULT_NPM_LIST_TIMEOUT = 10000; // 10 seconds
+
+/**
+ * Groundswell setup documentation section for README.md
+ *
+ * @remarks
+ * Markdown content to be appended to README.md documenting
+ * the npm link setup process for local Groundswell development.
+ * Follows existing README formatting patterns (H2 headers, code blocks, tables).
+ */
+const GROUNDSWELL_README_SECTION = `
+## Local Development with Groundswell
+
+This project depends on the \`groundswell\` library for AI agent orchestration, workflow management, and MCP tool integration. For local development, \`groundswell\` is linked via \`npm link\` rather than installed from the npm registry.
+
+### Prerequisites
+
+- Groundswell package located at \`~/projects/groundswell\`
+- Groundswell must be built (\`npm run build\`) before linking
+
+### Setup
+
+\`\`\`bash
+# From groundswell directory (creates global symlink)
+cd ~/projects/groundswell
+npm link
+
+# From hacky-hack directory (consumes global symlink)
+cd ~/projects/hacky-hack
+npm link groundswell
+\`\`\`
+
+### Verification
+
+\`\`\`bash
+# Verify symlink exists in node_modules
+ls -la node_modules/groundswell
+
+# Verify npm recognizes the linked package
+npm list groundswell --json
+
+# Verify TypeScript compilation
+npm run typecheck
+\`\`\`
+
+### Troubleshooting
+
+| Problem | Solution |
+| ------- | -------- |
+| Cannot find module 'groundswell' | Run \`npm link\` from groundswell directory first |
+| Changes not reflected | Rebuild groundswell with \`npm run build\` |
+| TypeScript compilation fails | Ensure \`preserveSymlinks: true\` in tsconfig.json |
+| Permission denied (EACCES) | Use nvm instead of system npm, or fix permissions |
+`;
 
 // ============================================================================
 // MAIN FUNCTION
@@ -528,7 +626,7 @@ export async function linkGroundswellLocally(
     }
 
     // PATTERN: Handle close event with exit code and symlink verification
-    child.on('close', async (exitCode) => {
+    child.on('close', async exitCode => {
       clearTimeout(timeoutId);
 
       // PATTERN: Verify symlink only if npm link succeeded
@@ -745,8 +843,10 @@ export async function verifyGroundswellNpmList(
   previousResult: GroundswellSymlinkVerifyResult,
   options?: NpmListVerifyOptions
 ): Promise<NpmListVerifyResult> {
-  const { timeout = DEFAULT_NPM_LIST_TIMEOUT, projectPath = DEFAULT_PROJECT_PATH } =
-    options ?? {};
+  const {
+    timeout = DEFAULT_NPM_LIST_TIMEOUT,
+    projectPath = DEFAULT_PROJECT_PATH,
+  } = options ?? {};
 
   // PATTERN: Conditional execution based on S4 result
   if (!previousResult.exists) {
@@ -814,7 +914,7 @@ export async function verifyGroundswellNpmList(
     }
 
     // PATTERN: Handle close event with JSON parsing
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timeoutId);
 
       // PATTERN: Handle exit code 0 or 1 with JSON output
@@ -854,7 +954,10 @@ export async function verifyGroundswellNpmList(
             stdout,
             stderr,
             exitCode,
-            error: parseError instanceof Error ? parseError.message : String(parseError),
+            error:
+              parseError instanceof Error
+                ? parseError.message
+                : String(parseError),
           });
           return;
         }
@@ -914,4 +1017,129 @@ export async function verifyGroundswellNpmList(
       });
     });
   });
+}
+
+/**
+ * Documents Groundswell npm link setup in the project README.md
+ *
+ * @remarks
+ * Performs README.md documentation with comprehensive validation and error handling:
+ * 1. Validates S5 result.linked - skips documentation if npm list verification failed
+ * 2. Checks if README.md exists using fs.promises.access()
+ * 3. Creates README.md with Write tool if it doesn't exist
+ * 4. Updates README.md with Edit tool if it exists (appends new section)
+ * 5. Checks for existing "## Local Development with Groundswell" to avoid duplication
+ * 6. Returns structured result with update status
+ *
+ * The function does not throw for normal errors (file system errors, write failures).
+ * All errors are returned in the structured result object.
+ *
+ * @param previousResult - Result from S5's verifyGroundswellNpmList() function
+ * @param options - Optional configuration including project path and README file name
+ * @returns Promise resolving to README update result
+ *
+ * @example
+ * ```typescript
+ * // Basic usage with defaults
+ * const s6Result = await documentGroundswellReadme(s5Result);
+ * if (s6Result.updated) {
+ *   console.log('README updated successfully');
+ * }
+ *
+ * // Custom project path
+ * const result = await documentGroundswellReadme(s5Result, {
+ *   projectPath: '/custom/project/path'
+ * });
+ * ```
+ */
+export async function documentGroundswellReadme(
+  previousResult: NpmListVerifyResult,
+  options?: ReadmeUpdateOptions
+): Promise<ReadmeUpdateResult> {
+  const { projectPath = DEFAULT_PROJECT_PATH, readmeFileName = 'README.md' } =
+    options ?? {};
+
+  const readmePath = join(projectPath, readmeFileName);
+
+  // PATTERN: Conditional execution based on S5 result
+  if (!previousResult.linked) {
+    return {
+      updated: false,
+      path: readmePath,
+      message: 'Skipped: Groundswell not linked by npm list verification',
+    };
+  }
+
+  // PATTERN: File existence check with fs.promises.access()
+  let readmeExists: boolean;
+  try {
+    await access(readmePath);
+    readmeExists = true;
+  } catch (error) {
+    const errno = error as NodeJS.ErrnoException;
+    if (errno?.code === 'ENOENT') {
+      readmeExists = false;
+    } else {
+      // Real error (permission denied, disk full, etc.)
+      return {
+        updated: false,
+        path: readmePath,
+        message: `Failed to check README existence: ${errno.message}`,
+        error: errno.message,
+      };
+    }
+  }
+
+  // PATTERN: Create new README with writeFile if it doesn't exist
+  if (!readmeExists) {
+    try {
+      await writeFile(readmePath, GROUNDSWELL_README_SECTION.trim(), 'utf-8');
+      return {
+        updated: true,
+        path: readmePath,
+        message: 'README.md created with Groundswell setup documentation',
+      };
+    } catch (error) {
+      const errno = error as NodeJS.ErrnoException;
+      return {
+        updated: false,
+        path: readmePath,
+        message: `Failed to create README.md: ${errno.message}`,
+        error: errno.message,
+      };
+    }
+  }
+
+  // PATTERN: Update existing README - check for existing section first
+  try {
+    const existingContent = await readFile(readmePath, 'utf-8');
+
+    // Check if section already exists to avoid duplication
+    if (existingContent.includes('## Local Development with Groundswell')) {
+      return {
+        updated: false,
+        path: readmePath,
+        message: 'README.md already contains Groundswell documentation',
+      };
+    }
+
+    // Append new section to existing README
+    const updatedContent =
+      existingContent.trimEnd() + '\n' + GROUNDSWELL_README_SECTION;
+    await writeFile(readmePath, updatedContent, 'utf-8');
+
+    return {
+      updated: true,
+      path: readmePath,
+      message: 'README.md updated with Groundswell setup documentation',
+    };
+  } catch (error) {
+    const errno = error as NodeJS.ErrnoException;
+    return {
+      updated: false,
+      path: readmePath,
+      message: `Failed to update README.md: ${errno.message}`,
+      error: errno.message,
+    };
+  }
 }

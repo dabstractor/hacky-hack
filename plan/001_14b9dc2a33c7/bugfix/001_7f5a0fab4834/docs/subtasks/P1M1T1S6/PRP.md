@@ -1,337 +1,191 @@
-# Product Requirement Prompt (PRP): P1.M1.T1.S6 - Document Groundswell link setup in README
+# PRP: P1.M1.T1.S6 - Document Groundswell Link Setup in README
 
 ---
 
 ## Goal
 
-**Feature Goal**: Add Groundswell local development setup documentation to the project README.md, completing the S1-S6 workflow by documenting the npm link setup process for future contributors.
+**Feature Goal**: Add a `documentGroundswellReadme()` function that conditionally appends Groundswell npm link setup instructions to the project README.md, but only when S5's `npm list` verification reports `linked: true`.
 
-**Deliverable**: An updated `README.md` in the project root with a new "Local Development with Groundswell" section containing npm link commands, verification steps, troubleshooting guidance, and unlinking instructions. The documentation function should return `ReadmeUpdateResult` with updated status and file path.
+**Deliverable**: A documented function in `src/utils/groundswell-linker.ts` that:
+1. Consumes `NpmListVerifyResult` from S5 as input
+2. Conditionally executes: only writes to README when `linked === true`
+3. Creates/updates README.md with "## Local Development with Groundswell" section
+4. Returns `ReadmeUpdateResult` with status information
 
 **Success Definition**:
-- README.md is updated with comprehensive Groundswell link setup documentation
-- Documentation includes conditional language (when npm link is needed)
-- Documentation includes two-step npm link process (global + local)
-- Documentation includes verification commands with expected output
-- Documentation includes troubleshooting table for common issues
-- Documentation includes unlinking instructions
-- Function returns `ReadmeUpdateResult` with `{ updated: boolean, path: string }`
-- Documentation follows existing README.md patterns (H2 headers, markdown formatting, code blocks)
-
----
+- Function exists and follows all S1-S5 patterns (conditional execution, structured result, error handling)
+- README.md is created (if missing) or updated (if exists) with proper Groundswell setup documentation
+- Documentation follows existing README.md formatting patterns (H2 headers, code blocks, tables)
+- Unit tests pass with 100% coverage of all branches
+- Function gracefully handles file system errors (permission denied, disk full, etc.)
 
 ## User Persona
 
-**Target User**: Developer/Contributor setting up hacky-hack for local development
+**Target User**: Developers working on the hacky-hack codebase who need to set up their local development environment with the Groundswell dependency.
 
-**Use Case**: A developer wants to contribute to hacky-hack and may need to work on the Groundswell library simultaneously. They need clear instructions on how to link the local Groundswell package.
+**Use Case**: A developer clones the hacky-hack repository and needs to understand how to link the local Groundswell package for development. The README should provide clear, executable instructions.
 
 **User Journey**:
-1. Developer clones hacky-hack repository
-2. Developer runs `npm install` (standard setup)
-3. If developing Groundswell locally, developer encounters "Cannot find module 'groundswell'" or needs local Groundswell changes
-4. Developer consults README.md "Local Development with Groundswell" section
-5. Developer follows two-step npm link process
-6. Developer verifies setup with provided commands
-7. If issues occur, developer consults troubleshooting table
+1. Developer clones repository
+2. Reads README.md "Local Development with Groundswell" section
+3. Follows commands to link Groundswell locally
+4. Verifies setup with provided verification commands
+5. Proceeds with development
 
 **Pain Points Addressed**:
-- No documentation for Groundswell npm link setup
-- Contributors unaware of local Groundswell development workflow
-- Time wasted debugging missing Groundswell module errors
-- Unclear how to reverse npm link setup
-
----
+- Without documentation, developers must search codebase or ask teammates how to set up Groundswell
+- Missing documentation leads to repeated setup questions and onboarding friction
+- Inconsistent setup instructions across team members
 
 ## Why
 
-- **Knowledge Transfer**: Documentation enables new contributors to set up Groundswell link without asking existing team members
-- **Workflow Completion**: S6 is the final step in the S1-S6 Groundswell dependency resolution workflow - S1-S5 implement the infrastructure, S6 documents it
-- **S5 Integration**: S6 consumes S5's `NpmListVerifyResult` (with `linked` and `version` fields) to conditionally document only when link is successful
-- **Milestone Tracking**: Documentation complete flag enables P1.M1 milestone tracking
-- **Onboarding Efficiency**: Reduces setup time for new contributors from hours to minutes
-
----
+- **Business Value**: Reduces onboarding time for new developers; prevents "module not found" errors from incorrect setup
+- **Integration**: Completes P1.M1.T1 (Establish Groundswell npm link) by documenting the final step
+- **Problems Solved**: Provides single source of truth for Groundswell setup; documents the workflow that S1-S5 just automated
 
 ## What
+
+Add a `documentGroundswellReadme()` function to `src/utils/groundswell-linker.ts` that:
+
+1. **Conditional Execution**: Only runs when `previousResult.linked === true`
+2. **README Existence Check**: Tests if `README.md` exists at project root
+3. **Create or Update**: Uses `Write` tool if README doesn't exist; uses `Edit` tool if it does
+4. **Section Content**: Appends "## Local Development with Groundswell" section with:
+   - Prerequisites (groundswell package location)
+   - Step-by-step npm link commands
+   - Verification commands
+   - Troubleshooting table
+5. **Structured Result**: Returns `ReadmeUpdateResult` with `updated`, `path`, `message`, `error` fields
 
 ### Success Criteria
 
 - [ ] `documentGroundswellReadme()` function exists in `src/utils/groundswell-linker.ts`
-- [ ] Function consumes S5's `NpmListVerifyResult` as first parameter
-- [ ] Function accepts optional `ReadmeUpdateOptions` parameter
-- [ ] Conditional execution: only documents when S5's `linked` is `true`
-- [ ] Checks if README.md exists (creates if missing)
-- [ ] Appends "## Local Development with Groundswell" section to README.md
-- [ ] Documentation includes: linking steps, verification, troubleshooting, unlinking
-- [ ] Returns `ReadmeUpdateResult` with `{ updated: boolean, path: string }`
-- [ ] Follows existing README.md formatting patterns (H2 headers, code blocks, tables)
-- [ ] Comprehensive test suite with 20+ tests
-
-### User-Visible Behavior
-
-```typescript
-// Input: S5's result (npm list verification)
-const s5Result: NpmListVerifyResult = {
-  linked: true,
-  version: '1.0.0',
-  message: 'npm list confirms groundswell is linked',
-  stdout: '{"dependencies":{"groundswell":{"version":"1.0.0"}}}',
-  stderr: '',
-  exitCode: 0,
-};
-
-// Call S6
-const s6Result = await documentGroundswellReadme(s5Result);
-
-// Output: S6's result
-console.log(s6Result);
-// {
-//   updated: true,
-//   path: '/home/dustin/projects/hacky-hack/README.md',
-//   message: 'README.md updated with Groundswell setup documentation'
-// }
-
-// README.md now contains:
-// ## Local Development with Groundswell
-// [Complete npm link documentation]
-```
-
-**README.md Section to be Added**:
-
-```markdown
-## Local Development with Groundswell
-
-**Note**: This section is only required if you're actively developing the Groundswell library at `~/projects/groundswell`. Most contributors can skip this section.
-
-### Linking Groundswell
-
-If you need to work on the Groundswell library and hacky-hack simultaneously, you can link the local Groundswell package:
-
-1. **Link Groundswell globally** (from Groundswell directory):
-   ```bash
-   cd ~/projects/groundswell
-   npm link
-   ```
-
-2. **Link into hacky-hack** (from hacky-hack directory):
-   ```bash
-   cd /home/dustin/projects/hacky-hack
-   npm link groundswell
-   ```
-
-### Verification
-
-Verify the symlink was created correctly:
-
-```bash
-# Check symlink exists (should show: groundswell -> <path>)
-ls -la node_modules/groundswell
-
-# Verify npm recognizes the link
-npm list groundswell
-
-# Verify TypeScript resolution
-npm run typecheck
-```
-
-**Expected Output**:
-```
-node_modules/groundswell -> ../../.config/nvm/versions/node/v20.0.0/lib/node_modules/groundswell
-```
-
-### Troubleshooting
-
-| Symptom | Solution |
-|---------|----------|
-| `npm link` fails with EACCES | Run with `sudo` or fix npm permissions: `sudo chown -R $(whoami) ~/.npm` |
-| `ls` shows regular file, not symlink | Run `npm unlink groundswell`, then retry both linking steps |
-| TypeScript: "Cannot find module 'groundswell'" | Run `npm run typecheck`, restart IDE/TS server |
-| `npm list` shows wrong version | Unlink both sides, restart terminal, retry linking |
-
-### Unlinking
-
-To return to using the published Groundswell package:
-
-```bash
-# From hacky-hack directory
-npm unlink groundswell
-
-# From Groundswell directory
-npm unlink -g groundswell
-
-# Reinstall production version
-npm install
-```
-```
-
----
+- [ ] Function takes `NpmListVerifyResult` as first parameter
+- [ ] Function returns `ReadmeUpdateResult` interface
+- [ ] Conditional execution: skips when `linked === false`
+- [ ] Creates README.md if it doesn't exist (using `Write` tool)
+- [ ] Updates README.md if it exists (using `Edit` tool)
+- [ ] Appends "## Local Development with Groundswell" section
+- [ ] Documentation includes: prerequisites, link commands, verification, troubleshooting
+- [ ] Unit tests cover: happy path, conditional skip, file system errors, README exists/not exists
+- [ ] All tests pass with 100% coverage
+- [ ] JSDoc documentation with examples
 
 ## All Needed Context
 
 ### Context Completeness Check
 
-This PRP provides:
-- Exact README.md file path and current structure
-- S5's `NpmListVerifyResult` interface definition (consumed by S6)
-- Complete documentation content to append (ready-to-use markdown)
-- Existing README.md formatting patterns (H2 headers, tables, code blocks)
-- Test file location and comprehensive test patterns
-- File operation patterns (Write vs Edit tool usage)
-- All gotchas and warnings from research
+**"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
+
+**Yes** - This PRP provides:
+- Exact file paths and line numbers for all patterns to follow
+- Complete interface definitions for input (S5) and output (S6)
+- README.md formatting patterns with specific header levels and code block styles
+- File operation patterns from existing groundswell-linker.ts functions
+- External documentation URLs for npm link best practices
+- Troubleshooting content from architecture/external_deps.md
 
 ### Documentation & References
 
 ```yaml
-# MUST READ - Implementation patterns and examples
-- file: README.md
-  why: Existing README structure to follow (H2 headers, formatting, code blocks)
-  pattern: Use "##" for major section headers, code blocks with bash, tables for comparisons
-  critical: "Maintain consistency with existing README structure"
-  lines: H2 headers include: "## Quick Start", "## Features", "## Development", etc.
-
-- file: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/architecture/external_deps.md
-  why: Architecture documentation specifying Groundswell installation strategy
-  pattern: npm link commands and verification steps
-  section: "Installation Strategy" (lines 61-93)
-  critical: "Groundswell expected at ~/projects/groundswell"
-
-- file: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S5/PRP.md
-  why: S5's PRP defining NpmListVerifyResult contract that S6 consumes
-  section: "Data Models and Structure" (lines 267-319)
-  critical: "S6 consumes S5's NpmListVerifyResult - must match interface exactly"
-
-- docfile: plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S5/npm-link-readme-research.md
-  why: Complete npm link README documentation research with best practices
-  section: "Recommended README Section" (lines 440-575)
-  critical: "Use comprehensive pattern with verification and troubleshooting"
-
-- file: src/utils/groundswell-linker.ts
-  why: Existing Groundswell utility patterns for function structure and error handling
-  pattern: Async functions with result interfaces, conditional execution
-  gotcha: "Follow naming convention: {Action}Result for result interfaces"
-
-# EXTERNAL REFERENCES
+# MUST READ - Include these in your context window
 - url: https://docs.npmjs.com/cli/v10/commands/npm-link
-  why: Official npm link command documentation
-  critical: "Two-step process: npm link (global) then npm link <package> (local)"
-  section: "Description" and "See also"
+  why: Official npm link documentation for accurate command syntax
+  critical: Always use `npm link` from package directory first, then `npm link <package>` in consumer
 
-- url: https://nodejs.org/api/fs.html#fswritefilefile-data-options
-  why: Node.js fs.writeFile() documentation for creating README.md if it doesn't exist
-  critical: "Use fs/promises for Promise-based file operations"
-  section: "fs.promises.writeFile()"
+- url: https://nodejs.org/api/cli.html#--preserve-symlinks
+  why: Node.js symlink preservation flag for TypeScript projects
+  critical: TypeScript requires `preserveSymlinks: true` in tsconfig.json for symlink resolution
+
+- file: /home/dustin/projects/hacky-hack/README.md
+  why: Existing README structure and formatting patterns to follow
+  pattern: H2 headers (##), fenced code blocks with language specifiers, tables for options
+  gotcha: README uses "## Development" section at line 416 - append new section after this
+
+- file: /home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/architecture/external_deps.md
+  why: Source of truth for Groundswell setup instructions and troubleshooting
+  section: Lines 61-79 (npm link strategy), Lines 351-361 (troubleshooting)
+  pattern: Use exact commands from this document in the README section
+
+- file: /home/dustin/projects/hacky-hack/src/utils/groundswell-linker.ts
+  why: Implementation patterns for all S1-S5 functions; S6 must follow these exactly
+  pattern: Conditional execution pattern (lines ~750-760), structured result interfaces, error handling
+  gotcha: All functions use `DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack'` constant
+
+- file: /home/dustin/projects/hacky-hack/src/utils/groundswell-linker.ts
+  why: NpmListVerifyResult interface definition (S5 output, S6 input)
+  section: Lines 200-221
+  pattern: Result interfaces have: boolean status field, message string, optional error, debug fields (stdout/stderr)
 ```
 
 ### Current Codebase Tree
 
 ```bash
-hacky-hack/
-├── README.md                      # MODIFY - Add Groundswell documentation section
+/home/dustin/projects/hacky-hack/
+├── README.md                      # Target file for documentation (exists)
+├── package.json
 ├── src/
 │   └── utils/
-│       ├── groundswell-verifier.ts      # S1: Verify Groundswell exists
-│       └── groundswell-linker.ts        # MODIFY - Add S6 function
+│       └── groundswell-linker.ts  # Add documentGroundswellReadme() here
 ├── tests/
 │   └── unit/
 │       └── utils/
-│           ├── groundswell-verifier.test.ts
-│           └── groundswell-linker.test.ts  # MODIFY - Add S6 tests
+│           └── groundswell-linker.test.ts  # Add tests here
 └── plan/
     └── 001_14b9dc2a33c7/
         └── bugfix/
             └── 001_7f5a0fab4834/
-                ├── docs/
-                │   └── architecture/
-                │       └── external_deps.md    # Reference for installation strategy
-                ├── P1M1T1S5/
-                │   └── PRP.md                    # S5 PRP (consumed by S6)
                 └── P1M1T1S6/
-                    └── PRP.md                    # This PRP
+                    └── PRP.md
 ```
 
-### Desired Codebase Tree with Files to be Modified
+### Desired Codebase Tree with Files to be Added
 
 ```bash
-hacky-hack/
-├── README.md                          # MODIFY - Add "## Local Development with Groundswell" section
+/home/dustin/projects/hacky-hack/
+├── README.md                      # EXISTING - Will be UPDATED with new section
 ├── src/
 │   └── utils/
-│       ├── groundswell-verifier.ts           # EXISTING - S1
-│       └── groundswell-linker.ts             # MODIFY - Add documentGroundswellReadme() function
+│       └── groundswell-linker.ts  # EXISTING - ADD: documentGroundswellReadme(), ReadmeUpdateResult
 └── tests/
     └── unit/
         └── utils/
-            ├── groundswell-verifier.test.ts         # EXISTING
-            └── groundswell-linker.test.ts           # MODIFY - Add S6 tests
+            └── groundswell-linker.test.ts  # EXISTING - ADD: test suite for documentGroundswellReadme()
 ```
 
 ### Known Gotchas of Our Codebase & Library Quirks
 
 ```typescript
-// CRITICAL: S6 is conditional on S5's linked field
-// Only document when S5's linked is true
+// CRITICAL: Use Write tool when file doesn't exist, Edit tool when it does
+// Pattern from README task description: "Use Write tool if file doesn't exist, Edit if it does"
+import { Write, Edit } from 'claude-ai-tools';  // Hypothetical import pattern
+
+// CRITICAL: All groundswell-linker functions use DEFAULT_PROJECT_PATH constant
+const DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack';
+const README_PATH = `${DEFAULT_PROJECT_PATH}/README.md`;
+
+// CRITICAL: Conditional execution pattern - skip if previous step failed
+// From verifyGroundswellNpmList() lines 750-760:
 if (!previousResult.linked) {
   return {
-    updated: false,
-    path: readmePath,
-    message: 'Skipped: Groundswell not linked - cannot document',
+    linked: false,  // For S6: updated: false
+    message: 'Skipped: Groundswell not linked by npm list verification',
+    // ... other fields
   };
 }
 
-// CRITICAL: Use Edit tool when README.md exists, Write tool when it doesn't
-// Check file existence with fs.access() before choosing tool
-// Edit tool requires old_string for exact match
-// Write tool overwrites entire file
+// CRITICAL: README.md already exists with "## Development" section at line 416
+// GOTCHA: Don't overwrite existing content - APPEND new section
+// Pattern: Use Edit tool to append after existing content
 
-// CRITICAL: The codebase uses fs/promises (Promise-based), NOT fs callback API
-import { writeFile, readFile } from 'node:fs/promises'; // CORRECT
-import { access } from 'node:fs/promises'; // CORRECT
-// import { writeFile, readFile } from 'fs'; // DON'T USE - requires callbacks
+// GOTCHA: TypeScript requires preserveSymlinks for symlink resolution
+// Must document this in tsconfig.json section
 
-// CRITICAL: README.md already exists in this project
-// Path: /home/dustin/projects/hacky-hack/README.md
-// Use Edit tool, not Write tool
-
-// CRITICAL: When appending to README.md, find the right insertion point
-// Options: (1) After "## Development" section, (2) Before "## Contributing" section
-// Use Edit tool with old_string that includes the anchor section header
-
-// CRITICAL: The documentation section header must be H2 (##) not H3 (###)
-// Existing README uses H2 for major sections
-// Use: "## Local Development with Groundswell"
-
-// CRITICAL: Don't duplicate existing content
-// README.md already has "## Development" section with standard setup
-// Add new section AFTER "## Development", not inside it
-
-// GOTCHA: Edit tool requires exact match for old_string
-// Must include full section header and content to replace
-// Must preserve exact whitespace and line endings
-
-// GOTCHA: If README.md structure changes, Edit tool may fail
-// Handle by catching Edit errors and providing clear error message
-// Alternative: Append to end of file if anchor not found
-
-// GOTCHA: The codebase uses specific patterns for file paths
-// Use DEFAULT_PROJECT_PATH constant for base path
-// Construct full path: join(DEFAULT_PROJECT_PATH, 'README.md')
-
-// PATTERN: Conditional execution based on previous result (from S3, S4, S5)
-if (!previousResult.linked) {
-  return { updated: false, path: readmePath, /* ... */ };
-}
-
-// PATTERN: Result interface follows existing pattern (from S1-S5)
-export interface ReadmeUpdateResult {
-  updated: boolean;
-  path: string;
-  message: string;
-  error?: string;
-}
+// GOTCHA: npm link requires two-step process:
+// 1. In groundswell dir: npm link (creates global symlink)
+// 2. In hacky-hack dir: npm link groundswell (consumes global symlink)
+// Document BOTH steps in README
 ```
-
----
 
 ## Implementation Blueprint
 
@@ -339,23 +193,32 @@ export interface ReadmeUpdateResult {
 
 ```typescript
 /**
- * Result of README.md update operation
+ * Result type for documentGroundswellReadme() function
  *
  * @remarks
- * Returned by documentGroundswellReadme() to indicate whether
- * the README.md was successfully updated with Groundswell
- * setup documentation.
+ * Indicates whether README.md was created/updated with Groundswell setup docs.
+ * Only writes when previousResult.linked === true.
  *
  * @example
- * ```typescript
- * const result = await documentGroundswellReadme(s5Result);
- * if (!result.updated) {
- *   console.error(`Failed to update README: ${result.error}`);
+ * // Success case - README updated
+ * {
+ *   updated: true,
+ *   path: '/home/dustin/projects/hacky-hack/README.md',
+ *   message: 'README.md updated with Groundswell setup documentation',
+ *   error: undefined
  * }
- * ```
+ *
+ * @example
+ * // Skipped case - Groundswell not linked
+ * {
+ *   updated: false,
+ *   path: '/home/dustin/projects/hacky-hack/README.md',
+ *   message: 'Skipped: Groundswell not linked, not documenting setup',
+ *   error: undefined
+ * }
  */
 export interface ReadmeUpdateResult {
-  /** Whether README.md was updated */
+  /** Whether README.md was created or updated */
   updated: boolean;
 
   /** Absolute path to README.md */
@@ -367,1221 +230,415 @@ export interface ReadmeUpdateResult {
   /** Error message if update failed */
   error?: string;
 }
-
-/**
- * Optional configuration for documentGroundswellReadme()
- *
- * @remarks
- * Optional configuration for the documentGroundswellReadme function.
- */
-export interface ReadmeUpdateOptions {
-  /** README.md file path (default: <projectRoot>/README.md) */
-  readmePath?: string;
-
-  /** Section title to use (default: "Local Development with Groundswell") */
-  sectionTitle?: string;
-
-  /** Whether to append if section not found (default: true) */
-  appendIfMissing?: boolean;
-}
 ```
 
 ### Implementation Tasks (ordered by dependencies)
 
 ```yaml
-Task 1: ADD ReadmeUpdateResult and ReadmeUpdateOptions interfaces
-  - LOCATION: src/utils/groundswell-linker.ts (after NpmListVerifyResult, line ~320)
-  - IMPLEMENT: ReadmeUpdateResult interface
-  - IMPLEMENT: ReadmeUpdateOptions interface
-  - FOLLOW pattern: NpmListVerifyResult (lines 284-305)
-  - FIELDS: updated, path, message, error?
-  - NAMING: CamelCase interfaces, descriptive field names
+Task 1: DEFINE ReadmeUpdateResult interface in src/utils/groundswell-linker.ts
+  - ADD: ReadmeUpdateResult interface after NpmListVerifyResult (around line 222)
+  - FOLLOW pattern: NpmListVerifyResult structure (lines 200-221)
+  - FIELDS: updated: boolean, path: string, message: string, error?: string
+  - JSDOC: Include @remarks, @example for success/skipped/error cases
+  - EXPORT: Export interface for use by tests and consumers
 
-Task 2: ADD DEFAULT_README_PATH constant
-  - LOCATION: src/utils/groundswell-linker.ts (after constants section, line ~210)
-  - IMPLEMENT: const DEFAULT_README_PATH = '/home/dustin/projects/hacky-hack/README.md';
-  - FOLLOW pattern: DEFAULT_PROJECT_PATH constant (line ~202)
-  - NAMING: UPPER_SNAKE_CASE for constants
+Task 2: DEFINE README content constant in src/utils/groundswell-linker.ts
+  - ADD: GROUNDSWELL_README_SECTION constant with markdown content
+  - LOCATION: After NpmListVerifyOptions interface (around line 240)
+  - CONTENT: "## Local Development with Groundswell" section with:
+    - Prerequisites subsection
+    - Setup commands (from external_deps.md lines 63-72)
+    - Verification commands (from external_deps.md lines 75-78)
+    - Troubleshooting table (from external_deps.md lines 353-361)
+  - FORMAT: Follow existing README patterns (H2, H3, code blocks, tables)
 
-Task 3: ADD GROUNDSWELL_README_SECTION constant
-  - LOCATION: src/utils/groundswell-linker.ts (after DEFAULT_README_PATH)
-  - IMPLEMENT: const GROUNDSWELL_README_SECTION = `## Local Development with Groundswell...` (full markdown)
-  - IMPLEMENT: Complete markdown content with linking, verification, troubleshooting, unlinking
-  - FOLLOW pattern: See "What > User-Visible Behavior" section for exact content
-  - CONTENT: Use template literal with proper markdown formatting
+Task 3: IMPLEMENT documentGroundswellReadme() function
+  - ADD: Function after verifyGroundswellNpmList() (around line 920)
+  - SIGNATURE: async function documentGroundswellReadme(previousResult: NpmListVerifyResult, options?: ReadmeUpdateOptions): Promise<ReadmeUpdateResult>
+  - LOCATION: src/utils/groundswell-linker.ts
+  - DEPENDENCIES: Import fs.promises for file existence check
+  - PATTERN: Follow conditional execution pattern from verifyGroundswellNpmList (lines 750-760)
 
-Task 4: CREATE documentGroundswellReadme() function
-  - LOCATION: src/utils/groundswell-linker.ts (after verifyGroundswellNpmList)
-  - IMPLEMENT: async function documentGroundswellReadme()
-  - SIGNATURE: (previousResult: NpmListVerifyResult, options?: ReadmeUpdateOptions) => Promise<ReadmeUpdateResult>
-  - DEPENDENCIES: Import writeFile, readFile, access from 'node:fs/promises' (if not already imported)
-  - DEPENDENCIES: Import join from 'node:path' (if not already imported)
+Task 4: IMPLEMENT conditional execution logic
+  - CHECK: if (!previousResult.linked) return { updated: false, ... }
+  - MESSAGE: "Skipped: Groundswell not linked by npm list verification"
+  - FOLLOW: Pattern from verifyGroundswellNpmList (lines 750-760)
+  - RETURN: ReadmeUpdateResult with updated: false, explanatory message
 
-Task 5: IMPLEMENT conditional execution logic
-  - LOCATION: documentGroundswellReadme() function body
-  - CHECK: if (!previousResult.linked) return early with updated: false
-  - FOLLOW pattern: verifyGroundswellNpmList() conditional execution (from S5 PRP)
-  - MESSAGE: Include previousResult.message in skip message for debugging
+Task 5: IMPLEMENT README existence check
+  - USE: fs.promises.access(README_PATH, fs.constants.F_OK)
+  - CATCH: ENOENT means file doesn't exist (use Write tool)
+  - SUCCESS: File exists (use Edit tool)
+  - ERROR: Handle EACCES (permission denied), other errors
 
-Task 6: IMPLEMENT README.md existence check
-  - LOCATION: documentGroundswellReadme() function body (after conditional check)
-  - USE: await access(readmePath, fs.constants.F_OK) to check existence
-  - HANDLE: If README doesn't exist and options allow, create it
-  - FOLLOW pattern: Use fs/promises for async operations
+Task 6: IMPLEMENT README creation with Write tool (when doesn't exist)
+  - USE: Write tool for new file creation
+  - CONTENT: Use GROUNDSWELL_README_SECTION constant as initial content
+  - GOTCHA: New README should include basic headers + Groundswell section
+  - RETURN: { updated: true, path: README_PATH, message: 'README.md created with Groundswell documentation' }
 
-Task 7: IMPLEMENT README.md content reading
-  - LOCATION: documentGroundswellReadme() function body (after existence check)
-  - USE: await readFile(readmePath, 'utf-8') to get current content
-  - STORE: In variable for parsing and editing
+Task 7: IMPLEMENT README update with Edit tool (when exists)
+  - USE: Edit tool to append GROUNDSWELL_README_SECTION
+  - FIND: Last line of existing README (license end)
+  - APPEND: Add "\n" + GROUNDSWELL_README_SECTION
+  - GOTCHA: Don't duplicate if section already exists (check for "## Local Development with Groundswell")
+  - RETURN: { updated: true, path: README_PATH, message: 'README.md updated with Groundswell documentation' }
 
-Task 8: IMPLEMENT duplicate section check
-  - LOCATION: documentGroundswellReadme() function body (after reading)
-  - CHECK: If section already exists, skip with updated: false
-  - PATTERN: Check for section header: '## Local Development with Groundswell'
-  - MESSAGE: "Section already exists in README.md"
+Task 8: IMPLEMENT error handling
+  - CATCH: fs.promises.access() errors (EACCES, ENOSPC, etc.)
+  - RETURN: { updated: false, path: README_PATH, message: '...', error: error.message }
+  - CODES: EACCES (permission denied), ENOSPC (disk full), EROFS (read-only filesystem)
+  - FOLLOW: Pattern from verifyGroundswellSymlink() error handling
 
-Task 9: IMPLEMENT README.md update logic
-  - LOCATION: documentGroundswellReadme() function body (after duplicate check)
-  - FIND: Insertion point (after "## Development" section or end of file)
-  - CONCATENATE: Existing content + '\n\n' + GROUNDSWELL_README_SECTION
-  - USE: Edit tool pattern (old_string + new_string) OR writeFile for full overwrite
+Task 9: ADD comprehensive JSDoc documentation
+  - INCLUDE: @param description for previousResult and options
+  - INCLUDE: @returns Promise<ReadmeUpdateResult> description
+  - INCLUDE: @example showing happy path and skipped path
+  - INCLUDE: @remarks explaining conditional execution and README creation/update logic
 
-Task 10: IMPLEMENT file write operation
-  - LOCATION: documentGroundswellReadme() function body (after content concatenation)
-  - USE: await writeFile(readmePath, updatedContent, 'utf-8')
-  - HANDLE: Write errors (permission denied, disk full, etc.)
-  - RETURN: ReadmeUpdateResult with updated: true
+Task 10: CREATE test file tests/unit/utils/groundswell-linker-document-readme.test.ts
+  - CREATE: New test file for documentGroundswellReadme function
+  - FOLLOW: Pattern from existing groundswell-linker.test.ts (AAA, describe/it, vi.mock)
+  - IMPORT: documentGroundswellReadme, ReadmeUpdateResult, vi, expect, describe, it, beforeEach
+  - MOCK: fs.promises.access, fs.promises.readFile, Write tool, Edit tool
 
-Task 11: EXPORT documentGroundswellReadme function
-  - LOCATION: src/utils/groundswell-linker.ts (add to existing exports)
-  - EXPORT: export async function documentGroundswellReadme(...)
-  - FOLLOW pattern: Existing exports (linkGroundswell, verifyGroundswellNpmList)
+Task 11: IMPLEMENT happy path test (README exists, linked=true)
+  - ARRANGE: Mock fs.promises.access() to resolve (file exists)
+  - ARRANGE: Mock Edit tool to succeed
+  - ACT: Call documentGroundswellReadme({ linked: true, ... })
+  - ASSERT: Return { updated: true, path: '/home/dustin/projects/hacky-hack/README.md' }
+  - ASSERT: Edit tool called with correct arguments
 
-Task 12: CREATE comprehensive test suite
-  - LOCATION: tests/unit/utils/groundswell-linker.test.ts
-  - IMPLEMENT: describe('documentGroundswellReadme', () => { ... })
-  - MOCK: vi.mock('node:fs/promises') for file operations
-  - TESTS: 20+ tests covering all scenarios (see Test Patterns below)
+Task 12: IMPLEMENT skip test (linked=false)
+  - ARRANGE: previousResult with linked: false
+  - ACT: Call documentGroundswellReadme({ linked: false, ... })
+  - ASSERT: Return { updated: false, ... } with skip message
+  - ASSERT: fs.promises.access NOT called (early return)
+
+Task 13: IMPLEMENT README not exists test (linked=true, no README)
+  - ARRANGE: Mock fs.promises.access() to reject with ENOENT
+  - ARRANGE: Mock Write tool to succeed
+  - ACT: Call documentGroundswellReadme({ linked: true, ... })
+  - ASSERT: Return { updated: true, ... } with created message
+  - ASSERT: Write tool called, Edit tool NOT called
+
+Task 14: IMPLEMENT error handling tests
+  - TEST: EACCES (permission denied) - return updated: false with error
+  - TEST: ENOSPC (disk full) - return updated: false with error
+  - TEST: Generic fs error - return updated: false with error
+  - ASSERT: Error messages are descriptive
+
+Task 15: VERIFY all tests pass with 100% coverage
+  - RUN: npm test -- tests/unit/utils/groundswell-linker-document-readme.test.ts
+  - VERIFY: All tests pass
+  - CHECK: Coverage is 100% for documentGroundswellReadme
 ```
 
 ### Implementation Patterns & Key Details
 
 ```typescript
-/**
- * PATTERN: Conditional execution based on previous result
- * Location: Start of documentGroundswellReadme()
- */
-export async function documentGroundswellReadme(
+// CRITICAL: Conditional execution pattern - skip if previous step failed
+async function documentGroundswellReadme(
   previousResult: NpmListVerifyResult,
   options?: ReadmeUpdateOptions
 ): Promise<ReadmeUpdateResult> {
-  const {
-    readmePath = DEFAULT_README_PATH,
-    sectionTitle = 'Local Development with Groundswell',
-    appendIfMissing = true,
-  } = options ?? {};
-
-  // PATTERN: Skip if previous step failed (from verifyGroundswellNpmList)
+  // PATTERN: Early return on conditional check (from verifyGroundswellNpmList line 750-760)
   if (!previousResult.linked) {
     return {
       updated: false,
-      path: readmePath,
-      message: `Skipped: Groundswell not linked - ${previousResult.message}`,
-      error: undefined,
+      path: README_PATH,
+      message: 'Skipped: Groundswell not linked by npm list verification',
     };
   }
 
-  // PATTERN: Safe file operations with try/catch
+  // PATTERN: File existence check with fs.promises.access()
+  // GOTCHA: Access check can throw - handle ENOENT vs other errors
+  let readmeExists: boolean;
   try {
-    // Check if README exists
-    await access(readmePath, fs.constants.F_OK);
+    await fs.promises.access(README_PATH, fs.constants.F_OK);
+    readmeExists = true;
   } catch (error) {
-    const errno = error as NodeJS.ErrnoException;
-    if (errno?.code === 'ENOENT') {
-      // README doesn't exist - create it or skip
-      if (appendIfMissing) {
-        await writeFile(readmePath, '# hacky-hack\n\n' + GROUNDSWELL_README_SECTION, 'utf-8');
-        return {
-          updated: true,
-          path: readmePath,
-          message: 'README.md created with Groundswell documentation',
-        };
-      }
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      readmeExists = false;
+    } else {
+      // Real error (permission denied, disk full, etc.)
       return {
         updated: false,
-        path: readmePath,
-        message: 'README.md not found and appendIfMissing is false',
-        error: 'ENOENT',
+        path: README_PATH,
+        message: `Failed to check README existence: ${(error as Error).message}`,
+        error: (error as Error).message,
       };
     }
-    return {
-      updated: false,
-      path: readmePath,
-      message: 'Failed to access README.md',
-      error: errno?.message || String(error),
-    };
   }
 
-  // PATTERN: Read existing content
-  let existingContent: string;
-  try {
-    existingContent = await readFile(readmePath, 'utf-8');
-  } catch (error) {
-    return {
-      updated: false,
-      path: readmePath,
-      message: 'Failed to read README.md',
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-
-  // PATTERN: Check for duplicate section
-  if (existingContent.includes(`## ${sectionTitle}`)) {
-    return {
-      updated: false,
-      path: readmePath,
-      message: `Section "${sectionTitle}" already exists in README.md`,
-    };
-  }
-
-  // PATTERN: Find insertion point (after "## Development" or at end)
-  const developmentIndex = existingContent.indexOf('## Development');
-  const contributingIndex = existingContent.indexOf('## Contributing');
-
-  let insertIndex: number;
-  if (contributingIndex !== -1) {
-    // Insert before Contributing section
-    insertIndex = contributingIndex;
-  } else if (developmentIndex !== -1) {
-    // Insert after Development section (find end of section)
-    const nextH2Index = existingContent.indexOf('\n## ', developmentIndex + 2);
-    insertIndex = nextH2Index !== -1 ? nextH2Index : existingContent.length;
-  } else {
-    // Append to end
-    insertIndex = existingContent.length;
-  }
-
-  // PATTERN: Insert new section
-  const updatedContent = [
-    existingContent.slice(0, insertIndex).trimEnd(),
-    '',
-    GROUNDSWELL_README_SECTION,
-    '',
-    existingContent.slice(insertIndex).trimStart(),
-  ].join('\n');
-
-  // PATTERN: Write updated content
-  try {
-    await writeFile(readmePath, updatedContent, 'utf-8');
+  // PATTERN: Use Write tool for new file, Edit tool for existing
+  if (!readmeExists) {
+    // Create new README with Write tool
+    await writeTool({
+      file_path: README_PATH,
+      content: generateFullReadmeContent(),  // Includes basic headers + Groundswell section
+    });
     return {
       updated: true,
-      path: readmePath,
-      message: `README.md updated with "${sectionTitle}" section`,
-    };
-  } catch (error) {
-    return {
-      updated: false,
-      path: readmePath,
-      message: 'Failed to write README.md',
-      error: error instanceof Error ? error.message : String(error),
+      path: README_PATH,
+      message: 'README.md created with Groundswell setup documentation',
     };
   }
+
+  // Update existing README with Edit tool
+  // GOTCHA: Check if section already exists to avoid duplication
+  const existingContent = await fs.promises.readFile(README_PATH, 'utf-8');
+  if (existingContent.includes('## Local Development with Groundswell')) {
+    return {
+      updated: false,
+      path: README_PATH,
+      message: 'README.md already contains Groundswell documentation',
+    };
+  }
+
+  await editTool({
+    file_path: README_PATH,
+    old_string: existingContent.slice(-100),  // Last 100 chars to append after
+    new_string: existingContent.slice(-100) + '\n\n' + GROUNDSWELL_README_SECTION,
+  });
+
+  return {
+    updated: true,
+    path: README_PATH,
+    message: 'README.md updated with Groundswell setup documentation',
+  };
 }
 
-/**
- * GROUNDSWELL_README_SECTION constant
- * Location: After DEFAULT_README_PATH constant
- */
-const GROUNDSWELL_README_SECTION = `## Local Development with Groundswell
+// CRITICAL: README section content constant
+const GROUNDSWELL_README_SECTION = `
+## Local Development with Groundswell
 
-**Note**: This section is only required if you're actively developing the Groundswell library at \`~/projects/groundswell\`. Most contributors can skip this section.
+This project depends on the \`groundswell\` library for AI agent orchestration, workflow management, and MCP tool integration. For local development, \`groundswell\` is linked via \`npm link\` rather than installed from the npm registry.
 
-### Linking Groundswell
+### Prerequisites
 
-If you need to work on the Groundswell library and hacky-hack simultaneously, you can link the local Groundswell package:
+- Groundswell package located at \`~/projects/groundswell\`
+- Groundswell must be built (\`npm run build\`) before linking
 
-1. **Link Groundswell globally** (from Groundswell directory):
-   \`\`\`bash
-   cd ~/projects/groundswell
-   npm link
-   \`\`\`
+### Setup
 
-2. **Link into hacky-hack** (from hacky-hack directory):
-   \`\`\`bash
-   cd /home/dustin/projects/hacky-hack
-   npm link groundswell
-   \`\`\`
+\`\`\`bash
+# From groundswell directory (creates global symlink)
+cd ~/projects/groundswell
+npm link
+
+# From hacky-hack directory (consumes global symlink)
+cd ~/projects/hacky-hack
+npm link groundswell
+\`\`\`
 
 ### Verification
 
-Verify the symlink was created correctly:
-
 \`\`\`bash
-# Check symlink exists (should show: groundswell -> <path>)
+# Verify symlink exists in node_modules
 ls -la node_modules/groundswell
 
-# Verify npm recognizes the link
-npm list groundswell
+# Verify npm recognizes the linked package
+npm list groundswell --json
 
-# Verify TypeScript resolution
+# Verify TypeScript compilation
 npm run typecheck
-\`\`\`
-
-**Expected Output**:
-\`\`\`
-node_modules/groundswell -> ../../.config/nvm/versions/node/v20.0.0/lib/node_modules/groundswell
 \`\`\`
 
 ### Troubleshooting
 
-| Symptom | Solution |
-|---------|----------|
-| \`npm link\` fails with EACCES | Run with \`sudo\` or fix npm permissions: \`sudo chown -R $(whoami) ~/.npm\` |
-| \`ls\` shows regular file, not symlink | Run \`npm unlink groundswell\`, then retry both linking steps |
-| TypeScript: "Cannot find module 'groundswell'" | Run \`npm run typecheck\`, restart IDE/TS server |
-| \`npm list\` shows wrong version | Unlink both sides, restart terminal, retry linking |
-
-### Unlinking
-
-To return to using the published Groundswell package:
-
-\`\`\`bash
-# From hacky-hack directory
-npm unlink groundswell
-
-# From Groundswell directory
-npm unlink -g groundswell
-
-# Reinstall production version
-npm install
-\`\`\`
+| Problem | Solution |
+| ------- | -------- |
+| Cannot find module 'groundswell' | Run \`npm link\` from groundswell directory first |
+| Changes not reflected | Rebuild groundswell with \`npm run build\` |
+| TypeScript compilation fails | Ensure \`preserveSymlinks: true\` in tsconfig.json |
+| Permission denied (EACCES) | Use nvm instead of system npm, or fix permissions |
 `;
 ```
 
 ### Integration Points
 
 ```yaml
-FUNCTION_SIGNATURE:
-  - name: documentGroundswellReadme
-  - parameters: previousResult: NpmListVerifyResult, options?: ReadmeUpdateOptions
-  - returns: Promise<ReadmeUpdateResult>
-  - location: src/utils/groundswell-linker.ts
+FILESYSTEM:
+  - operation: "Check README.md existence with fs.promises.access()"
+  - path: "/home/dustin/projects/hacky-hack/README.md"
+  - error_codes: "ENOENT (not exists), EACCES (permission), ENOSPC (disk full)"
 
-IMPORTS:
-  - file: src/utils/groundswell-linker.ts
-  - add: import { access, readFile, writeFile } from 'node:fs/promises';
-  - add: import { constants } from 'node:fs'; // For fs.constants.F_OK
-  - add: import { join } from 'node:path'; // For path construction
+TOOLS:
+  - use: "Write tool for new README creation"
+  - use: "Edit tool for existing README update"
+  - note: "Both tools are hypothetical - actual implementation may use fs.promises.writeFile"
 
-EXPORTS:
-  - file: src/utils/groundswell-linker.ts
-  - add: export { documentGroundswellReadme, type ReadmeUpdateResult, type ReadmeUpdateOptions }
+CONSTANTS:
+  - add_to: "src/utils/groundswell-linker.ts"
+  - pattern: "const README_PATH = \`\${DEFAULT_PROJECT_PATH}/README.md\`"
+  - value: "Use existing DEFAULT_PROJECT_PATH constant"
 
-WORKFLOW_CONSUMERS:
-  - S6 is final step: No further consumers in S1-S6 workflow
-  - Milestone tracking: Documentation complete flag for P1.M1
+S5_CONSUMPTION:
+  - input: "NpmListVerifyResult from verifyGroundswellNpmList()"
+  - field: "previousResult.linked determines conditional execution"
+  - pattern: "All S1-S6 functions consume previous step's result"
 
-WORKFLOW_PRODUCERS:
-  - S5: Provides NpmListVerifyResult
-  - Consumes: linked, version, message fields
+TEST:
+  - create: "tests/unit/utils/groundswell-linker-document-readme.test.ts"
+  - pattern: "AAA (Arrange, Act, Assert), describe/it, vi.mock"
+  - mock: "fs.promises.access, fs.promises.readFile, Write/Edit tools"
 ```
-
----
 
 ## Validation Loop
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
 ```bash
-# Run TypeScript compiler to check for type errors
-npx tsc --noEmit src/utils/groundswell-linker.ts
+# Run after each file creation - fix before proceeding
+npm run lint -- src/utils/groundswell-linker.ts   # Lint the modified file
+npm run typecheck                                 # Type check entire project
+npm run format -- src/utils/groundswell-linker.ts # Format with Prettier
 
-# Expected: Zero type errors. If errors exist, READ output and fix before proceeding.
+# Project-wide validation
+npm run lint                                      # Lint all source files
+npm run typecheck                                 # Type check entire project
+npm run format                                    # Format all files
 
-# Run ESLint (if configured)
-npm run lint -- src/utils/groundswell-linker.ts
-
-# Expected: Zero linting errors.
-
-# Format check (if using Prettier)
-npm run format:check -- src/utils/groundswell-linker.ts
-
-# Expected: Code is properly formatted.
+# Expected: Zero errors. If errors exist, READ output and fix before proceeding.
+# Common TypeScript errors:
+# - TS2307: Cannot find module 'fs' -> import { promises as fs } from 'fs'
+# - TS2304: Cannot find name 'Write' -> define tool wrapper or use fs.promises.writeFile
 ```
 
 ### Level 2: Unit Tests (Component Validation)
 
 ```bash
-# Test README documentation function
-npm test -- tests/unit/utils/groundswell-linker.test.ts -t "documentGroundswellReadme"
+# Test the new function specifically
+npm test -- tests/unit/utils/groundswell-linker-document-readme.test.ts
 
-# Expected: All S6 tests pass (including existing S2-S5 tests)
+# Test all groundswell-linker functions
+npm test -- tests/unit/utils/groundswell-linker.test.ts
 
-# Run with coverage
-npm run test:coverage -- tests/unit/utils/groundswell-linker.test.ts
-
-# Expected: 100% coverage for documentGroundswellReadme function
-
-# Run all utils tests
+# Full test suite for utils
 npm test -- tests/unit/utils/
 
-# Expected: All tests pass, no regressions in existing code
+# Coverage validation (100% required)
+npm run test:coverage -- tests/unit/utils/groundswell-linker-document-readme.test.ts
+
+# Expected: All tests pass. Look for:
+# - PASS src/utils/groundswell-linker.test.ts (existing tests)
+# - PASS tests/unit/utils/groundswell-linker-document-readme.test.ts (new tests)
+# - Coverage: 100% for documentGroundswellReadme function
+
+# If failing, debug root cause:
+# - Check mock setup (vi.mock, vi.fn)
+# - Verify async/await handling (use async test functions)
+# - Check error simulation (throw Error with .code property for errno)
 ```
 
 ### Level 3: Integration Testing (System Validation)
 
 ```bash
-# Manual verification: Check README.md was updated
-grep "Local Development with Groundswell" /home/dustin/projects/hacky-hack/README.md
+# Manual test: Run the full S1-S6 workflow
+# Create a test script that calls all functions in sequence
 
-# Expected: Section exists in README.md
+# 1. Verify Groundswell exists (S1)
+node -e "const { verifyGroundswellExists } = require('./dist/utils/groundswell-linker.js'); verifyGroundswellExists().then(console.log);"
 
-# Verify README.md formatting
-cat /home/dustin/projects/hacky-hack/README.md | grep -A 50 "Local Development with Groundswell"
+# 2-6. Run through S2-S6 (this tests S6 integration)
+npm run dev -- --prd ./plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P1M1T1S6/PRP.md --scope P1.M1.T1
 
-# Expected: Complete section with linking, verification, troubleshooting, unlinking
+# Verify README.md was updated
+cat README.md | grep -A 20 "## Local Development with Groundswell"
 
-# Test the full S1-S6 workflow (requires actual Groundswell link)
-# Note: This integration test requires Groundswell to be linked
+# Expected output: The Groundswell section should be present with all content
 
-# Manual verification: Run TypeScript compilation
-npx tsc --noEmit
+# Clean up for re-testing
+git checkout README.md  # Reset to test again
 
-# Expected: Zero compilation errors across entire project
-
-# Verify function is exported correctly
-node -e "import('./src/utils/groundswell-linker.ts').then(m => console.log(Object.keys(m)))"
-
-# Expected: documentGroundswellReadme appears in exported members
+# Expected: All integrations working, README.md contains new section
 ```
 
 ### Level 4: Creative & Domain-Specific Validation
 
 ```bash
-# Validate README.md markdown syntax
-npx markdownlint /home/dustin/projects/hacky-hack/README.md
+# Documentation Quality Validation:
 
-# Expected: Zero markdown linting errors
+# 1. Test README instructions manually (follow your own documentation)
+cd ~/projects/groundswell && npm link && cd ~/projects/hacky-hack && npm link groundswell
 
-# Test README.md renders correctly in GitHub-flavored markdown viewer
-# (Open README.md in IDE preview or GitHub)
+# 2. Verify all commands in README section execute successfully
+ls -la node_modules/groundswell           # Should show symlink ->
+npm list groundswell --json              # Should show linked version
+npm run typecheck                         # Should compile
 
-# Expected: Section renders with proper formatting, code blocks, tables
+# 3. Verify troubleshooting table is accurate
+# Test each "Problem" scenario and verify "Solution" works
 
-# Verify documentation completeness
-# Check for all required subsections
-grep -E "(Linking Groundswell|Verification|Troubleshooting|Unlinking)" /home/dustin/projects/hacky-hack/README.md
+# 4. Check README formatting
+# - Headers use correct level (## for main section, ### for subsections)
+# - Code blocks have language specifiers (```bash, ```typescript)
+# - Table formatting is correct (| headers |)
+# - No trailing whitespace
+# - Consistent indentation
 
-# Expected: All 4 subsections present
+# 5. Verify documentation completeness
+# - All commands from external_deps.md are included
+# - TypeScript tsconfig.json requirement is documented
+# - Verification commands are provided
+# - Troubleshooting covers common issues
 
-# Verify code blocks are properly formatted
-grep -c '```bash' /home/dustin/projects/hacky-hack/README.md
+# 6. Test with fresh clone (simulate new developer)
+cd /tmp && git clone <repo> test-hacky-hack && cd test-hacky-hack
+# Follow README instructions - should work without errors
 
-# Expected: At least 5 code blocks (linking x2, verification x3, unlinking)
-
-# Verify troubleshooting table format
-grep -A 5 "| Symptom | Solution |" /home/dustin/projects/hacky-hack/README.md
-
-# Expected: Proper markdown table with header and separator rows
+# Expected: Documentation is accurate, complete, and follows project patterns
 ```
-
----
 
 ## Final Validation Checklist
 
 ### Technical Validation
 
 - [ ] All 4 validation levels completed successfully
-- [ ] All tests pass: `npm test -- tests/unit/utils/groundswell-linker.test.ts`
-- [ ] No type errors: `npx tsc --noEmit`
-- [ ] No linting errors: `npm run lint`
-- [ ] Function is properly exported: `documentGroundswellReadme` appears in module exports
+- [ ] All tests pass: `npm test -- tests/unit/utils/`
+- [ ] No linting errors: `npm run lint -- src/utils/groundswell-linker.ts`
+- [ ] No type errors: `npm run typecheck`
+- [ ] No formatting issues: `npm run format -- src/utils/groundswell-linker.ts --check`
 
 ### Feature Validation
 
 - [ ] All success criteria from "What" section met
-- [ ] Conditional execution works (skips when S5 linked is false)
-- [ ] README.md is updated with "## Local Development with Groundswell" section
-- [ ] Documentation includes all required subsections (linking, verification, troubleshooting, unlinking)
-- [ ] Documentation follows existing README.md formatting patterns
-- [ ] Result interface matches expected contract
+- [ ] Conditional execution: Skips when `linked === false`
+- [ ] Creates README.md when it doesn't exist
+- [ ] Updates README.md when it exists
+- [ ] Documentation includes: prerequisites, commands, verification, troubleshooting
+- [ ] README.md follows existing formatting patterns
+- [ ] Error cases handled: EACCES, ENOSPC, EROFS
 
 ### Code Quality Validation
 
-- [ ] Follows existing codebase patterns (naming, structure, error handling)
-- [ ] File placement matches desired codebase tree structure
-- [ ] Anti-patterns avoided (check against Anti-Patterns section)
-- [ ] Dependencies properly imported (fs/promises, path)
-- [ ] Configuration changes properly integrated
+- [ ] Follows existing S1-S5 patterns in groundswell-linker.ts
+- [ ] Uses DEFAULT_PROJECT_PATH constant
+- [ ] Returns ReadmeUpdateResult with all required fields
+- [ ] JSDoc documentation with @param, @returns, @example, @remarks
+- [ ] Unit tests cover: happy path, skip path, create, update, errors
+- [ ] 100% test coverage achieved
 
 ### Documentation & Deployment
 
-- [ ] Code is self-documenting with clear variable/function names
-- [ ] JSDoc comments present and complete
-- [ ] Error messages are informative and actionable
-- [ ] Test documentation describes what each test validates
-- [ ] README.md section is clear, concise, and actionable
+- [ ] README.md "## Local Development with Groundswell" section is present
+- [ ] All npm link commands are accurate and tested
+- [ ] Troubleshooting table covers common issues
+- [ ] TypeScript `preserveSymlinks` requirement is documented
+- [ ] Cross-reference to external_deps.md if appropriate
 
 ---
 
 ## Anti-Patterns to Avoid
 
-- ❌ **Don't use Write tool when README.md exists** - Use Edit tool or read-modify-write pattern
-- ❌ **Don't skip conditional execution check** - Must verify `previousResult.linked` before proceeding
-- ❌ **Don't duplicate existing sections** - Check if "Local Development with Groundswell" already exists
-- ❌ **Don't use sync file operations** - Use `fs/promises` for Promise-based operations
-- ❌ **Don't ignore file permissions** - Handle EACCES errors gracefully
-- ❌ **Don't hardcode README path without options override** - Use DEFAULT_README_PATH with options
-- ❌ **Don't skip duplicate section detection** - Always check before appending
-- ❌ **Don't use incorrect header level** - Use H2 (`##`) not H3 (`###`) for section title
-- ❌ **Don't insert in wrong location** - Insert after "## Development" or before "## Contributing"
-- ❌ **Don't skip markdown validation** - Ensure proper formatting of tables, code blocks
-- ❌ **Don't forget unlinking instructions** - Complete the development lifecycle
-- ❌ **Don't omit troubleshooting table** - Essential for reducing support burden
-- ❌ **Don't use vague language** - Be specific about when npm link is needed
-- ❌ **Don't skip verification steps** - Include commands to confirm setup worked
-
----
-
-## Test Patterns Reference
-
-### Test Organization Structure
-
-```typescript
-describe('documentGroundswellReadme', () => {
-  const mockReadmePath = '/home/dustin/projects/hacky-hack/README.md';
-  const mockProjectPath = '/home/dustin/projects/hacky-hack';
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  // ========================================================================
-  // Conditional execution tests
-  // ========================================================================
-
-  describe('Conditional execution based on S5 result', () => {
-    it('should skip documentation when previousResult.linked is false', async () => {
-      // SETUP: Create S5 result with linked: false
-      const s5Result: NpmListVerifyResult = {
-        linked: false,
-        version: undefined,
-        message: 'npm list: groundswell not found',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 1,
-      };
-
-      // EXECUTE: Call documentGroundswellReadme()
-      const result = await documentGroundswellReadme(s5Result);
-
-      // VERIFY: updated: false, no file operations
-      expect(result.updated).toBe(false);
-      expect(result.path).toBe(mockReadmePath);
-      expect(result.message).toContain('Skipped');
-      expect(readFile).not.toHaveBeenCalled();
-      expect(writeFile).not.toHaveBeenCalled();
-    });
-
-    it('should include previousResult.message when skipping', async () => {
-      const customMessage = 'Custom S5 error message';
-      const s5Result: NpmListVerifyResult = {
-        linked: false,
-        version: undefined,
-        message: customMessage,
-        stdout: '',
-        stderr: '',
-        exitCode: 1,
-      };
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.message).toContain(customMessage);
-    });
-
-    it('should proceed with documentation when previousResult.linked is true', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'npm list confirms groundswell is linked',
-        stdout: '{"dependencies":{"groundswell":{"version":"1.0.0"}}}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      // Mock README exists and doesn't have section yet
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n\n## Development\n\n...');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(true);
-      expect(writeFile).toHaveBeenCalled();
-    });
-  });
-
-  // ========================================================================
-  // Happy path tests
-  // ========================================================================
-
-  describe('Successful README.md update', () => {
-    it('should return updated: true when README.md is successfully updated', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'npm list confirms groundswell is linked',
-        stdout: '{"dependencies":{"groundswell":{"version":"1.0.0"}}}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const existingReadme = '# hacky-hack\n\n## Quick Start\n\n...\n\n## Development\n\nSetup...\n\n## Contributing\n\n...';
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue(existingReadme);
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(true);
-      expect(result.path).toBe(mockReadmePath);
-      expect(result.message).toContain('updated with');
-    });
-
-    it('should append section after "## Development" when Contributing exists', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const existingReadme = '# hacky-hack\n\n## Development\n\nDevelopment content\n\n## Contributing\n\nContributing content';
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue(existingReadme);
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(writeFile).toHaveBeenCalledWith(
-        mockReadmePath,
-        expect.stringContaining('## Local Development with Groundswell'),
-        'utf-8'
-      );
-
-      // Verify insertion order: Development -> Groundswell section -> Contributing
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-      const devIndex = updatedContent.indexOf('## Development');
-      const groundswellIndex = updatedContent.indexOf('## Local Development with Groundswell');
-      const contributingIndex = updatedContent.indexOf('## Contributing');
-
-      expect(devIndex).toBeLessThan(groundswellIndex);
-      expect(groundswellIndex).toBeLessThan(contributingIndex);
-    });
-
-    it('should append to end when no Contributing section exists', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const existingReadme = '# hacky-hack\n\n## Development\n\nDevelopment content\n\n## License\n\nMIT';
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue(existingReadme);
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(writeFile).toHaveBeenCalled();
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-
-      // Section should be in updated content
-      expect(updatedContent).toContain('## Local Development with Groundswell');
-    });
-
-    it('should use default README path when no options provided', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n\n## Development\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.path).toBe(mockReadmePath);
-      expect(readFile).toHaveBeenCalledWith(mockReadmePath, 'utf-8');
-    });
-
-    it('should accept custom README path option', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const customPath = '/custom/path/README.md';
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result, { readmePath: customPath });
-
-      expect(result.path).toBe(customPath);
-      expect(readFile).toHaveBeenCalledWith(customPath, 'utf-8');
-    });
-  });
-
-  // ========================================================================
-  // README.md not found tests
-  // ========================================================================
-
-  describe('README.md not found scenarios', () => {
-    it('should create README.md when it does not exist and appendIfMissing is true', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      // Mock ENOENT error (file not found)
-      const enoentError = new Error('ENOENT') as NodeJS.ErrnoException;
-      enoentError.code = 'ENOENT';
-      enoentError.errno = -2;
-      vi.mocked(access).mockRejectedValue(enoentError);
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(true);
-      expect(result.message).toContain('created with Groundswell documentation');
-      expect(writeFile).toHaveBeenCalledWith(
-        mockReadmePath,
-        expect.stringContaining('## Local Development with Groundswell'),
-        'utf-8'
-      );
-    });
-
-    it('should skip creation when appendIfMissing is false', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const enoentError = new Error('ENOENT') as NodeJS.ErrnoException;
-      enoentError.code = 'ENOENT';
-      vi.mocked(access).mockRejectedValue(enoentError);
-
-      const result = await documentGroundswellReadme(s5Result, { appendIfMissing: false });
-
-      expect(result.updated).toBe(false);
-      expect(result.error).toBe('ENOENT');
-      expect(writeFile).not.toHaveBeenCalled();
-    });
-
-    it('should handle other access errors gracefully', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const eaccesError = new Error('EACCES') as NodeJS.ErrnoException;
-      eaccesError.code = 'EACCES';
-      vi.mocked(access).mockRejectedValue(eaccesError);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(false);
-      expect(result.error).toContain('EACCES');
-    });
-  });
-
-  // ========================================================================
-  // Duplicate section detection tests
-  // ========================================================================
-
-  describe('Duplicate section detection', () => {
-    it('should skip when section already exists', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const existingReadme = '# hacky-hack\n\n## Local Development with Groundswell\n\nExisting content...\n\n## Contributing\n';
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue(existingReadme);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(false);
-      expect(result.message).toContain('already exists');
-      expect(writeFile).not.toHaveBeenCalled();
-    });
-
-    it('should detect section with custom title', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      const customTitle = 'Custom Groundswell Setup';
-      const existingReadme = `# hacky-hack\n\n## ${customTitle}\\nExisting content...\n`;
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue(existingReadme);
-
-      const result = await documentGroundswellReadme(s5Result, { sectionTitle: customTitle });
-
-      expect(result.updated).toBe(false);
-      expect(result.message).toContain(customTitle);
-    });
-  });
-
-  // ========================================================================
-  // File read error tests
-  // ========================================================================
-
-  describe('File read error handling', () => {
-    it('should handle readFile errors gracefully', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockRejectedValue(new Error('Permission denied'));
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(false);
-      expect(result.message).toContain('Failed to read');
-      expect(result.error).toContain('Permission denied');
-    });
-  });
-
-  // ========================================================================
-  // File write error tests
-  // ========================================================================
-
-  describe('File write error handling', () => {
-    it('should handle writeFile errors gracefully', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n\n## Development\n');
-      vi.mocked(writeFile).mockRejectedValue(new Error('Disk full'));
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(false);
-      expect(result.message).toContain('Failed to write');
-      expect(result.error).toContain('Disk full');
-    });
-  });
-
-  // ========================================================================
-  // Result structure tests
-  // ========================================================================
-
-  describe('ReadmeUpdateResult structure', () => {
-    it('should return complete ReadmeUpdateResult object', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      // Check result structure
-      expect(result).toHaveProperty('updated');
-      expect(result).toHaveProperty('path');
-      expect(result).toHaveProperty('message');
-
-      // Check types
-      expect(typeof result.updated).toBe('boolean');
-      expect(typeof result.path).toBe('string');
-      expect(typeof result.message).toBe('string');
-    });
-
-    it('should include optional error property when update fails', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockRejectedValue(new Error('Read error'));
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.error).toBeDefined();
-      expect(result.error).toContain('Read error');
-    });
-
-    it('should not include error property on successful update', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.error).toBeUndefined();
-    });
-  });
-
-  // ========================================================================
-  // Integration with S5 tests
-  // ========================================================================
-
-  describe('Integration with S5', () => {
-    it('should support full workflow: S5 then S6', async () => {
-      // S5 result - successful npm list verification
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'npm list confirms groundswell is linked',
-        stdout: '{"dependencies":{"groundswell":{"version":"1.0.0"}}}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n\n## Development\n\nSetup...\n\n## Contributing\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      // S6 (README documentation) should proceed
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(true);
-      expect(writeFile).toHaveBeenCalledWith(
-        mockReadmePath,
-        expect.stringContaining('## Local Development with Groundswell'),
-        'utf-8'
-      );
-    });
-
-    it('should fail fast if S5 npm list verification failed', async () => {
-      // S5 result - package not linked
-      const s5Result: NpmListVerifyResult = {
-        linked: false,
-        version: undefined,
-        message: 'npm list: groundswell not found',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 1,
-      };
-
-      // S6 should skip without file operations
-      const result = await documentGroundswellReadme(s5Result);
-
-      expect(result.updated).toBe(false);
-      expect(result.message).toContain('Skipped');
-      expect(readFile).not.toHaveBeenCalled();
-      expect(writeFile).not.toHaveBeenCalled();
-    });
-  });
-
-  // ========================================================================
-  // Markdown content validation tests
-  // ========================================================================
-
-  describe('Markdown content validation', () => {
-    it('should include linking instructions with code blocks', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      await documentGroundswellReadme(s5Result);
-
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-
-      // Check for linking steps
-      expect(updatedContent).toContain('### Linking Groundswell');
-      expect(updatedContent).toContain('cd ~/projects/groundswell');
-      expect(updatedContent).toContain('npm link');
-      expect(updatedContent).toContain('cd /home/dustin/projects/hacky-hack');
-      expect(updatedContent).toContain('npm link groundswell');
-    });
-
-    it('should include verification steps', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      await documentGroundswellReadme(s5Result);
-
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-
-      // Check for verification steps
-      expect(updatedContent).toContain('### Verification');
-      expect(updatedContent).toContain('ls -la node_modules/groundswell');
-      expect(updatedContent).toContain('npm list groundswell');
-      expect(updatedContent).toContain('npm run typecheck');
-    });
-
-    it('should include troubleshooting table', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      await documentGroundswellReadme(s5Result);
-
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-
-      // Check for troubleshooting table
-      expect(updatedContent).toContain('### Troubleshooting');
-      expect(updatedContent).toContain('| Symptom | Solution |');
-      expect(updatedContent).toContain('EACCES');
-      expect(updatedContent).toContain('Cannot find module');
-    });
-
-    it('should include unlinking instructions', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      await documentGroundswellReadme(s5Result);
-
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-
-      // Check for unlinking steps
-      expect(updatedContent).toContain('### Unlinking');
-      expect(updatedContent).toContain('npm unlink groundswell');
-      expect(updatedContent).toContain('npm unlink -g groundswell');
-      expect(updatedContent).toContain('npm install');
-    });
-
-    it('should include conditional note at the beginning', async () => {
-      const s5Result: NpmListVerifyResult = {
-        linked: true,
-        version: '1.0.0',
-        message: 'Linked',
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0,
-      };
-
-      vi.mocked(access).mockResolvedValue(undefined);
-      vi.mocked(readFile).mockResolvedValue('# hacky-hack\n');
-      vi.mocked(writeFile).mockResolvedValue(undefined);
-
-      await documentGroundswellReadme(s5Result);
-
-      const writeCall = vi.mocked(writeFile).mock.calls[0];
-      const updatedContent = writeCall[1] as string;
-
-      // Check for conditional note
-      expect(updatedContent).toContain('**Note**');
-      expect(updatedContent).toContain('only required if you\'re actively developing');
-      expect(updatedContent).toContain('Most contributors can skip this section');
-    });
-  });
-});
-```
-
----
-
-## Confidence Score
-
-**Overall Confidence: 9/10**
-
-**Reasoning:**
-- Comprehensive research documented in P1M1T1S5/npm-link-readme-research.md (766 lines)
-- Clear patterns established in existing README.md structure
-- File operation patterns are proven in Node.js/TypeScript ecosystem
-- Test patterns are consistent across the codebase (20+ tests pattern from groundswell-linker.test.ts)
-- Conditional execution pattern is proven in S3-S5 implementations
-- Markdown content is ready-to-use with proper formatting
-
-**Risk Mitigation:**
-- All code patterns verified against existing implementations
-- Test patterns match existing groundswell-linker.test.ts structure
-- Error handling follows established conventions (try/catch, NodeJS.ErrnoException)
-- Type safety ensured through TypeScript
-- Duplicate section detection prevents overwriting existing content
-
-**Uncertainties:**
-- Actual README.md structure may vary from expected (mitigated by duplicate detection)
-- File insertion logic may need adjustment for different README structures (mitigated by flexible insertion logic)
-
----
-
-## Appendix: Quick Reference
-
-### Key File Locations
-
-| File | Purpose | Key Content |
-|------|---------|-------------|
-| `README.md` | MODIFY - Add documentation | Add "## Local Development with Groundswell" section |
-| `src/utils/groundswell-linker.ts` | Implementation | Add documentGroundswellReadme() function |
-| `tests/unit/utils/groundswell-linker.test.ts` | Tests | Add S6 test suite |
-
-### Import Statement
-
-```typescript
-import { access, readFile, writeFile } from 'node:fs/promises';
-import { constants } from 'node:fs';
-import { join } from 'node:path';
-// Add to existing imports in groundswell-linker.ts
-```
-
-### Function Signature
-
-```typescript
-export async function documentGroundswellReadme(
-  previousResult: NpmListVerifyResult,
-  options?: ReadmeUpdateOptions
-): Promise<ReadmeUpdateResult>
-```
-
-### Critical Constants
-
-```typescript
-const DEFAULT_README_PATH = '/home/dustin/projects/hacky-hack/README.md'; // Add to file
-const DEFAULT_PROJECT_PATH = '/home/dustin/projects/hacky-hack'; // Already exists
-const GROUNDSWELL_README_SECTION = `## Local Development with Groundswell...`; // Add to file
-```
-
-### README.md Insertion Point
-
-```typescript
-// Priority order for insertion:
-// 1. Before "## Contributing" section (preferred)
-// 2. After "## Development" section (next best)
-// 3. At end of file (fallback)
-```
-
-### Expected README.md Section Structure
-
-```markdown
-## Local Development with Groundswell
-
-**Note**: [Conditional language]
-
-### Linking Groundswell
-[Two-step npm link process]
-
-### Verification
-[ls -la, npm list, typecheck commands]
-
-### Troubleshooting
-[Table of common issues]
-
-### Unlinking
-[Cleanup instructions]
-```
-
----
-
-**End of PRP for P1.M1.T1.S6**
+- **Don't** use `fs.stat()` - use `fs.promises.access()` for existence checks (stat follows symlinks)
+- **Don't** overwrite existing README content - only append new section
+- **Don't** duplicate "## Local Development with Groundswell" section - check before adding
+- **Don't** skip conditional execution - always check `previousResult.linked` first
+- **Don't** throw errors - return structured error objects in result
+- **Don't** hardcode paths - use `DEFAULT_PROJECT_PATH` constant
+- **Don't** use sync file operations - use async `fs.promises` API
+- **Don't** forget to check if section already exists before appending
+- **Don't** ignore file system errors - handle EACCES, ENOSPC, EROFS explicitly
+- **Don't** write incomplete documentation - include all steps (link, verify, troubleshoot)
