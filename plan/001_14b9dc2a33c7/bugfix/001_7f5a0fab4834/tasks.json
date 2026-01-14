@@ -158,7 +158,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Execute CLI with --help flag",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: CLI entry point is src/index.ts, uses Commander.js per architecture/system_context.md\n2. INPUT: None - assumes P1.M1 (Groundswell link) complete\n3. LOGIC: Execute bash: `npm run dev -- --help`. Capture stdout and stderr. Look for help output sections (Usage, Options, Commands). Check return code. Mock for testing.\n4. OUTPUT: Return { success: boolean, output: string, hasHelp: boolean }. Success if return code is 0 and output contains expected help text."
@@ -167,7 +167,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Verify no runtime errors in startup",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M2.T1.S1"
