@@ -405,7 +405,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S2",
                   "title": "Read PRPGenerator implementation to understand actual signature",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M2.T2.S1"
@@ -416,7 +416,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Update test expectations to match implementation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M2.T2.S2"
