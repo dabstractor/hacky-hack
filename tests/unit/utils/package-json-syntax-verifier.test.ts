@@ -95,8 +95,10 @@ function createPackageJsonWithNodeOptions(): string {
       test: 'NODE_OPTIONS="--max-old-space-size=4096" vitest',
       'test:run': 'NODE_OPTIONS="--max-old-space-size=4096" vitest run',
       'test:watch': 'NODE_OPTIONS="--max-old-space-size=4096" vitest watch',
-      'test:coverage': 'NODE_OPTIONS="--max-old-space-size=4096" vitest run --coverage',
-      'test:bail': 'NODE_OPTIONS="--max-old-space-size=4096" vitest run --bail=1',
+      'test:coverage':
+        'NODE_OPTIONS="--max-old-space-size=4096" vitest run --coverage',
+      'test:bail':
+        'NODE_OPTIONS="--max-old-space-size=4096" vitest run --bail=1',
     },
   });
 }
@@ -195,11 +197,15 @@ describe('package-json-syntax-verifier', () => {
 
     it('should handle JSON with backslash-escaped quotes in strings', () => {
       // This is what NODE_OPTIONS looks like in JSON
-      const jsonWithEscapedQuotes = JSON.stringify({
-        scripts: {
-          test: 'NODE_OPTIONS="--max-old-space-size=4096" vitest',
+      const jsonWithEscapedQuotes = JSON.stringify(
+        {
+          scripts: {
+            test: 'NODE_OPTIONS="--max-old-space-size=4096" vitest',
+          },
         },
-      }, null, 2);
+        null,
+        2
+      );
 
       mockReadFileSync.mockReturnValue(jsonWithEscapedQuotes);
 
@@ -305,7 +311,7 @@ describe('package-json-syntax-verifier', () => {
     });
 
     it('should detect single quotes instead of double quotes', () => {
-      mockReadFileSync.mockReturnValue('{ \'test\': \'vitest\' }');
+      mockReadFileSync.mockReturnValue("{ 'test': 'vitest' }");
 
       const result = verifyPackageJsonSyntax();
 
@@ -473,16 +479,20 @@ describe('package-json-syntax-verifier', () => {
 
     it('should handle JSON with nested objects', () => {
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({
-          name: 'test',
-          scripts: {
-            test: 'vitest',
-            build: {
-              cmd: 'tsc',
-              options: ['--strict', '--noEmit'],
+        JSON.stringify(
+          {
+            name: 'test',
+            scripts: {
+              test: 'vitest',
+              build: {
+                cmd: 'tsc',
+                options: ['--strict', '--noEmit'],
+              },
             },
           },
-        }, null, 2)
+          null,
+          2
+        )
       );
 
       const result = verifyPackageJsonSyntax();
@@ -492,9 +502,16 @@ describe('package-json-syntax-verifier', () => {
 
     it('should handle JSON with nested arrays', () => {
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({
-          keywords: [['test', 'unit'], ['coverage', 'v8']],
-        }, null, 2)
+        JSON.stringify(
+          {
+            keywords: [
+              ['test', 'unit'],
+              ['coverage', 'v8'],
+            ],
+          },
+          null,
+          2
+        )
       );
 
       const result = verifyPackageJsonSyntax();
@@ -504,11 +521,15 @@ describe('package-json-syntax-verifier', () => {
 
     it('should handle Unicode characters in JSON', () => {
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({
-          name: 'test-package-中文',
-          description: '日本語のパッケージ',
-          emoji: '🚀',
-        }, null, 2)
+        JSON.stringify(
+          {
+            name: 'test-package-中文',
+            description: '日本語のパッケージ',
+            emoji: '🚀',
+          },
+          null,
+          2
+        )
       );
 
       const result = verifyPackageJsonSyntax();
@@ -518,10 +539,14 @@ describe('package-json-syntax-verifier', () => {
 
     it('should handle escaped Unicode characters', () => {
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({
-          name: 'test',
-          unicode: '\u4e2d\u6587', // 中文
-        }, null, 2)
+        JSON.stringify(
+          {
+            name: 'test',
+            unicode: '\u4e2d\u6587', // 中文
+          },
+          null,
+          2
+        )
       );
 
       const result = verifyPackageJsonSyntax();
@@ -559,7 +584,8 @@ describe('package-json-syntax-verifier', () => {
       };
       // Create 100 test scripts
       for (let i = 0; i < 100; i++) {
-        (largeObj.scripts as Record<string, string>)[`test:${i}`] = `vitest run test-${i}.test.ts`;
+        (largeObj.scripts as Record<string, string>)[`test:${i}`] =
+          `vitest run test-${i}.test.ts`;
       }
 
       mockReadFileSync.mockReturnValue(JSON.stringify(largeObj, null, 2));
@@ -581,7 +607,10 @@ describe('package-json-syntax-verifier', () => {
       const result = verifyPackageJsonSyntax('/custom/path/package.json');
 
       expect(result.valid).toBe(true);
-      expect(mockReadFileSync).toHaveBeenCalledWith('/custom/path/package.json', 'utf-8');
+      expect(mockReadFileSync).toHaveBeenCalledWith(
+        '/custom/path/package.json',
+        'utf-8'
+      );
     });
 
     it('should handle invalid JSON at custom path', () => {
@@ -638,7 +667,9 @@ describe('package-json-syntax-verifier', () => {
     it('should have syntaxError field as string or null', () => {
       const result = verifyPackageJsonSyntax();
 
-      expect(result.syntaxError === null || typeof result.syntaxError === 'string').toBe(true);
+      expect(
+        result.syntaxError === null || typeof result.syntaxError === 'string'
+      ).toBe(true);
     });
 
     it('should have message field of type string', () => {
@@ -707,9 +738,12 @@ describe('package-json-syntax-verifier', () => {
             scripts: {
               test: 'NODE_OPTIONS="--max-old-space-size=4096" vitest',
               'test:run': 'NODE_OPTIONS="--max-old-space-size=4096" vitest run',
-              'test:watch': 'NODE_OPTIONS="--max-old-space-size=4096" vitest watch',
-              'test:coverage': 'NODE_OPTIONS="--max-old-space-size=4096" vitest run --coverage',
-              'test:bail': 'NODE_OPTIONS="--max-old-space-size=4096" vitest run --bail=1',
+              'test:watch':
+                'NODE_OPTIONS="--max-old-space-size=4096" vitest watch',
+              'test:coverage':
+                'NODE_OPTIONS="--max-old-space-size=4096" vitest run --coverage',
+              'test:bail':
+                'NODE_OPTIONS="--max-old-space-size=4096" vitest run --bail=1',
             },
           },
           null,

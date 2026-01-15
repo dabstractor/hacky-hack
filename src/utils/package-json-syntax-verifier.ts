@@ -195,9 +195,10 @@ export function verifyPackageJsonSyntax(
       return buildSyntaxResult(true, null, packageJsonPath);
     } catch (parseError) {
       // PATTERN: Extract SyntaxError message
-      const syntaxError = parseError instanceof SyntaxError
-        ? parseError.message
-        : String(parseError);
+      const syntaxError =
+        parseError instanceof SyntaxError
+          ? parseError.message
+          : String(parseError);
 
       logger.error(`Invalid JSON in package.json: ${syntaxError}`);
 
@@ -207,11 +208,12 @@ export function verifyPackageJsonSyntax(
   } catch (readError) {
     // PATTERN: Handle file system errors
     const errorCode = (readError as NodeJS.ErrnoException).code;
-    const errorMessage = errorCode === 'ENOENT'
-      ? `File not found: ${packageJsonPath}`
-      : errorCode === 'EACCES'
-      ? `Permission denied reading ${packageJsonPath}`
-      : `Error reading package.json: ${readError}`;
+    const errorMessage =
+      errorCode === 'ENOENT'
+        ? `File not found: ${packageJsonPath}`
+        : errorCode === 'EACCES'
+          ? `Permission denied reading ${packageJsonPath}`
+          : `Error reading package.json: ${readError}`;
 
     logger.error(errorMessage);
 

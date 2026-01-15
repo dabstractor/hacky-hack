@@ -206,7 +206,10 @@ export function detectMemoryErrorInTestOutput(
   }
 
   // Priority 3: Check system OOM and standard heap errors
-  if (OOM_PATTERNS.standard.test(output) || OOM_PATTERNS.oom_killer.test(output)) {
+  if (
+    OOM_PATTERNS.standard.test(output) ||
+    OOM_PATTERNS.oom_killer.test(output)
+  ) {
     const matchedPattern = OOM_PATTERNS.standard.test(output)
       ? OOM_PATTERNS.standard.source
       : OOM_PATTERNS.oom_killer.source;
