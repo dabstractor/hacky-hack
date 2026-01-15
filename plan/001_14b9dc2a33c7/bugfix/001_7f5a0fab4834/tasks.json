@@ -643,7 +643,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Read prp-runtime.ts line 313 to understand context",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Line 313 has nullable string warning per Issue 4\n2. INPUT: None - reads src/agents/prp-runtime.ts directly\n3. LOGIC: Use Read tool to open src/agents/prp-runtime.ts. Focus on lines 310-320. Examine the conditional showing error display formatting. Understand context (error display formatting). Identify why it's nullable.\n4. OUTPUT: Return { currentCode: string, context: string, isNullable: boolean }. Code context for fix."
@@ -652,7 +652,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S2",
                   "title": "Apply explicit null check to fix warning",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M2.T1.S1"
