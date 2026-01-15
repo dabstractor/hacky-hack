@@ -774,7 +774,7 @@
               "type": "Task",
               "id": "P4.M1.T1",
               "title": "Run full test suite with memory limits",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Execute all 1688 tests and verify no memory exhaustion or promise rejection errors",
               "subtasks": [
                 {
@@ -790,7 +790,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S2",
                   "title": "Verify test pass rate is acceptable",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M1.T1.S1"
@@ -801,7 +801,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S3",
                   "title": "Verify no memory or promise errors",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M1.T1.S2"
