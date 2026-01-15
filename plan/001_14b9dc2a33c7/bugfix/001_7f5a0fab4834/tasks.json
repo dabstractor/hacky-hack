@@ -349,7 +349,7 @@
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Fix research queue promise error handling",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update src/core/research-queue.ts to properly handle and log promise errors in background processing",
               "subtasks": [
                 {
@@ -376,7 +376,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S3",
                   "title": "Verify no unhandled promise rejections remain",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M2.T1.S2"
@@ -396,7 +396,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S1",
                   "title": "Read failing test to understand mismatch",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test expects { currentSession } but receives { currentSession, false } per Issue 6\n2. INPUT: None - reads tests/unit/core/research-queue.test.ts directly\n3. LOGIC: Use Read tool to open tests/unit/core/research-queue.test.ts. Search for 'should create PRPGenerator with sessionManager'. Examine the test expectation (spy mock call). Identify parameter mismatch.\n4. OUTPUT: Return { testLine: number, expectedParams: string[], actualParams: string[], testCode: string }. Details of the failing test."
