@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Bootstrap Core Infrastructure",
-      "status": "Researching",
+      "status": "Planned",
       "description": "Establish foundational infrastructure for the PRP Development Pipeline. This phase ensures the Groundswell library is properly linked, environment configuration is robust, and core data structures are validated.",
       "milestones": [
         {
@@ -102,7 +102,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Environment Configuration & API Safety",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Ensure environment configuration properly maps variables for z.ai API compatibility, and implement safeguards preventing accidental use of Anthropic's production API.",
           "tasks": [
             {
@@ -149,7 +149,7 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Implement API endpoint safeguards",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Ensure tests block execution if Anthropic official API is configured, preventing accidental usage of production API.",
               "subtasks": [
                 {
@@ -178,7 +178,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S3",
                   "title": "Document API configuration requirements",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M2.T2.S2"
@@ -193,21 +193,21 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "Data Structure Validation",
-          "status": "Ready",
+          "status": "Planned",
           "description": "Validate the four-level task hierarchy data structures (Phase > Milestone > Task > Subtask) and ensure Zod schemas correctly enforce constraints.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Validate task hierarchy models",
-              "status": "Ready",
+              "status": "Planned",
               "description": "Test that Phase, Milestone, Task, and Subtask interfaces are correctly defined and Zod schemas enforce proper constraints.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Test Phase/Milestone/Task/Subtask type definitions",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Task hierarchy defined in /src/core/models.ts (1786 lines). Four-level structure: Phase → Milestone → Task → Subtask. Each has type field ('Phase', 'Milestone', 'Task', 'Subtask'), id field following pattern (P[#], P[#].M[#], etc.), title, status, description. Subtask has story_points (0.5|1|2) and dependencies (string[]). Context scope field required for Subtask. Refer to system_context.md Section 6.1 and requirements_analysis.md Section 4.\n2. INPUT: None - validating core data structures.\n3. LOGIC: Create test file at tests/unit/core/models.test.ts. Test 1: Create valid Phase object with nested Milestone→Task→Subtask, verify TypeScript compilation. Test 2: Test invalid type field ('Invalid') causes Zod validation error. Test 3: Test invalid story_points (3) fails validation. Test 4: Test id pattern validation (regex for P[#], P[#].M[#], etc.). Use zod's .safeParse() and expect().toMatchObject() for assertions. Follow test patterns from tests/unit/core/.\n4. OUTPUT: Comprehensive test of task hierarchy types. Zod schema validation confirmed working. Documentation of any type constraints that fail validation."

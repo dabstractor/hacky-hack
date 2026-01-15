@@ -206,23 +206,27 @@ npm run dev -- --prd ./PRD.md --no-cache
 
 | Variable                         | Required | Default                          | Description                                                 |
 | -------------------------------- | -------- | -------------------------------- | ----------------------------------------------------------- |
-| `ANTHROPIC_API_KEY`              | Yes      | -                                | Your Anthropic API key (mapped from `ANTHROPIC_AUTH_TOKEN`) |
-| `ANTHROPIC_BASE_URL`             | No       | `https://api.z.ai/api/anthropic` | API endpoint                                                |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `glm-4.7`                        | Model for Architect agent                                   |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `glm-4.7`                        | Model for Researcher/Coder agents                           |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `glm-4.5-air`                    | Model for simple operations                                 |
+| `ANTHROPIC_AUTH_TOKEN`           | Yes*     | -                                | API authentication token (mapped to `ANTHROPIC_API_KEY`)    |
+| `ANTHROPIC_API_KEY`              | Yes*     | -                                | API key (mapped from `ANTHROPIC_AUTH_TOKEN` if not set)     |
+| `ANTHROPIC_BASE_URL`             | No       | `https://api.z.ai/api/anthropic` | API endpoint (z.ai required, not Anthropic)                 |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `GLM-4.7`                        | Model for Architect agent (highest quality)                 |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `GLM-4.7`                        | Model for Researcher/Coder agents (balanced)                |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `GLM-4.5-Air`                    | Model for simple operations (fastest)                       |
+
+*Note: Either `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY` is required.*
 
 ### Setup
 
 ```bash
-# Set your API key
-export ANTHROPIC_API_KEY="your-api-key-here"
+# Option 1: Use .env file (recommended)
+cp .env.example .env
+# Edit .env with your API credentials
 
-# Or use ANTHROPIC_AUTH_TOKEN (will be mapped to API_KEY)
+# Option 2: Set environment variables directly
 export ANTHROPIC_AUTH_TOKEN="your-api-key-here"
 
-# Or use .env file
-echo "ANTHROPIC_API_KEY=your-api-key-here" > .env
+# Option 3: Or set API_KEY directly (AUTH_TOKEN takes precedence if both set)
+export ANTHROPIC_API_KEY="your-api-key-here"
 ```
 
 ### Model Tiers
@@ -230,6 +234,149 @@ echo "ANTHROPIC_API_KEY=your-api-key-here" > .env
 - **Opus** (GLM-4.7): Highest quality, used for Architect agent
 - **Sonnet** (GLM-4.7): Balanced quality/speed, default for most agents
 - **Haiku** (GLM-4.5-Air): Fastest, used for simple operations
+
+### How It Works
+
+The PRP Pipeline uses **z.ai** as a compatible proxy for the Anthropic API. This requires special environment variable configuration:
+
+**Variable Mapping:**
+- Shell environment convention: `ANTHROPIC_AUTH_TOKEN`
+- SDK expectation: `ANTHROPIC_API_KEY`
+- The pipeline automatically maps `AUTH_TOKEN` to `API_KEY` on startup
+
+**Configuration Flow:**
+```typescript
+// 1. configureEnvironment() is called on startup
+configureEnvironment();
+
+// 2. If AUTH_TOKEN is set and API_KEY is not, map it
+if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
+  process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_AUTH_TOKEN;
+}
+
+// 3. Set default BASE_URL if not provided
+if (!process.env.ANTHROPIC_BASE_URL) {
+  process.env.ANTHROPIC_BASE_URL = 'https://api.z.ai/api/anthropic';
+}
+```
+
+**Idempotency:**
+- Multiple calls to `configureEnvironment()` are safe
+- If `API_KEY` is already set, `AUTH_TOKEN` will not override it
+- Explicit `API_KEY` values take precedence
+
+### API Safeguards
+
+The pipeline includes safeguards to prevent accidental usage of Anthropic's official API, which could result in massive unexpected charges.
+
+**Test Setup Safeguard** (`tests/setup.ts`):
+- Blocks: `api.anthropic.com` (all variants)
+- Allows: `localhost`, `127.0.0.1`, `mock`, `test` endpoints
+- Warns: Non-z.ai endpoints with console warning
+- Runs: On test file load and before each test
+
+**Validation Script Safeguard** (`src/scripts/validate-api.ts`):
+- Checks: `ANTHROPIC_BASE_URL` before any API calls
+- Exits: With code 1 if Anthropic API detected
+- Tests: z.ai endpoint with `/v1/messages`
+- Validates: Response structure (id, type, role, content)
+
+**What Gets Blocked:**
+```
+https://api.anthropic.com
+http://api.anthropic.com
+api.anthropic.com (any variant)
+```
+
+**What's Allowed:**
+```
+https://api.z.ai/api/anthropic (recommended)
+http://localhost:3000 (local testing)
+http://127.0.0.1:8080 (local testing)
+http://mock-api (mock testing)
+```
+
+### z.ai Configuration
+
+The PRP Pipeline uses **z.ai** as the API endpoint, not Anthropic's official API.
+
+**Why z.ai?**
+- Compatible with Anthropic API v1 specification
+- Cost control and usage monitoring
+- Prevents unexpected production API charges
+
+**Model Tiers:**
+
+| Tier    | Model        | Use Case                              |
+| ------- | ------------ | ------------------------------------- |
+| Opus    | GLM-4.7      | Architect agent (complex reasoning)   |
+| Sonnet  | GLM-4.7      | Researcher/Coder agents (default)     |
+| Haiku   | GLM-4.5-Air  | Simple operations (fastest)           |
+
+**Example .env File:**
+```bash
+# .env - API Configuration for PRP Pipeline
+
+# Required: API authentication
+ANTHROPIC_AUTH_TOKEN=your-zai-api-token-here
+
+# Optional: API endpoint (defaults to z.ai)
+# ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+
+# Optional: Model overrides
+# ANTHROPIC_DEFAULT_OPUS_MODEL=GLM-4.7
+# ANTHROPIC_DEFAULT_SONNET_MODEL=GLM-4.7
+# ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.5-Air
+
+# Optional: Request timeout (milliseconds)
+# API_TIMEOUT_MS=300000
+```
+
+### Troubleshooting
+
+**"Tests fail with 'Anthropic API detected' error"**
+
+The test setup safeguards prevent using Anthropic's official API.
+
+```bash
+# Fix: Set BASE_URL to z.ai endpoint
+export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+
+# Or add to .env file
+echo "ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic" >> .env
+```
+
+**"ANTHROPIC_API_KEY not found" error**
+
+The environment configuration hasn't been run or variables aren't set.
+
+```bash
+# Fix: Set AUTH_TOKEN (will be mapped to API_KEY)
+export ANTHROPIC_AUTH_TOKEN="your-api-key-here"
+
+# Or set API_KEY directly
+export ANTHROPIC_API_KEY="your-api-key-here"
+```
+
+**"Model not found: GLM-4.7" error**
+
+The z.ai endpoint may not support the configured model.
+
+```bash
+# Fix: Verify model name or override with supported model
+export ANTHROPIC_DEFAULT_SONNET_MODEL="supported-model-name"
+
+# Check z.ai documentation for available models
+```
+
+**"Connection timeout" errors**
+
+The API timeout may be too short for complex requests.
+
+```bash
+# Fix: Increase timeout (default is 60 seconds)
+export API_TIMEOUT_MS=120000
+```
 
 ## Architecture Overview
 
