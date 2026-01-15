@@ -253,7 +253,7 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Milestone 2.1: Test Memory Configuration",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Configure Node.js memory limits for test execution to prevent worker termination",
           "tasks": [
             {
@@ -300,7 +300,7 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Test memory configuration with limited test run",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Run a subset of tests to verify memory limits are working and no worker termination occurs",
               "subtasks": [
                 {
@@ -316,7 +316,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Run full test suite and monitor memory usage",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T2.S1"
@@ -327,7 +327,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S3",
                   "title": "Compare before/after memory usage",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T2.S2"
