@@ -50,33 +50,45 @@ try {
  * Blocked endpoints (Anthropic):
  * - https://api.anthropic.com
  * - https://api.anthropic.com/v1
+ * - http://api.anthropic.com (any protocol variant)
+ * - api.anthropic.com (any domain match)
  */
 const ZAI_ENDPOINT = 'https://api.z.ai/api/anthropic';
-const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com';
+
+// Patterns that MUST be blocked - prevents accidental production API usage
+const BLOCKED_PATTERNS = [
+  'https://api.anthropic.com',
+  'http://api.anthropic.com',
+  'api.anthropic.com',
+] as const;
 
 function validateApiEndpoint(): void {
   const baseUrl = process.env.ANTHROPIC_BASE_URL || '';
 
-  // Block Anthropic's official API
-  if (
-    baseUrl.includes(ANTHROPIC_ENDPOINT) ||
-    baseUrl === 'https://api.anthropic.com'
-  ) {
-    throw new Error(
-      [
-        '\n========================================',
-        'CRITICAL: Tests are configured to use Anthropic API!',
-        '========================================',
-        `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
-        '',
-        'All tests MUST use z.ai API endpoint, never Anthropic official API.',
-        `Expected: ${ZAI_ENDPOINT}`,
-        '',
-        'Fix: Set ANTHROPIC_BASE_URL to z.ai endpoint:',
-        `  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`,
-        '========================================\n',
-      ].join('\n')
-    );
+  // Block Anthropic's official API and all its variants
+  if (BLOCKED_PATTERNS.some((pattern) => baseUrl.includes(pattern))) {
+    const errorMessage = [
+      '\n========================================',
+      'CRITICAL: Tests are configured to use Anthropic API!',
+      '========================================',
+      `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
+      '',
+      'All tests MUST use z.ai API endpoint, never Anthropic official API.',
+      `Expected: ${ZAI_ENDPOINT}`,
+      '',
+      'Fix: Set ANTHROPIC_BASE_URL to z.ai endpoint:',
+      '  Option 1 (command line):',
+      `    export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`,
+      '  Option 2 (.env file):',
+      `    ANTHROPIC_BASE_URL=${ZAI_ENDPOINT}`,
+      '========================================\n',
+    ].join('\n');
+
+    // Log to console.error for visibility before throwing
+    console.error(errorMessage);
+
+    // Throw to stop test execution
+    throw new Error(errorMessage);
   }
 
   // Warn if using a non-z.ai endpoint (unless it's a mock/test endpoint)

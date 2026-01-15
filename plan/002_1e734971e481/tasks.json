@@ -156,7 +156,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Enhance test setup API validation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S3"
@@ -167,7 +167,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S2",
                   "title": "Add validation script API checks",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T2.S1"
