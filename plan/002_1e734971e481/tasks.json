@@ -116,7 +116,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Test AUTH_TOKEN to API_KEY mapping",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Environment configuration at /src/config/environment.ts implements configureEnvironment() which maps ANTHROPIC_AUTH_TOKEN to ANTHROPIC_API_KEY for SDK compatibility. This mapping is required because the project uses ANTHROPIC_AUTH_TOKEN convention but Anthropic SDK expects ANTHROPIC_API_KEY. Existing code calls configureEnvironment() in /src/index.ts before any API operations. Refer to environment_setup.md Section 5.2.\n2. INPUT: None - this is initial testing of environment config.\n3. LOGIC: Create test file at tests/unit/config/environment.test.ts. Test 1: Set process.env.ANTHROPIC_AUTH_TOKEN = 'test_token', clear ANTHROPIC_API_KEY, call configureEnvironment(), verify process.env.ANTHROPIC_API_KEY === 'test_token'. Test 2: Verify mapping doesn't override existing API_KEY if already set. Test 3: Verify mapping is idempotent (calling multiple times doesn't change result). Use vi.stubGlobalEnv() and vi.unstubAllEnvs() for isolation. Follow test patterns from tests/unit/config/.\n4. OUTPUT: Test suite confirming AUTH_TOKEN→API_KEY mapping works correctly. Document any edge cases where mapping fails."
@@ -125,7 +125,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Test default BASE_URL configuration",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S1"

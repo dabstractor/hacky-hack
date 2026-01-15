@@ -47,6 +47,31 @@ describe('config/environment', () => {
       expect(process.env.ANTHROPIC_API_KEY).toBe('original-api-key');
     });
 
+    it('should be idempotent - calling multiple times produces same result', () => {
+      // SETUP: Set AUTH_TOKEN, clear API_KEY and BASE_URL
+      delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.ANTHROPIC_BASE_URL;
+      vi.stubEnv('ANTHROPIC_AUTH_TOKEN', 'test-token-456');
+
+      // EXECUTE: Call configureEnvironment() twice
+      configureEnvironment();
+      const firstResult = {
+        apiKey: process.env.ANTHROPIC_API_KEY,
+        baseUrl: process.env.ANTHROPIC_BASE_URL,
+      };
+
+      configureEnvironment();
+      const secondResult = {
+        apiKey: process.env.ANTHROPIC_API_KEY,
+        baseUrl: process.env.ANTHROPIC_BASE_URL,
+      };
+
+      // VERIFY: Results should be identical
+      expect(firstResult).toEqual(secondResult);
+      expect(firstResult.apiKey).toBe('test-token-456');
+      expect(firstResult.baseUrl).toBe('https://api.z.ai/api/anthropic');
+    });
+
     it('should set default BASE_URL when not provided', () => {
       // SETUP: No BASE_URL set
       delete process.env.ANTHROPIC_BASE_URL;
