@@ -15,6 +15,7 @@ import {
   validateEnvironment,
   EnvironmentValidationError,
 } from '../../../src/config/environment.js';
+import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';
 
 describe('config/environment', () => {
   // CLEANUP: Always restore environment after each test
@@ -69,7 +70,7 @@ describe('config/environment', () => {
       // VERIFY: Results should be identical
       expect(firstResult).toEqual(secondResult);
       expect(firstResult.apiKey).toBe('test-token-456');
-      expect(firstResult.baseUrl).toBe('https://api.z.ai/api/anthropic');
+      expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL);
     });
 
     it('should set default BASE_URL when not provided', () => {
@@ -80,9 +81,7 @@ describe('config/environment', () => {
       configureEnvironment();
 
       // VERIFY: Default z.ai endpoint
-      expect(process.env.ANTHROPIC_BASE_URL).toBe(
-        'https://api.z.ai/api/anthropic'
-      );
+      expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
     });
 
     it('should preserve custom BASE_URL when already set', () => {
