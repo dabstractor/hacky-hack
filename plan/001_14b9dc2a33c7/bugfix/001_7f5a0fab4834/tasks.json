@@ -879,7 +879,7 @@
                   "type": "Subtask",
                   "id": "P4.M2.T1.S2",
                   "title": "Document Groundswell setup procedure",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M2.T1.S1"
@@ -890,7 +890,7 @@
                   "type": "Subtask",
                   "id": "P4.M2.T1.S3",
                   "title": "Document test infrastructure improvements",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M2.T1.S2"

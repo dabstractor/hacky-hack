@@ -396,3 +396,57 @@ Execution time: 4m 15s
 - Test Results: `TEST_RESULTS.md`
 - Task Breakdown: `docs/TASK_BREAKDOWN_SUMMARY.md`
 - Task Status: `tasks.json`
+
+---
+
+## Groundswell Dependency Setup
+
+This project depends on the `groundswell` library for AI agent orchestration, workflow management, and MCP tool integration. For local development, `groundswell` is linked via `npm link` rather than installed from the npm registry. This setup procedure was used to resolve **Issue 1** (Missing Groundswell Dependency) during the bug fix process.
+
+### Prerequisites
+
+- Groundswell package located at `~/projects/groundswell`
+- Groundswell must be built (`npm run build`) before linking
+- Node.js >= v20.0.0
+
+### Setup
+
+```bash
+# From groundswell directory (creates global symlink)
+cd ~/projects/groundswell
+npm link
+
+# From hacky-hack directory (consumes global symlink)
+cd ~/projects/hacky-hack
+npm link groundswell
+```
+
+### Verification
+
+```bash
+# Verify symlink exists in node_modules
+ls -la node_modules/groundswell
+# Expected output: lrwxrwxrwx ... groundswell -> ../../groundswell
+
+# Verify npm recognizes the linked package
+npm list groundswell
+# Expected output: groundswell@0.0.1 extraneous -> ./../groundswell
+
+# Verify TypeScript compilation
+npm run typecheck
+# Expected output: No TypeScript errors
+```
+
+### Troubleshooting
+
+| Problem | Solution |
+| ------- | -------- |
+| Cannot find module 'groundswell' | Run `npm link` from groundswell directory first |
+| Changes not reflected after updates | Rebuild groundswell with `npm run build` |
+| TypeScript compilation fails | Ensure `preserveSymlinks: true` in tsconfig.json |
+| Permission denied (EACCES) | Use nvm instead of system npm, or fix permissions |
+| Wrong version after updates | Delete `node_modules/groundswell` and re-link |
+
+### Additional Resources
+
+For comprehensive documentation of Groundswell integration, API surface, installation instructions, and troubleshooting, see [External Dependencies Analysis](docs/architecture/external_deps.md).
