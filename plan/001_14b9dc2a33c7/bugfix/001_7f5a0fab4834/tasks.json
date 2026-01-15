@@ -449,7 +449,7 @@
               "type": "Task",
               "id": "P2.M3.T1",
               "title": "Fix module resolution in vitest.config.ts",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Ensure all module extensions are properly configured and Groundswell alias is correct",
               "subtasks": [
                 {
@@ -465,7 +465,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T1.S2",
                   "title": "Add .tsx extension to resolve.extensions",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M3.T1.S1"
@@ -476,7 +476,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T1.S3",
                   "title": "Verify groundswell alias points to correct location",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M3.T1.S2"

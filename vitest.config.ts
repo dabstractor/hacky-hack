@@ -53,6 +53,6 @@ export default defineConfig({
       groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
         .pathname,
     },
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.tsx'],
   },
 });
