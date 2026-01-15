@@ -246,7 +246,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Phase 2: Test Infrastructure Fixes",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Fix major issues with the test suite including memory exhaustion, promise rejections, and failing tests",
       "milestones": [
         {
@@ -442,7 +442,7 @@
           "type": "Milestone",
           "id": "P2.M3",
           "title": "Milestone 2.3: Vitest Configuration Improvements",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Update Vitest configuration to fix module resolution and improve test reliability",
           "tasks": [
             {
@@ -489,7 +489,7 @@
               "type": "Task",
               "id": "P2.M3.T2",
               "title": "Add test setup file for global cleanup",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create tests/setup.ts with global beforeEach/afterEach hooks to prevent memory leaks",
               "subtasks": [
                 {
@@ -505,7 +505,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T2.S2",
                   "title": "Configure vitest.config.ts to use setup file",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M3.T2.S1"
@@ -516,7 +516,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T2.S3",
                   "title": "Run tests to verify setup file is loaded",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M3.T2.S2"

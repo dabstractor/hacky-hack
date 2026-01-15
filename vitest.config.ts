@@ -16,6 +16,7 @@ export default defineConfig({
     globals: true,
     include: ['tests/**/*.{test,spec}.ts'],
     exclude: ['**/dist/**', '**/node_modules/**'],
+    setupFiles: ['./tests/setup.ts'],
     deps: {
       interopDefault: true,
     },
