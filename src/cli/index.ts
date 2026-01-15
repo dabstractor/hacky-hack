@@ -157,23 +157,23 @@ export function parseCLIArgs(): CLIArgs {
   }
 
   // Validate scope format if provided
-  if (options.scope) {
-    try {
-      parseScope(options.scope);
-      // Scope is valid, continue
-    } catch (error) {
-      if (error instanceof ScopeParseError) {
-        logger.error(`Invalid scope "${options.scope}"`);
-        logger.error(
-          `Expected format: P1, P1.M1, P1.M1.T1, P1.M1.T1.S1, or all`
-        );
-        logger.error(`Details: ${error.message}`);
-        process.exit(1);
+  if (options.scope && options.scope.trim()) {
+      try {
+        parseScope(options.scope);
+        // Scope is valid, continue
+      } catch (error) {
+        if (error instanceof ScopeParseError) {
+          logger.error(`Invalid scope "${options.scope}"`);
+          logger.error(
+            `Expected format: P1, P1.M1, P1.M1.T1, P1.M1.T1.S1, or all`
+          );
+          logger.error(`Details: ${error.message}`);
+          process.exit(1);
+        }
+        // Re-throw unexpected errors
+        throw error;
       }
-      // Re-throw unexpected errors
-      throw error;
     }
-  }
 
   // Validate maxTasks
   if (options.maxTasks !== undefined) {
