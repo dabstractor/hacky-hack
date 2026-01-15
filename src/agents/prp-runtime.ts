@@ -310,7 +310,7 @@ ${!v.success ? `- Exit Code: ${v.exitCode}\n- Error: ${v.stderr}` : ''}
 
 **Status**: ${status}
 **Fix Attempts**: ${result.fixAttempts}
-${result.error ? `**Error**: ${result.error}` : ''}
+${(result.error?.length ?? 0) > 0 ? `**Error**: ${result.error}` : ''}
 
 ## Validation Results
 
