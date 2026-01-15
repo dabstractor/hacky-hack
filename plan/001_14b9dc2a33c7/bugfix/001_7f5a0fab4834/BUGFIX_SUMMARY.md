@@ -450,3 +450,105 @@ npm run typecheck
 ### Additional Resources
 
 For comprehensive documentation of Groundswell integration, API surface, installation instructions, and troubleshooting, see [External Dependencies Analysis](docs/architecture/external_deps.md).
+
+## Test Infrastructure Improvements
+
+Phase 2 (Test Infrastructure Fixes) addressed critical test reliability issues including worker termination due to memory limits (Issue 2) and unhandled promise rejections (Issue 3). The following improvements were implemented to establish a robust testing foundation.
+
+### Memory Configuration
+
+**Problem**: Test execution failed with "Worker terminated due to reaching memory limit: JS heap out of memory" errors when running the full test suite (1688 tests).
+
+**Solution**: Recommended Node.js memory limit configuration via `NODE_OPTIONS` environment variable in all test scripts, increasing the heap size to 4GB.
+
+| Script Name | Before | After | Impact |
+| ----------- | ------ | ----- | ------ |
+| test | `vitest` | `NODE_OPTIONS="--max-old-space-size=4096" vitest` | Prevents OOM in standard test runs |
+| test:run | `vitest run` | `NODE_OPTIONS="--max-old-space-size=4096" vitest run` | Prevents OOM in CI/CD pipelines |
+| test:watch | `vitest watch` | `NODE_OPTIONS="--max-old-space-size=4096" vitest watch` | Prevents OOM in watch mode |
+| test:coverage | `vitest run --coverage` | `NODE_OPTIONS="--max-old-space-size=4096" vitest run --coverage` | Prevents OOM in coverage reports |
+| test:bail | `vitest run --bail=1` | `NODE_OPTIONS="--max-old-space-size=4096" vitest run --bail=1` | Prevents OOM in fail-fast mode |
+
+**Configuration** (package.json):
+```json
+{
+  "scripts": {
+    "test": "NODE_OPTIONS=\"--max-old-space-size=4096\" vitest",
+    "test:run": "NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run",
+    "test:watch": "NODE_OPTIONS=\"--max-old-space-size=4096\" vitest watch",
+    "test:coverage": "NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run --coverage",
+    "test:bail": "NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run --bail=1"
+  }
+}
+```
+
+### Test Setup File
+
+**Problem**: Mock objects and environment variables from previous tests were bleeding into subsequent tests, causing flaky test behavior. Memory leaks between test runs were not being cleaned up.
+
+**Solution**: Created global test setup file (`tests/setup.ts`) with `beforeEach` and `afterEach` hooks to ensure test isolation and memory management.
+
+**Implementation** (tests/setup.ts):
+```typescript
+import { beforeEach, afterEach, vi } from 'vitest';
+
+beforeEach(() => {
+  // Clear all mock call histories before each test
+  vi.clearAllMocks();
+});
+
+afterEach(() => {
+  // Restore all environment variable stubs
+  vi.unstubAllEnvs();
+
+  // Force garbage collection if available
+  if (typeof global.gc === 'function') {
+    global.gc();
+  }
+});
+```
+
+**Purpose**:
+* **beforeEach**: Clears all mock call histories (`vi.clearAllMocks()`) to prevent test interference
+* **afterEach**: Restores environment variable stubs (`vi.unstubAllEnvs()`) for clean state
+* **afterEach**: Optional garbage collection (`global.gc()`) when Node.js run with `--expose-gc` flag
+
+### Vitest Configuration
+
+**Problem**: Module resolution was missing `.tsx` extension support for future React/TSX components. Global test setup file was not configured to load before test execution.
+
+**Solution**: Updated `vitest.config.ts` to add `.tsx` to `resolve.extensions` and configured `setupFiles` to load the global test setup.
+
+| Setting | Before | After | Justification |
+| ------- | ------ | ----- | ------------- |
+| resolve.extensions | `['.ts', '.js']` | `['.tsx', '.ts', '.js']` | Future-proofing for TSX components |
+| setupFiles | (not configured) | `['./tests/setup.ts']` | Load global cleanup hooks |
+
+**Configuration** (vitest.config.ts):
+```typescript
+export default defineConfig({
+  test: {
+    // Global setup file for test isolation
+    setupFiles: ['./tests/setup.ts'],
+
+    resolve: {
+      // Module resolution extensions
+      extensions: ['.tsx', '.ts', '.js']
+    }
+  }
+});
+```
+
+### Related Phase 2 Tasks
+
+The following tasks from Phase 2 (Test Infrastructure Fixes) implemented these improvements:
+
+* **P2.M1.T1**: Add memory limits to package.json test scripts ✅
+* **P2.M1.T2**: Test memory configuration with limited test run ✅
+* **P2.M2.T1**: Fix research queue promise error handling ✅
+* **P2.M2.T2**: Fix failing research-queue unit test ✅
+* **P2.M3.T1**: Fix module resolution in vitest.config.ts ✅
+* **P2.M3.T2**: Add test setup file for global cleanup ✅
+
+For detailed test metrics and validation results, see [Test Results](./TEST_RESULTS.md).
+For complete task breakdown and status, see [Task Breakdown Summary](./docs/TASK_BREAKDOWN_SUMMARY.md).
