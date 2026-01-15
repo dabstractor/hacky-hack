@@ -547,7 +547,7 @@
               "type": "Task",
               "id": "P3.M1.T1",
               "title": "Identify all console.log statements in src/index.ts",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Locate and catalog all console.log statements that need to be replaced",
               "subtasks": [
                 {
@@ -574,7 +574,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S3",
                   "title": "Plan console.log to logger mapping",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T1.S2"
@@ -594,7 +594,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Replace validation report console.log statements (lines 138-169)",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 12 console.log statements for validation report per Issue 5\n2. INPUT: None - assumes P3.M1.T1 (mapping) complete\n3. LOGIC: Use Edit tool to replace each console.log. For structured output, use logger.info with object parameter. For simple strings, use logger.info('message'). Preserve formatting (newlines, separators). Example: logger.info(`Status: ${result.valid ? '✅ VALID' : '❌ INVALID'}`).\n4. OUTPUT: Return { replaced: number, newCode: string[] }. Count of replaced statements."
