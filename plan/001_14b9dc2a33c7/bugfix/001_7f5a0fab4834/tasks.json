@@ -547,7 +547,7 @@
               "type": "Task",
               "id": "P3.M1.T1",
               "title": "Identify all console.log statements in src/index.ts",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Locate and catalog all console.log statements that need to be replaced",
               "subtasks": [
                 {
@@ -563,7 +563,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S2",
                   "title": "Verify logger is imported in src/index.ts",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T1.S1"
@@ -574,7 +574,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S3",
                   "title": "Plan console.log to logger mapping",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T1.S2"
