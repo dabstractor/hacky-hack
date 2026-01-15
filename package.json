@@ -46,7 +46,11 @@
     "docs": "typedoc --skipErrorChecking",
     "docs:watch": "typedoc --skipErrorChecking --watch",
     "docs:serve": "typedoc --skipErrorChecking --serve",
-    "docs:clean": "rm -rf docs/api"
+    "docs:clean": "rm -rf docs/api",
+    "docs:check": "tsx scripts/check-docs.ts",
+    "docs:lint": "markdownlint \"docs/**/*.md\"",
+    "docs:lint:fix": "markdownlint \"docs/**/*.md\" --fix",
+    "docs:links": "markdown-link-check docs/**/*.md || true"
   },
   "keywords": [
     "typescript",

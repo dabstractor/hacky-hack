@@ -760,7 +760,7 @@
       "type": "Phase",
       "id": "P4",
       "title": "Phase 4: Validation & Documentation",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Final validation that all fixes are working and documentation is complete",
       "milestones": [
         {
@@ -856,7 +856,7 @@
           "type": "Milestone",
           "id": "P4.M2",
           "title": "Milestone 4.2: Documentation & Handoff",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Complete all documentation and prepare summary of bug fixes",
           "tasks": [
             {
@@ -914,14 +914,14 @@
               "type": "Task",
               "id": "P4.M2.T2",
               "title": "Update architecture documentation with fixes",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Ensure architecture docs reflect current state after all bug fixes",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M2.T2.S1",
                   "title": "Update system_context.md with fix status",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: system_context.md should reflect that issues are now resolved\n2. INPUT: None - updates architecture documentation\n3. LOGIC: Use Read tool to open plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/architecture/system_context.md. Use Edit tool to update 'Fix Priority Hierarchy' section to mark completed items. Update 'Current Status' from 'Non-functional' to 'Functional'. Add 'Bug Fixes Applied' section.\n4. OUTPUT: Return { updated: boolean, changes: string[] }. Documentation updated."
@@ -930,7 +930,7 @@
                   "type": "Subtask",
                   "id": "P4.M2.T2.S2",
                   "title": "Verify all documentation is consistent",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M2.T2.S1"
