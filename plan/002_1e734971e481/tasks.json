@@ -4,28 +4,28 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Bootstrap Core Infrastructure",
-      "status": "Ready",
+      "status": "Planned",
       "description": "Establish foundational infrastructure for the PRP Development Pipeline. This phase ensures the Groundswell library is properly linked, environment configuration is robust, and core data structures are validated.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Groundswell Integration & Validation",
-          "status": "Ready",
+          "status": "Planned",
           "description": "Validate Groundswell library integration, verify all exports work correctly, and ensure the library is properly linked via npm.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Verify Groundswell Library Link",
-              "status": "Ready",
+              "status": "Planned",
               "description": "Ensure the Groundswell library at ~/projects/groundswell is properly linked via npm link and all imports resolve correctly.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T1.S1",
                   "title": "Validate npm link configuration",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell library analysis confirms location at ~/projects/groundswell with dist/ output at dist/index.js. Existing package.json has dependency on 'groundswell' with local linking via npm link.\n2. INPUT: Current package.json and node_modules/groundswell symlink status.\n3. LOGIC: Run 'npm list groundswell' to verify link. Check if symlink points to ~/projects/groundswell. If broken, re-run 'npm link ~/projects/groundswell'. Verify TypeScript can resolve imports by attempting to compile a test file importing from 'groundswell'.\n4. OUTPUT: Boolean success status and linked path for consumption by S2."
@@ -34,9 +34,11 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S2",
                   "title": "Test Groundswell imports",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S1"],
+                  "dependencies": [
+                    "P1.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell exports include: Workflow, Agent, Prompt, MCPHandler, decorators (@Step, @Task, @ObservedState), factory functions (createAgent, createWorkflow, createPrompt), and utilities (LLMCache, generateId). Refer to groundswell_analysis.md Section 2 for complete API surface.\n2. INPUT: Valid link status from S1.\n3. LOGIC: Create test file at tests/unit/groundswell/imports.test.ts. Test import of all major exports: Workflow, Agent, createAgent, createPrompt, @Step, @Task, @ObservedState. Verify TypeScript compilation succeeds. Run vitest on the test file. Mock any runtime dependencies. Use existing test setup pattern from tests/setup.ts.\n4. OUTPUT: Pass/fail status of all import tests. List of any failing imports for S3."
                 },
                 {
@@ -45,7 +47,9 @@
                   "title": "Verify Groundswell version compatibility",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S2"],
+                  "dependencies": [
+                    "P1.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell v0.0.3 requires Node.js 18+, TypeScript 5.2+. Current project uses Node.js 20+, TypeScript 5.2+. Groundswell uses @anthropic-ai/sdk ^0.71.1. Critical fixes in v0.0.3 include Promise.allSettled() for concurrent errors and isDescendantOf() public API.\n2. INPUT: Import test results from S2 showing successful imports.\n3. LOGIC: Read package.json in node_modules/groundswell to extract version number. Compare with project requirements. Check that Groundswell's dependency on @anthropic-ai/sdk matches project's indirect dependency. Test basic functionality: create a simple Workflow, create an Agent, create a Prompt. Verify no runtime errors.\n4. OUTPUT: Version compatibility report confirming v0.0.3 or higher, with any upgrade recommendations if needed."
                 }
               ]
@@ -63,7 +67,9 @@
                   "title": "Test Workflow lifecycle",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T1.S3"],
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell Workflow supports class-based (extends Workflow) and functional (createWorkflow) patterns. Key methods: run(), attachChild(), detachChild(), setStatus(), snapshotState(). Decorators: @Step for lifecycle events, @Task for spawning children, @ObservedState for state tracking. Refer to groundswell_analysis.md Section 2.1 and Section 3.\n2. INPUT: Verified Groundswell imports from S3.\n3. LOGIC: Implement test file at tests/integration/groundswell/workflow.test.ts. Test 1: Create simple Workflow extending base class, override run() method, call run() and verify execution. Test 2: Use @Step decorator with trackTiming option, verify stepStart/stepEnd events. Test 3: Create parent-child workflows with @Task decorator, verify child attachment. Test 4: Mark field with @ObservedState, call snapshotState(), verify state captured. Use vi.mock() to prevent actual LLM calls. Follow existing test patterns from tests/workflows/.\n4. OUTPUT: Comprehensive test coverage of Workflow lifecycle. Pass status indicating all lifecycle methods work correctly. Any issues with event propagation or state snapshots documented."
                 },
                 {
@@ -72,7 +78,9 @@
                   "title": "Test Agent and Prompt creation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T1.S3"],
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell Agent is created via createAgent(config: AgentConfig). AgentConfig supports: name, system, tools[], mcps[], model, maxTokens, temperature, enableCache, enableReflection. Prompt created via createPrompt(config: PromptConfig) where responseFormat is a Zod schema. Data injected via data field is formatted as XML tags. Refer to groundswell_analysis.md Section 2.1 (Agent) and Section 6 (Prompts).\n2. INPUT: Verified Groundswell imports from S3.\n3. LOGIC: Implement test file at tests/integration/groundswell/agent.test.ts. Test 1: Create basic Agent with createAgent(), verify agent.getMcpHandler() exists. Test 2: Create Prompt with Zod schema (z.object({ result: z.string() })), verify validateResponse() works with valid/invalid data. Test 3: Test Prompt.withData() immutability (original prompt unchanged). Test 4: Mock Anthropic API client to test agent.prompt() without real calls. Use vi.mock('@anthropic-ai/sdk') pattern. Follow test patterns from tests/agents/.\n4. OUTPUT: Test suite validating Agent and Prompt creation. Mock implementation confirming prompt execution flow works without real API calls."
                 },
                 {
@@ -81,7 +89,9 @@
                   "title": "Test MCP tool registration",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T2.S1"],
+                  "dependencies": [
+                    "P1.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: MCPHandler manages tool registration via registerServer(), registerToolExecutor(). MCPServer interface: { name, transport: 'stdio'|'inprocess', tools[], command, args }. Tools registered via AgentConfig mcps[] field or via agent.getMcpHandler().registerToolExecutor(). Existing MCP tools in codebase: BashMCP, FilesystemMCP, GitMCP at /src/tools/. Refer to groundswell_analysis.md Section 2.1 (MCPHandler) and Section 5.2.\n2. INPUT: Workflow lifecycle tests passing from S1.\n3. LOGIC: Implement test file at tests/integration/groundswell/mcp.test.ts. Test 1: Create Agent with inprocess MCP server, verify registerServer() called. Test 2: Register custom tool executor via getMcpHandler().registerToolExecutor('test', 'tool', executor), verify executor called when tool invoked. Test 3: Test getTools() returns tools in Anthropic format. Test 4: Verify hasTool() correctly identifies registered tools. Use async/await for executor calls. Follow existing MCP test patterns from tests/tools/.\n4. OUTPUT: MCP registration test suite. Confirmed that custom tool executors can be registered and invoked correctly. Tool format validation matching Anthropic API spec."
                 }
               ]
@@ -117,7 +127,9 @@
                   "title": "Test default BASE_URL configuration",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S1"],
+                  "dependencies": [
+                    "P1.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Default BASE_URL is 'https://api.z.ai/api/anthropic' defined in /src/config/constants.ts as DEFAULT_BASE_URL. configureEnvironment() sets this if ANTHROPIC_BASE_URL is not already defined. This ensures all API calls route through z.ai proxy by default. Constants.ts also defines MODEL_NAMES mapping for opus/sonnet/haiku tiers. Refer to environment_setup.md Section 5.1 and 5.3.\n2. INPUT: Environment mapping tests passing from S1.\n3. LOGIC: Extend tests/unit/config/environment.test.ts. Test 1: Clear ANTHROPIC_BASE_URL, call configureEnvironment(), verify process.env.ANTHROPIC_BASE_URL === 'https://api.z.ai/api/anthropic'. Test 2: Set custom BASE_URL before configureEnvironment(), verify it's preserved (not overridden). Test 3: Verify default matches constant DEFAULT_BASE_URL from constants.ts. Use vi.stubGlobalEnv() for isolation.\n4. OUTPUT: Confirmation that default z.ai endpoint is correctly set. Test coverage ensuring custom endpoints are respected."
                 },
                 {
@@ -126,7 +138,9 @@
                   "title": "Test model configuration tier mapping",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S2"],
+                  "dependencies": [
+                    "P1.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Model tier mapping defined in /src/config/constants.ts: MODEL_NAMES = { opus: 'GLM-4.7', sonnet: 'GLM-4.7', haiku: 'GLM-4.5-Air' }. getModel(tier: ModelTier) function in environment.ts retrieves correct model name. These models map to z.ai's GLM series. Architect agent uses opus, other agents use sonnet by default. Refer to environment_setup.md Section 5.3 and system_context.md Section 5.3.\n2. INPUT: BASE_URL configuration tests passing from S2.\n3. LOGIC: Extend tests/unit/config/environment.test.ts. Test 1: Call getModel('opus'), verify returns 'GLM-4.7'. Test 2: Test all three tiers (opus, sonnet, haiku). Test 3: Verify invalid tier throws appropriate error. Test 4: Verify model names can be overridden via environment variables (ANTHROPIC_DEFAULT_OPUS_MODEL, etc.). Use expect().toThrow() for error cases.\n4. OUTPUT: Model tier mapping test coverage. Confirmed correct model names for each tier. Validation of override mechanism."
                 }
               ]
@@ -144,7 +158,9 @@
                   "title": "Enhance test setup API validation",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S3"],
+                  "dependencies": [
+                    "P1.M2.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test setup at tests/setup.ts implements z.ai safeguard. It validates ANTHROPIC_BASE_URL is not 'https://api.anthropic.com' on load and before each test. This prevents massive usage spikes from accidentally hitting Anthropic's production API. Validation checks for exact string match and blocks with error message. Refer to environment_setup.md Section 5.4.\n2. INPUT: Model configuration tests passing from S3.\n3. LOGIC: Review current tests/setup.ts implementation. If validation exists, enhance error message to include guidance on correct endpoint. If missing, implement validation: in global beforeEach, check if process.env.ANTHROPIC_BASE_URL === 'https://api.anthropic.com', if so throw Error('CRITICAL: Anthropic production API detected. Set ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic'). Also add warning for non-z.ai endpoints (except localhost/mock). Use console.error() for clear messaging.\n4. OUTPUT: Enhanced test setup with robust API validation. Error messages providing clear guidance. Protection against accidental Anthropic API usage."
                 },
                 {
@@ -153,7 +169,9 @@
                   "title": "Add validation script API checks",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T2.S1"],
+                  "dependencies": [
+                    "P1.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Validation script at /src/scripts/validate-api.ts performs comprehensive API validation. It tests endpoint availability, authentication, and response structure. Current implementation includes safeguard that exits if Anthropic official API detected. Script outputs colored console messages for status. Refer to environment_setup.md Section 5.4.\n2. INPUT: Enhanced test setup from S1.\n3. LOGIC: Review /src/scripts/validate-api.ts. Ensure it: 1) Checks BASE_URL before any API calls, 2) Exits with error code 1 if Anthropic API detected, 3) Provides clear error message, 4) Tests z.ai endpoint with /v1/messages, 5) Validates response structure includes id, type, role, content. Add warning if endpoint is neither z.ai nor localhost/mock/test. Use process.exit(1) for failures, process.exit(0) for success.\n4. OUTPUT: Validation script with comprehensive API safety checks. Clear exit codes and error messages. Protection against API misconfiguration."
                 },
                 {
@@ -162,7 +180,9 @@
                   "title": "Document API configuration requirements",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M2.T2.S2"],
+                  "dependencies": [
+                    "P1.M2.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Environment configuration documented in environment_setup.md but API safety measures need explicit documentation. Developers need clear guidance on: required variables, default values, override mechanisms, and safeguards. Existing README.md may have environment setup section to extend.\n2. INPUT: Validation script with all safeguards implemented from S2.\n3. LOGIC: Update documentation (likely README.md or create docs/environment-setup.md). Document: 1) Required environment variables (ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL), 2) Default values and mapping, 3) How to override for testing, 4) API safeguards in place and their purpose, 5) Warning about Anthropic API usage. Include examples of correct .env configuration. Use code blocks for clarity. Follow existing documentation style.\n4. OUTPUT: Updated documentation with clear API configuration guidance. Examples showing correct z.ai setup. Warnings about API safeguards."
                 }
               ]
@@ -198,7 +218,9 @@
                   "title": "Test task status transitions",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M3.T1.S1"],
+                  "dependencies": [
+                    "P1.M3.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskStatus type defined in models.ts: 'Planned' | 'Researching' | 'Ready' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete'. Status progression follows workflow: Planned → Researching → Ready → Implementing → Complete/Failed. Obsolete status set by delta analysis. TaskOrchestrator at /src/core/task-orchestrator.ts manages status updates via setStatus(). Refer to system_context.md Section 6.2.\n2. INPUT: Type definition tests passing from S1.\n3. LOGIC: Extend tests/unit/core/models.test.ts. Test 1: Verify all 7 status values are valid. Test 2: Test invalid status ('Invalid') fails Zod validation. Test 3: Create transition test: start with 'Planned', progress through 'Researching', 'Ready', 'Implementing' to 'Complete'. Test 4: Test 'Obsolete' status is valid. Test 5: Verify status is required field (missing status fails validation). Use enum-like validation.\n4. OUTPUT: Status validation test coverage. Confirmed valid status values. Transition logic validated."
                 },
                 {
@@ -207,7 +229,9 @@
                   "title": "Test context_scope contract format",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M3.T1.S2"],
+                  "dependencies": [
+                    "P1.M3.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: context_scope is a string field on Subtask containing detailed contract definition. Format defined in PROMPTS.md and system_context.md: 'CONTRACT DEFINITION:\\n1. RESEARCH NOTE: [...]\\n2. INPUT: [...]\\n3. LOGIC: [...]\\n4. OUTPUT: [...]'. This contract is the critical handoff document between PRP generation and execution. Task Orchestrator passes this to PRPGenerator. Refer to requirements_analysis.md Section 4 (Subtask Object) and Section 2.1 (Architect Agent).\n2. INPUT: Status transition tests passing from S2.\n3. LOGIC: Extend tests/unit/core/models.test.ts. Test 1: Create Subtask with valid context_scope following 4-part format. Test 2: Test missing context_scope fails validation. Test 3: Test malformed context_scope (missing sections) fails validation. Test 4: Verify context_scope can reference dependency IDs and research findings. Use string parsing to validate section headers. Consider creating Zod schema for context_scope format.\n4. OUTPUT: context_scope validation tests. Confirmed format requirements. Schema validation if implemented."
                 }
               ]
@@ -234,7 +258,9 @@
                   "title": "Test PRPDocument structure",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M3.T2.S1"],
+                  "dependencies": [
+                    "P1.M3.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRPDocument interface in models.ts defines: goal (string), context (ContextSection[]), implementationTasks (ImplementationTask[]), validationGates (ValidationGate[]). ContextSection includes: url/file/docfile, why, critical/pattern/gotcha/section. ImplementationTask includes: ACTION, path, FOLLOW pattern, NAMING, DEPENDENCIES, PLACEMENT. PRPGenerator at /src/agents/prp-generator.ts creates these documents. Refer to requirements_analysis.md Section 3.2 (PRP Creation Prompt Template).\n2. INPUT: SessionState serialization tests passing from S1.\n3. LOGIC: Extend tests/unit/core/session-state.test.ts. Test 1: Create valid PRPDocument with all required sections. Test 2: Test ContextSection variations (url, file, docfile). Test 3: Test ImplementationTask with all fields (ACTION, path, FOLLOW, NAMING, etc.). Test 4: Test ValidationGate with 4 levels. Test 5: Verify PRPDocument can be serialized to markdown format (PRP.md). Use Zod schemas for validation. Test markdown generation with template.\n4. OUTPUT: PRPDocument structure validation. Test coverage for all PRP sections. Markdown generation confirmed."
                 },
                 {
@@ -243,7 +269,9 @@
                   "title": "Test delta analysis structures",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M3.T2.S2"],
+                  "dependencies": [
+                    "P1.M3.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: DeltaAnalysis interface in models.ts defines: oldHash, newHash, changes (Change[]), addedTasks, modifiedTasks, removedTasks. Change interface: type ('added'|'modified'|'removed'), section, oldContent, newContent. DeltaAnalysisWorkflow at /src/workflows/delta-analysis-workflow.ts generates these structures. TaskPatcher at /src/core/task-patcher.ts applies changes to tasks.json. Refer to system_context.md Section 9 (Delta Workflow) and requirements_analysis.md Section 6.\n2. INPUT: PRPDocument tests passing from S2.\n3. LOGIC: Extend tests/unit/core/session-state.test.ts. Test 1: Create DeltaAnalysis with sample changes (added, modified, removed). Test 2: Test change types are correctly validated. Test 3: Test task patching: simulate adding new task, modifying existing, marking obsolete. Test 4: Verify delta session linking (delta_from.txt references previous session). Use TaskOrchestrator.setStatus('Obsolete') for removed tasks.\n4. OUTPUT: Delta analysis structure validation. Test coverage for change types. Task patching logic confirmed."
                 }
               ]
@@ -288,7 +316,9 @@
                   "title": "Test existing session loading",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S1"],
+                  "dependencies": [
+                    "P2.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager.loadSession(sessionPath: string) loads existing session from tasks.json. Uses JSON parsing with Zod validation. Restores session state including all tasks, current status, and parent session link. Batch update system accumulates changes and flushes atomically. Refer to SessionManager implementation details in system_context.md Section 4 (Session Manager).\n2. INPUT: New session creation tests passing from S1.\n3. LOGIC: Extend tests/integration/core/session-manager.test.ts. Test 1: Create a session manually with sample tasks.json, call initialize() with matching PRD, verify session loaded (not recreated). Test 2: Verify loadSession() correctly parses all hierarchy levels (Phase→Milestone→Task→Subtask). Test 3: Test loading session with parentSessionPath (delta session). Test 4: Verify batch updates are flushed on load. Use sample tasks.json fixtures in tests/fixtures/.\n4. OUTPUT: Existing session loading test coverage. Confirmed state restoration. Hierarchy parsing validated."
                 },
                 {
@@ -297,7 +327,9 @@
                   "title": "Test delta session detection",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S2"],
+                  "dependencies": [
+                    "P2.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Delta session creation triggered by PRD hash mismatch. SessionManager.createDeltaSession(prdPath: string, parentSessionPath: string) creates new session directory with delta_from.txt linking to parent. DeltaAnalysisWorkflow generates delta_prd.md. TaskPatcher patches tasks.json based on changes. Refer to system_context.md Section 9 (Delta Workflow) and Section 4 (Session Manager).\n2. INPUT: Existing session loading tests passing from S2.\n3. LOGIC: Extend tests/integration/core/session-manager.test.ts. Test 1: Create initial session, modify PRD content (change hash), call initialize(), verify delta session created (002_newhash). Test 2: Verify delta_from.txt contains parent session path. Test 3: Verify parent session state loaded for reference. Test 4: Test delta detection fails gracefully if parent session missing. Use modified PRD fixtures.\n4. OUTPUT: Delta session detection test coverage. Confirmed parent-child linking. PRD change detection validated."
                 }
               ]
@@ -315,7 +347,9 @@
                   "title": "Test atomic update flushing",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S3"],
+                  "dependencies": [
+                    "P2.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager uses batch update pattern to prevent JSON corruption. Updates accumulated in internal map, flushed via flushUpdates() which writes to temp file then renames. Critical for preventing partial writes that corrupt tasks.json. Implements fs.writeFileSync(tempPath) then fs.rename(tempPath, finalPath). Refer to SessionManager batch update implementation in system_context.md.\n2. INPUT: Delta session tests passing from S1.T3.S3.\n3. LOGIC: Extend tests/integration/core/session-manager.test.ts. Test 1: Call updateItemStatus() multiple times on different tasks, verify updates queued (not written). Test 2: Call flushUpdates(), verify all updates written atomically. Test 3: Simulate write failure (mock fs.writeFileSync), verify original file intact. Test 4: Test concurrent flush calls are serialized. Use vi.mock('fs') to simulate failures. Verify file integrity with JSON.parse().\n4. OUTPUT: Atomic update flush test coverage. Confirmed corruption prevention. Concurrent flush safety validated."
                 },
                 {
@@ -324,7 +358,9 @@
                   "title": "Test task status update propagation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T2.S1"],
+                  "dependencies": [
+                    "P2.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: updateItemStatus(itemId: string, status: TaskStatus) method updates any task in hierarchy. Status updates trigger internal state change and queue for flush. Supports partial ID matching (update subtask, parent tasks unaffected). TaskOrchestrator calls this after each subtask completion. Refer to SessionManager API in system_context.md Section 4.\n2. INPUT: Atomic flush tests passing from S1.\n3. LOGIC: Extend tests/integration/core/session-manager.test.ts. Test 1: Update subtask status from 'Planned' to 'Complete', verify only that subtask updated. Test 2: Update milestone status, verify milestone and all children reflect change. Test 3: Test invalid status value throws error. Test 4: Test invalid itemId throws error. Use sample hierarchy with multiple levels. Verify hierarchy not corrupted by updates.\n4. OUTPUT: Status update propagation test coverage. Confirmed precise updates without side effects. Error handling validated."
                 },
                 {
@@ -333,7 +369,9 @@
                   "title": "Test session discovery methods",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P2.M1.T2.S2"],
+                  "dependencies": [
+                    "P2.M1.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager provides static discovery methods: listSessions() returns all sessions, findLatestSession() returns most recent, findSessionByPRD(hash) returns matching session. These use fs.readdir() on plan/ directory and parse session directory names. Critical for CLI session selection. Refer to SessionManager API in system_context.md.\n2. INPUT: Status propagation tests passing from S2.\n3. LOGIC: Extend tests/integration/core/session-manager.test.ts. Test 1: Create multiple sessions, call listSessions(), verify all returned in order. Test 2: Create sessions with different timestamps, call findLatestSession(), verify most recent returned. Test 3: Create session with known hash, call findSessionByPRD(), verify correct session returned. Test 4: Test findSessionByPRD() returns null for non-existent hash. Use temp directory with multiple session fixtures.\n4. OUTPUT: Session discovery test coverage. Confirmed sorting and filtering logic. Null handling validated."
                 }
               ]
@@ -345,8 +383,7 @@
           "id": "P2.M2",
           "title": "Task Orchestrator Validation",
           "status": "Planned",
-          "description": "Ensure TaskOrchestrator correctly traverses task hierarchy, resolves dependencies, and delegates execution to PRPRuntime.",
-          "subtasks": []
+          "description": "Ensure TaskOrchestrator correctly traverses task hierarchy, resolves dependencies, and delegates execution to PRPRuntime."
         }
       ]
     }
