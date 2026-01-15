@@ -683,7 +683,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S1",
                   "title": "Read cli/index.ts line 160 to understand context",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Line 160 has nullable string warning per Issue 4\n2. INPUT: None - reads src/cli/index.ts directly\n3. LOGIC: Use Read tool to open src/cli/index.ts. Focus on lines 155-165. Examine the conditional involving `options.scope`. Understand context (CLI scope validation). Identify why it's nullable.\n4. OUTPUT: Return { currentCode: string, context: string, isNullable: boolean }. Code context for fix."
@@ -692,7 +692,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S2",
                   "title": "Apply explicit null check to fix warning",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M2.T2.S1"
