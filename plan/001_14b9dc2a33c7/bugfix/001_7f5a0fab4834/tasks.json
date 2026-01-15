@@ -356,7 +356,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Read research-queue.ts error handling code",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Lines 181-185 have unhandled promise rejection per Issue 3 and test infrastructure report\n2. INPUT: None - reads src/core/research-queue.ts directly\n3. LOGIC: Use Read tool to open src/core/research-queue.ts. Focus on lines 180-190. Examine catch block structure. Look for error logging without propagation. Identify the .catch() in finally block.\n4. OUTPUT: Return { currentCode: string, lineNumber: number, hasErrorLogging: boolean }. Current error handling implementation."
@@ -365,7 +365,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S2",
                   "title": "Improve error logging with more context",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T1.S1"
