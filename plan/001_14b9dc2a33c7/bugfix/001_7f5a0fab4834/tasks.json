@@ -767,7 +767,7 @@
           "type": "Milestone",
           "id": "P4.M1",
           "title": "Milestone 4.1: End-to-End Testing",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Run complete test suite and verify all fixes are working correctly",
           "tasks": [
             {
@@ -814,7 +814,7 @@
               "type": "Task",
               "id": "P4.M1.T2",
               "title": "Run ESLint and verify code quality",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Execute ESLint on entire codebase and verify only acceptable warnings remain",
               "subtasks": [
                 {
@@ -830,7 +830,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T2.S2",
                   "title": "Verify no ESLint errors",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M1.T2.S1"
@@ -841,7 +841,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T2.S3",
                   "title": "Verify high-priority warnings are fixed",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M1.T2.S2"
