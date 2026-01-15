@@ -37,6 +37,7 @@ coverage/
 
 # Vitest
 .vitest/
+test-results.json
 
 # ESLint cache
 .eslintcache
