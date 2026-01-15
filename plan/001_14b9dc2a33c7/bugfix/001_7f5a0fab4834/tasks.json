@@ -260,7 +260,7 @@
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Add memory limits to package.json test scripts",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update all test scripts in package.json to include NODE_OPTIONS with increased heap size",
               "subtasks": [
                 {
@@ -287,7 +287,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Verify package.json syntax is valid",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T1.S2"
@@ -307,7 +307,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Run single test file to verify no memory issues",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Tests were failing with 'JS heap out of memory' per Issue 2\n2. INPUT: None - assumes P2.M1.T1 (memory limit update) complete\n3. LOGIC: Execute bash: `npm run test:run -- tests/unit/utils/resource-monitor.test.ts`. Capture output. Look for 'Worker terminated', 'heap out of memory'. Check return code. Mock for testing.\n4. OUTPUT: Return { success: boolean, hasMemoryError: boolean, output: string }. Success if no memory errors."
