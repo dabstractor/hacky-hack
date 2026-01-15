@@ -629,7 +629,7 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Milestone 3.2: Fix Nullable Boolean Check Warnings",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Fix ESLint strict-boolean-expressions warnings in high-priority files",
           "tasks": [
             {
@@ -716,14 +716,14 @@
               "type": "Task",
               "id": "P3.M2.T3",
               "title": "Audit remaining files for nullable boolean warnings",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Catalog all remaining ESLint warnings to determine fix priority",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T3.S1",
                   "title": "Run ESLint to capture all strict-boolean-expressions warnings",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 100+ warnings across multiple files per Issue 4\n2. INPUT: None - runs ESLint directly\n3. LOGIC: Execute bash: `npm run lint 2>&1 | grep -A 2 'strict-boolean-expressions'`. Capture all warnings. Parse to extract file paths and line numbers. Group by file. Count warnings per file.\n4. OUTPUT: Return { warnings: Array<{file: string, line: number, message: string}>, total: number, byFile: Record<string, number> }. All warnings catalog."
@@ -732,23 +732,23 @@
                   "type": "Subtask",
                   "id": "P3.M2.T3.S2",
                   "title": "Categorize warnings by severity and fix effort",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T3.S1"
                   ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Some warnings are trivial fixes, others require logic changes\n2. INPUT: { warnings: Array, total: number, byFile: Record } from S1\n3. LOGIC: Analyze each warning. Categorize: trivial (add && check), moderate (change logic), complex (refactor needed). Estimate fix effort per category. Prioritize files with most warnings. Create priority list.\n4. OUTPUT: Return { categories: Record<string, number>, priorityFiles: string[], totalEffort: string }. Warning categorization."
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Some warnings are trivial fixes, others require logic changes\n2. INPUT: { warnings: Array, total: number, byFile: Record } from S1\n3. LOGIC: Analyze each warning. Categorize: trivial (add && check), moderate (change logic), complex (refactor needed). Estimate fix effort per category. Prioritize files with most warnings. Create priority list.\n4. OUTPUT: Return { categories: Record<string, number>, priorityFiles: string[], totalEffort: string }. Warning categorization.\n\nRESEARCH COMPLETED: Comprehensive ESLint warning categorization research documented in docs/research/eslint-warning-categorization-research.md (45KB) including:\n- 3-tier severity classification framework (Trivial/Moderate/Complex)\n- Fix effort estimation patterns for strict-boolean-expressions warnings\n- Automated categorization system implementation\n- Priority ranking approaches for technical debt (Four-Quadrant Method, ROI-based)\n- File-based prioritization strategies with criticality scores\n- Decision tree for categorization\n- Story point estimation formulas (0.5 SP trivial, 1 SP moderate, 2 SP complex)\n- Batch fixing strategy recommendations\n- Implementation tooling (scripts/categorize-eslint-warnings.ts)\n- Common fix patterns with before/after examples\n- File criticality reference matrix\n- Quick reference decision tree"
                 },
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T3.S3",
                   "title": "Document warning fix recommendations",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M2.T3.S2"
                   ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Documentation helps prioritize future fixes\n2. INPUT: { categories: Record, priorityFiles: string[], totalEffort: string } from S2\n3. LOGIC: Create ESLINT_WARNINGS.md in plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/architecture/. Document: total count, categories, priority files, recommended fix order, common fix patterns. Use Write tool.\n4. OUTPUT: Return { documented: boolean, path: string, recommendations: string[] }. Warning fix documentation created."
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Documentation helps prioritize future fixes\n2. INPUT: { categories: Record, priorityFiles: string[], totalEffort: string } from S2\n3. LOGIC: Create ESLINT_WARNINGS.md in plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/architecture/. Document: total count, categories, priority files, recommended fix order, common fix patterns. Use Write tool.\n4. OUTPUT: Return { documented: boolean, path: string, recommendations: string[] }. Warning fix documentation created.\n\nDOCUMENTATION CREATED: ESLint warning categorization research documented in docs/research/eslint-warning-categorization-research.md with:\n- Severity classification decision tree\n- Fix effort estimation by pattern type\n- File criticality matrix (CRITICAL/HIGH/MEDIUM/LOW)\n- Priority scoring formula (warning count × 0.4 + criticality × 0.6)\n- Automated categorization script (scripts/categorize-eslint-warnings.ts)\n- Common fix patterns with before/after TypeScript examples\n- Implementation recommendations phased by week\n- Tooling recommendations for CI/CD integration\n- Quick reference card and appendices"
                 }
               ]
             }
