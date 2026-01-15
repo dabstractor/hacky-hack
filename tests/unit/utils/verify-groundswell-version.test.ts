@@ -224,7 +224,9 @@ describe('verifyGroundswellVersion', () => {
       expect(report.dependencies).toHaveLength(1);
       expect(report.dependencies[0].dependency).toBe('@anthropic-ai/sdk');
       expect(report.dependencies[0].hasConflict).toBe(false);
-      expect(report.dependencies[0].description).toContain('does not directly depend');
+      expect(report.dependencies[0].description).toContain(
+        'does not directly depend'
+      );
     });
 
     it('should pass basic functionality test', async () => {
@@ -645,7 +647,9 @@ describe('verifyGroundswellVersion', () => {
       );
 
       const importResults = createMockImportTestResults(true);
-      const report = await verifyGroundswellVersion({ importTestResults: importResults });
+      const report = await verifyGroundswellVersion({
+        importTestResults: importResults,
+      });
 
       expect(report.importTestResults).toBeDefined();
       expect(report.importTestResults?.overallSuccess).toBe(true);
@@ -660,7 +664,9 @@ describe('verifyGroundswellVersion', () => {
       const importResults = createMockImportTestResults(false);
       importResults.failingImports = ['BrokenImport', 'AnotherBrokenImport'];
 
-      const report = await verifyGroundswellVersion({ importTestResults: importResults });
+      const report = await verifyGroundswellVersion({
+        importTestResults: importResults,
+      });
 
       expect(report.importTestResults?.failingImports).toContain(
         'BrokenImport'
@@ -676,7 +682,9 @@ describe('verifyGroundswellVersion', () => {
       );
 
       const importResults = createMockImportTestResults(false);
-      const report = await verifyGroundswellVersion({ importTestResults: importResults });
+      const report = await verifyGroundswellVersion({
+        importTestResults: importResults,
+      });
 
       expect(report.recommendations).toContain(
         'Resolve import test failures from P1.M1.T1.S2'

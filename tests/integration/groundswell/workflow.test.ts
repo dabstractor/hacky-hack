@@ -173,7 +173,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
 
     const observer: WorkflowObserver = {
       onLog: () => {},
-      onEvent: (event) => events.push(event),
+      onEvent: event => events.push(event),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     };
@@ -184,8 +184,8 @@ describe('Workflow lifecycle: @Step decorator', () => {
     await workflow.run();
 
     // VERIFY: Check events
-    const stepStart = events.find((e) => e.type === 'stepStart');
-    const stepEnd = events.find((e) => e.type === 'stepEnd');
+    const stepStart = events.find(e => e.type === 'stepStart');
+    const stepEnd = events.find(e => e.type === 'stepEnd');
 
     expect(stepStart).toBeDefined();
     expect(stepEnd).toBeDefined();
@@ -208,7 +208,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
       @Step({ trackTiming: true })
       async myStep(): Promise<void> {
         // Simulate some work
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
 
       async run(): Promise<void> {
@@ -221,7 +221,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
 
     workflow.addObserver({
       onLog: () => {},
-      onEvent: (e) => events.push(e),
+      onEvent: e => events.push(e),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     });
@@ -230,7 +230,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
     await workflow.run();
 
     // VERIFY: Check duration is present and reasonable
-    const stepEnd = events.find((e) => e.type === 'stepEnd');
+    const stepEnd = events.find(e => e.type === 'stepEnd');
     expect(stepEnd).toBeDefined();
 
     if (stepEnd && stepEnd.type === 'stepEnd') {
@@ -303,7 +303,7 @@ describe('Workflow lifecycle: @Task decorator', () => {
 
     parent.addObserver({
       onLog: () => {},
-      onEvent: (e) => events.push(e),
+      onEvent: e => events.push(e),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     });
@@ -312,8 +312,8 @@ describe('Workflow lifecycle: @Task decorator', () => {
     await parent.run();
 
     // VERIFY: Check task events
-    const taskStart = events.find((e) => e.type === 'taskStart');
-    const taskEnd = events.find((e) => e.type === 'taskEnd');
+    const taskStart = events.find(e => e.type === 'taskStart');
+    const taskEnd = events.find(e => e.type === 'taskEnd');
 
     expect(taskStart).toBeDefined();
     expect(taskEnd).toBeDefined();
@@ -380,10 +380,14 @@ describe('Workflow lifecycle: @Task decorator', () => {
         const grandChild = child.children[0];
         expect(grandChild.isDescendantOf(parent)).toBe(true);
       } else {
-        console.warn('GrandChild not attached - @Task decorator may need configuration');
+        console.warn(
+          'GrandChild not attached - @Task decorator may need configuration'
+        );
       }
     } else {
-      console.warn('No children attached - @Task decorator behavior needs investigation');
+      console.warn(
+        'No children attached - @Task decorator behavior needs investigation'
+      );
     }
   });
 });
@@ -507,7 +511,7 @@ describe('Workflow lifecycle: @ObservedState decorator', () => {
 
     workflow.addObserver({
       onLog: () => {},
-      onEvent: (e) => events.push(e),
+      onEvent: e => events.push(e),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     });
@@ -516,7 +520,7 @@ describe('Workflow lifecycle: @ObservedState decorator', () => {
     await workflow.run();
 
     // VERIFY: Check for stateUpdated event
-    const stateUpdated = events.filter((e) => e.type === 'stateUpdated');
+    const stateUpdated = events.filter(e => e.type === 'stateUpdated');
     expect(stateUpdated.length).toBeGreaterThan(0);
   });
 

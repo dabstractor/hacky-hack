@@ -448,7 +448,9 @@ describe('Agent and Prompt: withData() immutability', () => {
     // VERIFY: Other properties preserved
     expect(updated.user).toBe('Original user');
     // Note: Prompt stores system as systemOverride, not system
-    expect((updated as { systemOverride?: string }).systemOverride).toBe('Original system');
+    expect((updated as { systemOverride?: string }).systemOverride).toBe(
+      'Original system'
+    );
   });
 });
 
