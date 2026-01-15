@@ -294,7 +294,9 @@ Options:
 
     it('should parse description', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      expect(parsed.description).toBe('PRD to PRP Pipeline - Automated software development');
+      expect(parsed.description).toBe(
+        'PRD to PRP Pipeline - Automated software development'
+      );
     });
 
     it('should parse all options', () => {
@@ -304,57 +306,59 @@ Options:
 
     it('should parse short and long flags', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const helpOption = parsed.options.find((o) => o.long === '--help');
+      const helpOption = parsed.options.find(o => o.long === '--help');
       expect(helpOption?.short).toBe('-h');
       expect(helpOption?.long).toBe('--help');
     });
 
     it('should parse descriptions', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const verboseOption = parsed.options.find((o) => o.long === '--verbose');
-      expect(verboseOption?.description).toBe('Enable debug logging (default: false)');
+      const verboseOption = parsed.options.find(o => o.long === '--verbose');
+      expect(verboseOption?.description).toBe(
+        'Enable debug logging (default: false)'
+      );
     });
 
     it('should parse default values', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const prdOption = parsed.options.find((o) => o.long === '--prd');
+      const prdOption = parsed.options.find(o => o.long === '--prd');
       expect(prdOption?.default).toBe('./PRD.md');
     });
 
     it('should parse choices', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const modeOption = parsed.options.find((o) => o.long === '--mode');
+      const modeOption = parsed.options.find(o => o.long === '--mode');
       expect(modeOption?.choices).toEqual(['normal', 'bug-hunt', 'validate']);
     });
 
     it('should detect negated flags', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const noCacheOption = parsed.options.find((o) => o.long === '--no-cache');
+      const noCacheOption = parsed.options.find(o => o.long === '--no-cache');
       expect(noCacheOption?.isNegated).toBe(true);
     });
 
     it('should parse argument names', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const prdOption = parsed.options.find((o) => o.long === '--prd');
+      const prdOption = parsed.options.find(o => o.long === '--prd');
       expect(prdOption?.argName).toBe('path');
     });
 
     it('should parse argument types', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const continueOption = parsed.options.find((o) => o.long === '--continue');
+      const continueOption = parsed.options.find(o => o.long === '--continue');
       expect(continueOption?.argType).toBe('boolean');
     });
 
     it('should handle multi-line descriptions', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const modeOption = parsed.options.find((o) => o.long === '--mode');
+      const modeOption = parsed.options.find(o => o.long === '--mode');
       expect(modeOption?.description).toContain('bug-hunt');
       expect(modeOption?.description).toContain('validate');
     });
 
     it('should parse long-only flags without short version', () => {
       const parsed = parseHelpOutput(commanderHelp);
-      const verboseOption = parsed.options.find((o) => o.long === '--verbose');
+      const verboseOption = parsed.options.find(o => o.long === '--verbose');
       expect(verboseOption?.short).toBeUndefined();
       expect(verboseOption?.long).toBe('--verbose');
     });
@@ -390,7 +394,7 @@ Options:
   --help                another help
 `;
       const flags = extractAllFlags(helpTextWithDuplicates);
-      expect(flags.filter((f) => f === '--help')).toHaveLength(1);
+      expect(flags.filter(f => f === '--help')).toHaveLength(1);
     });
 
     it('should return empty array for empty text', () => {
@@ -461,13 +465,17 @@ Commands:
 
   describe('extractOptionDescription', () => {
     it('should extract flag and description', () => {
-      const result = extractOptionDescription('--verbose             Enable debug logging');
+      const result = extractOptionDescription(
+        '--verbose             Enable debug logging'
+      );
       expect(result?.flag).toBe('--verbose');
       expect(result?.description).toBe('Enable debug logging');
     });
 
     it('should handle descriptions with angle brackets', () => {
-      const result = extractOptionDescription('--prd <path>          Path to PRD markdown file');
+      const result = extractOptionDescription(
+        '--prd <path>          Path to PRD markdown file'
+      );
       expect(result?.flag).toBe('--prd');
       expect(result?.description).toContain('<path>');
     });
@@ -705,19 +713,21 @@ Options:
       const parsed = parseHelpOutput(commanderHelp);
 
       expect(parsed.usage).toBe('Usage: prp-pipeline [options]');
-      expect(parsed.description).toBe('PRD to PRP Pipeline - Automated software development');
+      expect(parsed.description).toBe(
+        'PRD to PRP Pipeline - Automated software development'
+      );
       expect(parsed.options.length).toBeGreaterThan(0);
 
       // Check specific options
-      const helpOption = parsed.options.find((o) => o.long === '--help');
+      const helpOption = parsed.options.find(o => o.long === '--help');
       expect(helpOption).toBeDefined();
       expect(helpOption?.short).toBe('-h');
 
-      const noCacheOption = parsed.options.find((o) => o.long === '--no-cache');
+      const noCacheOption = parsed.options.find(o => o.long === '--no-cache');
       expect(noCacheOption).toBeDefined();
       expect(noCacheOption?.isNegated).toBe(true);
 
-      const modeOption = parsed.options.find((o) => o.long === '--mode');
+      const modeOption = parsed.options.find(o => o.long === '--mode');
       expect(modeOption?.choices).toEqual(['normal', 'bug-hunt', 'validate']);
     });
   });
@@ -780,10 +790,10 @@ Options:
       expect(parsed.options.length).toBeGreaterThan(0);
 
       // Check that types are detected
-      const versionOption = parsed.options.find((o) => o.long === '--version');
+      const versionOption = parsed.options.find(o => o.long === '--version');
       expect(versionOption?.argType).toBe('boolean');
 
-      const prdOption = parsed.options.find((o) => o.long === '--prd');
+      const prdOption = parsed.options.find(o => o.long === '--prd');
       expect(prdOption?.argType).toBe('string');
       expect(prdOption?.default).toBe('./PRD.md');
     });
@@ -837,7 +847,9 @@ describe('CLI Help Parser - Edge Cases', () => {
 
   describe('Special Characters in Arguments', () => {
     it('should handle quoted arguments with spaces', () => {
-      expect(FLAG_WITH_ARG_REGEX.test('--file "path with spaces.txt"')).toBe(true);
+      expect(FLAG_WITH_ARG_REGEX.test('--file "path with spaces.txt"')).toBe(
+        true
+      );
       expect(FLAG_WITH_ARG_REGEX.test('--output="result file.txt"')).toBe(true);
     });
 

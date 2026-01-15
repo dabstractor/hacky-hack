@@ -93,7 +93,8 @@ interface BuildLogEntry {
  * Located in the bugfix-specific plan directory to keep build logs
  * organized by PRD and work item.
  */
-const BUILD_LOG_PATH = 'plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/BUILD_LOG.md';
+const BUILD_LOG_PATH =
+  'plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/BUILD_LOG.md';
 
 /**
  * BUILD_LOG.md header content

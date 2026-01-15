@@ -399,7 +399,9 @@ describe('module-resolution-verifier', () => {
 
       expect(result.message).toContain('No module-not-found errors found');
       expect(result.message).toContain('Verified 1/1');
-      expect(result.message).toContain('critical files have Groundswell imports');
+      expect(result.message).toContain(
+        'critical files have Groundswell imports'
+      );
     });
 
     it('should generate failure message when no imports found', () => {
@@ -416,7 +418,9 @@ describe('module-resolution-verifier', () => {
       const result = verifyNoModuleErrors(analysis);
 
       expect(result.message).toContain('No module-not-found errors found');
-      expect(result.message).toContain('but could not verify Groundswell imports');
+      expect(result.message).toContain(
+        'but could not verify Groundswell imports'
+      );
     });
 
     it('should generate message for multiple sampled files', () => {

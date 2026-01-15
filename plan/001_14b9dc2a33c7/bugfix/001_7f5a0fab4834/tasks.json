@@ -260,14 +260,14 @@
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Add memory limits to package.json test scripts",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update all test scripts in package.json to include NODE_OPTIONS with increased heap size",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Read current package.json test scripts",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test scripts need memory limits per Issue 2 - 'Worker terminated due to reaching memory limit'\n2. INPUT: None - reads package.json directly\n3. LOGIC: Use Read tool to open package.json. Extract scripts section. Identify test-related scripts: test, test:run, test:watch, test:coverage. Parse current command values.\n4. OUTPUT: Return { scripts: Record<string, string>, testScripts: string[] }. List of current test script commands."
@@ -276,7 +276,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Update test script with NODE_OPTIONS memory limit",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S1"
@@ -287,7 +287,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Verify package.json syntax is valid",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T1.S2"

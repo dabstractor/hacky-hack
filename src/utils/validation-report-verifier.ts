@@ -177,7 +177,8 @@ export function verifyValidationReportFormat(
       formatValid: false,
       sectionsPresent: [],
       missingSections: [...EXPECTED_REQUIRED_SECTIONS],
-      message: 'Validation report format check skipped: validation command failed',
+      message:
+        'Validation report format check skipped: validation command failed',
     };
   }
 
@@ -186,7 +187,7 @@ export function verifyValidationReportFormat(
 
   // Build missing sections array
   const missingSections = EXPECTED_REQUIRED_SECTIONS.filter(
-    (section) => !parsed.sectionsFound.includes(section)
+    section => !parsed.sectionsFound.includes(section)
   );
 
   const formatValid = missingSections.length === 0;
@@ -194,7 +195,9 @@ export function verifyValidationReportFormat(
   if (formatValid) {
     logger.debug('All expected sections detected in validation report');
   } else {
-    logger.warn(`Missing sections in validation report: ${missingSections.join(', ')}`);
+    logger.warn(
+      `Missing sections in validation report: ${missingSections.join(', ')}`
+    );
   }
 
   return {
@@ -254,7 +257,7 @@ function parseReportSections(report: string): ParsedSections {
 
   // Find missing sections
   const sectionsNotFound = EXPECTED_REQUIRED_SECTIONS.filter(
-    (section) => !sectionsFound.includes(section)
+    section => !sectionsFound.includes(section)
   );
 
   return {

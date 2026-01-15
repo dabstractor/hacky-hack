@@ -159,7 +159,11 @@ export function verifyNoModuleErrors(
     remainingCount: 0,
     verifiedFiles: sampledFiles,
     importCount,
-    message: generateVerificationMessage(sampledFiles.length, importCount, resolved),
+    message: generateVerificationMessage(
+      sampledFiles.length,
+      importCount,
+      resolved
+    ),
   };
 }
 
@@ -180,9 +184,7 @@ export function verifyNoModuleErrors(
  * @param availableFiles - List of file paths from ErrorAnalysisResult
  * @returns Array of critical file paths to sample
  */
-function sampleCriticalFiles(
-  availableFiles: readonly string[]
-): string[] {
+function sampleCriticalFiles(availableFiles: readonly string[]): string[] {
   // Prioritize critical files that exist in the available list
   const criticalFound = CRITICAL_FILES_TO_SAMPLE.filter(file =>
     availableFiles.includes(file)

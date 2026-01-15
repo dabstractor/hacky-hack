@@ -190,7 +190,7 @@ export function verifyCliOptions(
 
   // Build missing options array
   const missingOptions = EXPECTED_CLI_OPTIONS.filter(
-    (option) => !parsed.flagsFound.includes(option)
+    option => !parsed.flagsFound.includes(option)
   );
 
   const allOptionsPresent = missingOptions.length === 0;
@@ -258,7 +258,7 @@ function parseOptionFlags(output: string): ParsedOptions {
 
   // Find missing options
   const flagsNotFound = EXPECTED_CLI_OPTIONS.filter(
-    (option) => !flagsFound.includes(option)
+    option => !flagsFound.includes(option)
   );
 
   return {

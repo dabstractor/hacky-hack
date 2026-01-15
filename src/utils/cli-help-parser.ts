@@ -262,7 +262,13 @@ export function parseHelpOutput(helpText: string): ParsedHelp {
   };
 
   const lines = helpText.split('\n');
-  let currentSection: 'usage' | 'description' | 'options' | 'commands' | 'examples' | null = null;
+  let currentSection:
+    | 'usage'
+    | 'description'
+    | 'options'
+    | 'commands'
+    | 'examples'
+    | null = null;
   let optionBuffer = ''; // For multi-line option descriptions
 
   for (let i = 0; i < lines.length; i++) {
@@ -316,7 +322,11 @@ export function parseHelpOutput(helpText: string): ParsedHelp {
     }
 
     // Parse commands
-    if (currentSection === 'commands' && trimmed && !trimmed.startsWith('Commands')) {
+    if (
+      currentSection === 'commands' &&
+      trimmed &&
+      !trimmed.startsWith('Commands')
+    ) {
       const command = parseCommandLine(line);
       if (command) {
         result.commands = result.commands || [];
@@ -325,7 +335,11 @@ export function parseHelpOutput(helpText: string): ParsedHelp {
     }
 
     // Parse examples
-    if (currentSection === 'examples' && trimmed && !trimmed.startsWith('Example')) {
+    if (
+      currentSection === 'examples' &&
+      trimmed &&
+      !trimmed.startsWith('Example')
+    ) {
       result.examples = result.examples || [];
       result.examples.push(trimmed);
     }
@@ -387,7 +401,9 @@ function parseOptionLine(line: string): ParsedOption | null {
   };
 
   // Extract metadata from combined description (includes continuation lines)
-  const fullDescription = combinedLine.substring(combinedLine.indexOf(match[4])).trim();
+  const fullDescription = combinedLine
+    .substring(combinedLine.indexOf(match[4]))
+    .trim();
   option.argType = extractArgType(fullDescription);
   option.default = extractDefault(fullDescription);
   option.choices = extractChoices(fullDescription);
@@ -427,7 +443,9 @@ function extractArgName(line: string): string | undefined {
  * @param description - Option description
  * @returns Argument type or undefined
  */
-function extractArgType(description: string): 'string' | 'number' | 'boolean' | undefined {
+function extractArgType(
+  description: string
+): 'string' | 'number' | 'boolean' | undefined {
   if (/\[boolean\]/i.test(description)) return 'boolean';
   if (/\[string\]/i.test(description)) return 'string';
   if (/\[number\]/i.test(description)) return 'number';
@@ -484,17 +502,19 @@ function extractChoices(description: string): string[] | undefined {
   if (yargsMatch) {
     const choices = yargsMatch[1].match(/"([^"]+)"/g);
     if (choices) {
-      return choices.map((c) => c.replace(/"/g, ''));
+      return choices.map(c => c.replace(/"/g, ''));
     }
   }
 
   // Commander.js style: (choices: "value1", "value2", "value3", default: "value")
   // The pattern: choices: "value1", "value2", "value3" (stops at next keyword)
-  const commanderMatch = normalized.match(/choices:.*?((?:"[^"]+"(?:,\s*)?)+)(?:\s*,?\s*default:|$)/);
+  const commanderMatch = normalized.match(
+    /choices:.*?((?:"[^"]+"(?:,\s*)?)+)(?:\s*,?\s*default:|$)/
+  );
   if (commanderMatch) {
     const choices = commanderMatch[1].match(/"([^"]+)"/g);
     if (choices) {
-      return choices.map((c) => c.replace(/"/g, ''));
+      return choices.map(c => c.replace(/"/g, ''));
     }
   }
 
@@ -507,7 +527,9 @@ function extractChoices(description: string): string[] | undefined {
  * @param line - Command line to parse
  * @returns Parsed command or null
  */
-function parseCommandLine(line: string): { name: string; description: string } | null {
+function parseCommandLine(
+  line: string
+): { name: string; description: string } | null {
   // Match: command    description
   const match = line.match(/^(\s*)([\w-]+)(\s{2,})(.+)$/);
   if (!match) return null;
@@ -673,19 +695,27 @@ export function validateHelpOutput(helpText: string): ValidationResult {
  * @param library - Library name ('commander' | 'yargs' | 'argparse')
  * @returns True if help output matches library format
  */
-export function detectCLILibrary(helpText: string): 'commander' | 'yargs' | 'argparse' | 'unknown' {
+export function detectCLILibrary(
+  helpText: string
+): 'commander' | 'yargs' | 'argparse' | 'unknown' {
   // Commander.js: Uses (default: "value") format
   if (/\(default:\s*"/.test(helpText)) {
     return 'commander';
   }
 
   // Yargs: Uses [default: "value"] format with type brackets
-  if (/\[default:\s*"/.test(helpText) && /\[(?:string|number|boolean)\]/.test(helpText)) {
+  if (
+    /\[default:\s*"/.test(helpText) &&
+    /\[(?:string|number|boolean)\]/.test(helpText)
+  ) {
     return 'yargs';
   }
 
   // Argparse: Uses different format (harder to detect specifically)
-  if (/\[options\]/i.test(helpText) && /positional arguments/i.test(helpText.toLowerCase())) {
+  if (
+    /\[options\]/i.test(helpText) &&
+    /positional arguments/i.test(helpText.toLowerCase())
+  ) {
     return 'argparse';
   }
 

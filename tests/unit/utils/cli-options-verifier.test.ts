@@ -35,7 +35,10 @@ vi.mock('../../src/utils/logger.js', () => ({
 }));
 
 // Import module under test
-import { verifyCliOptions, type CliOptionsResult } from '../../../src/utils/cli-options-verifier.js';
+import {
+  verifyCliOptions,
+  type CliOptionsResult,
+} from '../../../src/utils/cli-options-verifier.js';
 import type { StartupErrorResult } from '../../../src/utils/startup-error-verifier.js';
 
 // =============================================================================
@@ -748,7 +751,9 @@ Options:
         hasErrors: false,
       });
 
-      const longHelp = 'Usage: prp-pipeline\n'.repeat(10000) + `Options:
+      const longHelp =
+        'Usage: prp-pipeline\n'.repeat(10000) +
+        `Options:
   --prd <path>              Path to PRD markdown file
   --verbose                 Enable debug logging
   --scope <scope>           Scope identifier

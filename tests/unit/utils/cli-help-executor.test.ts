@@ -41,7 +41,10 @@ vi.mock('../../src/utils/logger.js', () => ({
 
 // Import mocked modules
 import { spawn } from 'node:child_process';
-import { executeCliHelp, type CliHelpResult } from '../../../src/utils/cli-help-executor.js';
+import {
+  executeCliHelp,
+  type CliHelpResult,
+} from '../../../src/utils/cli-help-executor.js';
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -614,7 +617,9 @@ Options:
 
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(null);
-      expect(result.error).toContain('npm not found. Please ensure Node.js and npm are installed.');
+      expect(result.error).toContain(
+        'npm not found. Please ensure Node.js and npm are installed.'
+      );
       expect(result.output).toBe('');
     });
 
@@ -644,7 +649,9 @@ Options:
 
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(null);
-      expect(result.error).toContain('Failed to execute CLI help: Custom spawn error');
+      expect(result.error).toContain(
+        'Failed to execute CLI help: Custom spawn error'
+      );
     });
 
     it('should handle spawn error event', async () => {
@@ -669,7 +676,9 @@ Options:
 
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(null);
-      expect(result.error).toContain('Failed to execute CLI help: Spawn failed');
+      expect(result.error).toContain(
+        'Failed to execute CLI help: Spawn failed'
+      );
     });
 
     it('should return hasHelp: false on spawn errors', async () => {
@@ -758,7 +767,11 @@ Options:
       // Use real timers for this test
       vi.useRealTimers();
 
-      const chunks: string[] = ['Usage: prp-pipeline', '\n\nOptions:', '\n  -h, --help'];
+      const chunks: string[] = [
+        'Usage: prp-pipeline',
+        '\n\nOptions:',
+        '\n  -h, --help',
+      ];
 
       const mockChild = {
         stdout: {

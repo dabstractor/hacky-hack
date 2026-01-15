@@ -18,7 +18,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const fileSystemState = new Map<string, string>();
 
 const { mockReadFile, mockWriteFile, mockAccess } = vi.hoisted(() => ({
-  mockReadFile: vi.fn((path: string) => Promise.resolve(fileSystemState.get(path) ?? '')),
+  mockReadFile: vi.fn((path: string) =>
+    Promise.resolve(fileSystemState.get(path) ?? '')
+  ),
   mockWriteFile: vi.fn((path: string, content: string, _options?: unknown) => {
     fileSystemState.set(path, content);
     return Promise.resolve(undefined);
@@ -76,11 +78,15 @@ describe('utils/build-logger', () => {
     mockLogger.warn.mockClear();
     mockLogger.debug.mockClear();
     // Reset mock implementations to default behavior
-    mockReadFile.mockImplementation((path: string) => Promise.resolve(fileSystemState.get(path) ?? ''));
-    mockWriteFile.mockImplementation((path: string, content: string, _options?: unknown) => {
-      fileSystemState.set(path, content);
-      return Promise.resolve(undefined);
-    });
+    mockReadFile.mockImplementation((path: string) =>
+      Promise.resolve(fileSystemState.get(path) ?? '')
+    );
+    mockWriteFile.mockImplementation(
+      (path: string, content: string, _options?: unknown) => {
+        fileSystemState.set(path, content);
+        return Promise.resolve(undefined);
+      }
+    );
     mockAccess.mockImplementation(() => Promise.resolve(undefined));
   });
 
@@ -105,7 +111,9 @@ describe('utils/build-logger', () => {
       // VERIFY
       expect(result.logged).toBe(false);
       expect(result.path).toBe('');
-      expect(result.message).toContain('Skipping build log - module resolution not verified');
+      expect(result.message).toContain(
+        'Skipping build log - module resolution not verified'
+      );
       expect(result.message).toContain(failedVerification.message);
 
       // No file operations should have been attempted
@@ -144,7 +152,9 @@ describe('utils/build-logger', () => {
       // SETUP
       const mockHash = 'abc123def4567890123456789012345678901234';
       mockRevparse.mockResolvedValue(mockHash);
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); }); // File doesn't exist
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      }); // File doesn't exist
 
       const successfulVerification = {
         resolved: true,
@@ -167,7 +177,9 @@ describe('utils/build-logger', () => {
       const { GitError } = await import('simple-git');
       const gitError = new GitError('Not a git repository');
       mockRevparse.mockRejectedValue(gitError);
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -191,7 +203,9 @@ describe('utils/build-logger', () => {
     it('should handle non-git repositories by using null hash', async () => {
       // SETUP
       mockRevparse.mockRejectedValue(new Error('Not in git repo'));
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -209,7 +223,9 @@ describe('utils/build-logger', () => {
       expect(mockWriteFile).toHaveBeenCalled();
       // The written content should have 'N/A' for commit hash
       const writeCalls = mockWriteFile.mock.calls;
-      const appendCall = writeCalls.find((call) => call[2] === 'utf-8' && call[0].includes('BUILD_LOG'));
+      const appendCall = writeCalls.find(
+        call => call[2] === 'utf-8' && call[0].includes('BUILD_LOG')
+      );
       expect(appendCall).toBeDefined();
     });
   });
@@ -222,7 +238,9 @@ describe('utils/build-logger', () => {
     it('should create BUILD_LOG.md with header when file does not exist', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); }); // File doesn't exist
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      }); // File doesn't exist
 
       const successfulVerification = {
         resolved: true,
@@ -243,13 +261,17 @@ describe('utils/build-logger', () => {
       // First write should be the header
       const headerCall = mockWriteFile.mock.calls[0];
       expect(headerCall[1]).toContain('# TypeScript Compilation Build Log');
-      expect(headerCall[1]).toContain('| Timestamp | Commit Hash | Result | Remaining Errors | Notes |');
+      expect(headerCall[1]).toContain(
+        '| Timestamp | Commit Hash | Result | Remaining Errors | Notes |'
+      );
     });
 
     it('should include proper markdown table header in new file', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -264,8 +286,12 @@ describe('utils/build-logger', () => {
 
       // VERIFY
       const headerContent = mockWriteFile.mock.calls[0][1];
-      expect(headerContent).toContain('| Timestamp | Commit Hash | Result | Remaining Errors | Notes |');
-      expect(headerContent).toContain('|-----------|-------------|--------|------------------|-------|');
+      expect(headerContent).toContain(
+        '| Timestamp | Commit Hash | Result | Remaining Errors | Notes |'
+      );
+      expect(headerContent).toContain(
+        '|-----------|-------------|--------|------------------|-------|'
+      );
     });
   });
 
@@ -304,9 +330,12 @@ describe('utils/build-logger', () => {
       expect(mockWriteFile).toHaveBeenCalled();
 
       // Check that new entry was appended
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
-      expect(writtenContent).toContain('| 2026-01-13T10:00:00.000Z | abc123... | SUCCESS | 0 | First entry |');
+      expect(writtenContent).toContain(
+        '| 2026-01-13T10:00:00.000Z | abc123... | SUCCESS | 0 | First entry |'
+      );
       expect(writtenContent).toContain('| 2026-'); // New entry with timestamp
     });
 
@@ -335,7 +364,8 @@ describe('utils/build-logger', () => {
       await documentBuildSuccess(successfulVerification);
 
       // VERIFY
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
       expect(writtenContent).toContain('Old entry');
       expect(writtenContent).toContain('New entry');
@@ -350,7 +380,9 @@ describe('utils/build-logger', () => {
     it('should return BuildLogResult with correct fields when successful', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
       mockReadFile.mockResolvedValue('');
 
       const successfulVerification = {
@@ -376,7 +408,9 @@ describe('utils/build-logger', () => {
     it('should return descriptive message on success', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
       mockReadFile.mockResolvedValue('');
 
       const successfulVerification = {
@@ -404,7 +438,9 @@ describe('utils/build-logger', () => {
     it('should handle writeFile errors gracefully', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
       mockWriteFile.mockRejectedValue(new Error('Permission denied'));
 
       const successfulVerification = {
@@ -450,7 +486,9 @@ describe('utils/build-logger', () => {
     it('should use correct BUILD_LOG.md path in plan directory', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -466,7 +504,9 @@ describe('utils/build-logger', () => {
       // VERIFY
       expect(result.logged).toBe(true);
       expect(result.message).toContain('Build log entry created');
-      expect(result.path).toContain('plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/BUILD_LOG.md');
+      expect(result.path).toContain(
+        'plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/BUILD_LOG.md'
+      );
     });
   });
 
@@ -478,7 +518,9 @@ describe('utils/build-logger', () => {
     it('should format entry as proper markdown table row with N/A for null hash', async () => {
       // SETUP
       mockRevparse.mockRejectedValue(new Error('Git error'));
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -492,7 +534,8 @@ describe('utils/build-logger', () => {
       await documentBuildSuccess(successfulVerification);
 
       // VERIFY
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
       // Should have N/A for commit hash when git fails
       expect(writtenContent).toContain('| N/A |');
@@ -501,7 +544,9 @@ describe('utils/build-logger', () => {
     it('should include verification message in notes column', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -515,9 +560,12 @@ describe('utils/build-logger', () => {
       await documentBuildSuccess(successfulVerification);
 
       // VERIFY
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
-      expect(writtenContent).toContain('Verified 2/3 critical files have Groundswell imports.');
+      expect(writtenContent).toContain(
+        'Verified 2/3 critical files have Groundswell imports.'
+      );
     });
   });
 
@@ -529,7 +577,9 @@ describe('utils/build-logger', () => {
     it('should use ISO 8601 timestamp format', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const successfulVerification = {
         resolved: true,
@@ -543,7 +593,8 @@ describe('utils/build-logger', () => {
       await documentBuildSuccess(successfulVerification);
 
       // VERIFY
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
       // ISO 8601 format: 2026-01-14T12:34:56.789Z
       const isoPattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/;
@@ -559,14 +610,20 @@ describe('utils/build-logger', () => {
     it('should consume ModuleErrorVerifyResult correctly', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const verification = {
         resolved: true,
         remainingCount: 0,
-        verifiedFiles: ['src/workflows/prp-pipeline.ts', 'src/agents/agent-factory.ts'],
+        verifiedFiles: [
+          'src/workflows/prp-pipeline.ts',
+          'src/agents/agent-factory.ts',
+        ],
         importCount: 2,
-        message: 'No module-not-found errors found. Verified 2/3 critical files have Groundswell imports.',
+        message:
+          'No module-not-found errors found. Verified 2/3 critical files have Groundswell imports.',
       };
 
       // EXECUTE
@@ -580,7 +637,9 @@ describe('utils/build-logger', () => {
     it('should include remainingCount in the log entry', async () => {
       // SETUP
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const verification = {
         resolved: true,
@@ -594,7 +653,8 @@ describe('utils/build-logger', () => {
       await documentBuildSuccess(verification);
 
       // VERIFY
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
       expect(writtenContent).toContain('| 0 |'); // remainingCount is 0
     });
@@ -602,7 +662,9 @@ describe('utils/build-logger', () => {
     it('should handle non-zero remainingCount', async () => {
       // SETUP - In some cases, remainingCount might be > 0 even when resolved is true
       mockRevparse.mockResolvedValue('abc123');
-      mockAccess.mockImplementation(async () => { throw new Error('File not found'); });
+      mockAccess.mockImplementation(async () => {
+        throw new Error('File not found');
+      });
 
       const verification = {
         resolved: true,
@@ -616,7 +678,8 @@ describe('utils/build-logger', () => {
       await documentBuildSuccess(verification);
 
       // VERIFY
-      const writeCall = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      const writeCall =
+        mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
       const writtenContent = writeCall[1];
       expect(writtenContent).toContain('| 2 |'); // remainingCount is 2
     });

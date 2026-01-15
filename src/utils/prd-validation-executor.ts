@@ -175,16 +175,21 @@ export async function executePrdValidation(
 
   try {
     // CRITICAL: Use -- separator to pass flags to underlying script
-    child = spawn('npm', ['run', 'dev', '--', '--prd', prdPath, '--validate-prd'], {
-      cwd: root,
-      stdio: ['ignore', 'pipe', 'pipe'], // stdin ignored, stdout/stderr captured
-      shell: false, // Security: no shell injection
-    });
+    child = spawn(
+      'npm',
+      ['run', 'dev', '--', '--prd', prdPath, '--validate-prd'],
+      {
+        cwd: root,
+        stdio: ['ignore', 'pipe', 'pipe'], // stdin ignored, stdout/stderr captured
+        shell: false, // Security: no shell injection
+      }
+    );
   } catch (error) {
     // Handle synchronous spawn errors (e.g., ENOENT, EACCES)
     let errorMessage = 'Failed to execute PRD validation';
     if ((error as any).code === 'ENOENT') {
-      errorMessage = 'npm not found. Please ensure Node.js and npm are installed.';
+      errorMessage =
+        'npm not found. Please ensure Node.js and npm are installed.';
     } else if ((error as any).code === 'EACCES') {
       errorMessage = 'Permission denied executing npm.';
     } else {
@@ -202,7 +207,7 @@ export async function executePrdValidation(
     };
   }
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let stdout = '';
     let stderr = '';
     let timedOut = false;
@@ -235,7 +240,7 @@ export async function executePrdValidation(
     });
 
     // Handle process exit
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       clearTimeout(timeoutId);
 
       // If we killed the process due to timeout, return timeout error
@@ -273,12 +278,13 @@ export async function executePrdValidation(
     });
 
     // Handle spawn errors (e.g., npm not found)
-    child.on('error', (error) => {
+    child.on('error', error => {
       clearTimeout(timeoutId);
 
       let errorMessage = 'Failed to execute PRD validation';
       if ((error as any).code === 'ENOENT') {
-        errorMessage = 'npm not found. Please ensure Node.js and npm are installed.';
+        errorMessage =
+          'npm not found. Please ensure Node.js and npm are installed.';
       } else if ((error as any).code === 'EACCES') {
         errorMessage = 'Permission denied executing npm.';
       } else {

@@ -11,6 +11,7 @@
 This research document compiles best practices for regex-based validation in TypeScript/Node.js, with a focus on section-based text parsing similar to validation report format validation. Findings are drawn from established patterns in the codebase, TypeScript best practices, and common validation scenarios.
 
 **Key Findings:**
+
 1. Use pre-compiled regex patterns as constants for performance
 2. Prefer specific character classes (`[ \t]`) over generic ones (`\s`) when precision matters
 3. Always anchor validation patterns with `^` and `$` for full string validation
@@ -63,6 +64,7 @@ const OPTION_PATTERNS = {
 ```
 
 **Benefits:**
+
 - Pre-compiled at module load time (performance)
 - Type-safe with `as const` assertion
 - Self-documenting with JSDoc comments
@@ -97,6 +99,7 @@ export function extractOptionsSection(helpText: string): string | null {
 ```
 
 **Benefits:**
+
 - `[\s\S]` matches any character including newlines
 - `*?` is non-greedy, stopping at first match
 - lookahead `(?=\n\w+:|$)` prevents over-matching
@@ -205,7 +208,13 @@ export function parseHelpOutput(helpText: string): ParsedHelp {
   };
 
   const lines = helpText.split('\n');
-  let currentSection: 'usage' | 'description' | 'options' | 'commands' | 'examples' | null = null;
+  let currentSection:
+    | 'usage'
+    | 'description'
+    | 'options'
+    | 'commands'
+    | 'examples'
+    | null = null;
   let optionBuffer = ''; // For multi-line option descriptions
 
   for (let i = 0; i < lines.length; i++) {
@@ -291,6 +300,7 @@ const safeRegex = /^a+$/;
 ```
 
 **Prevention:**
+
 - Avoid nested quantifiers: `(a+)*`, `(a|a)+`
 - Use possessive quantifiers when available: `a++` (not in JS)
 - Use atomic groups when available: `(?>...)` (not in JS)
@@ -316,7 +326,7 @@ emailRegexSafe.test('invalid@email@domain.com'); // false
 
 ```typescript
 // PROBLEM: '.' doesn't match newlines
-const data = "line1\nline2";
+const data = 'line1\nline2';
 const matches = data.match(/line1.line2/); // null
 
 // SOLUTION 1: Use 's' flag (dotAll mode) in ES2018+
@@ -416,6 +426,7 @@ function parseOptionFlags(output: string): ParsedOptions {
 ```
 
 **Key Patterns:**
+
 - Pre-compiled regex constants
 - Specific whitespace matching `[ \t]+`
 - Non-greedy matching with `\S+` for descriptions
@@ -443,6 +454,7 @@ export const FLAG_WITH_ARG_REGEX = /^--?([a-zA-Z][a-zA-Z0-9-]*)[=\s](.+)$/;
 ```
 
 **Key Patterns:**
+
 - Anchored patterns with `^` and `$`
 - Character classes for validation
 - Multiple escape sequences in character classes
@@ -489,6 +501,7 @@ const DEFAULT_REQUIRED_SECTIONS = [
 ```
 
 **Key Patterns:**
+
 - Set-based lookup for O(1) performance
 - Exact string matching (no regex needed)
 - Structured error messages with suggestions
@@ -506,7 +519,9 @@ const DEFAULT_REQUIRED_SECTIONS = [
 // BAD: Compiles regex on every iteration
 for (const flag of flags) {
   const pattern = new RegExp(`--${flag}`);
-  if (pattern.test(text)) { /* ... */ }
+  if (pattern.test(text)) {
+    /* ... */
+  }
 }
 ```
 
@@ -521,7 +536,9 @@ const FLAG_PATTERNS = {
 } as const;
 
 for (const [key, pattern] of Object.entries(FLAG_PATTERNS)) {
-  if (pattern.test(text)) { /* ... */ }
+  if (pattern.test(text)) {
+    /* ... */
+  }
 }
 ```
 
@@ -568,18 +585,26 @@ const sectionMatch = text.match(/## (.*?)(?=\n##|\n*$)/);
 
 ```typescript
 // BAD: Using regex for simple prefix check
-if (/^--help/.test(flag)) { /* ... */ }
+if (/^--help/.test(flag)) {
+  /* ... */
+}
 
 // BAD: Using regex for simple includes check
-if (/verbose/.test(text)) { /* ... */ }
+if (/verbose/.test(text)) {
+  /* ... */
+}
 ```
 
 **BETTER:**
 
 ```typescript
 // GOOD: Use string methods for simple operations
-if (flag.startsWith('--help')) { /* ... */ }
-if (text.includes('verbose')) { /* ... */ }
+if (flag.startsWith('--help')) {
+  /* ... */
+}
+if (text.includes('verbose')) {
+  /* ... */
+}
 ```
 
 ---
@@ -747,7 +772,7 @@ const VALIDATION_REPORT_SECTIONS = {
 
 ### 2. Content Validation Pattern
 
-```typescript
+````typescript
 /**
  * Validation result patterns
  */
@@ -761,7 +786,7 @@ const VALIDATION_PATTERNS = {
   /** Matches code block markers */
   codeBlock: /```[\s\S]*?```/,
 } as const;
-```
+````
 
 ### 3. Structure Validation Function
 
@@ -844,6 +869,7 @@ export function validateValidationReport(content: string): ValidationResult {
 ### External Documentation
 
 **Note:** Web search APIs were unavailable during research. Findings are based on:
+
 1. Established patterns within the codebase
 2. TypeScript/Node.js best practices
 3. Common regex validation scenarios
