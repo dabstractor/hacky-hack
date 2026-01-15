@@ -342,7 +342,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Milestone 2.2: Fix Promise Rejection Issues",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Resolve unhandled promise rejections in research queue and improve error handling",
           "tasks": [
             {
@@ -389,7 +389,7 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Fix failing research-queue unit test",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update test expectations in tests/unit/core/research-queue.test.ts to match actual implementation",
               "subtasks": [
                 {
@@ -416,7 +416,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Update test expectations to match implementation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M2.T2.S2"
@@ -427,7 +427,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S4",
                   "title": "Run updated test to verify it passes",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M2.T2.S3"

@@ -217,7 +217,7 @@ describe('ResearchQueue', () => {
       new ResearchQueue(mockManager, 3);
 
       // VERIFY
-      expect(MockPRPGenerator).toHaveBeenCalledWith(mockManager);
+      expect(MockPRPGenerator).toHaveBeenCalledWith(mockManager, false);
     });
 
     it('should initialize with empty queue, researching, and results', () => {
