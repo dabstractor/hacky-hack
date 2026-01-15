@@ -774,7 +774,7 @@
               "type": "Task",
               "id": "P4.M1.T1",
               "title": "Run full test suite with memory limits",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Execute all 1688 tests and verify no memory exhaustion or promise rejection errors",
               "subtasks": [
                 {
@@ -801,7 +801,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T1.S3",
                   "title": "Verify no memory or promise errors",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M1.T1.S2"
@@ -821,7 +821,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T2.S1",
                   "title": "Run ESLint on entire codebase",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint checks code quality per Issue 4-5\n2. INPUT: None - assumes Phase 3 (code quality) complete\n3. LOGIC: Execute bash: `npm run lint`. Capture all output. Parse for error count, warning count. Count by rule: strict-boolean-expressions, no-console, other. Identify files with most warnings.\n4. OUTPUT: Return { errorCount: number, warningCount: number, byRule: Record<string, number>, topFiles: string[] }. Full ESLint results."
