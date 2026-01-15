@@ -4,21 +4,21 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Bootstrap Core Infrastructure",
-      "status": "Researching",
+      "status": "Planned",
       "description": "Establish foundational infrastructure for the PRP Development Pipeline. This phase ensures the Groundswell library is properly linked, environment configuration is robust, and core data structures are validated.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Groundswell Integration & Validation",
-          "status": "Researching",
+          "status": "Planned",
           "description": "Validate Groundswell library integration, verify all exports work correctly, and ensure the library is properly linked via npm.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Verify Groundswell Library Link",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Ensure the Groundswell library at ~/projects/groundswell is properly linked via npm link and all imports resolve correctly.",
               "subtasks": [
                 {
@@ -45,7 +45,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
                   "title": "Verify Groundswell version compatibility",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2"
@@ -58,14 +58,14 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Validate Groundswell Core Functionality",
-              "status": "Ready",
+              "status": "Planned",
               "description": "Create comprehensive tests validating Groundswell's core features: Workflow execution, Agent creation, Prompt generation with Zod schemas, and MCP tool registration.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Test Workflow lifecycle",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T1.S3"

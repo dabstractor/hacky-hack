@@ -276,7 +276,9 @@ function extractFileSpecificWarnings(eslintReport: ESLintResultReport): {
 
   // Check if fullResults is available
   if (!eslintReport.fullResults) {
-    logger.warn('fullResults not available, cannot perform file-specific analysis');
+    logger.warn(
+      'fullResults not available, cannot perform file-specific analysis'
+    );
     return {
       srcIndexNoConsole,
       prpRuntimeStrictBoolean,

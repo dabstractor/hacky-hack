@@ -226,17 +226,20 @@ describe('Groundswell imports', () => {
       expect(typeof getObservedState).toBe('function');
     });
 
-    itIf('should apply ObservedState decorator to a class property', async () => {
-      const { ObservedState } = await import('groundswell');
+    itIf(
+      'should apply ObservedState decorator to a class property',
+      async () => {
+        const { ObservedState } = await import('groundswell');
 
-      // Test decorator application on a property
-      class TestWorkflow {
-        @ObservedState()
-        testState?: string;
+        // Test decorator application on a property
+        class TestWorkflow {
+          @ObservedState()
+          testState?: string;
+        }
+
+        expect(TestWorkflow.prototype).toBeDefined();
       }
-
-      expect(TestWorkflow.prototype).toBeDefined();
-    });
+    );
   });
 
   // =============================================================================
@@ -526,14 +529,8 @@ describe('Groundswell imports', () => {
 
     itIf('should support mixed import styles', async () => {
       // Test various import patterns work together
-      const {
-        Workflow,
-        Agent,
-        Step,
-        createAgent,
-        createWorkflow,
-        generateId,
-      } = await import('groundswell');
+      const { Workflow, Agent, Step, createAgent, createWorkflow, generateId } =
+        await import('groundswell');
 
       expect(Workflow).toBeDefined();
       expect(Agent).toBeDefined();

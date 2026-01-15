@@ -277,7 +277,16 @@ describe('E2E Pipeline Tests', () => {
 
     // ACT: Run pipeline
     const start = performance.now();
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     const result = await pipeline.run();
     const duration = performance.now() - start;
 
@@ -309,7 +318,16 @@ describe('E2E Pipeline Tests', () => {
 
   it('should create valid prd_snapshot.md in session directory', async () => {
     // ACT: Run pipeline
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     const result = await pipeline.run();
 
     // ASSERT: Verify prd_snapshot.md exists and contains correct content
@@ -323,7 +341,16 @@ describe('E2E Pipeline Tests', () => {
 
   it('should create valid tasks.json with complete subtask status', async () => {
     // ACT: Run pipeline
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     const result = await pipeline.run();
 
     // ASSERT: Verify tasks.json exists and is valid
@@ -354,7 +381,16 @@ describe('E2E Pipeline Tests', () => {
   it('should handle error when PRD file does not exist', async () => {
     // ACT: Try to create pipeline with non-existent PRD
     const invalidPath = join(tempDir, 'nonexistent.md');
-    const pipeline = new PRPPipeline(invalidPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      invalidPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     const result = await pipeline.run();
 
     // ASSERT: Should fail gracefully
@@ -365,7 +401,16 @@ describe('E2E Pipeline Tests', () => {
 
   it('should create git commits during execution', async () => {
     // ACT: Run pipeline
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     await pipeline.run();
 
     // ASSERT: Verify git operations were called (mocked)
@@ -377,7 +422,16 @@ describe('E2E Pipeline Tests', () => {
   it('should complete execution in under 30 seconds', async () => {
     // ACT: Run pipeline with timing
     const start = performance.now();
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     const result = await pipeline.run();
     const duration = performance.now() - start;
 
@@ -394,7 +448,16 @@ describe('E2E Pipeline Tests', () => {
   it('should clean up temp directory after test', async () => {
     // ACT: Run pipeline
     const tempDirBefore = tempDir;
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     await pipeline.run();
 
     // ASSERT: Temp directory should be cleaned up in afterEach

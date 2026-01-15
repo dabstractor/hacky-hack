@@ -70,7 +70,8 @@ const BOTH_RESOLVED_RESULT: TestSuiteResult = {
   hasMemoryErrors: false,
   hasPromiseRejections: false,
   executionTime: 245.5,
-  output: 'Test Files  52 passed (52)\nTests       1688 passed (1688)\nTest Suites passed',
+  output:
+    'Test Files  52 passed (52)\nTests       1688 passed (1688)\nTest Suites passed',
   exitCode: 0,
 };
 
@@ -104,7 +105,8 @@ const ISSUE_3_PRESENT_RESULT: TestSuiteResult = {
   hasMemoryErrors: false,
   hasPromiseRejections: true,
   executionTime: 220.1,
-  output: '(node:471914) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously',
+  output:
+    '(node:471914) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously',
   exitCode: 1,
 };
 
@@ -121,7 +123,8 @@ const BOTH_ISSUES_PRESENT_RESULT: TestSuiteResult = {
   hasMemoryErrors: true,
   hasPromiseRejections: true,
   executionTime: 150.0,
-  output: 'Worker terminated due to reaching memory limit\n(node:471914) PromiseRejectionHandledWarning',
+  output:
+    'Worker terminated due to reaching memory limit\n(node:471914) PromiseRejectionHandledWarning',
   exitCode: 134,
 };
 
@@ -139,7 +142,8 @@ const FLAGS_FALSE_PATTERNS_PRESENT_RESULT: TestSuiteResult = {
   hasMemoryErrors: false, // Flag is false
   hasPromiseRejections: false, // Flag is false
   executionTime: 210.5,
-  output: 'JavaScript heap out of memory detected in output\nUnhandledPromiseRejectionWarning present',
+  output:
+    'JavaScript heap out of memory detected in output\nUnhandledPromiseRejectionWarning present',
   exitCode: 0,
 };
 
@@ -267,7 +271,9 @@ describe('Issue Resolution Verifier', () => {
       const result = verifyNoMemoryOrPromiseErrors(ISSUE_2_PRESENT_RESULT);
 
       expect(result.errorDetails.memoryErrors).toHaveLength(1);
-      expect(result.errorDetails.memoryErrors[0]).toBe('FATAL ERROR.*heap out of memory');
+      expect(result.errorDetails.memoryErrors[0]).toBe(
+        'FATAL ERROR.*heap out of memory'
+      );
     });
 
     it('should return empty promiseRejections array', () => {
@@ -403,25 +409,33 @@ describe('Issue Resolution Verifier', () => {
     });
 
     it('should return memoryIssuesResolved = false (pattern detected)', () => {
-      const result = verifyNoMemoryOrPromiseErrors(FLAGS_FALSE_PATTERNS_PRESENT_RESULT);
+      const result = verifyNoMemoryOrPromiseErrors(
+        FLAGS_FALSE_PATTERNS_PRESENT_RESULT
+      );
 
       expect(result.memoryIssuesResolved).toBe(false);
     });
 
     it('should return promiseIssuesResolved = false (pattern detected)', () => {
-      const result = verifyNoMemoryOrPromiseErrors(FLAGS_FALSE_PATTERNS_PRESENT_RESULT);
+      const result = verifyNoMemoryOrPromiseErrors(
+        FLAGS_FALSE_PATTERNS_PRESENT_RESULT
+      );
 
       expect(result.promiseIssuesResolved).toBe(false);
     });
 
     it('should return allResolved = false', () => {
-      const result = verifyNoMemoryOrPromiseErrors(FLAGS_FALSE_PATTERNS_PRESENT_RESULT);
+      const result = verifyNoMemoryOrPromiseErrors(
+        FLAGS_FALSE_PATTERNS_PRESENT_RESULT
+      );
 
       expect(result.allResolved).toBe(false);
     });
 
     it('should include both issues in remainingIssues', () => {
-      const result = verifyNoMemoryOrPromiseErrors(FLAGS_FALSE_PATTERNS_PRESENT_RESULT);
+      const result = verifyNoMemoryOrPromiseErrors(
+        FLAGS_FALSE_PATTERNS_PRESENT_RESULT
+      );
 
       expect(result.remainingIssues).toHaveLength(2);
     });
@@ -448,7 +462,8 @@ describe('Issue Resolution Verifier', () => {
       const result: TestSuiteResult = {
         ...BOTH_RESOLVED_RESULT,
         hasPromiseRejections: false,
-        output: '(node:471914) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously',
+        output:
+          '(node:471914) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously',
       };
 
       const status = verifyNoMemoryOrPromiseErrors(result);
@@ -461,13 +476,16 @@ describe('Issue Resolution Verifier', () => {
       const result: TestSuiteResult = {
         ...BOTH_RESOLVED_RESULT,
         hasPromiseRejections: false,
-        output: 'UnhandledPromiseRejectionWarning: Promise rejection was never handled',
+        output:
+          'UnhandledPromiseRejectionWarning: Promise rejection was never handled',
       };
 
       const status = verifyNoMemoryOrPromiseErrors(result);
 
       expect(status.promiseIssuesResolved).toBe(false);
-      expect(status.errorDetails.promiseRejections).toContain('unhandledWarning');
+      expect(status.errorDetails.promiseRejections).toContain(
+        'unhandledWarning'
+      );
     });
 
     it('should detect Uncaught PromiseRejection pattern', () => {
@@ -480,14 +498,17 @@ describe('Issue Resolution Verifier', () => {
       const status = verifyNoMemoryOrPromiseErrors(result);
 
       expect(status.promiseIssuesResolved).toBe(false);
-      expect(status.errorDetails.promiseRejections).toContain('uncaughtRejection');
+      expect(status.errorDetails.promiseRejections).toContain(
+        'uncaughtRejection'
+      );
     });
 
     it('should detect multiple promise rejection patterns', () => {
       const result: TestSuiteResult = {
         ...BOTH_RESOLVED_RESULT,
         hasPromiseRejections: false,
-        output: 'PromiseRejectionHandledWarning detected\nUnhandledPromiseRejectionWarning also present',
+        output:
+          'PromiseRejectionHandledWarning detected\nUnhandledPromiseRejectionWarning also present',
       };
 
       const status = verifyNoMemoryOrPromiseErrors(result);

@@ -384,7 +384,9 @@ export function verifyNoMemoryOrPromiseErrors(
 ): IssueResolutionStatus {
   // Handle null/undefined input gracefully
   if (!testResult) {
-    logger.warn('verifyNoMemoryOrPromiseErrors called with null/undefined input');
+    logger.warn(
+      'verifyNoMemoryOrPromiseErrors called with null/undefined input'
+    );
     return buildIssueResolutionStatus(
       false,
       false,

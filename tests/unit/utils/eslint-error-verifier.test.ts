@@ -7,7 +7,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { verifyESLintErrorStatus, type ESLintErrorStatus } from '../../../src/utils/eslint-error-verifier.js';
+import {
+  verifyESLintErrorStatus,
+  type ESLintErrorStatus,
+} from '../../../src/utils/eslint-error-verifier.js';
 import type { ESLintResultReport } from '../../../src/utils/eslint-result-parser.js';
 
 describe('ESLintErrorVerifier', () => {
@@ -110,8 +113,12 @@ describe('ESLintErrorVerifier', () => {
       expect(result.hasErrors).toBe(true);
       expect(result.acceptable).toBe(false);
       expect(result.errors).toHaveLength(2);
-      expect(result.errors.some((e) => e.includes('prettier/prettier'))).toBe(true);
-      expect(result.errors.some((e) => e.includes('no-floating-promises'))).toBe(true);
+      expect(result.errors.some(e => e.includes('prettier/prettier'))).toBe(
+        true
+      );
+      expect(result.errors.some(e => e.includes('no-floating-promises'))).toBe(
+        true
+      );
     });
 
     // Test case 4: Deferrable errors only (acceptable)
@@ -164,8 +171,8 @@ describe('ESLintErrorVerifier', () => {
       expect(result.hasErrors).toBe(true);
       expect(result.acceptable).toBe(true);
       expect(result.errors).toHaveLength(3);
-      expect(result.errors.some((e) => e.includes('no-explicit-any'))).toBe(true);
-      expect(result.errors.some((e) => e.includes('no-console'))).toBe(true);
+      expect(result.errors.some(e => e.includes('no-explicit-any'))).toBe(true);
+      expect(result.errors.some(e => e.includes('no-console'))).toBe(true);
     });
 
     // Test case 5: Null/undefined input
@@ -202,8 +209,12 @@ describe('ESLintErrorVerifier', () => {
       expect(result.hasErrors).toBe(true);
       expect(result.acceptable).toBe(false); // no-unused-vars is critical
       expect(result.errors).toHaveLength(2);
-      expect(result.errors).toContain('@typescript-eslint/no-unused-vars: 1 error(s)');
-      expect(result.errors).toContain('@typescript-eslint/no-explicit-any: 1 error(s)');
+      expect(result.errors).toContain(
+        '@typescript-eslint/no-unused-vars: 1 error(s)'
+      );
+      expect(result.errors).toContain(
+        '@typescript-eslint/no-explicit-any: 1 error(s)'
+      );
     });
 
     // Test case 7: Null ruleId handling

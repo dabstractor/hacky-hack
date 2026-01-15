@@ -197,9 +197,7 @@ function parseCatchBlock(
     hasLogging ||
     hasErrorPropagation ||
     /\b(const|let|var|return|if|for|while|switch|try|new)\b/.test(content) ||
-    /[a-zA-Z_$][a-zA-Z0-9_$]*\s*\.[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/.test(
-      content
-    ); // Method calls like this.#logger.error()
+    /[a-zA-Z_$][a-zA-Z0-9_$]*\s*\.[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/.test(content); // Method calls like this.#logger.error()
 
   // Check if the only code is the error parameter (which doesn't count as handling)
   const onlyHasErrorParam =
@@ -250,7 +248,9 @@ function parseCatchBlock(
  * @returns true if the catch block is valid
  */
 function validateCatchBlock(analysis: CatchBlockAnalysis): boolean {
-  return !analysis.isEmpty && (analysis.hasLogging || analysis.hasErrorPropagation);
+  return (
+    !analysis.isEmpty && (analysis.hasLogging || analysis.hasErrorPropagation)
+  );
 }
 
 // ===== MAIN API =====

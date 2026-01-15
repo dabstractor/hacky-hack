@@ -1671,7 +1671,10 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
 
     try {
       // Create SessionManager (may throw if PRD doesn't exist)
-      this.sessionManager = new SessionManagerClass(this.#prdPath, this.#planDir);
+      this.sessionManager = new SessionManagerClass(
+        this.#prdPath,
+        this.#planDir
+      );
 
       // Execute workflow steps
       await this.initializeSession();

@@ -199,7 +199,8 @@ function buildPassRateAnalysis(
   failingTests: readonly string[]
 ): PassRateAnalysis {
   const delta = Math.round((passRate - BASELINE_PASS_RATE) * 100) / 100;
-  const improved = passRate >= BASELINE_PASS_RATE || passRate === TARGET_PASS_RATE;
+  const improved =
+    passRate >= BASELINE_PASS_RATE || passRate === TARGET_PASS_RATE;
   const allFailuresAcceptable = classifyFailures(failingTests);
 
   return {
@@ -317,8 +318,8 @@ function extractFailingTestsFromCLI(output: string): string[] {
     }
 
     // Match individual test failures
-    const failureMatch = line.match(patterns.testFailure) ||
-                        line.match(patterns.detailedFailure);
+    const failureMatch =
+      line.match(patterns.testFailure) || line.match(patterns.detailedFailure);
     if (failureMatch && currentFile) {
       const testName = failureMatch[2].trim();
       failingTests.push(`${currentFile} > ${testName}`);
@@ -367,8 +368,8 @@ function classifyFailures(failingTests: readonly string[]): boolean {
   }
 
   // Check if all failures are in known list
-  return failingTests.every((test) =>
-    KNOWN_FAILURES.some((known) => test.includes(known))
+  return failingTests.every(test =>
+    KNOWN_FAILURES.some(known => test.includes(known))
   );
 }
 
@@ -434,8 +435,11 @@ export function analyzePassRate(
     return buildPassRateAnalysis(0, 0, 0, 0, []);
   }
 
-  const { pass: passedCount, fail: failedCount, total: totalCount } =
-    testResult.results;
+  const {
+    pass: passedCount,
+    fail: failedCount,
+    total: totalCount,
+  } = testResult.results;
 
   // Calculate pass rate with zero-division protection
   const passRate = calculatePassRate(passedCount, totalCount);

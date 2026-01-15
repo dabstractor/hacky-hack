@@ -45,7 +45,10 @@ if (configuredBaseUrl.includes(ANTHROPIC_ENDPOINT)) {
   log('========================================', 'red');
   log(`Current ANTHROPIC_BASE_URL: ${configuredBaseUrl}`, 'red');
   log('', 'reset');
-  log('This script requires z.ai API endpoint, never Anthropic official API.', 'red');
+  log(
+    'This script requires z.ai API endpoint, never Anthropic official API.',
+    'red'
+  );
   log(`Expected: ${ZAI_ENDPOINT}`, 'yellow');
   log('', 'reset');
   log('Fix: Unset ANTHROPIC_BASE_URL or set to z.ai endpoint:', 'yellow');

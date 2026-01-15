@@ -58,7 +58,10 @@ function validateApiEndpoint(): void {
   const baseUrl = process.env.ANTHROPIC_BASE_URL || '';
 
   // Block Anthropic's official API
-  if (baseUrl.includes(ANTHROPIC_ENDPOINT) || baseUrl === 'https://api.anthropic.com') {
+  if (
+    baseUrl.includes(ANTHROPIC_ENDPOINT) ||
+    baseUrl === 'https://api.anthropic.com'
+  ) {
     throw new Error(
       [
         '\n========================================',
@@ -77,7 +80,14 @@ function validateApiEndpoint(): void {
   }
 
   // Warn if using a non-z.ai endpoint (unless it's a mock/test endpoint)
-  if (baseUrl && baseUrl !== ZAI_ENDPOINT && !baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1') && !baseUrl.includes('mock') && !baseUrl.includes('test')) {
+  if (
+    baseUrl &&
+    baseUrl !== ZAI_ENDPOINT &&
+    !baseUrl.includes('localhost') &&
+    !baseUrl.includes('127.0.0.1') &&
+    !baseUrl.includes('mock') &&
+    !baseUrl.includes('test')
+  ) {
     console.warn(
       [
         '\n========================================',

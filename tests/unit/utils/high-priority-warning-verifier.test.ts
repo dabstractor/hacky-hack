@@ -104,10 +104,13 @@ const NO_CONSOLE_WARNINGS_REPORT: ESLintResultReport = {
     '@typescript-eslint/strict-boolean-expressions': 0,
   },
   topFiles: ['src/index.ts'],
-  fullResults: createFileResult('/path/to/src/index.ts', Array.from({ length: 130 }, (_, i) => ({
-    ruleId: 'no-console',
-    line: i + 1,
-  }))),
+  fullResults: createFileResult(
+    '/path/to/src/index.ts',
+    Array.from({ length: 130 }, (_, i) => ({
+      ruleId: 'no-console',
+      line: i + 1,
+    }))
+  ),
 };
 
 /**
@@ -147,10 +150,13 @@ const BOTH_WARNINGS_REPORT: ESLintResultReport = {
   },
   topFiles: ['src/index.ts', 'src/agents/prp-runtime.ts', 'src/cli/index.ts'],
   fullResults: [
-    ...createFileResult('/path/to/src/index.ts', Array.from({ length: 130 }, (_, i) => ({
-      ruleId: 'no-console',
-      line: i + 1,
-    }))),
+    ...createFileResult(
+      '/path/to/src/index.ts',
+      Array.from({ length: 130 }, (_, i) => ({
+        ruleId: 'no-console',
+        line: i + 1,
+      }))
+    ),
     ...createFileResult('/path/to/src/agents/prp-runtime.ts', [
       { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 313 },
       { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 320 },
@@ -449,13 +455,28 @@ describe('High-Priority Warning Verifier', () => {
         ...ALL_FIXED_REPORT,
         fullResults: [
           ...createFileResult('/path/to/src/agents/prp-runtime.ts', [
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 100 },
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 200 },
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 300 },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 100,
+            },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 200,
+            },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 300,
+            },
           ]),
           ...createFileResult('/path/to/src/cli/index.ts', [
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 100 },
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 200 },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 100,
+            },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 200,
+            },
           ]),
           ...createFileResult('/path/to/src/index.ts', []),
         ],
@@ -473,8 +494,14 @@ describe('High-Priority Warning Verifier', () => {
         ...ALL_FIXED_REPORT,
         fullResults: [
           ...createFileResult('/path/to/src/index.ts', [
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 100 },
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 200 },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 100,
+            },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 200,
+            },
           ]),
           ...createFileResult('/path/to/src/agents/prp-runtime.ts', []),
           ...createFileResult('/path/to/src/cli/index.ts', []),
@@ -513,7 +540,10 @@ describe('High-Priority Warning Verifier', () => {
         fullResults: [
           ...createFileResult('/path/to/src/index.ts', []),
           ...createFileResult('/path/to/src/agents/prp-runtime.ts', [
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 313 },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 313,
+            },
           ]),
           ...createFileResult('/path/to/src/cli/index.ts', []),
         ],
@@ -531,7 +561,10 @@ describe('High-Priority Warning Verifier', () => {
           ...createFileResult('/path/to/src/index.ts', []),
           ...createFileResult('/path/to/src/agents/prp-runtime.ts', []),
           ...createFileResult('/path/to/src/cli/index.ts', [
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 160 },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 160,
+            },
           ]),
         ],
       };
@@ -556,7 +589,10 @@ describe('High-Priority Warning Verifier', () => {
             { ruleId: 'no-console', line: 100 },
           ]),
           ...createFileResult('/path/to/src/agents/prp-runtime.ts', [
-            { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 313 },
+            {
+              ruleId: '@typescript-eslint/strict-boolean-expressions',
+              line: 313,
+            },
           ]),
           ...createFileResult('/path/to/src/cli/index.ts', []),
         ],
@@ -577,9 +613,10 @@ describe('High-Priority Warning Verifier', () => {
     it('should match files with absolute paths', () => {
       const report: ESLintResultReport = {
         ...ALL_FIXED_REPORT,
-        fullResults: createFileResult('/home/user/projects/hacky-hack/src/index.ts', [
-          { ruleId: 'no-console', line: 100 },
-        ]),
+        fullResults: createFileResult(
+          '/home/user/projects/hacky-hack/src/index.ts',
+          [{ ruleId: 'no-console', line: 100 }]
+        ),
       };
 
       const result = verifyHighPriorityWarnings(report);
@@ -603,9 +640,10 @@ describe('High-Priority Warning Verifier', () => {
     it('should match files with Windows-style paths', () => {
       const report: ESLintResultReport = {
         ...ALL_FIXED_REPORT,
-        fullResults: createFileResult('C:\\projects\\hacky-hack\\src\\index.ts', [
-          { ruleId: 'no-console', line: 100 },
-        ]),
+        fullResults: createFileResult(
+          'C:\\projects\\hacky-hack\\src\\index.ts',
+          [{ ruleId: 'no-console', line: 100 }]
+        ),
       };
 
       const result = verifyHighPriorityWarnings(report);
@@ -706,7 +744,10 @@ describe('High-Priority Warning Verifier', () => {
         fullResults: createFileResult('/path/to/src/index.ts', [
           { ruleId: 'no-console', line: 100 },
           { ruleId: 'no-console', line: 200 },
-          { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 300 },
+          {
+            ruleId: '@typescript-eslint/strict-boolean-expressions',
+            line: 300,
+          },
           { ruleId: 'no-unused-vars', line: 400 },
         ]),
       };
@@ -720,8 +761,14 @@ describe('High-Priority Warning Verifier', () => {
       const report: ESLintResultReport = {
         ...ALL_FIXED_REPORT,
         fullResults: createFileResult('/path/to/src/agents/prp-runtime.ts', [
-          { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 313 },
-          { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 320 },
+          {
+            ruleId: '@typescript-eslint/strict-boolean-expressions',
+            line: 313,
+          },
+          {
+            ruleId: '@typescript-eslint/strict-boolean-expressions',
+            line: 320,
+          },
           { ruleId: 'no-console', line: 100 },
           { ruleId: 'no-unused-vars', line: 200 },
         ]),
@@ -848,10 +895,13 @@ describe('High-Priority Warning Verifier', () => {
           'no-console': 50,
         },
         topFiles: ['src/index.ts'],
-        fullResults: createFileResult('/path/to/src/index.ts', Array.from({ length: 50 }, () => ({
-          ruleId: 'no-console',
-          line: 100,
-        }))),
+        fullResults: createFileResult(
+          '/path/to/src/index.ts',
+          Array.from({ length: 50 }, () => ({
+            ruleId: 'no-console',
+            line: 100,
+          }))
+        ),
       };
 
       const result = verifyHighPriorityWarnings(report);
@@ -869,9 +919,18 @@ describe('High-Priority Warning Verifier', () => {
         },
         topFiles: ['src/agents/prp-runtime.ts'],
         fullResults: createFileResult('/path/to/src/agents/prp-runtime.ts', [
-          { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 313 },
-          { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 320 },
-          { ruleId: '@typescript-eslint/strict-boolean-expressions', line: 330 },
+          {
+            ruleId: '@typescript-eslint/strict-boolean-expressions',
+            line: 313,
+          },
+          {
+            ruleId: '@typescript-eslint/strict-boolean-expressions',
+            line: 320,
+          },
+          {
+            ruleId: '@typescript-eslint/strict-boolean-expressions',
+            line: 330,
+          },
         ]),
       };
 

@@ -256,9 +256,7 @@ describe('Promise Handling Validator', () => {
       const result = await verifyPromiseHandling();
 
       // VERIFY
-      expect(result.analysis[0].context).toBe(
-        'PRP generation failure handler'
-      );
+      expect(result.analysis[0].context).toBe('PRP generation failure handler');
     });
 
     it('should detect background task context', async () => {
