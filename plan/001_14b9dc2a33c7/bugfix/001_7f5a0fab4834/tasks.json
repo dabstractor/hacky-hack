@@ -636,7 +636,7 @@
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Fix nullable boolean checks in src/agents/prp-runtime.ts",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update line 313 to explicitly handle nullable string in conditional",
               "subtasks": [
                 {
@@ -663,7 +663,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S3",
                   "title": "Verify ESLint warning is resolved",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M2.T1.S2"
@@ -683,7 +683,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S1",
                   "title": "Read cli/index.ts line 160 to understand context",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Line 160 has nullable string warning per Issue 4\n2. INPUT: None - reads src/cli/index.ts directly\n3. LOGIC: Use Read tool to open src/cli/index.ts. Focus on lines 155-165. Examine the conditional involving `options.scope`. Understand context (CLI scope validation). Identify why it's nullable.\n4. OUTPUT: Return { currentCode: string, context: string, isNullable: boolean }. Code context for fix."
