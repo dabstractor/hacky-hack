@@ -196,6 +196,9 @@ export class PRPPipeline extends Workflow {
   /** Maximum duration limit from CLI --max-duration (milliseconds) */
   readonly #maxDuration?: number;
 
+  /** Custom plan directory for testing (defaults to resolve('plan')) */
+  readonly #planDir?: string;
+
   /** Resource monitor instance */
   #resourceMonitor?: import('../utils/resource-monitor.js').ResourceMonitor;
 
@@ -240,6 +243,7 @@ export class PRPPipeline extends Workflow {
    * @param continueOnError - Whether to treat all errors as non-fatal (default: false)
    * @param maxTasks - Maximum number of tasks to execute (optional)
    * @param maxDuration - Maximum execution duration in milliseconds (optional)
+   * @param planDir - Custom plan directory path (defaults to resolve('plan'))
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -249,7 +253,8 @@ export class PRPPipeline extends Workflow {
     noCache: boolean = false,
     continueOnError: boolean = false,
     maxTasks?: number,
-    maxDuration?: number
+    maxDuration?: number,
+    planDir?: string
   ) {
     super('PRPPipeline');
 
@@ -267,6 +272,7 @@ export class PRPPipeline extends Workflow {
     this.#continueOnError = continueOnError;
     this.#maxTasks = maxTasks;
     this.#maxDuration = maxDuration;
+    this.#planDir = planDir;
 
     // SessionManager will be created in run() to catch initialization errors
     this.sessionManager = null as any;
@@ -1665,7 +1671,7 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
 
     try {
       // Create SessionManager (may throw if PRD doesn't exist)
-      this.sessionManager = new SessionManagerClass(this.#prdPath);
+      this.sessionManager = new SessionManagerClass(this.#prdPath, this.#planDir);
 
       // Execute workflow steps
       await this.initializeSession();

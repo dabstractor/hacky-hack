@@ -59,6 +59,7 @@ const MockSessionManagerClass = SessionManagerClass as any;
 describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
   let tempDir: string;
   let prdPath: string;
+  let planDir: string;
   let originalProcessListeners: {
     SIGINT: Array<() => void>;
     SIGTERM: Array<() => void>;
@@ -109,6 +110,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
     // Create temp directory for each test
     tempDir = mkdtempSync(join(tmpdir(), 'prp-shutdown-test-'));
     prdPath = join(tempDir, 'PRD.md');
+    planDir = join(tempDir, 'plan');
   });
 
   afterEach(() => {
@@ -222,7 +224,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       const mockSessionManager = setupMockSessionManager(backlog);
 
       // EXECUTE: Create pipeline (will use mocked SessionManager in run())
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
 
       // Mock processNextItem to simulate task execution with shutdown after first task
       let callCount = 0;
@@ -279,7 +281,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
 
       // Simulate SIGTERM during execution
       const mockOrchestrator: any = {
@@ -342,7 +344,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const warnSpy = vi.spyOn((pipeline as any).logger, 'warn');
 
       const mockOrchestrator: any = {
@@ -455,7 +457,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
 
       // Simulate error during execution with SIGINT
       const mockOrchestrator: any = {
@@ -517,7 +519,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const initialSigintCount = (process as any)._events?.SIGINT?.length ?? 0;
 
       // Run pipeline
@@ -576,7 +578,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE: Normal completion (no shutdown)
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
 
       const mockSessionManager: any = {
         currentSession: {
@@ -631,7 +633,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE: Pipeline with SIGINT
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
 
       const mockOrchestrator: any = {
         sessionManager: {},
@@ -739,7 +741,7 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const infoSpy = vi.spyOn((pipeline as any).logger, 'info');
 
       // Mock orchestrator to trigger shutdown

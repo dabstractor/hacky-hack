@@ -4,6 +4,9 @@
  *
  * Tests z.ai API compatibility with Anthropic's API format.
  * Run with: npx tsx tests/validation/zai-api-test.ts
+ *
+ * CRITICAL: This script validates z.ai API connectivity only.
+ * It will refuse to run if configured to use Anthropic's official API.
  */
 
 import {
@@ -25,6 +28,30 @@ const colors = {
 
 function log(message: string, color: keyof typeof colors = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
+}
+
+// CRITICAL SAFEGUARD: Prevent accidental usage of Anthropic's official API
+const ZAI_ENDPOINT = 'https://api.z.ai/api/anthropic';
+const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com';
+
+// Configure environment before validation
+configureEnvironment();
+
+// Validate that we're not accidentally pointing to Anthropic's official API
+const configuredBaseUrl = process.env.ANTHROPIC_BASE_URL || '';
+if (configuredBaseUrl.includes(ANTHROPIC_ENDPOINT)) {
+  log('========================================', 'red');
+  log('CRITICAL: Configured to use Anthropic API!', 'red');
+  log('========================================', 'red');
+  log(`Current ANTHROPIC_BASE_URL: ${configuredBaseUrl}`, 'red');
+  log('', 'reset');
+  log('This script requires z.ai API endpoint, never Anthropic official API.', 'red');
+  log(`Expected: ${ZAI_ENDPOINT}`, 'yellow');
+  log('', 'reset');
+  log('Fix: Unset ANTHROPIC_BASE_URL or set to z.ai endpoint:', 'yellow');
+  log(`  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`, 'yellow');
+  log('========================================', 'red');
+  process.exit(1);
 }
 
 function success(message: string) {

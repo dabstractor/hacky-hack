@@ -217,7 +217,7 @@ This is a unique test PRD for PRPRuntime integration tests with ID: ${uniqueId}.
 
     // Reload session to pick up tasks.json
     await sessionManager.loadSession(
-      sessionManager.currentSession!.metadata.id
+      sessionManager.currentSession!.metadata.path
     );
 
     // Initialize TaskOrchestrator

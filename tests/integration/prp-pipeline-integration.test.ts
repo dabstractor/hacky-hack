@@ -41,11 +41,13 @@ import { readFile } from 'node:fs/promises';
 describe('PRPPipeline Integration Tests', () => {
   let tempDir: string;
   let prdPath: string;
+  let planDir: string;
 
   beforeEach(() => {
     // Create temp directory for each test
     tempDir = mkdtempSync(join(tmpdir(), 'prp-pipeline-test-'));
     prdPath = join(tempDir, 'PRD.md');
+    planDir = join(tempDir, 'plan');
   });
 
   afterEach(() => {
@@ -94,12 +96,12 @@ describe('PRPPipeline Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
 
       // VERIFY
       expect(result.success).toBe(true);
-      expect(result.sessionPath).toContain('/plan/');
+      expect(result.sessionPath).toContain(planDir);
       expect(result.totalTasks).toBe(0);
       expect(result.completedTasks).toBe(0);
       expect(result.failedTasks).toBe(0);
@@ -129,7 +131,7 @@ describe('PRPPipeline Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
 
       // VERIFY: Check session directory exists
@@ -168,7 +170,7 @@ describe('PRPPipeline Integration Tests', () => {
         return actual.readFile(path, 'utf-8');
       });
 
-      const pipeline1 = new PRPPipeline(prdPath);
+      const pipeline1 = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result1 = await pipeline1.run();
       const sessionPath = result1.sessionPath;
 
@@ -184,7 +186,7 @@ describe('PRPPipeline Integration Tests', () => {
         return actual.readFile(path, 'utf-8');
       });
 
-      const pipeline2 = new PRPPipeline(prdPath);
+      const pipeline2 = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result2 = await pipeline2.run();
 
       // VERIFY
@@ -212,7 +214,7 @@ describe('PRPPipeline Integration Tests', () => {
         return actual.readFile(path, 'utf-8');
       });
 
-      const pipeline1 = new PRPPipeline(prdPath);
+      const pipeline1 = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       await pipeline1.run();
 
       // Second run - architect should not be called (existing backlog)
@@ -240,7 +242,7 @@ describe('PRPPipeline Integration Tests', () => {
         return '';
       });
 
-      const pipeline2 = new PRPPipeline(prdPath);
+      const pipeline2 = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       await pipeline2.run();
 
       // VERIFY: Architect agent not called for existing session with backlog
@@ -269,7 +271,7 @@ describe('PRPPipeline Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
 
       // Run the pipeline
       await pipeline.run();
@@ -338,7 +340,7 @@ describe('PRPPipeline Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
 
       // VERIFY
@@ -405,7 +407,7 @@ describe('PRPPipeline Integration Tests', () => {
       });
 
       // EXECUTE
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
 
       // VERIFY
@@ -447,7 +449,7 @@ describe('PRPPipeline Integration Tests', () => {
 
       // EXECUTE
       const startTime = performance.now();
-      const pipeline = new PRPPipeline(prdPath);
+      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
       const endTime = performance.now();
 
@@ -463,7 +465,7 @@ describe('PRPPipeline Integration Tests', () => {
       const invalidPath = join(tempDir, 'nonexistent.md');
 
       // EXECUTE
-      const pipeline = new PRPPipeline(invalidPath);
+      const pipeline = new PRPPipeline(invalidPath, undefined, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
 
       // VERIFY
@@ -492,7 +494,7 @@ describe('PRPPipeline Integration Tests', () => {
       });
 
       // EXECUTE with scope
-      const pipeline = new PRPPipeline(prdPath, { type: 'phase', id: 'P1' });
+      const pipeline = new PRPPipeline(prdPath, { type: 'phase', id: 'P1' }, undefined, false, false, undefined, undefined, planDir);
       const result = await pipeline.run();
 
       // VERIFY

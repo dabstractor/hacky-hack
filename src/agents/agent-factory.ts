@@ -22,7 +22,7 @@
 
 import { configureEnvironment, getModel } from '../config/environment.js';
 import { getLogger } from '../utils/logger.js';
-import { createAgent, type Agent } from 'groundswell';
+import { createAgent, type Agent, type MCPHandler } from 'groundswell';
 import {
   TASK_BREAKDOWN_PROMPT,
   PRP_BLUEPRINT_PROMPT,
@@ -58,8 +58,9 @@ const GIT_MCP = new GitMCP();
  * @remarks
  * This array is passed to createAgent() via the mcps parameter.
  * All agents (architect, researcher, coder, qa) receive the same tool set.
+ * Typed as MCPServer[] to match createAgent() expectations.
  */
-const MCP_TOOLS = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP] as const;
+const MCP_TOOLS: MCPServer[] = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP];
 
 /**
  * Agent persona identifier for selecting specialized configurations

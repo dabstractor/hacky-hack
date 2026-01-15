@@ -284,7 +284,7 @@ export class SessionManager {
 
     // 5. Create new session
     const sequence = await this.#getNextSequence();
-    const sessionPath = await createSessionDirectory(this.prdPath, sequence);
+    const sessionPath = await createSessionDirectory(this.prdPath, sequence, this.planDir);
 
     // 6. Write PRD snapshot
     const prdContent = await readFile(this.prdPath, 'utf-8');
@@ -428,7 +428,7 @@ export class SessionManager {
       10
     );
     const newSeq = currentSeq + 1;
-    const sessionPath = await createSessionDirectory(newPRDPath, newSeq);
+    const sessionPath = await createSessionDirectory(newPRDPath, newSeq, this.planDir);
 
     // 6. Write parent session reference
     await writeFile(

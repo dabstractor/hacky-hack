@@ -91,9 +91,31 @@ function isValidMessageResponse(data: unknown): data is MessageResponse {
 // CONFIGURATION
 // ============================================================================
 
-// CRITICAL: Must call configureEnvironment() BEFORE accessing ANTHROPIC_API_KEY
+// CRITICAL SAFEGUARD: Prevent accidental usage of Anthropic's official API
+// All API calls must go through z.ai proxy endpoint
+const ZAI_ENDPOINT = 'https://api.z.ai/api/anthropic';
+const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com';
+
+// Must call configureEnvironment() BEFORE accessing ANTHROPIC_API_KEY
 // Shell uses ANTHROPIC_AUTH_TOKEN, but SDK expects ANTHROPIC_API_KEY
 configureEnvironment();
+
+// Validate that we're not accidentally pointing to Anthropic's official API
+const configuredBaseUrl = process.env.ANTHROPIC_BASE_URL || '';
+if (configuredBaseUrl.includes(ANTHROPIC_ENDPOINT)) {
+  log.error('========================================');
+  log.error('CRITICAL: Configured to use Anthropic API!');
+  log.error('========================================');
+  log.error(`Current ANTHROPIC_BASE_URL: ${configuredBaseUrl}`);
+  log.error('');
+  log.error('This script requires z.ai API endpoint, never Anthropic official API.');
+  log.error(`Expected: ${ZAI_ENDPOINT}`);
+  log.error('');
+  log.error('Fix: Unset ANTHROPIC_BASE_URL or set to z.ai endpoint:');
+  log.error(`  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`);
+  log.error('========================================');
+  process.exit(1);
+}
 
 let apiKey: string;
 let baseURL: string;

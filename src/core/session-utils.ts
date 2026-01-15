@@ -170,7 +170,7 @@ export async function hashPRD(prdPath: string): Promise<string> {
  * Creates the complete session directory structure
  *
  * @remarks
- * Creates a session directory at `plan/{sequence}_{hash}/` where:
+ * Creates a session directory at `{planDir}/{sequence}_{hash}/` where:
  * - `sequence` is zero-padded to 3 digits (e.g., '001', '002')
  * - `hash` is the first 12 characters of the PRD's SHA-256 hash
  *
@@ -184,6 +184,7 @@ export async function hashPRD(prdPath: string): Promise<string> {
  *
  * @param prdPath - Path to PRD file for hash computation
  * @param sequence - Session sequence number (will be zero-padded to 3 digits)
+ * @param planDir - Directory to create sessions in (defaults to resolve('plan'))
  * @returns Promise resolving to absolute path of created session directory
  * @throws {SessionFileError} If directory creation fails
  *
@@ -195,7 +196,8 @@ export async function hashPRD(prdPath: string): Promise<string> {
  */
 export async function createSessionDirectory(
   prdPath: string,
-  sequence: number
+  sequence: number,
+  planDir: string = resolve('plan')
 ): Promise<string> {
   try {
     // Compute PRD hash
@@ -204,7 +206,7 @@ export async function createSessionDirectory(
 
     // Build session ID and path
     const sessionId = `${String(sequence).padStart(3, '0')}_${sessionHash}`;
-    const sessionPath = resolve('plan', sessionId);
+    const sessionPath = join(planDir, sessionId);
 
     // Create directory structure
     const directories = [

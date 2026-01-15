@@ -425,7 +425,7 @@ describe('E2E Delta Session Tests', () => {
 
     // ACT: Run initial pipeline
     const start1 = performance.now();
-    const pipeline1 = new PRPPipeline(prdPath, undefined, 'normal');
+    const pipeline1 = new PRPPipeline(prdPath, undefined, 'normal', false, false, undefined, undefined, planDir);
 
     // Mock pipeline methods to bypass actual execution
     const mockSession1 = {
@@ -503,7 +503,7 @@ describe('E2E Delta Session Tests', () => {
 
     // ACT: Run delta pipeline
     const start2 = performance.now();
-    const pipeline2 = new PRPPipeline(prdPath, undefined, 'normal');
+    const pipeline2 = new PRPPipeline(prdPath, undefined, 'normal', false, false, undefined, undefined, planDir);
 
     // Mock delta session manager
     const initialSessionId = result1.sessionPath.split('/').pop() as string;
@@ -601,7 +601,7 @@ describe('E2E Delta Session Tests', () => {
     vi.mocked(writeFile).mockResolvedValue(undefined);
     vi.mocked(mkdir).mockResolvedValue(undefined);
 
-    const pipeline1 = new PRPPipeline(prdPath, undefined, 'normal');
+    const pipeline1 = new PRPPipeline(prdPath, undefined, 'normal', false, false, undefined, undefined, planDir);
     const initialSessionId = '001_aaaaaaaaaa';
 
     const mockSession1 = {
@@ -645,7 +645,7 @@ describe('E2E Delta Session Tests', () => {
 
     vi.mocked(readFile).mockResolvedValue(mockSimplePRDv2);
 
-    const pipeline2 = new PRPPipeline(prdPath, undefined, 'normal');
+    const pipeline2 = new PRPPipeline(prdPath, undefined, 'normal', false, false, undefined, undefined, planDir);
     const deltaSessionId = '002_bbbbbbbbbbb';
 
     const mockSession2 = {
@@ -707,7 +707,7 @@ describe('E2E Delta Session Tests', () => {
     vi.mocked(writeFile).mockResolvedValue(undefined);
     vi.mocked(mkdir).mockResolvedValue(undefined);
 
-    const pipeline1 = new PRPPipeline(prdPath, undefined, 'normal');
+    const pipeline1 = new PRPPipeline(prdPath, undefined, 'normal', false, false, undefined, undefined, planDir);
     const initialSessionId = '001_aaaaaaaaaa';
 
     const mockSession1 = {
@@ -762,7 +762,7 @@ describe('E2E Delta Session Tests', () => {
       return Promise.resolve(JSON.stringify(createMockBacklogV2()));
     });
 
-    const pipeline2 = new PRPPipeline(prdPath, undefined, 'normal');
+    const pipeline2 = new PRPPipeline(prdPath, undefined, 'normal', false, false, undefined, undefined, planDir);
     const deltaSessionId = '002_bbbbbbbbbbb';
     const deltaBacklog = createMockBacklogV2();
 

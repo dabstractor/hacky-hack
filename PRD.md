@@ -188,15 +188,38 @@ This section details the implementation strategy leveraging the local [Groundswe
 
 ### 9.2 Environment Configuration
 
-The system must execute within the environment defined in `~/.config/zsh/functions.zsh`. The application must properly map the shell environment variables to the Groundswell/Anthropic configuration.
+The system uses a layered environment configuration strategy with proper fallback handling.
+
+#### 9.2.1 Configuration Source Priority
+
+Configuration is loaded in the following order (later sources override earlier ones):
+
+1. **Shell Environment**: Inherited environment variables
+2. **`.env` File**: Local project configuration (automatically loaded by test setup)
+3. **Runtime Overrides**: Explicit environment variable settings
+
+#### 9.2.2 Required Environment Variables
 
 - **API Connection**:
-  - Map `ANTHROPIC_AUTH_TOKEN` (from shell) to `ANTHROPIC_API_KEY` (expected by SDK).
-  - Ensure `ANTHROPIC_BASE_URL` is set to `https://api.z.ai/api/anthropic` (or inherited from env).
-- **Model Selection**:
-  - Use `ANTHROPIC_DEFAULT_SONNET_MODEL` (e.g., `GLM-4.7`) as the default for complex reasoning (Architect/Researcher).
-  - Use `ANTHROPIC_DEFAULT_HAIKU_MODEL` (e.g., `GLM-4.5-Air`) for faster/lighter tasks.
-  - These values should be read from the environment at runtime, not hardcoded.
+  - `ANTHROPIC_AUTH_TOKEN`: z.ai API authentication token (mapped to `ANTHROPIC_API_KEY` for SDK compatibility)
+  - `ANTHROPIC_BASE_URL`: API endpoint (defaults to `https://api.z.ai/api/anthropic` if not set)
+
+#### 9.2.3 Model Selection
+
+- **`ANTHROPIC_DEFAULT_SONNET_MODEL`**: Model for complex reasoning tasks (default: `GLM-4.7`)
+- **`ANTHROPIC_DEFAULT_HAIKU_MODEL`**: Model for faster/lighter tasks (default: `GLM-4.5-Air`)
+
+These values should be read from the environment at runtime, not hardcoded.
+
+#### 9.2.4 API Endpoint Safeguards
+
+**CRITICAL**: All tests and validation scripts enforce z.ai API usage:
+
+- Tests will fail immediately if `ANTHROPIC_BASE_URL` is set to Anthropic's official API (`https://api.anthropic.com`)
+- Validation scripts block execution to prevent accidental API usage
+- Warnings are issued for non-z.ai endpoints (excluding localhost/mock/test endpoints)
+
+This prevents the massive usage spikes that occurred when tests were accidentally configured to use Anthropic's production API.
 
 ### 9.3 System Components (Groundswell Mapping)
 

@@ -135,18 +135,18 @@ async function main(): Promise<number> {
     const result = await validator.validate(args.prd);
 
     // Print validation report
-    console.log('\n' + '='.repeat(60));
-    console.log('PRD Validation Report');
-    console.log('='.repeat(60));
-    console.log(`File: ${result.prdPath}`);
-    console.log(`Status: ${result.valid ? '✅ VALID' : '❌ INVALID'}`);
-    console.log(`\nSummary:`);
-    console.log(`  Critical: ${result.summary.critical}`);
-    console.log(`  Warnings: ${result.summary.warning}`);
-    console.log(`  Info: ${result.summary.info}`);
+    logger.info('\n' + '='.repeat(60));
+    logger.info('PRD Validation Report');
+    logger.info('='.repeat(60));
+    logger.info(`File: ${result.prdPath}`);
+    logger.info(`Status: ${result.valid ? '✅ VALID' : '❌ INVALID'}`);
+    logger.info(`\nSummary:`);
+    logger.info(`  Critical: ${result.summary.critical}`);
+    logger.info(`  Warnings: ${result.summary.warning}`);
+    logger.info(`  Info: ${result.summary.info}`);
 
     if (result.issues.length > 0) {
-      console.log(`\nIssues:`);
+      logger.info(`\nIssues:`);
       for (const issue of result.issues) {
         const icon =
           issue.severity === 'critical'
@@ -154,19 +154,19 @@ async function main(): Promise<number> {
             : issue.severity === 'warning'
               ? '⚠️'
               : 'ℹ️';
-        console.log(
+        logger.info(
           `\n${icon} [${issue.severity.toUpperCase()}] ${issue.message}`
         );
         if (issue.suggestion) {
-          console.log(`   Suggestion: ${issue.suggestion}`);
+          logger.info(`   Suggestion: ${issue.suggestion}`);
         }
         if (issue.reference) {
-          console.log(`   Reference: ${issue.reference}`);
+          logger.info(`   Reference: ${issue.reference}`);
         }
       }
     }
 
-    console.log('='.repeat(60) + '\n');
+    logger.info('='.repeat(60) + '\n');
 
     // Exit with appropriate code
     return result.valid ? 0 : 1;
