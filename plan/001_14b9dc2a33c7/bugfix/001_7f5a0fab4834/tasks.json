@@ -456,7 +456,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T1.S1",
                   "title": "Read current vitest.config.ts",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Module resolution error for .ts files per test infrastructure report\n2. INPUT: None - reads vitest.config.ts directly\n3. LOGIC: Use Read tool to open vitest.config.ts. Examine resolve.alias section. Check resolve.extensions. Look for groundswell alias. Identify missing .tsx extension if any.\n4. OUTPUT: Return { currentAliases: Record<string, string>, extensions: string[], hasGroundswellAlias: boolean }. Current configuration state."
@@ -465,7 +465,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T1.S2",
                   "title": "Add .tsx extension to resolve.extensions",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M3.T1.S1"
