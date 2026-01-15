@@ -119,6 +119,26 @@ if (configuredBaseUrl.includes(ANTHROPIC_ENDPOINT)) {
   process.exit(1);
 }
 
+// Warn if using a non-z.ai endpoint (unless it's a mock/test endpoint)
+if (
+  configuredBaseUrl &&
+  configuredBaseUrl !== ZAI_ENDPOINT &&
+  !configuredBaseUrl.includes('localhost') &&
+  !configuredBaseUrl.includes('127.0.0.1') &&
+  !configuredBaseUrl.includes('mock') &&
+  !configuredBaseUrl.includes('test')
+) {
+  log.warn('========================================');
+  log.warn('WARNING: Non-z.ai API endpoint detected');
+  log.warn('========================================');
+  log.warn(`Current ANTHROPIC_BASE_URL: ${configuredBaseUrl}`);
+  log.warn('');
+  log.warn(`Recommended: ${ZAI_ENDPOINT}`);
+  log.warn('');
+  log.warn('Ensure this endpoint is intended for testing.');
+  log.warn('========================================');
+}
+
 let apiKey: string;
 let baseURL: string;
 
