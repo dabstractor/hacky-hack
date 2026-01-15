@@ -767,7 +767,7 @@
           "type": "Milestone",
           "id": "P4.M1",
           "title": "Milestone 4.1: End-to-End Testing",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Run complete test suite and verify all fixes are working correctly",
           "tasks": [
             {
@@ -814,7 +814,7 @@
               "type": "Task",
               "id": "P4.M1.T2",
               "title": "Run ESLint and verify code quality",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Execute ESLint on entire codebase and verify only acceptable warnings remain",
               "subtasks": [
                 {
@@ -841,7 +841,7 @@
                   "type": "Subtask",
                   "id": "P4.M1.T2.S3",
                   "title": "Verify high-priority warnings are fixed",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M1.T2.S2"
@@ -870,7 +870,7 @@
                   "type": "Subtask",
                   "id": "P4.M2.T1.S1",
                   "title": "Create BUGFIX_SUMMARY.md in plan directory",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Summary should document all fixes from phases 1-3\n2. INPUT: None - compiles information from all phases\n3. LOGIC: Use Write tool to create plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/BUGFIX_SUMMARY.md. Include sections: Issues Fixed (Critical, Major, Minor), Files Modified, Testing Results, Remaining Issues, Recommendations. Format as markdown.\n4. OUTPUT: Return { created: boolean, path: string, sections: string[] }. Summary document created."
