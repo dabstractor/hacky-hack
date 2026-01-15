@@ -15,7 +15,10 @@ import {
   validateEnvironment,
   EnvironmentValidationError,
 } from '../../../src/config/environment.js';
-import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';
+import {
+  DEFAULT_BASE_URL,
+  MODEL_NAMES,
+} from '../../../src/config/constants.js';
 
 describe('config/environment', () => {
   // CLEANUP: Always restore environment after each test
@@ -104,7 +107,7 @@ describe('config/environment', () => {
       delete process.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
 
       // EXECUTE & VERIFY
-      expect(getModel('opus')).toBe('GLM-4.7');
+      expect(getModel('opus')).toBe(MODEL_NAMES.opus);
     });
 
     it('should return default model for sonnet tier', () => {
@@ -112,7 +115,7 @@ describe('config/environment', () => {
       delete process.env.ANTHROPIC_DEFAULT_SONNET_MODEL;
 
       // EXECUTE & VERIFY
-      expect(getModel('sonnet')).toBe('GLM-4.7');
+      expect(getModel('sonnet')).toBe(MODEL_NAMES.sonnet);
     });
 
     it('should return default model for haiku tier', () => {
@@ -120,7 +123,7 @@ describe('config/environment', () => {
       delete process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
 
       // EXECUTE & VERIFY
-      expect(getModel('haiku')).toBe('GLM-4.5-Air');
+      expect(getModel('haiku')).toBe(MODEL_NAMES.haiku);
     });
 
     it('should use environment override for opus tier', () => {

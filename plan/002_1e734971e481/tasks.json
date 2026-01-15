@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Bootstrap Core Infrastructure",
-      "status": "Researching",
+      "status": "Planned",
       "description": "Establish foundational infrastructure for the PRP Development Pipeline. This phase ensures the Groundswell library is properly linked, environment configuration is robust, and core data structures are validated.",
       "milestones": [
         {
@@ -102,14 +102,14 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Environment Configuration & API Safety",
-          "status": "Researching",
+          "status": "Planned",
           "description": "Ensure environment configuration properly maps variables for z.ai API compatibility, and implement safeguards preventing accidental use of Anthropic's production API.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Validate environment variable mapping",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Test that ANTHROPIC_AUTH_TOKEN correctly maps to ANTHROPIC_API_KEY, and that default BASE_URL is set to z.ai endpoint.",
               "subtasks": [
                 {
@@ -136,7 +136,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
                   "title": "Test model configuration tier mapping",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S2"
@@ -149,14 +149,14 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Implement API endpoint safeguards",
-              "status": "Ready",
+              "status": "Planned",
               "description": "Ensure tests block execution if Anthropic official API is configured, preventing accidental usage of production API.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Enhance test setup API validation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S3"
