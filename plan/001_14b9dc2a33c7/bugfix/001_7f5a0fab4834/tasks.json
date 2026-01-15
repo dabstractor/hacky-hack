@@ -540,7 +540,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Milestone 3.1: Replace Console.log with Logger",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Replace all console.log statements in src/index.ts with structured logger calls",
           "tasks": [
             {
@@ -587,7 +587,7 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Replace console.log statements with logger calls",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update src/index.ts to use logger.info() instead of console.log() for validation report",
               "subtasks": [
                 {
@@ -603,7 +603,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S2",
                   "title": "Verify no console.log statements remain in src/index.ts",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T2.S1"
@@ -614,7 +614,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S3",
                   "title": "Run ESLint to verify no no-console warnings",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T2.S2"
