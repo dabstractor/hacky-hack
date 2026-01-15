@@ -65,7 +65,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Test Workflow lifecycle",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T1.S3"
@@ -76,7 +76,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Test Agent and Prompt creation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T1.S3"
