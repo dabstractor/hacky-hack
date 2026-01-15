@@ -676,7 +676,7 @@
               "type": "Task",
               "id": "P3.M2.T2",
               "title": "Fix nullable boolean checks in src/cli/index.ts",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update line 160 to explicitly handle nullable string in conditional",
               "subtasks": [
                 {
@@ -703,7 +703,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S3",
                   "title": "Verify ESLint warning is resolved",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M2.T2.S2"
@@ -723,7 +723,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T3.S1",
                   "title": "Run ESLint to capture all strict-boolean-expressions warnings",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 100+ warnings across multiple files per Issue 4\n2. INPUT: None - runs ESLint directly\n3. LOGIC: Execute bash: `npm run lint 2>&1 | grep -A 2 'strict-boolean-expressions'`. Capture all warnings. Parse to extract file paths and line numbers. Group by file. Count warnings per file.\n4. OUTPUT: Return { warnings: Array<{file: string, line: number, message: string}>, total: number, byFile: Record<string, number> }. All warnings catalog."
