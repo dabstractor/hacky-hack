@@ -496,7 +496,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T2.S1",
                   "title": "Create tests/setup.ts with global test hooks",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Global setup helps with memory cleanup per test infrastructure report\n2. INPUT: None - creates new setup file\n3. LOGIC: Use Write tool to create tests/setup.ts. Import beforeEach, afterEach from vitest. Add beforeEach to clear mocks. Add afterEach to call global.gc() if available. Add cleanup comments. Follow implementation_patterns.md testing patterns.\n4. OUTPUT: Return { created: boolean, path: string, hasGlobalCleanup: boolean }. Setup file created with cleanup hooks."
@@ -505,7 +505,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T2.S2",
                   "title": "Configure vitest.config.ts to use setup file",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M3.T2.S1"
