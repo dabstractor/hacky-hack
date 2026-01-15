@@ -181,7 +181,14 @@ export class ResearchQueue {
         this.processNext(backlog).catch((error: unknown) => {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          this.#logger.error({ error: errorMessage }, 'Background task failed');
+          this.#logger.error(
+            {
+              taskId: task.id,
+              error: errorMessage,
+              ...(error instanceof Error && { stack: error.stack }),
+            },
+            'Background task failed'
+          );
         });
       });
 

@@ -349,7 +349,7 @@
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Fix research queue promise error handling",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update src/core/research-queue.ts to properly handle and log promise errors in background processing",
               "subtasks": [
                 {
@@ -365,7 +365,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S2",
                   "title": "Improve error logging with more context",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T1.S1"
@@ -376,7 +376,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S3",
                   "title": "Verify no unhandled promise rejections remain",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M2.T1.S2"
