@@ -247,7 +247,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S1",
                   "title": "Test SessionState serialization",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionState interface in models.ts tracks: sessionPath, prdHash, parentSessionPath, status, startTime, endTime, tasks array. SessionManager at /src/core/session-manager.ts (1027 lines) persists state to tasks.json via flushUpdates(). State serialized as JSON with atomic write (temp file + rename). Refer to system_context.md Section 6.3 (Session State) and Section 6.4 (Protected Files).\n2. INPUT: None - validating session state structures.\n3. LOGIC: Create test file at tests/unit/core/session-state.test.ts. Test 1: Create valid SessionState object, verify JSON.stringify() succeeds. Test 2: Deserialize JSON to SessionState, verify all fields preserved. Test 3: Test atomic write: write state to temp file, rename to tasks.json, verify file exists and is valid. Test 4: Test invalid state (missing required fields) fails validation. Use fs.writeFileSync with temp file pattern. Use JSON.parse() for deserialization.\n4. OUTPUT: SessionState serialization test coverage. Confirmed atomic write pattern works. Validation of required fields."
@@ -256,7 +256,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S2",
                   "title": "Test PRPDocument structure",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S1"
