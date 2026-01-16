@@ -72,7 +72,8 @@ const createTestSubtask = (
   status,
   story_points: 2,
   dependencies,
-  context_scope: 'Test scope',
+  context_scope:
+    'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test research findings.\n2. INPUT: Test input data.\n3. LOGIC: Test implementation logic.\n4. OUTPUT: Test output for consumption.',
 });
 
 const createTestTask = (

@@ -190,7 +190,7 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Debug E2E Pipeline Execution Failures",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Identify root cause of E2E pipeline failures through debugging and instrumentation.",
           "tasks": [
             {
@@ -237,7 +237,7 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Fix identified E2E pipeline issues",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Implement fixes for the root causes identified in debugging.",
               "subtasks": [
                 {
@@ -255,7 +255,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Implement fix for tasks.json creation failure",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S1"
@@ -266,7 +266,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S3",
                   "title": "Implement fix for prd_snapshot.md creation failure",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S2"
