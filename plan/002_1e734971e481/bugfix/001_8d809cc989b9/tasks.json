@@ -18,7 +18,7 @@
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Implement EnvironmentError Class",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Add EnvironmentError class to the error hierarchy following the pattern of SessionError, TaskError, and AgentError.",
               "subtasks": [
                 {
@@ -56,7 +56,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S4",
                   "title": "Export EnvironmentError from core index",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S3"

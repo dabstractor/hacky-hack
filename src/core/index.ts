@@ -24,6 +24,9 @@ export {
   SessionFileError,
 } from './session-utils.js';
 
+// Environment errors
+export { EnvironmentError, isEnvironmentError } from '../utils/errors.js';
+
 // PRD diffing utilities
 export {
   diffPRDs,
