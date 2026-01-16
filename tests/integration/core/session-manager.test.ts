@@ -38,6 +38,7 @@ import { SessionFileError } from '../../../src/core/session-utils.js';
 import type { SessionState, Backlog } from '../../../src/core/models.js';
 import { mockSimplePRD } from '../../fixtures/simple-prd.js';
 import { mockSimplePRDv2 } from '../../fixtures/simple-prd-v2.js';
+import type { Status } from '../../../src/core/models.js';
 
 // =============================================================================
 // PATTERN: Fixture Helper Functions for Existing Session Loading
@@ -75,6 +76,177 @@ function createMinimalTasksJson(): Backlog {
                     type: 'Subtask',
                     id: 'P1.M1.T1.S1',
                     title: 'Test Subtask',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Creates a multi-level Backlog with 3 tasks per milestone for testing
+ * Useful for testing updates at different hierarchy levels
+ */
+function createMultiLevelTasksJson(): Backlog {
+  return {
+    backlog: [
+      {
+        type: 'Phase',
+        id: 'P1',
+        title: 'Test Phase',
+        status: 'Planned',
+        description: 'Test phase description',
+        milestones: [
+          {
+            type: 'Milestone',
+            id: 'P1.M1',
+            title: 'Test Milestone',
+            status: 'Planned',
+            description: 'Test milestone description',
+            tasks: [
+              {
+                type: 'Task',
+                id: 'P1.M1.T1',
+                title: 'Test Task 1',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P1.M1.T1.S1',
+                    title: 'Test Subtask 1',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                  },
+                ],
+              },
+              {
+                type: 'Task',
+                id: 'P1.M1.T2',
+                title: 'Test Task 2',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P1.M1.T2.S1',
+                    title: 'Test Subtask 1',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                  },
+                ],
+              },
+              {
+                type: 'Task',
+                id: 'P1.M1.T3',
+                title: 'Test Task 3',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P1.M1.T3.S1',
+                    title: 'Test Subtask 1',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Creates a deep hierarchy Backlog with multiple phases for testing
+ * Useful for testing phase-level updates
+ */
+function createDeepHierarchyTasksJson(): Backlog {
+  return {
+    backlog: [
+      {
+        type: 'Phase',
+        id: 'P1',
+        title: 'Test Phase 1',
+        status: 'Planned',
+        description: 'Test phase 1 description',
+        milestones: [
+          {
+            type: 'Milestone',
+            id: 'P1.M1',
+            title: 'Test Milestone 1',
+            status: 'Planned',
+            description: 'Test milestone 1 description',
+            tasks: [
+              {
+                type: 'Task',
+                id: 'P1.M1.T1',
+                title: 'Test Task 1',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P1.M1.T1.S1',
+                    title: 'Test Subtask 1',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'Phase',
+        id: 'P2',
+        title: 'Test Phase 2',
+        status: 'Planned',
+        description: 'Test phase 2 description',
+        milestones: [
+          {
+            type: 'Milestone',
+            id: 'P2.M1',
+            title: 'Test Milestone 2',
+            status: 'Planned',
+            description: 'Test milestone 2 description',
+            tasks: [
+              {
+                type: 'Task',
+                id: 'P2.M1.T1',
+                title: 'Test Task 2',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P2.M1.T1.S1',
+                    title: 'Test Subtask 2',
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
@@ -1534,5 +1706,485 @@ using temp file + rename pattern to prevent JSON corruption.
 
     // VERIFY: Batching state reset between cycles (no errors thrown)
     // Each cycle independently succeeded
+  });
+});
+
+// =============================================================================
+// Integration Tests for SessionManager Status Update Propagation
+// =============================================================================
+
+describe('SessionManager Status Update Propagation', () => {
+  let tempDir: string;
+  let planDir: string;
+  let prdPath: string;
+
+  beforeEach(() => {
+    // Create unique temp directory for each test
+    tempDir = mkdtempSync(join(tmpdir(), 'session-manager-status-test-'));
+    planDir = join(tempDir, 'plan');
+    prdPath = join(tempDir, 'PRD.md');
+
+    // Create PRD file with valid content
+    const prdContent = `# Test PRD for Status Propagation
+
+## Executive Summary
+
+This is a comprehensive test PRD for integration testing of SessionManager's
+status update propagation behavior. It contains enough content to pass PRD validation.
+
+## Functional Requirements
+
+The system shall correctly update task statuses without cascading to children
+or propagating to parents. Each status update affects only the exact item matching
+the ID.
+`;
+    writeFileSync(prdPath, prdContent, 'utf-8');
+  });
+
+  afterEach(() => {
+    // Cleanup temp directory (force: true ignores ENOENT)
+    if (tempDir && existsSync(tempDir)) {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  // =============================================================================
+  // Test 1: Subtask Update Only Affects That Subtask
+  // =============================================================================
+
+  it('should update subtask status without affecting parents', async () => {
+    // SETUP: Create session with multi-level tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMultiLevelTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update subtask status
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+
+    // VERIFY: Subtask status changed
+    const session = manager.currentSession!;
+    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    expect(subtask.status).toBe('Complete');
+
+    // VERIFY: Parent task unchanged
+    const task = session.taskRegistry.backlog[0].milestones[0].tasks[0];
+    expect(task.status).toBe('Planned');
+
+    // VERIFY: Parent milestone unchanged
+    const milestone = session.taskRegistry.backlog[0].milestones[0];
+    expect(milestone.status).toBe('Planned');
+
+    // VERIFY: Parent phase unchanged
+    const phase = session.taskRegistry.backlog[0];
+    expect(phase.status).toBe('Planned');
+
+    // VERIFY: Sibling subtasks unchanged
+    const task2 = session.taskRegistry.backlog[0].milestones[0].tasks[1];
+    expect(task2.status).toBe('Planned');
+    expect(task2.subtasks[0].status).toBe('Planned');
+  });
+
+  // =============================================================================
+  // Test 2: Milestone Update Only Affects That Milestone
+  // =============================================================================
+
+  it('should update milestone status without affecting children', async () => {
+    // SETUP: Create session with multi-level tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMultiLevelTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update milestone status
+    await manager.updateItemStatus('P1.M1', 'Implementing');
+
+    // VERIFY: Milestone status changed
+    const session = manager.currentSession!;
+    const milestone = session.taskRegistry.backlog[0].milestones[0];
+    expect(milestone.status).toBe('Implementing');
+
+    // VERIFY: All tasks under milestone unchanged
+    const task1 = milestone.tasks[0];
+    expect(task1.status).toBe('Planned');
+    expect(task1.subtasks[0].status).toBe('Planned');
+
+    const task2 = milestone.tasks[1];
+    expect(task2.status).toBe('Planned');
+    expect(task2.subtasks[0].status).toBe('Planned');
+
+    const task3 = milestone.tasks[2];
+    expect(task3.status).toBe('Planned');
+    expect(task3.subtasks[0].status).toBe('Planned');
+
+    // VERIFY: Parent phase unchanged
+    const phase = session.taskRegistry.backlog[0];
+    expect(phase.status).toBe('Planned');
+  });
+
+  // =============================================================================
+  // Test 3: Task Update Only Affects That Task
+  // =============================================================================
+
+  it('should update task status without affecting descendants or ancestors', async () => {
+    // SETUP: Create session with multi-level tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMultiLevelTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update task status
+    await manager.updateItemStatus('P1.M1.T1', 'Failed');
+
+    // VERIFY: Task status changed
+    const session = manager.currentSession!;
+    const task = session.taskRegistry.backlog[0].milestones[0].tasks[0];
+    expect(task.status).toBe('Failed');
+
+    // VERIFY: Subtask under task unchanged
+    expect(task.subtasks[0].status).toBe('Planned');
+
+    // VERIFY: Parent milestone unchanged
+    const milestone = session.taskRegistry.backlog[0].milestones[0];
+    expect(milestone.status).toBe('Planned');
+
+    // VERIFY: Parent phase unchanged
+    const phase = session.taskRegistry.backlog[0];
+    expect(phase.status).toBe('Planned');
+
+    // VERIFY: Sibling tasks unchanged
+    expect(milestone.tasks[1].status).toBe('Planned');
+    expect(milestone.tasks[2].status).toBe('Planned');
+  });
+
+  // =============================================================================
+  // Test 4: Phase Update Only Affects That Phase
+  // =============================================================================
+
+  it('should update phase status without affecting children', async () => {
+    // SETUP: Create session with deep hierarchy tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createDeepHierarchyTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update phase status
+    await manager.updateItemStatus('P1', 'Researching');
+
+    // VERIFY: Phase status changed
+    const session = manager.currentSession!;
+    const phase = session.taskRegistry.backlog[0];
+    expect(phase.status).toBe('Researching');
+
+    // VERIFY: All milestones under phase unchanged
+    const milestone = phase.milestones[0];
+    expect(milestone.status).toBe('Planned');
+
+    // VERIFY: All tasks unchanged
+    const task = milestone.tasks[0];
+    expect(task.status).toBe('Planned');
+
+    // VERIFY: All subtasks unchanged
+    expect(task.subtasks[0].status).toBe('Planned');
+
+    // VERIFY: Other phases unchanged
+    const phase2 = session.taskRegistry.backlog[1];
+    expect(phase2.status).toBe('Planned');
+  });
+
+  // =============================================================================
+  // Test 5: Multiple Updates Accumulate Correctly
+  // =============================================================================
+
+  it('should accumulate multiple status updates in batching state', async () => {
+    // SETUP: Create session with multi-level tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMultiLevelTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // Get original file content
+    const originalContent = readFileSync(tasksPath, 'utf-8');
+
+    // EXECUTE: Update 3 different items
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+    await manager.updateItemStatus('P1.M1.T2.S1', 'Failed');
+    await manager.updateItemStatus('P1.M1.T3', 'Implementing');
+
+    // VERIFY: All updates in memory
+    const session = manager.currentSession!;
+    const subtask1 = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    expect(subtask1.status).toBe('Complete');
+
+    const subtask2 = session.taskRegistry.backlog[0].milestones[0].tasks[1].subtasks[0];
+    expect(subtask2.status).toBe('Failed');
+
+    const task3 = session.taskRegistry.backlog[0].milestones[0].tasks[2];
+    expect(task3.status).toBe('Implementing');
+
+    // VERIFY: File on disk unchanged (before flush)
+    const currentContent = readFileSync(tasksPath, 'utf-8');
+    expect(currentContent).toBe(originalContent);
+
+    // VERIFY: Can flush all accumulated updates
+    await manager.flushUpdates();
+
+    // VERIFY: All updates persisted after flush
+    const fileContent = readFileSync(tasksPath, 'utf-8');
+    const fileData = JSON.parse(fileContent) as Backlog;
+    const fileSubtask1 = fileData.backlog[0].milestones[0].tasks[0].subtasks[0];
+    expect(fileSubtask1.status).toBe('Complete');
+
+    const fileSubtask2 = fileData.backlog[0].milestones[0].tasks[1].subtasks[0];
+    expect(fileSubtask2.status).toBe('Failed');
+
+    const fileTask3 = fileData.backlog[0].milestones[0].tasks[2];
+    expect(fileTask3.status).toBe('Implementing');
+  });
+
+  // =============================================================================
+  // Test 6: Invalid Status Value Behavior (Current: No Runtime Validation)
+  // =============================================================================
+
+  it('should handle status type validation at compile time (TypeScript)', async () => {
+    // SETUP: Create session with tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMinimalTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update with valid status values
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Failed');
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Obsolete');
+
+    // VERIFY: All status values work correctly
+    const session = manager.currentSession!;
+    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    expect(subtask.status).toBe('Obsolete');
+
+    // NOTE: TypeScript compiler prevents invalid status values at compile time.
+    // The Status type is enforced by TypeScript, so invalid values like
+    // 'InvalidStatus' would cause a compilation error, not a runtime error.
+    // This test documents the current behavior: compile-time validation only.
+  });
+
+  // =============================================================================
+  // Test 7: Invalid Item ID Returns Unchanged Backlog
+  // =============================================================================
+
+  it('should return unchanged backlog for non-existent item ID', async () => {
+    // SETUP: Create session with tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMultiLevelTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    const originalContent = readFileSync(tasksPath, 'utf-8');
+
+    // EXECUTE: Try to update non-existent item
+    const result = await manager.updateItemStatus('P999.M999.T999.S999', 'Complete');
+
+    // VERIFY: No error thrown
+    expect(result).toBeDefined();
+
+    // VERIFY: File unchanged
+    const currentContent = readFileSync(tasksPath, 'utf-8');
+    expect(currentContent).toBe(originalContent);
+
+    // VERIFY: In-memory state unchanged
+    const session = manager.currentSession!;
+    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    expect(subtask.status).toBe('Planned');
+  });
+
+  // =============================================================================
+  // Test 8: Hierarchy Structure Preserved After Updates
+  // =============================================================================
+
+  it('should preserve hierarchy structure after status updates', async () => {
+    // SETUP: Create session with deep hierarchy
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createDeepHierarchyTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update multiple items at different levels
+    await manager.updateItemStatus('P1', 'Researching');
+    await manager.updateItemStatus('P1.M1', 'Implementing');
+    await manager.updateItemStatus('P1.M1.T1', 'Complete');
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Failed');
+    await manager.updateItemStatus('P2', 'Obsolete');
+
+    // VERIFY: All phase-milestone-task-subtask relationships intact
+    const session = manager.currentSession!;
+    expect(session.taskRegistry.backlog).toHaveLength(2);
+
+    // P1 structure
+    const p1 = session.taskRegistry.backlog[0];
+    expect(p1.id).toBe('P1');
+    expect(p1.milestones).toHaveLength(1);
+    expect(p1.milestones[0].id).toBe('P1.M1');
+    expect(p1.milestones[0].tasks).toHaveLength(1);
+    expect(p1.milestones[0].tasks[0].id).toBe('P1.M1.T1');
+    expect(p1.milestones[0].tasks[0].subtasks).toHaveLength(1);
+    expect(p1.milestones[0].tasks[0].subtasks[0].id).toBe('P1.M1.T1.S1');
+
+    // P2 structure
+    const p2 = session.taskRegistry.backlog[1];
+    expect(p2.id).toBe('P2');
+    expect(p2.milestones).toHaveLength(1);
+    expect(p2.milestones[0].id).toBe('P2.M1');
+
+    // VERIFY: No orphaned items (all children have parents)
+    // VERIFY: No circular references (structure is acyclic)
+    // VERIFY: Item count unchanged
+    let totalSubtasks = 0;
+    let totalTasks = 0;
+    let totalMilestones = 0;
+    for (const phase of session.taskRegistry.backlog) {
+      totalMilestones += phase.milestones.length;
+      for (const milestone of phase.milestones) {
+        totalTasks += milestone.tasks.length;
+        for (const task of milestone.tasks) {
+          totalSubtasks += task.subtasks.length;
+        }
+      }
+    }
+    expect(totalSubtasks).toBe(2); // 1 subtask per task, 2 tasks
+    expect(totalTasks).toBe(2); // 1 task per milestone, 2 milestones
+    expect(totalMilestones).toBe(2); // 1 milestone per phase, 2 phases
+  });
+
+  // =============================================================================
+  // Test 9: Multiple Sequential Update Cycles Work Correctly
+  // =============================================================================
+
+  it('should handle multiple sequential update cycles correctly', async () => {
+    // SETUP: Create session with tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMinimalTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Cycle 1 - Update to Researching and flush
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Researching');
+    await manager.flushUpdates();
+
+    let fileContent = readFileSync(tasksPath, 'utf-8');
+    let fileData = JSON.parse(fileContent) as Backlog;
+    expect(
+      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
+    ).toBe('Researching');
+
+    // EXECUTE: Cycle 2 - Update to Complete and flush
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+    await manager.flushUpdates();
+
+    fileContent = readFileSync(tasksPath, 'utf-8');
+    fileData = JSON.parse(fileContent) as Backlog;
+    expect(
+      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
+    ).toBe('Complete');
+
+    // EXECUTE: Cycle 3 - Update to Failed and flush
+    await manager.updateItemStatus('P1.M1.T1.S1', 'Failed');
+    await manager.flushUpdates();
+
+    fileContent = readFileSync(tasksPath, 'utf-8');
+    fileData = JSON.parse(fileContent) as Backlog;
+    expect(
+      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
+    ).toBe('Failed');
+
+    // VERIFY: Each cycle independently successful
+    // VERIFY: Batching state reset between cycles (no errors thrown)
+  });
+
+  // =============================================================================
+  // Test 10: All Status Values Work Correctly
+  // =============================================================================
+
+  it.each([
+    ['Planned'],
+    ['Researching'],
+    ['Implementing'],
+    ['Complete'],
+    ['Failed'],
+    ['Obsolete'],
+  ])('should accept status value: %s', async (status) => {
+    // SETUP: Create session with tasks.json
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    const sessionPath = join(planDir, manager.currentSession!.metadata.id);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    const initialTasks = createMultiLevelTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
+
+    // Reload session to load tasks.json into memory
+    await manager.initialize();
+
+    // EXECUTE: Update with status
+    await manager.updateItemStatus('P1.M1.T1.S1', status as Status);
+
+    // VERIFY: Status updated correctly
+    const session = manager.currentSession!;
+    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    expect(subtask.status).toBe(status);
   });
 });

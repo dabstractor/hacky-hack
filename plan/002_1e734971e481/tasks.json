@@ -291,7 +291,7 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Session Manager Validation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Ensure SessionManager correctly handles session initialization, delta detection, and state persistence with atomic updates.",
           "tasks": [
             {
@@ -338,7 +338,7 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Test state persistence and batch updates",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Validate SessionManager accumulates updates and flushes atomically to prevent tasks.json corruption.",
               "subtasks": [
                 {
@@ -356,7 +356,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Test task status update propagation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S1"
@@ -367,7 +367,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S3",
                   "title": "Test session discovery methods",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T2.S2"
