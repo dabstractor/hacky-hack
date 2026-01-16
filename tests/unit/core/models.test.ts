@@ -1729,6 +1729,538 @@ describe('core/models Zod Schemas', () => {
     });
   });
 
+  describe('PRPDocument structure', () => {
+    // =============================================================================
+    // FACTORY: Test PRPDocument creator with partial override support
+    // =============================================================================
+
+    function createTestPRPDocument(
+      overrides: Partial<PRPDocument> = {}
+    ): PRPDocument {
+      return {
+        taskId: 'P1.M2.T2.S2',
+        objective: 'Add PRP document interfaces to models.ts',
+        context: '# All Needed Context\n\nComplete context for implementation...',
+        implementationSteps: [
+          'Create ValidationGate interface',
+          'Create ValidationGateSchema',
+        ],
+        validationGates: [
+          {
+            level: 1,
+            description: 'Syntax & Style validation',
+            command: 'npm run validate',
+            manual: false,
+          },
+          {
+            level: 2,
+            description: 'Unit Tests validation',
+            command: 'npm test',
+            manual: false,
+          },
+          {
+            level: 3,
+            description: 'Integration Testing validation',
+            command: 'npm run test:integration',
+            manual: false,
+          },
+          {
+            level: 4,
+            description: 'Manual/Creative validation',
+            command: null,
+            manual: true,
+          },
+        ],
+        successCriteria: [
+          { description: 'All interfaces added', satisfied: false },
+          { description: 'All schemas validated', satisfied: false },
+        ],
+        references: [
+          'https://github.com/anthropics/claude-code',
+          'src/core/models.ts',
+        ],
+        ...overrides,
+      };
+    }
+
+    // =============================================================================
+    // DESCRIBE: Required Fields
+    // =============================================================================
+
+    describe('required fields', () => {
+      it('should create valid PRPDocument with all required fields', () => {
+        // SETUP: Create PRPDocument with all 7 fields
+        const validPRP = createTestPRPDocument();
+
+        // EXECUTE: Validate against schema
+        const result = PRPDocumentSchema.safeParse(validPRP);
+
+        // VERIFY: Validation succeeds
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // VERIFY: All 7 fields present and correct
+          expect(result.data.taskId).toBe('P1.M2.T2.S2');
+          expect(result.data.objective).toBe('Add PRP document interfaces to models.ts');
+          expect(result.data.context).toContain('All Needed Context');
+          expect(result.data.implementationSteps).toHaveLength(2);
+          expect(result.data.validationGates).toHaveLength(4);
+          expect(result.data.successCriteria).toHaveLength(2);
+          expect(result.data.references).toHaveLength(2);
+        }
+      });
+    });
+
+    // =============================================================================
+    // DESCRIBE: ValidationGate Levels
+    // =============================================================================
+
+    describe('ValidationGate levels', () => {
+      it('should accept ValidationGate with level 1', () => {
+        // SETUP: ValidationGate with level 1
+        const gateLevel1: ValidationGate = {
+          level: 1,
+          description: 'Syntax & Style validation',
+          command: 'npm run lint',
+          manual: false,
+        };
+
+        // EXECUTE: Validate within PRPDocument
+        const prp = createTestPRPDocument({
+          validationGates: [gateLevel1],
+        });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: Level 1 is accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.validationGates[0].level).toBe(1);
+        }
+      });
+
+      it('should accept ValidationGate with level 2', () => {
+        // SETUP: ValidationGate with level 2
+        const gateLevel2: ValidationGate = {
+          level: 2,
+          description: 'Unit Tests validation',
+          command: 'npm test',
+          manual: false,
+        };
+
+        // EXECUTE & VERIFY
+        const prp = createTestPRPDocument({
+          validationGates: [gateLevel2],
+        });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.validationGates[0].level).toBe(2);
+        }
+      });
+
+      it('should accept ValidationGate with level 3', () => {
+        // SETUP: ValidationGate with level 3
+        const gateLevel3: ValidationGate = {
+          level: 3,
+          description: 'Integration Testing validation',
+          command: 'npm run test:integration',
+          manual: false,
+        };
+
+        // EXECUTE & VERIFY
+        const prp = createTestPRPDocument({
+          validationGates: [gateLevel3],
+        });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.validationGates[0].level).toBe(3);
+        }
+      });
+
+      it('should accept ValidationGate with level 4', () => {
+        // SETUP: ValidationGate with level 4
+        const gateLevel4: ValidationGate = {
+          level: 4,
+          description: 'Manual/Creative validation',
+          command: null,
+          manual: true,
+        };
+
+        // EXECUTE & VERIFY
+        const prp = createTestPRPDocument({
+          validationGates: [gateLevel4],
+        });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.validationGates[0].level).toBe(4);
+        }
+      });
+
+      // -------------------------------------------------------------------------
+      // Invalid Level Tests
+      // -------------------------------------------------------------------------
+
+      it('should reject ValidationGate with invalid level (5)', () => {
+        // SETUP: ValidationGate with level 5 (invalid)
+        const prp = createTestPRPDocument({
+          validationGates: [
+            {
+              level: 5 as any, // Type assertion to bypass TS
+              description: 'Invalid level',
+              command: 'npm test',
+              manual: false,
+            },
+          ],
+        });
+
+        // EXECUTE
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: Validation fails
+        expect(result.success).toBe(false);
+      });
+
+      it('should reject ValidationGate with invalid level (0)', () => {
+        // SETUP: ValidationGate with level 0 (invalid)
+        const prp = createTestPRPDocument({
+          validationGates: [
+            {
+              level: 0 as any,
+              description: 'Invalid level',
+              command: 'npm test',
+              manual: false,
+            },
+          ],
+        });
+
+        // EXECUTE & VERIFY
+        const result = PRPDocumentSchema.safeParse(prp);
+        expect(result.success).toBe(false);
+      });
+
+      it('should accept null command for manual validation', () => {
+        // SETUP: ValidationGate with null command (manual validation)
+        const manualGate: ValidationGate = {
+          level: 4,
+          description: 'Manual validation required',
+          command: null,
+          manual: true,
+        };
+
+        // EXECUTE
+        const prp = createTestPRPDocument({
+          validationGates: [manualGate],
+        });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: Null command is accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.validationGates[0].command).toBeNull();
+          expect(result.data.validationGates[0].manual).toBe(true);
+        }
+      });
+    });
+
+    // =============================================================================
+    // DESCRIBE: ContextSection YAML Patterns
+    // =============================================================================
+
+    describe('ContextSection YAML patterns', () => {
+      it('should accept context with YAML url pattern', () => {
+        // SETUP: Context field with YAML url pattern
+        const yamlUrlContext = `# All Needed Context
+
+\`\`\`yaml
+# Documentation & References
+- url: https://github.com/anthropics/claude-code
+  why: Reference documentation for Claude Code
+  critical: Key insights for implementation
+\`\`\`
+`;
+
+        // EXECUTE
+        const prp = createTestPRPDocument({ context: yamlUrlContext });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: YAML url pattern accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.context).toContain('url:');
+          expect(result.data.context).toContain('why:');
+          expect(result.data.context).toContain('critical:');
+        }
+      });
+
+      it('should accept context with YAML file pattern', () => {
+        // SETUP: Context field with YAML file pattern
+        const yamlFileContext = `# All Needed Context
+
+\`\`\`yaml
+# Documentation & References
+- file: src/core/models.ts
+  why: Contains PRPDocument interface definition
+  pattern: Interface structure
+  gotcha: All fields are readonly
+\`\`\`
+`;
+
+        // EXECUTE
+        const prp = createTestPRPDocument({ context: yamlFileContext });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: YAML file pattern accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.context).toContain('file:');
+          expect(result.data.context).toContain('pattern:');
+          expect(result.data.context).toContain('gotcha:');
+        }
+      });
+
+      it('should accept context with YAML docfile pattern', () => {
+        // SETUP: Context field with YAML docfile pattern
+        const yamlDocfileContext = `# All Needed Context
+
+\`\`\`yaml
+# Documentation & References
+- docfile: plan/002_1e734971e481/ai_docs/domain_specific.md
+  why: Custom documentation for complex patterns
+  section: Implementation examples
+\`\`\`
+`;
+
+        // EXECUTE
+        const prp = createTestPRPDocument({ context: yamlDocfileContext });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: YAML docfile pattern accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.context).toContain('docfile:');
+          expect(result.data.context).toContain('section:');
+        }
+      });
+    });
+
+    // =============================================================================
+    // DESCRIBE: ImplementationTask YAML Patterns
+    // =============================================================================
+
+    describe('ImplementationTask YAML patterns', () => {
+      it('should accept implementationSteps with CREATE pattern', () => {
+        // SETUP: implementationSteps with YAML CREATE pattern
+        const yamlCreateSteps = [
+          'Task 1: CREATE src/core/example.ts\n  - IMPLEMENT: Example class\n  - NAMING: PascalCase\n  - PLACEMENT: Core directory',
+        ];
+
+        // EXECUTE
+        const prp = createTestPRPDocument({ implementationSteps: yamlCreateSteps });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: YAML CREATE pattern accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.implementationSteps).toHaveLength(1);
+          expect(result.data.implementationSteps[0]).toContain('CREATE');
+          expect(result.data.implementationSteps[0]).toContain('IMPLEMENT');
+          expect(result.data.implementationSteps[0]).toContain('NAMING');
+          expect(result.data.implementationSteps[0]).toContain('PLACEMENT');
+        }
+      });
+
+      it('should accept implementationSteps with MODIFY pattern', () => {
+        // SETUP: implementationSteps with YAML MODIFY pattern
+        const yamlModifySteps = [
+          'Task 2: MODIFY src/core/models.ts\n  - ADD: PRPDocument interface\n  - INTEGRATE: With existing interfaces',
+        ];
+
+        // EXECUTE
+        const prp = createTestPRPDocument({ implementationSteps: yamlModifySteps });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: YAML MODIFY pattern accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.implementationSteps[0]).toContain('MODIFY');
+          expect(result.data.implementationSteps[0]).toContain('ADD');
+          expect(result.data.implementationSteps[0]).toContain('INTEGRATE');
+        }
+      });
+
+      it('should accept implementationSteps with all fields', () => {
+        // SETUP: implementationSteps with complete YAML pattern
+        const yamlCompleteSteps = [
+          'Task 1: CREATE src/core/models.ts\n' +
+          '  - IMPLEMENT: PRPDocument interface\n' +
+          '  - FOLLOW pattern: src/core/models.ts (interface structure)\n' +
+          '  - NAMING: CamelCase for interfaces\n' +
+          '  - DEPENDENCIES: None\n' +
+          '  - PLACEMENT: Core models file',
+        ];
+
+        // EXECUTE
+        const prp = createTestPRPDocument({ implementationSteps: yamlCompleteSteps });
+        const result = PRPDocumentSchema.safeParse(prp);
+
+        // VERIFY: All YAML fields accepted
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.implementationSteps[0]).toContain('IMPLEMENT');
+          expect(result.data.implementationSteps[0]).toContain('FOLLOW pattern');
+          expect(result.data.implementationSteps[0]).toContain('NAMING');
+          expect(result.data.implementationSteps[0]).toContain('DEPENDENCIES');
+          expect(result.data.implementationSteps[0]).toContain('PLACEMENT');
+        }
+      });
+    });
+
+    // =============================================================================
+    // DESCRIBE: Markdown Serialization
+    // =============================================================================
+
+    describe('markdown serialization', () => {
+      // Helper function to simulate PRPGenerator.#formatPRPAsMarkdown()
+      function formatPRPAsMarkdown(prp: PRPDocument): string {
+        const implementationStepsMd = prp.implementationSteps
+          .map((step, i) => `${i + 1}. ${step}`)
+          .join('\n');
+
+        const validationGatesMd = prp.validationGates
+          .map(
+            (gate) =>
+              `### Level ${gate.level}\n\n${
+                gate.command !== null ? gate.command : 'Manual validation required'
+              }`
+          )
+          .join('\n\n');
+
+        const successCriteriaMd = prp.successCriteria
+          .map(c => `- [ ] ${c.description}`)
+          .join('\n');
+
+        const referencesMd = prp.references.map(r => `- ${r}`).join('\n');
+
+        return `# PRP for ${prp.taskId}
+
+## Objective
+
+${prp.objective}
+
+## Context
+
+${prp.context}
+
+## Implementation Steps
+
+${implementationStepsMd}
+
+## Validation Gates
+
+${validationGatesMd}
+
+## Success Criteria
+
+${successCriteriaMd}
+
+## References
+
+${referencesMd}
+`;
+      }
+
+      it('should serialize PRPDocument to markdown format', () => {
+        // SETUP: Create valid PRPDocument
+        const prp = createTestPRPDocument();
+
+        // EXECUTE: Format as markdown
+        const markdown = formatPRPAsMarkdown(prp);
+
+        // VERIFY: Header format
+        expect(markdown).toContain('# PRP for P1.M2.T2.S2');
+
+        // VERIFY: Section headers
+        expect(markdown).toContain('## Objective');
+        expect(markdown).toContain('## Context');
+        expect(markdown).toContain('## Implementation Steps');
+        expect(markdown).toContain('## Validation Gates');
+        expect(markdown).toContain('## Success Criteria');
+        expect(markdown).toContain('## References');
+
+        // VERIFY: Objective content
+        expect(markdown).toContain('Add PRP document interfaces to models.ts');
+
+        // VERIFY: Implementation steps numbered
+        expect(markdown).toMatch(/1\. Create ValidationGate interface/);
+        expect(markdown).toMatch(/2\. Create ValidationGateSchema/);
+
+        // VERIFY: Validation gates format
+        expect(markdown).toContain('### Level 1');
+        expect(markdown).toContain('### Level 2');
+        expect(markdown).toContain('### Level 3');
+        expect(markdown).toContain('### Level 4');
+
+        // VERIFY: Success criteria checkbox format
+        expect(markdown).toContain('- [ ] All interfaces added');
+        expect(markdown).toContain('- [ ] All schemas validated');
+
+        // VERIFY: References bullet format
+        expect(markdown).toContain('- https://github.com/anthropics/claude-code');
+        expect(markdown).toContain('- src/core/models.ts');
+      });
+
+      it('should match PRPGenerator.#formatPRPAsMarkdown() format', () => {
+        // SETUP: Create PRPDocument with specific content
+        const prp: PRPDocument = {
+          taskId: 'P1.M3.T2.S2',
+          objective: 'Test PRPDocument structure',
+          context: '## Test Context\n\nTest context content',
+          implementationSteps: ['Step 1', 'Step 2'],
+          validationGates: [
+            { level: 1, description: 'Level 1', command: 'npm test', manual: false },
+            { level: 2, description: 'Level 2', command: 'npm run lint', manual: false },
+            { level: 3, description: 'Level 3', command: null, manual: true },
+            { level: 4, description: 'Level 4', command: null, manual: true },
+          ],
+          successCriteria: [
+            { description: 'Criterion 1', satisfied: false },
+            { description: 'Criterion 2', satisfied: false },
+          ],
+          references: ['https://example.com', 'src/test.ts'],
+        };
+
+        // EXECUTE: Format as markdown
+        const markdown = formatPRPAsMarkdown(prp);
+
+        // VERIFY: Exact format matches PRPGenerator output
+        // Header
+        expect(markdown).toMatch(/^# PRP for P1\.M3\.T2\.S2\n/);
+
+        // Objective section
+        expect(markdown).toMatch(/## Objective\n\nTest PRPDocument structure\n/);
+
+        // Context section
+        expect(markdown).toMatch(/## Context\n\n## Test Context\n\nTest context content\n/);
+
+        // Implementation steps (numbered)
+        expect(markdown).toMatch(/## Implementation Steps\n\n1\. Step 1\n2\. Step 2\n/);
+
+        // Validation gates (### Level X format)
+        expect(markdown).toMatch(/## Validation Gates\n\n### Level 1\n\nnpm test\n\n### Level 2\n\nnpm run lint\n\n### Level 3\n\nManual validation required\n\n### Level 4\n\nManual validation required\n/);
+
+        // Success criteria (checkbox format)
+        expect(markdown).toMatch(/## Success Criteria\n\n- \[ \] Criterion 1\n- \[ \] Criterion 2\n/);
+
+        // References (bullet format)
+        expect(markdown).toMatch(/## References\n\n- https:\/\/example\.com\n- src\/test\.ts\n/);
+      });
+    });
+  });
+
   describe('PRPArtifactSchema', () => {
     const validArtifact: PRPArtifact = {
       taskId: 'P1.M2.T2.S2',
