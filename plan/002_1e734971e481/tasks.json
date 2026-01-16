@@ -345,7 +345,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Test atomic update flushing",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S3"
@@ -356,7 +356,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Test task status update propagation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S1"
