@@ -319,7 +319,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Fix Task Orchestrator Logging Tests",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Resolve 21 failing Task Orchestrator tests related to logging assertions.",
           "tasks": [
             {
@@ -344,14 +344,14 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Implement Task Orchestrator logging fix",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Apply the chosen fix approach for Task Orchestrator logging tests.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Update test mocks to expect Pino logger calls",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M1.T1.S1"
@@ -366,21 +366,21 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Fix Session Utils Validation Test",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Fix the session utils test that fails due to invalid context_scope format in test fixture.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Fix test fixture context_scope format",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update the test data to use proper CONTRACT DEFINITION format for context_scope field.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Update test fixture with valid context_scope",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 5 - Test 'should handle deep hierarchy in backlog' fails because test fixture uses context_scope: 'Test scope' but Zod schema requires format starting with 'CONTRACT DEFINITION:\\n'. From architecture/system_context.md - Validation is working correctly, test data is wrong.\n2. INPUT: Session utils tests at /home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts, Zod schema requiring 'CONTRACT DEFINITION:\\n' prefix.\n3. LOGIC: Find test 'should handle deep hierarchy in backlog'. Locate test fixture data with context_scope: 'Test scope'. Replace with proper format: context_scope: 'CONTRACT DEFINITION:\\n1. RESEARCH NOTE: Test context\\n2. INPUT: ...\\n3. LOGIC: ...\\n4. OUTPUT: ...'. Ensure format matches Zod validation requirements.\n4. OUTPUT: Test fixture updated with valid context_scope format, test 'should handle deep hierarchy in backlog' now passing."

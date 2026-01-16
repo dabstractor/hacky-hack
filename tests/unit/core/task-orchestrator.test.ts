@@ -316,16 +316,19 @@ describe('TaskOrchestrator', () => {
       const orchestrator = new TaskOrchestrator(mockManager);
 
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.executePhase(phase);
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Executing Phase: P1 - Phase 1'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { phaseId: 'P1' },
+        'Setting status to Implementing'
       );
-      consoleSpy.mockRestore();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { phaseId: 'P1', title: 'Phase 1' },
+        'Executing Phase'
+      );
     });
 
     it('should handle phase with milestones', async () => {
@@ -420,16 +423,19 @@ describe('TaskOrchestrator', () => {
       const orchestrator = new TaskOrchestrator(mockManager);
 
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.executeMilestone(milestone);
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Executing Milestone: P1.M1 - Milestone 1'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { milestoneId: 'P1.M1' },
+        'Setting status to Implementing'
       );
-      consoleSpy.mockRestore();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { milestoneId: 'P1.M1', title: 'Milestone 1' },
+        'Executing Milestone'
+      );
     });
 
     it('should handle milestone with tasks', async () => {
@@ -516,16 +522,19 @@ describe('TaskOrchestrator', () => {
       const orchestrator = new TaskOrchestrator(mockManager);
 
       const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.executeTask(task);
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Executing Task: P1.M1.T1 - Task 1'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { taskId: 'P1.M1.T1' },
+        'Setting status to Implementing'
       );
-      consoleSpy.mockRestore();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { taskId: 'P1.M1.T1', title: 'Task 1' },
+        'Executing Task'
+      );
     });
 
     it('should handle task with subtasks', async () => {
@@ -630,22 +639,23 @@ describe('TaskOrchestrator', () => {
         [],
         'Test context scope'
       );
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.executeSubtask(subtask);
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Executing Subtask: P1.M1.T1.S1 - Subtask 1'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { subtaskId: 'P1.M1.T1.S1', title: 'Subtask 1' },
+        'Executing Subtask'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Starting PRPRuntime execution for P1.M1.T1.S1'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { subtaskId: 'P1.M1.T1.S1' },
+        'Starting PRPRuntime execution'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] PRPRuntime execution succeeded for P1.M1.T1.S1'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({ subtaskId: 'P1.M1.T1.S1' }),
+        'PRPRuntime execution complete'
       );
-      consoleSpy.mockRestore();
     });
 
     it('should handle subtask with dependencies', async () => {
@@ -742,18 +752,15 @@ describe('TaskOrchestrator', () => {
           'Test Subtask',
           'Planned'
         );
-        const consoleSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
         // VERIFY: Commit hash was logged
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Commit created: abc123def456'
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          { commitHash: 'abc123def456' },
+          'Commit created'
         );
-        consoleSpy.mockRestore();
       });
 
       it('should log when smartCommit returns null (no files to commit)', async () => {
@@ -780,18 +787,12 @@ describe('TaskOrchestrator', () => {
           'Test Subtask',
           'Planned'
         );
-        const consoleSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
         // VERIFY: "No files to commit" was logged
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] No files to commit'
-        );
-        consoleSpy.mockRestore();
+        expect(mockLogger.info).toHaveBeenCalledWith('No files to commit');
       });
 
       it('should log error but not fail subtask when smartCommit throws', async () => {
@@ -818,9 +819,6 @@ describe('TaskOrchestrator', () => {
           'Test Subtask',
           'Planned'
         );
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
@@ -831,10 +829,10 @@ describe('TaskOrchestrator', () => {
           'Complete'
         );
         // Error was logged
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Smart commit failed: Git operation failed'
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          { error: 'Git operation failed' },
+          'Smart commit failed'
         );
-        consoleErrorSpy.mockRestore();
       });
 
       it('should log warning when session path is not available', async () => {
@@ -860,19 +858,15 @@ describe('TaskOrchestrator', () => {
           'Test Subtask',
           'Planned'
         );
-        const consoleWarnSpy = vi
-          .spyOn(console, 'warn')
-          .mockImplementation(() => {});
 
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
         // VERIFY: Warning was logged and smartCommit was not called
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Session path not available for smart commit'
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          'Session path not available for smart commit'
         );
         expect(mockSmartCommit).not.toHaveBeenCalled();
-        consoleWarnSpy.mockRestore();
       });
     });
   });
@@ -960,17 +954,14 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
       // EXECUTE
       const result = await orchestrator.processNextItem();
 
       // VERIFY
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Execution queue empty - processing complete'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Execution queue empty - processing complete'
       );
-      consoleSpy.mockRestore();
     });
 
     it('should delegate to executePhase when next item is Phase', async () => {
@@ -1131,16 +1122,15 @@ describe('TaskOrchestrator', () => {
       mockResolveScope.mockReturnValue([subtask] as HierarchyItem[]);
 
       const orchestrator = new TaskOrchestrator(mockManager);
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.processNextItem();
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Processing: P1.M1.T1.S1 (Subtask)'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        { itemId: 'P1.M1.T1.S1', type: 'Subtask' },
+        'Processing'
       );
-      consoleSpy.mockRestore();
     });
 
     it('should handle all four hierarchy item types', async () => {
@@ -1307,8 +1297,6 @@ describe('TaskOrchestrator', () => {
       };
       const mockManager = createMockSessionManager(currentSession);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
       // Simulate: Phase → Milestone → Task → Subtask
       const phase = createTestPhase('P1', 'Phase 1', 'Planned');
       const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned');
@@ -1356,11 +1344,9 @@ describe('TaskOrchestrator', () => {
         'P1.M1.T1.S1',
         'Complete'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Execution queue empty - processing complete'
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        'Execution queue empty - processing complete'
       );
-
-      consoleSpy.mockRestore();
     });
 
     it('should handle empty backlog (no items from start)', async () => {
@@ -1383,16 +1369,12 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
       // EXECUTE
       const result = await orchestrator.processNextItem();
 
       // VERIFY: Immediately returns false
       expect(result).toBe(false);
       expect(mockManager.updateItemStatus).not.toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -2116,10 +2098,6 @@ describe('TaskOrchestrator', () => {
           ['P1.M1.T1.S1']
         );
 
-        const consoleSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
-
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
@@ -2129,14 +2107,19 @@ describe('TaskOrchestrator', () => {
           'Researching'
         );
         expect(mockManager.updateItemStatus).toHaveBeenCalledTimes(1); // Only Researching, no further execution
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Blocked on: P1.M1.T1.S1 - Subtask 1 (status: Planned)'
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          {
+            subtaskId: 'P1.M1.T1.S2',
+            blockerId: 'P1.M1.T1.S1',
+            blockerTitle: 'Subtask 1',
+            blockerStatus: 'Planned',
+          },
+          'Blocked on dependency'
         );
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Subtask P1.M1.T1.S2 blocked on dependencies, skipping'
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          { subtaskId: 'P1.M1.T1.S2' },
+          'Subtask blocked on dependencies, skipping'
         );
-
-        consoleSpy.mockRestore();
       });
 
       it('should execute normally when all dependencies are Complete', async () => {
@@ -2227,22 +2210,28 @@ describe('TaskOrchestrator', () => {
           ['P1.M1.T1.S1', 'P1.M1.T1.S2']
         );
 
-        const consoleSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
-
         // EXECUTE
         await orchestrator.executeSubtask(subtask);
 
         // VERIFY: Both blocking dependencies logged
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Blocked on: P1.M1.T1.S1 - Subtask 1 (status: Planned)'
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          {
+            subtaskId: 'P1.M1.T1.S3',
+            blockerId: 'P1.M1.T1.S1',
+            blockerTitle: 'Subtask 1',
+            blockerStatus: 'Planned',
+          },
+          'Blocked on dependency'
         );
-        expect(consoleSpy).toHaveBeenCalledWith(
-          '[TaskOrchestrator] Blocked on: P1.M1.T1.S2 - Subtask 2 (status: Implementing)'
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          {
+            subtaskId: 'P1.M1.T1.S3',
+            blockerId: 'P1.M1.T1.S2',
+            blockerTitle: 'Subtask 2',
+            blockerStatus: 'Implementing',
+          },
+          'Blocked on dependency'
         );
-
-        consoleSpy.mockRestore();
       });
     });
 
@@ -2278,10 +2267,6 @@ describe('TaskOrchestrator', () => {
         };
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
-
-        const consoleSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
 
         // EXECUTE: Process items in order (simulating DFS traversal)
 
@@ -2333,8 +2318,6 @@ describe('TaskOrchestrator', () => {
           'P1.M1.T1.S3',
           'Complete'
         );
-
-        consoleSpy.mockRestore();
       });
 
       it('should skip blocked subtasks and continue to executable ones', async () => {
@@ -2366,10 +2349,6 @@ describe('TaskOrchestrator', () => {
         const mockManager = createMockSessionManager(currentSession);
         const orchestrator = new TaskOrchestrator(mockManager);
 
-        const consoleSpy = vi
-          .spyOn(console, 'log')
-          .mockImplementation(() => {});
-
         // EXECUTE: Try to execute S2 before S1 is Complete
 
         // S2 should be blocked (but still set to Researching first - NEW behavior)
@@ -2394,8 +2373,6 @@ describe('TaskOrchestrator', () => {
           'P1.M1.T1.S1',
           'Complete'
         );
-
-        consoleSpy.mockRestore();
       });
 
       it('should handle cross-boundary dependencies', async () => {
@@ -2471,24 +2448,20 @@ describe('TaskOrchestrator', () => {
       };
       const mockManager = createMockSessionManager(currentSession);
       const orchestrator = new TaskOrchestrator(mockManager);
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.setStatus('P1', 'Implementing', 'Starting work');
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          '[TaskOrchestrator] Status: P1 Planned → Implementing'
-        )
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          itemId: 'P1',
+          oldStatus: 'Planned',
+          newStatus: 'Implementing',
+          reason: 'Starting work',
+        }),
+        'Status transition'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[TaskOrchestrator] Timestamp:')
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('(Starting work)')
-      );
-      consoleSpy.mockRestore();
     });
 
     it('should call SessionManager.updateItemStatus() with correct parameters', async () => {
@@ -2538,7 +2511,6 @@ describe('TaskOrchestrator', () => {
       };
       const mockManager = createMockSessionManager(currentSession);
       const orchestrator = new TaskOrchestrator(mockManager);
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.setStatus(
@@ -2548,10 +2520,12 @@ describe('TaskOrchestrator', () => {
       );
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('(All tests passed)')
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reason: 'All tests passed',
+        }),
+        'Status transition'
       );
-      consoleSpy.mockRestore();
     });
 
     it('should handle missing reason parameter', async () => {
@@ -2571,18 +2545,18 @@ describe('TaskOrchestrator', () => {
       };
       const mockManager = createMockSessionManager(currentSession);
       const orchestrator = new TaskOrchestrator(mockManager);
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.setStatus('P1.M1.T1.S1', 'Complete');
 
-      // VERIFY: Should not have parentheses for reason
-      const logCalls = consoleSpy.mock.calls.filter(call =>
-        call[0]?.includes('Status:')
+      // VERIFY: Should not have reason in structured data
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          itemId: 'P1.M1.T1.S1',
+          newStatus: 'Complete',
+        }),
+        'Status transition'
       );
-      expect(logCalls[0][0]).not.toContain('(');
-      expect(logCalls[0][0]).not.toContain(')');
-      consoleSpy.mockRestore();
     });
 
     it('should call #refreshBacklog() after status update', async () => {
@@ -2724,16 +2698,15 @@ describe('TaskOrchestrator', () => {
       const mockManager = createMockSessionManager(currentSession);
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await orchestrator.executeSubtask(subtask);
 
       // VERIFY
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Researching: P1.M1.T1.S1 - preparing PRP'
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        { subtaskId: 'P1.M1.T1.S1' },
+        'Researching - preparing PRP'
       );
-      consoleSpy.mockRestore();
     });
   });
 
@@ -2767,9 +2740,6 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
 
       // EXECUTE & VERIFY: Should throw the error
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
@@ -2782,9 +2752,14 @@ describe('TaskOrchestrator', () => {
       ).mock.calls.filter((call: any[]) => call[1] === 'Failed');
       expect(failedCalls.length).toBeGreaterThan(0);
       expect(failedCalls[0][0]).toBe('P1.M1.T1.S1');
-      // NOTE: reason is logged but NOT passed to SessionManager.updateItemStatus()
-      // The log output shows: "[TaskOrchestrator] Status: ... Failed (Execution failed: Test execution error)"
-      consoleSpy.mockRestore();
+      // NOTE: error is logged via mockLogger.error
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subtaskId: 'P1.M1.T1.S1',
+          error: 'Test execution error',
+        }),
+        'Subtask execution failed'
+      );
     });
 
     it('should include error message in failed status reason', async () => {
@@ -2817,7 +2792,6 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
@@ -2832,14 +2806,15 @@ describe('TaskOrchestrator', () => {
       expect(failedCalls[0][0]).toBe('P1.M1.T1.S1');
       expect(failedCalls[0][1]).toBe('Failed');
 
-      // VERIFY: Error message was logged (reason parameter is for logging only)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'Execution failed: Network timeout during PRP generation'
-        )
+      // VERIFY: Error message was logged via setStatus (reason parameter is for logging)
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          itemId: 'P1.M1.T1.S1',
+          newStatus: 'Failed',
+          reason: 'Execution failed: Network timeout during PRP generation',
+        }),
+        'Status transition'
       );
-
-      consoleSpy.mockRestore();
     });
 
     it('should log error with context', async () => {
@@ -2873,9 +2848,6 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
 
       // EXECUTE
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
@@ -2883,14 +2855,14 @@ describe('TaskOrchestrator', () => {
       );
 
       // VERIFY: Error was logged with context
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] ERROR: P1.M1.T1.S1 failed: Test error'
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        {
+          subtaskId: 'P1.M1.T1.S1',
+          error: 'Test error',
+          stack: 'Error: Test error\n    at test.ts:10:15',
+        },
+        'Subtask execution failed'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[TaskOrchestrator] Stack trace: Error: Test error\n    at test.ts:10:15'
-      );
-
-      consoleSpy.mockRestore();
     });
 
     it('should re-throw original error after setting Failed status', async () => {
@@ -2959,7 +2931,6 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // EXECUTE & VERIFY: Should handle string error
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
@@ -2974,12 +2945,15 @@ describe('TaskOrchestrator', () => {
       expect(failedCalls[0][0]).toBe('P1.M1.T1.S1');
       expect(failedCalls[0][1]).toBe('Failed');
 
-      // VERIFY: Error message was logged (reason parameter is for logging only)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Execution failed: String error message')
+      // VERIFY: Error message was logged via setStatus (reason parameter is for logging)
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          itemId: 'P1.M1.T1.S1',
+          newStatus: 'Failed',
+          reason: 'Execution failed: String error message',
+        }),
+        'Status transition'
       );
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -3054,9 +3028,6 @@ describe('TaskOrchestrator', () => {
 
       const orchestrator = new TaskOrchestrator(mockManager);
       const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned');
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
 
       // EXECUTE
       await expect(orchestrator.executeSubtask(subtask)).rejects.toThrow(
@@ -3081,7 +3052,14 @@ describe('TaskOrchestrator', () => {
       ).mock.calls.filter((call: any[]) => call[1] === 'Failed');
       expect(failedCalls.length).toBeGreaterThan(0);
 
-      consoleSpy.mockRestore();
+      // Verify error was logged
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subtaskId: 'P1.M1.T1.S1',
+          error: 'Execution failed',
+        }),
+        'Subtask execution failed'
+      );
     });
   });
 
@@ -3350,7 +3328,6 @@ describe('TaskOrchestrator', () => {
         type: 'phase',
         id: 'P1',
       });
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       // Mock new scope: P2
       const p2Items = [createTestPhase('P2', 'Phase 2', 'Planned')];
@@ -3360,8 +3337,12 @@ describe('TaskOrchestrator', () => {
       await orchestrator.setScope({ type: 'phase', id: 'P2' });
 
       // VERIFY: Scope logged, queue rebuilt with P2 items
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Scope change')
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          oldScope: expect.any(String),
+          newScope: '{"type":"phase","id":"P2"}',
+        }),
+        'Scope change'
       );
       expect(orchestrator.executionQueue).toHaveLength(1);
       expect(orchestrator.executionQueue[0].id).toBe('P2');
@@ -3369,8 +3350,6 @@ describe('TaskOrchestrator', () => {
         type: 'phase',
         id: 'P2',
       });
-
-      consoleSpy.mockRestore();
     });
 
     it('should log scope change with old and new scope', async () => {
