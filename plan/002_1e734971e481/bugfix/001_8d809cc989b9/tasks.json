@@ -197,7 +197,7 @@
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Add debug logging to pipeline execution",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Instrument PRPPipeline.run() and session initialization with detailed debug logging to identify failure point.",
               "subtasks": [
                 {
@@ -224,7 +224,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Run instrumented E2E tests and analyze output",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S2"
