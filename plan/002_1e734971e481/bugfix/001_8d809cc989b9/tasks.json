@@ -105,7 +105,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Examine existing #isFatalError implementation",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From git history - PRPPipeline has private #isFatalError() method added in commit dba41a5. Must extract this logic to public utility. From PRD Issue 2 - Fatal errors: SessionError, EnvironmentError. Non-fatal: TaskError, AgentError, ValidationError.\n2. INPUT: PRPPipeline class at /home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts, private #isFatalError() method implementation.\n3. LOGIC: Read PRPPipeline class to understand #isFatalError() implementation. Document logic: what error types are considered fatal, what error types are non-fatal, how it handles unknown errors (not PipelineError instances). Note any differences from PRD specification.\n4. OUTPUT: Documentation of existing #isFatalError() logic in plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/. Ready for extraction."
