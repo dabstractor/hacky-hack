@@ -2188,3 +2188,297 @@ the ID.
     expect(subtask.status).toBe(status);
   });
 });
+
+// =============================================================================
+// Integration Tests for SessionManager Session Discovery Methods
+// =============================================================================
+
+describe('SessionManager Session Discovery Methods', () => {
+  let tempDir: string;
+  let planDir: string;
+
+  beforeEach(() => {
+    // Create unique temp directory for each test
+    tempDir = mkdtempSync(join(tmpdir(), 'session-discovery-test-'));
+    planDir = join(tempDir, 'plan');
+    mkdirSync(planDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    // Cleanup temp directory (force: true ignores ENOENT)
+    if (tempDir && existsSync(tempDir)) {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  // =============================================================================
+  // PATTERN: Session Fixture Helper Functions
+  // =============================================================================
+
+  /**
+   * Creates a session directory with valid structure
+   * @param planDir - Plan directory path
+   * @param sequence - Session sequence number (e.g., 1, 2, 3)
+   * @param hash - Session hash (12 lowercase hex chars)
+   * @param hasParent - Whether to create parent_session.txt
+   * @returns Session directory name (e.g., '001_abcdef123456')
+   */
+  function createSessionDirectory(
+    planDir: string,
+    sequence: number,
+    hash: string,
+    hasParent: boolean = false
+  ): string {
+    const sessionName = `${String(sequence).padStart(3, '0')}_${hash}`;
+    const sessionPath = join(planDir, sessionName);
+    mkdirSync(sessionPath, { recursive: true });
+
+    // Create required files
+    writeFileSync(
+      join(sessionPath, 'tasks.json'),
+      JSON.stringify({ backlog: [] }, null, 2),
+      'utf-8'
+    );
+    writeFileSync(
+      join(sessionPath, 'prd_snapshot.md'),
+      '# Test PRD',
+      'utf-8'
+    );
+
+    // Optional parent session file
+    if (hasParent) {
+      const parentSeq = String(sequence - 1).padStart(3, '0');
+      writeFileSync(
+        join(sessionPath, 'parent_session.txt'),
+        `${parentSeq}_abc123def456`,
+        'utf-8'
+      );
+    }
+
+    return sessionName;
+  }
+
+  /**
+   * Creates multiple session directories for testing
+   * @param planDir - Plan directory path
+   * @param count - Number of sessions to create
+   * @returns Array of session names
+   */
+  function createMultipleSessions(planDir: string, count: number): string[] {
+    const sessions: string[] = [];
+    for (let i = 1; i <= count; i++) {
+      const hash = `abcdef123456${String(i).padStart(6, '0')}`.slice(0, 12);
+      const sessionName = createSessionDirectory(planDir, i, hash, i > 1);
+      sessions.push(sessionName);
+    }
+    return sessions;
+  }
+
+  /**
+   * Computes SHA-256 hash of content (first 12 chars)
+   * @param content - PRD content to hash
+   * @returns First 12 characters of SHA-256 hash
+   */
+  function computePRDHash(content: string): string {
+    return createHash('sha256')
+      .update(content, 'utf-8')
+      .digest('hex')
+      .slice(0, 12);
+  }
+
+  // =============================================================================
+  // Test 1: listSessions() Returns All Sessions Sorted
+  // =============================================================================
+
+  it('should return all sessions sorted by sequence ascending', async () => {
+    // SETUP: Create 3 sessions with different sequence numbers
+    const sessionNames = createMultipleSessions(planDir, 3);
+
+    // EXECUTE: List all sessions
+    const sessions = await SessionManager.listSessions(planDir);
+
+    // VERIFY: Returns 3 sessions
+    expect(sessions).toHaveLength(3);
+
+    // VERIFY: Sorted by sequence ascending
+    expect(sessions[0].id).toBe(sessionNames[0]); // 001_*
+    expect(sessions[1].id).toBe(sessionNames[1]); // 002_*
+    expect(sessions[2].id).toBe(sessionNames[2]); // 003_*
+
+    // VERIFY: Metadata populated
+    expect(sessions[0].id).toMatch(/^\d{3}_[a-f0-9]{12}$/);
+    expect(sessions[0].hash).toMatch(/^[a-f0-9]{12}$/);
+    expect(sessions[0].path).toBeDefined();
+    expect(sessions[0].createdAt).toBeInstanceOf(Date);
+  });
+
+  // =============================================================================
+  // Test 2: listSessions() Returns Empty Array for Non-Existent Plan Directory
+  // =============================================================================
+
+  it('should return empty array for non-existent plan directory', async () => {
+    // SETUP: Use non-existent plan directory path
+    const nonExistentDir = join(tempDir, 'non-existent-plan');
+
+    // EXECUTE: List sessions from non-existent directory
+    const sessions = await SessionManager.listSessions(nonExistentDir);
+
+    // VERIFY: Returns empty array (not error)
+    expect(sessions).toEqual([]);
+    expect(sessions).toHaveLength(0);
+  });
+
+  // =============================================================================
+  // Test 3: listSessions() Returns Empty Array for Empty Plan Directory
+  // =============================================================================
+
+  it('should return empty array for empty plan directory', async () => {
+    // SETUP: Plan directory already created in beforeEach (empty)
+
+    // EXECUTE: List sessions from empty directory
+    const sessions = await SessionManager.listSessions(planDir);
+
+    // VERIFY: Returns empty array (not error)
+    expect(sessions).toEqual([]);
+    expect(sessions).toHaveLength(0);
+  });
+
+  // =============================================================================
+  // Test 4: listSessions() Includes ParentSession When parent_session.txt Exists
+  // =============================================================================
+
+  it('should include parentSession when parent_session.txt exists', async () => {
+    // SETUP: Create session with parent_session.txt
+    const sessionName = createSessionDirectory(planDir, 2, 'abcdef123456', true);
+    const expectedParent = '001_abc123def456';
+
+    // EXECUTE: List sessions
+    const sessions = await SessionManager.listSessions(planDir);
+
+    // VERIFY: parentSession field populated
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].id).toBe(sessionName);
+    expect(sessions[0].parentSession).toBe(expectedParent);
+  });
+
+  // =============================================================================
+  // Test 5: findLatestSession() Returns Highest Sequence Session
+  // =============================================================================
+
+  it('should return session with highest sequence number', async () => {
+    // SETUP: Create 3 sessions
+    const sessionNames = createMultipleSessions(planDir, 3);
+    const expectedLatest = sessionNames[2]; // 003_*
+
+    // EXECUTE: Find latest session
+    const latest = await SessionManager.findLatestSession(planDir);
+
+    // VERIFY: Returns session 003
+    expect(latest).not.toBeNull();
+    expect(latest!.id).toBe(expectedLatest);
+  });
+
+  // =============================================================================
+  // Test 6: findLatestSession() Returns Null for Empty Plan Directory
+  // =============================================================================
+
+  it('should return null for empty plan directory', async () => {
+    // SETUP: Plan directory already created in beforeEach (empty)
+
+    // EXECUTE: Find latest session
+    const latest = await SessionManager.findLatestSession(planDir);
+
+    // VERIFY: Returns null (not error)
+    expect(latest).toBeNull();
+  });
+
+  // =============================================================================
+  // Test 7: findSessionByPRD() Returns Matching Session
+  // =============================================================================
+
+  it('should return matching session for exact PRD hash', async () => {
+    // SETUP: Create PRD file with known content
+    const prdPath = join(tempDir, 'PRD.md');
+    const prdContent = '# Test PRD\n\nThis is a test PRD.';
+    writeFileSync(prdPath, prdContent, 'utf-8');
+
+    // SETUP: Create session with matching hash
+    const hash = computePRDHash(prdContent);
+    createSessionDirectory(planDir, 1, hash);
+
+    // EXECUTE: Find session by PRD
+    const session = await SessionManager.findSessionByPRD(prdPath, planDir);
+
+    // VERIFY: Returns matching session
+    expect(session).not.toBeNull();
+    expect(session!.hash).toBe(hash);
+    expect(session!.id).toBe(`001_${hash}`);
+  });
+
+  // =============================================================================
+  // Test 8: findSessionByPRD() Returns Null for Non-Existent Hash
+  // =============================================================================
+
+  it('should return null for non-existent PRD hash', async () => {
+    // SETUP: Create PRD file with known content
+    const prdPath = join(tempDir, 'PRD.md');
+    const prdContent = '# Test PRD\n\nThis is a test PRD.';
+    writeFileSync(prdPath, prdContent, 'utf-8');
+
+    // SETUP: Create session with DIFFERENT hash
+    createSessionDirectory(planDir, 1, 'different12hash');
+
+    // EXECUTE: Find session by PRD
+    const session = await SessionManager.findSessionByPRD(prdPath, planDir);
+
+    // VERIFY: Returns null (not error)
+    expect(session).toBeNull();
+  });
+
+  // =============================================================================
+  // Test 9: findSessionByPRD() Throws for Non-Existent PRD File
+  // =============================================================================
+
+  it('should throw SessionFileError for non-existent PRD file', async () => {
+    // SETUP: Use non-existent PRD path
+    const nonExistentPRD = join(tempDir, 'non-existent-prd.md');
+
+    // EXECUTE: Try to find session by non-existent PRD
+    const promise = SessionManager.findSessionByPRD(nonExistentPRD, planDir);
+
+    // VERIFY: Throws SessionFileError
+    await expect(promise).rejects.toThrow(SessionFileError);
+  });
+
+  // =============================================================================
+  // Test 10: Session Metadata Correctly Populated
+  // =============================================================================
+
+  it('should populate all metadata fields correctly', async () => {
+    // SETUP: Create session with all files
+    const sessionName = createSessionDirectory(planDir, 1, 'abcdef123456', false);
+    const sessionPath = join(planDir, sessionName);
+
+    // EXECUTE: List sessions
+    const sessions = await SessionManager.listSessions(planDir);
+
+    // VERIFY: All metadata fields populated
+    expect(sessions).toHaveLength(1);
+    const metadata = sessions[0];
+
+    // VERIFY: id matches directory name
+    expect(metadata.id).toBe(sessionName);
+
+    // VERIFY: hash matches directory hash
+    expect(metadata.hash).toBe('abcdef123456');
+
+    // VERIFY: path is absolute path to session
+    expect(metadata.path).toBe(resolve(sessionPath));
+
+    // VERIFY: createdAt is Date object
+    expect(metadata.createdAt).toBeInstanceOf(Date);
+
+    // VERIFY: parentSession is null (no parent_session.txt)
+    expect(metadata.parentSession).toBeNull();
+  });
+});
