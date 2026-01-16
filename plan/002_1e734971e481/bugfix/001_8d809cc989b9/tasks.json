@@ -183,7 +183,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Critical Bug Fixes - E2E Pipeline Execution",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Fix critical E2E pipeline execution failures where the pipeline returns success: false and fails to create required files (tasks.json, prd_snapshot.md).",
       "milestones": [
         {
@@ -281,21 +281,21 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Validate E2E Pipeline Fixes",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Run E2E tests to verify all pipeline execution issues are resolved.",
           "tasks": [
             {
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Run full E2E pipeline test suite",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Execute all E2E pipeline tests and verify they pass with fixes applied.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Execute E2E pipeline tests",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T2.S3"
@@ -326,14 +326,14 @@
               "type": "Task",
               "id": "P3.M1.T1",
               "title": "Analyze Task Orchestrator logging test failures",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Understand why 21 logging tests are failing and determine the correct fix approach.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T1.S1",
                   "title": "Examine test expectations vs implementation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 4 - 21 Task Orchestrator tests failing with 'expected log to be called with arguments'. Tests expect console.log() but implementation uses Pino logger. From architecture/system_context.md - Test mocks expect console.log calls with specific format like '[TaskOrchestrator] Executing Phase: P1 - Phase 1'.\n2. INPUT: Task Orchestrator tests at /home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts, Task Orchestrator implementation at /home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts.\n3. LOGIC: Read failing test cases to understand exact expectations. Compare with TaskOrchestrator implementation logging statements. Determine: are tests using wrong mock expectations (expecting console.log when should expect Pino), or should implementation be changed to use console.log (regression), or should wrapper be added. Analyze 21 failing tests to find pattern.\n4. OUTPUT: Analysis document in plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/logging-test-analysis.md. Recommendation on whether to fix tests or implementation."
