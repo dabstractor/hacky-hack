@@ -298,7 +298,7 @@
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Test session initialization logic",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Validate SessionManager.initialize() creates new sessions or loads existing ones based on PRD hash.",
               "subtasks": [
                 {
@@ -314,7 +314,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Test existing session loading",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S1"
@@ -325,7 +325,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Test delta session detection",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S2"

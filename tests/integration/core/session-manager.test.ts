@@ -33,7 +33,60 @@ import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 
 import { SessionManager } from '../../../src/core/session-manager.js';
-import type { SessionState } from '../../../src/core/models.js';
+import { SessionFileError } from '../../../src/core/session-utils.js';
+import type { SessionState, Backlog } from '../../../src/core/models.js';
+
+// =============================================================================
+// PATTERN: Fixture Helper Functions for Existing Session Loading
+// =============================================================================
+
+/**
+ * Creates a minimal valid Backlog structure for testing
+ * Contains: 1 Phase, 1 Milestone, 1 Task, 1 Subtask
+ */
+function createMinimalTasksJson(): Backlog {
+  return {
+    backlog: [
+      {
+        type: 'Phase',
+        id: 'P1',
+        title: 'Test Phase',
+        status: 'Planned',
+        description: 'Test phase description',
+        milestones: [
+          {
+            type: 'Milestone',
+            id: 'P1.M1',
+            title: 'Test Milestone',
+            status: 'Planned',
+            description: 'Test milestone description',
+            tasks: [
+              {
+                type: 'Task',
+                id: 'P1.M1.T1',
+                title: 'Test Task',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P1.M1.T1.S1',
+                    title: 'Test Subtask',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
 
 // =============================================================================
 // PATTERN: Test Setup with Temp Directories
@@ -333,5 +386,322 @@ This test verifies that the session sequence numbers increment correctly.
     expect(session.metadata.path).toBe(resolve(planDir, sessionDirName));
     expect(session.metadata.parentSession).toBeNull(); // Not delta session
     expect(session.metadata.createdAt).toBeInstanceOf(Date);
+  });
+});
+
+// =============================================================================
+// Integration Tests for SessionManager.loadSession() - Existing Session Loading
+// =============================================================================
+
+describe('SessionManager.loadSession()', () => {
+  let tempDir: string;
+  let planDir: string;
+  let prdPath: string;
+
+  beforeEach(() => {
+    // Create unique temp directory for each test
+    tempDir = mkdtempSync(join(tmpdir(), 'session-manager-load-test-'));
+    planDir = join(tempDir, 'plan');
+    prdPath = join(tempDir, 'PRD.md');
+
+    // Create initial PRD file with sufficient content for validation
+    const prdContent = `# Test PRD for Session Loading
+
+## Executive Summary
+
+This is a comprehensive test PRD for integration testing of SessionManager.loadSession().
+It contains enough content to pass PRD validation (minimum 100 characters).
+
+## Functional Requirements
+
+The system shall properly load existing sessions from tasks.json with Zod validation.
+The system shall reconstruct complete session state from disk.
+`;
+    writeFileSync(prdPath, prdContent);
+  });
+
+  afterEach(() => {
+    // Cleanup temp directory (force: true ignores ENOENT)
+    if (tempDir && existsSync(tempDir)) {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  // =============================================================================
+  // Test 1: Existing Session Loaded from tasks.json with Zod Validation
+  // =============================================================================
+
+  it('should load existing session from tasks.json', async () => {
+    // SETUP: Create initial session
+    const manager1 = new SessionManager(prdPath, planDir);
+    const session1 = await manager1.initialize();
+
+    // Create tasks.json (required for loadSession to work)
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // EXECUTE: Initialize again with same PRD (triggers loadSession)
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: Session loaded (not recreated)
+    expect(session2.metadata.id).toBe(session1.metadata.id);
+    expect(session2.metadata.hash).toBe(session1.metadata.hash);
+
+    // VERIFY: taskRegistry structure (empty backlog for new session)
+    expect(session2.taskRegistry).toBeDefined();
+    expect(session2.taskRegistry.backlog).toEqual([]);
+
+    // VERIFY: Only one session directory exists
+    const sessionDirsAfter = readdirSync(planDir);
+    expect(sessionDirsAfter).toHaveLength(1);
+  });
+
+  // =============================================================================
+  // Test 2: Complete Phase->Milestone->Task->Subtask Hierarchy Parsed
+  // =============================================================================
+
+  it('should parse complete Phase->Milestone->Task->Subtask hierarchy', async () => {
+    // SETUP: Create session with minimal tasks.json
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // Get session directory and create custom tasks.json
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+
+    const minimalTasks = createMinimalTasksJson();
+    writeFileSync(tasksPath, JSON.stringify(minimalTasks, null, 2), 'utf-8');
+
+    // EXECUTE: Load session again
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session = await manager2.initialize();
+
+    // VERIFY: Complete hierarchy parsed
+    expect(session.taskRegistry.backlog).toHaveLength(1);
+
+    const phase = session.taskRegistry.backlog[0];
+    expect(phase.type).toBe('Phase');
+    expect(phase.id).toBe('P1');
+    expect(phase.milestones).toHaveLength(1);
+
+    const milestone = phase.milestones[0];
+    expect(milestone.type).toBe('Milestone');
+    expect(milestone.id).toBe('P1.M1');
+    expect(milestone.tasks).toHaveLength(1);
+
+    const task = milestone.tasks[0];
+    expect(task.type).toBe('Task');
+    expect(task.id).toBe('P1.M1.T1');
+    expect(task.subtasks).toHaveLength(1);
+
+    const subtask = task.subtasks[0];
+    expect(subtask.type).toBe('Subtask');
+    expect(subtask.id).toBe('P1.M1.T1.S1');
+  });
+
+  // =============================================================================
+  // Test 3: PRD Snapshot Loaded with Identical Content
+  // =============================================================================
+
+  it('should load PRD snapshot with identical content', async () => {
+    // SETUP: Create PRD with specific content
+    const prdContent = `# Test PRD for Snapshot Verification
+
+## Executive Summary
+
+This is a specific test PRD for snapshot verification. We need to ensure that
+the content in prd_snapshot.md matches the original PRD exactly.
+
+## Functional Requirements
+
+The system shall copy the PRD content to prd_snapshot.md with identical content.
+`;
+    writeFileSync(prdPath, prdContent);
+
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // Create tasks.json (required for loadSession to work)
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // EXECUTE: Load session again
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session = await manager2.initialize();
+
+    // VERIFY: PRD snapshot matches original
+    expect(session.prdSnapshot).toBe(prdContent);
+  });
+
+  // =============================================================================
+  // Test 4: Session Metadata Reconstructed from Directory Name
+  // =============================================================================
+
+  it('should reconstruct session metadata from directory name', async () => {
+    // SETUP: Create session
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // Create tasks.json (required for loadSession to work)
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // EXECUTE: Load session again
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session = await manager2.initialize();
+
+    // VERIFY: Metadata reconstructed
+    const sessionDirName = sessionDirs[0];
+
+    expect(session.metadata.id).toBe(sessionDirName);
+    expect(session.metadata.hash).toMatch(/^[a-f0-9]{12}$/);
+    expect(session.metadata.path).toBe(resolve(planDir, sessionDirName));
+    expect(session.metadata.createdAt).toBeInstanceOf(Date);
+    expect(session.metadata.parentSession).toBeNull(); // Not delta session
+  });
+
+  // =============================================================================
+  // Test 5: Parent Session Link Loaded from parent_session.txt
+  // =============================================================================
+
+  it('should load parent session link from parent_session.txt', async () => {
+    // SETUP: Create session with parent_session.txt
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const parentPath = join(sessionPath, 'parent_session.txt');
+    const tasksPath = join(sessionPath, 'tasks.json');
+
+    // Write parent session link and tasks.json
+    writeFileSync(parentPath, '001_abc123def456', 'utf-8');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // EXECUTE: Load session again
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session = await manager2.initialize();
+
+    // VERIFY: Parent session loaded
+    expect(session.metadata.parentSession).toBe('001_abc123def456');
+  });
+
+  // =============================================================================
+  // Test 6: Batch Updates are Not Affected by loadSession
+  // =============================================================================
+
+  it('should not affect batch updates when loading session', async () => {
+    // SETUP: Create session
+    const manager = new SessionManager(prdPath, planDir);
+    await manager.initialize();
+
+    // Create tasks.json (required for loadSession to work)
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // EXECUTE: Load session again (same manager instance)
+    const session = await manager.initialize();
+
+    // VERIFY: Session loads correctly with fresh state
+    expect(session.metadata.id).toBeDefined();
+    expect(session.taskRegistry).toBeDefined();
+    expect(session.currentItemId).toBeNull();
+  });
+
+  // =============================================================================
+  // Test 7: Invalid JSON Throws SessionFileError
+  // =============================================================================
+
+  it('should throw SessionFileError for invalid JSON', async () => {
+    // SETUP: Create session with invalid tasks.json
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+
+    // Write invalid JSON
+    writeFileSync(tasksPath, '{ invalid json }', 'utf-8');
+
+    // EXECUTE & VERIFY: Should throw error
+    const manager2 = new SessionManager(prdPath, planDir);
+    await expect(manager2.initialize()).rejects.toThrow(SessionFileError);
+  });
+
+  // =============================================================================
+  // Test 8: Missing tasks.json Throws SessionFileError
+  // =============================================================================
+
+  it('should throw SessionFileError for missing tasks.json', async () => {
+    // SETUP: Create session directory without tasks.json
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+
+    // Create tasks.json first, then remove it
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+    rmSync(tasksPath);
+
+    // EXECUTE & VERIFY: Should throw error
+    const manager2 = new SessionManager(prdPath, planDir);
+    await expect(manager2.initialize()).rejects.toThrow(SessionFileError);
+  });
+
+  // =============================================================================
+  // Test 9: Missing prd_snapshot.md Throws Error
+  // =============================================================================
+
+  it('should throw error for missing prd_snapshot.md', async () => {
+    // SETUP: Create session without prd_snapshot.md
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const snapshotPath = join(sessionPath, 'prd_snapshot.md');
+
+    // Remove prd_snapshot.md
+    rmSync(snapshotPath);
+
+    // EXECUTE & VERIFY: Should throw error
+    const manager2 = new SessionManager(prdPath, planDir);
+    await expect(manager2.initialize()).rejects.toThrow();
+  });
+
+  // =============================================================================
+  // Test 10: Missing parent_session.txt is Handled Gracefully
+  // =============================================================================
+
+  it('should handle missing parent_session.txt gracefully', async () => {
+    // SETUP: Create session without parent_session.txt (default behavior)
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // Create tasks.json (required for loadSession to work)
+    const sessionDirs = readdirSync(planDir);
+    const sessionPath = join(planDir, sessionDirs[0]);
+    const tasksPath = join(sessionPath, 'tasks.json');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // EXECUTE: Load session again (no parent_session.txt exists)
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session = await manager2.initialize();
+
+    // VERIFY: parentSession is null, no error thrown
+    expect(session.metadata.parentSession).toBeNull();
   });
 });
