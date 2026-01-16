@@ -1,0 +1,108 @@
+
+> hacky-hack@0.1.0 test:run
+> vitest run tests/integration/utils/error-handling.test.ts
+
+
+ RUN  v1.6.1 /home/dustin/projects/hacky-hack
+
+stdout | _log (/home/dustin/projects/hacky-hack/node_modules/dotenv/lib/main.js:142:11)
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+
+stdout | tests/setup.ts:28:15
+.env file loaded successfully
+
+(node:4051173) Warning: mkdtemp() templates ending with X are not portable. For details see: https://nodejs.org/api/fs.html
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/integration/utils/error-handling.test.ts  (23 tests | 6 failed) 10ms
+   ❯ tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify SessionError as fatal
+     → isFatalError is not a function
+   ❯ tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify EnvironmentError as fatal
+     → isFatalError is not a function
+   ❯ tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify ValidationError as non-fatal
+     → isFatalError is not a function
+   ❯ tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify TaskError as non-fatal by default
+     → isFatalError is not a function
+   ❯ tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should handle standard Error as non-fatal
+     → isFatalError is not a function
+   ❯ tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should handle unknown error types as non-fatal
+     → isFatalError is not a function
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify SessionError as fatal
+TypeError: isFatalError is not a function
+ ❯ tests/integration/utils/error-handling.test.ts:133:14
+    131|     it('should identify SessionError as fatal', () => {
+    132|       const error = new SessionError('Session not found');
+    133|       expect(isFatalError(error)).toBe(true);
+       |              ^
+    134|     });
+    135| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify EnvironmentError as fatal
+TypeError: isFatalError is not a function
+ ❯ tests/integration/utils/error-handling.test.ts:138:14
+    136|     it('should identify EnvironmentError as fatal', () => {
+    137|       const error = new EnvironmentError('Missing API key');
+    138|       expect(isFatalError(error)).toBe(true);
+       |              ^
+    139|     });
+    140| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify ValidationError as non-fatal
+TypeError: isFatalError is not a function
+ ❯ tests/integration/utils/error-handling.test.ts:143:14
+    141|     it('should identify ValidationError as non-fatal', () => {
+    142|       const error = new ValidationError('Invalid input');
+    143|       expect(isFatalError(error)).toBe(false);
+       |              ^
+    144|     });
+    145| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should identify TaskError as non-fatal by default
+TypeError: isFatalError is not a function
+ ❯ tests/integration/utils/error-handling.test.ts:148:14
+    146|     it('should identify TaskError as non-fatal by default', () => {
+    147|       const error = new TaskError('Task execution failed');
+    148|       expect(isFatalError(error)).toBe(false);
+       |              ^
+    149|     });
+    150| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should handle standard Error as non-fatal
+TypeError: isFatalError is not a function
+ ❯ tests/integration/utils/error-handling.test.ts:153:14
+    151|     it('should handle standard Error as non-fatal', () => {
+    152|       const error = new Error('Standard error');
+    153|       expect(isFatalError(error)).toBe(false);
+       |              ^
+    154|     });
+    155| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/integration/utils/error-handling.test.ts > Error Handling Integration Tests > Fatal Error Detection > should handle unknown error types as non-fatal
+TypeError: isFatalError is not a function
+ ❯ tests/integration/utils/error-handling.test.ts:158:14
+    156|     it('should handle unknown error types as non-fatal', () => {
+    157|       const error = 'String error';
+    158|       expect(isFatalError(error)).toBe(false);
+       |              ^
+    159|     });
+    160|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 17 passed (23)
+   Start at  00:01:37
+   Duration  440ms (transform 41ms, setup 24ms, collect 20ms, tests 10ms, environment 0ms, prepare 72ms)
+

@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Add EnvironmentError Class",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Implement the missing EnvironmentError class for environment-related failures (missing API keys, invalid configuration, etc.).",
           "tasks": [
             {
@@ -69,14 +69,14 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Validate EnvironmentError Integration Tests",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Run integration tests to verify EnvironmentError is correctly integrated and all 5 failing tests now pass.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Run error handling integration tests",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S4"

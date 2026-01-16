@@ -196,6 +196,12 @@ export abstract class PipelineError extends Error {
     this.context = context;
     this.timestamp = new Date();
 
+    // CRITICAL: Attach context properties directly to error instance for easy access
+    // This allows tests to access properties like error.variable, error.taskId, etc.
+    if (context) {
+      Object.assign(this, context);
+    }
+
     // Store cause if provided (ES2022+)
     // Using type assertion because cause property is not on Error type in all TypeScript versions
     if (cause) {
