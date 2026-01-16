@@ -681,8 +681,14 @@ export class PRPPipeline extends Workflow {
       const tasksContent = await readFile(tasksPath, 'utf-8');
       const parsedBacklog = JSON.parse(tasksContent) as Backlog;
 
-      // Save backlog
+      // Save backlog to disk
       await this.sessionManager.saveBacklog(parsedBacklog);
+
+      // Update session's taskRegistry to reflect the new backlog
+      // This ensures the shutdown handler saves the correct backlog
+      if (this.sessionManager.currentSession) {
+        this.sessionManager.currentSession.taskRegistry = parsedBacklog;
+      }
 
       // Update task counts
       this.totalTasks = this.#countTasks();
@@ -740,6 +746,14 @@ export class PRPPipeline extends Workflow {
       const backlog = this.sessionManager.currentSession?.taskRegistry;
       if (!backlog) {
         throw new Error('Cannot execute pipeline: no backlog found in session');
+      }
+
+      // Check if there are any subtasks to execute
+      const totalSubtasks = this.#countTasks();
+      if (totalSubtasks === 0) {
+        this.logger.info('[PRPPipeline] No subtasks to execute, skipping backlog execution');
+        this.currentPhase = 'backlog_complete';
+        return;
       }
 
       this.#progressTracker = progressTracker({
@@ -942,6 +956,13 @@ export class PRPPipeline extends Workflow {
         return;
       } else {
         // Normal mode: check if all tasks are complete
+        // Skip QA if there are 0 tasks to test
+        if (this.totalTasks === 0) {
+          this.logger.info('[PRPPipeline] No tasks to test, skipping QA cycle');
+          this.#bugsFound = 0;
+          this.currentPhase = 'qa_complete';
+          return;
+        }
         if (!this.#allTasksComplete()) {
           const failedCount = this.#countFailedTasks();
           const plannedCount =

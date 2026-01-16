@@ -236,16 +236,20 @@ describe('E2E Pipeline Tests', () => {
     // Setup agent prompt to return backlog (no subtask execution)
     mockAgent.prompt.mockResolvedValue({ backlog: createMockBacklog() });
 
-    // Setup readFile mock
+    // Setup readFile mock to return Buffer objects (not strings)
+    // This matches production behavior where readFile(path) returns Buffer,
+    // which is required by TextDecoder.decode() in readUTF8FileStrict()
     vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
       const pathStr = String(path);
       if (pathStr.includes('tasks.json')) {
-        return Promise.resolve(JSON.stringify(createMockBacklog()));
+        return Promise.resolve(
+          Buffer.from(JSON.stringify(createMockBacklog()), 'utf-8')
+        );
       }
       if (pathStr.includes('PRD.md')) {
-        return Promise.resolve(mockSimplePRD);
+        return Promise.resolve(Buffer.from(mockSimplePRD, 'utf-8'));
       }
-      return Promise.resolve('');
+      return Promise.resolve(Buffer.from('', 'utf-8'));
     });
 
     // Setup existsSync mock

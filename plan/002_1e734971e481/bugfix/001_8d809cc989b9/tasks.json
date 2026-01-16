@@ -244,7 +244,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Implement fix for session initialization failure",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S3"
@@ -255,7 +255,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Implement fix for tasks.json creation failure",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S1"
