@@ -183,14 +183,14 @@
       "type": "Phase",
       "id": "P2",
       "title": "Critical Bug Fixes - E2E Pipeline Execution",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Fix critical E2E pipeline execution failures where the pipeline returns success: false and fails to create required files (tasks.json, prd_snapshot.md).",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Debug E2E Pipeline Execution Failures",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Identify root cause of E2E pipeline failures through debugging and instrumentation.",
           "tasks": [
             {
@@ -237,7 +237,7 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Fix identified E2E pipeline issues",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Implement fixes for the root causes identified in debugging.",
               "subtasks": [
                 {
@@ -266,7 +266,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S3",
                   "title": "Implement fix for prd_snapshot.md creation failure",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S2"
@@ -281,21 +281,21 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Validate E2E Pipeline Fixes",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Run E2E tests to verify all pipeline execution issues are resolved.",
           "tasks": [
             {
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Run full E2E pipeline test suite",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Execute all E2E pipeline tests and verify they pass with fixes applied.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Execute E2E pipeline tests",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T2.S3"
