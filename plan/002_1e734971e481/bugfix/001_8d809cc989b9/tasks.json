@@ -98,7 +98,7 @@
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Extract isFatalError logic from PRPPipeline",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Extract the private #isFatalError() method from PRPPipeline class and create a public utility function.",
               "subtasks": [
                 {
@@ -114,7 +114,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Write failing tests for isFatalError function",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S1"
@@ -125,7 +125,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
                   "title": "Implement isFatalError function in errors.ts",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S2",

@@ -612,3 +612,92 @@ export function isValidationError(error: unknown): error is ValidationError {
 export function isEnvironmentError(error: unknown): error is EnvironmentError {
   return error instanceof EnvironmentError;
 }
+
+/**
+ * Determines if an error should be treated as fatal
+ *
+ * @remarks
+ * Returns true if the error is fatal and should halt pipeline execution.
+ * Returns false if the error is non-fatal and should allow continuation with tracking.
+ *
+ * Fatal error types:
+ * - SessionError with LOAD_FAILED or SAVE_FAILED error codes
+ * - EnvironmentError (all instances are fatal)
+ * - ValidationError with INVALID_INPUT code for parse_prd operation
+ *
+ * Non-fatal error types:
+ * - TaskError (all instances)
+ * - AgentError (all instances)
+ * - ValidationError with non-parse_prd operations
+ * - All standard Error types (Error, TypeError, etc.)
+ * - Non-object values (null, undefined, strings, numbers, etc.)
+ * - All errors when continueOnError flag is true
+ *
+ * The continueOnError parameter overrides all fatal error detection,
+ * treating all errors as non-fatal when set to true. This enables
+ * maximum progress mode where individual task failures don't halt execution.
+ *
+ * @param error - Unknown error to evaluate for fatality
+ * @param continueOnError - If true, all errors are treated as non-fatal (default: false)
+ * @returns true if error is fatal (should abort), false otherwise
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   await pipelineOperation();
+ * } catch (error) {
+ *   if (isFatalError(error)) {
+ *     // Fatal: halt execution
+ *     throw error;
+ *   }
+ *   // Non-fatal: track and continue
+ *   trackError(error);
+ * }
+ * ```
+ */
+export function isFatalError(
+  error: unknown,
+  continueOnError: boolean = false
+): boolean {
+  // Override all logic when continueOnError is true
+  if (continueOnError) {
+    return false;
+  }
+
+  // Non-object errors are non-fatal
+  if (error == null || typeof error !== 'object') {
+    return false;
+  }
+
+  // Check for PipelineError instances using type guard
+  if (isPipelineError(error)) {
+    // FATAL: All EnvironmentError instances
+    if (isEnvironmentError(error)) {
+      return true;
+    }
+
+    // FATAL: SessionError with LOAD_FAILED or SAVE_FAILED codes
+    if (isSessionError(error)) {
+      return (
+        error.code === ErrorCodes.PIPELINE_SESSION_LOAD_FAILED ||
+        error.code === ErrorCodes.PIPELINE_SESSION_SAVE_FAILED
+      );
+    }
+
+    // FATAL: ValidationError for parse_prd operation with INVALID_INPUT code
+    if (isValidationError(error)) {
+      return (
+        error.code === ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT &&
+        error.context?.operation === 'parse_prd'
+      );
+    }
+
+    // NON-FATAL: TaskError and AgentError are individual failures
+    if (isTaskError(error) || isAgentError(error)) {
+      return false;
+    }
+  }
+
+  // Default: non-fatal for unknown error types
+  return false;
+}
