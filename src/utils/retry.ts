@@ -235,14 +235,14 @@ function sleep(ms: number): Promise<void> {
  * Formula: exponentialDelay + jitter
  * Where:
  * - exponentialDelay = min(baseDelay * backoffFactor ^ attempt, maxDelay)
- * - jitter = exponentialDelay * jitterFactor * (random() - 0.5) * 2
+ * - jitter = exponentialDelay * jitterFactor * random()
  *
  * Example with baseDelay=1000, backoffFactor=2, jitterFactor=0.1:
- * - Attempt 0: 1000ms +/- 100ms (900-1100ms)
- * - Attempt 1: 2000ms +/- 200ms (1800-2200ms)
- * - Attempt 2: 4000ms +/- 400ms (3600-4400ms)
- * - Attempt 3: 8000ms +/- 800ms (7200-8800ms)
- * - Attempt 4+: 30000ms (capped) +/- 3000ms (27000-33000ms)
+ * - Attempt 0: 1000ms to 1100ms (positive-only jitter)
+ * - Attempt 1: 2000ms to 2200ms (positive-only jitter)
+ * - Attempt 2: 4000ms to 4400ms (positive-only jitter)
+ * - Attempt 3: 8000ms to 8800ms (positive-only jitter)
+ * - Attempt 4+: 30000ms (capped) to 33000ms (positive-only jitter)
  */
 function calculateDelay(
   attempt: number,
@@ -257,13 +257,13 @@ function calculateDelay(
     maxDelay
   );
 
-  // Full jitter: randomize around exponential delay
-  // (Math.random() - 0.5) * 2 gives range [-1, 1]
+  // Positive jitter: always adds variance, never subtracts
+  // Math.random() gives range [0, 1), ensuring jitter is always >= 0
   // Multiply by jitterFactor to scale variance
-  const jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2;
+  const jitter = exponentialDelay * jitterFactor * Math.random();
 
-  // Ensure non-negative delay
-  const delay = Math.max(0, Math.floor(exponentialDelay + jitter));
+  // Ensure delay is strictly greater than exponentialDelay
+  const delay = Math.max(1, Math.floor(exponentialDelay + jitter));
 
   return delay;
 }

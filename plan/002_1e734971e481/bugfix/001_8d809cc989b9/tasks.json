@@ -312,7 +312,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "Major Bug Fixes - Test Alignment",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Fix major issues with test alignment including Task Orchestrator logging failures, session utils validation, and retry utility jitter calculation.",
       "milestones": [
         {
@@ -393,21 +393,21 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "Fix Retry Utility Jitter Calculation",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Fix the retry utility jitter calculation to ensure jitter is always positive.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Update jitter calculation to be always positive",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Modify jitter calculation in retry.ts to ensure delay is always greater than base delay.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Implement positive jitter calculation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 6 - Test expects jitter to make delay strictly greater than base, but implementation may produce equal values. Current formula: jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2. Can produce negative, zero, or positive jitter.\n2. INPUT: Retry utility at /home/dustin/projects/hacky-hack/src/utils/retry.ts, current jitter calculation.\n3. LOGIC: Modify jitter calculation to ensure always positive. Change: const jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random()). This ensures jitter >= 1ms, making total delay always greater than base delay. Alternative: update test to allow >= instead of >. Implement calculation fix preferred.\n4. OUTPUT: Jitter calculation updated to always be positive, test 'should add jitter to delay' now passing."
@@ -429,21 +429,21 @@
           "type": "Milestone",
           "id": "P4.M1",
           "title": "Fix Test Output Verbosity",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Reduce excessive .env file loading messages in test output.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M1.T1",
               "title": "Configure dotenv to use quiet mode",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update dotenv configuration to suppress loading messages during tests.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M1.T1.S1",
                   "title": "Update dotenv config with quiet option",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 8 - Excessive .env file loading messages appear throughout test output (20+ occurrences). Should use { quiet: true } option in test setup.\n2. INPUT: Test setup files (likely in tests/setup.ts or vitest.config.ts), dotenv usage.\n3. LOGIC: Find where dotenv.config() is called in test setup. Update to dotenv.config({ quiet: true }) to suppress loading messages. Alternative: redirect debug output to proper log level. Ensure environment variables still loaded correctly.\n4. OUTPUT: Dotenv configured with quiet mode, test output no longer shows excessive .env loading messages."
