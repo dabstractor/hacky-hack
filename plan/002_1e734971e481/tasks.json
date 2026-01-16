@@ -284,7 +284,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Phase 2: Core Engine Validation",
-      "status": "Planned",
+      "status": "Complete",
       "description": "Validate the four core engines (Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller) work correctly with Groundswell integration.",
       "milestones": [
         {
@@ -382,8 +382,130 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Task Orchestrator Validation",
-          "status": "Planned",
-          "description": "Ensure TaskOrchestrator correctly traverses task hierarchy, resolves dependencies, and delegates execution to PRPRuntime."
+          "status": "Complete",
+          "description": "Ensure TaskOrchestrator correctly traverses task hierarchy, resolves dependencies, and delegates execution to PRPRuntime.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Test task hierarchy traversal logic",
+              "status": "Complete",
+              "description": "Validate TaskOrchestrator correctly traverses Phase→Milestone→Task→Subtask hierarchy using DFS pre-order traversal.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Test DFS pre-order traversal",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator at /src/core/task-orchestrator.ts implements depth-first pre-order traversal. Parent items (Phase, Milestone, Task) set status to 'Implementing' and delegate child processing via processNextItem(). Subtasks are the main execution unit. Execution queue built from scope resolution. Refer to task-orchestrator.ts lines 44-61.\n2. INPUT: SessionManager with initialized session containing multi-level hierarchy.\n3. LOGIC: Create test file at tests/integration/core/task-orchestrator.test.ts. Test 1: Create hierarchy with Phase→Milestone→Task→Subtask, verify traversal order is parent-before-children. Test 2: Verify processNextItem() returns true for each item until queue empty. Test 3: Verify currentItemId updates correctly during traversal. Test 4: Test with multiple phases/milestones/tasks/subtasks. Use temp directory for session state.\n4. OUTPUT: DFS traversal test coverage. Confirmed parent-before-children execution order. Queue processing validated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S2",
+                  "title": "Test dependency resolution",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P2.M2.T1.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator canExecute() checks if subtask dependencies are Complete. Uses getDependencies() utility to resolve dependency IDs. getBlockingDependencies() returns incomplete dependencies. waitForDependencies() polls with timeout. Refer to task-orchestrator.ts lines 251-354.\n2. INPUT: DFS traversal tests passing from S1.\n3. LOGIC: Extend tests/integration/core/task-orchestrator.test.ts. Test 1: Create subtask with dependency, verify canExecute() returns false until dependency Complete. Test 2: Test getBlockingDependencies() returns correct blockers. Test 3: Test waitForDependencies() resolves when dependencies complete. Test 4: Test waitForDependencies() throws on timeout. Use multi-level dependency chains.\n4. OUTPUT: Dependency resolution test coverage. Confirmed blocking behavior. Timeout handling validated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S3",
+                  "title": "Test execution queue management",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M2.T1.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Execution queue built via #buildQueue() using resolveScope(). Queue contains HierarchyItem[] for processing. scope parameter filters items (phase/milestone/task/subtask/all). processNextItem() shifts from queue FIFO. setScope() rebuilds queue dynamically. Refer to task-orchestrator.ts lines 152-188, 805-834.\n2. INPUT: Dependency resolution tests passing from S2.\n3. LOGIC: Extend tests/integration/core/task-orchestrator.test.ts. Test 1: Create orchestrator with no scope, verify all items in queue. Test 2: Create orchestrator with milestone scope, verify only that milestone's items queued. Test 3: Test setScope() rebuilds queue correctly. Test 4: Test processNextItem() empties queue completely. Use various scope levels.\n4. OUTPUT: Execution queue test coverage. Confirmed scope filtering. Queue rebuild validated."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T2",
+              "title": "Test integration with runtime components",
+              "status": "Complete",
+              "description": "Validate TaskOrchestrator correctly integrates with ResearchQueue and PRPRuntime for PRP generation and execution.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S1",
+                  "title": "Test ResearchQueue integration",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator integrates with ResearchQueue for parallel PRP generation. Queue initialized with concurrency limit 3. executeTask() enqueues subtasks via researchQueue.enqueue(). executeSubtask() checks cache via getPRP(). Background research triggered via processNext(). Stats available via getStats(). Refer to task-orchestrator.ts lines 79-82, 129-138, 538-562, 597-684.\n2. INPUT: None - initial testing of ResearchQueue integration.\n3. LOGIC: Create test file at tests/integration/core/task-orchestrator-runtime.test.ts. Test 1: Create orchestrator, verify ResearchQueue initialized with concurrency 3. Test 2: Execute task, verify subtasks enqueued. Test 3: Check stats after enqueue. Test 4: Test background processNext() triggers research. Mock PRPRuntime to isolate queue behavior.\n4. OUTPUT: ResearchQueue integration test coverage. Confirmed enqueue behavior. Background processing validated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S2",
+                  "title": "Test PRPRuntime execution delegation",
+                  "status": "Complete",
+                  "story_points": 3,
+                  "dependencies": [
+                    "P2.M2.T2.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator delegates subtask execution to PRPRuntime via #prpRuntime.executeSubtask(). PRPRuntime initialized in constructor. executeSubtask() checks cache, generates PRP if needed, validates via gates, returns result. Status progression: Researching → Implementing → Complete/Failed. Smart commit after success. Refer to task-orchestrator.ts lines 82, 136-138, 584-750.\n2. INPUT: ResearchQueue integration tests passing from S1.\n3. LOGIC: Extend tests/integration/core/task-orchestrator-runtime.test.ts. Test 1: Execute subtask, verify PRPRuntime.executeSubtask() called. Test 2: Verify status progression (Researching → Implementing → Complete). Test 3: Test success path triggers smart commit. Test 4: Test failure path sets Failed status and flushes. Mock PRPRuntime.executeSubtask() to control outcomes.\n4. OUTPUT: PRPRuntime delegation test coverage. Confirmed status transitions. Smart commit validated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S3",
+                  "title": "Test cache hit/miss behavior",
+                  "status": "Complete",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P2.M2.T2.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ResearchQueue cache checked in executeSubtask() via researchQueue.getPRP(). Cache hit uses existing PRP, cache miss generates new. Cache metrics tracked (#cacheHits, #cacheMisses) and logged via #logCacheMetrics(). --no-cache flag bypasses cache. Refer to task-orchestrator.ts lines 597-614, 761-773.\n2. INPUT: PRPRuntime delegation tests passing from S2.\n3. LOGIC: Extend tests/integration/core/task-orchestrator-runtime.test.ts. Test 1: Execute subtask with cached PRP, verify cache hit logged. Test 2: Execute subtask without cache, verify cache miss logged. Test 3: Verify metrics logged correctly (hits, misses, hitRatio). Test 4: Test --no-cache flag bypasses cache. Pre-populate cache for hit tests.\n4. OUTPUT: Cache behavior test coverage. Confirmed hit detection. Metrics logging validated."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T3",
+              "title": "Test end-to-end orchestrator workflows",
+              "status": "Complete",
+              "description": "Validate complete TaskOrchestrator workflows from backlog initialization to task completion with real filesystem operations.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S1",
+                  "title": "Test complete workflow execution",
+                  "status": "Complete",
+                  "story_points": 3,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Complete workflow involves: SessionManager.initialize() → TaskOrchestrator construction → processNextItem() loop → executePhase/executeMilestone/executeTask/executeSubtask → status updates → flushUpdates() → smart commit. All components integrate. Real filesystem I/O for session state. Refer to task-orchestrator.ts lines 107-139, 805-834.\n2. INPUT: None - testing complete workflow.\n3. LOGIC: Create test file at tests/integration/core/task-orchestrator-e2e.test.ts. Test 1: Create session with sample backlog, run orchestrator to completion, verify all items processed. Test 2: Verify tasks.json persists all status changes. Test 3: Verify smart commits created. Test 4: Test with complex hierarchy (multiple phases/milestones/tasks/subtasks). Use temp directory, real SessionManager.\n4. OUTPUT: E2E workflow test coverage. Confirmed complete execution. State persistence validated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S2",
+                  "title": "Test scope-based execution",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P2.M2.T3.S1"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Scope execution filters backlog to specific items. Scope types: 'all', 'phase', 'milestone', 'task', 'subtask'. Scope resolver matches IDs and returns descendants. TaskOrchestrator accepts scope in constructor. setScope() changes scope mid-execution. Refer to scope-resolver.ts, task-orchestrator.ts lines 107-126, 416-433.\n2. INPUT: Complete workflow tests passing from S1.\n3. LOGIC: Extend tests/integration/core/task-orchestrator-e2e.test.ts. Test 1: Run with milestone scope, verify only that milestone executes. Test 2: Run with task scope, verify only that task's subtasks execute. Test 3: Test setScope() mid-execution changes queue. Test 4: Test invalid scope returns empty queue. Use multi-level backlog.\n4. OUTPUT: Scope-based execution test coverage. Confirmed filtering. Mid-execution scope change validated."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S3",
+                  "title": "Test graceful shutdown handling",
+                  "status": "Complete",
+                  "story_points": 2,
+                  "dependencies": [
+                    "P2.M2.T3.S2"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Graceful shutdown via SIGINT/SIGTERM signals. Pipeline Controller handles signals, calls sessionManager.flushUpdates(). State preserved for resume. Current item marked in orchestrator. TaskOrchestrator supports resume via existing session loading. Refer to PRD Section 4.2, pipeline controller implementation.\n2. INPUT: Scope-based execution tests passing from S2.\n3. LOGIC: Extend tests/integration/core/task-orchestrator-e2e.test.ts. Test 1: Start execution, send SIGINT, verify state flushed. Test 2: Resume from interrupted session, verify continues from last item. Test 3: Verify currentItemId preserved across shutdown. Test 4: Test multiple shutdown/resume cycles. Mock signal handling.\n4. OUTPUT: Graceful shutdown test coverage. Confirmed state preservation. Resume behavior validated."
+                }
+              ]
+            }
+          ]
         }
       ]
     }
