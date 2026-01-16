@@ -20,7 +20,7 @@ import { beforeEach, afterEach, vi } from 'vitest';
 try {
   await import('dotenv').then(({ default: dotenv }) => {
     // Try to load .env file, but don't fail if it doesn't exist
-    const result = dotenv.config();
+    const result = dotenv.config({ quiet: true });
     if (result.error) {
       // .env file doesn't exist or can't be read - use existing environment
       console.debug('No .env file found, using existing environment variables');

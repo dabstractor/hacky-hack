@@ -429,21 +429,21 @@
           "type": "Milestone",
           "id": "P4.M1",
           "title": "Fix Test Output Verbosity",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Reduce excessive .env file loading messages in test output.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M1.T1",
               "title": "Configure dotenv to use quiet mode",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update dotenv configuration to suppress loading messages during tests.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M1.T1.S1",
                   "title": "Update dotenv config with quiet option",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 8 - Excessive .env file loading messages appear throughout test output (20+ occurrences). Should use { quiet: true } option in test setup.\n2. INPUT: Test setup files (likely in tests/setup.ts or vitest.config.ts), dotenv usage.\n3. LOGIC: Find where dotenv.config() is called in test setup. Update to dotenv.config({ quiet: true }) to suppress loading messages. Alternative: redirect debug output to proper log level. Ensure environment variables still loaded correctly.\n4. OUTPUT: Dotenv configured with quiet mode, test output no longer shows excessive .env loading messages."
@@ -456,21 +456,21 @@
           "type": "Milestone",
           "id": "P4.M2",
           "title": "Fix Integration Test Setup",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Resolve PromiseRejectionHandledWarning messages in integration tests.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M2.T1",
               "title": "Add proper promise rejection handlers",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Fix unhandled promise rejections in test setup to eliminate warnings.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M2.T1.S1",
                   "title": "Investigate promise rejection warnings",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 7 - PromiseRejectionHandledWarning messages appear during test runs. Some tests fail stack trace preservation checks. Need to identify source of unhandled rejections.\n2. INPUT: Integration test output showing warnings, test setup files, test teardown code.\n3. LOGIC: Run integration tests and capture PromiseRejectionHandledWarning messages. Identify which tests or setup code causes unhandled rejections. Add proper .catch() handlers or try-catch blocks. Ensure all promises are properly handled in test fixtures. Review async/await usage.\n4. OUTPUT: Analysis of promise rejection sources, identified unhandled rejections fixed with proper handlers."
