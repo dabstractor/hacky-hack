@@ -208,15 +208,48 @@ export class SessionManager {
    * @throws {SessionFileError} If PRD cannot be read or session creation fails
    */
   async initialize(): Promise<SessionState> {
+    const initStartTime = Date.now();
+
+    this.#logger.debug(
+      { prdPath: this.prdPath, operation: 'initialize' },
+      '[SessionManager] Starting session initialization'
+    );
+
     // 1. Hash the PRD
+    this.#logger.debug(
+      { prdPath: this.prdPath, operation: 'hashPRD' },
+      '[SessionManager] Computing PRD hash'
+    );
+
     const fullHash = await hashPRD(this.prdPath);
     const sessionHash = fullHash.slice(0, 12);
+
+    this.#logger.debug(
+      { prdPath: this.prdPath, sessionHash, fullHashLength: fullHash.length },
+      '[SessionManager] PRD hash computed'
+    );
+
     // Cache the PRD hash for later change detection
     this.#prdHash = sessionHash;
 
     // 2. Validate PRD content and structure
+    this.#logger.debug(
+      { prdPath: this.prdPath, operation: 'validatePRD' },
+      '[SessionManager] Validating PRD structure'
+    );
+
     const validator = new PRDValidator();
     const validationResult = await validator.validate(this.prdPath);
+
+    this.#logger.debug(
+      {
+        valid: validationResult.valid,
+        warnings: validationResult.summary.warning,
+        info: validationResult.summary.info,
+        critical: validationResult.summary.critical,
+      },
+      '[SessionManager] PRD validation result'
+    );
 
     if (!validationResult.valid) {
       // Find first critical issue for error message
@@ -249,14 +282,44 @@ export class SessionManager {
     }
 
     // 3. Search for existing session with matching hash
+    this.#logger.debug(
+      { sessionHash, planDir: this.planDir, operation: 'findSession' },
+      '[SessionManager] Searching for existing session'
+    );
+
     const existingSession = await this.#findSessionByHash(sessionHash);
 
     if (existingSession) {
+      this.#logger.debug(
+        { existingSession, sessionHash },
+        '[SessionManager] Existing session found'
+      );
+    } else {
+      this.#logger.debug(
+        { sessionHash, result: 'not_found' },
+        '[SessionManager] No existing session found'
+      );
+    }
+
+    if (existingSession) {
       // 4. Load existing session
+      this.#logger.debug(
+        { sessionPath: existingSession, operation: 'loadSession' },
+        '[SessionManager] Loading existing session'
+      );
+
       this.#currentSession = await this.loadSession(existingSession);
 
       // 4.5. Validate dependencies if backlog exists
       if (this.#currentSession.taskRegistry.backlog.length > 0) {
+        this.#logger.debug(
+          {
+            taskCount: this.#currentSession.taskRegistry.backlog.length,
+            operation: 'validateDependencies',
+          },
+          '[SessionManager] Validating dependencies for existing session'
+        );
+
         try {
           detectCircularDeps(this.#currentSession.taskRegistry);
           this.#logger.info('[SessionManager] Dependency validation passed');
@@ -283,21 +346,70 @@ export class SessionManager {
     }
 
     // 5. Create new session
+    this.#logger.debug(
+      { planDir: this.planDir, operation: 'getNextSequence' },
+      '[SessionManager] Determining session sequence'
+    );
+
     const sequence = await this.#getNextSequence();
+
+    this.#logger.debug(
+      { sequence, operation: 'getNextSequence' },
+      '[SessionManager] Sequence number determined'
+    );
+
+    this.#logger.debug(
+      {
+        sequence,
+        sessionHash,
+        prdPath: this.prdPath,
+        operation: 'createSessionDirectory',
+      },
+      '[SessionManager] Creating session directory'
+    );
+
     const sessionPath = await createSessionDirectory(
       this.prdPath,
       sequence,
       this.planDir
     );
 
+    const sessionId = `${String(sequence).padStart(3, '0')}_${sessionHash}`;
+
+    this.#logger.info(
+      { sessionId, sessionPath },
+      '[SessionManager] Session directory created'
+    );
+
     // 6. Write PRD snapshot
+    this.#logger.debug(
+      { prdPath: this.prdPath, operation: 'readPRD' },
+      '[SessionManager] Reading PRD for snapshot'
+    );
+
     const prdContent = await readFile(this.prdPath, 'utf-8');
-    await writeFile(resolve(sessionPath, 'prd_snapshot.md'), prdContent, {
+
+    const snapshotPath = resolve(sessionPath, 'prd_snapshot.md');
+    this.#logger.debug(
+      {
+        sessionPath,
+        snapshotPath,
+        prdSize: prdContent.length,
+        operation: 'writeSnapshot',
+      },
+      '[SessionManager] Writing PRD snapshot'
+    );
+
+    await writeFile(snapshotPath, prdContent, {
       mode: 0o644,
     });
 
+    this.#logger.info(
+      { sessionId, snapshotPath, size: prdContent.length },
+      '[SessionManager] PRD snapshot created'
+    );
+
     // 7. Create SessionState with empty task registry
-    const sessionId = `${String(sequence).padStart(3, '0')}_${sessionHash}`;
     const metadata: SessionMetadata = {
       id: sessionId,
       hash: sessionHash,
@@ -313,7 +425,17 @@ export class SessionManager {
       currentItemId: null,
     };
 
+    this.#logger.debug(
+      { sessionId, sessionPath, backlogEmpty: true },
+      '[SessionManager] Session state created (empty backlog)'
+    );
+
     // 7.5. Validate dependencies (will pass for empty backlog)
+    this.#logger.debug(
+      { backlogSize: 0, operation: 'validateDependencies' },
+      '[SessionManager] Validating dependencies (empty backlog)'
+    );
+
     try {
       detectCircularDeps(this.#currentSession.taskRegistry);
       this.#logger.info('[SessionManager] Dependency validation passed');
@@ -331,7 +453,21 @@ export class SessionManager {
       throw error; // Re-throw other errors
     }
 
-    this.#logger.info({ sessionId, sessionPath }, 'Session created');
+    this.#logger.info(
+      { sessionId, sessionPath, backlogEmpty: true },
+      '[SessionManager] Session created'
+    );
+
+    this.#logger.info(
+      {
+        sessionId,
+        sessionPath,
+        duration: Date.now() - initStartTime,
+        backlogEmpty: true,
+      },
+      '[SessionManager] Session initialized successfully'
+    );
+
     return this.#currentSession;
   }
 
