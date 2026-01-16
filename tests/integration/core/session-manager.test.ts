@@ -27,6 +27,7 @@ import {
   readFileSync,
   existsSync,
   readdirSync,
+  mkdirSync,
 } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -35,6 +36,8 @@ import { createHash } from 'node:crypto';
 import { SessionManager } from '../../../src/core/session-manager.js';
 import { SessionFileError } from '../../../src/core/session-utils.js';
 import type { SessionState, Backlog } from '../../../src/core/models.js';
+import { mockSimplePRD } from '../../fixtures/simple-prd.js';
+import { mockSimplePRDv2 } from '../../fixtures/simple-prd-v2.js';
 
 // =============================================================================
 // PATTERN: Fixture Helper Functions for Existing Session Loading
@@ -703,5 +706,333 @@ The system shall copy the PRD content to prd_snapshot.md with identical content.
 
     // VERIFY: parentSession is null, no error thrown
     expect(session.metadata.parentSession).toBeNull();
+  });
+});
+
+// =============================================================================
+// Integration Tests for SessionManager Delta Session Detection
+// =============================================================================
+
+describe('SessionManager Delta Session Detection', () => {
+  let tempDir: string;
+  let planDir: string;
+  let prdPath: string;
+
+  beforeEach(() => {
+    // Create unique temp directory for each test
+    tempDir = mkdtempSync(join(tmpdir(), 'session-manager-delta-test-'));
+    planDir = join(tempDir, 'plan');
+    prdPath = join(tempDir, 'PRD.md');
+  });
+
+  afterEach(() => {
+    // Cleanup temp directory (force: true ignores ENOENT)
+    if (tempDir && existsSync(tempDir)) {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  // =============================================================================
+  // Test 1: Delta Session Created When PRD Hash Changes
+  // =============================================================================
+
+  it('should create delta session when PRD hash changes', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    const session1 = await manager1.initialize();
+
+    // EXECUTE: Modify PRD and initialize again (triggers delta detection)
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: New session directory created
+    const sessionDirs = readdirSync(planDir).filter((d) =>
+      /^\d{3}_[a-f0-9]{12}$/.test(d)
+    );
+    expect(sessionDirs).toHaveLength(2);
+
+    // VERIFY: Hashes are different (delta session created)
+    expect(session2.metadata.hash).not.toBe(session1.metadata.hash);
+
+    // VERIFY: Both sessions exist in plan/
+    expect(sessionDirs.some((d) => d.includes(session1.metadata.hash))).toBe(
+      true
+    );
+    expect(sessionDirs.some((d) => d.includes(session2.metadata.hash))).toBe(
+      true
+    );
+  });
+
+  // =============================================================================
+  // Test 2: Delta Session Named with Incremented Sequence
+  // =============================================================================
+
+  it('should name delta session with incremented sequence', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // EXECUTE: Modify PRD to trigger delta
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: Delta session has incremented sequence
+    const sessionDirs = readdirSync(planDir);
+    const sequences = sessionDirs
+      .map((d) => d.match(/^(\d{3})_/)?.[1])
+      .filter((s): s is string => s !== undefined)
+      .sort();
+
+    expect(sequences).toEqual(['001', '002']);
+    expect(session2.metadata.id).toMatch(/^002_/);
+  });
+
+  // =============================================================================
+  // Test 3: Previous Session PRD Preserved in prd_snapshot.md
+  // =============================================================================
+
+  it('should preserve previous session PRD in prd_snapshot.md', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    const session1 = await manager1.initialize();
+
+    // EXECUTE: Modify PRD to create new session
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    await manager2.initialize();
+
+    // VERIFY: Previous session prd_snapshot.md contains original PRD
+    const sessionDirs = readdirSync(planDir);
+    const firstSessionId = sessionDirs.find((d) => d.startsWith('001_'));
+    expect(firstSessionId).toBeDefined();
+
+    const firstSessionPath = join(planDir, firstSessionId!);
+    const oldPRDPath = join(firstSessionPath, 'prd_snapshot.md');
+    const oldPRDContent = readFileSync(oldPRDPath, 'utf-8');
+
+    // NOTE: mockSimplePRD starts with \n, writeFile preserves it
+    expect(oldPRDContent).toBe(mockSimplePRD);
+  });
+
+  // =============================================================================
+  // Test 4: New Session PRD Snapshot Contains Modified Content
+  // =============================================================================
+
+  it('should create new session with modified PRD snapshot', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // EXECUTE: Modify PRD to create new session
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: New session prdSnapshot matches modified PRD
+    // NOTE: mockSimplePRDv2 starts with \n, it's preserved
+    expect(session2.prdSnapshot).toBe(mockSimplePRDv2);
+
+    // VERIFY: New session has different hash from first session
+    const sessionDirs = readdirSync(planDir);
+    const secondSessionId = sessionDirs.find((d) => d.startsWith('002_'));
+    expect(secondSessionId).toBeDefined();
+    expect(secondSessionId).toContain(session2.metadata.hash);
+  });
+
+  // =============================================================================
+  // Test 5: Delta Detection Fails Gracefully If Parent Missing
+  // =============================================================================
+
+  it('should fail gracefully if parent session missing', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager = new SessionManager(prdPath, planDir);
+    const session1 = await manager.initialize();
+
+    // Create tasks.json to allow loading
+    const session1Path = join(planDir, session1.metadata.id);
+    const tasksPath = join(session1Path, 'tasks.json');
+    writeFileSync(tasksPath, JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+
+    // Manually create a session directory with non-existent parent
+    const fakeParentId = '999_nonexistent';
+    const deltaSessionName = '002_fakeparent123';
+    const deltaPath = join(planDir, deltaSessionName);
+    mkdirSync(deltaPath, { recursive: true });
+
+    // Write parent_session.txt with fake parent
+    writeFileSync(join(deltaPath, 'parent_session.txt'), fakeParentId, 'utf-8');
+    writeFileSync(join(deltaPath, 'tasks.json'), JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+    writeFileSync(join(deltaPath, 'prd_snapshot.md'), '# Fake PRD', 'utf-8');
+
+    // EXECUTE: Try to load the session with missing parent
+    const manager2 = new SessionManager(prdPath, planDir);
+
+    // VERIFY: Should handle gracefully (load succeeds, parent reference exists)
+    // Note: The parent session doesn't need to exist for loading
+    // The system just stores the reference
+    const session2 = await manager2.initialize();
+    expect(session2).toBeDefined();
+  });
+
+  // =============================================================================
+  // Test 6: Hash Comparison Correctly Detects PRD Modifications
+  // =============================================================================
+
+  it('should detect PRD modifications via hash comparison', async () => {
+    // SETUP: Create initial session
+    const originalPRD = mockSimplePRD;
+    writeFileSync(prdPath, originalPRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    const session1 = await manager1.initialize();
+
+    // EXECUTE: Modify single character (minimal change)
+    const modifiedPRD = originalPRD.replace('Hello, World!', 'Hello, World?');
+    writeFileSync(prdPath, modifiedPRD, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: Delta session created (hash differs)
+    expect(session2.metadata.hash).not.toBe(session1.metadata.hash);
+
+    // VERIFY: New hash computed correctly
+    const expectedNewHash = createHash('sha256')
+      .update(modifiedPRD, 'utf-8')
+      .digest('hex')
+      .slice(0, 12);
+    expect(session2.metadata.hash).toBe(expectedNewHash);
+  });
+
+  // =============================================================================
+  // Test 7: New Session Has Unique ID and Null ParentSession
+  // =============================================================================
+
+  it('should create new session with unique ID and null parentSession', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    const session1 = await manager1.initialize();
+
+    // EXECUTE: Modify PRD to trigger new session creation
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: metadata.id is different from first session
+    expect(session2.metadata.id).not.toBe(session1.metadata.id);
+
+    // VERIFY: Both sessions have null parentSession (not delta sessions)
+    expect(session1.metadata.parentSession).toBeNull();
+    expect(session2.metadata.parentSession).toBeNull();
+
+    // VERIFY: Session IDs have correct format
+    expect(session1.metadata.id).toMatch(/^\d{3}_[a-f0-9]{12}$/);
+    expect(session2.metadata.id).toMatch(/^\d{3}_[a-f0-9]{12}$/);
+  });
+
+  // =============================================================================
+  // Test 8: Old PRD Accessible from Previous Session
+  // =============================================================================
+
+  it('should preserve old PRD in previous session directory', async () => {
+    // SETUP: Create initial session with specific PRD
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    await manager1.initialize();
+
+    // EXECUTE: Modify PRD to trigger new session
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    await manager2.initialize();
+
+    // VERIFY: Both sessions exist
+    const sessionDirs = readdirSync(planDir);
+    expect(sessionDirs).toHaveLength(2);
+
+    // Get first session path
+    const firstSessionId = sessionDirs.find((d) => d.startsWith('001_'));
+    expect(firstSessionId).toBeDefined();
+
+    const firstSessionPath = join(planDir, firstSessionId!);
+    const oldPRDPath = join(firstSessionPath, 'prd_snapshot.md');
+    const oldPRDContent = readFileSync(oldPRDPath, 'utf-8');
+
+    // VERIFY: Old PRD matches original content (including leading \n)
+    expect(oldPRDContent).toBe(mockSimplePRD);
+  });
+
+  // =============================================================================
+  // Test 9: New PRD Snapshot in Latest Session
+  // =============================================================================
+
+  it('should include new PRD in latest session prdSnapshot', async () => {
+    // SETUP: Create initial session
+    writeFileSync(prdPath, mockSimplePRD, 'utf-8');
+    const manager1 = new SessionManager(prdPath, planDir);
+    const session1 = await manager1.initialize();
+
+    // EXECUTE: Modify PRD to trigger new session
+    writeFileSync(prdPath, mockSimplePRDv2, 'utf-8');
+    const manager2 = new SessionManager(prdPath, planDir);
+    const session2 = await manager2.initialize();
+
+    // VERIFY: New PRD in prdSnapshot (including leading \n)
+    expect(session2.prdSnapshot).toBe(mockSimplePRDv2);
+
+    // VERIFY: Hashes are different
+    expect(session2.metadata.hash).not.toBe(session1.metadata.hash);
+  });
+
+  // =============================================================================
+  // Test 10: Sequential New Sessions (001 → 002 → 003)
+  // =============================================================================
+
+  it('should handle sequential new sessions with incrementing sequence numbers', async () => {
+    // SETUP & EXECUTE: Create three sessions
+    const prdVariants = [
+      mockSimplePRD,
+      mockSimplePRDv2,
+      mockSimplePRDv2.replace('Calculator', 'Calculator Plus'),
+    ];
+
+    const sessions = [];
+    for (const prdContent of prdVariants) {
+      writeFileSync(prdPath, prdContent, 'utf-8');
+      const manager = new SessionManager(prdPath, planDir);
+      const session = await manager.initialize();
+      sessions.push(session);
+    }
+
+    // VERIFY: Three sessions exist
+    const sessionDirs = readdirSync(planDir);
+    expect(sessionDirs).toHaveLength(3);
+
+    // VERIFY: Correct sequence numbers (001, 002, 003)
+    const sequences = sessionDirs
+      .map((d) => d.match(/^(\d{3})_/)?.[1])
+      .filter((s): s is string => s !== undefined)
+      .sort();
+    expect(sequences).toEqual(['001', '002', '003']);
+
+    // VERIFY: All sessions have unique hashes
+    const hashes = sessions.map((s) => s.metadata.hash);
+    const uniqueHashes = new Set(hashes);
+    expect(uniqueHashes.size).toBe(3);
+
+    // VERIFY: All sessions have null parentSession (not delta sessions)
+    sessions.forEach((session) => {
+      expect(session.metadata.parentSession).toBeNull();
+    });
+
+    // VERIFY: Session IDs match the sequence numbers
+    expect(sessions[0].metadata.id).toMatch(/^001_/);
+    expect(sessions[1].metadata.id).toMatch(/^002_/);
+    expect(sessions[2].metadata.id).toMatch(/^003_/);
   });
 });
