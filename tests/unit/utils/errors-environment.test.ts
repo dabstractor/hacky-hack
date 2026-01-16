@@ -386,8 +386,10 @@ describe('isEnvironmentError type guard', () => {
       throw new EnvironmentError('Environment error');
     } catch (error) {
       if (isEnvironmentError(error)) {
+        // After type narrowing, error is EnvironmentError
         expect(error.code).toBe(ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT);
-        expect(error.context).toBeDefined();
+        // context is optional and undefined when not provided
+        expect(error.context).toBeUndefined();
       }
     }
   });

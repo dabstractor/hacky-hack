@@ -579,3 +579,30 @@ export function isAgentError(error: unknown): error is AgentError {
 export function isValidationError(error: unknown): error is ValidationError {
   return error instanceof ValidationError;
 }
+
+/**
+ * Type guard for EnvironmentError
+ *
+ * @remarks
+ * Returns true if the error is an instance of EnvironmentError.
+ * Use for environment configuration-specific error handling.
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   validateEnvironment();
+ * } catch (error) {
+ *   if (isEnvironmentError(error)) {
+ *     // error is narrowed to EnvironmentError
+ *     console.log(`Environment error: ${error.message}`);
+ *     console.log(`Error code: ${error.code}`);
+ *     if (error.context) {
+ *       console.log(`Context:`, error.context);
+ *     }
+ *   }
+ * }
+ * ```
+ */
+export function isEnvironmentError(error: unknown): error is EnvironmentError {
+  return error instanceof EnvironmentError;
+}
