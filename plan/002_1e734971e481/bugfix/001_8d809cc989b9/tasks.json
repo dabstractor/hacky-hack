@@ -312,7 +312,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "Major Bug Fixes - Test Alignment",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Fix major issues with test alignment including Task Orchestrator logging failures, session utils validation, and retry utility jitter calculation.",
       "milestones": [
         {
@@ -366,21 +366,21 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Fix Session Utils Validation Test",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Fix the session utils test that fails due to invalid context_scope format in test fixture.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Fix test fixture context_scope format",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update the test data to use proper CONTRACT DEFINITION format for context_scope field.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Update test fixture with valid context_scope",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 5 - Test 'should handle deep hierarchy in backlog' fails because test fixture uses context_scope: 'Test scope' but Zod schema requires format starting with 'CONTRACT DEFINITION:\\n'. From architecture/system_context.md - Validation is working correctly, test data is wrong.\n2. INPUT: Session utils tests at /home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts, Zod schema requiring 'CONTRACT DEFINITION:\\n' prefix.\n3. LOGIC: Find test 'should handle deep hierarchy in backlog'. Locate test fixture data with context_scope: 'Test scope'. Replace with proper format: context_scope: 'CONTRACT DEFINITION:\\n1. RESEARCH NOTE: Test context\\n2. INPUT: ...\\n3. LOGIC: ...\\n4. OUTPUT: ...'. Ensure format matches Zod validation requirements.\n4. OUTPUT: Test fixture updated with valid context_scope format, test 'should handle deep hierarchy in backlog' now passing."
@@ -393,21 +393,21 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "Fix Retry Utility Jitter Calculation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Fix the retry utility jitter calculation to ensure jitter is always positive.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Update jitter calculation to be always positive",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Modify jitter calculation in retry.ts to ensure delay is always greater than base delay.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Implement positive jitter calculation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 6 - Test expects jitter to make delay strictly greater than base, but implementation may produce equal values. Current formula: jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2. Can produce negative, zero, or positive jitter.\n2. INPUT: Retry utility at /home/dustin/projects/hacky-hack/src/utils/retry.ts, current jitter calculation.\n3. LOGIC: Modify jitter calculation to ensure always positive. Change: const jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random()). This ensures jitter >= 1ms, making total delay always greater than base delay. Alternative: update test to allow >= instead of >. Implement calculation fix preferred.\n4. OUTPUT: Jitter calculation updated to always be positive, test 'should add jitter to delay' now passing."
