@@ -37,6 +37,7 @@ import {
   isTaskError,
   isAgentError,
   isValidationError,
+  isFatalError,
   ErrorCodes,
 } from '../utils/errors.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
@@ -354,69 +355,6 @@ export class PRPPipeline extends Workflow {
   }
 
   /**
-   * Determines if an error should be treated as fatal
-   *
-   * @param error - Unknown error to evaluate
-   * @returns true if error is fatal (should abort pipeline), false otherwise
-   *
-   * @remarks
-   * Fatal errors abort the pipeline immediately. Non-fatal errors are tracked
-   * and execution continues.
-   *
-   * Fatal error types:
-   * - Session load/save failures (when --continue-on-error is false)
-   * - Validation errors for PRD parsing
-   *
-   * Non-fatal error types:
-   * - Task execution failures (TaskError)
-   * - Agent LLM failures (AgentError)
-   * - All other errors when --continue-on-error is true
-   *
-   * @private
-   */
-  #isFatalError(error: unknown): boolean {
-    // If --continue-on-error flag is set, treat all errors as non-fatal
-    if (this.#continueOnError) {
-      this.logger.warn(
-        '[PRPPipeline] --continue-on-error enabled: treating error as non-fatal'
-      );
-      return false;
-    }
-
-    // Null/undefined check
-    if (error == null || typeof error !== 'object') {
-      return false; // Non-object errors are non-fatal
-    }
-
-    // Check for PipelineError from error hierarchy
-    if (isPipelineError(error)) {
-      // FATAL: Session errors that prevent pipeline execution
-      if (isSessionError(error)) {
-        return (
-          error.code === ErrorCodes.PIPELINE_SESSION_LOAD_FAILED ||
-          error.code === ErrorCodes.PIPELINE_SESSION_SAVE_FAILED
-        );
-      }
-
-      // FATAL: Validation errors for PRD parsing
-      if (isValidationError(error)) {
-        return (
-          error.code === ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT &&
-          error.context?.operation === 'parse_prd'
-        );
-      }
-
-      // NON-FATAL: Task and Agent errors are individual failures
-      if (isTaskError(error) || isAgentError(error)) {
-        return false;
-      }
-    }
-
-    // Default: non-fatal (continue on unknown errors)
-    return false;
-  }
-
-  /**
    * Tracks a task failure in the failedTasks Map
    *
    * @param taskId - ID of the task that failed
@@ -536,7 +474,7 @@ export class PRPPipeline extends Workflow {
         error instanceof Error ? error.message : String(error);
 
       // Check if error is fatal
-      if (this.#isFatalError(error)) {
+      if (isFatalError(error, this.#continueOnError)) {
         this.logger.error(
           `[PRPPipeline] Fatal session initialization error: ${errorMessage}`
         );
@@ -663,7 +601,7 @@ export class PRPPipeline extends Workflow {
         error instanceof Error ? error.message : String(error);
 
       // Check if error is fatal
-      if (this.#isFatalError(error)) {
+      if (isFatalError(error, this.#continueOnError)) {
         this.logger.error(
           `[PRPPipeline] Fatal delta handling error: ${errorMessage}`
         );
@@ -761,7 +699,7 @@ export class PRPPipeline extends Workflow {
         error instanceof Error ? error.message : String(error);
 
       // Check if error is fatal
-      if (this.#isFatalError(error)) {
+      if (isFatalError(error, this.#continueOnError)) {
         this.logger.error(
           `[PRPPipeline] Fatal PRD decomposition error: ${errorMessage}`
         );
@@ -950,7 +888,7 @@ export class PRPPipeline extends Workflow {
         error instanceof Error ? error.message : String(error);
 
       // Check if error is fatal
-      if (this.#isFatalError(error)) {
+      if (isFatalError(error, this.#continueOnError)) {
         this.logger.error(
           `[PRPPipeline] Fatal backlog execution error: ${errorMessage}`
         );
@@ -1235,7 +1173,7 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
         error instanceof Error ? error.message : String(error);
 
       // Check if error is fatal
-      if (this.#isFatalError(error)) {
+      if (isFatalError(error, this.#continueOnError)) {
         this.logger.error(
           `[PRPPipeline] Fatal QA cycle error: ${errorMessage}`
         );

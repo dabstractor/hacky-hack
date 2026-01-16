@@ -139,14 +139,14 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Update PRPPipeline to use exported isFatalError",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Refactor PRPPipeline class to use the new public isFatalError() function instead of private method.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Refactor PRPPipeline to import isFatalError",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S3"
