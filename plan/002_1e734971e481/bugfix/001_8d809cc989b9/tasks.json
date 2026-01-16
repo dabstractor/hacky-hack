@@ -1,0 +1,481 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Critical Bug Fixes - Error Handling Infrastructure",
+      "status": "Ready",
+      "description": "Fix critical gaps in error handling infrastructure that prevent the system from functioning. This phase addresses the missing EnvironmentError class and isFatalError() function that are causing integration test failures.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Add EnvironmentError Class",
+          "status": "Planned",
+          "description": "Implement the missing EnvironmentError class for environment-related failures (missing API keys, invalid configuration, etc.).",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Implement EnvironmentError Class",
+              "status": "Planned",
+              "description": "Add EnvironmentError class to the error hierarchy following the pattern of SessionError, TaskError, and AgentError.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Write failing tests for EnvironmentError class",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - EnvironmentError must follow same pattern as SessionError, TaskError, AgentError. Should use ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT. Must include proper TypeScript inheritance with Object.setPrototypeOf().\n2. INPUT: Existing error class patterns from /home/dustin/projects/hacky-hack/src/utils/errors.ts (SessionError, TaskError, AgentError classes as reference).\n3. LOGIC: Write comprehensive failing tests (500+ tests) covering: constructor with message only, constructor with context, constructor with cause, error code assignment, toJSON() method, prototype chain correctness, type guard functionality. Follow TDD pattern - tests must fail before implementation.\n4. OUTPUT: Test file at tests/unit/utils/errors-environment.test.ts with all tests failing (red phase). Tests will be fixed in next subtask."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Implement EnvironmentError class in errors.ts",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - Must extend PipelineError, use code PIPELINE_VALIDATION_INVALID_INPUT, call Object.setPrototypeOf() for prototype chain. Follow exact pattern of SessionError class.\n2. INPUT: Failing tests from Subtask P1.M1.T1.S1, existing error class patterns from /home/dustin/projects/hacky-hack/src/utils/errors.ts.\n3. LOGIC: Add EnvironmentError class to /home/dustin/projects/hacky-hack/src/utils/errors.ts. Implement: class declaration extending PipelineError, readonly code property set to ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT, constructor accepting (message: string, context?: PipelineErrorContext, cause?: Error), super() call to parent, Object.setPrototypeOf(this, EnvironmentError.prototype) for prototype chain.\n4. OUTPUT: EnvironmentError class added to errors.ts, all tests from P1.M1.T1.S1 now passing (green phase)."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S3",
+                  "title": "Add isEnvironmentError type guard function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - Type guards exist for all other error types (isSessionError, isTaskError, isAgentError). Must follow same pattern using isPipelineError and instanceof check.\n2. INPUT: EnvironmentError class from P1.M1.T1.S2, existing type guard patterns from /home/dustin/projects/hacky-hack/src/utils/errors.ts.\n3. LOGIC: Add isEnvironmentError() function to errors.ts. Implement: function accepting (error: unknown), return type 'error is EnvironmentError', body returns isPipelineError(error) && error instanceof EnvironmentError. Export function alongside other type guards.\n4. OUTPUT: isEnvironmentError() function exported from errors.ts, type narrowing works correctly for error handling code."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S4",
+                  "title": "Export EnvironmentError from core index",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From git history - error classes are exported from src/core/index.ts for public API. Must add EnvironmentError to exports if other error classes are exported there.\n2. INPUT: EnvironmentError class from P1.M1.T1.S3, export patterns from /home/dustin/projects/hacky-hack/src/core/index.ts.\n3. LOGIC: Check if src/core/index.ts exports error classes (SessionError, TaskError, etc.). If yes, add EnvironmentError to exports. Export as: export { EnvironmentError } from './utils/errors'; or similar pattern.\n4. OUTPUT: EnvironmentError available via import from '@core/index' if that's the established pattern, otherwise exports remain in errors.ts only."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Validate EnvironmentError Integration Tests",
+              "status": "Planned",
+              "description": "Run integration tests to verify EnvironmentError is correctly integrated and all 5 failing tests now pass.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Run error handling integration tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T1.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 1 - 5 integration tests expect EnvironmentError to exist and be constructible. Tests are in tests/integration/utils/error-handling.test.ts.\n2. INPUT: EnvironmentError class from P1.M1.T1.S4, integration test suite at /home/dustin/projects/hacky-hack/tests/integration/utils/error-handling.test.ts.\n3. LOGIC: Run npm run test:run -- tests/integration/utils/error-handling.test.ts. Verify tests that were failing with 'EnvironmentError is not a constructor' now pass. Check: should create EnvironmentError with correct properties, should identify EnvironmentError as fatal (after isFatalError implemented), should include EnvironmentError in error type hierarchy.\n4. OUTPUT: All 5 EnvironmentError-related integration tests passing. Test results documented."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Add isFatalError Function",
+          "status": "Planned",
+          "description": "Implement the missing isFatalError() function to determine if an error should halt execution immediately (fatal) vs. allow retry/continuation (non-fatal).",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Extract isFatalError logic from PRPPipeline",
+              "status": "Planned",
+              "description": "Extract the private #isFatalError() method from PRPPipeline class and create a public utility function.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Examine existing #isFatalError implementation",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From git history - PRPPipeline has private #isFatalError() method added in commit dba41a5. Must extract this logic to public utility. From PRD Issue 2 - Fatal errors: SessionError, EnvironmentError. Non-fatal: TaskError, AgentError, ValidationError.\n2. INPUT: PRPPipeline class at /home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts, private #isFatalError() method implementation.\n3. LOGIC: Read PRPPipeline class to understand #isFatalError() implementation. Document logic: what error types are considered fatal, what error types are non-fatal, how it handles unknown errors (not PipelineError instances). Note any differences from PRD specification.\n4. OUTPUT: Documentation of existing #isFatalError() logic in plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/. Ready for extraction."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Write failing tests for isFatalError function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - Tests expect isFatalError() to correctly identify fatal vs non-fatal errors. Fatal: SessionError, EnvironmentError (prevent execution). Non-fatal: TaskError, AgentError, ValidationError (allow retry). Standard Error objects should be non-fatal.\n2. INPUT: Fatal error logic from P1.M2.T1.S1, test patterns from /home/dustin/projects/hacky-hack/tests/integration/utils/error-handling.test.ts.\n3. LOGIC: Write comprehensive failing tests (200+ tests) covering: SessionError returns true, EnvironmentError returns true, TaskError returns false, AgentError returns false, ValidationError returns false, standard Error returns false, undefined/null returns false, isPipelineError() type guard usage. Follow TDD pattern.\n4. OUTPUT: Test file at tests/unit/utils/is-fatal-error.test.ts with all tests failing (red phase). Tests expect isFatalError() function that doesn't exist yet."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S3",
+                  "title": "Implement isFatalError function in errors.ts",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S2", "P1.M1.T1.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - Must use isPipelineError() type guard, then check isSessionError() or EnvironmentError instance. Returns false for standard errors (non-fatal). Must export as public function.\n2. INPUT: Failing tests from P1.M2.T1.S2, logic from P1.M2.T1.S1, type guards from /home/dustin/projects/hacky-hack/src/utils/errors.ts.\n3. LOGIC: Add isFatalError() function to /home/dustin/projects/hacky-hack/src/utils/errors.ts. Implement: export function isFatalError(error: unknown): boolean { if (!isPipelineError(error)) { return false; } return isSessionError(error) || error instanceof EnvironmentError; }. Add JSDoc explaining fatal vs non-fatal concept.\n4. OUTPUT: isFatalError() function exported from errors.ts, all tests from P1.M2.T1.S2 now passing (green phase)."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Update PRPPipeline to use exported isFatalError",
+              "status": "Planned",
+              "description": "Refactor PRPPipeline class to use the new public isFatalError() function instead of private method.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Refactor PRPPipeline to import isFatalError",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - PRPPipeline has private #isFatalError() method. Should refactor to use public utility from errors.ts. Reduces code duplication, provides single source of truth.\n2. INPUT: isFatalError() function from P1.M2.T1.S3, PRPPipeline class at /home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts.\n3. LOGIC: In PRPPipeline class: remove private #isFatalError() method, add import { isFatalError } from '../utils/errors', replace all this.#isFatalError() calls with isFatalError(). Verify error handling logic unchanged. Run tests to ensure no regression.\n4. OUTPUT: PRPPipeline refactored to use public isFatalError() utility, private method removed, all existing tests still passing."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T3",
+              "title": "Validate isFatalError Integration Tests",
+              "status": "Planned",
+              "description": "Run integration tests to verify isFatalError() is correctly integrated and all 6 failing tests now pass.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S1",
+                  "title": "Run fatal error detection integration tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 2 - 6 integration tests expect isFatalError() to exist and correctly identify fatal errors. Tests are in tests/integration/utils/error-handling.test.ts.\n2. INPUT: isFatalError() function from P1.M2.T2.S1, integration test suite at /home/dustin/projects/hacky-hack/tests/integration/utils/error-handling.test.ts.\n3. LOGIC: Run npm run test:run -- tests/integration/utils/error-handling.test.ts. Verify tests that were failing with 'isFatalError is not a function' now pass. Check: should identify SessionError as fatal, should identify EnvironmentError as fatal, should identify ValidationError as non-fatal, should identify TaskError as non-fatal, should identify AgentError as non-fatal.\n4. OUTPUT: All 6 isFatalError-related integration tests passing. Combined with P1.M1.T2.S1, all 11 error handling integration tests now passing."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "Critical Bug Fixes - E2E Pipeline Execution",
+      "status": "Planned",
+      "description": "Fix critical E2E pipeline execution failures where the pipeline returns success: false and fails to create required files (tasks.json, prd_snapshot.md).",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Debug E2E Pipeline Execution Failures",
+          "status": "Planned",
+          "description": "Identify root cause of E2E pipeline failures through debugging and instrumentation.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Add debug logging to pipeline execution",
+              "status": "Planned",
+              "description": "Instrument PRPPipeline.run() and session initialization with detailed debug logging to identify failure point.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Add debug logging to PRPPipeline.run()",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 3 - Pipeline failing silently, need to identify failure point. From architecture/system_context.md - Session initialization likely failing. Must add logging at each step to narrow down issue.\n2. INPUT: PRPPipeline class at /home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts, Pino logger infrastructure.\n3. LOGIC: In PRPPipeline.run() method: add this.#logger.debug() at entry point with PRD hash, add logging after session initialization with session path, add logging after task backlog creation, add logging after each major workflow step, add try-catch with error logging. Use structured logging with context objects.\n4. OUTPUT: PRPPipeline.run() instrumented with debug logging, re-run E2E tests to capture detailed failure information."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Add debug logging to session initialization",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - SessionManager.initialize() creates tasks.json and prd_snapshot.md. These files are missing in E2E tests. Must add logging to identify where initialization fails.\n2. INPUT: SessionManager class at /home/dustin/projects/hacky-hack/src/core/session-manager.ts, session utils at /home/dustin/projects/hacky-hack/src/core/session-utils.ts.\n3. LOGIC: In SessionManager.initialize(): add logging for PRD hash generation, add logging for session directory creation, add logging for tasks.json write operation, add logging for prd_snapshot.md write operation, add try-catch with error logging for each file operation. Log file paths and operation results.\n4. OUTPUT: Session initialization instrumented with debug logging, re-run E2E tests to capture file operation failure details."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S3",
+                  "title": "Run instrumented E2E tests and analyze output",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 3 - E2E tests in tests/e2e/pipeline.test.ts show: success: false, ENOENT for prd_snapshot.md, ENOENT for tasks.json, timeout after 30 seconds. Need detailed logs to identify root cause.\n2. INPUT: Instrumented PRPPipeline from P2.M1.T1.S1, instrumented SessionManager from P2.M1.T1.S2, E2E test suite at /home/dustin/projects/hacky-hack/tests/e2e/pipeline.test.ts.\n3. LOGIC: Run npm run test:run -- tests/e2e/pipeline.test.ts with debug logging enabled. Capture full output including: session directory path, PRD hash value, file operation results, any error messages with stack traces, execution timeline. Analyze logs to identify: first failure point, root cause (permissions? validation? mocks?), why files not created.\n4. OUTPUT: Detailed debug logs with root cause analysis documented in plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-analysis.md. Ready for fix implementation."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T2",
+              "title": "Fix identified E2E pipeline issues",
+              "status": "Planned",
+              "description": "Implement fixes for the root causes identified in debugging.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Implement fix for session initialization failure",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From debug analysis in P2.M1.T1.S3 - Root cause identified (hypothesis: session directory creation failing, or PRD validation failing, or mock misalignment). Must implement targeted fix based on actual findings.\n2. INPUT: Debug analysis from P2.M1.T1.S3, SessionManager at /home/dustin/projects/hacky-hack/src/core/session-manager.ts, E2E test mocks at /home/dustin/projects/hacky-hack/tests/e2e/pipeline.test.ts.\n3. LOGIC: Based on root cause: if directory creation failing - add error handling and retry logic, if PRD validation failing - fix validation logic or test fixture, if mock misalignment - fix test mocks to return expected data structures, if permission issue - add permission checks and clear error messages. Implement minimal fix addressing root cause.\n4. OUTPUT: Session initialization fixed, root cause eliminated, E2E tests show different error or progress further."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S2",
+                  "title": "Implement fix for tasks.json creation failure",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 3 - tasks.json not created, causing ENOENT in tests. File written via writeTasksJSON() in session-utils.ts using atomic write pattern. Fix depends on root cause from debug analysis.\n2. INPUT: Debug analysis from P2.M1.T1.S3, session-utils at /home/dustin/projects/hacky-hack/src/core/session-utils.ts, writeTasksJSON() function.\n3. LOGIC: Based on root cause: if validation failing - fix test fixture data or validation logic, if atomic write failing - add error handling and retry, if directory permission issue - fix directory creation, if Zod schema rejecting - fix data structure. Ensure atomic write pattern works: write temp file, rename to final path.\n4. OUTPUT: tasks.json creation fixed, file exists in session directory after E2E test run, Zod validation passing."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S3",
+                  "title": "Implement fix for prd_snapshot.md creation failure",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 3 - prd_snapshot.md not created, causing ENOENT in tests. File should contain exact PRD content at session creation. Fix depends on root cause from debug analysis.\n2. INPUT: Debug analysis from P2.M1.T1.S3, SessionManager initialization code, PRD snapshot write logic.\n3. LOGIC: Based on root cause: if write operation failing - add error handling and retry, if PRD content invalid - fix PRD fixture in tests, if file path issue - fix path generation, if timing issue - ensure write completes before continuing. Ensure prd_snapshot.md contains exact PRD content.\n4. OUTPUT: prd_snapshot.md creation fixed, file exists in session directory with correct content after E2E test run."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M2",
+          "title": "Validate E2E Pipeline Fixes",
+          "status": "Planned",
+          "description": "Run E2E tests to verify all pipeline execution issues are resolved.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Run full E2E pipeline test suite",
+              "status": "Planned",
+              "description": "Execute all E2E pipeline tests and verify they pass with fixes applied.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Execute E2E pipeline tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M1.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 3 - 4 E2E tests failing: should complete full pipeline workflow successfully, should create valid prd_snapshot.md, should create valid tasks.json, should complete execution in under 30 seconds. All tests should pass after fixes.\n2. INPUT: Fixed SessionManager from P2.M1.T2, fixed PRPPipeline from P2.M1.T2, E2E test suite at /home/dustin/projects/hacky-hack/tests/e2e/pipeline.test.ts.\n3. LOGIC: Run npm run test:run -- tests/e2e/pipeline.test.ts. Verify: should complete full pipeline workflow successfully (result.success = true), should create valid prd_snapshot.md (file exists, valid markdown), should create valid tasks.json (file exists, valid JSON backlog structure), should complete execution in under 30 seconds.\n4. OUTPUT: All 4 E2E pipeline tests passing. Pipeline executes successfully end-to-end, files created correctly."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "Major Bug Fixes - Test Alignment",
+      "status": "Planned",
+      "description": "Fix major issues with test alignment including Task Orchestrator logging failures, session utils validation, and retry utility jitter calculation.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "Fix Task Orchestrator Logging Tests",
+          "status": "Planned",
+          "description": "Resolve 21 failing Task Orchestrator tests related to logging assertions.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "Analyze Task Orchestrator logging test failures",
+              "status": "Planned",
+              "description": "Understand why 21 logging tests are failing and determine the correct fix approach.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Examine test expectations vs implementation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 4 - 21 Task Orchestrator tests failing with 'expected log to be called with arguments'. Tests expect console.log() but implementation uses Pino logger. From architecture/system_context.md - Test mocks expect console.log calls with specific format like '[TaskOrchestrator] Executing Phase: P1 - Phase 1'.\n2. INPUT: Task Orchestrator tests at /home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts, Task Orchestrator implementation at /home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts.\n3. LOGIC: Read failing test cases to understand exact expectations. Compare with TaskOrchestrator implementation logging statements. Determine: are tests using wrong mock expectations (expecting console.log when should expect Pino), or should implementation be changed to use console.log (regression), or should wrapper be added. Analyze 21 failing tests to find pattern.\n4. OUTPUT: Analysis document in plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/logging-test-analysis.md. Recommendation on whether to fix tests or implementation."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M1.T2",
+              "title": "Implement Task Orchestrator logging fix",
+              "status": "Planned",
+              "description": "Apply the chosen fix approach for Task Orchestrator logging tests.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S1",
+                  "title": "Update test mocks to expect Pino logger calls",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From architecture/system_context.md - Recommended approach is to update test mocks to expect Pino calls instead of console.log. Pino is the actual logging system used. TaskOrchestrator uses getLogger('TaskOrchestrator') which returns Pino logger.\n2. INPUT: Test analysis from P3.M1.T1.S1, Task Orchestrator tests at /home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts, Pino logger API.\n3. LOGIC: In test setup: replace console.log mocks with Pino logger mocks. Use vi.mock('./logger-utils', () => ({ getLogger: vi.fn().mockReturnValue({ info: vi.fn(), debug: vi.fn(), error: vi.fn() }) })). Update test expectations to use toHaveBeenCalledWith({ taskId, status }, 'message') format matching Pino structured logging. Update all 21 failing tests.\n4. OUTPUT: Task Orchestrator tests updated to expect Pino logger calls, all 21 tests now passing."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Fix Session Utils Validation Test",
+          "status": "Planned",
+          "description": "Fix the session utils test that fails due to invalid context_scope format in test fixture.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "Fix test fixture context_scope format",
+              "status": "Planned",
+              "description": "Update the test data to use proper CONTRACT DEFINITION format for context_scope field.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Update test fixture with valid context_scope",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 5 - Test 'should handle deep hierarchy in backlog' fails because test fixture uses context_scope: 'Test scope' but Zod schema requires format starting with 'CONTRACT DEFINITION:\\n'. From architecture/system_context.md - Validation is working correctly, test data is wrong.\n2. INPUT: Session utils tests at /home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts, Zod schema requiring 'CONTRACT DEFINITION:\\n' prefix.\n3. LOGIC: Find test 'should handle deep hierarchy in backlog'. Locate test fixture data with context_scope: 'Test scope'. Replace with proper format: context_scope: 'CONTRACT DEFINITION:\\n1. RESEARCH NOTE: Test context\\n2. INPUT: ...\\n3. LOGIC: ...\\n4. OUTPUT: ...'. Ensure format matches Zod validation requirements.\n4. OUTPUT: Test fixture updated with valid context_scope format, test 'should handle deep hierarchy in backlog' now passing."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M3",
+          "title": "Fix Retry Utility Jitter Calculation",
+          "status": "Planned",
+          "description": "Fix the retry utility jitter calculation to ensure jitter is always positive.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M3.T1",
+              "title": "Update jitter calculation to be always positive",
+              "status": "Planned",
+              "description": "Modify jitter calculation in retry.ts to ensure delay is always greater than base delay.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S1",
+                  "title": "Implement positive jitter calculation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 6 - Test expects jitter to make delay strictly greater than base, but implementation may produce equal values. Current formula: jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2. Can produce negative, zero, or positive jitter.\n2. INPUT: Retry utility at /home/dustin/projects/hacky-hack/src/utils/retry.ts, current jitter calculation.\n3. LOGIC: Modify jitter calculation to ensure always positive. Change: const jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random()). This ensures jitter >= 1ms, making total delay always greater than base delay. Alternative: update test to allow >= instead of >. Implement calculation fix preferred.\n4. OUTPUT: Jitter calculation updated to always be positive, test 'should add jitter to delay' now passing."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P4",
+      "title": "Minor Bug Fixes - Polish",
+      "status": "Planned",
+      "description": "Address minor issues including test output verbosity, integration test setup, and documentation alignment.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P4.M1",
+          "title": "Fix Test Output Verbosity",
+          "status": "Planned",
+          "description": "Reduce excessive .env file loading messages in test output.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M1.T1",
+              "title": "Configure dotenv to use quiet mode",
+              "status": "Planned",
+              "description": "Update dotenv configuration to suppress loading messages during tests.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S1",
+                  "title": "Update dotenv config with quiet option",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 8 - Excessive .env file loading messages appear throughout test output (20+ occurrences). Should use { quiet: true } option in test setup.\n2. INPUT: Test setup files (likely in tests/setup.ts or vitest.config.ts), dotenv usage.\n3. LOGIC: Find where dotenv.config() is called in test setup. Update to dotenv.config({ quiet: true }) to suppress loading messages. Alternative: redirect debug output to proper log level. Ensure environment variables still loaded correctly.\n4. OUTPUT: Dotenv configured with quiet mode, test output no longer shows excessive .env loading messages."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P4.M2",
+          "title": "Fix Integration Test Setup",
+          "status": "Planned",
+          "description": "Resolve PromiseRejectionHandledWarning messages in integration tests.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M2.T1",
+              "title": "Add proper promise rejection handlers",
+              "status": "Planned",
+              "description": "Fix unhandled promise rejections in test setup to eliminate warnings.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T1.S1",
+                  "title": "Investigate promise rejection warnings",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 7 - PromiseRejectionHandledWarning messages appear during test runs. Some tests fail stack trace preservation checks. Need to identify source of unhandled rejections.\n2. INPUT: Integration test output showing warnings, test setup files, test teardown code.\n3. LOGIC: Run integration tests and capture PromiseRejectionHandledWarning messages. Identify which tests or setup code causes unhandled rejections. Add proper .catch() handlers or try-catch blocks. Ensure all promises are properly handled in test fixtures. Review async/await usage.\n4. OUTPUT: Analysis of promise rejection sources, identified unhandled rejections fixed with proper handlers."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P4.M3",
+          "title": "Verify Overall Test Pass Rate",
+          "status": "Planned",
+          "description": "Run full test suite to verify all fixes and confirm >98% pass rate.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M3.T1",
+              "title": "Execute full test suite and validate results",
+              "status": "Planned",
+              "description": "Run all tests and confirm system returns to >98% pass rate with no critical failures.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T1.S1",
+                  "title": "Run complete test suite",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P4.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Testing Summary - Original test statistics: 3,303 tests, 93.2% pass rate (3,081 passing, 118 failing). After all bug fixes (P1-P4), should return to >98% pass rate with <50 failing tests.\n2. INPUT: All bug fixes from P1 (Error handling), P2 (E2E pipeline), P3 (Test alignment), P4 (Polish).\n3. LOGIC: Run npm run test:run to execute full test suite. Capture test statistics: total tests, passing count, failing count, skipped count, pass percentage. Verify: all critical issues resolved (0 critical failing tests), all major issues resolved (0 major failing tests), pass rate >98%, no new test failures introduced.\n4. OUTPUT: Full test suite execution results showing >98% pass rate. All bug fixes validated. System fully functional."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
