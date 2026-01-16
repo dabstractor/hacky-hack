@@ -2017,4 +2017,637 @@ describe('core/models Zod Schemas', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  // =============================================================================
+  // TypeScript Type System Tests
+  // =============================================================================
+
+  describe('TypeScript type definitions', () => {
+    describe('Subtask type structure', () => {
+      it('should have correct property types', () => {
+        expectTypeOf<Subtask>()
+          .toHaveProperty('id')
+          .toBeString();
+
+        expectTypeOf<Subtask>()
+          .toHaveProperty('type')
+          .extract<'type'>()
+          .toEqualTypeOf<'Subtask'>();
+
+        expectTypeOf<Subtask>()
+          .toHaveProperty('title')
+          .toBeString();
+
+        expectTypeOf<Subtask>()
+          .toHaveProperty('status')
+          .toEqualTypeOf<Status>();
+
+        expectTypeOf<Subtask>()
+          .toHaveProperty('story_points')
+          .toBeNumber();
+
+        expectTypeOf<Subtask>()
+          .toHaveProperty('dependencies')
+          .toBeArray();
+
+        expectTypeOf<Subtask>()
+          .toHaveProperty('context_scope')
+          .toBeString();
+      });
+
+      it('should have readonly properties', () => {
+        // SETUP: Create a sample subtask
+        const sample: Subtask = {
+          id: 'P1.M1.T1.S1',
+          type: 'Subtask',
+          title: 'Test',
+          status: 'Planned',
+          story_points: 2,
+          dependencies: [],
+          context_scope: 'Test',
+        };
+
+        // VERIFY: Cannot reassign readonly property (compile-time check)
+        // @ts-expect-error - Property is readonly
+        sample.id = 'P1.M1.T1.S2';
+
+        // @ts-expect-error - Property is readonly
+        sample.type = 'Task';
+      });
+
+      it('should match Zod schema inference', () => {
+        type InferredSubtask = z.infer<typeof SubtaskSchema>;
+        expectTypeOf<InferredSubtask>().toEqualTypeOf<Subtask>();
+      });
+    });
+
+    describe('Task type structure', () => {
+      it('should have correct property types', () => {
+        expectTypeOf<Task>()
+          .toHaveProperty('id')
+          .toBeString();
+
+        expectTypeOf<Task>()
+          .toHaveProperty('type')
+          .extract<'type'>()
+          .toEqualTypeOf<'Task'>();
+
+        expectTypeOf<Task>()
+          .toHaveProperty('title')
+          .toBeString();
+
+        expectTypeOf<Task>()
+          .toHaveProperty('status')
+          .toEqualTypeOf<Status>();
+
+        expectTypeOf<Task>()
+          .toHaveProperty('description')
+          .toBeString();
+
+        expectTypeOf<Task>()
+          .toHaveProperty('subtasks')
+          .toBeArray();
+      });
+
+      it('should have subtasks array of Subtask type', () => {
+        expectTypeOf<Task>()
+          .toHaveProperty('subtasks')
+          .toMatchTypeOf<Subtask[]>();
+      });
+
+      it('should have readonly properties', () => {
+        const sample: Task = {
+          id: 'P1.M1.T1',
+          type: 'Task',
+          title: 'Test',
+          status: 'Planned',
+          description: 'Test',
+          subtasks: [],
+        };
+
+        // @ts-expect-error - Property is readonly
+        sample.id = 'P1.M1.T2';
+      });
+
+      it('should match Zod schema inference', () => {
+        type InferredTask = z.infer<typeof TaskSchema>;
+        expectTypeOf<InferredTask>().toEqualTypeOf<Task>();
+      });
+    });
+
+    describe('Milestone type structure', () => {
+      it('should have correct property types', () => {
+        expectTypeOf<Milestone>()
+          .toHaveProperty('id')
+          .toBeString();
+
+        expectTypeOf<Milestone>()
+          .toHaveProperty('type')
+          .extract<'type'>()
+          .toEqualTypeOf<'Milestone'>();
+
+        expectTypeOf<Milestone>()
+          .toHaveProperty('title')
+          .toBeString();
+
+        expectTypeOf<Milestone>()
+          .toHaveProperty('status')
+          .toEqualTypeOf<Status>();
+
+        expectTypeOf<Milestone>()
+          .toHaveProperty('description')
+          .toBeString();
+
+        expectTypeOf<Milestone>()
+          .toHaveProperty('tasks')
+          .toBeArray();
+      });
+
+      it('should have tasks array of Task type', () => {
+        expectTypeOf<Milestone>()
+          .toHaveProperty('tasks')
+          .toMatchTypeOf<Task[]>();
+      });
+
+      it('should match Zod schema inference', () => {
+        type InferredMilestone = z.infer<typeof MilestoneSchema>;
+        expectTypeOf<InferredMilestone>().toEqualTypeOf<Milestone>();
+      });
+    });
+
+    describe('Phase type structure', () => {
+      it('should have correct property types', () => {
+        expectTypeOf<Phase>()
+          .toHaveProperty('id')
+          .toBeString();
+
+        expectTypeOf<Phase>()
+          .toHaveProperty('type')
+          .extract<'type'>()
+          .toEqualTypeOf<'Phase'>();
+
+        expectTypeOf<Phase>()
+          .toHaveProperty('title')
+          .toBeString();
+
+        expectTypeOf<Phase>()
+          .toHaveProperty('status')
+          .toEqualTypeOf<Status>();
+
+        expectTypeOf<Phase>()
+          .toHaveProperty('description')
+          .toBeString();
+
+        expectTypeOf<Phase>()
+          .toHaveProperty('milestones')
+          .toBeArray();
+      });
+
+      it('should have milestones array of Milestone type', () => {
+        expectTypeOf<Phase>()
+          .toHaveProperty('milestones')
+          .toMatchTypeOf<Milestone[]>();
+      });
+
+      it('should match Zod schema inference', () => {
+        type InferredPhase = z.infer<typeof PhaseSchema>;
+        expectTypeOf<InferredPhase>().toEqualTypeOf<Phase>();
+      });
+    });
+
+    describe('Status enum type', () => {
+      it('should have all 6 status values', () => {
+        type StatusValues = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete';
+        expectTypeOf<Status>().toEqualTypeOf<StatusValues>();
+      });
+
+      it('should match Zod schema inference', () => {
+        type InferredStatus = z.infer<typeof StatusEnum>;
+        expectTypeOf<InferredStatus>().toEqualTypeOf<Status>();
+      });
+    });
+
+    describe('ItemType enum type', () => {
+      it('should have all 4 item type values', () => {
+        type ItemTypeValues = 'Phase' | 'Milestone' | 'Task' | 'Subtask';
+        expectTypeOf<ItemType>().toEqualTypeOf<ItemTypeValues>();
+      });
+
+      it('should match Zod schema inference', () => {
+        type InferredItemType = z.infer<typeof ItemTypeEnum>;
+        expectTypeOf<InferredItemType>().toEqualTypeOf<ItemType>();
+      });
+    });
+  });
+
+  // =============================================================================
+  // Story Points Validation Tests (Range: 1-21 integers)
+  // =============================================================================
+
+  describe('Story points validation', () => {
+    const validSubtask: Subtask = {
+      id: 'P1.M1.T1.S1',
+      type: 'Subtask',
+      title: 'Test',
+      status: 'Planned',
+      story_points: 2,
+      dependencies: [],
+      context_scope: 'Test',
+    };
+
+    const validPoints = [1, 2, 3, 5, 8, 13, 21, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20];
+    const invalidPoints = [0, 22, -1, 1.5, 100, 21.5];
+
+    test.each(validPoints)('should accept valid story_points (1-21): %d', (points) => {
+      const result = SubtaskSchema.safeParse({
+        ...validSubtask,
+        story_points: points,
+      });
+      expect(result.success).toBe(true);
+    });
+
+    test.each(invalidPoints)('should reject invalid story_points: %d', (points) => {
+      const result = SubtaskSchema.safeParse({
+        ...validSubtask,
+        story_points: points,
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  // =============================================================================
+  // ID Format Validation Tests
+  // =============================================================================
+
+  describe('ID format validation', () => {
+    describe('Subtask ID format', () => {
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test',
+        status: 'Planned',
+        story_points: 2,
+        dependencies: [],
+        context_scope: 'Test',
+      };
+
+      const validSubtaskIds = ['P1.M1.T1.S1', 'P123.M456.T789.S999', 'P99.M99.T99.S99'];
+      const invalidSubtaskIds = [
+        'P1.M1.T1',          // Missing S segment
+        'P1.M1.T1.S1.S2',    // Extra segment
+        'p1.m1.t1.s1',       // Lowercase letters
+        'P1-M1-T1-S1',       // Wrong separator
+        'P1.M1.T1.S',        // Missing number after S
+        'P1.M1.T1.S1a',      // Non-numeric suffix
+      ];
+
+      test.each(validSubtaskIds)('should accept valid Subtask ID: %s', (id) => {
+        const result = SubtaskSchema.safeParse({ ...validSubtask, id });
+        expect(result.success).toBe(true);
+      });
+
+      test.each(invalidSubtaskIds)('should reject invalid Subtask ID: %s', (id) => {
+        const result = SubtaskSchema.safeParse({ ...validSubtask, id });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('Task ID format', () => {
+      const validTask: Task = {
+        id: 'P1.M1.T1',
+        type: 'Task',
+        title: 'Test',
+        status: 'Planned',
+        description: 'Test',
+        subtasks: [],
+      };
+
+      const validTaskIds = ['P1.M1.T1', 'P123.M456.T789', 'P99.M99.T99'];
+      const invalidTaskIds = [
+        'P1.M1',             // Missing T segment
+        'P1.M1.T1.S1',       // Extra S segment
+        'p1.m1.t1',          // Lowercase letters
+        'P1-M1-T1',          // Wrong separator
+        'P1.M1.T',           // Missing number after T
+      ];
+
+      test.each(validTaskIds)('should accept valid Task ID: %s', (id) => {
+        const result = TaskSchema.safeParse({ ...validTask, id });
+        expect(result.success).toBe(true);
+      });
+
+      test.each(invalidTaskIds)('should reject invalid Task ID: %s', (id) => {
+        const result = TaskSchema.safeParse({ ...validTask, id });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('Milestone ID format', () => {
+      const validMilestone: Milestone = {
+        id: 'P1.M1',
+        type: 'Milestone',
+        title: 'Test',
+        status: 'Planned',
+        description: 'Test',
+        tasks: [],
+      };
+
+      const validMilestoneIds = ['P1.M1', 'P123.M456', 'P99.M99'];
+      const invalidMilestoneIds = [
+        'P1',                // Missing M segment
+        'P1.M1.T1',          // Extra T segment
+        'p1.m1',             // Lowercase letters
+        'P1-M1',             // Wrong separator
+        'P1.M',              // Missing number after M
+      ];
+
+      test.each(validMilestoneIds)('should accept valid Milestone ID: %s', (id) => {
+        const result = MilestoneSchema.safeParse({ ...validMilestone, id });
+        expect(result.success).toBe(true);
+      });
+
+      test.each(invalidMilestoneIds)('should reject invalid Milestone ID: %s', (id) => {
+        const result = MilestoneSchema.safeParse({ ...validMilestone, id });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('Phase ID format', () => {
+      const validPhase: Phase = {
+        id: 'P1',
+        type: 'Phase',
+        title: 'Test',
+        status: 'Planned',
+        description: 'Test',
+        milestones: [],
+      };
+
+      const validPhaseIds = ['P1', 'P123', 'P99'];
+      const invalidPhaseIds = [
+        'P1.M1',             // Extra M segment
+        'p1',                // Lowercase letter
+        'Phase1',            // Wrong format
+        '1',                 // Missing P prefix
+        'P',                 // Missing number
+      ];
+
+      test.each(validPhaseIds)('should accept valid Phase ID: %s', (id) => {
+        const result = PhaseSchema.safeParse({ ...validPhase, id });
+        expect(result.success).toBe(true);
+      });
+
+      test.each(invalidPhaseIds)('should reject invalid Phase ID: %s', (id) => {
+        const result = PhaseSchema.safeParse({ ...validPhase, id });
+        expect(result.success).toBe(false);
+      });
+    });
+  });
+
+  // =============================================================================
+  // Type Discriminator Validation Tests
+  // =============================================================================
+
+  describe('Type discriminator validation', () => {
+    describe('Subtask type discriminator', () => {
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test',
+        status: 'Planned',
+        story_points: 2,
+        dependencies: [],
+        context_scope: 'Test',
+      };
+
+      const invalidTypes = ['Phase', 'Milestone', 'Task', 'Invalid', 'SubTask'];
+
+      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+        const result = SubtaskSchema.safeParse({
+          ...validSubtask,
+          type: type as any,
+        });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('Task type discriminator', () => {
+      const validTask: Task = {
+        id: 'P1.M1.T1',
+        type: 'Task',
+        title: 'Test',
+        status: 'Planned',
+        description: 'Test',
+        subtasks: [],
+      };
+
+      const invalidTypes = ['Phase', 'Milestone', 'Subtask', 'Invalid'];
+
+      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+        const result = TaskSchema.safeParse({
+          ...validTask,
+          type: type as any,
+        });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('Milestone type discriminator', () => {
+      const validMilestone: Milestone = {
+        id: 'P1.M1',
+        type: 'Milestone',
+        title: 'Test',
+        status: 'Planned',
+        description: 'Test',
+        tasks: [],
+      };
+
+      const invalidTypes = ['Phase', 'Task', 'Subtask', 'Invalid'];
+
+      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+        const result = MilestoneSchema.safeParse({
+          ...validMilestone,
+          type: type as any,
+        });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('Phase type discriminator', () => {
+      const validPhase: Phase = {
+        id: 'P1',
+        type: 'Phase',
+        title: 'Test',
+        status: 'Planned',
+        description: 'Test',
+        milestones: [],
+      };
+
+      const invalidTypes = ['Milestone', 'Task', 'Subtask', 'Invalid'];
+
+      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+        const result = PhaseSchema.safeParse({
+          ...validPhase,
+          type: type as any,
+        });
+        expect(result.success).toBe(false);
+      });
+    });
+  });
+
+  // =============================================================================
+  // Nested Hierarchy Validation Tests
+  // =============================================================================
+
+  describe('Nested hierarchy validation', () => {
+    it('should validate 4-level deep hierarchy (Phase > Milestone > Task > Subtask)', () => {
+      // SETUP: Complete 4-level hierarchy
+      const deepPhase: Phase = {
+        id: 'P1',
+        type: 'Phase',
+        title: 'Phase 1',
+        status: 'Planned',
+        description: 'Test phase',
+        milestones: [
+          {
+            id: 'P1.M1',
+            type: 'Milestone',
+            title: 'Milestone 1',
+            status: 'Planned',
+            description: 'Test milestone',
+            tasks: [
+              {
+                id: 'P1.M1.T1',
+                type: 'Task',
+                title: 'Task 1',
+                status: 'Planned',
+                description: 'Test task',
+                subtasks: [
+                  {
+                    id: 'P1.M1.T1.S1',
+                    type: 'Subtask',
+                    title: 'Subtask 1',
+                    status: 'Planned',
+                    story_points: 2,
+                    dependencies: [],
+                    context_scope: 'Test scope',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = PhaseSchema.safeParse(deepPhase);
+
+      // VERIFY: Complete 4-level hierarchy should validate
+      expect(result.success).toBe(true);
+    });
+
+    it('should validate complex hierarchy with multiple items at each level', () => {
+      // SETUP: Complex hierarchy with multiple items at each level
+      const complexPhase: Phase = {
+        id: 'P1',
+        type: 'Phase',
+        title: 'Phase 1',
+        status: 'Planned',
+        description: 'Test phase',
+        milestones: [
+          {
+            id: 'P1.M1',
+            type: 'Milestone',
+            title: 'Milestone 1',
+            status: 'Complete',
+            description: 'First milestone',
+            tasks: [
+              {
+                id: 'P1.M1.T1',
+                type: 'Task',
+                title: 'Task 1',
+                status: 'Complete',
+                description: 'First task',
+                subtasks: [
+                  {
+                    id: 'P1.M1.T1.S1',
+                    type: 'Subtask',
+                    title: 'Subtask 1.1',
+                    status: 'Complete',
+                    story_points: 2,
+                    dependencies: [],
+                    context_scope: 'Scope 1',
+                  },
+                  {
+                    id: 'P1.M1.T1.S2',
+                    type: 'Subtask',
+                    title: 'Subtask 1.2',
+                    status: 'Complete',
+                    story_points: 3,
+                    dependencies: ['P1.M1.T1.S1'],
+                    context_scope: 'Scope 2',
+                  },
+                ],
+              },
+              {
+                id: 'P1.M1.T2',
+                type: 'Task',
+                title: 'Task 2',
+                status: 'Planned',
+                description: 'Second task',
+                subtasks: [],
+              },
+            ],
+          },
+          {
+            id: 'P1.M2',
+            type: 'Milestone',
+            title: 'Milestone 2',
+            status: 'Planned',
+            description: 'Second milestone',
+            tasks: [],
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = PhaseSchema.safeParse(complexPhase);
+
+      // VERIFY: Complex hierarchy should validate
+      expect(result.success).toBe(true);
+    });
+
+    it('should report correct nested error paths', () => {
+      // SETUP: Task with invalid subtask
+      const taskWithInvalidSubtask: Task = {
+        id: 'P1.M1.T1',
+        type: 'Task',
+        title: 'Task 1',
+        status: 'Planned',
+        description: 'Test task',
+        subtasks: [
+          {
+            id: 'INVALID-ID',  // Invalid ID format
+            type: 'Subtask',
+            title: 'Test',
+            status: 'Planned',
+            story_points: 1,
+            dependencies: [],
+            context_scope: 'Test',
+          },
+        ],
+      };
+
+      // EXECUTE
+      const result = TaskSchema.safeParse(taskWithInvalidSubtask);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const subtaskError = result.error.issues.find(
+          (issue) => issue.path.includes('subtasks')
+        );
+        expect(subtaskError?.path).toEqual(['subtasks', 0, 'id']);
+      }
+    });
+  });
 });
