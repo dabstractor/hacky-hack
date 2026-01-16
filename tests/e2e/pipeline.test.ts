@@ -140,7 +140,8 @@ function createMockChild(
     exitCode?: number;
     stdout?: string;
     stderr?: string;
-  } = {}
+  } = {},
+  mockTimeouts: NodeJS.Timeout[] = []
 ) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
@@ -148,20 +149,29 @@ function createMockChild(
     stdout: {
       on: vi.fn((event: string, callback: (data: Buffer) => void) => {
         if (event === 'data') {
-          setTimeout(() => callback(Buffer.from(stdout)), 5);
+          const id = setTimeout(() => callback(Buffer.from(stdout)), 5);
+          if (mockTimeouts) {
+            mockTimeouts.push(id);
+          }
         }
       }),
     },
     stderr: {
       on: vi.fn((event: string, callback: (data: Buffer) => void) => {
         if (event === 'data') {
-          setTimeout(() => callback(Buffer.from(stderr)), 5);
+          const id = setTimeout(() => callback(Buffer.from(stderr)), 5);
+          if (mockTimeouts) {
+            mockTimeouts.push(id);
+          }
         }
       }),
     },
     on: vi.fn((event: string, callback: (code: number) => void) => {
       if (event === 'close') {
-        setTimeout(() => callback(exitCode), 10);
+        const id = setTimeout(() => callback(exitCode), 10);
+        if (mockTimeouts) {
+          mockTimeouts.push(id);
+        }
       }
     }),
     killed: false,
@@ -215,8 +225,12 @@ describe('E2E Pipeline Tests', () => {
   let tempDir: string;
   let prdPath: string;
   let planDir: string;
+  let mockTimeouts: NodeJS.Timeout[] = [];
 
   beforeEach(() => {
+    // Clear mock timeouts array
+    mockTimeouts = [];
+
     // Clear all mocks
     vi.clearAllMocks();
 
@@ -257,7 +271,7 @@ describe('E2E Pipeline Tests', () => {
 
     // Setup spawn mock for BashMCP
     vi.mocked(spawn).mockReturnValue(
-      createMockChild({ stdout: '', exitCode: 0 }) as never
+      createMockChild({ stdout: '', exitCode: 0 }, mockTimeouts) as never
     );
 
     // Use real timers for async mock behavior
@@ -265,6 +279,10 @@ describe('E2E Pipeline Tests', () => {
   });
 
   afterEach(() => {
+    // Clean up mock timeouts to prevent dangling promises
+    mockTimeouts.forEach(clearTimeout);
+    mockTimeouts = [];
+
     // Cleanup temp directory
     rmSync(tempDir, { recursive: true, force: true });
 

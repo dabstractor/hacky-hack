@@ -113,7 +113,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
     planDir = join(tempDir, 'plan');
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Allow pending async operations to complete
+    // This is especially important after emitting process signals
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+
     // Clean up temp directory
     rmSync(tempDir, { recursive: true, force: true });
     vi.clearAllMocks();
@@ -307,6 +312,11 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
         processNextItem: vi.fn().mockImplementation(async () => {
           // Simulate SIGTERM
           process.emit('SIGTERM');
+
+          // Allow async signal handlers to complete
+          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise((resolve) => setImmediate(resolve));
+
           return false; // No more items
         }),
       };
@@ -380,6 +390,11 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           // Send duplicate SIGINT signals
           process.emit('SIGINT');
           process.emit('SIGINT');
+
+          // Allow async signal handlers to complete
+          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise((resolve) => setImmediate(resolve));
+
           return false;
         }),
       };
@@ -500,6 +515,11 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
         sessionManager: {},
         processNextItem: vi.fn().mockImplementation(async () => {
           process.emit('SIGINT');
+
+          // Allow async signal handlers to complete
+          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise((resolve) => setImmediate(resolve));
+
           throw new Error('Simulated execution error');
         }),
       };
@@ -702,6 +722,11 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
         sessionManager: {},
         processNextItem: vi.fn().mockImplementation(async () => {
           process.emit('SIGINT');
+
+          // Allow async signal handlers to complete
+          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise((resolve) => setImmediate(resolve));
+
           return false;
         }),
       };

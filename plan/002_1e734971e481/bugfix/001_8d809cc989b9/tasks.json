@@ -422,7 +422,7 @@
       "type": "Phase",
       "id": "P4",
       "title": "Minor Bug Fixes - Polish",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Address minor issues including test output verbosity, integration test setup, and documentation alignment.",
       "milestones": [
         {
@@ -456,21 +456,21 @@
           "type": "Milestone",
           "id": "P4.M2",
           "title": "Fix Integration Test Setup",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Resolve PromiseRejectionHandledWarning messages in integration tests.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M2.T1",
               "title": "Add proper promise rejection handlers",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Fix unhandled promise rejections in test setup to eliminate warnings.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M2.T1.S1",
                   "title": "Investigate promise rejection warnings",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD Issue 7 - PromiseRejectionHandledWarning messages appear during test runs. Some tests fail stack trace preservation checks. Need to identify source of unhandled rejections.\n2. INPUT: Integration test output showing warnings, test setup files, test teardown code.\n3. LOGIC: Run integration tests and capture PromiseRejectionHandledWarning messages. Identify which tests or setup code causes unhandled rejections. Add proper .catch() handlers or try-catch blocks. Ensure all promises are properly handled in test fixtures. Review async/await usage.\n4. OUTPUT: Analysis of promise rejection sources, identified unhandled rejections fixed with proper handlers."
@@ -483,21 +483,21 @@
           "type": "Milestone",
           "id": "P4.M3",
           "title": "Verify Overall Test Pass Rate",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Run full test suite to verify all fixes and confirm >98% pass rate.",
           "tasks": [
             {
               "type": "Task",
               "id": "P4.M3.T1",
               "title": "Execute full test suite and validate results",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Run all tests and confirm system returns to >98% pass rate with no critical failures.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P4.M3.T1.S1",
                   "title": "Run complete test suite",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P4.M2.T1.S1"

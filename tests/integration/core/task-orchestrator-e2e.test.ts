@@ -263,7 +263,12 @@ describe('TaskOrchestrator E2E Workflow Tests', () => {
     sessionManager = env.sessionManager;
     sessionPath = env.sessionPath;
 
-    await sessionManager.loadSession(sessionPath);
+    await sessionManager.loadSession(sessionPath).catch((err) => {
+      // Log the error for debugging
+      console.error('Session load failed in beforeEach:', err);
+      // Re-throw to fail the test
+      throw err;
+    });
   });
 
   afterEach(() => {

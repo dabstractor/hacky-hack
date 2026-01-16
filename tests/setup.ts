@@ -120,6 +120,34 @@ function validateApiEndpoint(): void {
 validateApiEndpoint();
 
 // =============================================================================
+// PROMISE REJECTION TRACKING
+// =============================================================================
+
+/**
+ * Track unhandled promise rejections during test execution
+ *
+ * @remarks
+ * This module-level state tracks unhandled promise rejections that occur
+ * during each test. The beforeEach hook resets this array and attaches a
+ * listener to capture rejections. The afterEach hook checks for any
+ * captured rejections and fails the test if any were found.
+ *
+ * This prevents PromiseRejectionHandledWarning messages from cluttering
+ * test output and ensures all async operations have proper error handling.
+ */
+let unhandledRejections: unknown[] = [];
+
+/**
+ * Handler for unhandled promise rejections
+ *
+ * @remarks
+ * Captures rejection reasons for validation in afterEach. This handler
+ * is attached in beforeEach and removed in afterEach to ensure proper
+ * cleanup and isolation between tests.
+ */
+let unhandledRejectionHandler: ((reason: unknown) => void) | null = null;
+
+// =============================================================================
 // GLOBAL TEST HOOKS
 // =============================================================================
 
@@ -139,6 +167,16 @@ beforeEach(() => {
   // SAFEGUARD: Validate API endpoint before each test
   // This catches any environment changes during test runs
   validateApiEndpoint();
+
+  // REJECTION TRACKING: Reset unhandled rejections array and attach handler
+  // This captures any promise rejections that occur during test execution
+  unhandledRejections = [];
+
+  unhandledRejectionHandler = (reason: unknown) => {
+    unhandledRejections.push(reason);
+  };
+
+  process.on('unhandledRejection', unhandledRejectionHandler);
 });
 
 /**
@@ -149,6 +187,35 @@ beforeEach(() => {
  * This prevents memory leaks and ensures clean state for next test.
  */
 afterEach(() => {
+  // REJECTION TRACKING: Clean up handler and check for unhandled rejections
+  // This ensures we catch any promise rejections that weren't properly handled
+  if (unhandledRejectionHandler) {
+    process.removeListener('unhandledRejection', unhandledRejectionHandler);
+    unhandledRejectionHandler = null;
+  }
+
+  // REJECTION TRACKING: Fail test if there were unhandled rejections
+  // Only fail if the test itself hasn't already failed (prevents confusing errors)
+  if (unhandledRejections.length > 0) {
+    const errorMessages = unhandledRejections.map((r) =>
+      r instanceof Error ? r.message : String(r)
+    ).join('; ');
+
+    // Format rejection details for debugging
+    const rejectionDetails = unhandledRejections
+      .map((r, i) => {
+        if (r instanceof Error) {
+          return `  [${i + 1}] ${r.name}: ${r.message}`;
+        }
+        return `  [${i + 1}] ${String(r)}`;
+      })
+      .join('\n');
+
+    throw new Error(
+      `Test had ${unhandledRejections.length} unhandled promise rejection(s):\n${rejectionDetails}\n\nCombined: ${errorMessages}`
+    );
+  }
+
   // CLEANUP: Restore all environment variable stubs
   // This prevents environment variable leaks between tests
   vi.unstubAllEnvs();
