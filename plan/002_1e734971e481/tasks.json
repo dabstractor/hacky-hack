@@ -305,7 +305,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Test new session creation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager at /src/core/session-manager.ts implements initialize(prdPath: string) which hashes PRD, checks for existing sessions in plan/ directory, and either loads existing or creates new. Session directory format: plan/{sequence}_{hash}/. Hash uses crypto.createHash('sha256'). Session numbering is sequential (001, 002, etc.). Existing implementation has 1027 lines with full batch update support. Refer to system_context.md Section 6.3.\n2. INPUT: PRD file path (e.g., ./PRD.md).\n3. LOGIC: Create test file at tests/integration/core/session-manager.test.ts. Use temp directory for plan/ to avoid side effects. Test 1: Call initialize() with new PRD (unique hash), verify session directory created with correct format (001_hash). Test 2: Verify tasks.json created with empty backlog. Test 3: Verify prd_snapshot.md copied. Test 4: Test PRD hash mismatch detection. Mock fs operations via vi.mock('fs'). Follow existing integration test patterns.\n4. OUTPUT: New session creation test coverage. Confirmed directory structure, file creation, and hash-based detection."
@@ -314,7 +314,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Test existing session loading",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S1"
