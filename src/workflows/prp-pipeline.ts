@@ -1607,6 +1607,16 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       `[PRPPipeline] Scope: ${JSON.stringify(this.#scope ?? 'all')}`
     );
 
+    // Debug logging for workflow entry point
+    this.correlationLogger.debug(
+      {
+        prdPath: this.#prdPath,
+        scope: this.#scope ?? 'all',
+        mode: this.mode,
+      },
+      '[PRPPipeline] Starting PRP Pipeline workflow'
+    );
+
     try {
       // Create SessionManager (may throw if PRD doesn't exist)
       this.sessionManager = new SessionManagerClass(
@@ -1616,9 +1626,50 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
 
       // Execute workflow steps
       await this.initializeSession();
+
+      // Debug logging after session initialization
+      this.logger.debug(
+        {
+          sessionPath: this.sessionManager?.currentSession?.metadata.path,
+          hasExistingBacklog:
+            (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0) > 0,
+        },
+        '[PRPPipeline] Session initialized'
+      );
+
       await this.decomposePRD();
+
+      // Debug logging after PRD decomposition
+      this.logger.debug(
+        {
+          totalPhases: this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0,
+          totalTasks: this.totalTasks,
+        },
+        '[PRPPipeline] PRD decomposition complete'
+      );
+
       await this.executeBacklog();
+
+      // Debug logging after backlog execution
+      this.logger.debug(
+        {
+          completedTasks: this.completedTasks,
+          totalTasks: this.totalTasks,
+          failedTasks: this.#countFailedTasks(),
+        },
+        '[PRPPipeline] Backlog execution complete'
+      );
+
       await this.runQACycle();
+
+      // Debug logging after QA cycle
+      this.logger.debug(
+        {
+          bugsFound: this.#bugsFound,
+          mode: this.mode,
+        },
+        '[PRPPipeline] QA cycle complete'
+      );
 
       this.setStatus('completed');
 
@@ -1651,6 +1702,18 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       const duration = performance.now() - this.#startTime;
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+
+      // Debug logging for error path
+      this.logger.debug(
+        {
+          errorMessage,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          errorCode: (error as any)?.code,
+          currentPhase: this.currentPhase,
+          ...(error instanceof Error && { stack: error.stack }),
+        },
+        '[PRPPipeline] Workflow failed with error'
+      );
 
       this.logger.error(`[PRPPipeline] Workflow failed: ${errorMessage}`);
 
