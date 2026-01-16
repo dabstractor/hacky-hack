@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Bootstrap Core Infrastructure",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Establish foundational infrastructure for the PRP Development Pipeline. This phase ensures the Groundswell library is properly linked, environment configuration is robust, and core data structures are validated.",
       "milestones": [
         {
@@ -193,14 +193,14 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "Data Structure Validation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Validate the four-level task hierarchy data structures (Phase > Milestone > Task > Subtask) and ensure Zod schemas correctly enforce constraints.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Validate task hierarchy models",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Test that Phase, Milestone, Task, and Subtask interfaces are correctly defined and Zod schemas enforce proper constraints.",
               "subtasks": [
                 {
@@ -216,7 +216,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S2",
                   "title": "Test task status transitions",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S1"
@@ -227,7 +227,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S3",
                   "title": "Test context_scope contract format",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S2"

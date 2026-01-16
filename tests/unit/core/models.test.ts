@@ -87,6 +87,197 @@ describe('core/models Zod Schemas', () => {
         'Obsolete',
       ]);
     });
+
+    it('should reject subtask with missing status field', () => {
+      // SETUP: Valid subtask with all fields
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 2,
+        dependencies: [],
+        context_scope: 'Test scope',
+      };
+
+      // EXECUTE: Remove status field using destructuring
+      const { status, ...subtaskWithoutStatus } = validSubtask;
+      const result = SubtaskSchema.safeParse(subtaskWithoutStatus);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+
+      // VERIFY: Error should mention missing status field
+      if (!result.success) {
+        const statusError = result.error.issues.find(
+          issue => issue.path.includes('status')
+        );
+        expect(statusError).toBeDefined();
+        expect(statusError?.path).toEqual(['status']);
+      }
+    });
+
+    it('should reject subtask with undefined status', () => {
+      // SETUP: Subtask with undefined status
+      const invalidSubtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: undefined,
+        story_points: 2,
+        dependencies: [],
+        context_scope: 'Test scope',
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(invalidSubtask);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('Status transition workflow', () => {
+    // NOTE: This test validates the DOCUMENTED workflow progression.
+    // The actual codebase does NOT enforce these transitions.
+    // Any status can be set from any other status.
+    // This test documents expected behavior for reference.
+
+    it('should validate normal workflow progression: Planned → Researching → Implementing → Complete', () => {
+      // SETUP: Define the workflow progression
+      const workflowProgression = [
+        'Planned',      // Initial state
+        'Researching',  // PRP generation in progress
+        'Implementing', // PRP execution in progress
+        'Complete',     // Successfully completed
+      ] as const;
+
+      // EXECUTE & VERIFY: Each status in workflow is valid
+      workflowProgression.forEach(status => {
+        const result = StatusEnum.safeParse(status);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toBe(status);
+        }
+      });
+
+      // VERIFY: All statuses in workflow are distinct
+      const uniqueStatuses = new Set(workflowProgression);
+      expect(uniqueStatuses.size).toBe(workflowProgression.length);
+    });
+
+    it('should validate error workflow progression: Planned → Researching → Implementing → Failed', () => {
+      // SETUP: Define error workflow progression
+      const errorProgression = [
+        'Planned',      // Initial state
+        'Researching',  // PRP generation in progress
+        'Implementing', // PRP execution in progress
+        'Failed',       // Failed with error
+      ] as const;
+
+      // EXECUTE & VERIFY: Each status in error workflow is valid
+      errorProgression.forEach(status => {
+        const result = StatusEnum.safeParse(status);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toBe(status);
+        }
+      });
+    });
+
+    it('should validate Obsolete status can be set from any state', () => {
+      // SETUP: Obsolete is special - can be set from any status
+      const allStatuses = [
+        'Planned',
+        'Researching',
+        'Implementing',
+        'Complete',
+        'Failed',
+        'Obsolete',
+      ] as const;
+
+      // EXECUTE & VERIFY: Obsolete is a valid status value
+      const result = StatusEnum.safeParse('Obsolete');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe('Obsolete');
+      }
+
+      // VERIFY: All statuses can transition to Obsolete (in theory)
+      // NOTE: Code does not enforce this, but documentation suggests it
+      allStatuses.forEach(fromStatus => {
+        const fromResult = StatusEnum.safeParse(fromStatus);
+        expect(fromResult.success).toBe(true);
+      });
+    });
+
+    it('should document complete status lifecycle with all valid values', () => {
+      // SETUP: All 6 valid status values (not 7 as in outdated docs)
+      const allValidStatuses: Status[] = [
+        'Planned',
+        'Researching',
+        'Implementing',
+        'Complete',
+        'Failed',
+        'Obsolete',
+      ];
+
+      // EXECUTE & VERIFY: All are valid via StatusEnum
+      allValidStatuses.forEach(status => {
+        const result = StatusEnum.safeParse(status);
+        expect(result.success).toBe(true);
+      });
+
+      // VERIFY: Count matches implementation (6 values)
+      expect(allValidStatuses.length).toBe(6);
+      expect(StatusEnum.options.length).toBe(6);
+
+      // VERIFY: No 'Ready' status in implementation
+      expect(StatusEnum.options).not.toContain('Ready');
+    });
+  });
+
+  describe('Status enum edge cases', () => {
+    it('should reject lowercase status values', () => {
+      // Status values are case-sensitive (PascalCase)
+      const invalidLowercase = 'planned';
+      const result = StatusEnum.safeParse(invalidLowercase);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject uppercase status values', () => {
+      const invalidUppercase = 'PLANNED';
+      const result = StatusEnum.safeParse(invalidUppercase);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject mixed case status values', () => {
+      const invalidMixedCase = 'pLaNnEd';
+      const result = StatusEnum.safeParse(invalidMixedCase);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject status with whitespace', () => {
+      const invalidWithSpace = ' Planned';
+      const result = StatusEnum.safeParse(invalidWithSpace);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject empty string as status', () => {
+      const invalidEmpty = '';
+      const result = StatusEnum.safeParse(invalidEmpty);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject null as status', () => {
+      const result = StatusEnum.safeParse(null);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject undefined as status', () => {
+      const result = StatusEnum.safeParse(undefined);
+      expect(result.success).toBe(false);
+    });
   });
 
   describe('ItemTypeEnum', () => {
