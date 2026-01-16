@@ -464,6 +464,30 @@ export class ValidationError extends PipelineError {
   }
 }
 
+/**
+ * Environment configuration errors
+ *
+ * @remarks
+ * Used for environment configuration validation failures.
+ * Covers missing environment variables, invalid configuration values, etc.
+ *
+ * @example
+ * ```typescript
+ * throw new EnvironmentError(
+ *   'Missing required environment variable',
+ *   { variable: 'API_KEY', required: true }
+ * );
+ * ```
+ */
+export class EnvironmentError extends PipelineError {
+  readonly code = ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT;
+
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
+    super(message, context, cause);
+    Object.setPrototypeOf(this, EnvironmentError.prototype);
+  }
+}
+
 // ============================================================================
 // TYPE GUARDS
 // ============================================================================
