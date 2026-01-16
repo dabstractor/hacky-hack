@@ -69,6 +69,7 @@ export {
   MilestoneSchema,
   TaskSchema,
   SubtaskSchema,
+  ContextScopeSchema,
   ValidationGateSchema,
   SuccessCriterionSchema,
   PRPDocumentSchema,

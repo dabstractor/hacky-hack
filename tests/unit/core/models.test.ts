@@ -13,6 +13,7 @@ import {
   StatusEnum,
   ItemTypeEnum,
   SubtaskSchema,
+  ContextScopeSchema,
   TaskSchema,
   MilestoneSchema,
   PhaseSchema,
@@ -97,7 +98,11 @@ describe('core/models Zod Schemas', () => {
         status: 'Planned',
         story_points: 2,
         dependencies: [],
-        context_scope: 'Test scope',
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask for status validation.
+2. INPUT: None
+3. LOGIC: Test status field validation.
+4. OUTPUT: Validation result.`,
       };
 
       // EXECUTE: Remove status field using destructuring
@@ -126,7 +131,11 @@ describe('core/models Zod Schemas', () => {
         status: undefined,
         story_points: 2,
         dependencies: [],
-        context_scope: 'Test scope',
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask for status validation.
+2. INPUT: None
+3. LOGIC: Test status field validation.
+4. OUTPUT: Validation result.`,
       };
 
       // EXECUTE
@@ -325,7 +334,11 @@ describe('core/models Zod Schemas', () => {
       status: 'Planned',
       story_points: 2,
       dependencies: [],
-      context_scope: 'src/core/models.ts only',
+      context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Create Zod schemas for task hierarchy models in src/core/models.ts.
+2. INPUT: None
+3. LOGIC: Define TypeScript interfaces and Zod schemas for Phase, Milestone, Task, and Subtask.
+4. OUTPUT: Type definitions and Zod schemas for validation.`,
     };
 
     it('should parse valid subtask', () => {
@@ -467,6 +480,317 @@ describe('core/models Zod Schemas', () => {
     });
   });
 
+  describe('context_scope contract format validation', () => {
+    // NOTE: These tests validate the CONTRACT DEFINITION format for context_scope.
+    // The ContextScopeSchema enforces the 4-part structure with numbered sections.
+
+    it('should accept valid context_scope with CONTRACT DEFINITION format', () => {
+      // SETUP: Valid context_scope with all 4 sections
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Basic research findings for this feature.
+2. INPUT: Data from previous subtask S1.
+3. LOGIC: Implement feature using existing patterns.
+4. OUTPUT: Feature implementation for consumption by S2.`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(validSubtask);
+
+      // VERIFY: Should pass validation
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.context_scope).toBe(validSubtask.context_scope);
+      }
+    });
+
+    it('should reject context_scope without CONTRACT DEFINITION prefix', () => {
+      // SETUP: Invalid context_scope missing required prefix
+      const invalidSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: '1. RESEARCH NOTE: Missing CONTRACT DEFINITION prefix.\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(invalidSubtask);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+
+      // VERIFY: Error mentions missing CONTRACT DEFINITION
+      if (!result.success) {
+        const contextError = result.error.issues.find(
+          (issue) => issue.path.includes('context_scope')
+        );
+        expect(contextError).toBeDefined();
+        expect(contextError?.message).toMatch(/CONTRACT DEFINITION/i);
+      }
+    });
+
+    it('should reject context_scope missing required section', () => {
+      // SETUP: Invalid context_scope missing section 3 (LOGIC)
+      const invalidSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Research findings.
+2. INPUT: None
+4. OUTPUT: Test output`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(invalidSubtask);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+
+      // VERIFY: Error mentions missing section
+      if (!result.success) {
+        const contextError = result.error.issues.find(
+          (issue) => issue.path.includes('context_scope')
+        );
+        expect(contextError).toBeDefined();
+        expect(contextError?.message).toMatch(/section/i);
+      }
+    });
+
+    it('should accept context_scope with dependency ID references', () => {
+      // SETUP: Valid context_scope referencing dependency S1
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S2',
+        type: 'Subtask',
+        title: 'Dependent Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: ['P1.M1.T1.S1'],
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Build on previous work.
+2. INPUT: Interface from S1.
+3. LOGIC: Extend implementation from S1.
+4. OUTPUT: Enhanced feature for consumption by S3.`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(validSubtask);
+
+      // VERIFY: Should pass validation
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept context_scope with research finding references', () => {
+      // SETUP: Valid context_scope referencing research document
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Research-based Subtask',
+        status: 'Planned',
+        story_points: 2,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Refer to groundswell_analysis.md Section 2 for API details.
+2. INPUT: None
+3. LOGIC: Implement using patterns from research.
+4. OUTPUT: Implementation following research findings.`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(validSubtask);
+
+      // VERIFY: Should pass validation
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept context_scope with INPUT: None for standalone tasks', () => {
+      // SETUP: Valid context_scope with "INPUT: None" for standalone task
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Standalone Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Initial feature implementation.
+2. INPUT: None
+3. LOGIC: Create feature from scratch.
+4. OUTPUT: Feature implementation for consumption by S2.`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(validSubtask);
+
+      // VERIFY: Should pass validation
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject context_scope with incorrect section order', () => {
+      // SETUP: Invalid context_scope with sections out of order
+      const invalidSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+2. INPUT: None
+1. RESEARCH NOTE: Wrong order
+3. LOGIC: Test
+4. OUTPUT: Test`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(invalidSubtask);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+
+      if (!result.success) {
+        const contextError = result.error.issues.find(
+          (issue) => issue.path.includes('context_scope')
+        );
+        expect(contextError).toBeDefined();
+      }
+    });
+
+    it('should accept context_scope with multiline section content', () => {
+      // SETUP: Valid context_scope with multiline content in sections
+      const validSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Complex Subtask',
+        status: 'Planned',
+        story_points: 3,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Multiple findings documented.
+- Finding 1: API details from analysis.md
+- Finding 2: Implementation patterns from codebase
+2. INPUT: Multiple sources:
+- Data from S1
+- Configuration from S2
+3. LOGIC: Implementation steps:
+- Step 1: Create base class
+- Step 2: Add methods
+- Step 3: Write tests
+4. OUTPUT: Complete implementation with:
+- Source file at src/feature.ts
+- Test file at tests/feature.test.ts`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(validSubtask);
+
+      // VERIFY: Should pass validation
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject context_scope with wrong section name case', () => {
+      // SETUP: Invalid context_scope with wrong case in section name
+      const invalidSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: `CONTRACT DEFINITION:
+1. research note: Wrong case - should be uppercase
+2. INPUT: None
+3. LOGIC: Test
+4. OUTPUT: Test`,
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(invalidSubtask);
+
+      // VERIFY: Should fail validation (section names are case-sensitive)
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject context_scope with missing newline after prefix', () => {
+      // SETUP: Invalid context_scope without newline after CONTRACT DEFINITION:
+      const invalidSubtask: Subtask = {
+        id: 'P1.M1.T1.S1',
+        type: 'Subtask',
+        title: 'Test Subtask',
+        status: 'Planned',
+        story_points: 1,
+        dependencies: [],
+        context_scope: 'CONTRACT DEFINITION:1. RESEARCH NOTE: No newline after prefix\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
+      };
+
+      // EXECUTE
+      const result = SubtaskSchema.safeParse(invalidSubtask);
+
+      // VERIFY: Should fail validation
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('ContextScopeSchema', () => {
+    it('should accept valid CONTRACT DEFINITION format', () => {
+      // SETUP: Valid context_scope string
+      const validScope = `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Basic research findings.
+2. INPUT: Data from S1.
+3. LOGIC: Implement feature.
+4. OUTPUT: Feature for consumption by S2.`;
+
+      // EXECUTE
+      const result = ContextScopeSchema.safeParse(validScope);
+
+      // VERIFY
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject string not starting with CONTRACT DEFINITION:', () => {
+      // SETUP: Invalid context_scope without prefix
+      const invalidScope = '1. RESEARCH NOTE: Missing prefix\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test';
+
+      // EXECUTE
+      const result = ContextScopeSchema.safeParse(invalidScope);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toMatch(/CONTRACT DEFINITION/);
+      }
+    });
+
+    it('should reject context_scope with missing section', () => {
+      // SETUP: Missing section 3 (LOGIC)
+      const invalidScope = `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Research findings.
+2. INPUT: None
+4. OUTPUT: Test output`;
+
+      // EXECUTE
+      const result = ContextScopeSchema.safeParse(invalidScope);
+
+      // VERIFY
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toMatch(/section/);
+      }
+    });
+  });
+
   describe('TaskSchema', () => {
     const validTask: Task = {
       id: 'P1.M1.T1',
@@ -500,7 +824,11 @@ describe('core/models Zod Schemas', () => {
             status: 'Complete',
             story_points: 2,
             dependencies: [],
-            context_scope: 'src/core/',
+            context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Create TypeScript interfaces for task hierarchy.
+2. INPUT: None
+3. LOGIC: Define Phase, Milestone, Task, Subtask interfaces.
+4. OUTPUT: Type definitions in src/core/models.ts`,
           },
         ],
       };
@@ -568,7 +896,11 @@ describe('core/models Zod Schemas', () => {
             status: 'Planned',
             story_points: 1,
             dependencies: [],
-            context_scope: 'test',
+            context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test invalid subtask.
+2. INPUT: None
+3. LOGIC: Test validation.
+4. OUTPUT: Test result.`,
           },
         ],
       };
@@ -644,7 +976,11 @@ describe('core/models Zod Schemas', () => {
                 status: 'Planned',
                 story_points: 1,
                 dependencies: [],
-                context_scope: 'Test scope',
+                context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test multi-level nesting validation.
+2. INPUT: None
+3. LOGIC: Test nested task hierarchy.
+4. OUTPUT: Validation result.`,
               },
             ],
           },
@@ -938,7 +1274,11 @@ describe('core/models Zod Schemas', () => {
                         status: 'Planned',
                         story_points: 1,
                         dependencies: [],
-                        context_scope: 'Test scope',
+                        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test 4-level deep hierarchy validation.
+2. INPUT: None
+3. LOGIC: Test complete task hierarchy.
+4. OUTPUT: Validation result.`,
                       },
                     ],
                   },
@@ -988,7 +1328,11 @@ describe('core/models Zod Schemas', () => {
                         status: 'Complete',
                         story_points: 2,
                         dependencies: [],
-                        context_scope: 'Scope 1',
+                        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test complex hierarchy with multiple items.
+2. INPUT: None
+3. LOGIC: Test first subtask in complex hierarchy.
+4. OUTPUT: Validation result.`,
                       },
                       {
                         id: 'P1.M1.T1.S2',
@@ -997,7 +1341,11 @@ describe('core/models Zod Schemas', () => {
                         status: 'Complete',
                         story_points: 3,
                         dependencies: ['P1.M1.T1.S1'],
-                        context_scope: 'Scope 2',
+                        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test complex hierarchy with dependencies.
+2. INPUT: Results from S1.
+3. LOGIC: Build on first subtask results.
+4. OUTPUT: Validation result for consumption.`,
                       },
                     ],
                   },
@@ -2255,7 +2603,11 @@ describe('core/models Zod Schemas', () => {
           status: 'Planned',
           story_points: 2,
           dependencies: [],
-          context_scope: 'Test',
+          context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask validation.
+2. INPUT: None
+3. LOGIC: Test validation logic.
+4. OUTPUT: Validation result.`,
         };
 
         // VERIFY: Cannot reassign readonly property (compile-time check)
@@ -2443,7 +2795,11 @@ describe('core/models Zod Schemas', () => {
       status: 'Planned',
       story_points: 2,
       dependencies: [],
-      context_scope: 'Test',
+      context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask validation.
+2. INPUT: None
+3. LOGIC: Test validation logic.
+4. OUTPUT: Validation result.`,
     };
 
     const validPoints = [1, 2, 3, 5, 8, 13, 21, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20];
@@ -2479,7 +2835,11 @@ describe('core/models Zod Schemas', () => {
         status: 'Planned',
         story_points: 2,
         dependencies: [],
-        context_scope: 'Test',
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask validation.
+2. INPUT: None
+3. LOGIC: Test validation logic.
+4. OUTPUT: Validation result.`,
       };
 
       const validSubtaskIds = ['P1.M1.T1.S1', 'P123.M456.T789.S999', 'P99.M99.T99.S99'];
@@ -2607,7 +2967,11 @@ describe('core/models Zod Schemas', () => {
         status: 'Planned',
         story_points: 2,
         dependencies: [],
-        context_scope: 'Test',
+        context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask validation.
+2. INPUT: None
+3. LOGIC: Test validation logic.
+4. OUTPUT: Validation result.`,
       };
 
       const invalidTypes = ['Phase', 'Milestone', 'Task', 'Invalid', 'SubTask'];
@@ -2720,7 +3084,11 @@ describe('core/models Zod Schemas', () => {
                     status: 'Planned',
                     story_points: 2,
                     dependencies: [],
-                    context_scope: 'Test scope',
+                    context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test nested hierarchy validation.
+2. INPUT: None
+3. LOGIC: Test complete 4-level task hierarchy.
+4. OUTPUT: Validation result.`,
                   },
                 ],
               },
@@ -2766,7 +3134,11 @@ describe('core/models Zod Schemas', () => {
                     status: 'Complete',
                     story_points: 2,
                     dependencies: [],
-                    context_scope: 'Scope 1',
+                    context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test complex hierarchy with multiple items.
+2. INPUT: None
+3. LOGIC: Test first subtask in complex hierarchy.
+4. OUTPUT: Validation result.`,
                   },
                   {
                     id: 'P1.M1.T1.S2',
@@ -2775,7 +3147,11 @@ describe('core/models Zod Schemas', () => {
                     status: 'Complete',
                     story_points: 3,
                     dependencies: ['P1.M1.T1.S1'],
-                    context_scope: 'Scope 2',
+                    context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test complex hierarchy with dependencies.
+2. INPUT: Results from S1.
+3. LOGIC: Build on first subtask results.
+4. OUTPUT: Validation result for consumption.`,
                   },
                 ],
               },
@@ -2823,7 +3199,11 @@ describe('core/models Zod Schemas', () => {
             status: 'Planned',
             story_points: 1,
             dependencies: [],
-            context_scope: 'Test',
+            context_scope: `CONTRACT DEFINITION:
+1. RESEARCH NOTE: Test subtask validation.
+2. INPUT: None
+3. LOGIC: Test validation logic.
+4. OUTPUT: Validation result.`,
           },
         ],
       };

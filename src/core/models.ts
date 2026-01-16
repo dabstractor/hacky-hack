@@ -30,6 +30,87 @@
 import { z } from 'zod';
 
 /**
+ * Zod schema for context_scope contract format validation
+ *
+ * @remarks
+ * Validates that context_scope follows the CONTRACT DEFINITION format
+ * with 4 numbered sections: RESEARCH NOTE, INPUT, LOGIC, OUTPUT.
+ *
+ * The format must be:
+ * ```
+ * CONTRACT DEFINITION:
+ * 1. RESEARCH NOTE: [...]
+ * 2. INPUT: [...]
+ * 3. LOGIC: [...]
+ * 4. OUTPUT: [...]
+ * ```
+ *
+ * Section validation:
+ * - Must start with "CONTRACT DEFINITION:" followed by newline
+ * - Must have all 4 numbered sections in order
+ * - Section headers must match exactly (case-sensitive)
+ * - Section number must be followed by period and space
+ *
+ * @example
+ * ```typescript
+ * import { ContextScopeSchema } from './core/models.js';
+ *
+ * const validScope = `CONTRACT DEFINITION:
+ * 1. RESEARCH NOTE: Basic research findings.
+ * 2. INPUT: Data from S1.
+ * 3. LOGIC: Implement feature.
+ * 4. OUTPUT: Feature for consumption by S2.`;
+ *
+ * const result = ContextScopeSchema.safeParse(validScope);
+ * // result.success === true
+ * ```
+ */
+export const ContextScopeSchema: z.ZodType<string> = z
+  .string()
+  .min(1, 'Context scope is required')
+  .superRefine((value, ctx) => {
+    // Check for CONTRACT DEFINITION prefix
+    const prefix = 'CONTRACT DEFINITION:\n';
+    if (!value.startsWith(prefix)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
+      });
+      return; // Exit early if prefix missing
+    }
+
+    // Extract sections after the prefix
+    const content = value.slice(prefix.length);
+
+    // Check for all 4 numbered sections in order
+    const requiredSections = [
+      { num: 1, name: 'RESEARCH NOTE', pattern: /1\.\s*RESEARCH\sNOTE:/m },
+      { num: 2, name: 'INPUT', pattern: /2\.\s*INPUT:/m },
+      { num: 3, name: 'LOGIC', pattern: /3\.\s*LOGIC:/m },
+      { num: 4, name: 'OUTPUT', pattern: /4\.\s*OUTPUT:/m },
+    ];
+
+    let searchStartIndex = 0;
+
+    for (const section of requiredSections) {
+      // Search for the section header in the content starting from the last position
+      const match = section.pattern.exec(content);
+
+      if (!match || match.index < searchStartIndex) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Missing or incorrect section: "${section.num}. ${section.name}:"`,
+        });
+        return;
+      }
+
+      // Update the search start position to after this section
+      // This ensures sections are in order
+      searchStartIndex = match.index + match[0].length;
+    }
+  });
+
+/**
  * Lifecycle status of a work item in the PRP Pipeline
  *
  * @remarks
@@ -249,7 +330,7 @@ export const SubtaskSchema: z.ZodType<Subtask> = z.object({
     .min(1, 'Story points must be at least 1')
     .max(21, 'Story points cannot exceed 21'),
   dependencies: z.array(z.string()).min(0),
-  context_scope: z.string().min(1, 'Context scope is required'),
+  context_scope: ContextScopeSchema,
 });
 
 /**
