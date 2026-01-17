@@ -76,7 +76,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Verify depth-first hierarchical traversal",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - TaskOrchestrator uses recursive DFS traversing Phase → Milestone → Task → Subtask. Parent items set status to 'Implementing'.\n2. INPUT: TaskOrchestrator implementation at `src/core/task-orchestrator.ts` (836 lines), task model schemas from `src/core/models.ts`.\n3. LOGIC: Write unit test that verifies: (a) traversal order follows depth-first pre-order (parent before children), (b) parent status changes to 'Implementing' when child starts, (c) traversal stops at Subtask level (subtasks are execution units), (d) traversal respects scope limits (phase/milestone/task filters). Create mock backlog with known task hierarchy.\n4. OUTPUT: Unit test file `tests/unit/task-traversal.test.ts` with DFS traversal and scope filtering test cases."
@@ -85,7 +85,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Verify dependency resolution logic",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"
