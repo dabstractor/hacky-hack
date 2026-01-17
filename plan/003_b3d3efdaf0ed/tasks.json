@@ -1,0 +1,976 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Phase 1: System Validation & Verification",
+      "status": "Planned",
+      "description": "Validate that the current implementation matches all PRD requirements. This phase verifies the existing codebase against the specification to ensure completeness.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Milestone 1.1: Core Component Verification",
+          "status": "Planned",
+          "description": "Verify all four processing engines (Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller) are implemented and functional.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Task 1.1.1: Session Manager Verification",
+              "status": "Planned",
+              "description": "Verify Session Manager implements all state management, directory structure creation, PRD hashing, and delta session capabilities as specified in PRD §5.1.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Verify session directory structure and naming conventions",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Session structure uses `{sequence}_{hash}` pattern (e.g., `001_14b9dc2a33c7`). Hash is SHA-256 of PRD content, first 12 chars.\n2. INPUT: Current implementation at `src/core/session-manager.ts` (1172 lines).\n3. LOGIC: Write integration test that verifies: (a) session directories are created in `plan/` with correct naming pattern, (b) PRD hash uses SHA-256 with 12-char slice, (c) session contains required files (tasks.json, prd_snapshot.md, prps/, artifacts/), (d) atomic write pattern uses temp file + rename. Mock file system operations for test isolation.\n4. OUTPUT: Integration test file `tests/integration/session-structure.test.ts` that validates session creation and directory layout."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Verify PRD hash-based change detection",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - SessionManager uses `hasSessionChanged()` to detect PRD modifications via hash comparison.\n2. INPUT: Hash computation logic from `src/core/session-manager.ts`, test fixtures from `tests/fixtures/prds/`.\n3. LOGIC: Write unit test that verifies: (a) hash is computed from PRD file content using SHA-256, (b) hash changes when PRD content changes, (c) `hasSessionChanged()` returns true when hash mismatch detected, (d) hash comparison is case-sensitive and deterministic. Use mock PRD files with known content for predictable hash values.\n4. OUTPUT: Unit test file `tests/unit/session-hash-detection.test.ts` with hash computation and change detection test cases."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S3",
+                  "title": "Verify delta session creation and linkage",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Delta sessions created via `createDeltaSession()` with `parent_session.txt` linkage. DeltaAnalysisWorkflow computes PRD diffs.\n2. INPUT: Delta creation logic from `src/core/session-manager.ts`, task patcher from `src/core/task-patcher.ts`.\n3. LOGIC: Write integration test that verifies: (a) delta session directory is created with new hash, (b) `parent_session.txt` contains parent session path, (c) delta PRD is generated focusing only on changes, (d) TaskPatcher correctly marks tasks as new/modified/obsolete. Mock parent session with known task state for predictable patching results.\n4. OUTPUT: Integration test file `tests/integration/delta-session.test.ts` that validates delta session creation, linkage, and task patching."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S4",
+                  "title": "Verify atomic state updates and batching",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - SessionManager uses batching pattern with `flushUpdates()`. Atomic writes use temp file + rename to prevent corruption.\n2. INPUT: State update methods from `src/core/session-manager.ts`, atomic write utilities from `src/core/session-utils.ts`.\n3. LOGIC: Write unit test that verifies: (a) multiple updates are batched in memory, (b) `flushUpdates()` writes all changes in single atomic operation, (c) temp file is created before final write, (d) rename operation is atomic, (e) dirty state is preserved on flush failure for retry. Mock file system operations to simulate failure scenarios.\n4. OUTPUT: Unit test file `tests/unit/session-state-batching.test.ts` with batching and atomic write test cases."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Task 1.1.2: Task Orchestrator Verification",
+              "status": "Planned",
+              "description": "Verify Task Orchestrator implements hierarchical traversal, dependency resolution, and status tracking as specified in PRD §5.3.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Verify depth-first hierarchical traversal",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - TaskOrchestrator uses recursive DFS traversing Phase → Milestone → Task → Subtask. Parent items set status to 'Implementing'.\n2. INPUT: TaskOrchestrator implementation at `src/core/task-orchestrator.ts` (836 lines), task model schemas from `src/core/models.ts`.\n3. LOGIC: Write unit test that verifies: (a) traversal order follows depth-first pre-order (parent before children), (b) parent status changes to 'Implementing' when child starts, (c) traversal stops at Subtask level (subtasks are execution units), (d) traversal respects scope limits (phase/milestone/task filters). Create mock backlog with known task hierarchy.\n4. OUTPUT: Unit test file `tests/unit/task-traversal.test.ts` with DFS traversal and scope filtering test cases."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S2",
+                  "title": "Verify dependency resolution logic",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Dependency resolution via `canExecute()` and `getBlockingDependencies()`. Checks if all dependency subtasks have 'Complete' status.\n2. INPUT: Dependency resolution methods from `src/core/task-orchestrator.ts`, backlog data structures from `src/core/models.ts`.\n3. LOGIC: Write unit test that verifies: (a) `canExecute()` returns true only when all dependencies are Complete, (b) `getBlockingDependencies()` returns only incomplete dependencies, (c) circular dependencies are detected or prevented, (d) dependency graph is correctly constructed from subtask dependency arrays. Create mock backlog with various dependency states.\n4. OUTPUT: Unit test file `tests/unit/task-dependencies.test.ts` with dependency resolution and blocking detection test cases."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S3",
+                  "title": "Verify parallel PRP generation via ResearchQueue",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - ResearchQueue with concurrency limit of 3. Fire-and-forget pattern for background research. Logs errors but doesn't block.\n2. INPUT: ResearchQueue implementation at `src/core/research-queue.ts`, PRP generator at `src/agents/prp-generator.ts`.\n3. LOGIC: Write integration test that verifies: (a) ResearchQueue processes up to 3 tasks concurrently, (b) queue respects dependency ordering (no research for blocked tasks), (c) errors are logged but don't block queue processing, (d) cache is checked before generating new PRPs. Mock PRP generator to control timing and simulate errors.\n4. OUTPUT: Integration test file `tests/integration/research-queue.test.ts` with concurrent PRP generation and error handling test cases."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T3",
+              "title": "Task 1.1.3: Agent Runtime Verification",
+              "status": "Planned",
+              "description": "Verify Agent Runtime implements all four agent types (Architect, Researcher, Coder, QA) with proper prompts and tool integration as specified in PRD §6.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S1",
+                  "title": "Verify Architect Agent integration and prompts",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PROMPTS.md - Architect Agent uses TASK_BREAKDOWN_SYSTEM_PROMPT. Role: Lead Technical Architect. Output: JSON backlog to tasks.json.\n2. INPUT: Agent factory at `src/agents/agent-factory.ts`, TASK_BREAKDOWN_PROMPT from `PROMPTS.md` (lines 54-169), architect prompt schema validation.\n3. LOGIC: Write integration test that verifies: (a) Architect Agent is created with correct config (GLM-4.7, 8192 tokens, cache enabled), (b) TASK_BREAKDOWN_PROMPT contains all required sections (research-driven architecture, implicit TDD, context scope), (c) agent output matches Zod schema for Backlog type, (d) agent writes JSON to specified tasks.json path. Mock Groundswell agent to return test data.\n4. OUTPUT: Integration test file `tests/integration/architect-agent.test.ts` with prompt validation and output schema verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S2",
+                  "title": "Verify Researcher Agent and PRP generation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PROMPTS.md - Researcher Agent uses PRP_CREATE_PROMPT. Research process: codebase analysis, internal research, external research, PRP generation.\n2. INPUT: PRP generator at `src/agents/prp-generator.ts` (564 lines), PRP_CREATE_PROMPT from `PROMPTS.md` (lines 189-639), cache system implementation.\n3. LOGIC: Write integration test that verifies: (a) Researcher Agent spawns subagents for codebase research, (b) internal research checks `$SESSION_DIR/architecture/`, (c) external research fetches docs, (d) PRP follows template structure (Goal, User Persona, Why, What, Context, Blueprint, Validation), (e) cache uses SHA-256 task hash with 24-hour TTL. Mock subagent calls and cache storage.\n4. OUTPUT: Integration test file `tests/integration/researcher-agent.test.ts` with PRP generation flow and cache behavior verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S3",
+                  "title": "Verify Coder Agent and PRP execution",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PROMPTS.md - Coder Agent uses PRP_EXECUTE_PROMPT. Process: Load PRP → Plan → Execute → Progressive Validation (4 levels). Fix-and-retry with max 2 attempts.\n2. INPUT: PRP executor at `src/agents/prp-executor.ts` (501 lines), PRP_EXECUTE_PROMPT from `PROMPTS.md` (lines 641-714), validation gate implementations.\n3. LOGIC: Write integration test that verifies: (a) Coder Agent loads PRP before execution (critical first step), (b) progressive validation runs 4 levels sequentially, (c) fix cycle retries up to 2 times with exponential backoff, (d) validation artifacts are collected (validation-results.json, execution-summary.md), (e) BashMCP executes validation commands. Mock PRP file, validation commands, and BashMCP tool.\n4. OUTPUT: Integration test file `tests/integration/coder-agent.test.ts` with PRP execution, validation gates, and retry logic verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S4",
+                  "title": "Verify QA Agent and bug hunting workflow",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T3.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PROMPTS.md - QA Agent uses BUG_FINDING_PROMPT. Three phases: Scope Analysis, Creative E2E Testing, Adversarial Testing. Bug severity: critical, major, minor, cosmetic.\n2. INPUT: BugHuntWorkflow at `src/workflows/bug-hunt-workflow.ts` (369 lines), BUG_FINDING_PROMPT from `PROMPTS.md` (lines 1059-1175), FixCycleWorkflow implementation.\n3. LOGIC: Write integration test that verifies: (a) QA Agent executes all three testing phases sequentially, (b) bug report is written to TEST_RESULTS.md only if bugs exist, (c) bug severity levels are correctly assigned, (d) FixCycleWorkflow creates self-contained bugfix sessions, (e) fix cycle loops until no bugs found. Mock agent responses and test scenarios.\n4. OUTPUT: Integration test file `tests/integration/qa-agent.test.ts` with bug detection, reporting, and fix cycle verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T4",
+              "title": "Task 1.1.4: Pipeline Controller Verification",
+              "status": "Planned",
+              "description": "Verify Pipeline Controller implements main loop, graceful shutdown, resource monitoring, and progress tracking as specified in PRD §3.4.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T4.S1",
+                  "title": "Verify main execution loop and task processing",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - PRPPipeline at `src/workflows/prp-pipeline.ts` (1848 lines) extends Groundswell Workflow. Main loop: init → backlog execution → QA cycle.\n2. INPUT: PRPPipeline implementation, TaskOrchestrator interface, session management integration.\n3. LOGIC: Write integration test that verifies: (a) pipeline initializes session from PRD hash, (b) main loop processes tasks until queue empty, (c) individual task failures don't stop pipeline (tracked and continued), (d) progress metrics are updated (total/completed/failed counts), (e) pipeline status transitions (running → completed/failed). Mock session state, task outcomes, and orchestrator behavior.\n4. OUTPUT: Integration test file `tests/integration/pipeline-main-loop.test.ts` with execution flow and progress tracking verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T4.S2",
+                  "title": "Verify graceful shutdown and signal handling",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T4.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - PRPPipeline handles SIGINT/SIGTERM. Finishes current task before exiting. State preserved for resume.\n2. INPUT: Signal handling code from PRPPipeline, graceful shutdown logic, state persistence mechanisms.\n3. LOGIC: Write integration test that verifies: (a) SIGINT signal is caught and processed, (b) current task is allowed to complete before shutdown, (c) pending tasks are preserved in tasks.json, (d) pipeline can be resumed via --continue flag, (e) no state corruption occurs during shutdown. Mock process signal emission and task execution timing.\n4. OUTPUT: Integration test file `tests/integration/pipeline-shutdown.test.ts` with signal handling and graceful shutdown verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T4.S3",
+                  "title": "Verify resource monitoring and limits",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T4.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - ResourceMonitor tracks file handles and heap stats. Limits: --max-tasks, --max-duration. RESOURCE_LIMIT_REPORT.md generated on limit hit.\n2. INPUT: Resource monitoring at `src/utils/resource-monitor.ts`, CLI limit parsing from `src/cli/index.ts`.\n3. LOGIC: Write unit test that verifies: (a) file handle count is monitored (platform-specific: lsof on macOS), (b) heap stats are captured via process.memoryUsage(), (c) max-tasks limit stops pipeline after N tasks, (d) max-duration limit stops pipeline after N milliseconds, (e) RESOURCE_LIMIT_REPORT.md is generated with actionable suggestions. Mock resource metrics and command execution.\n4. OUTPUT: Unit test file `tests/unit/resource-monitoring.test.ts` with resource tracking and limit enforcement verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T4.S4",
+                  "title": "Verify nested execution guard",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T4.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From external_deps.md - PRP_PIPELINE_RUNNING environment variable guards nested execution. Only allows bug fix recursion if SKIP_BUG_FINDING=true and path contains 'bugfix'.\n2. INPUT: Environment configuration from `src/config/environment.ts`, nested guard checks in PRPPipeline and CLI.\n3. LOGIC: Write unit test that verifies: (a) guard prevents execution if PRP_PIPELINE_RUNNING already set, (b) bug fix mode allowed if SKIP_BUG_FINDING=true AND path contains 'bugfix', (c) guard sets PRP_PIPELINE_RUNNING to current PID on valid entry, (d) debug logging shows PLAN_DIR, SESSION_DIR, SKIP_BUG_FINDING values. Mock environment variables and session paths.\n4. OUTPUT: Unit test file `tests/unit/nested-execution-guard.test.ts` with guard logic and bug fix recursion verification."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Milestone 1.2: PRD Requirement Coverage",
+          "status": "Planned",
+          "description": "Verify all functional requirements from PRD §5 are implemented and tested.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Task 1.2.1: State & File Management Verification",
+              "status": "Planned",
+              "description": "Verify all state management requirements from PRD §5.1 are implemented: tasks.json as single source of truth, plan/ directory structure, smart commits, protected files.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Verify tasks.json as single source of truth",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - tasks.json contains Backlog with Phase/Milestone/Task/Subtask hierarchy. Atomic write pattern prevents corruption. All agents read/write through SessionManager.\n2. INPUT: Task models from `src/core/models.ts`, SessionManager state operations, Zod validation schemas.\n3. LOGIC: Write integration test that verifies: (a) all task status updates flow through tasks.json, (b) tasks.json is the authoritative source for task execution, (c) no other files duplicate task state, (d) schema validation prevents malformed tasks.json, (e) backups/temp files are cleaned up after successful writes. Mock session lifecycle with multiple state transitions.\n4. OUTPUT: Integration test file `tests/integration/tasks-json-authority.test.ts` with state management and schema validation verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Verify plan/ directory structure and artifacts",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Directory structure includes plan/{sequence}_{hash}/, prps/, artifacts/, bugfix/ sub-sessions. Artifacts: validation-results.json, execution-summary.md, artifacts-list.json.\n2. INPUT: SessionManager directory creation, PRP storage paths, artifact collection logic.\n3. LOGIC: Write integration test that verifies: (a) session directories are created with correct naming pattern, (b) PRPs are stored in prps/ with cache metadata in .cache/, (c) execution artifacts are collected in artifacts/{taskId}/, (d) bugfix sessions are created as bugfix/{sequence}_{hash}/, (e) all artifacts are preserved (not deleted) for audit trail. Mock session creation and task execution.\n4. OUTPUT: Integration test file `tests/integration/session-structure.test.ts` with directory layout and artifact preservation verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S3",
+                  "title": "Verify smart commit functionality",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Smart commits after successful subtask completion. Commit message format: `{subtask.id}: {subtask.title}`. Stages changes while protecting pipeline state files.\n2. INPUT: Git commit utilities from `src/utils/git-commit.ts`, protected files list, git operations via simple-git.\n3. LOGIC: Write integration test that verifies: (a) git commit is triggered after successful subtask completion, (b) commit message uses correct format, (c) protected files (tasks.json, prd_snapshot.md, etc.) are not committed, (d) all other changes are staged and committed, (e) commit hash is returned and logged. Mock git repository state and protected file detection.\n4. OUTPUT: Integration test file `tests/integration/smart-commit.test.ts` with commit logic and protected file verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S4",
+                  "title": "Verify protected files are never modified",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PRD §5.1 - Protected files: tasks.json, prd_snapshot.md, delta_prd.md, delta_from.txt, TEST_RESULTS.md, PRD.md, *tasks*.json pattern, root session files.\n2. INPUT: Protected file lists from session management code, agent forbidden operation checks.\n3. LOGIC: Write unit test that verifies: (a) agents cannot modify PRD.md (human-owned), (b) agents cannot delete or move tasks.json, (c) agents cannot modify protected session files, (d) smart commits exclude protected files, (e) validation prevents adding protected files to .gitignore. Mock agent file operations and git operations.\n4. OUTPUT: Unit test file `tests/unit/protected-files.test.ts` with protected file enforcement verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Task 1.2.2: Agent Capabilities Verification",
+              "status": "Planned",
+              "description": "Verify all agent capabilities from PRD §5.2 are implemented: tool access (File I/O, Shell, Search, Web Research), context management, forbidden operations.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Verify MCP tool integration (Bash, Filesystem, Git)",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and external_deps.md - Three MCP servers: BashMCP (shell commands via spawn), FilesystemMCP (read, write, glob, grep), GitMCP (git operations). All agents share these tools.\n2. INPUT: MCP tool implementations at `src/tools/bash-mcp.ts`, `src/tools/filesystem-mcp.ts`, `src/tools/git-mcp.ts`, tool registration in agent factory.\n3. LOGIC: Write integration test that verifies: (a) all three MCP servers are registered with each agent, (b) tools are accessible via agent.tool() calls, (c) BashMCP uses spawn() (no shell injection), (d) FilesystemMCP validates file paths, (e) GitMCP uses simple-git library. Mock agent tool invocations and MCP handler.\n4. OUTPUT: Integration test file `tests/integration/mcp-tools.test.ts` with tool registration and execution verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S2",
+                  "title": "Verify context injection for agents",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Agents receive curated context: Previous session notes, architecture docs from $SESSION_DIR/architecture/, specific code snippets.\n2. INPUT: Agent prompt construction, context injection logic, architecture documentation structure.\n3. LOGIC: Write unit test that verifies: (a) agents receive architecture docs in context (if available), (b) previous session notes are injected for delta sessions, (c) code snippets are included based on task requirements, (d) context size is managed (no token overflow). Mock context assembly and agent prompt generation.\n4. OUTPUT: Unit test file `tests/unit/agent-context-injection.test.ts` with context gathering and injection verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S3",
+                  "title": "Verify forbidden operations are enforced",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PRD §5.2 - Universal forbidden operations: never modify PRD.md, never add plan/ to .gitignore, never run prd/run-prd.sh/tsk commands, never create session-pattern directories outside designated locations.\n2. INPUT: Agent tool access controls, forbidden operation checks in MCP tools.\n3. LOGIC: Write integration test that verifies: (a) agents cannot modify PRD.md via FilesystemMCP, (b) agents cannot add .gitignore entries via BashMCP, (c) agents cannot run pipeline commands via BashMCP, (d) agents cannot create session directories outside plan/ or bugfix/. Mock agent tool calls and verify operations are blocked.\n4. OUTPUT: Integration test file `tests/integration/forbidden-operations.test.ts` with agent constraint enforcement verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T3",
+              "title": "Task 1.2.3: Task Management Verification",
+              "status": "Planned",
+              "description": "Verify task management requirements from PRD §5.3: status values, scope execution, prd task subcommand.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S1",
+                  "title": "Verify task status values and transitions",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Status values: Planned, Researching, Implementing, Complete, Failed, Obsolete. Transitions: Planned → Researching → Implementing → Complete/Failed.\n2. INPUT: Status type definition from `src/core/models.ts`, status update logic in TaskOrchestrator.\n3. LOGIC: Write unit test that verifies: (a) all six status values are defined, (b) status transitions follow valid order, (c) invalid transitions are prevented or logged, (d) 'Obsolete' status is set for tasks removed in delta sessions. Create mock tasks with various status transitions.\n4. OUTPUT: Unit test file `tests/unit/task-status-transitions.test.ts` with status values and transition validation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S2",
+                  "title": "Verify scope execution (--scope, --task flags)",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - ScopeResolver parses scope strings (e.g., 'P3.M4', 'P1.M2.T3'). Filters backlog to matching items only.\n2. INPUT: ScopeResolver from `src/core/scope-resolver.ts`, CLI scope parsing from `src/cli/index.ts`.\n3. LOGIC: Write integration test that verifies: (a) scope string 'P3' executes only Phase 3 and descendants, (b) scope string 'P3.M4' executes only Milestone 4 and descendants, (c) scope string 'P1.M2.T3' executes only Task 3 and subtasks, (d) invalid scope strings are rejected with error. Create mock backlog with multiple phases/milestones.\n4. OUTPUT: Integration test file `tests/integration/scope-resolution.test.ts` with scope filtering and execution verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S3",
+                  "title": "Verify prd task subcommand",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - 'prd task' command shows tasks for current session. Subcommands: next, status, -f <file> for file override. Discovery priority: bugfix tasks first, then main session tasks.\n2. INPUT: CLI command handlers from `src/cli/index.ts`, task discovery logic, session file resolution.\n3. LOGIC: Write integration test that verifies: (a) 'prd task' displays tasks from current session, (b) 'prd task next' returns next executable task, (c) 'prd task status' shows task counts by status, (d) '-f <file>' overrides with specified tasks.json, (e) bugfix session tasks are prioritized over main tasks. Mock session directories and task states.\n4. OUTPUT: Integration test file `tests/integration/prd-task-command.test.ts` with subcommand behavior and file discovery verification."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "Milestone 1.3: Critical Prompts Verification",
+          "status": "Planned",
+          "description": "Verify all critical prompts from PRD §6 are preserved and functional: Task Breakdown, PRP Creation, PRP Execution, Delta PRD Generation, Bug Finding.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Task 1.3.1: Task Breakdown Prompt Verification",
+              "status": "Planned",
+              "description": "Verify Task Breakdown System Prompt matches PRD §6.1 specification: research-driven architecture, strict JSON format, implicit TDD.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Verify Task Breakdown Prompt structure and content",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 54-169 and system_context.md - Role: Lead Technical Architect. Must validate before breaking down. Spawn subagents to research. Store findings in architecture/.\n2. INPUT: TASK_BREAKDOWN_PROMPT from `src/agents/prompts/task-breakdown.md` or `PROMPTS.md`, prompt template structure.\n3. LOGIC: Write integration test that verifies: (a) prompt defines architect role and responsibilities, (b) prompt requires research-driven architecture (spawn subagents before planning), (c) prompt enforces strict JSON output format, (d) prompt specifies implicit TDD (tests part of subtask, not separate), (e) prompt defines context_scope requirements. Load prompt and validate content sections.\n4. OUTPUT: Integration test file `tests/integration/task-breakdown-prompt.test.ts` with prompt structure and requirement verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S2",
+                  "title": "Verify Task Breakdown JSON output schema",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PRD - JSON schema: backlog > Phase > Milestone > Task > Subtask. Each level has type, id, title, status, description. Subtask has story_points (0.5, 1, 2 max), dependencies, context_scope.\n2. INPUT: Zod schemas from `src/core/models.ts`, architect agent output format validation.\n3. LOGIC: Write unit test that verifies: (a) Zod schema enforces correct hierarchy structure, (b) story_points validation accepts only 0.5, 1, or 2, (c) dependencies array contains valid subtask IDs, (d) context_scope follows CONTRACT DEFINITION format, (e) architect agent output passes schema validation. Create valid and invalid JSON samples for testing.\n4. OUTPUT: Unit test file `tests/unit/task-breakdown-schema.test.ts` with JSON schema validation and edge case verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T2",
+              "title": "Task 1.3.2: PRP Creation Prompt Verification",
+              "status": "Planned",
+              "description": "Verify PRP Creation Prompt matches PRD §6.2 specification: research process, template structure, quality gates.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S1",
+                  "title": "Verify PRP Creation Prompt research process",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 189-639 and system_context.md - Role: Product Owner/Researcher. Research: codebase analysis (spawn subagents), internal research (check architecture/), external research (spawn subagents for docs), user clarification.\n2. INPUT: PRP_CREATE_PROMPT from `PROMPTS.md`, research workflow in PRPGenerator.\n3. LOGIC: Write integration test that verifies: (a) prompt instructs agent to spawn subagents for codebase analysis, (b) prompt checks $SESSION_DIR/architecture/ for prior research, (c) prompt instructs external research for documentation, (d) prompt asks user for clarification on ambiguous requirements. Mock agent behavior and research subagent calls.\n4. OUTPUT: Integration test file `tests/integration/prp-create-prompt.test.ts` with research process and workflow verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S2",
+                  "title": "Verify PRP template structure compliance",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 319-637 and system_context.md - PRP template sections: Goal, User Persona, Why, What, All Needed Context, Implementation Blueprint, Validation Loop, Final Checklist, Anti-Patterns.\n2. INPUT: PRP template definition, generated PRP samples from test fixtures.\n3. LOGIC: Write unit test that verifies: (a) all required template sections are present, (b) each section has required subsections (e.g., Goal has Feature Goal, Deliverable, Success Definition), (c) Validation Loop specifies 4 levels with commands, (d) Anti-Patterns section lists common mistakes. Parse generated PRPs and validate structure.\n4. OUTPUT: Unit test file `tests/unit/prp-template-validation.test.ts` with template structure and compliance verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S3",
+                  "title": "Verify PRP quality gates enforcement",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md and system_context.md - Quality gates: Context Completeness Check, Template Structure Compliance, Information Density Standards, 'No Prior Knowledge' test.\n2. INPUT: PRP validation logic, quality gate checks in PRPGenerator.\n3. LOGIC: Write unit test that verifies: (a) context completeness check verifies all required inputs/outputs, (b) template structure compliance validates all sections present, (c) information density check rejects vague PRPs, (d) 'No Prior Knowledge' test ensures PRP is self-contained. Create PRP samples with various quality levels for testing.\n4. OUTPUT: Unit test file `tests/unit/prp-quality-gates.test.ts` with quality gate validation and edge case verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T3",
+              "title": "Task 1.3.3: PRP Execution Prompt Verification",
+              "status": "Planned",
+              "description": "Verify PRP Execution Prompt matches PRD §6.3 specification: read PRP first, progressive validation, failure protocol.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T3.S1",
+                  "title": "Verify PRP Execution Prompt process flow",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 641-714 and system_context.md - Role: Senior Engineer (Builder). Process: Load PRP (CRITICAL FIRST STEP) → Plan → Execute → Progressive Validation → Completion.\n2. INPUT: PRP_EXECUTE_PROMPT from `PROMPTS.md`, PRP executor implementation.\n3. LOGIC: Write integration test that verifies: (a) prompt emphasizes reading PRP first using Read tool, (b) prompt instructs ULTRATHINK & Plan with TodoWrite, (c) prompt defines 4-level progressive validation, (d) prompt specifies failure protocol (fix and retry). Mock agent execution and verify prompt compliance.\n4. OUTPUT: Integration test file `tests/integration/prp-execute-prompt.test.ts` with process flow and critical steps verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T3.S2",
+                  "title": "Verify progressive validation levels",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - 4-level validation: Level 1 (Syntax & Style), Level 2 (Unit Tests), Level 3 (Integration Tests), Level 4 (Creative & Domain-Specific). Each level must pass before proceeding.\n2. INPUT: Validation gate implementations from PRP executor, validation command execution via BashMCP.\n3. LOGIC: Write integration test that verifies: (a) Level 1 runs linting/formatting tools and fails on errors, (b) Level 2 runs unit tests and enforces coverage, (c) Level 3 runs integration tests, (d) Level 4 runs creative/domain validation (MCP tools, performance, security), (e) failure at any level triggers fix cycle. Mock validation commands and results.\n4. OUTPUT: Integration test file `tests/integration/progressive-validation.test.ts` with 4-level validation and retry logic verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T4",
+              "title": "Task 1.3.4: Delta PRD Generation Prompt Verification",
+              "status": "Planned",
+              "description": "Verify Delta PRD Generation Prompt matches PRD §6.4 specification with retry logic.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T4.S1",
+                  "title": "Verify Delta PRD Generation Prompt and retry logic",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 793-833 and system_context.md - Role: Change Manager. Inputs: Old PRD, New PRD, Completed Tasks. Output: delta_prd.md focusing only on diffs. Retry logic: if delta PRD not created on first attempt, demand retry. Fail fast if cannot generate after retry.\n2. INPUT: DELTA_PRD_GENERATION_PROMPT from `PROMPTS.md`, DeltaAnalysisWorkflow implementation, retry logic in session manager.\n3. LOGIC: Write integration test that verifies: (a) prompt instructs agent to compare old and new PRDs, (b) prompt instructs agent to focus on new/modified requirements only, (c) prompt instructs agent to reference completed work to avoid duplication, (d) retry logic triggers second attempt if delta PRD missing, (e) session fails if delta PRD cannot be generated after retry. Mock agent responses and delta PRD creation.\n4. OUTPUT: Integration test file `tests/integration/delta-prd-generation.test.ts` with delta PRD creation and retry logic verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T4.S2",
+                  "title": "Verify delta session resume regenerates missing delta PRDs",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T4.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PRD §4.3 and system_context.md - Incomplete delta sessions detect and regenerate missing delta PRDs on resume. Delta PRD required for task patching.\n2. INPUT: Delta session resume logic, delta PRD existence checks, regeneration triggers.\n3. LOGIC: Write integration test that verifies: (a) resume detects missing delta_prd.md in session directory, (b) resume automatically regenerates delta PRD from old/new PRDs, (c) regeneration uses same prompt and retry logic as initial creation, (d) resume proceeds normally after delta PRD regenerated. Mock incomplete delta session and agent responses.\n4. OUTPUT: Integration test file `tests/integration/delta-resume-regeneration.test.ts` with missing delta PRD detection and regeneration verification."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T5",
+              "title": "Task 1.3.5: Bug Finding Prompt Verification",
+              "status": "Planned",
+              "description": "Verify Bug Finding Prompt matches PRD §6.5 specification: three-phase testing, bug severity levels.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T5.S1",
+                  "title": "Verify Bug Finding Prompt testing phases",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 1059-1175 and system_context.md - Role: Creative QA Engineer and Bug Hunter. Three phases: Scope Analysis, Creative E2E Testing (happy paths, edge cases, workflows, integrations, errors, state, concurrency), Adversarial Testing (unexpected inputs, missing features, incomplete features, UX).\n2. INPUT: BUG_FINDING_PROMPT from `PROMPTS.md`, BugHuntWorkflow implementation.\n3. LOGIC: Write integration test that verifies: (a) prompt defines all three testing phases, (b) prompt specifies happy path testing (primary use cases), (c) prompt specifies edge case testing (boundaries, empty inputs, unicode), (d) prompt specifies workflow testing (complete user journeys), (e) prompt specifies adversarial testing mindset. Mock agent execution and verify prompt compliance.\n4. OUTPUT: Integration test file `tests/integration/bug-finding-prompt.test.ts` with testing phases and scope verification."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T5.S2",
+                  "title": "Verify bug severity levels and output format",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T5.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Bug severity levels: critical (blocks core functionality), major (significantly impacts UX), minor (small improvements), cosmetic (polish). Output: TEST_RESULTS.md only if bugs exist.\n2. INPUT: Bug severity classification logic, TEST_RESULTS.md generation, QA agent output format.\n3. LOGIC: Write unit test that verifies: (a) all four severity levels are defined with clear criteria, (b) bugs are correctly classified by severity, (c) TEST_RESULTS.md is generated only when bugs exist, (d) TEST_RESULTS.md follows structured format, (e) no file is generated when no bugs found. Create bug scenarios with various severity levels.\n4. OUTPUT: Unit test file `tests/unit/bug-severity-classification.test.ts` with severity levels and output format verification."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "Phase 2: Documentation & Observability",
+      "status": "Planned",
+      "description": "Create comprehensive documentation and observability features to support users and developers in understanding and debugging the pipeline.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Milestone 2.1: User Documentation",
+          "status": "Planned",
+          "description": "Create user-facing documentation for installation, configuration, and usage.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Task 2.1.1: Installation and Setup Guide",
+              "status": "Planned",
+              "description": "Create comprehensive guide for installing and configuring the PRP Pipeline.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Create installation documentation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and external_deps.md - Requirements: Node.js >=20.0.0, npm >=10.0.0. Groundswell linked via npm link. Environment variables: ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL.\n2. INPUT: package.json scripts and dependencies, environment configuration from src/config/environment.ts.\n3. LOGIC: Write installation guide in docs/INSTALLATION.md that covers: (a) prerequisites (Node.js, npm versions), (b) cloning repository, (c) installing dependencies, (d) linking Groundswell library, (e) configuring environment variables, (f) verifying installation with test command. Include troubleshooting section for common issues.\n4. OUTPUT: Documentation file docs/INSTALLATION.md with step-by-step installation instructions and troubleshooting tips."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Create configuration reference",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From external_deps.md and system_context.md - Configuration sources: shell environment, .env file, runtime overrides. Required variables: ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL. Optional: PRP_PIPELINE_RUNNING, SKIP_BUG_FINDING, model selection vars.\n2. INPUT: Environment configuration from src/config/environment.ts, CLI option parsing from src/cli/index.ts.\n3. LOGIC: Write configuration reference in docs/CONFIGURATION.md that covers: (a) all environment variables with descriptions and defaults, (b) configuration source priority (shell > .env > runtime), (c) CLI options (--scope, --mode, --continue, --dry-run, etc.), (d) model selection configuration, (e) example .env file. Include security notes for API keys.\n4. OUTPUT: Documentation file docs/CONFIGURATION.md with complete configuration reference and examples."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S3",
+                  "title": "Create quick start tutorial",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Basic workflow: Create PRD.md → Run 'prd' command → Pipeline generates tasks.json → Executes tasks → Produces completed code. Session stored in plan/{hash}/.\n2. INPUT: Example PRDs from tests/fixtures/prds/, session structure documentation, CLI command reference.\n3. LOGIC: Write quick start guide in docs/QUICKSTART.md that walks through: (a) creating a simple PRD.md, (b) running pipeline with 'prd' command, (c) monitoring progress via logs and task status, (d) understanding session directory structure, (e) reviewing generated artifacts and commits. Use a realistic example (e.g., 'build a TODO app').\n4. OUTPUT: Documentation file docs/QUICKSTART.md with step-by-step tutorial using example PRD."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T2",
+              "title": "Task 2.1.2: Usage Documentation",
+              "status": "Planned",
+              "description": "Create comprehensive usage documentation for all CLI commands and workflows.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Create CLI command reference",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Main command: 'prd' with modes: normal, bug-hunt, validate. Options: --prd, --scope, --mode, --continue, --dry-run, --no-cache, --continue-on-error, --max-tasks, --max-duration. Subcommand: 'prd task'.\n2. INPUT: CLI implementation from src/cli/index.ts, Commander.js configuration.\n3. LOGIC: Write CLI reference in docs/CLI_REFERENCE.md that documents: (a) main 'prd' command with all options, (b) execution modes (normal, bug-hunt, validate), (c) 'prd task' subcommand with variants, (d) examples for common use cases, (e) exit codes and error handling. Include usage examples for each option.\n4. OUTPUT: Documentation file docs/CLI_REFERENCE.md with complete CLI command documentation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S2",
+                  "title": "Create workflow documentation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Workflows: PRPPipeline (main), DeltaAnalysisWorkflow (PRD changes), BugHuntWorkflow (QA), FixCycleWorkflow (bug fixing). Each uses Groundswell Workflow with @Step and @Task decorators.\n2. INPUT: Workflow implementations from src/workflows/, prompt definitions from PROMPTS.md.\n3. LOGIC: Write workflow documentation in docs/WORKFLOWS.md that explains: (a) main pipeline lifecycle (init → breakdown → execute → QA), (b) delta session workflow (PRD change detection → patching → resume), (c) bug hunt workflow (3-phase testing → bug report → fix cycle), (d) fix cycle workflow (self-contained bugfix sessions). Include diagrams and timing information.\n4. OUTPUT: Documentation file docs/WORKFLOWS.md with workflow descriptions and lifecycle diagrams."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S3",
+                  "title": "Create PRD best practices guide",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PROMPTS.md - PRD Brainstormer Prompt (lines 1177+) helps create comprehensive PRDs through aggressive questioning. Good PRDs have clear requirements, testable criteria, no contradictions.\n2. INPUT: PRD examples from tests/fixtures/, PRD Brainstormer prompt from PROMPTS.md.\n3. LOGIC: Write best practices guide in docs/PRD_BEST_PRACTICES.md that covers: (a) PRD structure and sections, (b) writing clear requirements, (c) defining testable success criteria, (d) avoiding contradictions and ambiguity, (e) using PRD Brainstormer for requirements gathering, (f) example PRDs with annotations. Include common pitfalls and how to avoid them.\n4. OUTPUT: Documentation file docs/PRD_BEST_PRACTICES.md with PRD writing guidelines and examples."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M2",
+          "title": "Milestone 2.2: Developer Documentation",
+          "status": "Planned",
+          "description": "Create developer-facing documentation for architecture, extensibility, and contribution.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Task 2.2.1: Architecture Documentation",
+              "status": "Planned",
+              "description": "Document system architecture, design patterns, and component interactions.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Create architecture overview documentation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Four engines: Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller. Groundswell provides Workflow, Agent, decorators. MCP protocol for tools. State persistence via tasks.json.\n2. INPUT: Component implementations from src/core/, src/agents/, src/workflows/, architecture documentation already created.\n3. LOGIC: Write architecture overview in docs/ARCHITECTURE.md that explains: (a) high-level system design with component diagram, (b) Groundswell framework usage (decorators, workflows), (c) multi-agent architecture with roles, (d) state management and persistence, (e) task hierarchy and execution flow. Include ASCII art diagrams and component interaction descriptions.\n4. OUTPUT: Documentation file docs/ARCHITECTURE.md with system architecture overview and diagrams."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S2",
+                  "title": "Create Groundswell integration guide",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From external_deps.md - Groundswell exports: Workflow, Agent, Prompt, decorators (@Step, @Task, @ObservedState), MCPHandler, caching, reflection. Linked from ~/projects/groundswell.\n2. INPUT: Groundswell usage examples from codebase, Groundswell API documentation from external_deps.md.\n3. LOGIC: Write Groundswell guide in docs/GROUNDSWELL_GUIDE.md that covers: (a) Workflow class extension and decorators, (b) Agent creation and configuration, (c) MCP tool registration and implementation, (d) caching and reflection usage, (e) observability features (WorkflowTreeDebugger). Include code examples for each pattern.\n4. OUTPUT: Documentation file docs/GROUNDSWELL_GUIDE.md with Groundswell usage guide and examples."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S3",
+                  "title": "Create agent prompt engineering guide",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md - Four critical prompts: Task Breakdown (Architect), PRP Creation (Researcher), PRP Execution (Coder), Bug Finding (QA). Each has specific role, process, and output format.\n2. INPUT: Prompt templates from PROMPTS.md, prompt usage in agent implementations.\n3. LOGIC: Write prompt engineering guide in docs/PROMPT_ENGINEERING.md that explains: (a) prompt structure and components, (b) role definition and persona, (c) process instruction patterns, (d) output format specification with schemas, (e) quality enforcement techniques, (f) prompt iteration and testing. Include examples from each agent type.\n4. OUTPUT: Documentation file docs/PROMPT_ENGINEERING.md with prompt design principles and examples."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T2",
+              "title": "Task 2.2.2: Extensibility Documentation",
+              "status": "Planned",
+              "description": "Document how to extend the pipeline with custom agents, tools, and workflows.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S1",
+                  "title": "Create custom agent development guide",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Agents created via AgentFactory with createAgent(). Configuration: name, system prompt, model, cache, reflection, maxTokens, MCP tools. Four built-in agents: Architect, Researcher, Coder, QA.\n2. INPUT: Agent factory from src/agents/agent-factory.ts, existing agent implementations.\n3. LOGIC: Write custom agent guide in docs/CUSTOM_AGENTS.md that covers: (a) creating new agent types, (b) defining agent roles and system prompts, (c) configuring model selection and token limits, (d) registering custom MCP tools, (e) adding agents to factory. Include complete example of adding a new 'SecurityAuditor' agent.\n4. OUTPUT: Documentation file docs/CUSTOM_AGENTS.md with custom agent development tutorial."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S2",
+                  "title": "Create custom MCP tool development guide",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From external_deps.md and system_context.md - MCP tools implement MCPServer interface with handler: MCPHandler. Tools have name, description, input_schema (JSON Schema), executor function. Three built-in tools: BashMCP, FilesystemMCP, GitMCP.\n2. INPUT: MCP tool implementations from src/tools/, MCPHandler usage examples.\n3. LOGIC: Write custom tool guide in docs/CUSTOM_TOOLS.md that covers: (a) MCP protocol basics, (b) implementing MCPServer interface, (c) defining tool schemas with JSON Schema, (d) writing tool executors, (e) error handling and return values, (f) registering tools with agents. Include example of adding a 'DockerMCP' tool.\n4. OUTPUT: Documentation file docs/CUSTOM_TOOLS.md with MCP tool development tutorial."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S3",
+                  "title": "Create custom workflow development guide",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Workflows extend Groundswell Workflow class. Use decorators: @Step (methods), @Task (child workflows), @ObservedState (state tracking). Workflow lifecycle: setStatus('running') → execute → setStatus('completed/failed').\n2. INPUT: Workflow implementations from src/workflows/, Groundswell workflow patterns.\n3. LOGIC: Write custom workflow guide in docs/CUSTOM_WORKFLOWS.md that covers: (a) extending Workflow class, (b) using @Step for method tracking, (c) using @Task for child workflows, (d) using @ObservedState for state management, (e) error handling and recovery, (f) workflow composition patterns. Include example of adding a 'DeploymentWorkflow'.\n4. OUTPUT: Documentation file docs/CUSTOM_WORKFLOWS.md with custom workflow development tutorial."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T3",
+              "title": "Task 2.2.3: Testing Documentation",
+              "status": "Planned",
+              "description": "Document testing strategies, writing tests, and achieving 100% coverage.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S1",
+                  "title": "Create testing strategy documentation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Testing framework: Vitest with 100% coverage requirement. Test structure: unit/ (single function/class), integration/ (multi-component), e2e/ (full workflow). Setup: tests/setup.ts with environment configuration.\n2. INPUT: Test structure from tests/, vitest configuration from vitest.config.ts.\n3. LOGIC: Write testing strategy in docs/TESTING.md that explains: (a) testing philosophy (100% coverage, TDD), (b) test structure and organization, (c) unit vs integration vs e2e tests, (d) mocking strategies (agents, file system, git), (e) running tests and coverage reports. Include test writing guidelines and examples.\n4. OUTPUT: Documentation file docs/TESTING.md with testing strategy and guidelines."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S2",
+                  "title": "Create test writing examples",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Mock patterns: vi.mock() for agents, vi.fn() for functions, mock file system for session operations. Global test environment: Vitest globals (describe, it, expect).\n2. INPUT: Example tests from tests/unit/, tests/integration/, test fixtures from tests/fixtures/.\n3. LOGIC: Write test examples in docs/TEST_EXAMPLES.md that show: (a) unit test for utility function, (b) unit test for class with mocked dependencies, (c) integration test for agent with mocked LLM, (d) integration test for workflow with mocked components, (e) e2e test for full pipeline. Include complete code examples with explanations.\n4. OUTPUT: Documentation file docs/TEST_EXAMPLES.md with annotated test examples."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M3",
+          "title": "Milestone 2.3: Observability Features",
+          "status": "Planned",
+          "description": "Add observability features for monitoring, debugging, and performance analysis.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M3.T1",
+              "title": "Task 2.3.1: Enhanced Logging and Metrics",
+              "status": "Planned",
+              "description": "Enhance logging with structured output and add performance metrics collection.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S1",
+                  "title": "Add structured log levels and output formatting",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Current logging uses Pino (structured logging). Logger at src/utils/logger.ts. Log levels: info, warn, error. Already structured, but can be enhanced.\n2. INPUT: Logger implementation from src/utils/logger.ts, Pino configuration and options.\n3. LOGIC: Enhance logger to add: (a) configurable log levels (trace, debug, info, warn, error, fatal), (b) pretty-print mode for development, (c) JSON mode for production, (d) log correlation IDs for request tracking, (e) log filtering by component. Update logger configuration and add CLI option --log-level. Add unit tests for new features.\n4. OUTPUT: Enhanced logger at src/utils/logger.ts with new features, tests in tests/unit/logger-enhancements.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S2",
+                  "title": "Add performance metrics collection",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Groundswell @Step decorator already tracks timing. No dedicated metrics collector exists yet. Metrics needed: task duration, agent token usage, cache hit rate, resource usage.\n2. INPUT: Step timing from Groundswell, agent execution from agents/, session state from session-manager.\n3. LOGIC: Create MetricsCollector class at src/utils/metrics-collector.ts that tracks: (a) task execution duration (min, max, avg, p95), (b) agent token usage (input/output tokens per agent), (c) cache hit/miss rates, (d) resource usage (memory, file handles), (e) custom counters and gauges. Integrate with PRPPipeline to collect metrics throughout run. Add --metrics-output CLI option to write metrics.json.\n4. OUTPUT: MetricsCollector at src/utils/metrics-collector.ts, integration in PRPPipeline, tests in tests/unit/metrics-collector.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S3",
+                  "title": "Add real-time progress display",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Progress tracking exists but is log-based. No TUI/visual progress bar currently. Users need better visibility into pipeline progress.\n2. INPUT: Current progress tracking from PRPPipeline, task counts and statuses from TaskOrchestrator.\n3. LOGIC: Create ProgressDisplay class at src/utils/progress-display.ts that shows: (a) overall progress bar (Phase/Milestone/Task/Subtask counts), (b) current task being executed, (c) estimated time remaining, (d) recent log entries. Use cli-progress library for progress bars. Add --progress-mode CLI option (auto, always, never). Integrate with PRPPipeline to update display. Add tests for display logic.\n4. OUTPUT: ProgressDisplay at src/utils/progress-display.ts, integration in PRPPipeline, tests in tests/unit/progress-display.test.ts."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M3.T2",
+              "title": "Task 2.3.2: Debugging and Troubleshooting Tools",
+              "status": "Planned",
+              "description": "Add debugging tools and troubleshooting aids for pipeline failures.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S1",
+                  "title": "Create pipeline state inspector tool",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - 'prd task' command shows tasks but no detailed state inspector exists. Users need ability to inspect pipeline state for debugging.\n2. INPUT: Task state from SessionManager, session structure, artifact locations.\n3. LOGIC: Create 'prd inspect' CLI command that displays: (a) session information (hash, parent, delta status), (b) task hierarchy with status, (c) current executing task, (d) recent artifacts and their locations, (e) error summaries if any. Use 'prd inspect --task <id>' for task-specific details. Implement command handler in src/cli/commands/inspect.ts. Add tests for inspector logic.\n4. OUTPUT: 'prd inspect' command in src/cli/commands/inspect.ts, integration in CLI, tests in tests/integration/inspect-command.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S2",
+                  "title": "Create error report generator",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - ERROR_REPORT.md generated on pipeline failure. Contains: total/completed/failed tasks, failed tasks with errors, error categories, recommendations. Implementation exists but can be enhanced.\n2. INPUT: Error report generation from PRPPipeline, error types from src/utils/errors.ts.\n3. LOGIC: Enhance ERROR_REPORT.md generation to include: (a) error timeline (when errors occurred), (b) error stack traces and context, (c) suggested fixes with links to docs, (d) related tasks that may be affected, (e) resume commands and next steps. Update error report template in src/utils/error-reporter.ts. Add tests for enhanced report generation.\n4. OUTPUT: Enhanced error reporter at src/utils/error-reporter.ts, tests in tests/unit/error-reporter.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S3",
+                  "title": "Create artifact viewer tool",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Artifacts stored in session directory (validation-results.json, execution-summary.md, artifacts-list.json). No convenient viewer exists.\n2. INPUT: Artifact structure and locations, session directory layout.\n3. LOGIC: Create 'prd artifacts' CLI command that lists and displays artifacts: (a) 'prd artifacts list' shows all artifacts with metadata, (b) 'prd artifacts view <task-id>' displays specific artifact content, (c) 'prd artifacts diff <task1> <task2>' compares artifacts between tasks. Implement command handler in src/cli/commands/artifacts.ts. Use syntax highlighting for JSON/md output. Add tests for artifact viewing.\n4. OUTPUT: 'prd artifacts' command in src/cli/commands/artifacts.ts, integration in CLI, tests in tests/integration/artifacts-command.test.ts."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "Phase 3: Performance & Reliability Enhancements",
+      "status": "Planned",
+      "description": "Address identified limitations and pain points to improve performance, concurrency, and error handling.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "Milestone 3.1: Concurrency Improvements",
+          "status": "Planned",
+          "description": "Implement parallel subtask execution and optimize resource usage.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "Task 3.1.1: Parallel Subtask Execution",
+              "status": "Planned",
+              "description": "Implement parallel execution of independent subtasks while respecting dependencies.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Design parallel execution strategy",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Current execution is sequential despite dependency resolution. ResearchQueue has concurrency=3 for PRP generation but subtasks execute one-by-one.\n2. INPUT: TaskOrchestrator sequential execution from src/core/task-orchestrator.ts, dependency resolution logic, Groundswell @Task decorator for concurrency.\n3. LOGIC: Design parallel execution strategy document in plan/003_b3d3efdaf0ed/architecture/parallel-execution-design.md that covers: (a) identifying executable subtasks (dependencies satisfied), (b) concurrent execution limits (configurable pool size), (b) PRP generation vs implementation parallelization, (c) resource limits and backpressure, (d) state updates for concurrent tasks, (e) error handling in concurrent context. Include pseudocode and diagrams.\n4. OUTPUT: Design document plan/003_b3d3efdaf0ed/architecture/parallel-execution-design.md with parallel execution strategy."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S2",
+                  "title": "Implement concurrent task executor",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From design document and system_context.md - Use worker pool pattern or Promise.all with concurrency limit. Must preserve atomic state updates. Groundswell @Task({ concurrent: true }) provides foundation.\n2. INPUT: Design from parallel-execution-design.md, TaskOrchestrator sequential execution, dependency resolution.\n3. LOGIC: Implement ConcurrentTaskExecutor class at src/core/concurrent-executor.ts that: (a) maintains queue of executable subtasks, (b) executes up to N subtasks concurrently (configurable via --parallelism), (c) respects dependencies (no task starts until deps complete), (d) batches state updates to avoid corruption, (e) handles errors without blocking other tasks. Integrate with TaskOrchestrator to replace sequential loop. Add unit tests for executor logic.\n4. OUTPUT: ConcurrentTaskExecutor at src/core/concurrent-executor.ts, integration in TaskOrchestrator, tests in tests/unit/concurrent-executor.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S3",
+                  "title": "Add parallelism CLI option and validation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From CLI options - Need --parallelism <n> option to control concurrent subtask execution. Default should be conservative (e.g., 2-3). Must validate against resource limits.\n2. INPUT: CLI parsing from src/cli/index.ts, concurrent executor configuration.\n3. LOGIC: Add --parallelism <n> CLI option that: (a) accepts integer from 1 to 10, (b) defaults to 2 (conservative), (c) validates against system resources (warns if too high for available CPU/memory), (d) passes to ConcurrentTaskExecutor. Update help text and documentation. Add integration test for CLI option parsing and executor integration.\n4. OUTPUT: CLI option in src/cli/index.ts, validation logic, integration test in tests/integration/parallelism-option.test.ts."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M1.T2",
+              "title": "Task 3.1.2: Resource Optimization",
+              "status": "Planned",
+              "description": "Optimize resource usage for file handle monitoring and research queue concurrency.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S1",
+                  "title": "Optimize file handle monitoring on macOS",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - File handle monitoring uses lsof command (slow, requires spawn). Alternative: use /dev/fd directory listing or kstat/sysctl on macOS.\n2. INPUT: ResourceMonitor from src/utils/resource-monitor.ts, lsof-based implementation.\n3. LOGIC: Optimize ResourceMonitor to use faster file handle counting: (a) on Linux, use /proc/{pid}/fd directory listing, (b) on macOS, use lsof but cache results for 1 second, (c) on Windows, use handle.exe (if available) or skip monitoring, (d) add --monitor-interval CLI option to control polling frequency. Update platform detection and caching logic. Add benchmarks to verify performance improvement.\n4. OUTPUT: Optimized ResourceMonitor at src/utils/resource-monitor.ts, benchmarks in tests/benchmark/resource-monitoring.bench.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S2",
+                  "title": "Make ResearchQueue concurrency configurable",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - ResearchQueue has hardcoded concurrency=3. Not configurable based on workload or API rate limits.\n2. INPUT: ResearchQueue from src/core/research-queue.ts, concurrency constant.\n3. LOGIC: Make ResearchQueue concurrency configurable: (a) add constructor parameter for concurrency limit, (b) provide default from environment variable (RESEARCH_QUEUE_CONCURRENCY=3), (c) allow CLI override via --research-concurrency <n>, (d) document tradeoffs (higher concurrency = faster but more API usage). Update ResearchQueue instantiation in TaskOrchestrator. Add tests for various concurrency levels.\n4. OUTPUT: Configurable ResearchQueue in src/core/research-queue.ts, CLI option in src/cli/index.ts, tests in tests/unit/research-queue-concurrency.test.ts."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Milestone 3.2: Error Handling & Retry Improvements",
+          "status": "Planned",
+          "description": "Improve error handling, add automatic retry mechanisms, and enhance state recovery.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "Task 3.2.1: Automatic Task Retry",
+              "status": "Planned",
+              "description": "Implement automatic retry mechanism for failed tasks with exponential backoff.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Design task retry strategy",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Individual task failures don't stop pipeline but no automatic retry exists. Fix cycle has retry (max 2 attempts) but task execution doesn't.\n2. INPUT: Task execution from PRPPipeline, error handling in TaskOrchestrator, retry pattern from fix cycle.\n3. LOGIC: Design retry strategy document in plan/003_b3d3efdaf0ed/architecture/retry-strategy-design.md that covers: (a) which errors are retryable (API errors, transient failures), (b) which errors are non-retryable (authentication, validation), (c) retry limits (max attempts, exponential backoff), (d) state preservation between retries, (e) user notification of retries, (f) integration with existing failure tracking. Include decision matrix and pseudocode.\n4. OUTPUT: Design document plan/003_b3d3efdaf0ed/architecture/retry-strategy-design.md with retry strategy."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S2",
+                  "title": "Implement task retry mechanism",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From design document - Use Groundswell reflection for retry or implement custom retry logic. Must preserve task state and artifacts between attempts.\n2. INPUT: Design from retry-strategy-design.md, task execution flow, error types from src/utils/errors.ts.\n3. LOGIC: Implement TaskRetryManager class at src/core/task-retry-manager.ts that: (a) classifies errors as retryable/non-retryable, (b) implements exponential backoff (1s → 2s → 4s → 8s), (c) preserves artifacts from failed attempts, (d) updates task status to 'Retrying' on retry, (e) logs retry attempts with context, (f) marks task as 'Failed' after max retries (default 3). Integrate with PRPPipeline task execution loop. Add unit tests for retry logic.\n4. OUTPUT: TaskRetryManager at src/core/task-retry-manager.ts, integration in PRPPipeline, tests in tests/unit/task-retry-manager.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S3",
+                  "title": "Add retry configuration options",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From CLI options - Need --max-retries <n> and --retry-backoff <ms> options to control retry behavior. Defaults: max-retries=3, backoff starts at 1000ms.\n2. INPUT: CLI parsing from src/cli/index.ts, TaskRetryManager configuration.\n3. LOGIC: Add CLI options for retry configuration: (a) --max-retries <n> (default 3, max 10), (b) --retry-backoff <ms> (default 1000ms, base delay), (c) --retry-nonretryable (flag to retry even non-retryable errors). Update help text and document retry behavior. Add integration test for retry options.\n4. OUTPUT: CLI options in src/cli/index.ts, integration test in tests/integration/retry-options.test.ts."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M2.T2",
+              "title": "Task 3.2.2: State Recovery Improvements",
+              "status": "Planned",
+              "description": "Improve state recovery after failures and add checkpoint/resume capabilities.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S1",
+                  "title": "Add checkpoint mechanism for long-running tasks",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Batching state updates exist but no checkpoint mechanism within a single task execution. Long agent calls could lose progress if interrupted.\n2. INPUT: SessionManager state updates, PRP execution flow.\n3. LOGIC: Add checkpoint mechanism for PRP execution: (a) before starting PRP, save 'in-progress' checkpoint with start time, (b) during PRP execution (if supported by agent), save intermediate checkpoints, (c) on interruption, checkpoint allows resume from last state, (d) checkpoints stored in artifacts/{taskId}/checkpoints.json. Implement CheckpointManager class at src/core/checkpoint-manager.ts. Integrate with PRP executor. Add tests for checkpoint save/restore.\n4. OUTPUT: CheckpointManager at src/core/checkpoint-manager.ts, integration in PRP executor, tests in tests/unit/checkpoint-manager.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S2",
+                  "title": "Improve batch write failure recovery",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Batching state corruption risk: if flushUpdates() fails, retry required but no automatic retry. Pending updates preserved on error.\n2. INPUT: SessionManager batch write logic from src/core/session-manager.ts, atomic write utilities.\n3. LOGIC: Add automatic retry to batch write: (a) if flushUpdates() fails, wait with exponential backoff, (b) retry up to 3 times before giving up, (c) log each retry attempt with error context, (d) if all retries fail, preserve pending updates to manual recovery file (tasks.json.failed), (e) add --flush-retries CLI option to configure retry count. Update SessionManager flush logic. Add tests for retry scenarios.\n4. OUTPUT: Enhanced SessionManager flush with retry at src/core/session-manager.ts, tests in tests/unit/flush-retry.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S3",
+                  "title": "Add state validation and repair tools",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - No state validation tools exist. Corrupted tasks.json could block pipeline. Need validation and repair.\n2. INPUT: Task models from src/core/models.ts, Zod validation schemas, session structure.\n3. LOGIC: Create 'prd validate-state' CLI command that: (a) loads tasks.json and validates against Zod schema, (b) checks for orphaned dependencies (deps to non-existent tasks), (c) checks for circular dependencies, (d) checks for status inconsistencies (parent complete but child incomplete), (e) offers auto-repair for common issues, (f) creates backup before repair. Implement in src/cli/commands/validate-state.ts. Add tests for validation and repair logic.\n4. OUTPUT: 'prd validate-state' command in src/cli/commands/validate-state.ts, tests in tests/integration/validate-state.test.ts."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M3",
+          "title": "Milestone 3.3: Performance Optimizations",
+          "status": "Planned",
+          "description": "Optimize performance bottlenecks and reduce resource overhead.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M3.T1",
+              "title": "Task 3.3.1: Cache Optimizations",
+              "status": "Planned",
+              "description": "Optimize PRP cache and make TTL configurable.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S1",
+                  "title": "Make PRP cache TTL configurable",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - PRP cache TTL fixed at 24 hours. Not configurable for different use cases (fast iteration vs long-term caching).\n2. INPUT: PRP cache from src/agents/prp-generator.ts, CACHE_TTL_MS constant.\n3. LOGIC: Make cache TTL configurable: (a) add constructor parameter to PRPGenerator, (b) read from environment variable (PRP_CACHE_TTL_MS=86400000), (c) allow CLI override via --cache-ttl <duration>, (d) support human-readable durations (24h, 1d, 12h). Update PRPGenerator instantiation. Add tests for TTL configuration and expiration.\n4. OUTPUT: Configurable cache TTL in src/agents/prp-generator.ts, CLI option in src/cli/index.ts, tests in tests/unit/prp-cache-ttl.test.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S2",
+                  "title": "Add cache statistics and cleanup",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Cache hit/miss tracking exists but no statistics reporting. No cleanup command for stale cache entries.\n2. INPUT: PRP cache implementation, cache metadata structure.\n3. LOGIC: Add cache features: (a) track hit/miss/eviction statistics, (b) add 'prd cache stats' command to show statistics, (c) add 'prd cache clean' command to remove expired entries, (d) add 'prd cache clear' command to remove all cache entries, (e) add --cache-prune option to auto-clean expired cache on startup. Implement CacheManager class at src/utils/cache-manager.ts. Add tests for cache operations.\n4. OUTPUT: CacheManager at src/utils/cache-manager.ts, 'prd cache' commands in src/cli/commands/cache.ts, tests in tests/unit/cache-manager.test.ts."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M3.T2",
+              "title": "Task 3.3.2: Resource Overhead Reduction",
+              "status": "Planned",
+              "description": "Reduce monitoring overhead and optimize resource-intensive operations.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S1",
+                  "title": "Optimize resource monitoring frequency",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Resource monitoring adds overhead to each task execution. File handle counting via spawn is slow.\n2. INPUT: ResourceMonitor from src/utils/resource-monitor.ts, monitoring frequency.\n3. LOGIC: Optimize resource monitoring: (a) monitor only every Nth task (configurable via --monitor-interval), (b) use lazy evaluation (only check if limits are approached), (c) cache file handle counts for 1 second (as implemented in P3.M1.T2.S1), (d) add --no-resource-monitor flag to disable entirely. Update ResourceMonitor integration. Add benchmarks to verify overhead reduction.\n4. OUTPUT: Optimized ResourceMonitor integration in PRPPipeline, CLI options in src/cli/index.ts, benchmarks in tests/benchmark/resource-monitoring.bench.ts."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S2",
+                  "title": "Optimize PRP file size and token usage",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Large PRP files increase agent token usage. PRPs stored as full markdown with all context sections.\n2. INPUT: PRP template from PROMPTS.md, PRP generation from src/agents/prp-generator.ts.\n3. LOGIC: Optimize PRP size: (a) compress code snippets (remove comments, blank lines), (b) use file references instead of inline content for large files (e.g., 'see src/core/models.ts lines 50-100'), (c) add --prp-compression flag to enable aggressive compression, (d) track token usage and warn if approaching limits, (e) cache common context (architecture docs) separately. Update PRP generation logic. Add tests for compressed PRPs.\n4. OUTPUT: Optimized PRP generation in src/agents/prp-generator.ts, CLI option in src/cli/index.ts, tests in tests/unit/prp-compression.test.ts."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
