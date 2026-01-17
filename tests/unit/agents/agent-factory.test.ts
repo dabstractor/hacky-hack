@@ -10,6 +10,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createBaseConfig,
+  createArchitectAgent,
+  createResearcherAgent,
+  createCoderAgent,
+  createQAAgent,
+  MCP_TOOLS,
   type AgentPersona,
 } from '../../../src/agents/agent-factory.js';
 
@@ -136,6 +141,83 @@ describe('agents/agent-factory', () => {
       // VERIFY: Fallback to empty strings when env vars are not set
       expect(config.env.ANTHROPIC_API_KEY).toBe('');
       expect(config.env.ANTHROPIC_BASE_URL).toBe('');
+    });
+  });
+
+  describe('MCP_TOOLS', () => {
+    it('should export MCPServer-compliant objects with name, transport, and tools', () => {
+      // VERIFY: Each MCP tool has required MCPServer interface properties
+      // This prevents the "MCP server 'undefined' is already registered" bug
+      expect(MCP_TOOLS).toHaveLength(3);
+
+      for (const mcp of MCP_TOOLS) {
+        expect(mcp).toHaveProperty('name');
+        expect(mcp).toHaveProperty('transport');
+        expect(mcp).toHaveProperty('tools');
+        expect(typeof mcp.name).toBe('string');
+        expect(mcp.name).not.toBe('undefined');
+        expect(mcp.name.length).toBeGreaterThan(0);
+        expect(mcp.transport).toBe('inprocess');
+        expect(Array.isArray(mcp.tools)).toBe(true);
+      }
+    });
+
+    it('should have distinct server names for each MCP tool', () => {
+      const names = MCP_TOOLS.map(mcp => mcp.name);
+
+      // VERIFY: No duplicate names
+      expect(new Set(names).size).toBe(names.length);
+
+      // VERIFY: Expected names
+      expect(names).toContain('bash');
+      expect(names).toContain('filesystem');
+      expect(names).toContain('git');
+    });
+  });
+
+  describe('agent creation functions', () => {
+    beforeEach(() => {
+      vi.stubEnv('ANTHROPIC_API_KEY', 'test-token');
+      vi.stubEnv('ANTHROPIC_BASE_URL', 'https://api.test.com');
+    });
+
+    it('should create multiple agents without MCP server registration conflicts', () => {
+      // REGRESSION TEST: This tests the fix for "MCP server 'undefined' is already registered"
+      // The bug occurred because MCPHandler instances didn't expose name/transport/tools properties
+      // causing mcp.name to be undefined when Agent tried to register them
+
+      // EXECUTE: Create multiple agents using the same singleton MCP_TOOLS
+      // This should NOT throw "MCP server 'undefined' is already registered"
+      expect(() => {
+        createArchitectAgent();
+        createResearcherAgent();
+        createCoderAgent();
+        createQAAgent();
+      }).not.toThrow();
+    });
+
+    it('should create architect agent successfully', () => {
+      const agent = createArchitectAgent();
+      expect(agent).toBeDefined();
+      expect(agent.name).toBe('ArchitectAgent');
+    });
+
+    it('should create researcher agent successfully', () => {
+      const agent = createResearcherAgent();
+      expect(agent).toBeDefined();
+      expect(agent.name).toBe('ResearcherAgent');
+    });
+
+    it('should create coder agent successfully', () => {
+      const agent = createCoderAgent();
+      expect(agent).toBeDefined();
+      expect(agent.name).toBe('CoderAgent');
+    });
+
+    it('should create QA agent successfully', () => {
+      const agent = createQAAgent();
+      expect(agent).toBeDefined();
+      expect(agent.name).toBe('QaAgent');
     });
   });
 });

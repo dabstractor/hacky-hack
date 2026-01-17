@@ -477,14 +477,23 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
  * git_add, and git_commit.
  */
 export class GitMCP extends MCPHandler {
+  /** Server name for MCPServer interface */
+  public readonly name = 'git';
+
+  /** Transport type for MCPServer interface */
+  public readonly transport = 'inprocess' as const;
+
+  /** Tools for MCPServer interface */
+  public readonly tools = [gitStatusTool, gitDiffTool, gitAddTool, gitCommitTool];
+
   constructor() {
     super();
 
     // PATTERN: Register server in constructor
     this.registerServer({
-      name: 'git',
-      transport: 'inprocess',
-      tools: [gitStatusTool, gitDiffTool, gitAddTool, gitCommitTool],
+      name: this.name,
+      transport: this.transport,
+      tools: this.tools,
     });
 
     // PATTERN: Register tool executors with ToolExecutor cast

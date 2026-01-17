@@ -249,14 +249,23 @@ async function executeBashCommand(
  * Also provides direct execute_bash method for synchronous use.
  */
 export class BashMCP extends MCPHandler {
+  /** Server name for MCPServer interface */
+  public readonly name = 'bash';
+
+  /** Transport type for MCPServer interface */
+  public readonly transport = 'inprocess' as const;
+
+  /** Tools for MCPServer interface */
+  public readonly tools = [bashTool];
+
   constructor() {
     super();
 
     // PATTERN: Register server in constructor
     this.registerServer({
-      name: 'bash',
-      transport: 'inprocess',
-      tools: [bashTool],
+      name: this.name,
+      transport: this.transport,
+      tools: this.tools,
     });
 
     // PATTERN: Register tool executor

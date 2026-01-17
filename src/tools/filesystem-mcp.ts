@@ -485,14 +485,23 @@ async function grepSearch(input: GrepSearchInput): Promise<GrepSearchResult> {
  * glob_files, and grep_search.
  */
 export class FilesystemMCP extends MCPHandler {
+  /** Server name for MCPServer interface */
+  public readonly name = 'filesystem';
+
+  /** Transport type for MCPServer interface */
+  public readonly transport = 'inprocess' as const;
+
+  /** Tools for MCPServer interface */
+  public readonly tools = [fileReadTool, fileWriteTool, globFilesTool, grepSearchTool];
+
   constructor() {
     super();
 
     // PATTERN: Register server in constructor
     this.registerServer({
-      name: 'filesystem',
-      transport: 'inprocess',
-      tools: [fileReadTool, fileWriteTool, globFilesTool, grepSearchTool],
+      name: this.name,
+      transport: this.transport,
+      tools: this.tools,
     });
 
     // PATTERN: Register tool executors
