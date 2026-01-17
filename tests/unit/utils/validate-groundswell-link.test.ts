@@ -109,7 +109,7 @@ function createMockChild(
  * Creates a mock Stats object from lstat
  *
  * @param isSymlink - Whether this represents a symbolic link
- * @returns Mock Stats object
+ * @returns Mock Stats object (should be used with mockResolvedValue)
  */
 function createMockStats(isSymlink: boolean = false) {
   return {
@@ -166,7 +166,7 @@ describe('validateNpmLink', () => {
 
       // Mock lstat to show symlink exists
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
 
       // Mock readlink to return correct target
@@ -212,7 +212,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -247,7 +247,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -326,7 +326,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue('/wrong/path/to/groundswell');
       vi.mocked(ts.createProgram).mockReturnValue({
@@ -370,7 +370,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -384,9 +384,7 @@ describe('validateNpmLink', () => {
             messageText: "Cannot find module 'groundswell'",
             category: 1,
             code: 2307,
-          } as unknown as ReturnType<
-            typeof ts.createProgram
-          >['getSemanticDiagnostics'][number],
+          } as any,
         ]),
       } as unknown as ReturnType<typeof ts.createProgram>);
       vi.mocked(writeFile).mockResolvedValue(undefined);
@@ -462,7 +460,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -506,7 +504,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -546,7 +544,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -643,7 +641,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -707,7 +705,7 @@ describe('validateNpmLink', () => {
 
       // Mock lstat returning non-symlink
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(false) as ReturnType<typeof lstat>
+        createMockStats(false) as unknown as Awaited<ReturnType<typeof lstat>>
       );
 
       const resultPromise = validateNpmLink();
@@ -764,7 +762,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -806,7 +804,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -881,7 +879,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue('/wrong/path');
       vi.mocked(ts.createProgram).mockReturnValue({
@@ -926,7 +924,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'
@@ -938,9 +936,7 @@ describe('validateNpmLink', () => {
             messageText: "Cannot find module 'groundswell'",
             category: 1,
             code: 2307,
-          } as unknown as ReturnType<
-            typeof ts.createProgram
-          >['getSemanticDiagnostics'][number],
+          } as any,
         ]),
       } as unknown as ReturnType<typeof ts.createProgram>);
       vi.mocked(writeFile).mockResolvedValue(undefined);
@@ -1035,7 +1031,7 @@ describe('validateNpmLink', () => {
       );
 
       vi.mocked(lstat).mockResolvedValue(
-        createMockStats(true) as ReturnType<typeof lstat>
+        createMockStats(true) as unknown as Awaited<ReturnType<typeof lstat>>
       );
       vi.mocked(readlink).mockResolvedValue(
         '/home/dustin/projects/groundswell'

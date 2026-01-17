@@ -138,6 +138,7 @@ AssertionError: expected false to be true // Object.is equality
    Start at  02:42:14
    Duration  654ms (transform 221ms, setup 21ms, collect 296ms, tests 18ms, environment 0ms, prepare 99ms)
 ```
+
 </details>
 
 <details>
@@ -186,35 +187,37 @@ Error during initialize(): SessionFileError: Failed to validate PRD at /tmp/debu
 existsSync(result.sessionPath): true
 === DEBUG TEST END ===
 ```
+
 </details>
 
 ## Timeline Analysis
 
-| Time | Component | Event | Details |
-|------|-----------|-------|---------|
-| 00:00.000 | Test Setup | Create temp directory | `mkdtempSync()` creates `/tmp/debug-e2e-EEXIAq` |
-| 00:00.010 | Test Setup | Write PRD file | `writeFileSync()` writes mock PRD to temp directory |
-| 00:00.020 | PRPPipeline | Constructor | Creates SessionManager with PRD path and plan directory |
-| 00:00.030 | PRPPipeline | run() | Starts pipeline execution |
-| 00:00.040 | PRPPipeline | initializeSession() | Calls `sessionManager.initialize()` |
-| 00:00.050 | SessionManager | initialize() | Calls PRD validation |
-| 00:00.060 | PRDValidator | validate() | Calls `readUTF8FileStrict()` to read PRD |
-| 00:00.070 | SessionUtils | readUTF8FileStrict() | Calls mocked `readFile()` which returns **string** instead of **Buffer** |
-| 00:00.080 | SessionUtils | TextDecoder.decode() | **THROWS**: `ERR_INVALID_ARG_TYPE` - expects Buffer, receives string |
-| 00:00.090 | SessionUtils | Catch block | Wraps error in `SessionFileError` and re-throws |
-| 00:00.100 | SessionManager | initialize() catch | Receives `SessionFileError`, determines it's **non-fatal** via `isFatalError()` |
-| 00:00.110 | PRPPipeline | initializeSession() catch | Treats as non-fatal error, sets phase to `session_failed`, **continues without session** |
-| 00:00.120 | PRPPipeline | decomposePRD() | Skipped (no session) |
-| 00:00.130 | PRPPipeline | executeBacklog() | Skipped (no session) |
-| 00:00.140 | PRPPipeline | runQACycle() | Skipped due to no completed tasks, phase set to `qa_skipped` |
-| 00:00.150 | PRPPipeline | Return result | Returns `success: false`, `sessionPath: ''` (empty string) |
-| 00:00.160 | Test | Assertions | **FAILS**: `success` is `false`, `sessionPath` is empty, files don't exist |
+| Time      | Component      | Event                     | Details                                                                                  |
+| --------- | -------------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| 00:00.000 | Test Setup     | Create temp directory     | `mkdtempSync()` creates `/tmp/debug-e2e-EEXIAq`                                          |
+| 00:00.010 | Test Setup     | Write PRD file            | `writeFileSync()` writes mock PRD to temp directory                                      |
+| 00:00.020 | PRPPipeline    | Constructor               | Creates SessionManager with PRD path and plan directory                                  |
+| 00:00.030 | PRPPipeline    | run()                     | Starts pipeline execution                                                                |
+| 00:00.040 | PRPPipeline    | initializeSession()       | Calls `sessionManager.initialize()`                                                      |
+| 00:00.050 | SessionManager | initialize()              | Calls PRD validation                                                                     |
+| 00:00.060 | PRDValidator   | validate()                | Calls `readUTF8FileStrict()` to read PRD                                                 |
+| 00:00.070 | SessionUtils   | readUTF8FileStrict()      | Calls mocked `readFile()` which returns **string** instead of **Buffer**                 |
+| 00:00.080 | SessionUtils   | TextDecoder.decode()      | **THROWS**: `ERR_INVALID_ARG_TYPE` - expects Buffer, receives string                     |
+| 00:00.090 | SessionUtils   | Catch block               | Wraps error in `SessionFileError` and re-throws                                          |
+| 00:00.100 | SessionManager | initialize() catch        | Receives `SessionFileError`, determines it's **non-fatal** via `isFatalError()`          |
+| 00:00.110 | PRPPipeline    | initializeSession() catch | Treats as non-fatal error, sets phase to `session_failed`, **continues without session** |
+| 00:00.120 | PRPPipeline    | decomposePRD()            | Skipped (no session)                                                                     |
+| 00:00.130 | PRPPipeline    | executeBacklog()          | Skipped (no session)                                                                     |
+| 00:00.140 | PRPPipeline    | runQACycle()              | Skipped due to no completed tasks, phase set to `qa_skipped`                             |
+| 00:00.150 | PRPPipeline    | Return result             | Returns `success: false`, `sessionPath: ''` (empty string)                               |
+| 00:00.160 | Test           | Assertions                | **FAILS**: `success` is `false`, `sessionPath` is empty, files don't exist               |
 
 ## Failure Point Identification
 
 **Last Successful Log**: Test setup completed, PRPPipeline constructor succeeded
 
 **First Error Log**:
+
 ```
 SessionFileError: Failed to validate PRD at /tmp/debug-e2e-EEXIAq/PRD.md:
 The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or ArrayBufferView.
@@ -225,6 +228,7 @@ The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or Arr
 **Error Type**: `ERR_INVALID_ARG_TYPE` - Node.js system error
 
 **Error Path**:
+
 1. Test mocks `readFile()` to return string
 2. `PRDValidator.validate()` calls `readUTF8FileStrict()`
 3. `readUTF8FileStrict()` calls mocked `readFile()` which returns string
@@ -247,6 +251,7 @@ The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or Arr
 2. **Missing Session Validation**: The pipeline doesn't validate that `currentSession` is non-null before proceeding with subsequent phases
 
 3. **Mock Return Type Mismatch**: The test mock returns a string when the real `readFile` returns a `Buffer`:
+
    ```typescript
    // Test mock (WRONG)
    vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
@@ -267,6 +272,7 @@ The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or Arr
 ### Evidence
 
 1. **Error Message**:
+
    ```
    The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or ArrayBufferView.
    ```
@@ -274,6 +280,7 @@ The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or Arr
 2. **Error Code**: `ERR_INVALID_ARG_TYPE`
 
 3. **Stack Trace**:
+
    ```
    at Module.readUTF8FileStrict (src/core/session-utils.ts:204:11)
    at PRDValidator.validate (src/utils/prd-validator.ts:204:21)
@@ -281,6 +288,7 @@ The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or Arr
    ```
 
 4. **Debug Output**:
+
    ```
    pipeline.sessionManager.currentSession: null
    sessionPath:  (empty string)
@@ -298,6 +306,7 @@ The "list" argument must be an instance of SharedArrayBuffer, ArrayBuffer or Arr
 **Returns**: String (INCORRECT - should return Buffer)
 
 **Mock Implementation** (from `tests/e2e/pipeline.test.ts:240-249`):
+
 ```typescript
 vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
   const pathStr = String(path);
@@ -312,12 +321,14 @@ vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
 ```
 
 **Expected Behavior**:
+
 ```typescript
 // Real readFile returns Promise<Buffer>
 const buffer = await readFile(path); // Buffer<...>
 ```
 
 **Actual Behavior in Test**:
+
 ```typescript
 const buffer = await readFile(path); // string (from mock)
 // Later: TextDecoder.decode(buffer) throws because buffer is not a Buffer
@@ -330,11 +341,13 @@ const buffer = await readFile(path); // string (from mock)
 **Impact**: Masks actual file system issues - test passes file existence checks even when files weren't created
 
 **Mock Implementation** (from `tests/e2e/pipeline.test.ts:252`):
+
 ```typescript
 vi.mocked(existsSync).mockReturnValue(true);
 ```
 
 **Example of Issue**:
+
 ```typescript
 // Test checks: existsSync(join(result.sessionPath, 'prd_snapshot.md'))
 // Mock returns: true
@@ -357,6 +370,7 @@ vi.mocked(existsSync).mockReturnValue(true);
 **File**: `tests/e2e/pipeline.test.ts`
 
 **Current Implementation** (lines 240-249):
+
 ```typescript
 vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
   const pathStr = String(path);
@@ -371,6 +385,7 @@ vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
 ```
 
 **Fixed Implementation**:
+
 ```typescript
 vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
   const pathStr = String(path);
@@ -387,6 +402,7 @@ vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
 ```
 
 **Alternative Fix** (if using Node.js `Buffer.from`):
+
 ```typescript
 import { Buffer } from 'node:buffer';
 
@@ -403,6 +419,7 @@ return Promise.resolve(Buffer.from(content, 'utf-8'));
 **Location**: In `initializeSession()` method after catch block (around line 491)
 
 **Implementation**:
+
 ```typescript
 async initializeSession(): Promise<void> {
   // ... existing try/catch ...
@@ -435,6 +452,7 @@ async initializeSession(): Promise<void> {
 **Location**: In `isFatalError()` function (around line 680)
 
 **Current Implementation** (lines 680-685):
+
 ```typescript
 // FATAL: SessionError with LOAD_FAILED or SAVE_FAILED codes
 if (isSessionError(error)) {
@@ -448,6 +466,7 @@ if (isSessionError(error)) {
 **Issue**: `SessionFileError` is not checked here
 
 **Option 1 - Make SessionFileError fatal**:
+
 ```typescript
 // FATAL: All SessionError and SessionFileError instances
 if (isSessionError(error) || error instanceof SessionFileError) {
@@ -456,6 +475,7 @@ if (isSessionError(error) || error instanceof SessionFileError) {
 ```
 
 **Option 2 - Add specific error code for session initialization**:
+
 ```typescript
 // In session-manager.ts when throwing SessionFileError:
 throw new SessionFileError(

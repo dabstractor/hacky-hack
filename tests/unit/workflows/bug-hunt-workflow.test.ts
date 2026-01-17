@@ -166,7 +166,7 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow(prdContent, tasks);
 
       // Spy on logger
-      const logSpy = vi.spyOn(workflow.logger, 'info');
+      const logSpy = vi.spyOn((workflow as any).logger, 'info');
 
       // EXECUTE
       await workflow.analyzeScope();
@@ -204,7 +204,7 @@ describe('BugHuntWorkflow', () => {
     it('should log E2E test categories', async () => {
       // SETUP
       const workflow = new BugHuntWorkflow('PRD content', []);
-      const logSpy = vi.spyOn(workflow.logger, 'info');
+      const logSpy = vi.spyOn((workflow as any).logger, 'info');
 
       // EXECUTE
       await workflow.creativeE2ETesting();
@@ -244,7 +244,7 @@ describe('BugHuntWorkflow', () => {
     it('should log adversarial test categories', async () => {
       // SETUP
       const workflow = new BugHuntWorkflow('PRD content', []);
-      const logSpy = vi.spyOn(workflow.logger, 'info');
+      const logSpy = vi.spyOn((workflow as any).logger, 'info');
 
       // EXECUTE
       await workflow.adversarialTesting();
@@ -412,7 +412,7 @@ describe('BugHuntWorkflow', () => {
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
-      const logSpy = vi.spyOn(workflow.logger, 'info');
+      const logSpy = vi.spyOn((workflow as any).logger, 'info');
 
       // EXECUTE
       await workflow.generateReport();

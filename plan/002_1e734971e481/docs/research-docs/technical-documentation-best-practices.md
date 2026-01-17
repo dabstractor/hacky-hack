@@ -35,41 +35,54 @@
 **Maintainer**: Team/Person
 
 ## Table of Contents
+
 [Auto-generated TOC]
 
 ## Overview
+
 - What problem does this solve?
 - Who is this for?
 - Prerequisites
 
 ## Quick Start
+
 Minimal steps to get started
 
 ## Detailed Guide
+
 Main content sections
 
 ## Examples
+
 Practical examples
 
 ## Troubleshooting
+
 Common issues and solutions
 
 ## References
+
 Links to related docs
 ```
 
 ### 1.2 Markdown Formatting Best Practices
 
 #### Heading Hierarchy
+
 ```markdown
 # H1: Document title (use only once per document)
+
 ## H2: Main sections
+
 ### H3: Subsections
+
 #### H4: Detailed topics (rarely needed)
+
 ##### H5: Avoid going deeper
 ```
 
 **Rules**:
+
 - Always start with H1 for document title
 - Use H2 for main sections
 - Skip heading levels (don't jump from H2 to H4)
@@ -77,15 +90,17 @@ Links to related docs
 - Use sentence case or Title Case consistently
 
 #### Text Formatting
+
 ```markdown
 **Bold text** for emphasis and key terms
-*Italic text* for variable names or technical terms
+_Italic text_ for variable names or technical terms
 `Inline code` for code elements, file names, commands
 ~~Strikethrough~~ for deprecated information
 [Link text](url) for hyperlinks
 ```
 
 #### Lists
+
 ```markdown
 - Unordered list item
   - Nested item
@@ -100,22 +115,28 @@ Links to related docs
 ```
 
 #### Code Blocks
-```markdown
+
+````markdown
 # Syntax-highlighted code block
+
 ```javascript
-const example = "code";
+const example = 'code';
 ```
+````
 
 # No syntax highlighting
+
 ```
 Plain text or generic code
 ```
 
 # With file name
+
 ```javascript title="src/utils/example.js"
-const example = "code";
+const example = 'code';
 ```
-```
+
+````
 
 #### Tables
 ```markdown
@@ -123,9 +144,10 @@ const example = "code";
 |----------|----------|----------|
 | Data 1   | Data 2   | Data 3   |
 | Data 4   | Data 5   | Data 6   |
-```
+````
 
 #### Blockquotes and Callouts
+
 ```markdown
 > Standard blockquote for notes
 
@@ -146,17 +168,20 @@ const example = "code";
 ```
 
 #### Horizontal Rules and Page Breaks
+
 ```markdown
 ---
-***
 
-___
+---
+
+---
 ```
 
 ### 1.3 Section Patterns for ESLint Documentation
 
 #### Pattern 1: Rule Documentation Template
-```markdown
+
+````markdown
 ## Rule Name
 
 **Rule ID**: `rule-name`
@@ -166,32 +191,41 @@ ___
 **Recommended**: [Yes | No]
 
 ### Description
+
 Clear explanation of what the rule does and why it matters.
 
 ### Rationale
+
 Why this rule exists. What problems it prevents.
 
 ### Examples
 
 #### Incorrect
+
 ```javascript
 // ❌ Bad code example
 ```
+````
 
 #### Correct
+
 ```javascript
 // ✅ Good code example
 ```
 
 ### Configuration
+
 Options available and their effects.
 
 ### When Not to Use It
+
 Exceptions and cases where this rule doesn't apply.
 
 ### Related Rules
+
 Links to similar or related rules.
-```
+
+````
 
 #### Pattern 2: Fix Guide Template
 ```markdown
@@ -221,7 +255,7 @@ Before/after comparisons (see Section 2).
 
 ## See Also
 Related rules and resources.
-```
+````
 
 ---
 
@@ -230,17 +264,21 @@ Related rules and resources.
 ### 2.1 Before/After Pattern
 
 #### Standard Format
-```markdown
+
+````markdown
 ### Example: [Descriptive Title]
 
 #### Before
+
 ```javascript
 // ❌ [Brief description of what's wrong]
 const problematicCode = 'here';
 // Issue: [Explain the specific problem]
 ```
+````
 
 #### After
+
 ```javascript
 // ✅ [Brief description of the fix]
 const fixedCode = 'here';
@@ -248,9 +286,11 @@ const fixedCode = 'here';
 ```
 
 #### Changes
+
 - [Bullet points highlighting key changes]
 - [Focus on why each change matters]
-```
+
+````
 
 #### Real Example
 ```markdown
@@ -261,9 +301,10 @@ const fixedCode = 'here';
 // ❌ Using var allows redeclaration
 var count = 0;
 var count = 1; // No error, but confusing
-```
+````
 
 #### After
+
 ```javascript
 // ✅ Using const prevents accidental redeclaration
 const count = 0;
@@ -271,10 +312,12 @@ const count = 0;
 ```
 
 #### Changes
+
 - Replaced `var` with `const` to prevent reassignment
 - Makes the code more predictable and easier to reason about
 - Helps catch bugs where variables are accidentally reassigned
-```
+
+````
 
 ### 2.2 Multi-File Before/After Pattern
 
@@ -282,23 +325,27 @@ const count = 0;
 ### Example: Refactoring Module Structure
 
 #### Before Structure
-```
+````
+
 src/
 ├── utils.js (500+ lines)
 └── helpers.js (300+ lines)
+
 ```
 
 #### After Structure
 ```
+
 src/
 ├── utils/
-│   ├── string.js
-│   ├── array.js
-│   └── object.js
+│ ├── string.js
+│ ├── array.js
+│ └── object.js
 └── helpers/
-    ├── dom.js
-    └── async.js
-```
+├── dom.js
+└── async.js
+
+````
 
 #### Before: src/utils.js
 ```javascript
@@ -308,28 +355,40 @@ export function parse() { /* ... */ }
 export function map() { /* ... */ }
 export function filter() { /* ... */ }
 // ... 50 more functions
-```
+````
 
 #### After: src/utils/string.js
+
 ```javascript
 // ✅ String utilities grouped together
-export function stringify() { /* ... */ }
-export function parse() { /* ... */ }
+export function stringify() {
+  /* ... */
+}
+export function parse() {
+  /* ... */
+}
 ```
 
 #### After: src/utils/array.js
+
 ```javascript
 // ✅ Array utilities grouped together
-export function map() { /* ... */ }
-export function filter() { /* ... */ }
+export function map() {
+  /* ... */
+}
+export function filter() {
+  /* ... */
+}
 ```
 
 #### Benefits
+
 - Easier to find functions
 - Better code organization
 - Improved tree-shaking
 - Clearer module responsibilities
-```
+
+````
 
 ### 2.3 Code Example Best Practices
 
@@ -343,9 +402,10 @@ export function filter() { /* ... */ }
 ✅ Use meaningful variable names
 ✅ Show the complete context (not just snippets)
 ✅ Use emojis for quick visual scanning (❌ ✅ ⚠️)
-```
+````
 
 #### DON'Ts
+
 ```markdown
 ❌ Use generic examples like "foo/bar"
 ❌ Make examples too complex
@@ -358,7 +418,7 @@ export function filter() { /* ... */ }
 
 ### 2.4 Annotated Code Examples
 
-```markdown
+````markdown
 ### Example with Annotations
 
 ```javascript
@@ -379,14 +439,17 @@ function calculateDiscount(price, discountRate) {
 // 5️⃣ Usage example
 const finalPrice = calculateDiscount(100, 0.2); // $80
 ```
+````
 
 **Annotations**:
+
 1. Function name clearly describes what it does
 2. Input validation prevents invalid calculations
 3. Intermediate variable improves readability
 4. Clear return statement
 5. Practical usage example with expected output
-```
+
+````
 
 ---
 
@@ -441,27 +504,29 @@ Examples:
 - `no-console`: Disallow console statements
 - `no-shadow`: Disallow variable shadowing
 - `no-use-before-define`: Disallow use before definition
-```
+````
 
 ### 3.2 Severity Matrix
 
 ```markdown
-| Category | Error | Warning | Off | When to Use |
-|----------|-------|---------|-----|-------------|
-| Possible Errors | ✅ Default | ⚠️ Rarely | ❌ No | Always enable in production |
-| Best Practices | ⚠️ Recommended | ✅ Default | Sometimes | Enable for most codebases |
-| Stylistic Issues | Rarely | ✅ Default | ✅ Yes | Use formatters instead |
-| Variables | ⚠️ Recommended | ✅ Default | Sometimes | Based on team preference |
-| Legacy | ⚠️ Case-by-case | ✅ Default | ✅ Yes | Disable if not applicable |
+| Category         | Error           | Warning    | Off       | When to Use                 |
+| ---------------- | --------------- | ---------- | --------- | --------------------------- |
+| Possible Errors  | ✅ Default      | ⚠️ Rarely  | ❌ No     | Always enable in production |
+| Best Practices   | ⚠️ Recommended  | ✅ Default | Sometimes | Enable for most codebases   |
+| Stylistic Issues | Rarely          | ✅ Default | ✅ Yes    | Use formatters instead      |
+| Variables        | ⚠️ Recommended  | ✅ Default | Sometimes | Based on team preference    |
+| Legacy           | ⚠️ Case-by-case | ✅ Default | ✅ Yes    | Disable if not applicable   |
 ```
 
 ### 3.3 Prioritization Framework
 
 #### ICE Scoring Model
+
 ```markdown
 **ICE Score** = Impact × Confidence × Ease
 
 **Impact** (1-10):
+
 - 10: Security vulnerability, data loss, crash
 - 8-9: Major functionality broken
 - 6-7: Performance issues, confusing behavior
@@ -469,6 +534,7 @@ Examples:
 - 1-3: Style inconsistency, minor optimization
 
 **Confidence** (1-10):
+
 - 10: Certain this is the right fix
 - 7-9: High confidence, minimal edge cases
 - 5-6: Moderate confidence, some edge cases
@@ -476,6 +542,7 @@ Examples:
 - 1-2: Guessing, needs research
 
 **Ease** (1-10):
+
 - 10: Quick fix, automated, no risk
 - 8-9: Simple manual fix, low risk
 - 6-7: Moderate effort, some testing needed
@@ -483,6 +550,7 @@ Examples:
 - 1-3: Major refactor, high risk
 
 **Prioritization**:
+
 - Score 70+: Critical priority
 - Score 50-69: High priority
 - Score 30-49: Medium priority
@@ -491,8 +559,10 @@ Examples:
 ```
 
 #### Priority Categories
+
 ```markdown
 ## P0 - Critical (Fix Immediately)
+
 - Security vulnerabilities
 - Data corruption or loss
 - Application crashes
@@ -501,6 +571,7 @@ Examples:
 **Action**: Drop everything, fix today
 
 ## P1 - High (Fix This Sprint)
+
 - Performance degradation
 - User-facing bugs
 - Confusing behavior affecting UX
@@ -509,6 +580,7 @@ Examples:
 **Action**: Add to current sprint
 
 ## P2 - Medium (Fix Next Sprint)
+
 - Maintainability issues
 - Minor performance issues
 - Inconsistent patterns
@@ -517,6 +589,7 @@ Examples:
 **Action**: Plan for next sprint
 
 ## P3 - Low (Backlog)
+
 - Style inconsistencies
 - Minor optimizations
 - Nice-to-have improvements
@@ -533,22 +606,28 @@ Examples:
 ### By Severity
 
 #### 🔴 Critical (Error)
+
 **Fix Timeline**: Immediate
 **Examples**:
+
 - `no-undef`: Using undefined variables
 - `no-unused-vars`: Dead code
 - `no-constant-condition`: Logic errors
 
 #### 🟡 Warning
+
 **Fix Timeline**: This sprint
 **Examples**:
+
 - `eqeqeq`: Using == instead of ===
 - `no-console`: Console statements in production
 - `no-var`: Using outdated var keyword
 
 #### 🔵 Low (Style)
+
 **Fix Timeline**: Backlog
 **Examples**:
+
 - `quotes`: Inconsistent quote style
 - `indent`: Inconsistent indentation
 - `semi`: Missing semicolons
@@ -556,18 +635,21 @@ Examples:
 ### By Impact
 
 #### 💥 High Impact
+
 - Affects functionality
 - Causes bugs or errors
 - Performance implications
 - Security concerns
 
 #### 📊 Medium Impact
+
 - Code readability
 - Maintainability
 - Developer experience
 - Testing complexity
 
 #### 🎨 Low Impact
+
 - Style consistency
 - Personal preference
 - Minor optimizations
@@ -576,18 +658,21 @@ Examples:
 ### By Effort
 
 #### ⚡ Quick Wins (< 5 minutes)
+
 - Single-line fixes
 - Auto-fixable issues
 - Simple replacements
 - Clear solutions
 
 #### 🔄 Moderate Effort (5-30 minutes)
+
 - Multi-line changes
 - Require testing
 - Some refactoring
 - Need consideration
 
 #### 🏗️ Significant Effort (> 30 minutes)
+
 - Major refactoring
 - Architectural changes
 - Breaking changes
@@ -600,7 +685,7 @@ Examples:
 
 ### 4.1 Actionable Recommendation Template
 
-```markdown
+````markdown
 ## [Recommendation Title]
 
 **Impact**: [High/Medium/Low]
@@ -609,24 +694,30 @@ Examples:
 **Rule**: `@eslint/[rule-name]`
 
 ### Problem
+
 [Clear, specific description of the issue]
 
 **Why it matters**:
+
 - [Reason 1]
 - [Reason 2]
 - [Reason 3]
 
 ### Solution
+
 [Specific, actionable steps to fix]
 
 #### Step 1: [Action Title]
+
 ```javascript
 // Example code or command
 ```
+````
 
 **What this does**: [Explanation]
 
 #### Step 2: [Action Title]
+
 ```bash
 # Example command
 ```
@@ -634,6 +725,7 @@ Examples:
 **What this does**: [Explanation]
 
 #### Step 3: [Action Title]
+
 ```javascript
 // Example code
 ```
@@ -641,9 +733,11 @@ Examples:
 **What this does**: [Explanation]
 
 ### Before & After
+
 [See Section 2 for before/after pattern]
 
 ### Verification
+
 ```bash
 # How to verify the fix
 npm run lint
@@ -651,15 +745,18 @@ npm run test
 ```
 
 ### Common Mistakes
+
 - ❌ [Mistake 1 and how to avoid it]
 - ❌ [Mistake 2 and how to avoid it]
 - ❌ [Mistake 3 and how to avoid it]
 
 ### See Also
+
 - [Related rule](link)
 - [Documentation](link)
 - [Discussion](link)
-```
+
+````
 
 ### 4.2 Making Recommendations Actionable
 
@@ -687,14 +784,15 @@ npm run test
 
 ❌ Vague: "Fix soon"
 ✅ Time-bound: "Address all P0 and P1 warnings by next Friday (2026-01-23)"
-```
+````
 
 ### 4.3 Command-Based Recommendations
 
-```markdown
+````markdown
 ## Quick-Fix Commands
 
 ### Auto-fixable Issues
+
 ```bash
 # Auto-fix all auto-fixable issues
 npm run lint -- --fix
@@ -705,8 +803,10 @@ npm run lint -- --fix --rule '@eslint/quotes: ["error", "single"]'
 # Auto-fix specific file
 npm run lint -- --fix src/components/Button.tsx
 ```
+````
 
 ### Check Specific Issues
+
 ```bash
 # Check for unused variables
 npm run lint -- --rule '@eslint/no-unused-vars: error'
@@ -719,6 +819,7 @@ npm run lint src/**/*.test.ts
 ```
 
 ### Generate Report
+
 ```bash
 # Generate JSON report
 npm run lint -- --format json --output-file lint-report.json
@@ -729,7 +830,8 @@ npm run lint -- --format html --output-file lint-report.html
 # Count warnings by rule
 npm run lint -- --format compact
 ```
-```
+
+````
 
 ### 4.4 Checklist-Based Recommendations
 
@@ -770,7 +872,7 @@ npm run lint -- --format compact
 - [ ] Update team guidelines
 - [ ] Document exceptions
 - [ ] Schedule regular reviews
-```
+````
 
 ---
 
@@ -779,6 +881,7 @@ npm run lint -- --format compact
 ### 5.1 Table of Contents Patterns
 
 #### Manual TOC (Small Documents)
+
 ```markdown
 ## Table of Contents
 
@@ -792,6 +895,7 @@ npm run lint -- --format compact
 ```
 
 #### Auto-Generated TOC (Large Documents)
+
 ```markdown
 ## Table of Contents
 
@@ -800,18 +904,21 @@ npm run lint -- --format compact
 <!-- /TOC -->
 ```
 
-*Note: Use tools like `markdown-toc` VS Code extension or GitHub's automatic TOC rendering*
+_Note: Use tools like `markdown-toc` VS Code extension or GitHub's automatic TOC rendering_
 
 #### Hierarchical TOC
+
 ```markdown
 ## Table of Contents
 
 ### Getting Started
+
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Configuration](#configuration)
 
 ### Core Concepts
+
 - [Rules](#rules)
   - [Rule Categories](#rule-categories)
   - [Rule Configuration](#rule-configuration)
@@ -819,11 +926,13 @@ npm run lint -- --format compact
 - [Plugins](#plugins)
 
 ### Guides
+
 - [Fixing Common Issues](#fixing-common-issues)
 - [Custom Rules](#custom-rules)
 - [Integration](#integration)
 
 ### Reference
+
 - [CLI](#cli)
 - [Configuration File](#configuration-file)
 - [API](#api)
@@ -832,6 +941,7 @@ npm run lint -- --format compact
 ### 5.2 Header Patterns
 
 #### Descriptive Headers
+
 ```markdown
 ❌ Bad: "Section 1"
 ✅ Good: "Understanding ESLint Rule Categories"
@@ -844,35 +954,51 @@ npm run lint -- --format compact
 ```
 
 #### Action-Oriented Headers
+
 ```markdown
 ## Understanding the Problem
+
 ## Identifying the Issue
+
 ## Implementing the Fix
+
 ## Verifying the Solution
+
 ## Troubleshooting
 ```
 
 #### Question-Based Headers
+
 ```markdown
 ## What is this warning?
+
 ## Why does this matter?
+
 ## How do I fix it?
+
 ## What are the edge cases?
+
 ## Where can I learn more?
 ```
 
 #### Numbered Headers (Tutorials)
+
 ```markdown
 ## Step 1: Install Dependencies
+
 ## Step 2: Configure ESLint
+
 ## Step 3: Run ESLint
+
 ## Step 4: Fix Issues
+
 ## Step 5: Verify Fixes
 ```
 
 ### 5.3 Cross-Linking Patterns
 
 #### Internal Links (Same Document)
+
 ```markdown
 See [Configuration](#configuration) for details.
 As mentioned in the [Introduction](#introduction).
@@ -880,6 +1006,7 @@ For more information, see [Best Practices](#best-practices).
 ```
 
 #### Internal Links (Different Documents)
+
 ```markdown
 See [Getting Started](./getting-started.md) for setup instructions.
 For configuration options, see [Configuration Guide](./configuration.md).
@@ -887,6 +1014,7 @@ Related: [Custom Rules](./custom-rules.md)
 ```
 
 #### External Links
+
 ```markdown
 See the [official ESLint documentation](https://eslint.org/docs/latest/).
 For more details, check out [this article](https://example.com).
@@ -894,6 +1022,7 @@ Learn more from [MDN Web Docs](https://developer.mozilla.org/).
 ```
 
 #### Reference Links
+
 ```markdown
 ## References
 
@@ -904,13 +1033,15 @@ Learn more from [MDN Web Docs](https://developer.mozilla.org/).
 ```
 
 #### Link with Descriptive Title
+
 ```markdown
-[Link Text](url "Title attribute")
-[ESLint](https://eslint.org "JavaScript Linter")
-[TypeScript](https://typescript.io "Type-safe JavaScript")
+[Link Text](url 'Title attribute')
+[ESLint](https://eslint.org 'JavaScript Linter')
+[TypeScript](https://typescript.io 'Type-safe JavaScript')
 ```
 
 #### Section Anchors
+
 ```markdown
 ## Rule: no-unused-vars {#no-unused-vars}
 
@@ -920,17 +1051,20 @@ Learn more from [MDN Web Docs](https://developer.mozilla.org/).
 ### 5.4 Cross-Referencing Patterns
 
 #### Referencing Rules
+
 ```markdown
 The `no-unused-vars` rule is related to [`no-shadow`](#no-shadow)
 and [`no-use-before-define`](#no-use-before-define).
 
 For more on unused variables, see:
+
 - [no-unused-vars](#no-unused-vars)
 - [no-shadow](#no-shadow)
 - [no-var](#no-var)
 ```
 
 #### Referencing Examples
+
 ```markdown
 As shown in [Example 1](#example-1), this approach works well.
 Compare this with [Example 2](#example-2) for alternative approach.
@@ -938,6 +1072,7 @@ See [Advanced Usage](#advanced-usage) for more complex scenarios.
 ```
 
 #### Referencing Sections
+
 ```markdown
 ### Configuration
 
@@ -945,6 +1080,7 @@ For ESLint configuration, see [Configuration Guide](./configuration.md).
 For plugin setup, see [Plugin Installation](#plugin-installation).
 
 ### Related Sections
+
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
@@ -956,19 +1092,19 @@ For plugin setup, see [Plugin Installation](#plugin-installation).
 
 ### 6.1 Quick Reference Card Template
 
-```markdown
+````markdown
 # ESLint Quick Reference Card
 
 > One-page reference for common ESLint rules and fixes
 
 ## Common Rules
 
-| Rule | Category | Auto-fix | Priority |
-|------|----------|----------|----------|
-| `no-unused-vars` | Variables | ✓ | P1 |
-| `no-undef` | Errors | ✗ | P0 |
-| `eqeqeq` | Best Practice | ✓ | P1 |
-| `no-console` | Best Practice | ✗ | P2 |
+| Rule             | Category      | Auto-fix | Priority |
+| ---------------- | ------------- | -------- | -------- |
+| `no-unused-vars` | Variables     | ✓        | P1       |
+| `no-undef`       | Errors        | ✗        | P0       |
+| `eqeqeq`         | Best Practice | ✓        | P1       |
+| `no-console`     | Best Practice | ✗        | P2       |
 
 ## Quick Commands
 
@@ -982,6 +1118,7 @@ npm run lint -- --rule 'no-console: error'
 # Generate report
 npm run lint -- --format json
 ```
+````
 
 ## Priority Levels
 
@@ -993,12 +1130,14 @@ npm run lint -- --format json
 ## Common Fixes
 
 ### Remove unused variables
+
 ```bash
 # Auto-fix
 eslint --fix
 ```
 
 ### Use const instead of var
+
 ```javascript
 // Before
 var x = 1;
@@ -1008,12 +1147,15 @@ const x = 1;
 ```
 
 ### Use === instead of ==
+
 ```javascript
 // Before
-if (x == y) { }
+if (x == y) {
+}
 
 // After
-if (x === y) { }
+if (x === y) {
+}
 ```
 
 ## Resources
@@ -1021,7 +1163,8 @@ if (x === y) { }
 - [ESLint Rules](https://eslint.org/docs/latest/rules/)
 - [Full Documentation](./README.md)
 - [Troubleshooting](./troubleshooting.md)
-```
+
+````
 
 ### 6.2 Cheat Sheet Pattern
 
@@ -1037,16 +1180,18 @@ const x = y; // y is not defined
 // ✅ Fix: Define the variable first
 const y = 1;
 const x = y;
-```
+````
 
 ## 🟡 High Priority (Fix This Sprint)
 
 ```javascript
 // ❌ Using == instead of ===
-if (x == y) { }
+if (x == y) {
+}
 
 // ✅ Fix: Use ===
-if (x === y) { }
+if (x === y) {
+}
 ```
 
 ## 🔵 Medium Priority (Fix Next Sprint)
@@ -1081,7 +1226,8 @@ eslint --format json > report.json
 4. Manually fix the rest
 5. Run tests
 6. Commit
-```
+
+````
 
 ### 6.3 One-Page Reference Pattern
 
@@ -1131,16 +1277,17 @@ eslint --format json > report.json
 ---
 
 *See [Full Documentation](./README.md) for details*
-```
+````
 
 ### 6.4 Category-Based Reference Card
 
-```markdown
+````markdown
 # ESLint Variables Reference
 
 ## Variable Declaration Rules
 
 ### no-var (P1)
+
 ```javascript
 // ❌ Bad
 var x = 1;
@@ -1148,8 +1295,10 @@ var x = 1;
 // ✅ Good
 const x = 1;
 ```
+````
 
 ### prefer-const (P2)
+
 ```javascript
 // ❌ Bad
 let x = 1;
@@ -1159,6 +1308,7 @@ const x = 1;
 ```
 
 ### no-unused-vars (P1)
+
 ```javascript
 // ❌ Bad
 const x = 1;
@@ -1169,6 +1319,7 @@ console.log(x);
 ```
 
 ### no-shadow (P2)
+
 ```javascript
 // ❌ Bad
 function foo(x) {
@@ -1195,7 +1346,8 @@ eslint --fix --rule 'no-var: error' --rule 'prefer-const: warn'
 - [ ] Remove unused variables
 - [ ] Avoid shadowing
 - [ ] Use meaningful names
-```
+
+````
 
 ---
 
@@ -1213,9 +1365,10 @@ markdownlint **/*.md
 
 # Auto-fix
 markdownlint --fix **/*.md
-```
+````
 
 #### Table of Contents Generation
+
 ```bash
 # Install markdown-toc
 npm install -g markdown-toc
@@ -1229,6 +1382,7 @@ markdown-toc -i README.md
 ```
 
 #### Link Checking
+
 ```bash
 # Install markdown-link-check
 npm install -g markdown-link-check
@@ -1243,7 +1397,8 @@ find . -name "*.md" -exec markdown-link-check {} \;
 ### 7.2 VS Code Snippets
 
 #### ESLint Rule Documentation
-```json
+
+````json
 {
   "ESLint Rule Doc": {
     "prefix": "eslint-rule",
@@ -1274,10 +1429,11 @@ find . -name "*.md" -exec markdown-link-check {} \;
     ]
   }
 }
-```
+````
 
 #### Before/After Pattern
-```json
+
+````json
 {
   "Before After": {
     "prefix": "before-after",
@@ -1298,12 +1454,13 @@ find . -name "*.md" -exec markdown-link-check {} \;
     ]
   }
 }
-```
+````
 
 ### 7.3 Documentation Templates
 
 #### Full Document Template
-```markdown
+
+````markdown
 # [Title]
 
 > [Description/Purpose]
@@ -1314,41 +1471,53 @@ find . -name "*.md" -exec markdown-link-check {} \;
 **Maintainer**: [Team/Person]
 
 ## Table of Contents
+
 <!-- toc -->
 
 ## Overview
+
 [Brief introduction]
 
 ## Prerequisites
+
 - [Prerequisite 1]
 - [Prerequisite 2]
 
 ## Quick Start
+
 ```bash
 # Minimal working example
 ```
+````
 
 ## Detailed Guide
+
 [Main content]
 
 ## Examples
+
 [Practical examples]
 
 ## Troubleshooting
+
 | Problem | Solution |
-|---------|----------|
-| Issue 1 | Fix 1 |
-| Issue 2 | Fix 2 |
+| ------- | -------- |
+| Issue 1 | Fix 1    |
+| Issue 2 | Fix 2    |
 
 ## References
+
 - [Reference 1](url)
 - [Reference 2](url)
 
 ## Changelog
+
 ### X.Y.Z (YYYY-MM-DD)
+
 - [Change 1]
 - [Change 2]
-```
+
+````
 
 ---
 
@@ -1383,20 +1552,24 @@ Source: https://eslint.org/docs/latest/rules/
 ### Incorrect
 ```js
 // ❌ Bad example
-```
+````
 
 ### Correct
+
 ```js
 // ✅ Good example
 ```
 
 ## When Not To Use It
+
 [Exceptions]
 
 ## Related Rules
+
 - [rule-1](link)
 - [rule-2](link)
-```
+
+````
 
 ### 8.2 Airbnb Style Guide Pattern
 
@@ -1423,12 +1596,13 @@ Source: https://github.com/airbnb/javascript
 
 // ✅ Good
 [good code]
-```
+````
 
 **Why?** [Rationale]
 
 **Exceptions**: [When to break the rule]
-```
+
+````
 
 ### 8.3 TypeScript-ESLint Pattern
 
@@ -1463,13 +1637,14 @@ Source: https://typescript-eslint.io/rules/
 
 ## Related Rules
 [Links]
-```
+````
 
 ### 8.4 MDN Documentation Pattern
 
 Source: https://developer.mozilla.org/
 
 **Key Elements**:
+
 1. Browser compatibility tables
 2. Try it examples
 3. See also sections
@@ -1477,27 +1652,35 @@ Source: https://developer.mozilla.org/
 5. Clear heading hierarchy
 
 **Pattern**:
-```markdown
+
+````markdown
 # Feature Name
 
 [Description]
 
 ## Syntax
+
 ```js
 [Syntax pattern]
 ```
+````
 
 ## Examples
+
 [Practical examples]
 
 ## Specifications
+
 [Standards references]
 
 ## Browser Compatibility
+
 [Compatibility table]
 
 ## See Also
+
 [Related topics]
+
 ```
 
 ---
@@ -1568,3 +1751,4 @@ Source: https://developer.mozilla.org/
 **Document Status**: ✅ Complete
 **Next Steps**: Use these patterns to create ESLint warning fix documentation for your project.
 **Feedback**: Iterate based on team needs and usage patterns.
+```

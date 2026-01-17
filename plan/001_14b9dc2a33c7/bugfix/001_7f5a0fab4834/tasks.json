@@ -36,9 +36,7 @@
                   "title": "Create npm link from Groundswell directory",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P1.M1.T1.S1"
-                  ],
+                  "dependencies": ["P1.M1.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell must be linked as global npm package per architecture/external_deps.md\n2. INPUT: exists: boolean from S1. If false, throw error with helpful message.\n3. LOGIC: Execute bash commands: `cd ~/projects/groundswell && npm link`. Capture stdout/stderr. Verify success by checking return code. Mock bash execution for testing.\n4. OUTPUT: Return { success: boolean, message: string }. Success if npm link completes without errors. Consume in S3 for conditional logic."
                 },
                 {
@@ -47,9 +45,7 @@
                   "title": "Link Groundswell in hacky-hack project",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P1.M1.T1.S2"
-                  ],
+                  "dependencies": ["P1.M1.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Must create symlink in node_modules/groundswell per architecture/external_deps.md\n2. INPUT: { success: boolean, message: string } from S2. If success is false, skip this subtask.\n3. LOGIC: Execute bash commands: `cd ~/projects/hacky-hack && npm link groundswell`. Capture output. Mock bash execution for testing.\n4. OUTPUT: Return { success: boolean, message: string }. Verify symlink exists. Consume in S4 for validation."
                 },
                 {
@@ -58,9 +54,7 @@
                   "title": "Verify Groundswell symlink in node_modules",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M1.T1.S3"
-                  ],
+                  "dependencies": ["P1.M1.T1.S3"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Symlink must exist at node_modules/groundswell per architecture/system_context.md\n2. INPUT: { success: boolean, message: string } from S3. Only proceed if success is true.\n3. LOGIC: Execute bash: `ls -la node_modules/groundswell`. Verify output contains symbolic link indicator (->). Mock filesystem check for testing.\n4. OUTPUT: Return { exists: boolean, path: string }. Must have exists: true for milestone completion. Consume in S5.\n\nRESEARCH COMPLETED: Comprehensive ls -la parsing research documented in P1M1T1S4/research/ls-output-parsing-research.md including:\n- ls -la output format breakdown with real examples\n- Symlink detection patterns (permission 'l' and arrow '->')\n- Regex patterns for parsing: SYMLINK_ARROW_PATTERN, SYMLINK_PERMISSION_PATTERN\n- spawn() execution patterns with timeout handling\n- Complete TypeScript utilities in ls-output-parser-utils.ts\n- Alternative approach using native fs.lstat() recommended for production\n- Cross-platform considerations and testing examples\n\nFindings applied: Research documented in ls-output-parsing-research.md (26KB) and ls-output-parser-utils.ts (18KB) with production-ready code for symlink detection via ls -la parsing."
                 },
                 {
@@ -69,9 +63,7 @@
                   "title": "Run npm list to verify dependency resolution",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M1.T1.S4"
-                  ],
+                  "dependencies": ["P1.M1.T1.S4"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: npm list should show groundswell as linked package per architecture/external_deps.md\n2. INPUT: { exists: boolean, path: string } from S4. Only verify if exists is true.\n3. LOGIC: Execute bash: `npm list groundswell`. Parse output to confirm it shows linked version (not empty). Mock command execution for testing.\n4. OUTPUT: Return { linked: boolean, version: string }. Final validation that link is functional. Consume in S6."
                 },
                 {
@@ -80,9 +72,7 @@
                   "title": "Document Groundswell link setup in README",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P1.M1.T1.S5"
-                  ],
+                  "dependencies": ["P1.M1.T1.S5"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Setup instructions should be documented per architecture/external_deps.md\n2. INPUT: { linked: boolean, version: string } from S5. Only document if linked is true.\n3. LOGIC: Check if README.md exists. If not, create it. Append section \"## Development Setup\" with npm link commands. Use Write tool if file doesn't exist, Edit if it does.\n4. OUTPUT: Return { updated: boolean, path: string }. Documentation complete flag for milestone tracking."
                 }
               ]
@@ -109,9 +99,7 @@
                   "title": "Analyze any remaining TypeScript errors",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P1.M1.T2.S1"
-                  ],
+                  "dependencies": ["P1.M1.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 65+ files had 'Cannot find module groundswell' errors per Bug Fix Issue 1\n2. INPUT: { success: boolean, errorCount: number, errors: string[] } from S1. If success is true, skip to S3.\n3. LOGIC: Parse errors array. Categorize by error type: module-not-found, type-mismatch, other. Extract file paths and line numbers. Group by file. Use Grep to find affected files if needed.\n4. OUTPUT: Return { categories: Record<string, number>, files: string[], remainingErrors: string[] }. Consume in S3."
                 },
                 {
@@ -120,9 +108,7 @@
                   "title": "Verify no module-not-found errors remain",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M1.T2.S2"
-                  ],
+                  "dependencies": ["P1.M1.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All 'Cannot find module groundswell' errors must be resolved per Issue 1\n2. INPUT: { categories: Record<string, number>, files: string[], remainingErrors: string[] } from S2. If S1 returned success: true, output { resolved: true }.\n3. LOGIC: Check categories for 'module-not-found' count. If > 0, milestone incomplete. If 0, verify by checking random sample of files (src/workflows/prp-pipeline.ts, src/agents/agent-factory.ts). Use Read tool to verify imports.\n4. OUTPUT: Return { resolved: boolean, remainingCount: number }. Critical milestone completion flag."
                 },
                 {
@@ -131,9 +117,7 @@
                   "title": "Document compilation success in build log",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M1.T2.S3"
-                  ],
+                  "dependencies": ["P1.M1.T2.S3"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Success criteria include clean TypeScript compilation per architecture/system_context.md\n2. INPUT: { resolved: boolean, remainingCount: number } from S3. Only log if resolved is true.\n3. LOGIC: Create or append to BUILD_LOG.md. Add timestamp, commit hash (if available), compilation result. Format as markdown table. Use Write tool to create file if not exists.\n4. OUTPUT: Return { logged: boolean, path: string }. Documentation complete flag for milestone tracking."
                 }
               ]
@@ -169,9 +153,7 @@
                   "title": "Verify no runtime errors in startup",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T1.S1"
-                  ],
+                  "dependencies": ["P1.M2.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Should not see 'Cannot find module groundswell' errors per Issue 1\n2. INPUT: { success: boolean, output: string, hasHelp: boolean } from S1. Only check errors if success is true.\n3. LOGIC: Parse stderr for error patterns: 'ERR_MODULE_NOT_FOUND', 'Cannot find', 'Error:'. Check output stack traces. Use Regex to identify error patterns.\n4. OUTPUT: Return { hasErrors: boolean, errorTypes: string[] }. Clean startup if hasErrors is false."
                 },
                 {
@@ -180,9 +162,7 @@
                   "title": "Verify CLI options are displayed correctly",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T1.S2"
-                  ],
+                  "dependencies": ["P1.M2.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expected CLI options: --prd, --verbose, --scope, --validate-prd per architecture/implementation_patterns.md\n2. INPUT: { hasErrors: boolean, errorTypes: string[] } from S2. Only verify if hasErrors is false.\n3. LOGIC: Parse help output for option flags. Look for '--prd', '--verbose', '--scope', '--validate-prd'. Verify descriptions present. Use string matching/Regex.\n4. OUTPUT: Return { optionsPresent: string[], allOptionsPresent: boolean }. All expected options should be in optionsPresent array."
                 }
               ]
@@ -209,9 +189,7 @@
                   "title": "Run PRD validation command",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T2.S1"
-                  ],
+                  "dependencies": ["P1.M2.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Command is `npm run dev -- --prd PRD.md --validate-prd` per Issue 1\n2. INPUT: { created: boolean, path: string } from S1. Use path from S1.\n3. LOGIC: Execute bash: `npm run dev -- --prd TEST_PRD.md --validate-prd`. Capture stdout and stderr. Look for validation report output. Mock for testing.\n4. OUTPUT: Return { success: boolean, validationReport: string, valid: boolean }. Success if command completes without crashing."
                 },
                 {
@@ -220,9 +198,7 @@
                   "title": "Verify validation report output format",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T2.S2"
-                  ],
+                  "dependencies": ["P1.M2.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Validation report uses structured logger output per Issue 5 (console.log problem)\n2. INPUT: { success: boolean, validationReport: string, valid: boolean } from S2. Only check format if success is true.\n3. LOGIC: Parse validation report. Look for sections: 'PRD Validation Report', 'File:', 'Status:', 'Summary:', 'Issues:'. Verify structured formatting. Use Regex to identify sections.\n4. OUTPUT: Return { formatValid: boolean, sectionsPresent: string[] }. Report should have all expected sections."
                 },
                 {
@@ -231,9 +207,7 @@
                   "title": "Verify no console.log statements in output",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T2.S3"
-                  ],
+                  "dependencies": ["P1.M2.T2.S3"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Issue 5 identifies console.log statements in src/index.ts:138-169 that should use logger\n2. INPUT: { formatValid: boolean, sectionsPresent: string[] } from S3. Check for console.log regardless of format.\n3. LOGIC: Check if logger is being used (look for structured output). If console.log detected, note for Phase 3 fix. Use string patterns: 'console.log' vs 'logger.info'. This is verification, not fix.\n4. OUTPUT: Return { usesLogger: boolean, hasConsoleLog: boolean }. If hasConsoleLog is true, creates issue for Phase 3."
                 }
               ]
@@ -278,9 +252,7 @@
                   "title": "Update test script with NODE_OPTIONS memory limit",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P2.M1.T1.S1"
-                  ],
+                  "dependencies": ["P2.M1.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Recommended fix is NODE_OPTIONS=\"--max-old-space-size=4096\" per Issue 2\n2. INPUT: { scripts: Record<string, string>, testScripts: string[] } from S1. Modify each test script.\n3. LOGIC: For each test script, prepend `NODE_OPTIONS=\"--max-old-space-size=4096\" ` to command. Preserve existing command structure. Use Edit tool to modify package.json scripts section.\n4. OUTPUT: Return { updated: string[], updatedScripts: Record<string, string> }. List of updated script names."
                 },
                 {
@@ -289,9 +261,7 @@
                   "title": "Verify package.json syntax is valid",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M1.T1.S2"
-                  ],
+                  "dependencies": ["P2.M1.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Invalid JSON will break npm commands\n2. INPUT: { updated: string[], updatedScripts: Record<string, string> } from S2\n3. LOGIC: Execute bash: `node --check package.json` or `npm run test:run -- --help` to verify JSON is valid. Try parsing JSON. Check for syntax errors.\n4. OUTPUT: Return { valid: boolean, syntaxError: string | null }. Must be valid for milestone completion."
                 }
               ]
@@ -318,9 +288,7 @@
                   "title": "Run full test suite and monitor memory usage",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P2.M1.T2.S1"
-                  ],
+                  "dependencies": ["P2.M1.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Full suite has 1688 tests, previously caused worker termination per Issue 2\n2. INPUT: { success: boolean, hasMemoryError: boolean, output: string } from S1. Only run full suite if single test passes.\n3. LOGIC: Execute bash: `npm run test:run`. Monitor execution time. Capture final output. Parse for 'heap out of memory', 'Worker terminated', test results summary. Use Bash tool with timeout.\n4. OUTPUT: Return { completed: boolean, memoryErrors: boolean, testResults: { pass: number, fail: number } }. Full suite should complete without memory errors."
                 },
                 {
@@ -329,9 +297,7 @@
                   "title": "Compare before/after memory usage",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M1.T2.S2"
-                  ],
+                  "dependencies": ["P2.M1.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: 4GB memory limit should prevent exhaustion per Issue 2 suggested fix\n2. INPUT: { completed: boolean, memoryErrors: boolean, testResults: { pass: number, fail: number } } from S2\n3. LOGIC: Note memory usage from test output if available. Document improvement (before: worker terminated, after: completed). Log findings for documentation.\n4. OUTPUT: Return { improved: boolean, beforeState: string, afterState: string }. Improved should be true if tests complete."
                 }
               ]
@@ -367,9 +333,7 @@
                   "title": "Improve error logging with more context",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P2.M2.T1.S1"
-                  ],
+                  "dependencies": ["P2.M2.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Error handling should include taskId, error message, and stack trace per implementation_patterns.md\n2. INPUT: { currentCode: string, lineNumber: number, hasErrorLogging: boolean } from S1\n3. LOGIC: Use Edit tool to modify catch block at lines 181-185. Add structured logging: taskId (from closure), error message, stack trace. Use logger.error with object parameter. Preserve existing error flow.\n4. OUTPUT: Return { updated: boolean, newCode: string }. Enhanced error logging implementation."
                 },
                 {
@@ -378,9 +342,7 @@
                   "title": "Verify no unhandled promise rejections remain",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M2.T1.S2"
-                  ],
+                  "dependencies": ["P2.M2.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Issue 3 reports 'PromiseRejectionHandledWarning' during test execution\n2. INPUT: { updated: boolean, newCode: string } from S2\n3. LOGIC: Use Grep to search for '.catch(' in src/core/research-queue.ts. Verify all catch blocks have proper error handling. Check for empty catch blocks or catch without logging. Mock for testing.\n4. OUTPUT: Return { allHandled: boolean, catchBlocks: number }. All promise rejections should be handled."
                 }
               ]
@@ -407,9 +369,7 @@
                   "title": "Read PRPGenerator implementation to understand actual signature",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M2.T2.S1"
-                  ],
+                  "dependencies": ["P2.M2.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRPGenerator constructor has changed to include second parameter\n2. INPUT: { testLine: number, expectedParams: string[], actualParams: string[], testCode: string } from S1\n3. LOGIC: Use Grep to find PRPGenerator constructor/class definition. Read the file containing it. Examine constructor parameters. Look for sessionManager parameter and any additional parameters. Identify the false parameter's purpose.\n4. OUTPUT: Return { constructorSignature: string, parameters: string[], secondParamPurpose: string }. Actual constructor signature."
                 },
                 {
@@ -418,9 +378,7 @@
                   "title": "Update test expectations to match implementation",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M2.T2.S2"
-                  ],
+                  "dependencies": ["P2.M2.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test expectations should match actual implementation per Issue 6 suggested fix\n2. INPUT: { constructorSignature: string, parameters: string[], secondParamPurpose: string } from S2\n3. LOGIC: Use Edit tool to modify test expectation. Change `.toHaveBeenCalledWith([{ currentSession: { ... } }])` to `.toHaveBeenCalledWith([{ currentSession: { ... } }, false])`. Update mock if needed. Preserve test intent.\n4. OUTPUT: Return { updated: boolean, newTestExpectation: string }. Test expectation now matches implementation."
                 },
                 {
@@ -429,9 +387,7 @@
                   "title": "Run updated test to verify it passes",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M2.T2.S3"
-                  ],
+                  "dependencies": ["P2.M2.T2.S3"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Specific test should pass after expectation update per Issue 6\n2. INPUT: { updated: boolean, newTestExpectation: string } from S3\n3. LOGIC: Execute bash: `npm run test:run -- tests/unit/core/research-queue.test.ts`. Capture output. Parse for the specific test name. Check if it passes or fails. Mock for testing.\n4. OUTPUT: Return { passed: boolean, output: string }. Test should pass after fix."
                 }
               ]
@@ -467,9 +423,7 @@
                   "title": "Add .tsx extension to resolve.extensions",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M3.T1.S1"
-                  ],
+                  "dependencies": ["P2.M3.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Extensions should include .ts, .js, .tsx per test infrastructure report suggested fix\n2. INPUT: { currentAliases: Record<string, string>, extensions: string[], hasGroundswellAlias: boolean } from S1\n3. LOGIC: If extensions array doesn't include '.tsx', use Edit tool to add it. Ensure order is ['.ts', '.js', '.tsx'] or similar. Preserve existing extensions.\n4. OUTPUT: Return { updated: boolean, newExtensions: string[] }. Updated extensions array."
                 },
                 {
@@ -478,9 +432,7 @@
                   "title": "Verify groundswell alias points to correct location",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M3.T1.S2"
-                  ],
+                  "dependencies": ["P2.M3.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Groundswell alias should point to ../groundswell/dist/index.js per architecture/external_deps.md\n2. INPUT: { updated: boolean, newExtensions: string[] } from S2 (and currentAliases from S1)\n3. LOGIC: Check groundswell alias path. Verify it points to ../groundswell/dist/index.js. If incorrect, use Edit to fix. Ensure it uses URL.pathname format for Vitest. Mock path validation for testing.\n4. OUTPUT: Return { verified: boolean, aliasPath: string }. Alias should be correct and verified."
                 }
               ]
@@ -507,9 +459,7 @@
                   "title": "Configure vitest.config.ts to use setup file",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M3.T2.S1"
-                  ],
+                  "dependencies": ["P2.M3.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Vitest needs setupFiles configuration per test infrastructure report\n2. INPUT: { created: boolean, path: string, hasGlobalCleanup: boolean } from S1\n3. LOGIC: Use Read tool to open vitest.config.ts. Look for setupFiles option. If not present, use Edit to add it. Set to ['./tests/setup.ts']. Ensure proper location in config object.\n4. OUTPUT: Return { configured: boolean, configPath: string }. Setup file configured in Vitest."
                 },
                 {
@@ -518,9 +468,7 @@
                   "title": "Run tests to verify setup file is loaded",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P2.M3.T2.S2"
-                  ],
+                  "dependencies": ["P2.M3.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Setup file should execute before all tests\n2. INPUT: { configured: boolean, configPath: string } from S2\n3. LOGIC: Execute bash: `npm run test:run -- tests/unit/utils/resource-monitor.test.ts`. Monitor for setup file execution (add temp console.log if needed). Check for errors in setup. Mock for testing.\n4. OUTPUT: Return { loaded: boolean, error: string | null }. Setup file should load without errors."
                 }
               ]
@@ -565,9 +513,7 @@
                   "title": "Verify logger is imported in src/index.ts",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M1.T1.S1"
-                  ],
+                  "dependencies": ["P3.M1.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Logger should be imported from ./utils/logger.js per implementation_patterns.md\n2. INPUT: { statements: Array<{line, code, purpose}>, count: number } from S1\n3. LOGIC: Use Grep to search for 'import.*logger' in src/index.ts. Check if getLogger is imported. Verify logger variable exists. If not imported, note for S3.\n4. OUTPUT: Return { imported: boolean, importLine: number | null, loggerVariable: string | null }. Logger import status."
                 },
                 {
@@ -576,9 +522,7 @@
                   "title": "Plan console.log to logger mapping",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M1.T1.S2"
-                  ],
+                  "dependencies": ["P3.M1.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Different console.log types map to different log levels per code quality report\n2. INPUT: { statements: Array, count: number } from S1, { imported: boolean } from S2\n3. LOGIC: Analyze each console.log statement. Determine appropriate log level: info for general output, warn for warnings, error for errors. Plan if multiple console.log should be combined into single logger call. Create mapping plan.\n4. OUTPUT: Return { mapping: Array<{line: number, loggerLevel: string, newCode: string}> }. Replacement plan."
                 }
               ]
@@ -605,9 +549,7 @@
                   "title": "Verify no console.log statements remain in src/index.ts",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M1.T2.S1"
-                  ],
+                  "dependencies": ["P3.M1.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All console.log should be replaced per Issue 5 fix requirement\n2. INPUT: { replaced: number, newCode: string[] } from S1\n3. LOGIC: Use Grep with pattern 'console.log' and path 'src/index.ts'. Count remaining occurrences. Should be 0 (or only allowed ones like console.warn, console.error). If any remain, check if they should be replaced.\n4. OUTPUT: Return { remainingCount: number, allReplaced: boolean }. All console.log should be replaced."
                 },
                 {
@@ -616,9 +558,7 @@
                   "title": "Run ESLint to verify no no-console warnings",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M1.T2.S2"
-                  ],
+                  "dependencies": ["P3.M1.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint rule no-console should not trigger after fix per Issue 5\n2. INPUT: { remainingCount: number, allReplaced: boolean } from S2. Only run if allReplaced is true.\n3. LOGIC: Execute bash: `npm run lint -- src/index.ts`. Capture output. Parse for 'no-console' warnings. Check if src/index.ts has any console warnings. Mock for testing.\n4. OUTPUT: Return { noWarnings: boolean, warningCount: number }. Should have no console warnings for src/index.ts."
                 }
               ]
@@ -654,9 +594,7 @@
                   "title": "Apply explicit null check to fix warning",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M2.T1.S1"
-                  ],
+                  "dependencies": ["P3.M2.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Fix pattern is variable with null check per implementation_patterns.md\n2. INPUT: { currentCode: string, context: string, isNullable: boolean } from S1\n3. LOGIC: Use Edit tool to update line 313. Replace ternary with explicit check using result.error && result.error.trim() or nullish coalescing result.error ?? empty string. Choose pattern that best fits context. Preserve logic.\n4. OUTPUT: Return { updated: boolean, newCode: string }. Fixed code."
                 },
                 {
@@ -665,9 +603,7 @@
                   "title": "Verify ESLint warning is resolved",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M2.T1.S2"
-                  ],
+                  "dependencies": ["P3.M2.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint should not report warning for line 313 after fix per Issue 4\n2. INPUT: { updated: boolean, newCode: string } from S2\n3. LOGIC: Execute bash: `npm run lint -- src/agents/prp-runtime.ts`. Parse output for line 313 warning. Check if 'strict-boolean-expressions' warning still present. Mock for testing.\n4. OUTPUT: Return { warningResolved: boolean, hasOtherWarnings: boolean }. Warning should be resolved."
                 }
               ]
@@ -694,9 +630,7 @@
                   "title": "Apply explicit null check to fix warning",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M2.T2.S1"
-                  ],
+                  "dependencies": ["P3.M2.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Fix pattern is `variable && variable` for strings per implementation_patterns.md\n2. INPUT: { currentCode: string, context: string, isNullable: boolean } from S1\n3. LOGIC: Use Edit tool to update line 160. If code is `if (options.scope)`, change to `if (options.scope && options.scope.trim())`. Or use optional chaining: `if (options.scope?.length)`. Choose pattern that fits validation logic. Preserve logic.\n4. OUTPUT: Return { updated: boolean, newCode: string }. Fixed code."
                 },
                 {
@@ -705,9 +639,7 @@
                   "title": "Verify ESLint warning is resolved",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M2.T2.S2"
-                  ],
+                  "dependencies": ["P3.M2.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ESLint should not report warning for line 160 after fix per Issue 4\n2. INPUT: { updated: boolean, newCode: string } from S2\n3. LOGIC: Execute bash: `npm run lint -- src/cli/index.ts`. Parse output for line 160 warning. Check if 'strict-boolean-expressions' warning still present. Mock for testing.\n4. OUTPUT: Return { warningResolved: boolean, hasOtherWarnings: boolean }. Warning should be resolved."
                 }
               ]
@@ -734,9 +666,7 @@
                   "title": "Categorize warnings by severity and fix effort",
                   "status": "Complete",
                   "story_points": 1,
-                  "dependencies": [
-                    "P3.M2.T3.S1"
-                  ],
+                  "dependencies": ["P3.M2.T3.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Some warnings are trivial fixes, others require logic changes\n2. INPUT: { warnings: Array, total: number, byFile: Record } from S1\n3. LOGIC: Analyze each warning. Categorize: trivial (add && check), moderate (change logic), complex (refactor needed). Estimate fix effort per category. Prioritize files with most warnings. Create priority list.\n4. OUTPUT: Return { categories: Record<string, number>, priorityFiles: string[], totalEffort: string }. Warning categorization.\n\nRESEARCH COMPLETED: Comprehensive ESLint warning categorization research documented in docs/research/eslint-warning-categorization-research.md (45KB) including:\n- 3-tier severity classification framework (Trivial/Moderate/Complex)\n- Fix effort estimation patterns for strict-boolean-expressions warnings\n- Automated categorization system implementation\n- Priority ranking approaches for technical debt (Four-Quadrant Method, ROI-based)\n- File-based prioritization strategies with criticality scores\n- Decision tree for categorization\n- Story point estimation formulas (0.5 SP trivial, 1 SP moderate, 2 SP complex)\n- Batch fixing strategy recommendations\n- Implementation tooling (scripts/categorize-eslint-warnings.ts)\n- Common fix patterns with before/after examples\n- File criticality reference matrix\n- Quick reference decision tree"
                 },
                 {
@@ -745,9 +675,7 @@
                   "title": "Document warning fix recommendations",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P3.M2.T3.S2"
-                  ],
+                  "dependencies": ["P3.M2.T3.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Documentation helps prioritize future fixes\n2. INPUT: { categories: Record, priorityFiles: string[], totalEffort: string } from S2\n3. LOGIC: Create ESLINT_WARNINGS.md in plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/architecture/. Document: total count, categories, priority files, recommended fix order, common fix patterns. Use Write tool.\n4. OUTPUT: Return { documented: boolean, path: string, recommendations: string[] }. Warning fix documentation created.\n\nDOCUMENTATION CREATED: ESLint warning categorization research documented in docs/research/eslint-warning-categorization-research.md with:\n- Severity classification decision tree\n- Fix effort estimation by pattern type\n- File criticality matrix (CRITICAL/HIGH/MEDIUM/LOW)\n- Priority scoring formula (warning count × 0.4 + criticality × 0.6)\n- Automated categorization script (scripts/categorize-eslint-warnings.ts)\n- Common fix patterns with before/after TypeScript examples\n- Implementation recommendations phased by week\n- Tooling recommendations for CI/CD integration\n- Quick reference card and appendices"
                 }
               ]
@@ -792,9 +720,7 @@
                   "title": "Verify test pass rate is acceptable",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M1.T1.S1"
-                  ],
+                  "dependencies": ["P4.M1.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Target is 1688 passing tests per Bug Fix PRD test summary\n2. INPUT: { completed: boolean, results: {pass, fail}, ... } from S1\n3. LOGIC: Calculate pass rate: pass / (pass + fail) * 100. Compare to baseline (1593/1688 = 94.3%). Verify new pass rate equals or exceeds baseline. Identify which tests still fail (if any). Check if failures are expected.\n4. OUTPUT: Return { passRate: number, improved: boolean, failingTests: string[] }. Test pass rate analysis."
                 },
                 {
@@ -803,9 +729,7 @@
                   "title": "Verify no memory or promise errors",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M1.T1.S2"
-                  ],
+                  "dependencies": ["P4.M1.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Should have no 'heap out of memory' or 'PromiseRejectionHandledWarning' per Issues 2-3\n2. INPUT: { completed: boolean, hasMemoryErrors: boolean, hasPromiseRejections: boolean } from S1\n3. LOGIC: Check hasMemoryErrors and hasPromiseRejections flags. Parse output for error patterns. Verify Issues 2 and 3 are resolved. Document any remaining issues. If errors persist, create follow-up tasks.\n4. OUTPUT: Return { memoryIssuesResolved: boolean, promiseIssuesResolved: boolean, remainingIssues: string[] }. Issue resolution status."
                 }
               ]
@@ -832,9 +756,7 @@
                   "title": "Verify no ESLint errors",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M1.T2.S1"
-                  ],
+                  "dependencies": ["P4.M1.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Code should have 0 ESLint errors (warnings acceptable) per architecture/implementation_patterns.md\n2. INPUT: { errorCount: number, warningCount: number } from S1\n3. LOGIC: Check errorCount. If > 0, review errors. Determine if critical or can be deferred. Verify no critical blocking errors. Document any errors that remain.\n4. OUTPUT: Return { hasErrors: boolean, errors: string[], acceptable: boolean }. ESLint error status."
                 },
                 {
@@ -843,9 +765,7 @@
                   "title": "Verify high-priority warnings are fixed",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M1.T2.S2"
-                  ],
+                  "dependencies": ["P4.M1.T2.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: no-console warnings should be 0 per Issue 5 fix\n2. INPUT: { errorCount: number, warningCount: number, byRule: Record } from S1\n3. LOGIC: Check byRule for 'no-console' count. Should be 0 for src/index.ts. Check byRule for 'strict-boolean-expressions' in src/agents/prp-runtime.ts and src/cli/index.ts - should be reduced. Verify Phase 3 fixes are effective.\n4. OUTPUT: Return { consoleWarnings: number, priorityWarnings: number, highPriorityFixed: boolean }. Warning fix verification."
                 }
               ]
@@ -881,9 +801,7 @@
                   "title": "Document Groundswell setup procedure",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M2.T1.S1"
-                  ],
+                  "dependencies": ["P4.M2.T1.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Setup procedure was documented in P1.M1.T1.S6 but should be in summary\n2. INPUT: { created: boolean, path: string } from S1\n3. LOGIC: Use Edit tool to append to BUGFIX_SUMMARY.md. Add section: '## Groundswell Dependency Setup'. Include step-by-step npm link instructions. Include verification commands. Reference architecture/external_deps.md.\n4. OUTPUT: Return { documented: boolean, section: string }. Setup procedure documented."
                 },
                 {
@@ -892,9 +810,7 @@
                   "title": "Document test infrastructure improvements",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M2.T1.S2"
-                  ],
+                  "dependencies": ["P4.M2.T1.S2"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Memory limits and setup file added in Phase 2\n2. INPUT: None - compiles Phase 2 changes\n3. LOGIC: Use Edit tool to append to BUGFIX_SUMMARY.md. Add section: '## Test Infrastructure Improvements'. Include: NODE_OPTIONS changes, setup file creation, vitest config updates. Reference test infrastructure report.\n4. OUTPUT: Return { documented: boolean, section: string }. Test improvements documented."
                 },
                 {
@@ -903,9 +819,7 @@
                   "title": "Document code quality improvements",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M2.T1.S3"
-                  ],
+                  "dependencies": ["P4.M2.T1.S3"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Console.log and nullable boolean fixes from Phase 3\n2. INPUT: None - compiles Phase 3 changes\n3. LOGIC: Use Edit tool to append to BUGFIX_SUMMARY.md. Add section: '## Code Quality Improvements'. Include: console.log replacements, nullable boolean fixes, ESLint warning reductions. List files modified.\n4. OUTPUT: Return { documented: boolean, section: string }. Code quality improvements documented."
                 }
               ]
@@ -932,9 +846,7 @@
                   "title": "Verify all documentation is consistent",
                   "status": "Complete",
                   "story_points": 0.5,
-                  "dependencies": [
-                    "P4.M2.T2.S1"
-                  ],
+                  "dependencies": ["P4.M2.T2.S1"],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Docs should be consistent across all files\n2. INPUT: { updated: boolean, changes: string[] } from S1\n3. LOGIC: Use Grep to search for 'Non-functional', 'missing groundswell', 'worker terminated' in architecture docs. Verify these outdated references are updated or removed. Cross-check system_context.md, external_deps.md, implementation_patterns.md.\n4. OUTPUT: Return { consistent: boolean, outdatedReferences: string[] }. Documentation consistency verified."
                 }
               ]

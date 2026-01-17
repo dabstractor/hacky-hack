@@ -24,11 +24,8 @@ npx vitest run --reporter=default --reporter=json --outputFile=test-results.json
 ```typescript
 export default defineConfig({
   test: {
-    reporters: [
-      'default',
-      ['json', { outputFile: './test-results.json' }]
-    ]
-  }
+    reporters: ['default', ['json', { outputFile: './test-results.json' }]],
+  },
 });
 ```
 
@@ -52,7 +49,7 @@ interface TestRunResult {
 export async function runTests(
   projectRoot: string = process.cwd()
 ): Promise<TestRunResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const child = spawn('npm', ['run', 'test:run'], {
       cwd: projectRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -70,7 +67,7 @@ export async function runTests(
       stderr += data.toString();
     });
 
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       const output = stdout + stderr;
 
       resolve({
@@ -82,7 +79,7 @@ export async function runTests(
       });
     });
 
-    child.on('error', (error) => {
+    child.on('error', error => {
       resolve({
         completed: false,
         exitCode: null,
@@ -99,7 +96,9 @@ function parseTestCounts(output: string): {
   total?: number;
 } {
   // "Tests       58 failed | 1593 passed (1688)"
-  const match = output.match(/Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+  const match = output.match(
+    /Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/
+  );
 
   if (match) {
     return {
@@ -217,9 +216,9 @@ function detectMemoryError(output: string): {
 ```typescript
 // Exit codes that indicate OOM
 const OOM_EXIT_CODES = {
-  SIGABRT: 134,  // V8 OOM abort
-  SIGKILL: 137,  // System OOM killer
-  GENERAL: 1,    // May indicate worker OOM
+  SIGABRT: 134, // V8 OOM abort
+  SIGKILL: 137, // System OOM killer
+  GENERAL: 1, // May indicate worker OOM
 };
 
 function isOomExitCode(exitCode: number | null): boolean {
@@ -266,8 +265,9 @@ function parseJsonResults(path: string) {
     passedTests: results.numPassedTests,
     failedTests: results.numFailedTests,
     success: results.success,
-    duration: results.testResults.reduce((acc, r) =>
-      acc + (r.endTime - r.startTime), 0
+    duration: results.testResults.reduce(
+      (acc, r) => acc + (r.endTime - r.startTime),
+      0
     ),
   };
 }
@@ -285,7 +285,10 @@ interface ValidationResult {
   memoryError?: boolean;
 }
 
-export function validateTestRun(output: string, exitCode: number | null): ValidationResult {
+export function validateTestRun(
+  output: string,
+  exitCode: number | null
+): ValidationResult {
   // Check memory errors first
   if (checkMemoryError(output)) {
     return {
@@ -379,6 +382,7 @@ afterEach(() => {
 ```
 
 Run with:
+
 ```bash
 node --expose-gc vitest run
 ```
@@ -427,7 +431,8 @@ describe('Feature Name', () => {
 
 ```typescript
 // Match Vitest test summary line
-const SUMMARY_PATTERN = /Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/;
+const SUMMARY_PATTERN =
+  /Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/;
 
 // Match test file result
 const FILE_PATTERN = /[✓�❯]\s+(.+?)\s+\((\d+)\s+tests?\)\s+(\d+)ms/;
@@ -456,20 +461,33 @@ export function handleExitCode(exitCode: number): {
   description: string;
   isOom: boolean;
 } {
-  const codes: Record<number, { signal: string; description: string; isOom: boolean }> = {
+  const codes: Record<
+    number,
+    { signal: string; description: string; isOom: boolean }
+  > = {
     0: { signal: 'SUCCESS', description: 'All tests passed', isOom: false },
-    1: { signal: 'FAILURE', description: 'Some tests failed or general error', isOom: false },
+    1: {
+      signal: 'FAILURE',
+      description: 'Some tests failed or general error',
+      isOom: false,
+    },
     124: { signal: 'TIMEOUT', description: 'Process timed out', isOom: false },
-    130: { signal: 'SIGINT', description: 'Interrupted (Ctrl+C)', isOom: false },
+    130: {
+      signal: 'SIGINT',
+      description: 'Interrupted (Ctrl+C)',
+      isOom: false,
+    },
     134: { signal: 'SIGABRT', description: 'V8 OOM abort', isOom: true },
     137: { signal: 'SIGKILL', description: 'OOM killer', isOom: true },
   };
 
-  return codes[exitCode] || {
-    signal: `EXIT_${exitCode}`,
-    description: 'Unknown exit code',
-    isOom: false,
-  };
+  return (
+    codes[exitCode] || {
+      signal: `EXIT_${exitCode}`,
+      description: 'Unknown exit code',
+      isOom: false,
+    }
+  );
 }
 ```
 

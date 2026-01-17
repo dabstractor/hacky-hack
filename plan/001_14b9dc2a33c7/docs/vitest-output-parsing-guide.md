@@ -38,10 +38,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    reporters: [
-      ['json', { outputFile: './test-results.json' }]
-    ]
-  }
+    reporters: [['json', { outputFile: './test-results.json' }]],
+  },
 });
 ```
 
@@ -71,7 +69,7 @@ interface JsonTestResult {
   endTime: number;
   status: 'passed' | 'failed';
   message: string;
-  name: string;  // filepath
+  name: string; // filepath
 }
 
 interface JsonAssertionResult {
@@ -93,13 +91,13 @@ interface JsonAssertionResult {
 The StatusMap used by Vitest JSON reporter:
 
 | Task State | Mode | JSON Status |
-|------------|------|-------------|
-| 'pass' | - | 'passed' |
-| 'fail' | - | 'failed' |
-| 'run' | - | 'skipped' |
-| 'skip' | - | 'skipped' |
-| 'todo' | - | 'skipped' |
-| 'only' | - | 'skipped' |
+| ---------- | ---- | ----------- |
+| 'pass'     | -    | 'passed'    |
+| 'fail'     | -    | 'failed'    |
+| 'run'      | -    | 'skipped'   |
+| 'skip'     | -    | 'skipped'   |
+| 'todo'     | -    | 'skipped'   |
+| 'only'     | -    | 'skipped'   |
 
 ---
 
@@ -126,7 +124,7 @@ interface VitestResult {
 export async function runVitestTests(
   projectRoot: string = process.cwd()
 ): Promise<VitestResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let stdout = '';
     let stderr = '';
 
@@ -147,7 +145,7 @@ export async function runVitestTests(
     });
 
     // Handle completion
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       const combinedOutput = stdout + stderr;
 
       resolve({
@@ -161,7 +159,7 @@ export async function runVitestTests(
     });
 
     // Handle errors
-    child.on('error', (error) => {
+    child.on('error', error => {
       logger.error(`Failed to spawn test process: ${error.message}`);
       resolve({
         completed: false,
@@ -228,15 +226,15 @@ From `/home/dustin/projects/hacky-hack/node_modules/@vitest/runner/dist/tasks-K5
 
 ```typescript
 interface TaskResult {
-  state: TaskState;           // 'run' | 'skip' | 'only' | 'todo' | 'pass' | 'fail'
-  duration?: number;          // Test execution time in milliseconds
-  startTime?: number;         // Test start timestamp
-  heap?: number;              // Heap memory usage in bytes
-  errors?: ErrorWithDiff[];   // Array of errors (if failed)
-  htmlError?: string;         // HTML-formatted error message
+  state: TaskState; // 'run' | 'skip' | 'only' | 'todo' | 'pass' | 'fail'
+  duration?: number; // Test execution time in milliseconds
+  startTime?: number; // Test start timestamp
+  heap?: number; // Heap memory usage in bytes
+  errors?: ErrorWithDiff[]; // Array of errors (if failed)
+  htmlError?: string; // HTML-formatted error message
   hooks?: Partial<Record<keyof SuiteHooks, TaskState>>;
-  retryCount?: number;        // Number of retries performed
-  repeatCount?: number;       // Number of repetitions performed
+  retryCount?: number; // Number of retries performed
+  repeatCount?: number; // Number of repetitions performed
 }
 
 type TaskState = 'run' | 'skip' | 'only' | 'todo' | 'pass' | 'fail';
@@ -327,11 +325,11 @@ const OOM_PATTERNS = {
 
 ### 4.2 OOM Exit Codes
 
-| Exit Code | Signal | Description |
-|-----------|--------|-------------|
-| 134 | SIGABRT | V8 OOM abort |
-| 137 | SIGKILL | System OOM killer |
-| 1 | - | General error (may indicate worker OOM) |
+| Exit Code | Signal  | Description                             |
+| --------- | ------- | --------------------------------------- |
+| 134       | SIGABRT | V8 OOM abort                            |
+| 137       | SIGKILL | System OOM killer                       |
+| 1         | -       | General error (may indicate worker OOM) |
 
 ### 4.3 Memory Error Detection Function
 
@@ -349,7 +347,8 @@ export function detectMemoryErrorInTestOutput(
         ? OOM_PATTERNS.fatal.source
         : OOM_PATTERNS.call_retry.source,
       exitCode,
-      suggestion: 'Set NODE_OPTIONS="--max-old-space-size=4096" before running tests',
+      suggestion:
+        'Set NODE_OPTIONS="--max-old-space-size=4096" before running tests',
       severity: 'fatal',
     };
   }
@@ -476,11 +475,11 @@ function listenForErrors(state) {
     state().rpc.onUnhandledError(error, type);
   }
 
-  const uncaughtException = (e) => catchError(e, "Uncaught Exception");
-  const unhandledRejection = (e) => catchError(e, "Unhandled Rejection");
+  const uncaughtException = e => catchError(e, 'Uncaught Exception');
+  const unhandledRejection = e => catchError(e, 'Unhandled Rejection');
 
-  process.on("uncaughtException", uncaughtException);
-  process.on("unhandledRejection", unhandledRejection);
+  process.on('uncaughtException', uncaughtException);
+  process.on('unhandledRejection', unhandledRejection);
 }
 ```
 
@@ -495,21 +494,27 @@ const UNHANDLED_REJECTION_PATTERNS = {
   vitest_internal: /onUnhandledError/i,
 };
 
-export function detectUnhandledRejections(
-  output: string
-): { detected: boolean; count: number; details: string[] } {
+export function detectUnhandledRejections(output: string): {
+  detected: boolean;
+  count: number;
+  details: string[];
+} {
   const details: string[] = [];
 
   // Count standard warnings
   const standardMatches = output.match(/PromiseRejectionHandledWarning/g);
   if (standardMatches) {
-    details.push(`Found ${standardMatches.length} PromiseRejectionHandledWarning`);
+    details.push(
+      `Found ${standardMatches.length} PromiseRejectionHandledWarning`
+    );
   }
 
   // Count unhandled warnings
   const unhandledMatches = output.match(/UnhandledPromiseRejectionWarning/g);
   if (unhandledMatches) {
-    details.push(`Found ${unhandledMatches.length} UnhandledPromiseRejectionWarning`);
+    details.push(
+      `Found ${unhandledMatches.length} UnhandledPromiseRejectionWarning`
+    );
   }
 
   return {
@@ -598,7 +603,7 @@ child.stdout?.on('data', (data: Buffer) => {
   stdout += data.toString(); // Don't parse yet
 });
 
-child.on('close', (exitCode) => {
+child.on('close', exitCode => {
   const combinedOutput = stdout + stderr;
   const memoryCheck = detectMemoryErrorInTestOutput(combinedOutput, exitCode);
   const testCounts = parseVitestTestCounts(combinedOutput);
@@ -777,7 +782,7 @@ import {
 export async function runVitestWithFullParsing(
   projectRoot: string = process.cwd()
 ) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const child = spawn('npm', ['run', 'test:run'], {
       cwd: projectRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -787,14 +792,21 @@ export async function runVitestWithFullParsing(
     let stdout = '';
     let stderr = '';
 
-    child.stdout?.on('data', (data) => { stdout += data; });
-    child.stderr?.on('data', (data) => { stderr += data; });
+    child.stdout?.on('data', data => {
+      stdout += data;
+    });
+    child.stderr?.on('data', data => {
+      stderr += data;
+    });
 
-    child.on('close', (exitCode) => {
+    child.on('close', exitCode => {
       const combinedOutput = stdout + stderr;
 
       // Parse output
-      const memoryCheck = detectMemoryErrorInTestOutput(combinedOutput, exitCode);
+      const memoryCheck = detectMemoryErrorInTestOutput(
+        combinedOutput,
+        exitCode
+      );
       const testCounts = parseVitestTestCounts(combinedOutput);
       const validation = validateTestResults(combinedOutput, exitCode);
 

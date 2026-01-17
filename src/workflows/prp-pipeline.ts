@@ -22,7 +22,7 @@
  * ```
  */
 
-import { Workflow, Step } from 'groundswell';
+import { Workflow, Step, type Prompt } from 'groundswell';
 import { readFile } from 'node:fs/promises';
 import type { SessionManager } from '../core/session-manager.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
@@ -294,10 +294,10 @@ export class PRPPipeline extends Workflow {
         maxDuration,
       });
       this.#resourceMonitor.start();
-      this.logger.info(
-        { maxTasks, maxDuration },
-        '[PRPPipeline] Resource monitoring enabled'
-      );
+      this.logger.info('[PRPPipeline] Resource monitoring enabled', {
+        maxTasks,
+        maxDuration,
+      });
     }
 
     // Setup signal handlers for graceful shutdown
@@ -404,18 +404,15 @@ export class PRPPipeline extends Workflow {
     this.#failedTasks.set(taskId, failure);
 
     // Log with full context
-    this.logger.error(
-      {
-        taskId,
-        taskTitle: failure.taskTitle,
-        errorCode,
-        errorMessage: errorObj.message,
-        ...(errorObj.stack && { stack: errorObj.stack }),
-        timestamp: failure.timestamp.toISOString(),
-        ...context,
-      },
-      '[PRPPipeline] Task failure tracked'
-    );
+    this.logger.error('[PRPPipeline] Task failure tracked', {
+      taskId,
+      taskTitle: failure.taskTitle,
+      errorCode,
+      errorMessage: errorObj.message,
+      ...(errorObj.stack && { stack: errorObj.stack }),
+      timestamp: failure.timestamp.toISOString(),
+      ...context,
+    });
   }
 
   // ========================================================================
@@ -665,7 +662,10 @@ export class PRPPipeline extends Workflow {
       // Generate backlog with retry logic
       this.logger.info('[PRPPipeline] Calling Architect agent...');
       const _result = await retryAgentPrompt(
-        () => architectAgent.prompt(architectPrompt) as Promise<unknown>,
+        () =>
+          architectAgent.prompt(
+            architectPrompt as unknown as Prompt<unknown>
+          ) as Promise<unknown>,
         { agentType: 'Architect', operation: 'decomposePRD' }
       );
 
@@ -683,12 +683,6 @@ export class PRPPipeline extends Workflow {
 
       // Save backlog to disk
       await this.sessionManager.saveBacklog(parsedBacklog);
-
-      // Update session's taskRegistry to reflect the new backlog
-      // This ensures the shutdown handler saves the correct backlog
-      if (this.sessionManager.currentSession) {
-        this.sessionManager.currentSession.taskRegistry = parsedBacklog;
-      }
 
       // Update task counts
       this.totalTasks = this.#countTasks();
@@ -751,7 +745,9 @@ export class PRPPipeline extends Workflow {
       // Check if there are any subtasks to execute
       const totalSubtasks = this.#countTasks();
       if (totalSubtasks === 0) {
-        this.logger.info('[PRPPipeline] No subtasks to execute, skipping backlog execution');
+        this.logger.info(
+          '[PRPPipeline] No subtasks to execute, skipping backlog execution'
+        );
         this.currentPhase = 'backlog_complete';
         return;
       }
@@ -804,12 +800,12 @@ export class PRPPipeline extends Workflow {
           if (this.#resourceMonitor?.shouldStop()) {
             const status = this.#resourceMonitor.getStatus();
             this.logger.warn(
+              '[PRPPipeline] Resource limit reached, initiating graceful shutdown',
               {
                 limitType: status.limitType,
                 tasksCompleted: this.completedTasks,
                 snapshot: status.snapshot,
-              },
-              '[PRPPipeline] Resource limit reached, initiating graceful shutdown'
+              }
             );
 
             if (status.suggestion) {
@@ -858,14 +854,14 @@ export class PRPPipeline extends Workflow {
           });
 
           this.logger.warn(
+            '[PRPPipeline] Task failed, continuing to next task',
             {
               taskId,
               error:
                 taskError instanceof Error
                   ? taskError.message
                   : String(taskError),
-            },
-            '[PRPPipeline] Task failed, continuing to next task'
+            }
           );
 
           // Continue to next iteration - don't re-throw
@@ -1354,10 +1350,9 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
       return;
     }
 
-    this.logger.info(
-      { failureCount: this.#failedTasks.size },
-      '[PRPPipeline] Generating error report'
-    );
+    this.logger.info('[PRPPipeline] Generating error report', {
+      failureCount: this.#failedTasks.size,
+    });
 
     const sessionPath = this.sessionManager.currentSession?.metadata.path;
     if (!sessionPath) {
@@ -1649,48 +1644,39 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       await this.initializeSession();
 
       // Debug logging after session initialization
-      this.logger.debug(
-        {
-          sessionPath: this.sessionManager?.currentSession?.metadata.path,
-          hasExistingBacklog:
-            (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0) > 0,
-        },
-        '[PRPPipeline] Session initialized'
-      );
+      this.logger.debug('[PRPPipeline] Session initialized', {
+        sessionPath: this.sessionManager?.currentSession?.metadata.path,
+        hasExistingBacklog:
+          (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ??
+            0) > 0,
+      });
 
       await this.decomposePRD();
 
       // Debug logging after PRD decomposition
-      this.logger.debug(
-        {
-          totalPhases: this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0,
-          totalTasks: this.totalTasks,
-        },
-        '[PRPPipeline] PRD decomposition complete'
-      );
+      this.logger.debug('[PRPPipeline] PRD decomposition complete', {
+        totalPhases:
+          this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ??
+          0,
+        totalTasks: this.totalTasks,
+      });
 
       await this.executeBacklog();
 
       // Debug logging after backlog execution
-      this.logger.debug(
-        {
-          completedTasks: this.completedTasks,
-          totalTasks: this.totalTasks,
-          failedTasks: this.#countFailedTasks(),
-        },
-        '[PRPPipeline] Backlog execution complete'
-      );
+      this.logger.debug('[PRPPipeline] Backlog execution complete', {
+        completedTasks: this.completedTasks,
+        totalTasks: this.totalTasks,
+        failedTasks: this.#countFailedTasks(),
+      });
 
       await this.runQACycle();
 
       // Debug logging after QA cycle
-      this.logger.debug(
-        {
-          bugsFound: this.#bugsFound,
-          mode: this.mode,
-        },
-        '[PRPPipeline] QA cycle complete'
-      );
+      this.logger.debug('[PRPPipeline] QA cycle complete', {
+        bugsFound: this.#bugsFound,
+        mode: this.mode,
+      });
 
       this.setStatus('completed');
 
@@ -1725,16 +1711,13 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
         error instanceof Error ? error.message : String(error);
 
       // Debug logging for error path
-      this.logger.debug(
-        {
-          errorMessage,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-          errorCode: (error as any)?.code,
-          currentPhase: this.currentPhase,
-          ...(error instanceof Error && { stack: error.stack }),
-        },
-        '[PRPPipeline] Workflow failed with error'
-      );
+      this.logger.debug('[PRPPipeline] Workflow failed with error', {
+        errorMessage,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorCode: (error as any)?.code,
+        currentPhase: this.currentPhase,
+        ...(error instanceof Error && { stack: error.stack }),
+      });
 
       this.logger.error(`[PRPPipeline] Workflow failed: ${errorMessage}`);
 

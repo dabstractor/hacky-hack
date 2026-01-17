@@ -7,6 +7,7 @@
 ## Quick Verification Commands
 
 ### Basic Type Check (Recommended)
+
 ```bash
 # Check all files can be compiled
 npm run typecheck
@@ -16,12 +17,14 @@ npx tsc --noEmit
 ```
 
 ### Verbose Resolution Tracing
+
 ```bash
 # Trace how TypeScript resolves modules
 npx tsc --noEmit --traceResolution 2>&1 | grep "Resolving module"
 ```
 
 ### Using the Verification Script
+
 ```bash
 # Basic verification
 npx tsx scripts/verify-module-resolution.ts
@@ -37,11 +40,11 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
 
 ## Common Error Codes
 
-| Code | Message | Quick Fix |
-|------|---------|-----------|
-| TS2307 | Cannot find module | Build linked package, check npm link |
-| TS1479 | Module kind mismatch | Match `module` settings in tsconfig |
-| TS2834 | Missing file extension | Add `.js` extension to ES module imports |
+| Code   | Message                       | Quick Fix                                       |
+| ------ | ----------------------------- | ----------------------------------------------- |
+| TS2307 | Cannot find module            | Build linked package, check npm link            |
+| TS1479 | Module kind mismatch          | Match `module` settings in tsconfig             |
+| TS2834 | Missing file extension        | Add `.js` extension to ES module imports        |
 | TS6137 | Cannot find type declarations | Generate `.d.ts` files with `declaration: true` |
 
 ---
@@ -51,12 +54,14 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
 ### For npm Linked Packages
 
 - [ ] **Build the package first**
+
   ```bash
   cd ../local-package
   npm run build
   ```
 
 - [ ] **Create the link**
+
   ```bash
   npm link
   cd ../your-project
@@ -64,18 +69,21 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
   ```
 
 - [ ] **Verify the symlink**
+
   ```bash
   ls -la node_modules/local-package
   # Should show: local-package -> ../../local-package
   ```
 
 - [ ] **Check type declarations exist**
+
   ```bash
   ls ../local-package/dist/*.d.ts
   # Should show: index.d.ts
   ```
 
 - [ ] **Verify package.json configuration**
+
   ```json
   {
     "types": "./dist/index.d.ts",
@@ -91,6 +99,7 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
 ### For TypeScript Paths (Development)
 
 - [ ] **Set baseUrl in tsconfig.json**
+
   ```json
   {
     "compilerOptions": {
@@ -100,6 +109,7 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
   ```
 
 - [ ] **Configure paths**
+
   ```json
   {
     "compilerOptions": {
@@ -153,6 +163,7 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
 ### Test Script
 
 Create `test-imports.ts`:
+
 ```typescript
 // Test importing from linked package
 import { foo } from 'local-package';
@@ -167,6 +178,7 @@ console.log('Imports resolved successfully!');
 ```
 
 Run the test:
+
 ```bash
 # Compile check
 npx tsc --noEmit test-imports.ts
@@ -228,9 +240,7 @@ Start: Import not working
   },
 
   // Project references (optional)
-  "references": [
-    { "path": "../local-pkg" }
-  ]
+  "references": [{ "path": "../local-pkg" }]
 }
 ```
 

@@ -11,32 +11,39 @@
 
 ```typescript
 // ❌ Before
-if (configValue) { }
+if (configValue) {
+}
 
 // ✅ Fix 1: Explicit null check (most common)
-if (configValue !== null && configValue !== undefined) { }
+if (configValue !== null && configValue !== undefined) {
+}
 
 // ✅ Fix 2: With content check
-if (configValue !== null && configValue.length > 0) { }
+if (configValue !== null && configValue.length > 0) {
+}
 
 // ✅ Fix 3: Optional chaining
-if (configValue?.length) { }
+if (configValue?.length) {
+}
 
 // ✅ Fix 4: Nullish coalescing for defaults
-const value = configValue ?? "default";
+const value = configValue ?? 'default';
 ```
 
 ### Nullable Numbers (20% of warnings)
 
 ```typescript
 // ❌ Before
-if (count > 0) { }  // count might be null
+if (count > 0) {
+} // count might be null
 
 // ✅ Fix 1: Explicit null check
-if (count !== null && count > 0) { }
+if (count !== null && count > 0) {
+}
 
 // ✅ Fix 2: Nullish coalescing
-if ((count ?? 0) > 0) { }
+if ((count ?? 0) > 0) {
+}
 
 // ✅ Fix 3: For arithmetic
 return (count ?? 0) * 2;
@@ -46,28 +53,34 @@ return (count ?? 0) * 2;
 
 ```typescript
 // ❌ Before
-if (user) { }
-if (user && user.name) { }
+if (user) {
+}
+if (user && user.name) {
+}
 
 // ✅ Fix 1: Explicit null check
-if (user !== null) { }
+if (user !== null) {
+}
 
 // ✅ Fix 2: Optional chaining
-if (user?.name) { }
+if (user?.name) {
+}
 
 // ✅ Fix 3: With default
-const name = user?.name ?? "Unknown";
+const name = user?.name ?? 'Unknown';
 ```
 
 ### Nullable Booleans (5% of warnings)
 
 ```typescript
 // ❌ Before
-if (flag) { }
+if (flag) {
+}
 return flag ? true : false;
 
 // ✅ Fix 1: Explicit true check
-if (flag === true) { }
+if (flag === true) {
+}
 
 // ✅ Fix 2: Nullish coalescing
 return flag ?? false;
@@ -77,11 +90,14 @@ return flag ?? false;
 
 ```typescript
 // ❌ Before
-if (value) { }
+if (value) {
+}
 
 // ✅ Fix: Type guard
-if (typeof value === 'string' && value) { }
-if (Array.isArray(value) && value.length > 0) { }
+if (typeof value === 'string' && value) {
+}
+if (Array.isArray(value) && value.length > 0) {
+}
 ```
 
 ---
@@ -111,12 +127,12 @@ function process(value: string | null) {
 ```typescript
 // ❌ Before
 function getName(name: string | null): string {
-  return name ? name : "Anonymous";
+  return name ? name : 'Anonymous';
 }
 
 // ✅ After
 function getName(name: string | null): string {
-  return name ?? "Anonymous";
+  return name ?? 'Anonymous';
 }
 ```
 
@@ -129,7 +145,7 @@ if (config && config.server && config.server.host) {
 }
 
 // ✅ After
-return config?.server?.host ?? "localhost";
+return config?.server?.host ?? 'localhost';
 ```
 
 ### Example 4: Array Access
@@ -148,10 +164,12 @@ return items?.[0] ?? null;
 
 ```typescript
 // ❌ Before
-if (age >= 18) { }  // age might be null
+if (age >= 18) {
+} // age might be null
 
 // ✅ After
-if (age !== null && age >= 18) { }
+if (age !== null && age >= 18) {
+}
 ```
 
 ---
@@ -187,10 +205,10 @@ Is the value nullable?
 
 ```typescript
 // ❌ Wrong: Treats "", 0, false as null
-return value || "default";
+return value || 'default';
 
 // ✅ Correct: Only null/undefined get default
-return value ?? "default";
+return value ?? 'default';
 ```
 
 ### Pitfall 2: Forgetting optional chaining
@@ -220,15 +238,18 @@ return value !== null;
 ```json
 {
   "rules": {
-    "@typescript-eslint/strict-boolean-expressions": ["warn", {
-      "allowString": false,
-      "allowNumber": false,
-      "allowNullableObject": false,
-      "allowNullableBoolean": false,
-      "allowNullableString": false,
-      "allowNullableNumber": false,
-      "allowAny": false
-    }]
+    "@typescript-eslint/strict-boolean-expressions": [
+      "warn",
+      {
+        "allowString": false,
+        "allowNumber": false,
+        "allowNullableObject": false,
+        "allowNullableBoolean": false,
+        "allowNullableString": false,
+        "allowNullableNumber": false,
+        "allowAny": false
+      }
+    ]
   }
 }
 ```
@@ -248,13 +269,13 @@ if (legacyValue) {
 
 ## Effort Estimation
 
-| Pattern Type | Frequency | Fix Time | Complexity |
-|--------------|-----------|----------|------------|
-| Simple nullable check | 60% | 1-2 min | Trivial (0.5 SP) |
-| Optional chaining | 15% | 1-2 min | Trivial (0.5 SP) |
-| Nullish coalescing | 10% | 2-3 min | Trivial (0.5 SP) |
-| Logic refinement | 10% | 5-10 min | Moderate (1 SP) |
-| Type refactoring | 5% | 30-45 min | Complex (2 SP) |
+| Pattern Type          | Frequency | Fix Time  | Complexity       |
+| --------------------- | --------- | --------- | ---------------- |
+| Simple nullable check | 60%       | 1-2 min   | Trivial (0.5 SP) |
+| Optional chaining     | 15%       | 1-2 min   | Trivial (0.5 SP) |
+| Nullish coalescing    | 10%       | 2-3 min   | Trivial (0.5 SP) |
+| Logic refinement      | 10%       | 5-10 min  | Moderate (1 SP)  |
+| Type refactoring      | 5%        | 30-45 min | Complex (2 SP)   |
 
 ---
 

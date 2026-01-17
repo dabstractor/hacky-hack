@@ -168,27 +168,27 @@ describe('Setup File Execution Verification', () => {
     describe('Blocked patterns', () => {
       it('should block https://api.anthropic.com', () => {
         const pattern = 'https://api.anthropic.com';
-        expect(BLOCKED_PATTERNS.some((p) => pattern.includes(p))).toBe(true);
+        expect(BLOCKED_PATTERNS.some(p => pattern.includes(p))).toBe(true);
       });
 
       it('should block http://api.anthropic.com (http variant)', () => {
         const pattern = 'http://api.anthropic.com';
-        expect(BLOCKED_PATTERNS.some((p) => pattern.includes(p))).toBe(true);
+        expect(BLOCKED_PATTERNS.some(p => pattern.includes(p))).toBe(true);
       });
 
       it('should block api.anthropic.com (any protocol)', () => {
         const pattern = 'api.anthropic.com';
-        expect(BLOCKED_PATTERNS.some((p) => pattern.includes(p))).toBe(true);
+        expect(BLOCKED_PATTERNS.some(p => pattern.includes(p))).toBe(true);
       });
 
       it('should block https://api.anthropic.com/v1 (subpath)', () => {
         const pattern = 'https://api.anthropic.com/v1';
-        expect(BLOCKED_PATTERNS.some((p) => pattern.includes(p))).toBe(true);
+        expect(BLOCKED_PATTERNS.some(p => pattern.includes(p))).toBe(true);
       });
 
       it('should block https://api.anthropic.com:443 (port variant)', () => {
         const pattern = 'https://api.anthropic.com:443';
-        expect(BLOCKED_PATTERNS.some((p) => pattern.includes(p))).toBe(true);
+        expect(BLOCKED_PATTERNS.some(p => pattern.includes(p))).toBe(true);
       });
     });
 
@@ -273,7 +273,7 @@ describe('Setup File Execution Verification', () => {
         // Critical errors (Anthropic API) are logged with console.error
         // This ensures visibility even if test runner catches the error
         const criticalPattern = 'api.anthropic.com';
-        const isBlocked = BLOCKED_PATTERNS.some((p) =>
+        const isBlocked = BLOCKED_PATTERNS.some(p =>
           criticalPattern.includes(p)
         );
         expect(isBlocked).toBe(true);

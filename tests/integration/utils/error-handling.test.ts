@@ -73,7 +73,9 @@ describe('Error Handling Integration Tests', () => {
 
   describe('Error Type Hierarchy', () => {
     it('should create PipelineError with correct properties', () => {
-      const error = new PipelineError('Test pipeline error', { code: 'TEST_001' });
+      const error = new PipelineError('Test pipeline error', {
+        code: 'TEST_001',
+      });
 
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe('PipelineError');
@@ -82,7 +84,9 @@ describe('Error Handling Integration Tests', () => {
     });
 
     it('should create SessionError with correct properties', () => {
-      const error = new SessionError('Test session error', { sessionPath: '/test/path' });
+      const error = new SessionError('Test session error', {
+        sessionPath: '/test/path',
+      });
 
       expect(error).toBeInstanceOf(PipelineError);
       expect(error.name).toBe('SessionError');
@@ -302,7 +306,11 @@ describe('Error Handling Integration Tests', () => {
 
       expect((error as any).field).toBe('status');
       expect((error as any).value).toBe('InvalidStatus');
-      expect((error as any).allowedValues).toEqual(['Planned', 'Complete', 'Failed']);
+      expect((error as any).allowedValues).toEqual([
+        'Planned',
+        'Complete',
+        'Failed',
+      ]);
     });
   });
 

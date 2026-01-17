@@ -24,7 +24,7 @@ The SessionManager implements a sophisticated batch update system that accumulat
 ```typescript
 async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
   // ... validation logic ...
-  
+
   // Get current backlog from session
   const currentBacklog = this.#currentSession.taskRegistry;
 
@@ -58,6 +58,7 @@ async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
 ## 2. How Changes Are Accumulated
 
 ### Accumulation Process:
+
 1. **Immutable Updates**: Each `updateItemStatus()` creates a new Backlog object using `updateItemStatusUtil()`
 2. **Memory Storage**: Updates stored in `#pendingUpdates` field
 3. **Dirty Flag**: `#dirty` flag set to true indicating pending changes
@@ -65,6 +66,7 @@ async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
 5. **Session State**: Current session's taskRegistry updated in-memory
 
 ### Benefits:
+
 - **Performance**: Multiple updates require only one disk write
 - **Consistency**: Atomic flush prevents partial state corruption
 - **Efficiency**: Reduces disk I/O operations significantly
@@ -128,6 +130,7 @@ async flushUpdates(): Promise<void> {
 ```
 
 ### Atomic Properties:
+
 - **Single Write Operation**: All pending updates written in one call to `saveBacklog()`
 - **State Preservation**: Error handling preserves dirty state for retry
 - **State Reset**: Successful flush resets all batching state
@@ -164,6 +167,7 @@ async loadSession(sessionPath: string): Promise<SessionState> {
 ```
 
 ### Load Behavior:
+
 - **Fresh State**: When loading a session, all batching state is initialized to null/false
 - **No Batch Inheritance**: Batched updates from previous sessions are not carried over
 - **Disk-Based**: Loads directly from `tasks.json` file on disk
@@ -173,6 +177,7 @@ async loadSession(sessionPath: string): Promise<SessionState> {
 The `flushUpdates()` method (Lines 534-584) is the primary flush mechanism:
 
 ### Key Features:
+
 - **Defensive Programming**: Handles edge cases like dirty flag without pending updates
 - **Atomic Persistence**: Uses `saveBacklog()` which delegates to atomic write pattern
 - **Efficiency Metrics**: Reports batch statistics including percentage of I/O operations saved
@@ -180,6 +185,7 @@ The `flushUpdates()` method (Lines 534-584) is the primary flush mechanism:
 - **Idempotent**: Safe to call multiple times (no-op when no pending changes)
 
 ### Integration Points:
+
 - **Pipeline Shutdown**: Called in `prp-pipeline.ts` during graceful shutdown (Line 1339)
 - **Manual Flushing**: Can be called explicitly by API users
 - **Auto-Flush Pattern**: Expected to be called after logical batches of updates
@@ -187,11 +193,13 @@ The `flushUpdates()` method (Lines 534-584) is the primary flush mechanism:
 ## 6. Accumulated Content
 
 ### What Gets Accumulated:
+
 - **Task Status Updates**: Changes to `Status` enum values for any hierarchy item
 - **Backlog State**: Complete updated `Backlog` object containing all phases, milestones, tasks, subtasks
 - **Current Session State**: Updated `currentSession` with new taskRegistry reference
 
 ### What Does NOT Get Accumulated:
+
 - **PRD Changes**: PRD modifications trigger delta session creation
 - **Metadata Changes**: Session metadata is immutable after creation
 - **Current Item ID**: Set via `setCurrentItem()` but not part of batch updates
@@ -234,22 +242,26 @@ The `flushUpdates()` method (Lines 534-584) is the primary flush mechanism:
 ## 8. Key Design Patterns
 
 ### 1. **Batch-Flush Pattern**
+
 - Accumulate changes in memory
 - Atomic write to disk when ready
 - Optimizes for bulk operations
 
 ### 2. **Immutable Updates**
+
 - Each update creates new Backlog object
 - Prevents state corruption
 - Enables clean batching semantics
 
 ### 3. **State Machine**
+
 - `#dirty`: Boolean flag indicating pending changes
 - `#pendingUpdates`: Accumulated state
 - `#updateCount`: Statistics tracking
 - Clear state transitions
 
 ### 4. **Defensive Programming**
+
 - Handles edge cases gracefully
 - Preserves state on errors for retry
 - Logs comprehensive statistics
@@ -257,11 +269,13 @@ The `flushUpdates()` method (Lines 534-584) is the primary flush mechanism:
 ## 9. Performance Characteristics
 
 ### I/O Optimization:
+
 - **Reduction**: N individual updates → 1 flush operation
 - **Efficiency**: Up to (N-1) write operations saved
 - **Atomicity**: Single write ensures consistency
 
 ### Memory Usage:
+
 - **Storage**: Complete Backlog object in memory
 - **Overhead**: Minimal - just references and count
 - **Cleanup**: State reset after successful flush
@@ -269,6 +283,7 @@ The `flushUpdates()` method (Lines 534-584) is the primary flush mechanism:
 ## 10. Usage Examples
 
 ### Basic Batch Updates:
+
 ```typescript
 // Multiple status updates - all batched
 await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -281,6 +296,7 @@ await manager.flushUpdates();
 ```
 
 ### Pipeline Integration:
+
 ```typescript
 // During shutdown, flush any pending updates
 await this.sessionManager.flushUpdates();

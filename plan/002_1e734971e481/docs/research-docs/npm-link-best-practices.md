@@ -31,6 +31,7 @@
 - Testing package integration across multiple projects
 
 **Key Benefits:**
+
 - Real-time updates during development
 - No need to publish to npm registry
 - Facilitates iterative development workflow
@@ -114,6 +115,7 @@ npm link
 ```
 
 **Output example:**
+
 ```
 audited 1 package in 0.123s
 found 0 vulnerabilities
@@ -130,6 +132,7 @@ npm link your-package
 ```
 
 **Output example:**
+
 ```
 /home/user/projects/your-project/node_modules/your-package -> /home/user/.nvm/versions/node/v20.0.0/lib/node_modules/your-package
 ```
@@ -170,10 +173,7 @@ npm unlink -g your-package
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
@@ -365,11 +365,13 @@ node -e "import.meta.resolve('your-package').then(console.log)"
 ### IDE Verification
 
 **VS Code:**
+
 1. Open the linked file in your project
 2. Right-click and select "Go to Definition"
 3. Should navigate to the linked package's source
 
 **TypeScript verification:**
+
 ```bash
 # Test TypeScript can resolve the module
 npx tsc --noEmit --traceResolution 2>&1 | grep your-package
@@ -382,6 +384,7 @@ npx tsc --noEmit --traceResolution 2>&1 | grep your-package
 ### Issue 1: Permission Denied
 
 **Symptom:**
+
 ```
 npm ERR! Error: EACCES: permission denied
 ```
@@ -389,6 +392,7 @@ npm ERR! Error: EACCES: permission denied
 **Solutions:**
 
 **Option A: Fix npm permissions (Recommended)**
+
 ```bash
 # Get npm prefix
 npm config get prefix
@@ -398,6 +402,7 @@ sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
 ```
 
 **Option B: Use a version manager**
+
 ```bash
 # Install nvm (Node Version Manager)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -407,6 +412,7 @@ nvm install node
 ```
 
 **Option C: Configure npm to use a different directory**
+
 ```bash
 # Create directory for global packages
 mkdir ~/.npm-global
@@ -446,11 +452,13 @@ npm link your-package
 ```
 
 **Common causes:**
+
 - Package name doesn't match between package.json and link command
 - Multiple global npm prefixes
 - npm cache corruption
 
 **Solution for cache issues:**
+
 ```bash
 npm cache clean --force
 npm link
@@ -481,6 +489,7 @@ ls -la $(readlink -f node_modules/your-package)/dist/index.js
 ```
 
 **Solution:**
+
 ```bash
 # Rebuild the link
 cd /path/to/your-package
@@ -498,6 +507,7 @@ npm link your-package
 **Symptom:** Multiple instances of React, hooks errors, or version conflicts
 
 **Example error:**
+
 ```
 Error: Invalid hook call. Hooks can only be called inside of the body of a function component.
 ```
@@ -505,6 +515,7 @@ Error: Invalid hook call. Hooks can only be called inside of the body of a funct
 **Cause:** npm link creates a symlink, but npm may install a separate version in node_modules
 
 **Troubleshooting:**
+
 ```bash
 # Check for duplicates
 npm ls your-package
@@ -519,11 +530,13 @@ npm ls your-package --json
 **Solutions:**
 
 **Option A: Use npm link with --save flag**
+
 ```bash
 npm link your-package --save
 ```
 
 **Option B: Remove duplicate installations**
+
 ```bash
 rm -rf node_modules/your-package
 npm link your-package
@@ -553,6 +566,7 @@ stat dist/index.js
 ```
 
 **Solution:**
+
 ```bash
 # In package directory, use watch mode
 npm run build:watch
@@ -572,6 +586,7 @@ npm run dev
 Ensure consistent package.json configuration:
 
 **In your-package/package.json:**
+
 ```json
 {
   "type": "module",
@@ -586,6 +601,7 @@ Ensure consistent package.json configuration:
 ```
 
 **Or if using CommonJS:**
+
 ```json
 {
   "main": "./dist/index.js",
@@ -638,16 +654,16 @@ npm list -g --depth=0 | grep your-package
 
 ### Comparison Table
 
-| Feature | npm Link | Path Aliases |
-|---------|----------|--------------|
-| **Setup** | Two-step process (global + local) | Single configuration file |
-| **Scope** | Project-specific | Tool-specific (Vitest, TypeScript, etc.) |
-| **Type Safety** | Requires proper package.json | Full TypeScript support |
-| **Hot Reload** | Automatic (if watching) | Automatic (if watching) |
-| **Runtime Resolution** | Works at runtime | Build-time resolution only |
-| **Node.js Support** | Native Node.js resolution | Requires bundler/tool |
-| **Dependency Management** | Full npm integration | Manual management |
-| **Best For** | Testing published packages | Monorepo development |
+| Feature                   | npm Link                          | Path Aliases                             |
+| ------------------------- | --------------------------------- | ---------------------------------------- |
+| **Setup**                 | Two-step process (global + local) | Single configuration file                |
+| **Scope**                 | Project-specific                  | Tool-specific (Vitest, TypeScript, etc.) |
+| **Type Safety**           | Requires proper package.json      | Full TypeScript support                  |
+| **Hot Reload**            | Automatic (if watching)           | Automatic (if watching)                  |
+| **Runtime Resolution**    | Works at runtime                  | Build-time resolution only               |
+| **Node.js Support**       | Native Node.js resolution         | Requires bundler/tool                    |
+| **Dependency Management** | Full npm integration              | Manual management                        |
+| **Best For**              | Testing published packages        | Monorepo development                     |
 
 ### Path Aliases in vitest.config.ts
 
@@ -660,7 +676,8 @@ export default defineConfig({
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
       '#': new URL('./src/agents', import.meta.url).pathname,
-      groundswell: new URL('../groundswell/dist/index.js', import.meta.url).pathname,
+      groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
+        .pathname,
     },
     extensions: ['.ts', '.js', '.tsx'],
   },
@@ -668,6 +685,7 @@ export default defineConfig({
 ```
 
 **Pros of Path Aliases:**
+
 - No global symlinks needed
 - Works seamlessly in monorepos
 - Better TypeScript integration
@@ -675,6 +693,7 @@ export default defineConfig({
 - Works with bundlers (Vite, esbuild, etc.)
 
 **Cons of Path Aliases:**
+
 - Not understood by Node.js runtime without a bundler
 - Requires configuration in each tool (Vitest, TypeScript, etc.)
 - Can't test as if package was published
@@ -701,6 +720,7 @@ export default defineConfig({
 ### When to Use Each
 
 **Use npm link when:**
+
 - Testing a package as it will be consumed after publishing
 - Need to verify package.json configuration
 - Testing with Node.js runtime directly
@@ -708,6 +728,7 @@ export default defineConfig({
 - Testing in isolation (separate projects)
 
 **Use path aliases when:**
+
 - Developing in a monorepo
 - Need hot-reload without rebuilding
 - Want to avoid global npm configuration
@@ -738,17 +759,20 @@ export default defineConfig({
 ### 1. Always Build Before Linking
 
 **Bad:**
+
 ```bash
 npm link
 ```
 
 **Good:**
+
 ```bash
 npm run build
 npm link
 ```
 
 **Even better - automate with prepublishOnly:**
+
 ```json
 {
   "scripts": {
@@ -774,6 +798,7 @@ Even during development, use proper versions:
 ### 3. Maintain Clean package.json
 
 **Essential fields:**
+
 ```json
 {
   "name": "your-package-name",
@@ -803,6 +828,7 @@ Create a test script:
 ### 5. Use .npmignore
 
 **Create .npmignore:**
+
 ```
 # Source files
 src/
@@ -832,7 +858,8 @@ docs/
 ### 6. Document Local Development
 
 **Create DEVELOPMENT.md:**
-```markdown
+
+````markdown
 # Local Development
 
 ## Linking this package locally
@@ -841,13 +868,16 @@ docs/
    ```bash
    npm run build
    ```
+````
 
 2. Create global link:
+
    ```bash
    npm link
    ```
 
 3. In your project:
+
    ```bash
    npm link your-package-name
    ```
@@ -860,12 +890,14 @@ docs/
 ## Development workflow
 
 For active development, use watch mode:
+
 ```bash
 npm run build:watch
 ```
 
 Changes will be reflected immediately in linked projects.
-```
+
+````
 
 ### 7. Validate Package Configuration
 
@@ -878,11 +910,12 @@ npm audit
 
 # Verify package can be published (dry run)
 npm publish --dry-run
-```
+````
 
 ### 8. Use Consistent Import Styles
 
 **Bad (mixed styles):**
+
 ```typescript
 import { foo } from 'bar';
 import { baz } from './local';
@@ -890,6 +923,7 @@ import { qux } from '@scope/package';
 ```
 
 **Good (consistent):**
+
 ```typescript
 import { foo } from 'bar';
 import { baz } from '@/local';
@@ -899,6 +933,7 @@ import { qux } from '@scope/package';
 ### 9. Handle Dependencies Properly
 
 **In package.json:**
+
 ```json
 {
   "dependencies": {
@@ -920,6 +955,7 @@ import { qux } from '@scope/package';
 ```
 
 **Best practices:**
+
 - Only runtime dependencies in `dependencies`
 - Development tools in `devDependencies`
 - Libraries that consumers must provide in `peerDependencies`
@@ -937,6 +973,7 @@ echo "Unlinked $PACKAGE_NAME from global scope"
 ```
 
 **Add to package.json:**
+
 ```json
 {
   "scripts": {
@@ -1110,11 +1147,13 @@ npm install /path/to/your-package-1.0.0.tgz
 ```
 
 **Pros:**
+
 - Tests exact published artifact
 - No global configuration needed
 - Simulates real installation
 
 **Cons:**
+
 - Requires rebuilding for each change
 - Slower feedback loop
 
@@ -1137,11 +1176,13 @@ npm install your-package --registry http://localhost:4873
 ```
 
 **Pros:**
+
 - Simulates real registry
 - Tests full publish workflow
 - Multiple packages can publish
 
 **Cons:**
+
 - Additional setup required
 - Running service required
 
@@ -1160,11 +1201,13 @@ pnpm link --global your-package
 ```
 
 **Pros:**
+
 - Faster than npm
 - Better disk space usage
 - More reliable symlink handling
 
 **Cons:**
+
 - Requires pnpm
 - Different syntax
 
@@ -1183,10 +1226,12 @@ yarn link your-package
 ```
 
 **Pros:**
+
 - Similar to npm link
 - Works with Yarn workspaces
 
 **Cons:**
+
 - Requires Yarn
 - May conflict with npm link
 
@@ -1195,11 +1240,10 @@ yarn link your-package
 **Purpose:** Native monorepo support (npm v7+)
 
 **package.json:**
+
 ```json
 {
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "test": "npm run test --workspaces"
   }
@@ -1207,11 +1251,13 @@ yarn link your-package
 ```
 
 **Pros:**
+
 - Native npm support
 - No symlinks needed
 - Single package.json
 
 **Cons:**
+
 - Requires project restructuring
 - Only npm v7+
 
@@ -1220,6 +1266,7 @@ yarn link your-package
 **Purpose:** TypeScript native monorepo support
 
 **tsconfig.json:**
+
 ```json
 {
   "references": [
@@ -1230,6 +1277,7 @@ yarn link your-package
 ```
 
 **packages/package-a/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -1241,11 +1289,13 @@ yarn link your-package
 ```
 
 **Pros:**
+
 - Fast incremental compilation
 - Type checking across projects
 - No runtime needed
 
 **Cons:**
+
 - TypeScript-only
 - Requires careful configuration
 
@@ -1418,6 +1468,7 @@ tsc --declaration
 **Package Manager:** npm v10+
 
 **Current vitest.config.ts path aliases:**
+
 ```typescript
 '@': new URL('./src', import.meta.url).pathname
 '#': new URL('./src/agents', import.meta.url).pathname
@@ -1425,6 +1476,7 @@ tsc --declaration
 ```
 
 **TypeScript Configuration:**
+
 - Target: ES2022
 - Module: NodeNext
 - Module Resolution: NodeNext
@@ -1432,6 +1484,7 @@ tsc --declaration
 ### Recommendations for This Project
 
 1. **For local development of the groundswell package:**
+
    ```bash
    cd ../groundswell
    npm run build
@@ -1442,6 +1495,7 @@ tsc --declaration
    ```
 
 2. **To verify the link:**
+
    ```bash
    npm list groundswell
    ls -la node_modules/groundswell
@@ -1467,4 +1521,4 @@ tsc --declaration
 
 ---
 
-*Note: While web search tools were unavailable during the creation of this document, the content is based on comprehensive knowledge of npm, Node.js, and TypeScript best practices as of January 2025. For the most current information, always refer to the official documentation URLs provided in this document.*
+_Note: While web search tools were unavailable during the creation of this document, the content is based on comprehensive knowledge of npm, Node.js, and TypeScript best practices as of January 2025. For the most current information, always refer to the official documentation URLs provided in this document._

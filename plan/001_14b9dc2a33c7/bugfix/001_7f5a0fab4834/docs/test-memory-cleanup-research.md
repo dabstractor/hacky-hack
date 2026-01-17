@@ -225,7 +225,9 @@ function runGarbageCollection(): void {
     global.gc();
     console.log('Garbage collection completed');
   } else {
-    console.warn('global.gc() not available. Start Node.js with --expose-gc flag');
+    console.warn(
+      'global.gc() not available. Start Node.js with --expose-gc flag'
+    );
   }
 }
 
@@ -295,13 +297,13 @@ vi.restoreAllMocks() // Restore all mocks to original implementations
 
 ### Cleanup Strategy Matrix
 
-| Mock Type | Creation | Cleanup | When to Use |
-|-----------|----------|---------|-------------|
-| Module mocks | `vi.mock()` | `vi.unmock()` | Entire test file |
-| Spies | `vi.spyOn()` | `mock.mockRestore()` | Per test |
-| Mock functions | `vi.fn()` | `vi.clearAllMocks()` | Per test suite |
-| Environment vars | `vi.stubEnv()` | `vi.unstubAllEnvs()` | Per test suite |
-| Timers | `vi.useFakeTimers()` | `vi.useRealTimers()` | Per test |
+| Mock Type        | Creation             | Cleanup              | When to Use      |
+| ---------------- | -------------------- | -------------------- | ---------------- |
+| Module mocks     | `vi.mock()`          | `vi.unmock()`        | Entire test file |
+| Spies            | `vi.spyOn()`         | `mock.mockRestore()` | Per test         |
+| Mock functions   | `vi.fn()`            | `vi.clearAllMocks()` | Per test suite   |
+| Environment vars | `vi.stubEnv()`       | `vi.unstubAllEnvs()` | Per test suite   |
+| Timers           | `vi.useFakeTimers()` | `vi.useRealTimers()` | Per test         |
 
 ### Best Practice: Global Setup File
 
@@ -349,6 +351,7 @@ afterEach(() => {
 **Purpose**: Clears all mock calls and instances from `vi.fn()` and `vi.spyOn()`.
 
 **What it does**:
+
 - Resets `.mock` properties (calls, instances, results, contexts)
 - Does **not** remove the mocks themselves
 - Does **not** restore original implementations
@@ -380,6 +383,7 @@ describe('clearAllMocks example', () => {
 **Purpose**: Restores all environment variables stubbed with `vi.stubEnv()`.
 
 **What it does**:
+
 - Removes all environment variable stubs
 - Restores original `process.env` values
 
@@ -408,6 +412,7 @@ describe('unstubAllEnvs example', () => {
 **Purpose**: Restores all mocks to their original implementations.
 
 **What it does**:
+
 - Removes all `vi.spyOn()` spies
 - Restores original methods
 - More thorough than `clearAllMocks()`
@@ -465,12 +470,12 @@ afterEach(() => {
 
 ### Key Differences
 
-| Aspect | afterAll | afterEach |
-|--------|----------|-----------|
-| **Frequency** | Once after all tests | After each test |
-| **Use case** | Shared resources | Per-test cleanup |
-| **Performance** | Faster | More overhead |
-| **Isolation** | Less isolation | Complete isolation |
+| Aspect          | afterAll             | afterEach          |
+| --------------- | -------------------- | ------------------ |
+| **Frequency**   | Once after all tests | After each test    |
+| **Use case**    | Shared resources     | Per-test cleanup   |
+| **Performance** | Faster               | More overhead      |
+| **Isolation**   | Less isolation       | Complete isolation |
 
 ### afterAll: When to Use
 
@@ -630,7 +635,9 @@ afterAll(() => {
   }
   const finalMemory = process.memoryUsage().heapUsed;
   const totalGrowth = (finalMemory - initialMemory) / initialMemory;
-  console.log(`Total test suite memory growth: ${(totalGrowth * 100).toFixed(1)}%`);
+  console.log(
+    `Total test suite memory growth: ${(totalGrowth * 100).toFixed(1)}%`
+  );
 });
 ```
 
@@ -667,7 +674,7 @@ export function createMemoryLeakDetector(threshold: number = 0.5) {
       if (growth > threshold) {
         throw new Error(
           `Memory leak detected: ${(growth * 100).toFixed(1)}% growth ` +
-          `(threshold: ${(threshold * 100).toFixed(1)}%)`
+            `(threshold: ${(threshold * 100).toFixed(1)}%)`
         );
       }
     },
@@ -875,6 +882,7 @@ From `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab
 From your codebase note: "Global setup helps with memory cleanup per test infrastructure report."
 
 **Benefits**:
+
 1. **Consistent cleanup**: All tests follow same cleanup pattern
 2. **Prevents leaks**: Centralized cleanup prevents forgotten teardown
 3. **Memory management**: Can integrate GC calls at global level

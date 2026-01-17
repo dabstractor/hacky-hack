@@ -116,8 +116,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
   afterEach(async () => {
     // Allow pending async operations to complete
     // This is especially important after emitting process signals
-    await new Promise((resolve) => setImmediate(resolve));
-    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
 
     // Clean up temp directory
     rmSync(tempDir, { recursive: true, force: true });
@@ -314,8 +314,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           process.emit('SIGTERM');
 
           // Allow async signal handlers to complete
-          await new Promise((resolve) => setImmediate(resolve));
-          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
 
           return false; // No more items
         }),
@@ -392,8 +392,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           process.emit('SIGINT');
 
           // Allow async signal handlers to complete
-          await new Promise((resolve) => setImmediate(resolve));
-          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
 
           return false;
         }),
@@ -517,8 +517,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           process.emit('SIGINT');
 
           // Allow async signal handlers to complete
-          await new Promise((resolve) => setImmediate(resolve));
-          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
 
           throw new Error('Simulated execution error');
         }),
@@ -724,8 +724,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           process.emit('SIGINT');
 
           // Allow async signal handlers to complete
-          await new Promise((resolve) => setImmediate(resolve));
-          await new Promise((resolve) => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
 
           return false;
         }),

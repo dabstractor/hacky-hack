@@ -17,16 +17,19 @@ This research document provides comprehensive information about Vitest's `resolv
 ## 1. Official Documentation References
 
 ### Vitest Documentation
+
 - **Main Config Reference:** https://vitest.dev/config/
 - **resolve.extensions:** https://vitest.dev/config/#resolve-extensions
   - Vitest inherits resolve configuration from Vite
   - Controls file extensions that are automatically resolved when importing modules
 
 ### Vite Documentation (Parent Project)
+
 - **Shared Options:** https://vitejs.dev/config/shared-options.html#resolve-extensions
 - **Default Extensions:** Vite's default is `['.mjs', '.js', '.mts', '.cjs', '.cts', '.jsx', '.tsx', '.ts', '.json']`
 
 ### TypeScript Documentation
+
 - **Module Resolution:** https://www.typescriptlang.org/tsconfig#moduleResolution
 - **NodeNext Strategy:** https://www.typescriptlang.org/docs/handbook/modules/reference.html#modulenext
 
@@ -41,12 +44,12 @@ The extensions array should be ordered from **most specific to least specific** 
 ```typescript
 // Recommended for TypeScript + Vitest projects
 extensions: [
-  '.tsx',   // TypeScript + JSX (React components, UI files)
-  '.ts',    // TypeScript (main source files)
-  '.jsx',   // JavaScript + JSX (if you have mixed JS/TSX)
-  '.js',    // JavaScript (legacy or compiled files)
-  '.json'   // JSON configuration files
-]
+  '.tsx', // TypeScript + JSX (React components, UI files)
+  '.ts', // TypeScript (main source files)
+  '.jsx', // JavaScript + JSX (if you have mixed JS/TSX)
+  '.js', // JavaScript (legacy or compiled files)
+  '.json', // JSON configuration files
+];
 ```
 
 ### Why This Order Matters
@@ -60,7 +63,7 @@ extensions: [
 
 ```typescript
 // For pure TypeScript projects without JSX
-extensions: ['.ts', '.js', '.json']
+extensions: ['.ts', '.js', '.json'];
 ```
 
 ---
@@ -68,11 +71,13 @@ extensions: ['.ts', '.js', '.json']
 ## 3. The .tsx Extension Specific Considerations
 
 ### What is .tsx?
+
 - **File Extension:** TypeScript + JSX (JavaScript XML)
 - **Use Case:** React components, Vue JSX components, or any JSX syntax in TypeScript
 - **Key Difference:** Enables JSX syntax parsing while maintaining TypeScript type checking
 
 ### Current Project Status
+
 ```bash
 # Analysis of hacky-hack project:
 - .tsx files found: 0
@@ -84,6 +89,7 @@ extensions: ['.ts', '.js', '.json']
 ### Should You Add .tsx?
 
 **Yes, add it proactively** because:
+
 1. **Future-Proofing:** If UI components or React-like files are added later
 2. **Consistency:** Matches Vite's default behavior
 3. **No Downside:** Including unused extensions doesn't hurt performance
@@ -96,10 +102,11 @@ extensions: ['.ts', '.js', '.json']
 // Recommended: ['.tsx', '.ts', '.js', '.json']
 //              ^^^^^ Add here, BEFORE .ts
 
-extensions: ['.tsx', '.ts', '.js', '.json']
+extensions: ['.tsx', '.ts', '.js', '.json'];
 ```
 
 **Why before .ts?**
+
 - `.tsx` is more specific (includes JSX capability)
 - If you have `Component.tsx` and `Component.ts`, `.tsx` should take priority
 - Prevents accidentally importing the non-JSX version
@@ -109,13 +116,16 @@ extensions: ['.tsx', '.ts', '.js', '.json']
 ## 4. Common Pitfalls When Configuring Extensions
 
 ### Pitfall 1: Missing .tsx Extension
+
 **Problem:** Project adds JSX components but forgets to update extensions
 **Symptom:** "Cannot find module" errors for .tsx files
 **Solution:** Add `.tsx` to extensions array proactively
 
 ### Pitfall 2: Wrong Order Leading to Wrong File Resolution
+
 **Problem:** Extensions in wrong order cause wrong file to be imported
 **Example:**
+
 ```typescript
 // BAD: ['.js', '.ts', '.tsx']
 // If you have utils.js and utils.ts, it will import utils.js
@@ -125,21 +135,25 @@ extensions: ['.tsx', '.ts', '.js', '.json']
 ```
 
 ### Pitfall 3: Forgetting .json Extension
+
 **Problem:** Cannot import JSON files in tests
 **Symptom:** "Cannot find module './config.json'"
 **Solution:** Always include `.json` at the end of extensions array
 
 ### Pitfall 4: Not Matching TypeScript Configuration
+
 **Problem:** Vitest extensions don't match tsconfig.json settings
 **Impact:** Inconsistent resolution between build and test
 **Solution:** Ensure Vitest and TypeScript configurations align
 
 ### Pitfall 5: Case Sensitivity Issues
+
 **Problem:** Extensions are case-sensitive on some systems
 **Example:** `.TS` vs `.ts` on Linux
 **Solution:** Always use lowercase extensions
 
 ### Pitfall 6: Overriding Vite Defaults Without Careful Consideration
+
 **Problem:** Custom extensions replace Vite's sensible defaults
 **Impact:** May break resolution for common file types
 **Solution:** Only override if necessary, and include all needed extensions
@@ -151,6 +165,7 @@ extensions: ['.tsx', '.ts', '.js', '.json']
 ### Short Answer: **YES**
 
 ### Why Include .json?
+
 1. **Configuration Files:** Tests often import JSON config files
 2. **Mock Data:** Test fixtures are commonly stored as JSON
 3. **Package.json:** May need to import package metadata in tests
@@ -158,6 +173,7 @@ extensions: ['.tsx', '.ts', '.js', '.json']
 5. **Vite Default:** Vite includes `.json` by default
 
 ### Example Use Case:
+
 ```typescript
 // In your test file
 import config from './fixtures/test-config.json';
@@ -167,8 +183,9 @@ import packageInfo from '../../../package.json';
 ```
 
 ### Recommended Configuration:
+
 ```typescript
-extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
+extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'];
 //                                                    ^^^^^^ Always include
 ```
 
@@ -177,6 +194,7 @@ extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
 ## 6. Specific Gotchas with .tsx in Vitest
 
 ### Gotcha 1: JSX Transformer Configuration
+
 **Issue:** `.tsx` files require JSX transformer configuration
 **Solution Needed:** Configure esbuild options in vitest.config.ts
 
@@ -194,6 +212,7 @@ esbuild: {
 ```
 
 **Additional Requirement for .tsx:**
+
 ```typescript
 // If you add .tsx files, you may need:
 esbuild: {
@@ -203,27 +222,33 @@ esbuild: {
 ```
 
 ### Gotcha 2: Type Definition Files
+
 **Issue:** `.d.ts` files don't need to be in extensions
 **Reason:** TypeScript automatically finds declaration files
 **Best Practice:** Don't include `.d.ts` in extensions array
 
 ### Gotcha 3: Test File Extensions
+
 **Issue:** Test file patterns must match extensions
 **Your Current Config:**
+
 ```typescript
-include: ['tests/**/*.{test,spec}.ts']
+include: ['tests/**/*.{test,spec}.ts'];
 //                                      ^^ Only .ts files
 ```
 
 **If You Add .tsx Tests:**
+
 ```typescript
-include: ['tests/**/*.{test,spec}.{ts,tsx}']
+include: ['tests/**/*.{test,spec}.{ts,tsx}'];
 //                                ^^^^^^^^^^ Add .tsx here too
 ```
 
 ### Gotcha 4: Coverage Configuration
+
 **Issue:** Coverage must include all source file types
 **Your Current Config:**
+
 ```typescript
 coverage: {
   include: ['src/**/*.ts'],
@@ -232,6 +257,7 @@ coverage: {
 ```
 
 **If You Add .tsx Source Files:**
+
 ```typescript
 coverage: {
   include: ['src/**/*.{ts,tsx}'],
@@ -240,8 +266,10 @@ coverage: {
 ```
 
 ### Gotcha 5: Alias Resolution with .tsx
+
 **Issue:** Path aliases must work with .tsx files
 **Your Current Aliases:**
+
 ```typescript
 alias: {
   '@': new URL('./src', import.meta.url).pathname,
@@ -251,6 +279,7 @@ alias: {
 ```
 
 **Verification Needed:** Ensure aliases resolve correctly when importing .tsx files
+
 ```typescript
 // This should work with your current aliases:
 import { MyComponent } from '@/components/Button.tsx';
@@ -258,6 +287,7 @@ import { Agent } from '#/agent-factory.tsx';
 ```
 
 ### Gotcha 6: Module Resolution Mode
+
 **Issue:** tsconfig.json `"moduleResolution": "NodeNext"` affects .tsx resolution
 **Your Config:** You're using `NodeNext` (GOOD - modern resolution)
 **Consideration:** Ensure Vitest and TypeScript agree on resolution strategy
@@ -267,6 +297,7 @@ import { Agent } from '#/agent-factory.tsx';
 ## 7. Recommended Configuration for hacky-hack
 
 ### Current Configuration Analysis
+
 ```typescript
 // File: vitest.config.ts (lines 49-57)
 resolve: {
@@ -328,6 +359,7 @@ After updating extensions, verify:
 If updating the configuration:
 
 1. **Update vitest.config.ts:**
+
    ```bash
    # Edit line 56 in vitest.config.ts
    # Change: extensions: ['.ts', '.js'],
@@ -335,11 +367,13 @@ If updating the configuration:
    ```
 
 2. **Update test include pattern (if using .tsx tests):**
+
    ```typescript
    include: ['tests/**/*.{test,spec}.{ts,tsx}'],
    ```
 
 3. **Update coverage include pattern (if using .tsx source):**
+
    ```typescript
    coverage: {
      include: ['src/**/*.{ts,tsx}'],
@@ -347,6 +381,7 @@ If updating the configuration:
    ```
 
 4. **Run tests to verify:**
+
    ```bash
    npm run test:run
    ```
@@ -361,16 +396,19 @@ If updating the configuration:
 ## 10. Additional Resources
 
 ### Official Documentation
+
 - **Vite Resolve Options:** https://vitejs.dev/config/shared-options.html#resolve-extensions
 - **Vitest Config:** https://vitest.dev/config/
 - **TypeScript Module Resolution:** https://www.typescriptlang.org/docs/handbook/modules/reference.html
 
 ### Community Best Practices
+
 - **Vite Plugin Guide:** https://vitejs.dev/guide/#plugin-recipes
 - **Testing Best Practices:** https://vitest.dev/guide/
 - **TypeScript with Vite:** https://vitejs.dev/guide/features.html#typescript
 
 ### Related Articles
+
 - "Understanding Vite's Module Resolution"
 - "Vitest Configuration for TypeScript Projects"
 - "JSX and TSX in Modern Build Tools"
@@ -436,6 +474,7 @@ extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
 ```
 
 This configuration:
+
 - ✅ Supports all current .ts and .js files
 - ✅ Ready for future .tsx/.jsx files
 - ✅ Allows importing JSON configs in tests

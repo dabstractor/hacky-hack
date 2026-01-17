@@ -219,7 +219,7 @@ describe('SessionState JSON serialization', () => {
       new Date(), // Current time
     ];
 
-    dates.forEach((testDate) => {
+    dates.forEach(testDate => {
       const state = createTestSessionState({
         metadata: createTestSessionMetadata({
           createdAt: testDate,
@@ -231,7 +231,9 @@ describe('SessionState JSON serialization', () => {
       const parsed = JSON.parse(jsonStr);
 
       // VERIFY: ISO string format is valid
-      expect(parsed.metadata.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(parsed.metadata.createdAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      );
 
       // VERIFY: Date reconstruction works
       const reconstructed = new Date(parsed.metadata.createdAt);
@@ -316,8 +318,12 @@ describe('SessionState JSON serialization', () => {
     // VERIFY: Full hierarchy preserved
     expect(parsed.taskRegistry.backlog[0].milestones).toHaveLength(1);
     expect(parsed.taskRegistry.backlog[0].milestones[0].tasks).toHaveLength(1);
-    expect(parsed.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks).toHaveLength(1);
-    expect(parsed.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].id).toBe('P1.M1.T1.S1');
+    expect(
+      parsed.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks
+    ).toHaveLength(1);
+    expect(
+      parsed.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].id
+    ).toBe('P1.M1.T1.S1');
   });
 
   // -------------------------------------------------------------------------
@@ -341,11 +347,9 @@ describe('SessionState JSON serialization', () => {
     await mockRename(tempPath, targetPath);
 
     // VERIFY: Atomic write pattern used
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      tempPath,
-      expect.any(String),
-      { mode: 0o644 }
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith(tempPath, expect.any(String), {
+      mode: 0o644,
+    });
     expect(mockRename).toHaveBeenCalledWith(tempPath, targetPath);
 
     // VERIFY: Content is valid JSON

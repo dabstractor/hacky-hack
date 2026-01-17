@@ -74,7 +74,8 @@ export const ContextScopeSchema: z.ZodType<string> = z
     if (!value.startsWith(prefix)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
+        message:
+          'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
       });
       return; // Exit early if prefix missing
     }

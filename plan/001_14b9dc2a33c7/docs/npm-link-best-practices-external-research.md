@@ -57,11 +57,13 @@ npm link --prefix <path>
 **Best Practices from Official Docs:**
 
 1. **Always build before linking:**
+
    ```bash
    npm run build && npm link
    ```
 
 2. **Use exact package name from package.json:**
+
    ```bash
    # Check package.json for exact name
    cat package.json | grep '"name"'
@@ -87,7 +89,7 @@ function linkPackage(packagePath: string): Promise<void> {
       cwd: packagePath,
       stdio: 'inherit',
     });
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       if (code === 0) resolve();
       else reject(new Error(`npm link failed with exit code ${code}`));
     });
@@ -107,13 +109,13 @@ function linkPackage(packagePath: string): Promise<void> {
 
 **Global Node Modules Locations:**
 
-| Platform | Default Location                                    |
-|----------|-----------------------------------------------------|
-| **Linux**| `/usr/local/lib/node_modules` (system npm)          |
-|          | `~/.nvm/versions/node/vXX.X.X/lib/node_modules` (nvm)|
-| **macOS**| `/usr/local/lib/node_modules`                       |
-|          | `/opt/homebrew/lib/node_modules` (Homebrew)         |
-| **Windows**| `C:\Users\<username>\AppData\Roaming\npm\node_modules\` |
+| Platform    | Default Location                                        |
+| ----------- | ------------------------------------------------------- |
+| **Linux**   | `/usr/local/lib/node_modules` (system npm)              |
+|             | `~/.nvm/versions/node/vXX.X.X/lib/node_modules` (nvm)   |
+| **macOS**   | `/usr/local/lib/node_modules`                           |
+|             | `/opt/homebrew/lib/node_modules` (Homebrew)             |
+| **Windows** | `C:\Users\<username>\AppData\Roaming\npm\node_modules\` |
 
 **Getting Global Prefix:**
 
@@ -200,6 +202,7 @@ npm run dev  # Hot reload should pick up changes
 **Best Practices:**
 
 1. **Use watch mode in package:**
+
    ```json
    {
      "scripts": {
@@ -209,6 +212,7 @@ npm run dev  # Hot reload should pick up changes
    ```
 
 2. **Incremental compilation for TypeScript:**
+
    ```json
    {
      "compilerOptions": {
@@ -317,6 +321,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
 **Solutions:**
 
 1. **Use nvm instead of system npm (Recommended):**
+
    ```bash
    # Install nvm
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
@@ -328,6 +333,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
    ```
 
 2. **Fix npm directory permissions (Linux/macOS):**
+
    ```bash
    sudo mkdir -p /usr/local/lib/node_modules
    sudo chown -R $(whoami) /usr/local/lib/node_modules
@@ -349,6 +355,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
    - Select "Run as administrator"
 
 2. **Enable Developer Mode (Windows 10/11):**
+
    ```
    Settings → Update & Security → For developers → Developer mode
    ```
@@ -374,6 +381,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
 **Solutions:**
 
 1. **Verify package name:**
+
    ```bash
    # Check exact name in package.json
    cat package.json | grep '"name"'
@@ -382,6 +390,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
    ```
 
 2. **Verify entry point exists:**
+
    ```bash
    # Check for main file
    ls -la dist/index.js
@@ -390,6 +399,7 @@ npm ERR! Error: EACCES, symlink '../lib/node_modules/package-name'
    ```
 
 3. **Build before linking:**
+
    ```bash
    npm run build
    npm link
@@ -421,6 +431,7 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
 **Solutions:**
 
 1. **Generate declaration files:**
+
    ```json
    {
      "compilerOptions": {
@@ -432,6 +443,7 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
    ```
 
 2. **Include types in package.json:**
+
    ```json
    {
      "types": "./dist/index.d.ts",
@@ -440,6 +452,7 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
    ```
 
 3. **Verify .d.ts files are built:**
+
    ```bash
    ls -la dist/*.d.ts
    ```
@@ -469,6 +482,7 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
 **Solutions:**
 
 1. **Use peer dependencies:**
+
    ```json
    // In package B
    {
@@ -479,6 +493,7 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
    ```
 
 2. **Build packages first:**
+
    ```bash
    cd package-a && npm run build && npm link
    cd package-b && npm run build && npm link
@@ -499,11 +514,13 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
 **Solutions:**
 
 1. **Clear npm cache:**
+
    ```bash
    npm cache clean --force
    ```
 
 2. **Remove node_modules and reinstall:**
+
    ```bash
    rm -rf node_modules package-lock.json
    npm install
@@ -528,12 +545,14 @@ TS2307: Cannot find module 'linked-package' or its corresponding type declaratio
 **Solutions:**
 
 1. **Enable long path support (Windows 10+):**
+
    ```powershell
    # Run as Administrator
    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
    ```
 
 2. **Use path normalization:**
+
    ```typescript
    import path from 'path';
 
@@ -618,9 +637,7 @@ export interface SymlinkInfo {
   error?: string;
 }
 
-export async function verifySymlink(
-  symlinkPath: string
-): Promise<SymlinkInfo> {
+export async function verifySymlink(symlinkPath: string): Promise<SymlinkInfo> {
   try {
     const stats = await lstat(symlinkPath);
 
@@ -876,15 +893,15 @@ ls -la dist/*.d.ts
 
 ### Comparison Table
 
-| Feature                | npm link              | npm workspaces        | pnpm workspaces       | Yarn workspaces       |
-| ---------------------- | --------------------- | --------------------- | --------------------- | --------------------- |
-| **Setup complexity**   | Low (manual)          | Low (config)          | Low (config)          | Low (config)          |
-| **Link management**    | Manual (unlink)       | Automatic             | Automatic             | Automatic             |
-| **Symlinks**           | Global + local        | Local only            | Local (hard links)    | Local only            |
-| **Disk usage**         | Duplication           | Duplication           | **Efficient**         | Duplication           |
-| **Type safety**        | Manual setup          | Built-in              | Built-in              | Built-in              |
-| **Build orchestration**| Manual                | Requires tools        | Built-in              | Requires tools        |
-| **Best for**           | Ad-hoc testing        | Small-medium monorepos| Large monorepos       | Medium monorepos      |
+| Feature                 | npm link        | npm workspaces         | pnpm workspaces    | Yarn workspaces  |
+| ----------------------- | --------------- | ---------------------- | ------------------ | ---------------- |
+| **Setup complexity**    | Low (manual)    | Low (config)           | Low (config)       | Low (config)     |
+| **Link management**     | Manual (unlink) | Automatic              | Automatic          | Automatic        |
+| **Symlinks**            | Global + local  | Local only             | Local (hard links) | Local only       |
+| **Disk usage**          | Duplication     | Duplication            | **Efficient**      | Duplication      |
+| **Type safety**         | Manual setup    | Built-in               | Built-in           | Built-in         |
+| **Build orchestration** | Manual          | Requires tools         | Built-in           | Requires tools   |
+| **Best for**            | Ad-hoc testing  | Small-medium monorepos | Large monorepos    | Medium monorepos |
 
 ---
 
@@ -896,9 +913,7 @@ ls -la dist/*.d.ts
 // Root package.json
 {
   "name": "my-monorepo",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "build": "npm run build --workspaces",
     "dev": "npm run dev --workspaces --if-present"
@@ -966,12 +981,12 @@ packages:
 
 **Comparison to npm link:**
 
-| Feature     | npm link                     | pnpm workspaces              |
-| ----------- | ---------------------------- | ---------------------------- |
-| Setup       | Manual per package           | One-time config             |
-| Updates     | Rebuild + relink             | Instant (hard links)         |
-| Disk usage  | Duplicates in node_modules   | Shared content-addressable store |
-| Speed       | Slow (full install each time)| Fast (hard links)            |
+| Feature    | npm link                      | pnpm workspaces                  |
+| ---------- | ----------------------------- | -------------------------------- |
+| Setup      | Manual per package            | One-time config                  |
+| Updates    | Rebuild + relink              | Instant (hard links)             |
+| Disk usage | Duplicates in node_modules    | Shared content-addressable store |
+| Speed      | Slow (full install each time) | Fast (hard links)                |
 
 ---
 
@@ -1026,14 +1041,14 @@ packages:
 
 ### Platform Differences
 
-| Aspect         | Linux/macOS                     | Windows                                   |
-| -------------- | ------------------------------- | ----------------------------------------- |
-| Symlink type   | Native symlinks                 | Symlinks (dev mode) or Junctions          |
-| Permissions    | Standard file permissions       | Administrator or Developer Mode required  |
-| Path separator | `/`                             | `\` or `/`                                 |
-| Drive letters  | None                            | `C:`, `D:`, etc.                          |
-| Case sensitivity| Yes (Linux), No (macOS)        | No (case-insensitive, case-preserving)     |
-| Max path length| Very long                       | 260 chars (unless long paths enabled)      |
+| Aspect           | Linux/macOS               | Windows                                  |
+| ---------------- | ------------------------- | ---------------------------------------- |
+| Symlink type     | Native symlinks           | Symlinks (dev mode) or Junctions         |
+| Permissions      | Standard file permissions | Administrator or Developer Mode required |
+| Path separator   | `/`                       | `\` or `/`                               |
+| Drive letters    | None                      | `C:`, `D:`, etc.                         |
+| Case sensitivity | Yes (Linux), No (macOS)   | No (case-insensitive, case-preserving)   |
+| Max path length  | Very long                 | 260 chars (unless long paths enabled)    |
 
 ---
 
@@ -1177,7 +1192,12 @@ describe('npm link integration', () => {
     const globalNodeModules = execSync('npm config get prefix', {
       encoding: 'utf-8',
     }).trim();
-    const linkPath = join(globalNodeModules, 'lib', 'node_modules', 'test-package');
+    const linkPath = join(
+      globalNodeModules,
+      'lib',
+      'node_modules',
+      'test-package'
+    );
 
     const stats = await lstat(linkPath);
     expect(stats.isSymbolicLink()).toBe(true);
@@ -1238,6 +1258,7 @@ readlink $(npm root -g)/package-name
 ### 1. npm workspaces (Recommended for small monorepos)
 
 **When to use:**
+
 - 2-10 related packages
 - Simple build dependencies
 - Want automatic symlink management
@@ -1259,6 +1280,7 @@ readlink $(npm root -g)/package-name
 ### 2. pnpm (Recommended for large monorepos)
 
 **When to use:**
+
 - More than 10 packages
 - Need disk efficiency
 - Want strict dependency management
@@ -1273,6 +1295,7 @@ packages:
 ```
 
 **Benefits:**
+
 - Hard links instead of file copies
 - Faster installation
 - Prevents phantom dependencies
@@ -1282,6 +1305,7 @@ packages:
 ### 3. Yarn Workspaces
 
 **When to use:**
+
 - Already using Yarn
 - Need Plug'n'Play (PnP)
 - Want zero-installs (Yarn 3+)
@@ -1290,9 +1314,7 @@ packages:
 
 ```json
 {
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "private": true
 }
 ```
@@ -1302,6 +1324,7 @@ packages:
 ### 4. Turborepo (Build orchestration)
 
 **When to use:**
+
 - Complex build pipelines
 - Need build caching
 - CI/CD optimization
@@ -1324,6 +1347,7 @@ packages:
 ### 5. Nx (Advanced build orchestration)
 
 **When to use:**
+
 - Large enterprise monorepos
 - Need intelligent caching
 - Want generated workspace tools

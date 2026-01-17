@@ -47,7 +47,10 @@ describe('EnvironmentError class', () => {
       environment: 'production',
     };
 
-    const error = new EnvironmentError('Missing required environment variable', context);
+    const error = new EnvironmentError(
+      'Missing required environment variable',
+      context
+    );
 
     expect(error.context).toEqual(context);
     expect(error.context?.variable).toBe('API_KEY');
@@ -57,11 +60,17 @@ describe('EnvironmentError class', () => {
   it('should create EnvironmentError with cause', () => {
     const cause = new Error('Original error from environment validation');
 
-    const error = new EnvironmentError('Environment validation failed', {}, cause);
+    const error = new EnvironmentError(
+      'Environment validation failed',
+      {},
+      cause
+    );
 
     const errorWithCause = error as unknown as { cause?: Error };
     expect(errorWithCause.cause).toBe(cause);
-    expect(errorWithCause.cause?.message).toBe('Original error from environment validation');
+    expect(errorWithCause.cause?.message).toBe(
+      'Original error from environment validation'
+    );
   });
 
   it('should create EnvironmentError with message, context, and cause', () => {
@@ -71,7 +80,11 @@ describe('EnvironmentError class', () => {
     };
     const cause = new Error('Connection timeout');
 
-    const error = new EnvironmentError('Database configuration invalid', context, cause);
+    const error = new EnvironmentError(
+      'Database configuration invalid',
+      context,
+      cause
+    );
 
     expect(error.message).toBe('Database configuration invalid');
     expect(error.context).toEqual(context);
@@ -513,14 +526,18 @@ describe('EnvironmentError edge cases', () => {
   it('should preserve error code readonly property', () => {
     const error = new EnvironmentError('Test error');
     // @ts-expect-error - Testing that code is readonly
-    expect(() => { error.code = 'DIFFERENT_CODE'; }).toThrow();
+    expect(() => {
+      error.code = 'DIFFERENT_CODE';
+    }).toThrow();
   });
 
   it('should preserve timestamp readonly property', () => {
     const error = new EnvironmentError('Test error');
     const originalTimestamp = error.timestamp;
     // @ts-expect-error - Testing that timestamp is readonly
-    expect(() => { error.timestamp = new Date(0); }).toThrow();
+    expect(() => {
+      error.timestamp = new Date(0);
+    }).toThrow();
     expect(error.timestamp).toEqual(originalTimestamp);
   });
 
@@ -591,7 +608,9 @@ describe('EnvironmentError integration scenarios', () => {
 
     const wrappedWithCause = wrappedError as unknown as { cause?: Error };
     expect(wrappedWithCause.cause).toBe(originalError);
-    expect(wrappedWithCause.cause?.message).toBe('Network timeout while fetching config');
+    expect(wrappedWithCause.cause?.message).toBe(
+      'Network timeout while fetching config'
+    );
   });
 
   it('should support structured logging scenario', () => {
@@ -655,15 +674,12 @@ describe('EnvironmentError integration scenarios', () => {
   it('should support port number validation error', () => {
     const invalidPort = 'not-a-number';
 
-    const error = new EnvironmentError(
-      `Invalid port number: ${invalidPort}`,
-      {
-        variable: 'PORT',
-        providedValue: invalidPort,
-        expectedFormat: 'numeric port (1-65535)',
-        environment: process.env.NODE_ENV || 'development',
-      }
-    );
+    const error = new EnvironmentError(`Invalid port number: ${invalidPort}`, {
+      variable: 'PORT',
+      providedValue: invalidPort,
+      expectedFormat: 'numeric port (1-65535)',
+      environment: process.env.NODE_ENV || 'development',
+    });
 
     const logData = error.toJSON();
     expect(logData.context?.variable).toBe('PORT');
@@ -673,15 +689,12 @@ describe('EnvironmentError integration scenarios', () => {
   it('should support database URL validation error', () => {
     const invalidUrl = 'not-a-valid-url';
 
-    const error = new EnvironmentError(
-      'Invalid DATABASE_URL format',
-      {
-        variable: 'DATABASE_URL',
-        providedValue: invalidUrl,
-        expectedFormat: 'postgres://user:password@host:port/database',
-        environment: 'production',
-      }
-    );
+    const error = new EnvironmentError('Invalid DATABASE_URL format', {
+      variable: 'DATABASE_URL',
+      providedValue: invalidUrl,
+      expectedFormat: 'postgres://user:password@host:port/database',
+      environment: 'production',
+    });
 
     expect(error instanceof PipelineError).toBe(true);
     expect(error.context?.variable).toBe('DATABASE_URL');

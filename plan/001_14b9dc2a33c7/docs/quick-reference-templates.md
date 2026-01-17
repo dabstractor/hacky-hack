@@ -9,30 +9,30 @@
 
 ## Template 1: One-Page Quick Reference
 
-```markdown
+````markdown
 # ESLint Quick Reference
 
 > One-page reference for common ESLint rules and fixes
 
 ## Priority Levels
 
-| Level | Symbol | Name | Timeline | Example Rules |
-|-------|--------|------|----------|---------------|
-| P0 | 🔴 | Critical | Immediate | no-undef, no-constant-condition |
-| P1 | 🟡 | High | This Sprint | eqeqeq, no-var, prefer-const |
-| P2 | 🔵 | Medium | Next Sprint | no-shadow, no-console |
-| P3 | ⚪ | Low | Backlog | quotes, semi, indent |
+| Level | Symbol | Name     | Timeline    | Example Rules                   |
+| ----- | ------ | -------- | ----------- | ------------------------------- |
+| P0    | 🔴     | Critical | Immediate   | no-undef, no-constant-condition |
+| P1    | 🟡     | High     | This Sprint | eqeqeq, no-var, prefer-const    |
+| P2    | 🔵     | Medium   | Next Sprint | no-shadow, no-console           |
+| P3    | ⚪     | Low      | Backlog     | quotes, semi, indent            |
 
 ## Common Rules
 
-| Rule | Category | Auto-fix | Priority | Quick Fix |
-|------|----------|----------|----------|-----------|
-| `no-unused-vars` | Variables | Partial | P1 | Remove unused vars |
-| `no-undef` | Errors | Manual | P0 | Define variables |
-| `eqeqeq` | Best Practice | Auto | P1 | Use === |
-| `no-var` | ES6+ | Auto | P1 | Use const/let |
-| `prefer-const` | Best Practice | Partial | P1 | Use const |
-| `no-console` | Best Practice | Manual | P2 | Remove or use logger |
+| Rule             | Category      | Auto-fix | Priority | Quick Fix            |
+| ---------------- | ------------- | -------- | -------- | -------------------- |
+| `no-unused-vars` | Variables     | Partial  | P1       | Remove unused vars   |
+| `no-undef`       | Errors        | Manual   | P0       | Define variables     |
+| `eqeqeq`         | Best Practice | Auto     | P1       | Use ===              |
+| `no-var`         | ES6+          | Auto     | P1       | Use const/let        |
+| `prefer-const`   | Best Practice | Partial  | P1       | Use const            |
+| `no-console`     | Best Practice | Manual   | P2       | Remove or use logger |
 
 ## Quick Commands
 
@@ -49,6 +49,7 @@ npm run lint -- --format json > report.json
 # Check specific file
 npm run lint src/components/Button.tsx
 ```
+````
 
 ## Fix Pattern
 
@@ -62,6 +63,7 @@ npm run lint src/components/Button.tsx
 ## Common Fixes
 
 ### Remove Unused Variables
+
 ```javascript
 // Before
 const unused = 1;
@@ -72,6 +74,7 @@ const used = 2;
 ```
 
 ### Use const Instead of var
+
 ```javascript
 // Before
 var count = 0;
@@ -81,12 +84,15 @@ const count = 0;
 ```
 
 ### Use === Instead of ==
+
 ```javascript
 // Before
-if (x == y) { }
+if (x == y) {
+}
 
 // After
-if (x === y) { }
+if (x === y) {
+}
 ```
 
 ## Resources
@@ -96,8 +102,10 @@ if (x === y) { }
 - [Troubleshooting](./troubleshooting.md)
 
 ---
-*Generated: YYYY-MM-DD | Version: X.Y.Z*
-```
+
+_Generated: YYYY-MM-DD | Version: X.Y.Z_
+
+````
 
 ---
 
@@ -133,7 +141,7 @@ const used = 2;
 
 // Or prefix if intentionally unused
 const _unused = 1;
-```
+````
 
 **Command**: `eslint --fix`
 
@@ -247,8 +255,10 @@ eslint -- --format json > variables-report.json
 - [Full Documentation](./README.md)
 
 ---
-*Category: Variables | Priority: P0-P2*
-```
+
+_Category: Variables | Priority: P0-P2_
+
+````
 
 ---
 
@@ -280,7 +290,7 @@ const x = undefinedVar;
 // ✅ Fix
 const undefinedVar = 1;
 const x = undefinedVar;
-```
+````
 
 ---
 
@@ -288,23 +298,25 @@ const x = undefinedVar;
 
 ### Code Quality
 
-| Rule | Issue | Fix | Command |
-|------|-------|-----|---------|
-| `no-unused-vars` | Unused variables | Remove or use | `eslint --fix` |
-| `eqeqeq` | Using == instead of === | Use === | `eslint --fix` |
-| `no-var` | Using var keyword | Use const/let | `eslint --fix` |
-| `prefer-const` | Using let for constants | Use const | `eslint --fix` |
-| `no-console` | Console statements | Remove or use logger | Manual |
+| Rule             | Issue                   | Fix                  | Command        |
+| ---------------- | ----------------------- | -------------------- | -------------- |
+| `no-unused-vars` | Unused variables        | Remove or use        | `eslint --fix` |
+| `eqeqeq`         | Using == instead of === | Use ===              | `eslint --fix` |
+| `no-var`         | Using var keyword       | Use const/let        | `eslint --fix` |
+| `prefer-const`   | Using let for constants | Use const            | `eslint --fix` |
+| `no-console`     | Console statements      | Remove or use logger | Manual         |
 
 **Timeline**: This sprint
 **Impact**: Improves code quality
 
 ```javascript
 // ❌ Example: eqeqeq
-if (x == y) { }
+if (x == y) {
+}
 
 // ✅ Fix
-if (x === y) { }
+if (x === y) {
+}
 ```
 
 ---
@@ -313,13 +325,13 @@ if (x === y) { }
 
 ### Maintainability
 
-| Rule | Issue | Fix | Command |
-|------|-------|-----|---------|
-| `no-shadow` | Variable shadowing | Rename variable | Manual |
-| `no-console` | Console in production | Remove or use logger | Manual |
-| `prefer-arrow-callback` | Function callbacks | Use arrow functions | `eslint --fix` |
-| `prefer-template` | String concatenation | Use template literals | `eslint --fix` |
-| `object-shorthand` | Verbose object methods | Use shorthand | `eslint --fix` |
+| Rule                    | Issue                  | Fix                   | Command        |
+| ----------------------- | ---------------------- | --------------------- | -------------- |
+| `no-shadow`             | Variable shadowing     | Rename variable       | Manual         |
+| `no-console`            | Console in production  | Remove or use logger  | Manual         |
+| `prefer-arrow-callback` | Function callbacks     | Use arrow functions   | `eslint --fix` |
+| `prefer-template`       | String concatenation   | Use template literals | `eslint --fix` |
+| `object-shorthand`      | Verbose object methods | Use shorthand         | `eslint --fix` |
 
 **Timeline**: Next sprint
 **Impact**: Better maintainability
@@ -342,12 +354,12 @@ function foo(x) {
 
 ### Style Consistency
 
-| Rule | Issue | Fix | Command |
-|------|-------|-----|---------|
-| `quotes` | Inconsistent quotes | Use consistent style | `eslint --fix` |
-| `semi` | Missing semicolons | Add semicolons | `eslint --fix` |
-| `indent` | Inconsistent indentation | Fix indentation | `eslint --fix` |
-| `comma-dangle` | Trailing commas | Consistent style | `eslint --fix` |
+| Rule           | Issue                    | Fix                  | Command        |
+| -------------- | ------------------------ | -------------------- | -------------- |
+| `quotes`       | Inconsistent quotes      | Use consistent style | `eslint --fix` |
+| `semi`         | Missing semicolons       | Add semicolons       | `eslint --fix` |
+| `indent`       | Inconsistent indentation | Fix indentation      | `eslint --fix` |
+| `comma-dangle` | Trailing commas          | Consistent style     | `eslint --fix` |
 
 **Timeline**: Backlog (or use formatter)
 **Impact**: Style consistency
@@ -357,7 +369,7 @@ function foo(x) {
 const x = 'hello';
 
 // ✅ Fix (if using double quotes)
-const x = "hello";
+const x = 'hello';
 ```
 
 ---
@@ -384,6 +396,7 @@ npm run lint -- --format compact | sort | uniq -c
 ## Fix Workflow
 
 1. **Phase 1: Auto-fix**
+
    ```bash
    npm run lint -- --fix
    ```
@@ -417,8 +430,10 @@ npm run lint -- --format compact | sort | uniq -c
 - [Categorization Framework](./categorization.md)
 
 ---
-*Organized by Priority | Version: X.Y.Z*
-```
+
+_Organized by Priority | Version: X.Y.Z_
+
+````
 
 ---
 
@@ -444,9 +459,10 @@ eslint src/components/
 
 # With config file
 eslint -c .eslintrc.custom.js
-```
+````
 
 ### Auto-fix
+
 ```bash
 # Fix all auto-fixable issues
 eslint --fix .
@@ -459,6 +475,7 @@ eslint --fix --rule 'quotes: ["error", "single"]'
 ```
 
 ### Reporting
+
 ```bash
 # JSON format
 eslint --format json > report.json
@@ -481,6 +498,7 @@ eslint --format stylish
 ## Rule-Specific Commands
 
 ### Check Specific Rule
+
 ```bash
 # Enable specific rule
 eslint --rule 'no-console: error'
@@ -493,6 +511,7 @@ eslint --rule 'quotes: ["error", "single", { "avoidEscape": true }]'
 ```
 
 ### Check Specific Pattern
+
 ```bash
 # Check test files
 eslint "**/*.test.ts"
@@ -509,6 +528,7 @@ eslint src/utils/
 ## Output Control
 
 ### Quiet Mode
+
 ```bash
 # Only show errors (not warnings)
 eslint --quiet .
@@ -518,6 +538,7 @@ eslint --max-warnings 0 .
 ```
 
 ### Verbose Mode
+
 ```bash
 # Show detailed output
 eslint --verbose .
@@ -531,6 +552,7 @@ eslint --debug .
 ## Cache & Performance
 
 ### Use Cache
+
 ```bash
 # Use cache (default: .eslintcache)
 eslint --cache .
@@ -543,6 +565,7 @@ eslint --cache-location /tmp/eslint-cache
 ```
 
 ### Performance
+
 ```bash
 # Print timing
 eslint --debug . | grep "Rule"
@@ -556,6 +579,7 @@ eslint --ignore-pattern "*.test.js" .
 ## Configuration Commands
 
 ### Print Config
+
 ```bash
 # Print effective config
 eslint --print-config src/file.ts
@@ -565,6 +589,7 @@ eslint --print-config src/file.ts | grep no-console
 ```
 
 ### Validate Config
+
 ```bash
 # Validate configuration
 eslint --print-config .eslintrc.json
@@ -575,6 +600,7 @@ eslint --print-config .eslintrc.json
 ## Integration Commands
 
 ### With Git
+
 ```bash
 # Lint staged files
 git diff --name-only --cached | xargs eslint
@@ -584,6 +610,7 @@ git diff --name-only HEAD~1 | xargs eslint
 ```
 
 ### With Package Managers
+
 ```bash
 # npm script
 npm run lint
@@ -600,12 +627,14 @@ yarn lint
 ## CI/CD Commands
 
 ### Fail on Warnings
+
 ```bash
 # Treat warnings as errors
 eslint --max-warnings 0 .
 ```
 
 ### Generate Report
+
 ```bash
 # JSON report for CI
 eslint --format json --output-file eslint-report.json .
@@ -619,6 +648,7 @@ eslint --format junit --output-file eslint-junit.xml .
 ## Common Scenarios
 
 ### Scenario 1: Quick Fix
+
 ```bash
 # Fix everything
 eslint --fix .
@@ -628,6 +658,7 @@ eslint --fix --format stylish .
 ```
 
 ### Scenario 2: Check Before Commit
+
 ```bash
 # Check all files
 eslint .
@@ -637,6 +668,7 @@ git diff --name-only --cached | xargs eslint
 ```
 
 ### Scenario 3: Generate Report
+
 ```bash
 # Full report
 eslint --format json --output-file report.json .
@@ -646,6 +678,7 @@ cat report.json | jq '[.[] | {filePath, messages: [.messages[] | {ruleId, severi
 ```
 
 ### Scenario 4: Categorize Issues
+
 ```bash
 # Count by rule
 eslint --format json | jq '[.[] | .messages[] | .ruleId] | group_by(.) | map({rule: .[0], count: length})'
@@ -659,6 +692,7 @@ eslint --format json | jq '[.[] | .messages[] | .severity] | group_by(.) | map({
 ## Tips & Tricks
 
 ### Combine Commands
+
 ```bash
 # Fix and then check
 eslint --fix . && eslint .
@@ -668,6 +702,7 @@ find src -name "*.ts" -exec eslint --fix {} \;
 ```
 
 ### Use with Other Tools
+
 ```bash
 # Prettier + ESLint
 prettier --write "src/**/*.ts" && eslint --fix "src/**/*.ts"
@@ -680,23 +715,25 @@ tsc --noEmit && eslint .
 
 ## Cheat Sheet Summary
 
-| Task | Command |
-|------|---------|
-| Run | `eslint .` |
-| Fix | `eslint --fix` |
-| Report | `eslint --format json` |
+| Task          | Command                            |
+| ------------- | ---------------------------------- |
+| Run           | `eslint .`                         |
+| Fix           | `eslint --fix`                     |
+| Report        | `eslint --format json`             |
 | Specific rule | `eslint --rule 'rule-name: error'` |
-| Cache | `eslint --cache` |
-| Quiet | `eslint --quiet` |
-| Config | `eslint --print-config` |
+| Cache         | `eslint --cache`                   |
+| Quiet         | `eslint --quiet`                   |
+| Config        | `eslint --print-config`            |
 
 ---
 
 **Next**: See [Full Documentation](./README.md) for detailed examples.
 
 ---
-*Command Reference | Updated: YYYY-MM-DD*
-```
+
+_Command Reference | Updated: YYYY-MM-DD_
+
+````
 
 ---
 
@@ -716,7 +753,7 @@ tsc --noEmit && eslint .
 ```javascript
 // ❌ Error
 const x = undefinedVar;
-```
+````
 
 **Solution**: Define the variable first
 
@@ -760,14 +797,16 @@ console.log(usedVar);
 
 ```javascript
 // ❌ Error
-if (x == y) { }
+if (x == y) {
+}
 ```
 
 **Solution**: Use ===
 
 ```javascript
 // ✅ Fixed
-if (x === y) { }
+if (x === y) {
+}
 ```
 
 ---
@@ -785,8 +824,8 @@ var count = 0;
 
 ```javascript
 // ✅ Fixed
-const count = 0;  // if not reassigned
-let total = 0;    // if reassigned
+const count = 0; // if not reassigned
+let total = 0; // if reassigned
 ```
 
 ---
@@ -862,6 +901,7 @@ function foo(x) {
 **Issue**: `eslint --fix` doesn't fix all issues
 
 **Solution**:
+
 1. Some rules can't be auto-fixed (manual review needed)
 2. Some rules can only be partially auto-fixed
 3. Run `eslint --fix` first, then manually fix remaining
@@ -885,6 +925,7 @@ eslint .
 **Issue**: Rule is configured but not triggering
 
 **Check**:
+
 1. Rule name is correct
 2. Rule is enabled (not disabled in overrides)
 3. File matches included patterns
@@ -924,6 +965,7 @@ eslint --print-config src/file.ts | grep rule-name
 ### ESLint is Slow
 
 **Solutions**:
+
 1. Use cache
 2. Lint only changed files
 3. Parallelize linting
@@ -946,6 +988,7 @@ npm-run-all --parallel lint:src lint:test
 ### Failing in CI but Not Locally
 
 **Check**:
+
 1. Node versions match
 2. Dependencies match (`npm ci` vs `npm install`)
 3. Environment variables
@@ -960,15 +1003,15 @@ eslint --debug . > eslint-debug.log
 
 ## Quick Reference Table
 
-| Error/Warn | Cause | Quick Fix | Command |
-|------------|-------|-----------|---------|
-| no-undef | Undefined variable | Define it | Manual |
-| no-unused-vars | Unused variable | Remove it | `eslint --fix` |
-| eqeqeq | Using == | Use === | `eslint --fix` |
-| no-var | Using var | Use const/let | `eslint --fix` |
-| prefer-const | Using let | Use const | `eslint --fix` |
-| no-console | Console statement | Remove it | Manual |
-| no-shadow | Shadowing | Rename | Manual |
+| Error/Warn     | Cause              | Quick Fix     | Command        |
+| -------------- | ------------------ | ------------- | -------------- |
+| no-undef       | Undefined variable | Define it     | Manual         |
+| no-unused-vars | Unused variable    | Remove it     | `eslint --fix` |
+| eqeqeq         | Using ==           | Use ===       | `eslint --fix` |
+| no-var         | Using var          | Use const/let | `eslint --fix` |
+| prefer-const   | Using let          | Use const     | `eslint --fix` |
+| no-console     | Console statement  | Remove it     | Manual         |
+| no-shadow      | Shadowing          | Rename        | Manual         |
 
 ---
 
@@ -994,7 +1037,9 @@ eslint --debug . > eslint-debug.log
 **Need More?** See [Full Documentation](./README.md)
 
 ---
-*Troubleshooting Reference | Updated: YYYY-MM-DD*
+
+_Troubleshooting Reference | Updated: YYYY-MM-DD_
+
 ```
 
 ---
@@ -1028,3 +1073,4 @@ eslint --debug . > eslint-debug.log
 **Document Status**: ✅ Complete
 **Version**: 1.0.0
 **Created**: 2026-01-15
+```

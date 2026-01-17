@@ -21,12 +21,7 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-  mkdirSync,
-} from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -78,7 +73,8 @@ function createMultiLevelHierarchy(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: First subtask\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: First subtask\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                   },
                   {
                     type: 'Subtask',
@@ -87,7 +83,8 @@ function createMultiLevelHierarchy(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: ['P1.M1.T1.S1'],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Second subtask\n2. INPUT: Output from S1\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Second subtask\n2. INPUT: Output from S1\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                   },
                   {
                     type: 'Subtask',
@@ -96,7 +93,8 @@ function createMultiLevelHierarchy(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: ['P1.M1.T1.S2'],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Third subtask\n2. INPUT: Output from S2\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Third subtask\n2. INPUT: Output from S2\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                   },
                 ],
               },
@@ -123,7 +121,8 @@ function createMultiLevelHierarchy(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Subtask in M2\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Subtask in M2\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                   },
                 ],
               },
@@ -159,7 +158,8 @@ function createMultiLevelHierarchy(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Subtask in P2\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Subtask in P2\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                   },
                 ],
               },
@@ -172,7 +172,9 @@ function createMultiLevelHierarchy(): Backlog {
 }
 
 function createSessionState(backlog: Backlog, planDir: string) {
-  const hash = createHash('sha256').update(JSON.stringify(backlog)).digest('hex');
+  const hash = createHash('sha256')
+    .update(JSON.stringify(backlog))
+    .digest('hex');
   return {
     metadata: {
       id: `001_${hash.substring(0, 12)}`,
@@ -199,7 +201,13 @@ function setupTestEnvironment(): {
   writeFileSync(prdPath, mockSimplePRD);
 
   const sessionDir = join(planDir, '001_testsession');
-  for (const dir of [planDir, sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+  for (const dir of [
+    planDir,
+    sessionDir,
+    join(sessionDir, 'architecture'),
+    join(sessionDir, 'prps'),
+    join(sessionDir, 'artifacts'),
+  ]) {
     mkdirSync(dir, { recursive: true });
   }
 
@@ -239,11 +247,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -309,11 +325,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -338,11 +362,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -419,18 +451,27 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
       await sessionManager.loadSession(sessionDir);
 
       const orchestrator = new TaskOrchestrator(sessionManager);
-      const dependentSubtask = backlog.backlog[0].milestones[0].tasks[0].subtasks[1];
+      const dependentSubtask =
+        backlog.backlog[0].milestones[0].tasks[0].subtasks[1];
 
       expect(orchestrator.canExecute(dependentSubtask)).toBe(false);
 
@@ -445,11 +486,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -519,20 +568,32 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
       await sessionManager.loadSession(sessionDir);
 
       const orchestrator = new TaskOrchestrator(sessionManager);
-      const dependentSubtask = backlog.backlog[0].milestones[0].tasks[0].subtasks[1];
+      const dependentSubtask =
+        backlog.backlog[0].milestones[0].tasks[0].subtasks[1];
 
-      const waitPromise = orchestrator.waitForDependencies(dependentSubtask, { timeout: 5000, interval: 100 });
+      const waitPromise = orchestrator.waitForDependencies(dependentSubtask, {
+        timeout: 5000,
+        interval: 100,
+      });
 
       setTimeout(async () => {
         await sessionManager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -547,11 +608,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -560,7 +629,12 @@ describe('TaskOrchestrator Integration Tests', () => {
       const orchestrator = new TaskOrchestrator(sessionManager);
       const subtaskS3 = backlog.backlog[0].milestones[0].tasks[0].subtasks[2];
 
-      await expect(orchestrator.waitForDependencies(subtaskS3, { timeout: 100, interval: 10 })).rejects.toThrow('Timeout waiting for dependencies');
+      await expect(
+        orchestrator.waitForDependencies(subtaskS3, {
+          timeout: 100,
+          interval: 10,
+        })
+      ).rejects.toThrow('Timeout waiting for dependencies');
     });
   });
 
@@ -575,11 +649,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -598,11 +680,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -622,11 +712,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 
@@ -688,11 +786,19 @@ describe('TaskOrchestrator Integration Tests', () => {
       const sessionState = createSessionState(backlog, planDir);
       const sessionDir = sessionState.metadata.path;
 
-      for (const dir of [sessionDir, join(sessionDir, 'architecture'), join(sessionDir, 'prps'), join(sessionDir, 'artifacts')]) {
+      for (const dir of [
+        sessionDir,
+        join(sessionDir, 'architecture'),
+        join(sessionDir, 'prps'),
+        join(sessionDir, 'artifacts'),
+      ]) {
         mkdirSync(dir, { recursive: true });
       }
 
-      writeFileSync(join(sessionDir, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+      writeFileSync(
+        join(sessionDir, 'tasks.json'),
+        JSON.stringify({ backlog: backlog.backlog }, null, 2)
+      );
       writeFileSync(join(sessionDir, 'prd_snapshot.md'), mockSimplePRD);
       writeFileSync(join(sessionDir, 'delta_from.txt'), '');
 

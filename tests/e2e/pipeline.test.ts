@@ -253,7 +253,7 @@ describe('E2E Pipeline Tests', () => {
     // Setup readFile mock to return Buffer objects (not strings)
     // This matches production behavior where readFile(path) returns Buffer,
     // which is required by TextDecoder.decode() in readUTF8FileStrict()
-    vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
+    vi.mocked(readFile).mockImplementation(path => {
       const pathStr = String(path);
       if (pathStr.includes('tasks.json')) {
         return Promise.resolve(

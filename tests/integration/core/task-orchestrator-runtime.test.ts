@@ -140,7 +140,9 @@ function createTestBacklog(): Backlog {
 
 function createSessionState(backlog: Backlog, planDir: string) {
   const { createHash } = require('node:crypto');
-  const hash = createHash('sha256').update(JSON.stringify(backlog)).digest('hex');
+  const hash = createHash('sha256')
+    .update(JSON.stringify(backlog))
+    .digest('hex');
   return {
     metadata: {
       id: `001_${hash.substring(0, 12)}`,
@@ -298,7 +300,9 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
       // VERIFY: Subtask should be marked Complete (PRPRuntime returned success)
       const updatedSession = sessionManager.currentSession!;
-      const updatedSubtask = updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+      const updatedSubtask =
+        updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0]
+          .subtasks[0];
       expect(updatedSubtask.status).toBe('Complete');
     });
 
@@ -310,11 +314,14 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
       // SPY: Track status changes
       const statuses: string[] = [];
-      const originalUpdateStatus = sessionManager.updateItemStatus.bind(sessionManager);
-      vi.spyOn(sessionManager, 'updateItemStatus').mockImplementation(async (id, status) => {
-        statuses.push(status);
-        return originalUpdateStatus(id, status);
-      });
+      const originalUpdateStatus =
+        sessionManager.updateItemStatus.bind(sessionManager);
+      vi.spyOn(sessionManager, 'updateItemStatus').mockImplementation(
+        async (id, status) => {
+          statuses.push(status);
+          return originalUpdateStatus(id, status);
+        }
+      );
 
       // EXECUTE
       await orchestrator.executeSubtask(subtask);
@@ -355,7 +362,11 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
         }),
       }));
 
-      const orchestrator = new TaskOrchestrator(sessionManager, undefined, false);
+      const orchestrator = new TaskOrchestrator(
+        sessionManager,
+        undefined,
+        false
+      );
       const backlog = sessionManager.currentSession!.taskRegistry;
       const subtask = backlog.backlog[0].milestones[0].tasks[0].subtasks[0];
 
@@ -368,7 +379,9 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
       // VERIFY: Status should be Failed
       const updatedSession = sessionManager.currentSession!;
-      const updatedSubtask = updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+      const updatedSubtask =
+        updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0]
+          .subtasks[0];
       expect(updatedSubtask.status).toBe('Failed');
 
       // Restore mock
@@ -409,7 +422,9 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
       // VERIFY: Should complete successfully (used cache)
       const updatedSession = sessionManager.currentSession!;
-      const updatedSubtask = updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+      const updatedSubtask =
+        updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0]
+          .subtasks[0];
       expect(updatedSubtask.status).toBe('Complete');
     });
 
@@ -424,7 +439,9 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
       // VERIFY: Should still complete (PRPRuntime handles generation)
       const updatedSession = sessionManager.currentSession!;
-      const updatedSubtask = updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+      const updatedSubtask =
+        updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0]
+          .subtasks[0];
       expect(updatedSubtask.status).toBe('Complete');
     });
 
@@ -446,7 +463,11 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
     it('should bypass cache when --no-cache flag is set', async () => {
       // SETUP: Create orchestrator with noCache=true
-      const orchestrator = new TaskOrchestrator(sessionManager, undefined, true);
+      const orchestrator = new TaskOrchestrator(
+        sessionManager,
+        undefined,
+        true
+      );
       const backlog = sessionManager.currentSession!.taskRegistry;
       const subtask = backlog.backlog[0].milestones[0].tasks[0].subtasks[0];
 
@@ -464,7 +485,9 @@ describe('TaskOrchestrator Runtime Integration Tests', () => {
 
       // VERIFY: Should still complete
       const updatedSession = sessionManager.currentSession!;
-      const updatedSubtask = updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+      const updatedSubtask =
+        updatedSession.taskRegistry.backlog[0].milestones[0].tasks[0]
+          .subtasks[0];
       expect(updatedSubtask.status).toBe('Complete');
     });
   });

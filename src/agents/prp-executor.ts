@@ -23,7 +23,7 @@ import { createCoderAgent } from './agent-factory.js';
 import { PRP_BUILDER_PROMPT } from './prompts.js';
 import { getLogger } from '../utils/logger.js';
 import type { Logger } from '../utils/logger.js';
-import type { Agent } from 'groundswell';
+import type { Agent, Prompt } from 'groundswell';
 import type { PRPDocument, ValidationGate } from '../core/models.js';
 import { BashMCP } from '../tools/bash-mcp.js';
 import { retryAgentPrompt } from '../utils/retry.js';
@@ -249,7 +249,8 @@ export class PRPExecutor {
       // STEP 2: Execute Coder Agent with retry logic
       this.#logger.info({ prpTaskId: prp.taskId }, 'Starting PRP execution');
       const coderResponse = await retryAgentPrompt(
-        () => this.#coderAgent.prompt(injectedPrompt),
+        () =>
+          this.#coderAgent.prompt(injectedPrompt as unknown as Prompt<unknown>),
         { agentType: 'Coder', operation: 'executePRP' }
       );
 
@@ -447,10 +448,13 @@ Output your result in the same JSON format:
     `.trim();
 
     // Execute fix attempt with retry logic
-    await retryAgentPrompt(() => this.#coderAgent.prompt(fixPrompt), {
-      agentType: 'Coder',
-      operation: 'fixValidation',
-    });
+    await retryAgentPrompt(
+      () => this.#coderAgent.prompt(fixPrompt as unknown as Prompt<unknown>),
+      {
+        agentType: 'Coder',
+        operation: 'fixValidation',
+      }
+    );
   }
 
   /**

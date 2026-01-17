@@ -167,11 +167,11 @@ describe('single-test-runner', () => {
     vi.useFakeTimers();
     // Reset default mock behavior for memory error detector
     vi.mocked(detectMemoryErrorInTestOutput).mockImplementation(
-      (output: string, exitCode: number | null) => ({
+      (output: string, exitCode?: number | null | undefined) => ({
         hasMemoryError: false,
         errorType: null,
         matchedPattern: null,
-        exitCode,
+        exitCode: exitCode ?? null,
         suggestion: '',
         severity: 'warning',
       })

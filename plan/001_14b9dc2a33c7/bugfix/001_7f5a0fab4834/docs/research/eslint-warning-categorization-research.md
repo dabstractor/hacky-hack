@@ -11,6 +11,7 @@
 This research document provides best practices for categorizing ESLint warnings by severity, estimating fix effort for `strict-boolean-expressions` warnings, and implementing automated warning categorization systems. The findings are specifically tailored for TypeScript codebases with nullable type warnings.
 
 **Key Findings:**
+
 - 3-tier severity classification (Trivial/Moderate/Complex) provides optimal granularity
 - File-based prioritization outperforms warning-count-based approaches
 - Nullable type warnings follow predictable patterns amenable to automation
@@ -37,9 +38,11 @@ This research document provides best practices for categorizing ESLint warnings 
 Based on industry best practices and TypeScript community standards, warnings should be categorized using a **3-tier severity model**:
 
 #### Tier 1: Trivial (Quick Wins)
+
 **Definition:** Warnings that can be fixed with simple, mechanical changes without logic alterations.
 
 **Characteristics:**
+
 - Single-line fixes
 - No logic changes required
 - No test updates needed
@@ -47,12 +50,15 @@ Based on industry best practices and TypeScript community standards, warnings sh
 - Low risk of introducing bugs
 
 **Examples:**
+
 ```typescript
 // ❌ Before
-if (nullableString) { }
+if (nullableString) {
+}
 
 // ✅ After (Trivial fix)
-if (nullableString && nullableString.trim()) { }
+if (nullableString && nullableString.trim()) {
+}
 
 // ❌ Before
 return result.error;
@@ -67,9 +73,11 @@ return result.error ?? '';
 ---
 
 #### Tier 2: Moderate (Requires Analysis)
+
 **Definition:** Warnings requiring understanding of context and potentially minor logic adjustments.
 
 **Characteristics:**
+
 - May require 2-3 line changes
 - Needs context understanding
 - May need test verification
@@ -77,6 +85,7 @@ return result.error ?? '';
 - Low to moderate risk
 
 **Examples:**
+
 ```typescript
 // ❌ Before
 function process(value: string | null) {
@@ -101,9 +110,11 @@ function process(value: string | null) {
 ---
 
 #### Tier 3: Complex (Requires Refactoring)
+
 **Definition:** Warnings requiring significant code restructuring or architectural considerations.
 
 **Characteristics:**
+
 - Multi-file changes
 - Type signature updates
 - Requires comprehensive test updates
@@ -111,6 +122,7 @@ function process(value: string | null) {
 - Moderate to high risk
 
 **Examples:**
+
 ```typescript
 // ❌ Before (complex nullable logic throughout)
 class DataProcessor {
@@ -163,16 +175,16 @@ Is it a single-line fix?
 
 ### 1.3 Severity-Level Definitions Matrix
 
-| Aspect | Trivial | Moderate | Complex |
-|--------|---------|----------|---------|
-| **Lines Changed** | 1 | 2-5 | 5+ |
-| **Files Affected** | 1 | 1-2 | 2+ |
-| **Logic Changes** | None | Minor | Major |
-| **Test Updates** | None | Verification | Comprehensive |
-| **Risk Level** | Low | Low-Medium | Medium-High |
-| **Time Estimate** | 1-5 min | 5-15 min | 30-60 min |
-| **Story Points** | 0.5 | 1 | 2 |
-| **Can Batch** | Yes (10+/hr) | Yes (4-6/hr) | No (1-2/hr) |
+| Aspect             | Trivial      | Moderate     | Complex       |
+| ------------------ | ------------ | ------------ | ------------- |
+| **Lines Changed**  | 1            | 2-5          | 5+            |
+| **Files Affected** | 1            | 1-2          | 2+            |
+| **Logic Changes**  | None         | Minor        | Major         |
+| **Test Updates**   | None         | Verification | Comprehensive |
+| **Risk Level**     | Low          | Low-Medium   | Medium-High   |
+| **Time Estimate**  | 1-5 min      | 5-15 min     | 30-60 min     |
+| **Story Points**   | 0.5          | 1            | 2             |
+| **Can Batch**      | Yes (10+/hr) | Yes (4-6/hr) | No (1-2/hr)   |
 
 ---
 
@@ -185,58 +197,73 @@ The `@typescript-eslint/strict-boolean-expressions` rule disallows nullable type
 **Common Patterns:**
 
 1. **Nullable String Checks** (Most Common - 60% of warnings)
+
    ```typescript
    // ❌ Warning
-   if (configValue) { }
+   if (configValue) {
+   }
 
    // ✅ Fix
-   if (configValue !== null && configValue !== undefined) { }
+   if (configValue !== null && configValue !== undefined) {
+   }
    // or
-   if (configValue?.length) { }
+   if (configValue?.length) {
+   }
    ```
 
 2. **Nullable Number Checks** (20% of warnings)
+
    ```typescript
    // ❌ Warning
-   if (count > 0) { }  // count might be null
+   if (count > 0) {
+   } // count might be null
 
    // ✅ Fix
-   if (count !== null && count > 0) { }
+   if (count !== null && count > 0) {
+   }
    ```
 
 3. **Nullable Object Checks** (15% of warnings)
+
    ```typescript
    // ❌ Warning
-   if (user) { }
+   if (user) {
+   }
 
    // ✅ Fix
-   if (user !== null && user !== undefined) { }
+   if (user !== null && user !== undefined) {
+   }
    // or
-   if (user ?? false) { }
+   if (user ?? false) {
+   }
    ```
 
 4. **Complex Boolean Expressions** (5% of warnings)
+
    ```typescript
    // ❌ Warning
-   if (value1 || value2 && value3) { }
+   if (value1 || (value2 && value3)) {
+   }
 
    // ✅ Fix (requires careful analysis)
-   if ((value1 !== null && value1) ||
-       (value2 !== null && value2) &&
-       (value3 !== null && value3)) { }
+   if (
+     (value1 !== null && value1) ||
+     (value2 !== null && value2 && value3 !== null && value3)
+   ) {
+   }
    ```
 
 ---
 
 ### 2.2 Fix Effort by Pattern
 
-| Pattern | Frequency | Fix Complexity | Time | SP |
-|---------|-----------|----------------|------|-----|
-| Simple nullable check | 60% | Trivial | 1-2 min | 0.5 |
-| Optional chaining | 15% | Trivial | 1-2 min | 0.5 |
-| Nullish coalescing | 10% | Trivial | 2-3 min | 0.5 |
-| Logic refinement | 10% | Moderate | 5-10 min | 1 |
-| Type refactoring | 5% | Complex | 30-45 min | 2 |
+| Pattern               | Frequency | Fix Complexity | Time      | SP  |
+| --------------------- | --------- | -------------- | --------- | --- |
+| Simple nullable check | 60%       | Trivial        | 1-2 min   | 0.5 |
+| Optional chaining     | 15%       | Trivial        | 1-2 min   | 0.5 |
+| Nullish coalescing    | 10%       | Trivial        | 2-3 min   | 0.5 |
+| Logic refinement      | 10%       | Moderate       | 5-10 min  | 1   |
+| Type refactoring      | 5%        | Complex        | 30-45 min | 2   |
 
 ---
 
@@ -244,16 +271,17 @@ The `@typescript-eslint/strict-boolean-expressions` rule disallows nullable type
 
 Based on analysis of the hacky-hack codebase:
 
-| File | Warning Count | Estimated Effort | Priority |
-|------|---------------|------------------|----------|
-| `src/agents/prp-runtime.ts` | 1-5 | 15-30 min | HIGH |
-| `src/cli/index.ts` | 1-5 | 15-30 min | HIGH |
-| `src/utils/logger.ts` | 1-5 | 15-30 min | HIGH |
-| `src/utils/*.ts` | 5-10 | 30-60 min | MEDIUM |
-| `src/workflows/*.ts` | 10-20 | 1-2 hours | MEDIUM |
-| `src/core/*.ts` | 5-15 | 45-90 min | LOW |
+| File                        | Warning Count | Estimated Effort | Priority |
+| --------------------------- | ------------- | ---------------- | -------- |
+| `src/agents/prp-runtime.ts` | 1-5           | 15-30 min        | HIGH     |
+| `src/cli/index.ts`          | 1-5           | 15-30 min        | HIGH     |
+| `src/utils/logger.ts`       | 1-5           | 15-30 min        | HIGH     |
+| `src/utils/*.ts`            | 5-10          | 30-60 min        | MEDIUM   |
+| `src/workflows/*.ts`        | 10-20         | 1-2 hours        | MEDIUM   |
+| `src/core/*.ts`             | 5-15          | 45-90 min        | LOW      |
 
 **Prioritization Formula:**
+
 ```
 Priority Score = (Warning Count × 0.4) + (File Criticality × 0.6)
 
@@ -271,6 +299,7 @@ Where File Criticality:
 For maximum efficiency, group fixes by **pattern type** rather than by file:
 
 **Batch 1: Simple Nullable Checks** (Highest Volume)
+
 ```bash
 # Find all simple nullable string checks
 grep -r "if ([a-zA-Z_][a-zA-Z0-9_]*) {" src/ | \
@@ -280,6 +309,7 @@ grep -r "if ([a-zA-Z_][a-zA-Z0-9_]*) {" src/ | \
 ```
 
 **Batch 2: Optional Chaining Opportunities**
+
 ```bash
 # Find chains that can use ?.
 grep -r "[a-zA-Z_][a-zA-Z0-9_]*\." src/ | \
@@ -288,6 +318,7 @@ grep -r "[a-zA-Z_][a-zA-Z0-9_]*\." src/ | \
 ```
 
 **Batch 3: Ternary Refactoring**
+
 ```bash
 # Find ternary with nullable values
 grep -r "? .* :" src/ | \
@@ -389,7 +420,7 @@ function categorizeWarning(warning: ESLintWarning): CategorizedWarning {
       category: 'trivial',
       estimatedMinutes: 2,
       storyPoints: 0.5,
-      pattern: 'simple-nullable-check'
+      pattern: 'simple-nullable-check',
     };
   }
 
@@ -400,7 +431,7 @@ function categorizeWarning(warning: ESLintWarning): CategorizedWarning {
       category: 'trivial',
       estimatedMinutes: 3,
       storyPoints: 0.5,
-      pattern: 'ternary-nullable'
+      pattern: 'ternary-nullable',
     };
   }
 
@@ -411,7 +442,7 @@ function categorizeWarning(warning: ESLintWarning): CategorizedWarning {
       category: 'moderate',
       estimatedMinutes: 10,
       storyPoints: 1,
-      pattern: 'logic-expression'
+      pattern: 'logic-expression',
     };
   }
 
@@ -422,7 +453,7 @@ function categorizeWarning(warning: ESLintWarning): CategorizedWarning {
       category: 'complex',
       estimatedMinutes: 45,
       storyPoints: 2,
-      pattern: 'complex-expression'
+      pattern: 'complex-expression',
     };
   }
 
@@ -432,7 +463,7 @@ function categorizeWarning(warning: ESLintWarning): CategorizedWarning {
     category: 'moderate',
     estimatedMinutes: 10,
     storyPoints: 1,
-    pattern: 'default'
+    pattern: 'default',
   };
 }
 
@@ -446,7 +477,7 @@ function calculateCriticalityScore(file: string): number {
     { path: 'src/core/', score: 8 },
     { path: 'src/utils/', score: 7 },
     { path: 'src/workflows/', score: 5 },
-    { path: 'tests/', score: 2 }
+    { path: 'tests/', score: 2 },
   ];
 
   for (const { path, score } of criticalPaths) {
@@ -465,7 +496,7 @@ function generateFixOrder(reports: FileReport[]): FileReport[] {
   return reports
     .map(report => ({
       ...report,
-      priorityScore: (report.warningCount * 0.4) + (report.criticalityScore * 0.6)
+      priorityScore: report.warningCount * 0.4 + report.criticalityScore * 0.6,
     }))
     .sort((a, b) => b.priorityScore - a.priorityScore);
 }
@@ -473,7 +504,9 @@ function generateFixOrder(reports: FileReport[]): FileReport[] {
 /**
  * Main categorization pipeline
  */
-export async function categorizeESLintWarnings(eslintOutput: string): Promise<FileReport[]> {
+export async function categorizeESLintWarnings(
+  eslintOutput: string
+): Promise<FileReport[]> {
   // Parse ESLint JSON output
   const warnings: ESLintWarning[] = JSON.parse(eslintOutput);
 
@@ -499,7 +532,7 @@ export async function categorizeESLintWarnings(eslintOutput: string): Promise<Fi
       totalStoryPoints: categorized.reduce((sum, w) => sum + w.storyPoints, 0),
       criticalityScore,
       priorityScore: 0, // Will be calculated
-      warnings: categorized
+      warnings: categorized,
     });
   }
 
@@ -535,18 +568,19 @@ export async function categorizeESLintWarnings(eslintOutput: string): Promise<Fi
 
 **Application to ESLint Warnings:**
 
-| Quadrant | Warning Type | Action |
-|----------|-------------|--------|
-| Quick Wins | Simple nullable checks in CLI/agents | Fix immediately |
-| Major Projects | Complex refactors in core files | Schedule dedicated time |
-| Fill-Ins | Warnings in low-priority utils | Fix during maintenance |
-| Money Pits | Complex logic in test files | Defer or disable rule locally |
+| Quadrant       | Warning Type                         | Action                        |
+| -------------- | ------------------------------------ | ----------------------------- |
+| Quick Wins     | Simple nullable checks in CLI/agents | Fix immediately               |
+| Major Projects | Complex refactors in core files      | Schedule dedicated time       |
+| Fill-Ins       | Warnings in low-priority utils       | Fix during maintenance        |
+| Money Pits     | Complex logic in test files          | Defer or disable rule locally |
 
 ---
 
 ### 4.2 ROI-Based Prioritization
 
 **Formula:**
+
 ```
 Priority Score = (Frequency × Impact) / Effort
 
@@ -582,21 +616,26 @@ For warnings in interconnected modules, use dependency analysis:
 interface DependencyNode {
   file: string;
   warnings: number;
-  dependents: string[];  // Files that import this file
-  dependencies: string[];  // Files this file imports
+  dependents: string[]; // Files that import this file
+  dependencies: string[]; // Files this file imports
   priorityScore: number;
 }
 
-function calculateDependencyPriority(nodes: DependencyNode[]): DependencyNode[] {
-  return nodes.map(node => ({
-    ...node,
-    // Higher priority if imported by many files
-    priorityScore: node.warnings * (1 + node.dependents.length * 0.5)
-  })).sort((a, b) => b.priorityScore - a.priorityScore);
+function calculateDependencyPriority(
+  nodes: DependencyNode[]
+): DependencyNode[] {
+  return nodes
+    .map(node => ({
+      ...node,
+      // Higher priority if imported by many files
+      priorityScore: node.warnings * (1 + node.dependents.length * 0.5),
+    }))
+    .sort((a, b) => b.priorityScore - a.priorityScore);
 }
 ```
 
 **Priority Order:**
+
 1. `src/cli/index.ts` (Imported by nothing, but entry point - MAX PRIORITY)
 2. `src/core/research-queue.ts` (Imported by 5 files - HIGH PRIORITY)
 3. `src/utils/logger.ts` (Imported by 20 files - HIGH PRIORITY)
@@ -610,6 +649,7 @@ function calculateDependencyPriority(nodes: DependencyNode[]): DependencyNode[] 
 ### 5.1 Criticality Tiers
 
 **Tier 1: Critical Infrastructure** (Fix First)
+
 - Entry points: `src/cli/*.ts`, `src/index.ts`
 - Core agents: `src/agents/prp-runtime.ts`, `src/agents/agent-factory.ts`
 - Core utilities: `src/utils/logger.ts`, `src/core/research-queue.ts`
@@ -621,6 +661,7 @@ function calculateDependencyPriority(nodes: DependencyNode[]): DependencyNode[] 
 ---
 
 **Tier 2: Business Logic** (Fix Second)
+
 - Workflows: `src/workflows/*.ts`
 - Tools: `src/tools/*.ts`
 - Validators: `src/core/validators/*.ts`
@@ -632,6 +673,7 @@ function calculateDependencyPriority(nodes: DependencyNode[]): DependencyNode[] 
 ---
 
 **Tier 3: Supporting Code** (Fix Third)
+
 - Utility functions: `src/utils/*.ts` (non-critical)
 - Type definitions: `src/types/*.ts`
 - Constants: `src/constants/*.ts`
@@ -643,6 +685,7 @@ function calculateDependencyPriority(nodes: DependencyNode[]): DependencyNode[] 
 ---
 
 **Tier 4: Test Code** (Fix Last)
+
 - Unit tests: `tests/unit/**/*.ts`
 - Integration tests: `tests/integration/**/*.ts`
 - Test fixtures: `tests/fixtures/**/*.ts`
@@ -655,14 +698,15 @@ function calculateDependencyPriority(nodes: DependencyNode[]): DependencyNode[] 
 
 ### 5.2 Warning Density Thresholds
 
-| Density Level | Warnings per 100 LOC | Action |
-|---------------|---------------------|--------|
-| Critical | > 10 | Immediate refactoring required |
-| High | 5-10 | Schedule within 1 sprint |
-| Medium | 2-5 | Schedule within 2 sprints |
-| Low | < 2 | Fix during maintenance |
+| Density Level | Warnings per 100 LOC | Action                         |
+| ------------- | -------------------- | ------------------------------ |
+| Critical      | > 10                 | Immediate refactoring required |
+| High          | 5-10                 | Schedule within 1 sprint       |
+| Medium        | 2-5                  | Schedule within 2 sprints      |
+| Low           | < 2                  | Fix during maintenance         |
 
 **Example Calculation:**
+
 ```typescript
 // src/agents/prp-runtime.ts: 350 LOC, 3 warnings
 // Density = (3 / 350) * 100 = 0.86 warnings per 100 LOC
@@ -690,6 +734,7 @@ npm run lint 2>&1 | \
 ```
 
 **Hotspot Example:**
+
 ```typescript
 // src/workflows/prp-pipeline.ts: Lines 45-67
 // 8 warnings in 22 lines - HOTSPOT
@@ -766,6 +811,7 @@ npm run lint 2>&1 | \
 ### 6.4 Tooling Recommendations
 
 **Create: `scripts/categorize-warnings.ts`**
+
 ```typescript
 #!/usr/bin/env tsx
 import { categorizeESLintWarnings } from '../src/utils/eslint-categorizer.js';
@@ -773,7 +819,7 @@ import { execSync } from 'node:child_process';
 
 // Run ESLint with JSON output
 const eslintOutput = execSync('npm run lint -- --format json', {
-  encoding: 'utf-8'
+  encoding: 'utf-8',
 });
 
 // Categorize warnings
@@ -782,19 +828,26 @@ const reports = await categorizeESLintWarnings(eslintOutput);
 // Generate markdown report
 console.log('# ESLint Warning Categorization Report\n');
 console.log(`Total Files: ${reports.length}`);
-console.log(`Total Warnings: ${reports.reduce((sum, r) => sum + r.warningCount, 0)}`);
-console.log(`Total Effort: ${reports.reduce((sum, r) => sum + r.totalMinutes, 0)} minutes\n`);
+console.log(
+  `Total Warnings: ${reports.reduce((sum, r) => sum + r.warningCount, 0)}`
+);
+console.log(
+  `Total Effort: ${reports.reduce((sum, r) => sum + r.totalMinutes, 0)} minutes\n`
+);
 
 console.log('## Priority Order\n');
 for (const report of reports) {
   console.log(`### ${report.file}`);
   console.log(`- Warnings: ${report.warningCount}`);
-  console.log(`- Effort: ${report.totalMinutes} minutes (${report.totalStoryPoints} SP)`);
+  console.log(
+    `- Effort: ${report.totalMinutes} minutes (${report.totalStoryPoints} SP)`
+  );
   console.log(`- Priority Score: ${report.priorityScore.toFixed(2)}\n`);
 }
 ```
 
 **Add to package.json:**
+
 ```json
 {
   "scripts": {
@@ -811,10 +864,12 @@ for (const report of reports) {
 ### 7.1 Official Documentation
 
 **TypeScript ESLint:**
+
 - [strict-boolean-expressions Rule](https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/docs/rules/strict-boolean-expressions.mdx)
 - [TypeScript ESLint Best Practices](https://typescript-eslint.io/rules/)
 
 **ESLint:**
+
 - [Rule Documentation](https://eslint.org/docs/latest/rules/)
 - [Configuring ESLint](https://eslint.org/docs/latest/use/configure/)
 
@@ -823,11 +878,13 @@ for (const report of reports) {
 ### 7.2 Technical Debt Management
 
 **Priority Frameworks:**
+
 - "Four Quadrants" Technical Debt Prioritization - Martin Fowler
 - "Technical Debt Quadrant" - Ward Cunningham
 - ROI-Based Debt Management - Microsoft Research
 
 **Recommended Reading:**
+
 - "Working Effectively with Legacy Code" by Michael Feathers
 - "Clean Code" by Robert C. Martin (Chapter 2: Meaningful Names)
 - "Refactoring" by Martin Fowler (Chapter 6: Composing Methods)
@@ -837,11 +894,13 @@ for (const report of reports) {
 ### 7.3 TypeScript Best Practices
 
 **Nullable Handling Patterns:**
+
 - [TypeScript Handbook: Null vs Undefined](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#nullish-coalescing)
 - [Strict Null Checks](https://www.typescriptlang.org/tsconfig#strictNullChecks)
 - [Optional Chaining](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#optional-chaining)
 
 **Code Quality:**
+
 - [TypeScript ESLint Stylistic Rules](https://typescript-eslint.io/rules/#stylistic-issues)
 - [Type-Safe Type Guards](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
 
@@ -850,11 +909,13 @@ for (const report of reports) {
 ### 7.4 Automation & Tooling
 
 **Related Tools:**
+
 - [eslint-formatter-json](https://www.npmjs.com/package/eslint-formatter-json)
 - [eslint-interactive](https://www.npmjs.com/package/eslint-interactive) - Interactive warning fixer
 - [eslint-parallel](https://www.npmjs.com/package/eslint-parallel) - Parallel ESLint execution
 
 **CI/CD Integration:**
+
 - GitHub Actions: [eslint-action](https://github.com/marketplace/actions/eslint-action)
 - GitLab CI: [ESLint template](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/ESLint.gitlab-ci.yml)
 
@@ -863,11 +924,13 @@ for (const report of reports) {
 ### 7.5 Community Resources
 
 **Discussions:**
+
 - TypeScript Community Discord - #eslint channel
 - Stack Overflow: [typescript-eslint tag](https://stackoverflow.com/questions/tagged/typescript-eslint)
 - GitHub Discussions: [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint/discussions)
 
 **Conferences:**
+
 - TypeScript Congress
 - TSConf (YouTube recordings available)
 - Node.js Interactive (technical debt track)
@@ -896,36 +959,42 @@ for (const report of reports) {
 
 ### Appendix B: File Criticality Reference
 
-| File Pattern | Criticality | Priority | Target Warnings |
-|--------------|-------------|----------|-----------------|
-| `src/cli/*.ts` | 10 | P0 | 0 |
-| `src/agents/*.ts` | 10 | P0 | 0 |
-| `src/utils/logger.ts` | 10 | P0 | 0 |
-| `src/core/*.ts` | 8 | P1 | < 3 |
-| `src/utils/*.ts` | 7 | P1 | < 5 |
-| `src/workflows/*.ts` | 5 | P2 | < 10 |
-| `tests/**/*.ts` | 2 | P3 | N/A (disabled) |
+| File Pattern          | Criticality | Priority | Target Warnings |
+| --------------------- | ----------- | -------- | --------------- |
+| `src/cli/*.ts`        | 10          | P0       | 0               |
+| `src/agents/*.ts`     | 10          | P0       | 0               |
+| `src/utils/logger.ts` | 10          | P0       | 0               |
+| `src/core/*.ts`       | 8           | P1       | < 3             |
+| `src/utils/*.ts`      | 7           | P1       | < 5             |
+| `src/workflows/*.ts`  | 5           | P2       | < 10            |
+| `tests/**/*.ts`       | 2           | P3       | N/A (disabled)  |
 
 ---
 
 ### Appendix C: Common Fix Patterns
 
 **Pattern 1: Simple Nullable Check**
+
 ```typescript
 // Before
-if (value) { }
+if (value) {
+}
 
 // After (Option A - Explicit)
-if (value !== null && value !== undefined) { }
+if (value !== null && value !== undefined) {
+}
 
 // After (Option B - Optional Chaining)
-if (value?.length) { }
+if (value?.length) {
+}
 
 // After (Option C - Nullish Coalescing)
-if (value ?? false) { }
+if (value ?? false) {
+}
 ```
 
 **Pattern 2: Nullable in Ternary**
+
 ```typescript
 // Before
 const result = configValue ? configValue : 'default';
@@ -935,25 +1004,31 @@ const result = configValue ?? 'default';
 ```
 
 **Pattern 3: Nullable Object Property**
+
 ```typescript
 // Before
-if (user && user.name) { }
+if (user && user.name) {
+}
 
 // After
-if (user?.name) { }
+if (user?.name) {
+}
 ```
 
 **Pattern 4: Logical Expression**
+
 ```typescript
 // Before
-if (value1 || value2) { }
+if (value1 || value2) {
+}
 
 // After
-if ((value1 !== null && value1) || (value2 !== null && value2)) { }
+if ((value1 !== null && value1) || (value2 !== null && value2)) {
+}
 ```
 
 ---
 
 **End of Research Document**
 
-*This research document provides actionable guidance for categorizing and prioritizing ESLint warnings in the hacky-hack TypeScript codebase. Apply these recommendations systematically to reduce technical debt while maintaining development velocity.*
+_This research document provides actionable guidance for categorizing and prioritizing ESLint warnings in the hacky-hack TypeScript codebase. Apply these recommendations systematically to reduce technical debt while maintaining development velocity._

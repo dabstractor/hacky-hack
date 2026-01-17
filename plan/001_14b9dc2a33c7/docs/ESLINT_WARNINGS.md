@@ -25,14 +25,14 @@ This document provides comprehensive recommendations for systematically fixing a
 
 ### Key Metrics
 
-| Metric | Value | Percentage |
-|--------|-------|------------|
-| **Total Warnings** | 105 | 100% |
-| **Trivial Fixes** | 63 | 60% |
-| **Moderate Fixes** | 33 | 31% |
-| **Complex Fixes** | 9 | 9% |
-| **Total Effort** | 3-4 hours (40-45 SP) | - |
-| **Files Affected** | 31 | - |
+| Metric             | Value                | Percentage |
+| ------------------ | -------------------- | ---------- |
+| **Total Warnings** | 105                  | 100%       |
+| **Trivial Fixes**  | 63                   | 60%        |
+| **Moderate Fixes** | 33                   | 31%        |
+| **Complex Fixes**  | 9                    | 9%         |
+| **Total Effort**   | 3-4 hours (40-45 SP) | -          |
+| **Files Affected** | 31                   | -          |
 
 ### Impact
 
@@ -43,14 +43,14 @@ This document provides comprehensive recommendations for systematically fixing a
 
 ### Warning Distribution by Type
 
-| Type | Count | Percentage | Severity |
-|------|-------|------------|----------|
-| Nullable Strings | 63 | 60% | Trivial |
-| Nullable Objects | 14 | 13% | Moderate |
-| Any Types | 12 | 11% | Complex |
-| Nullable Numbers | 5 | 5% | Moderate |
-| Nullish Values | 7 | 7% | Complex |
-| Nullable Booleans | 3 | 3% | Complex |
+| Type              | Count | Percentage | Severity |
+| ----------------- | ----- | ---------- | -------- |
+| Nullable Strings  | 63    | 60%        | Trivial  |
+| Nullable Objects  | 14    | 13%        | Moderate |
+| Any Types         | 12    | 11%        | Complex  |
+| Nullable Numbers  | 5     | 5%         | Moderate |
+| Nullish Values    | 7     | 7%         | Complex  |
+| Nullable Booleans | 3     | 3%         | Complex  |
 
 ---
 
@@ -63,6 +63,7 @@ Warnings are categorized by **fix effort** (not impact) into three tiers:
 **Definition**: Warnings fixable with simple, mechanical changes without logic alterations.
 
 **Characteristics**:
+
 - Single-line fixes
 - No logic changes required
 - Can be fixed via automated tools
@@ -72,16 +73,20 @@ Warnings are categorized by **fix effort** (not impact) into three tiers:
 **Story Points**: 0.5 SP
 
 **Warning Types**:
+
 - Nullable string checks (63 warnings, 60%)
 - Simple explicit null checks
 
 **Example**:
+
 ```typescript
 // ❌ Before
-if (nullableString) { }
+if (nullableString) {
+}
 
 // ✅ After
-if (nullableString && nullableString.trim()) { }
+if (nullableString && nullableString.trim()) {
+}
 ```
 
 ### Moderate (Requires Analysis)
@@ -89,6 +94,7 @@ if (nullableString && nullableString.trim()) { }
 **Definition**: Warnings requiring understanding of context and potentially minor logic adjustments.
 
 **Characteristics**:
+
 - May require 2-3 line changes
 - Needs context understanding
 - Low to moderate risk
@@ -97,17 +103,21 @@ if (nullableString && nullableString.trim()) { }
 **Story Points**: 1 SP
 
 **Warning Types**:
+
 - Nullable object checks (14 warnings, 13%)
 - Nullable number checks (5 warnings, 5%)
 - Complex boolean expressions
 
 **Example**:
+
 ```typescript
 // ❌ Before
-if (user && user.name) { }
+if (user && user.name) {
+}
 
 // ✅ After
-if (user?.name && user.name.trim()) { }
+if (user?.name && user.name.trim()) {
+}
 ```
 
 ### Complex (Refactoring Required)
@@ -115,6 +125,7 @@ if (user?.name && user.name.trim()) { }
 **Definition**: Warnings requiring refactoring, type system improvements, or multi-file changes.
 
 **Characteristics**:
+
 - Requires type review
 - May need interface updates
 - Could affect multiple files
@@ -124,17 +135,21 @@ if (user?.name && user.name.trim()) { }
 **Story Points**: 2 SP
 
 **Warning Types**:
+
 - Any type warnings (12 warnings, 11%)
 - Nullish value handling (7 warnings, 7%)
 - Nullable boolean conversions (3 warnings, 3%)
 
 **Example**:
+
 ```typescript
 // ❌ Before
-if (anyValue) { }
+if (anyValue) {
+}
 
 // ✅ After
-if (typeof anyValue === 'string' && anyValue.trim()) { }
+if (typeof anyValue === 'string' && anyValue.trim()) {
+}
 ```
 
 ### Severity Decision Tree
@@ -160,6 +175,7 @@ Files are scored by **criticality** (impact if warnings remain) based on their r
 **Files**: `src/cli/*.ts`, `src/agents/*.ts`, `src/utils/logger.ts`
 
 **Rationale**:
+
 - Entry points for application execution
 - Core workflow orchestration
 - Logging infrastructure used throughout
@@ -174,6 +190,7 @@ Files are scored by **criticality** (impact if warnings remain) based on their r
 **Files**: `src/core/*.ts`
 
 **Rationale**:
+
 - Core business logic
 - Validation and processing
 - Data transformation
@@ -188,6 +205,7 @@ Files are scored by **criticality** (impact if warnings remain) based on their r
 **Files**: `src/utils/*.ts`, `src/workflows/*.ts`
 
 **Rationale**:
+
 - Supporting utilities
 - Workflow definitions
 - Helper functions
@@ -202,6 +220,7 @@ Files are scored by **criticality** (impact if warnings remain) based on their r
 **Files**: `tests/**/*.ts`, `scripts/**/*.ts`
 
 **Rationale**:
+
 - Test code (not production)
 - Development scripts
 - Rule is disabled in .eslintrc.json overrides for tests
@@ -220,6 +239,7 @@ priorityScore = (warningCount * 0.4) + (criticalityScore * 0.6)
 This formula ensures high-criticality files rank high even with few warnings.
 
 **Example**:
+
 - `cli/index.ts`: 1 warning × 0.4 + 10 criticality × 0.6 = 6.4
 - `prp-pipeline.ts`: 22 warnings × 0.4 + 5 criticality × 0.6 = 11.8
 
@@ -229,24 +249,24 @@ This formula ensures high-criticality files rank high even with few warnings.
 
 Top 20 files sorted by priority score (descending). All paths relative to project root.
 
-| Rank | File | Warnings | Criticality | Priority Score | Effort | SP |
-|------|------|----------|------------|----------------|--------|-----|
-| 1 | src/workflows/prp-pipeline.ts | 22 | 5 | 11.8 | 44 min | 11 |
-| 2 | tests/manual/env-test.ts | 11 | 2 | 5.6 | 22 min | 4 |
-| 3 | tests/integration/architect-agent.test.ts | 8 | 2 | 4.4 | 16 min | 3 |
-| 4 | src/index.ts | 6 | 5 | 4.7 | 12 min | 3 |
-| 5 | tests/unit/tools/bash-mcp.test.ts | 6 | 2 | 3.6 | 12 min | 2 |
-| 6 | src/core/research-queue.ts | 5 | 8 | 6.8 | 25 min | 5 |
-| 7 | tests/unit/core/research-queue.test.ts | 5 | 2 | 3.2 | 10 min | 2 |
-| 8 | src/agents/prp-generator.ts | 4 | 10 | 7.6 | 20 min | 4 |
-| 9 | src/agents/prp-executor.ts | 4 | 10 | 7.6 | 20 min | 4 |
-| 10 | src/agents/agent-factory.ts | 3 | 10 | 7.2 | 15 min | 3 |
-| 11 | src/utils/errors.ts | 3 | 5 | 4.2 | 15 min | 3 |
-| 12 | tests/unit/tools/git-mcp.test.ts | 3 | 2 | 2.4 | 6 min | 1 |
-| 13 | src/cli/index.ts | 1 | 10 | 6.4 | 5 min | 0.5 |
-| 14 | src/utils/memory-error-detector.ts | 1 | 5 | 3.4 | 5 min | 0.5 |
-| 15 | tests/unit/tools/filesystem-mcp.test.ts | 1 | 2 | 1.6 | 2 min | 0.5 |
-| 16-31 | (Remaining 16 files with 1-2 warnings each) | - | - | - | - | - |
+| Rank  | File                                        | Warnings | Criticality | Priority Score | Effort | SP  |
+| ----- | ------------------------------------------- | -------- | ----------- | -------------- | ------ | --- |
+| 1     | src/workflows/prp-pipeline.ts               | 22       | 5           | 11.8           | 44 min | 11  |
+| 2     | tests/manual/env-test.ts                    | 11       | 2           | 5.6            | 22 min | 4   |
+| 3     | tests/integration/architect-agent.test.ts   | 8        | 2           | 4.4            | 16 min | 3   |
+| 4     | src/index.ts                                | 6        | 5           | 4.7            | 12 min | 3   |
+| 5     | tests/unit/tools/bash-mcp.test.ts           | 6        | 2           | 3.6            | 12 min | 2   |
+| 6     | src/core/research-queue.ts                  | 5        | 8           | 6.8            | 25 min | 5   |
+| 7     | tests/unit/core/research-queue.test.ts      | 5        | 2           | 3.2            | 10 min | 2   |
+| 8     | src/agents/prp-generator.ts                 | 4        | 10          | 7.6            | 20 min | 4   |
+| 9     | src/agents/prp-executor.ts                  | 4        | 10          | 7.6            | 20 min | 4   |
+| 10    | src/agents/agent-factory.ts                 | 3        | 10          | 7.2            | 15 min | 3   |
+| 11    | src/utils/errors.ts                         | 3        | 5           | 4.2            | 15 min | 3   |
+| 12    | tests/unit/tools/git-mcp.test.ts            | 3        | 2           | 2.4            | 6 min  | 1   |
+| 13    | src/cli/index.ts                            | 1        | 10          | 6.4            | 5 min  | 0.5 |
+| 14    | src/utils/memory-error-detector.ts          | 1        | 5           | 3.4            | 5 min  | 0.5 |
+| 15    | tests/unit/tools/filesystem-mcp.test.ts     | 1        | 2           | 1.6            | 2 min  | 0.5 |
+| 16-31 | (Remaining 16 files with 1-2 warnings each) | -        | -           | -              | -      | -   |
 
 **Note**: Files with 0 warnings after P3.M2.T1/P3.M2.T2 fixes are still listed to show progress.
 
@@ -286,30 +306,36 @@ return value ?? 'default';
 
 ```typescript
 // ❌ Before
-if (text && text.length > 0) { }
+if (text && text.length > 0) {
+}
 
 // ✅ After
-if (text?.length ?? 0 > 0) { }
+if (text?.length ?? 0 > 0) {
+}
 ```
 
 #### Pattern 4: Trim Validation
 
 ```typescript
 // ❌ Before
-if (input) { }
+if (input) {
+}
 
 // ✅ After
-if (input && input.trim()) { }
+if (input && input.trim()) {
+}
 ```
 
 #### Pattern 5: Optional Chaining with Validation
 
 ```typescript
 // ❌ Before
-if (result?.error) { }
+if (result?.error) {
+}
 
 // ✅ After
-if (result?.error && result.error.trim()) { }
+if (result?.error && result.error.trim()) {
+}
 ```
 
 #### Pattern 6: Early Return Pattern
@@ -338,10 +364,12 @@ function process(value: string | null): string {
 
 ```typescript
 // ❌ Before
-if (config && config.enabled) { }
+if (config && config.enabled) {
+}
 
 // ✅ After
-if (config?.enabled) { }
+if (config?.enabled) {
+}
 ```
 
 #### Pattern 2: Property Access
@@ -358,10 +386,12 @@ return user?.name ?? 'Unknown';
 
 ```typescript
 // ❌ Before
-if (data && data.user && data.user.address) { }
+if (data && data.user && data.user.address) {
+}
 
 // ✅ After
-if (data?.user?.address) { }
+if (data?.user?.address) {
+}
 ```
 
 #### Pattern 4: Array/Method Checks
@@ -432,10 +462,12 @@ if (obj && typeof obj === 'object') {
 
 ```typescript
 // ❌ Before
-if (count > 0) { }
+if (count > 0) {
+}
 
 // ✅ After
-if (count !== null && count > 0) { }
+if (count !== null && count > 0) {
+}
 ```
 
 #### Pattern 2: Arithmetic
@@ -452,10 +484,12 @@ return (total ?? 0) * 2;
 
 ```typescript
 // ❌ Before
-if (value === 0) { }
+if (value === 0) {
+}
 
 // ✅ After
-if (value != null && value === 0) { }
+if (value != null && value === 0) {
+}
 ```
 
 ### Nullish Values (7 warnings, 7%)
@@ -476,20 +510,24 @@ return settings ?? defaults;
 
 ```typescript
 // ❌ Before
-if (data) { }
+if (data) {
+}
 
 // ✅ After
-if (data !== null && data !== undefined) { }
+if (data !== null && data !== undefined) {
+}
 ```
 
 #### Pattern 3: Double Equals for Null
 
 ```typescript
 // ❌ Before
-if (value != null) { }
+if (value != null) {
+}
 
 // ✅ After
-if (value !== null && value !== undefined) { }
+if (value !== null && value !== undefined) {
+}
 ```
 
 ### Nullable Booleans (3 warnings, 3%)
@@ -500,10 +538,12 @@ if (value !== null && value !== undefined) { }
 
 ```typescript
 // ❌ Before
-if (flag) { }
+if (flag) {
+}
 
 // ✅ After
-if (flag === true) { }
+if (flag === true) {
+}
 ```
 
 #### Pattern 2: Explicit Check
@@ -534,6 +574,7 @@ Fix warnings in 4 phases to maximize impact while minimizing risk.
 **Story Points**: 1 SP
 
 **Action Items**:
+
 - Add explicit null checks to nullable string expressions in `cli/index.ts`
 - Use nullish coalescing (`??`) for default values in agent files
 - Use optional chaining (`?.`) for safe property access
@@ -553,6 +594,7 @@ Fix warnings in 4 phases to maximize impact while minimizing risk.
 **Story Points**: 4-8 SP
 
 **Action Items**:
+
 - Review context for nullable object checks
 - Add type guards for `any` type warnings
 - Refactor complex boolean expressions
@@ -573,6 +615,7 @@ Fix warnings in 4 phases to maximize impact while minimizing risk.
 **Story Points**: 10-15 SP
 
 **Action Items**:
+
 - Group warnings by pattern (all nullable strings, then all objects, etc.)
 - Fix all instances of each pattern type together
 - Use find-and-replace carefully for simple patterns
@@ -593,6 +636,7 @@ Fix warnings in 4 phases to maximize impact while minimizing risk.
 **Story Points**: 5-10 SP
 
 **Action Items**:
+
 - Consider disabling rule for test files (.eslintrc.json overrides exist)
 - Fix during dedicated tech debt time
 - Document why warnings remain (if deferred)
@@ -602,13 +646,13 @@ Fix warnings in 4 phases to maximize impact while minimizing risk.
 
 ### Summary Table
 
-| Phase | Files | Time | SP | Priority | Warnings |
-|-------|-------|------|-------|----------|----------|
-| Phase 1: Quick Wins | 3-5 | 30 min | 1 | P0 | ~5 |
-| Phase 2: High Priority | 5-8 | 1-2 hr | 4-8 | P0-P1 | ~15 |
-| Phase 3: Batch Fixes | 10-15 | 1-2 hr | 10-15 | P1-P2 | ~35 |
-| Phase 4: Deferred | 20+ | 30 min | 5-10 | P2-P3 | ~50 |
-| **Total** | **31** | **3-4 hr** | **~40** | - | **105** |
+| Phase                  | Files  | Time       | SP      | Priority | Warnings |
+| ---------------------- | ------ | ---------- | ------- | -------- | -------- |
+| Phase 1: Quick Wins    | 3-5    | 30 min     | 1       | P0       | ~5       |
+| Phase 2: High Priority | 5-8    | 1-2 hr     | 4-8     | P0-P1    | ~15      |
+| Phase 3: Batch Fixes   | 10-15  | 1-2 hr     | 10-15   | P1-P2    | ~35      |
+| Phase 4: Deferred      | 20+    | 30 min     | 5-10    | P2-P3    | ~50      |
+| **Total**              | **31** | **3-4 hr** | **~40** | -        | **105**  |
 
 ---
 
@@ -651,14 +695,14 @@ Fix warnings in 4 phases to maximize impact while minimizing risk.
 
 ### Appendix B: Common Fix Patterns Summary
 
-| Warning Type | Count | Quick Fix | Example |
-|--------------|-------|-----------|---------|
-| Nullable string check | 63 | Add `&& value.trim()` | `if (s)` → `if (s && s.trim())` |
-| Optional chaining | 14 | Use `?.` operator | `if (obj && obj.prop)` → `if (obj?.prop)` |
-| Any type guard | 12 | Add `typeof` check | `if (val)` → `if (typeof val === 'string')` |
-| Nullish coalescing | 7 | Use `??` operator | `return a \|\| b` → `return a ?? b` |
-| Nullable number | 5 | Add null check | `if (n > 0)` → `if (n !== null && n > 0)` |
-| Nullable boolean | 3 | Add explicit check | `if (flag)` → `if (flag === true)` |
+| Warning Type          | Count | Quick Fix             | Example                                     |
+| --------------------- | ----- | --------------------- | ------------------------------------------- |
+| Nullable string check | 63    | Add `&& value.trim()` | `if (s)` → `if (s && s.trim())`             |
+| Optional chaining     | 14    | Use `?.` operator     | `if (obj && obj.prop)` → `if (obj?.prop)`   |
+| Any type guard        | 12    | Add `typeof` check    | `if (val)` → `if (typeof val === 'string')` |
+| Nullish coalescing    | 7     | Use `??` operator     | `return a \|\| b` → `return a ?? b`         |
+| Nullable number       | 5     | Add null check        | `if (n > 0)` → `if (n !== null && n > 0)`   |
+| Nullable boolean      | 3     | Add explicit check    | `if (flag)` → `if (flag === true)`          |
 
 ### Appendix C: Verification Commands
 
@@ -688,17 +732,20 @@ npm run lint 2>&1 | grep -c "strict-boolean-expressions"
 ### Appendix D: References
 
 #### Internal Documentation
+
 - **S1 PRP**: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P3M2T3S1/PRP.md` - Warning catalog
 - **S2 PRP**: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/P3M2T3S2/PRP.md` - Warning categorization
 - **System Context**: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/architecture/system_context.md` - Codebase architecture
 - **Implementation Patterns**: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/architecture/implementation_patterns.md` - Code patterns
 
 #### Research Documents
+
 - **Categorization Framework**: `/home/dustin/projects/hacky-hack/docs/research/eslint-categorization-framework.md` - Severity classification
 - **Documentation Best Practices**: `/home/dustin/projects/hacky-hack/docs/research/technical-documentation-best-practices.md` - Documentation patterns
 - **Quick Reference Templates**: `/home/dustin/projects/hacky-hack/docs/research/quick-reference-templates.md` - Fix templates
 
 #### External Documentation
+
 - **TypeScript ESLint Rule**: https://typescript-eslint.io/rules/strict-boolean-expressions
 - **TypeScript Handbook**: https://www.typescriptlang.org/docs/handbook/2/narrowing.html
 - **ESLint Configuration**: `.eslintrc.json` in project root

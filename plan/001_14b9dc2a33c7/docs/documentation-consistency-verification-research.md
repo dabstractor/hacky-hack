@@ -40,6 +40,7 @@ Documentation consistency refers to maintaining accuracy, coherence, and uniform
 
 ```markdown
 **Benefits of Consistent Documentation**:
+
 - Improved user experience and trust
 - Reduced support burden
 - Faster onboarding for new team members
@@ -48,6 +49,7 @@ Documentation consistency refers to maintaining accuracy, coherence, and uniform
 - Reduced errors from outdated information
 
 **Costs of Inconsistent Documentation**:
+
 - User confusion and frustration
 - Increased support tickets
 - Wasted development time
@@ -89,6 +91,7 @@ Documentation consistency refers to maintaining accuracy, coherence, and uniform
 ### 2.1 Link Checking Tools
 
 #### **lychee** (Recommended)
+
 ```bash
 # URL: https://github.com/lycheeverse/lychee
 
@@ -115,6 +118,7 @@ lychee docs/ --format markdown --output link-report.md
 ```
 
 **Features**:
+
 - Async link checking (very fast)
 - Supports Markdown, HTML, Text
 - Checks mailto: and tel: links
@@ -127,6 +131,7 @@ lychee docs/ --format markdown --output link-report.md
 ---
 
 #### **markdown-link-check**
+
 ```bash
 # URL: https://github.com/gaurav-nelson/github-action-markdown-link-check
 
@@ -144,6 +149,7 @@ markdown-link-check --config .linkcheck.json README.md
 ```
 
 **Configuration Example**:
+
 ```json
 {
   "ignorePatterns": [
@@ -166,6 +172,7 @@ markdown-link-check --config .linkcheck.json README.md
 ---
 
 #### **LinkChecker** (Python)
+
 ```bash
 # URL: https://github.com/linkchecker/linkchecker
 
@@ -186,6 +193,7 @@ linkchecker docs/ --recursion-level=3
 ```
 
 **Features**:
+
 - Comprehensive checking
 - Supports multiple protocols
 - Detailed reporting
@@ -199,6 +207,7 @@ linkchecker docs/ --recursion-level=3
 ### 2.2 Markdown Structure Tools
 
 #### **markdownlint-cli2**
+
 ```bash
 # URL: https://github.com/DavidAnson/markdownlint-cli2
 
@@ -216,6 +225,7 @@ markdownlint-cli2 "docs/**/*.md" --config .markdownlint.json
 ```
 
 **Configuration Example**:
+
 ```json
 {
   "default": true,
@@ -233,6 +243,7 @@ markdownlint-cli2 "docs/**/*.md" --config .markdownlint.json
 ### 2.3 Spelling and Grammar Tools
 
 #### **cspell**
+
 ```bash
 # URL: https://github.com/streetsidesoftware/cspell
 
@@ -256,6 +267,7 @@ cspell "docs/**/*.md" --words-add "kubernetes,typescript"
 ### 2.4 Specialized Documentation Tools
 
 #### **Vale** (Style Guide Enforcer)
+
 ```bash
 # URL: https://github.com/errata-ai/vale
 
@@ -274,6 +286,7 @@ vale --config=.vale.ini docs/
 ```
 
 **Configuration Example**:
+
 ```ini
 # .vale.ini
 [*]
@@ -297,6 +310,7 @@ MaxSentenceLength = 30
 ---
 
 #### **textlint**
+
 ```bash
 # URL: https://github.com/textlint/textlint
 
@@ -382,7 +396,7 @@ done < /tmp/links.txt
 
 ### 3.4 Code Example Validation
 
-```bash
+````bash
 # Find code blocks with language tags
 grep -rn '```[a-z]*' docs/
 
@@ -394,7 +408,7 @@ grep -rn '```typescript' docs/
 
 # Find JavaScript examples
 grep -rn '```javascript' docs/
-```
+````
 
 ### 3.5 Consistency Pattern Verification
 
@@ -415,7 +429,7 @@ grep -rn '\*\*.*\*\*' docs/
 
 ### 3.6 Advanced Grep Patterns
 
-```bash
+````bash
 # Find all code fences with empty language spec
 grep -rn '```$' docs/
 
@@ -430,7 +444,7 @@ grep -rn '.\{120,\}' docs/
 
 # Find inconsistent spacing around headers
 grep -rn '^##[^#\s]' docs/
-```
+````
 
 ---
 
@@ -441,40 +455,40 @@ grep -rn '^##[^#\s]' docs/
 ```markdown
 **Critical Rules for Consistency**:
 
-| Rule | Description | Auto-fix |
-|------|-------------|----------|
-| MD001 | Heading levels should only increment by one level | ✅ |
-| MD003 | Heading style | ✅ |
-| MD004 | Unordered list style | ✅ |
-| MD007 | Unordered list indentation | ✅ |
-| MD009 | Trailing spaces | ✅ |
-| MD010 | Hard tabs | ✅ |
-| MD011 | Reversed link syntax | ❌ |
-| MD012 | Multiple consecutive blank lines | ✅ |
-| MD013 | Line length | ❌ |
-| MD018 | No space after hash on heading | ❌ |
-| MD019 | Multiple spaces after hash on heading | ✅ |
-| MD020 | No space after hash in ATX heading | ❌ |
-| MD021 | Multiple spaces inside hash on ATX heading | ✅ |
-| MD022 | Headings should be surrounded by blank lines | ✅ |
-| MD023 | Headings must start at beginning of line | ❌ |
-| MD024 | No duplicate heading | ❌ |
-| MD025 | Multiple top-level headings in same document | ❌ |
-| MD026 | Trailing punctuation in heading | ❌ |
-| MD032 | Lists should be surrounded by blank lines | ✅ |
-| MD033 | Allow inline HTML | - |
-| MD034 | Bare URL used | ❌ |
-| MD036 | Emphasis used instead of heading | ❌ |
-| MD037 | Spaces inside emphasis markers | ✅ |
-| MD038 | Spaces inside code span markers | ✅ |
-| MD039 | Spaces inside link text | ✅ |
-| MD040 | Fenced code blocks should have a language | ❌ |
-| MD041 | First line in file should be top-level heading | ❌ |
-| MD044 | Proper names should have the correct capitalization | ❌ |
-| MD045 | Alt text should be used | ❌ |
-| MD046 | Code block style | ✅ |
-| MD047 | Each file should end with single newline | ✅ |
-| MD048 | Code fence style | ✅ |
+| Rule  | Description                                         | Auto-fix |
+| ----- | --------------------------------------------------- | -------- |
+| MD001 | Heading levels should only increment by one level   | ✅       |
+| MD003 | Heading style                                       | ✅       |
+| MD004 | Unordered list style                                | ✅       |
+| MD007 | Unordered list indentation                          | ✅       |
+| MD009 | Trailing spaces                                     | ✅       |
+| MD010 | Hard tabs                                           | ✅       |
+| MD011 | Reversed link syntax                                | ❌       |
+| MD012 | Multiple consecutive blank lines                    | ✅       |
+| MD013 | Line length                                         | ❌       |
+| MD018 | No space after hash on heading                      | ❌       |
+| MD019 | Multiple spaces after hash on heading               | ✅       |
+| MD020 | No space after hash in ATX heading                  | ❌       |
+| MD021 | Multiple spaces inside hash on ATX heading          | ✅       |
+| MD022 | Headings should be surrounded by blank lines        | ✅       |
+| MD023 | Headings must start at beginning of line            | ❌       |
+| MD024 | No duplicate heading                                | ❌       |
+| MD025 | Multiple top-level headings in same document        | ❌       |
+| MD026 | Trailing punctuation in heading                     | ❌       |
+| MD032 | Lists should be surrounded by blank lines           | ✅       |
+| MD033 | Allow inline HTML                                   | -        |
+| MD034 | Bare URL used                                       | ❌       |
+| MD036 | Emphasis used instead of heading                    | ❌       |
+| MD037 | Spaces inside emphasis markers                      | ✅       |
+| MD038 | Spaces inside code span markers                     | ✅       |
+| MD039 | Spaces inside link text                             | ✅       |
+| MD040 | Fenced code blocks should have a language           | ❌       |
+| MD041 | First line in file should be top-level heading      | ❌       |
+| MD044 | Proper names should have the correct capitalization | ❌       |
+| MD045 | Alt text should be used                             | ❌       |
+| MD046 | Code block style                                    | ✅       |
+| MD047 | Each file should end with single newline            | ✅       |
+| MD048 | Code fence style                                    | ✅       |
 ```
 
 ### 4.2 Creating Custom markdownlint Rules
@@ -484,13 +498,13 @@ grep -rn '^##[^#\s]' docs/
 module.exports = {
   rules: {
     // Check for consistent terminology
-    "consistent-terminology": {
+    'consistent-terminology': {
       check: (params, onError) => {
         const terms = {
-          'typescript': 'TypeScript',
-          'javascript': 'JavaScript',
-          'github': 'GitHub',
-          'npm': 'npm'
+          typescript: 'TypeScript',
+          javascript: 'JavaScript',
+          github: 'GitHub',
+          npm: 'npm',
         };
 
         params.tokens.forEach(token => {
@@ -501,15 +515,15 @@ module.exports = {
                 onError({
                   lineNumber: token.lineNumber,
                   detail: `Use "${terms[invalid]}" instead of "${invalid}"`,
-                  context: token.line
+                  context: token.line,
                 });
               }
             });
           }
         });
-      }
-    }
-  }
+      },
+    },
+  },
 };
 ```
 
@@ -568,8 +582,11 @@ function extractLinks(content: string, file: string): LinkInfo[] {
         file,
         line: index + 1,
         link: url,
-        type: url.startsWith('#') ? 'anchor' :
-              url.startsWith('http') ? 'external' : 'internal'
+        type: url.startsWith('#')
+          ? 'anchor'
+          : url.startsWith('http')
+            ? 'external'
+            : 'internal',
       };
       links.push(link);
     }
@@ -598,8 +615,7 @@ function validateInternalLink(
 async function validateDocs(docsPath: string): Promise<ValidationResult> {
   const result: ValidationResult = { valid: [], invalid: [], warnings: [] };
 
-  const files = readdirSync(docsPath)
-    .filter(f => f.endsWith('.md'));
+  const files = readdirSync(docsPath).filter(f => f.endsWith('.md'));
 
   for (const file of files) {
     const content = readFileSync(join(docsPath, file), 'utf-8');
@@ -617,7 +633,7 @@ async function validateDocs(docsPath: string): Promise<ValidationResult> {
         // External links need HTTP check
         result.warnings.push({
           ...link,
-          message: 'External link not verified'
+          message: 'External link not verified',
         });
       }
     }
@@ -627,20 +643,19 @@ async function validateDocs(docsPath: string): Promise<ValidationResult> {
 }
 
 // Usage
-validateDocs('/home/dustin/projects/hacky-hack/docs')
-  .then(result => {
-    console.log('Valid links:', result.valid.length);
-    console.log('Invalid links:', result.invalid.length);
-    console.log('Warnings:', result.warnings.length);
+validateDocs('/home/dustin/projects/hacky-hack/docs').then(result => {
+  console.log('Valid links:', result.valid.length);
+  console.log('Invalid links:', result.invalid.length);
+  console.log('Warnings:', result.warnings.length);
 
-    if (result.invalid.length > 0) {
-      console.error('\nBroken links:');
-      result.invalid.forEach(link => {
-        console.error(`  ${link.file}:${link.line} - ${link.link}`);
-        console.error(`    Error: ${link.error}`);
-      });
-    }
-  });
+  if (result.invalid.length > 0) {
+    console.error('\nBroken links:');
+    result.invalid.forEach(link => {
+      console.error(`  ${link.file}:${link.line} - ${link.link}`);
+      console.error(`    Error: ${link.error}`);
+    });
+  }
+});
 ```
 
 ### 5.2 External Link Checking with Retry
@@ -663,14 +678,14 @@ async function checkLink(url: string, retries = 3): Promise<LinkCheckResult> {
         method: 'HEAD',
         timeout: 5000,
         headers: {
-          'User-Agent': 'Documentation-Link-Checker/1.0'
-        }
+          'User-Agent': 'Documentation-Link-Checker/1.0',
+        },
       });
 
       return {
         url,
         status: response.status,
-        ok: response.ok
+        ok: response.ok,
       };
     } catch (error) {
       if (i === retries - 1) {
@@ -678,7 +693,7 @@ async function checkLink(url: string, retries = 3): Promise<LinkCheckResult> {
           url,
           status: 0,
           ok: false,
-          error: error.message
+          error: error.message,
         };
       }
       // Wait before retry
@@ -690,15 +705,13 @@ async function checkLink(url: string, retries = 3): Promise<LinkCheckResult> {
     url,
     status: 0,
     ok: false,
-    error: 'Max retries exceeded'
+    error: 'Max retries exceeded',
   };
 }
 
 // Usage
 async function checkAllLinks(urls: string[]) {
-  const results = await Promise.all(
-    urls.map(url => checkLink(url))
-  );
+  const results = await Promise.all(urls.map(url => checkLink(url)));
 
   const broken = results.filter(r => !r.ok);
 
@@ -720,6 +733,7 @@ async function checkAllLinks(urls: string[]) {
 **Repository**: kubernetes/website
 
 **Key Features**:
+
 ```yaml
 # .github/workflows/docfx.yml
 name: Documentation Check
@@ -745,6 +759,7 @@ jobs:
 ```
 
 **Link Check Configuration**:
+
 ```json
 {
   "ignorePatterns": [
@@ -767,6 +782,7 @@ jobs:
 **Repository**: vuejs/docs
 
 **Approach**:
+
 ```yaml
 # .github/workflows/lint.yml
 name: Lint
@@ -790,6 +806,7 @@ jobs:
 ```
 
 **Package.json Scripts**:
+
 ```json
 {
   "scripts": {
@@ -807,6 +824,7 @@ jobs:
 **Repository**: typescript-eslint/typescript-eslint
 
 **Documentation CI**:
+
 ```yaml
 # .github/workflows/docs.yml
 name: Docs
@@ -844,6 +862,7 @@ jobs:
 **Repository**: facebook/create-react-app
 
 **Verification Script**:
+
 ```bash
 # scripts/validate-docs.sh
 #!/bin/bash
@@ -881,7 +900,7 @@ echo "Documentation checks passed!"
 
 ### 7.1 Comprehensive Documentation Validator
 
-```typescript
+````typescript
 // scripts/validate-documentation.ts
 import { execSync } from 'child_process';
 import { readFileSync, readdirSync, statSync } from 'fs';
@@ -921,20 +940,20 @@ class DocumentationValidator {
 
     try {
       execSync(`npx markdownlint "${this.docsPath}/**/*.md"`, {
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       this.results.push({
         category: 'Markdown Formatting',
         passed: true,
-        message: 'All markdown files properly formatted'
+        message: 'All markdown files properly formatted',
       });
     } catch (error) {
       this.results.push({
         category: 'Markdown Formatting',
         passed: false,
         message: 'Markdown formatting issues found',
-        details: [error.stdout?.toString() || error.message]
+        details: [error.stdout?.toString() || error.message],
       });
     }
   }
@@ -964,10 +983,11 @@ class DocumentationValidator {
     this.results.push({
       category: 'Internal Links',
       passed: issues.length === 0,
-      message: issues.length === 0
-        ? 'All internal links valid'
-        : `Found ${issues.length} broken internal links`,
-      details: issues
+      message:
+        issues.length === 0
+          ? 'All internal links valid'
+          : `Found ${issues.length} broken internal links`,
+      details: issues,
     });
   }
 
@@ -980,7 +1000,7 @@ class DocumentationValidator {
     this.results.push({
       category: 'External Links',
       passed: true,
-      message: 'External links check recommended (manual/lychee)'
+      message: 'External links check recommended (manual/lychee)',
     });
   }
 
@@ -1010,7 +1030,9 @@ class DocumentationValidator {
             inCodeBlock = false;
 
             if (!codeBlockLang) {
-              issues.push(`${file}:${codeBlockStart} - Code block missing language spec`);
+              issues.push(
+                `${file}:${codeBlockStart} - Code block missing language spec`
+              );
             }
           }
         }
@@ -1020,10 +1042,11 @@ class DocumentationValidator {
     this.results.push({
       category: 'Code Blocks',
       passed: issues.length === 0,
-      message: issues.length === 0
-        ? 'All code blocks have language specifiers'
-        : `Found ${issues.length} code blocks without language spec`,
-      details: issues
+      message:
+        issues.length === 0
+          ? 'All code blocks have language specifiers'
+          : `Found ${issues.length} code blocks without language spec`,
+      details: issues,
     });
   }
 
@@ -1031,11 +1054,11 @@ class DocumentationValidator {
     console.log('📚 Checking terminology consistency...');
 
     const terminologyRules = {
-      'typescript': 'TypeScript',
-      'javascript': 'JavaScript',
-      'github': 'GitHub',
-      'vscode': 'VS Code',
-      'nodejs': 'Node.js'
+      typescript: 'TypeScript',
+      javascript: 'JavaScript',
+      github: 'GitHub',
+      vscode: 'VS Code',
+      nodejs: 'Node.js',
     };
 
     const issues: string[] = [];
@@ -1060,10 +1083,11 @@ class DocumentationValidator {
     this.results.push({
       category: 'Terminology',
       passed: issues.length === 0,
-      message: issues.length === 0
-        ? 'Terminology is consistent'
-        : `Found ${issues.length} terminology issues`,
-      details: issues
+      message:
+        issues.length === 0
+          ? 'Terminology is consistent'
+          : `Found ${issues.length} terminology issues`,
+      details: issues,
     });
   }
 
@@ -1098,10 +1122,11 @@ class DocumentationValidator {
     this.results.push({
       category: 'Dates',
       passed: issues.length === 0,
-      message: issues.length === 0
-        ? 'All dates are reasonable'
-        : `Found ${issues.length} date issues`,
-      details: issues
+      message:
+        issues.length === 0
+          ? 'All dates are reasonable'
+          : `Found ${issues.length} date issues`,
+      details: issues,
     });
   }
 
@@ -1134,10 +1159,11 @@ class DocumentationValidator {
     this.results.push({
       category: 'Consistency',
       passed: issues.length === 0,
-      message: issues.length === 0
-        ? 'Document structure is consistent'
-        : `Found ${issues.length} consistency issues`,
-      details: issues
+      message:
+        issues.length === 0
+          ? 'Document structure is consistent'
+          : `Found ${issues.length} consistency issues`,
+      details: issues,
     });
   }
 
@@ -1173,8 +1199,11 @@ class DocumentationValidator {
         links.push({
           url: match[2],
           line: index + 1,
-          type: match[2].startsWith('#') ? 'anchor' :
-                match[2].startsWith('http') ? 'external' : 'internal'
+          type: match[2].startsWith('#')
+            ? 'anchor'
+            : match[2].startsWith('http')
+              ? 'external'
+              : 'internal',
         });
       }
     });
@@ -1219,12 +1248,14 @@ class DocumentationValidator {
 }
 
 // Usage
-const validator = new DocumentationValidator('/home/dustin/projects/hacky-hack/docs');
+const validator = new DocumentationValidator(
+  '/home/dustin/projects/hacky-hack/docs'
+);
 validator.validateAll().catch(error => {
   console.error('Validation error:', error);
   process.exit(1);
 });
-```
+````
 
 ---
 
@@ -1353,6 +1384,7 @@ exit 0
 ## Documentation Review Checklist
 
 ### Structure
+
 - [ ] Document has clear title (H1)
 - [ ] Table of contents present (if long document)
 - [ ] Headings follow hierarchy (H1 → H2 → H3)
@@ -1360,6 +1392,7 @@ exit 0
 - [ ] Sections are logically organized
 
 ### Content
+
 - [ ] Information is accurate and up-to-date
 - [ ] Code examples are tested and work
 - [ ] Screenshots are current
@@ -1368,6 +1401,7 @@ exit 0
 - [ ] Terminology is consistent
 
 ### Links
+
 - [ ] All internal links work
 - [ ] All external links work
 - [ ] No orphaned pages (pages with no inbound links)
@@ -1375,6 +1409,7 @@ exit 0
 - [ ] Image references are valid
 
 ### Formatting
+
 - [ ] Consistent heading style
 - [ ] Consistent list formatting
 - [ ] Code blocks have language tags
@@ -1384,6 +1419,7 @@ exit 0
 - [ ] Line length reasonable (<120 chars)
 
 ### Style
+
 - [ ] Consistent terminology
 - [ ] Active voice preferred
 - [ ] Clear, concise language
@@ -1392,6 +1428,7 @@ exit 0
 - [ ] Consistent time zone references
 
 ### Accessibility
+
 - [ ] Images have descriptive alt text
 - [ ] Links have descriptive text
 - [ ] Code blocks have language labels
@@ -1405,21 +1442,25 @@ exit 0
 ## Monthly Documentation Audit
 
 ### Week 1: Link Checking
+
 - Run automated link checker
 - Fix broken links
 - Update outdated references
 
 ### Week 2: Content Review
+
 - Review pages with oldest "Last Updated" date
 - Update version-specific information
 - Verify code examples still work
 
 ### Week 3: Style & Terminology
+
 - Run markdown linting
 - Check for consistent terminology
 - Fix formatting issues
 
 ### Week 4: User Feedback
+
 - Review user-reported issues
 - Update FAQ based on support tickets
 - Add missing documentation for new features
@@ -1431,12 +1472,14 @@ exit 0
 ## Documentation Peer Review
 
 ### Before Assigning Reviewer
+
 - [ ] Self-review completed
 - [ ] Automated checks pass
 - [ ] Links verified
 - [ ] Code examples tested
 
 ### Reviewer Checklist
+
 - [ ] Content is accurate
 - [ ] Instructions are clear and complete
 - [ ] Code examples work
@@ -1446,6 +1489,7 @@ exit 0
 - [ ] Terminology is consistent
 
 ### After Review
+
 - [ ] All feedback addressed
 - [ ] Changes documented in commit
 - [ ] Related docs updated
@@ -1458,16 +1502,19 @@ exit 0
 
 ### 10.1 Phase 1: Basic Automation (Week 1)
 
-```markdown
+````markdown
 **Goal**: Catch obvious documentation issues automatically
 
 **Tasks**:
+
 1. Install markdownlint-cli
    ```bash
    npm install -g markdownlint-cli
    ```
+````
 
 2. Create .markdownlint.json
+
    ```json
    {
      "default": true,
@@ -1478,6 +1525,7 @@ exit 0
    ```
 
 3. Add npm script
+
    ```json
    {
      "scripts": {
@@ -1493,10 +1541,12 @@ exit 0
    ```
 
 **Expected Outcome**:
+
 - Catch formatting inconsistencies
 - Fix automatically where possible
 - Establish baseline
-```
+
+````
 
 ### 10.2 Phase 2: Link Validation (Week 2)
 
@@ -1508,19 +1558,19 @@ exit 0
    ```bash
    npm install -g markdown-link-check
    cargo install lychee
-   ```
+````
 
 2. Create link check config
+
    ```json
    {
-     "ignorePatterns": [
-       { "pattern": "^http://localhost" }
-     ],
+     "ignorePatterns": [{ "pattern": "^http://localhost" }],
      "timeout": "5s"
    }
    ```
 
 3. Add npm scripts
+
    ```json
    {
      "scripts": {
@@ -1536,10 +1586,12 @@ exit 0
    ```
 
 **Expected Outcome**:
+
 - All internal links work
 - External links verified
 - Report generated for review
-```
+
+````
 
 ### 10.3 Phase 3: Advanced Validation (Week 3)
 
@@ -1566,7 +1618,7 @@ exit 0
 - Project-specific consistency enforced
 - Automated in CI/CD
 - Consistent terminology
-```
+````
 
 ### 10.4 Phase 4: Continuous Improvement (Ongoing)
 
@@ -1574,6 +1626,7 @@ exit 0
 **Goal**: Maintain and improve documentation quality
 
 **Tasks**:
+
 1. Monthly audits
    - Review oldest pages
    - Update version info
@@ -1595,6 +1648,7 @@ exit 0
    - Share best practices
 
 **Expected Outcome**:
+
 - Continuously improving quality
 - Responsive to user needs
 - Data-driven improvements
@@ -1627,18 +1681,21 @@ lychee docs/
 
 ```markdown
 **For TypeScript Projects**:
+
 - markdownlint-cli (formatting)
 - lychee (link checking)
 - cspell (spelling)
 - Custom validation script (project-specific)
 
 **For Large Documentation Sites**:
+
 - Docusaurus (built-in checks)
 - Vale (style guide enforcement)
 - textlint (extensible rules)
 - Custom CI/CD pipeline
 
 **For Open Source Projects**:
+
 - markdownlint-cli (formatting)
 - lychee (link checking in CI)
 - GitHub Actions (automation)

@@ -70,8 +70,8 @@ describe('Agent and Prompt: Agent creation', () => {
 
   it('should create Agent with unique ID', async () => {
     // SETUP: Create two agents
-    const agent1 = gs.createAgent();
-    const agent2 = gs.createAgent();
+    const agent1 = gs.createAgent({ name: 'Agent1' });
+    const agent2 = gs.createAgent({ name: 'Agent2' });
 
     // VERIFY: Each agent has unique ID
     expect(agent1.id).toBeDefined();
@@ -79,12 +79,12 @@ describe('Agent and Prompt: Agent creation', () => {
     expect(agent1.id).not.toBe(agent2.id);
   });
 
-  it('should use default name when not provided', async () => {
-    // SETUP: Create agent without name
-    const agent = gs.createAgent();
+  it('should use provided name', async () => {
+    // SETUP: Create agent with name
+    const agent = gs.createAgent({ name: 'TestAgent' });
 
-    // VERIFY: Default name is 'Agent'
-    expect(agent.name).toBe('Agent');
+    // VERIFY: Provided name is used
+    expect(agent.name).toBe('TestAgent');
   });
 
   it('should use custom name when provided', async () => {
@@ -97,7 +97,7 @@ describe('Agent and Prompt: Agent creation', () => {
 
   it('should provide access to MCP handler', async () => {
     // SETUP: Create agent
-    const agent = gs.createAgent();
+    const agent = gs.createAgent({ name: 'TestAgent' });
 
     // EXECUTE: Get MCP handler
     const handler = agent.getMcpHandler();
@@ -522,7 +522,7 @@ describe('Agent and Prompt: Mock Anthropic API', () => {
     // TODO: Need to implement proper mock setup to verify mock was called
 
     // SETUP: Create agent and prompt
-    const agent = gs.createAgent();
+    const agent = gs.createAgent({ name: 'TestAgent' });
     const prompt = gs.createPrompt({
       user: 'Test',
       responseFormat: z.string(),

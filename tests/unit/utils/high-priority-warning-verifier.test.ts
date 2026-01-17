@@ -87,10 +87,16 @@ const ALL_FIXED_REPORT: ESLintResultReport = {
   },
   topFiles: [],
   fullResults: [
-    ...createFileResult('/path/to/src/index.ts', []),
-    ...createFileResult('/path/to/src/agents/prp-runtime.ts', []),
-    ...createFileResult('/path/to/src/cli/index.ts', []),
-  ],
+    ...(createFileResult('/path/to/src/index.ts', []) as ESLintFileResult[]),
+    ...(createFileResult(
+      '/path/to/src/agents/prp-runtime.ts',
+      []
+    ) as ESLintFileResult[]),
+    ...(createFileResult(
+      '/path/to/src/cli/index.ts',
+      []
+    ) as ESLintFileResult[]),
+  ] as ESLintFileResult[],
 };
 
 /**
@@ -192,10 +198,16 @@ const EMPTY_BYRULE_REPORT: ESLintResultReport = {
   byRule: {},
   topFiles: [],
   fullResults: [
-    ...createFileResult('/path/to/src/index.ts', []),
-    ...createFileResult('/path/to/src/agents/prp-runtime.ts', []),
-    ...createFileResult('/path/to/src/cli/index.ts', []),
-  ],
+    ...(createFileResult('/path/to/src/index.ts', []) as ESLintFileResult[]),
+    ...(createFileResult(
+      '/path/to/src/agents/prp-runtime.ts',
+      []
+    ) as ESLintFileResult[]),
+    ...(createFileResult(
+      '/path/to/src/cli/index.ts',
+      []
+    ) as ESLintFileResult[]),
+  ] as ESLintFileResult[],
 };
 
 // =============================================================================

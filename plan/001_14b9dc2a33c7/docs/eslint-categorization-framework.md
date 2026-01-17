@@ -21,6 +21,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: Immediate
 
 **Rules**:
+
 - `no-undef` - Using undefined variables
 - `no-unused-vars` - Variables defined but not used
 - `no-constant-condition` - Constant conditions in loops/conditionals
@@ -51,6 +52,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: This Sprint
 
 **Rules**:
+
 - `eqeqeq` - Require === and !==
 - `no-console` - Disallow console statements
 - `no-eval` - Disallow eval()
@@ -82,6 +84,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: This Sprint / Next Sprint
 
 **Rules**:
+
 - `no-shadow` - Disallow variable shadowing
 - `no-shadow-restricted-names` - Disallow shadowing restricted names
 - `no-use-before-define` - Disallow use before definition
@@ -101,6 +104,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: Backlog
 
 **Rules**:
+
 - `quotes` - Enforce consistent quote style
 - `semi` - Require or disallow semicolons
 - `indent` - Enforce consistent indentation
@@ -144,6 +148,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: This Sprint / Next Sprint
 
 **Rules**:
+
 - `no-var` - Disallow var
 - `prefer-const` - Use const when variable isn't reassigned
 - `prefer-arrow-callback` - Prefer arrow functions for callbacks
@@ -176,9 +181,10 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: Backlog
 
 **Rules**:
+
 - `no-mixed-requires` - Disallow mixing CommonJS and ES modules
 - `no-new-require` - Disallow new require
-- `no-path-concat` - Disallow string concatenation with __dirname and __filename
+- `no-path-concat` - Disallow string concatenation with **dirname and **filename
 - `no-process-env` - Disallow process.env
 - `no-process-exit` - Disallow process.exit()
 - `no-restricted-modules` - Disallow specified modules
@@ -195,6 +201,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Fix Timeline**: This Sprint / Next Sprint
 
 **Rules**:
+
 - `@typescript-eslint/no-unused-vars` - Unused variables
 - `@typescript-eslint/no-explicit-any` - Disallow any types
 - `@typescript-eslint/explicit-function-return-type` - Require return types
@@ -214,6 +221,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Rules that produce ESLint errors (not warnings)
 
 **Examples**:
+
 - All `Possible Errors` category rules
 - Most `Best Practices` category rules
 
@@ -226,6 +234,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Rules that produce ESLint warnings
 
 **Examples**:
+
 - Some `Stylistic Issues` category rules
 - Certain `Best Practices` category rules
 - `Node.js & CommonJS` category rules
@@ -239,6 +248,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Rules that provide information but don't block
 
 **Examples**:
+
 - Certain `Stylistic Issues` category rules
 - Documentation rules
 
@@ -253,6 +263,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: ESLint can automatically fix these issues
 
 **Examples**:
+
 - `quotes` - Can auto-fix quote style
 - `semi` - Can auto-add semicolons
 - `no-var` - Can replace var with const/let
@@ -269,6 +280,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: ESLint can fix some occurrences but not all
 
 **Examples**:
+
 - `no-unused-vars` - Can fix simple cases
 - `eqeqeq` - Can fix simple cases
 
@@ -281,6 +293,7 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Requires human judgment to fix
 
 **Examples**:
+
 - `no-shadow` - May require renaming
 - `no-use-before-define` - May require refactoring
 - `complex` refactoring rules
@@ -296,12 +309,14 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Issues that directly affect functionality
 
 **Characteristics**:
+
 - Causes runtime errors
 - Breaks application
 - Security vulnerabilities
 - Performance issues
 
 **Examples**:
+
 - `no-undef`
 - `no-constant-condition`
 - `no-eval`
@@ -315,12 +330,14 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Issues that affect code quality
 
 **Characteristics**:
+
 - Reduces maintainability
 - Creates confusion
 - Makes debugging harder
 - Developer experience issues
 
 **Examples**:
+
 - `no-shadow`
 - `prefer-const`
 - `no-var`
@@ -334,11 +351,13 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Issues that affect style only
 
 **Characteristics**:
+
 - Style consistency
 - Minor optimizations
 - Personal preference
 
 **Examples**:
+
 - `quotes`
 - `semi`
 - `indent`
@@ -354,11 +373,13 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Simple, low-risk fixes
 
 **Examples**:
+
 - Single-line fixes
 - Auto-fixable issues
 - Simple replacements
 
 **Rules**:
+
 - `no-var` (simple cases)
 - `eqeqeq`
 - `quotes`
@@ -371,11 +392,13 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Requires some thought and testing
 
 **Examples**:
+
 - Multi-line changes
 - Refactoring small sections
 - Multiple occurrences
 
 **Rules**:
+
 - `no-shadow`
 - `no-use-before-define`
 - `prefer-destructuring`
@@ -387,11 +410,13 @@ This framework provides a structured approach to categorizing ESLint warnings by
 **Description**: Major refactoring required
 
 **Examples**:
+
 - Architectural changes
 - Breaking changes
 - Extensive testing needed
 
 **Rules**:
+
 - Complex `no-unused-vars` cases
 - `no-duplicate-imports` with side effects
 - Module restructuring
@@ -400,16 +425,16 @@ This framework provides a structured approach to categorizing ESLint warnings by
 
 ## Categorization Matrix
 
-| Rule | Category | Severity | Auto-Fix | Impact | Effort | Priority |
-|------|----------|----------|----------|--------|--------|----------|
-| `no-undef` | A | Error | Manual | High | Quick | P0 |
-| `no-unused-vars` | A | Error | Partial | High | Moderate | P1 |
-| `eqeqeq` | B | Warning | Auto | Medium | Quick | P1 |
-| `no-console` | B | Warning | Manual | Medium | Quick | P2 |
-| `quotes` | D | Warning | Auto | Low | Quick | P3 |
-| `semi` | D | Warning | Auto | Low | Quick | P3 |
-| `no-var` | E | Error | Auto | Medium | Moderate | P1 |
-| `prefer-const` | B | Warning | Partial | Medium | Quick | P1 |
+| Rule             | Category | Severity | Auto-Fix | Impact | Effort   | Priority |
+| ---------------- | -------- | -------- | -------- | ------ | -------- | -------- |
+| `no-undef`       | A        | Error    | Manual   | High   | Quick    | P0       |
+| `no-unused-vars` | A        | Error    | Partial  | High   | Moderate | P1       |
+| `eqeqeq`         | B        | Warning  | Auto     | Medium | Quick    | P1       |
+| `no-console`     | B        | Warning  | Manual   | Medium | Quick    | P2       |
+| `quotes`         | D        | Warning  | Auto     | Low    | Quick    | P3       |
+| `semi`           | D        | Warning  | Auto     | Low    | Quick    | P3       |
+| `no-var`         | E        | Error    | Auto     | Medium | Moderate | P1       |
+| `prefer-const`   | B        | Warning  | Partial  | Medium | Quick    | P1       |
 
 ---
 
@@ -453,7 +478,7 @@ Priority Levels:
 
 ## Documentation Template
 
-```markdown
+````markdown
 ## [Rule Name]
 
 **Category**: [A/B/C/D/E/F/G]
@@ -465,40 +490,50 @@ Priority Levels:
 **ICE Score**: [##]
 
 ### Description
+
 [What the rule does]
 
 ### Rationale
+
 [Why this matters]
 
 ### Examples
 
 #### Before
+
 ```javascript
 // ❌ [Issue]
 ```
+````
 
 #### After
+
 ```javascript
 // ✅ [Fix]
 ```
 
 ### Fix Steps
+
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
 
 ### Verification
+
 ```bash
 [How to verify]
 ```
 
 ### Common Mistakes
+
 - [Mistake 1]
 - [Mistake 2]
 
 ### See Also
+
 - [Related rule]
 - [Documentation]
+
 ```
 
 ---
@@ -513,3 +548,4 @@ Priority Levels:
 ---
 
 **Next Steps**: Apply this framework to categorize ESLint warnings in your codebase.
+```

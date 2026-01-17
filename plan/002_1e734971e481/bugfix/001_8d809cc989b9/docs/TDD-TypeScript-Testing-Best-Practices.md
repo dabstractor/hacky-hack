@@ -94,7 +94,6 @@ The TDD cycle consists of three phases:
 4. **Test Categories to Write in Red Phase**
 
    Based on your existing test patterns (`tests/unit/utils/errors-environment.test.ts`):
-
    - **Constructor tests**: Message, context, cause handling
    - **Property tests**: Error code, name, timestamp, stack trace
    - **Prototype chain tests**: instanceof checks
@@ -312,7 +311,8 @@ Based on your existing `tests/unit/utils/errors-environment.test.ts` patterns:
 function isFatalError(error: unknown): error is FatalError {
   return (
     error instanceof FatalError ||
-    (error instanceof PipelineError && error.code === 'PIPELINE_EXECUTION_FATAL_ERROR')
+    (error instanceof PipelineError &&
+      error.code === 'PIPELINE_EXECUTION_FATAL_ERROR')
   );
 }
 ```
@@ -355,6 +355,7 @@ Your project uses an excellent Vitest setup (`vitest.config.ts`):
 ```
 
 **Key Points:**
+
 - 100% coverage threshold enforced
 - V8 provider for fast coverage
 - Node environment for backend testing
@@ -378,6 +379,7 @@ tests/
 ```
 
 **Best Practices:**
+
 - Mirror source directory structure
 - Use `.test.ts` suffix (consistent with your project)
 - Co-locate tests with source (optional)
@@ -443,15 +445,15 @@ it('should validate error code', () => {
 
 ```typescript
 // Equality
-expect(value).toBe(expected);           // Strict equality (===)
-expect(value).toEqual(expected);        // Deep equality
+expect(value).toBe(expected); // Strict equality (===)
+expect(value).toEqual(expected); // Deep equality
 
 // Truthiness
-expect(value).toBeTruthy();             // Boolean cast true
-expect(value).toBeFalsy();              // Boolean cast false
-expect(value).toBeDefined();            // Not undefined
-expect(value).toBeUndefined();          // Undefined
-expect(value).toBeNull();               // Null
+expect(value).toBeTruthy(); // Boolean cast true
+expect(value).toBeFalsy(); // Boolean cast false
+expect(value).toBeDefined(); // Not undefined
+expect(value).toBeUndefined(); // Undefined
+expect(value).toBeNull(); // Null
 
 // Numbers
 expect(value).toBeGreaterThan(5);
@@ -508,6 +510,7 @@ mockCreateHash.mockReturnValue(hashInstance);
 ```
 
 **Best Practices:**
+
 - Mock external dependencies (filesystem, network, crypto)
 - Clear mocks before each test
 - Reset mocks after each test
@@ -872,17 +875,17 @@ Ensure all branches are tested:
 // Implementation
 function isFatalError(error: unknown): error is FatalError {
   if (error === null || error === undefined) {
-    return false;  // Branch 1
+    return false; // Branch 1
   }
   if (!(error instanceof PipelineError)) {
-    return false;  // Branch 2
+    return false; // Branch 2
   }
   return error.code === ErrorCodes.PIPELINE_EXECUTION_FATAL_ERROR; // Branch 3
 }
 
 // Tests for all branches
 it('should handle null/undefined', () => {
-  expect(isFatalError(null)).toBe(false);      // Branch 1
+  expect(isFatalError(null)).toBe(false); // Branch 1
   expect(isFatalError(undefined)).toBe(false); // Branch 1
 });
 
@@ -906,17 +909,20 @@ it('should handle FatalError', () => {
 Based on your project's test patterns:
 
 **Function Coverage:**
+
 - [ ] Export the function from module
 - [ ] Import and test the function
 - [ ] Test all overloads (if applicable)
 
 **Statement Coverage:**
+
 - [ ] Execute every line of code
 - [ ] Include `return` statements
 - [ ] Include variable assignments
 - [ ] Include function calls
 
 **Branch Coverage:**
+
 - [ ] Test all `if` branches (true and false)
 - [ ] Test all `else` branches
 - [ ] Test all `switch` cases
@@ -924,6 +930,7 @@ Based on your project's test patterns:
 - [ ] Test all logical operators (`&&`, `||`, `??`)
 
 **Line Coverage:**
+
 - [ ] Similar to statement coverage
 - [ ] Each line executed at least once
 
@@ -994,21 +1001,25 @@ Error (built-in)
 **Each Error Class Has:**
 
 1. **Unique Error Code**
+
    ```typescript
    readonly code = ErrorCodes.PIPELINE_EXECUTION_FATAL_ERROR;
    ```
 
 2. **Optional Context**
+
    ```typescript
    readonly context?: PipelineErrorContext;
    ```
 
 3. **Timestamp**
+
    ```typescript
    readonly timestamp: Date;
    ```
 
 4. **toJSON() Serialization**
+
    ```typescript
    toJSON(): Record<string, unknown> {
      return {
@@ -1229,11 +1240,7 @@ export class FatalError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_EXECUTION_FATAL_ERROR;
   readonly isFatal = true; // Unique property
 
-  constructor(
-    message: string,
-    context?: PipelineErrorContext,
-    cause?: Error
-  ) {
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
     super(message, context, cause);
     Object.setPrototypeOf(this, FatalError.prototype);
   }
@@ -1391,7 +1398,9 @@ describe('FatalError class (TDD RED PHASE)', () => {
       const after = new Date();
 
       expect(error.timestamp).toBeDefined();
-      expect(error.timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(error.timestamp.getTime()).toBeGreaterThanOrEqual(
+        before.getTime()
+      );
       expect(error.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
@@ -1418,7 +1427,9 @@ describe('FatalError class (TDD RED PHASE)', () => {
         PipelineError.prototype
       );
       expect(
-        Object.getPrototypeOf(Object.getPrototypeOf(Object.getPrototypeOf(error)))
+        Object.getPrototypeOf(
+          Object.getPrototypeOf(Object.getPrototypeOf(error))
+        )
       ).toBe(Error.prototype);
     });
 
@@ -1930,11 +1941,7 @@ export class FatalError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_EXECUTION_FATAL_ERROR;
   readonly isFatal = true;
 
-  constructor(
-    message: string,
-    context?: PipelineErrorContext,
-    cause?: Error
-  ) {
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
     super(message, context, cause);
     Object.setPrototypeOf(this, FatalError.prototype);
   }
@@ -1984,6 +1991,7 @@ export function isFatalError(error: unknown): error is FatalError {
 ### 8.3 Resources
 
 **Internal Project Resources:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/errors-environment.test.ts` - Reference for error testing patterns
 - `/home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts` - Reference for async testing patterns
 - `/home/dustin/projects/hacky-hack/tests/unit/core/task-utils.test.ts` - Reference for type guard testing patterns
@@ -1991,6 +1999,7 @@ export function isFatalError(error: unknown): error is FatalError {
 - `/home/dustin/projects/hacky-hack/vitest.config.ts` - Test configuration
 
 **External Resources (When Web Search Available):**
+
 - Vitest Documentation: https://vitest.dev/guide/
 - TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/
 - TDD Best Practices: https://martinfowler.com/bliki/TestDrivenDevelopment.html

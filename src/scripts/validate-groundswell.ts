@@ -87,7 +87,10 @@ function validateNpmLink(): boolean {
         logSuccess(`Groundswell linked to: ${match[1]}`);
 
         // Verify it's pointing to ~/projects/groundswell
-        const expectedPath = join(process.env.HOME || '', 'projects/groundswell');
+        const expectedPath = join(
+          process.env.HOME || '',
+          'projects/groundswell'
+        );
         const normalizedLinked = match[1].trim();
         const normalizedExpected = expectedPath;
 
@@ -118,7 +121,12 @@ function validateVersionCompatibility(): boolean {
 
   try {
     // Get the package.json from node_modules/groundswell
-    const packageJsonPath = join(process.cwd(), 'node_modules', 'groundswell', 'package.json');
+    const packageJsonPath = join(
+      process.cwd(),
+      'node_modules',
+      'groundswell',
+      'package.json'
+    );
 
     if (!existsSync(packageJsonPath)) {
       logError('groundswell package.json not found in node_modules');

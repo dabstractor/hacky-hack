@@ -512,16 +512,16 @@ describe('Retry utility', () => {
 
         // Track timer calls with fake timers
         const originalSetTimeout = global.setTimeout;
-        vi.spyOn(global, 'setTimeout').mockImplementation(
-          (callback: (...args: unknown[]) => void, ms: number) => {
+        vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+          if (ms !== undefined) {
             delays.push(ms);
-            // Call original to use fake timers
-            return originalSetTimeout(
-              callback,
-              ms
-            ) as unknown as NodeJS.Timeout;
           }
-        );
+          // Call original to use fake timers
+          return originalSetTimeout(
+            callback as () => void,
+            ms ?? 0
+          ) as unknown as NodeJS.Timeout;
+        });
 
         const retryPromise = retry(fn, {
           maxAttempts: 3,
@@ -556,16 +556,16 @@ describe('Retry utility', () => {
 
         // Track timer calls with fake timers
         const originalSetTimeout = global.setTimeout;
-        vi.spyOn(global, 'setTimeout').mockImplementation(
-          (callback: (...args: unknown[]) => void, ms: number) => {
+        vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+          if (ms !== undefined) {
             delays.push(ms);
-            // Call original to use fake timers
-            return originalSetTimeout(
-              callback,
-              ms
-            ) as unknown as NodeJS.Timeout;
           }
-        );
+          // Call original to use fake timers
+          return originalSetTimeout(
+            callback as () => void,
+            ms ?? 0
+          ) as unknown as NodeJS.Timeout;
+        });
 
         const retryPromise = retry(fn, {
           maxAttempts: 5,
@@ -602,16 +602,16 @@ describe('Retry utility', () => {
         };
 
         const originalSetTimeout = global.setTimeout;
-        vi.spyOn(global, 'setTimeout').mockImplementation(
-          (callback: (...args: unknown[]) => void, ms: number) => {
+        vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+          if (ms !== undefined) {
             delays.push(ms);
-            // Call original to use fake timers
-            return originalSetTimeout(
-              callback,
-              ms
-            ) as unknown as NodeJS.Timeout;
           }
-        );
+          // Call original to use fake timers
+          return originalSetTimeout(
+            callback as () => void,
+            ms ?? 0
+          ) as unknown as NodeJS.Timeout;
+        });
 
         const retryPromise = retry(fn, {
           maxAttempts: 3,
@@ -761,15 +761,13 @@ describe('Retry utility', () => {
         };
 
         const originalSetTimeout = global.setTimeout;
-        vi.spyOn(global, 'setTimeout').mockImplementation(
-          (callback: (...args: unknown[]) => void, ms: number) => {
-            // Call original to use fake timers
-            return originalSetTimeout(
-              callback,
-              ms
-            ) as unknown as NodeJS.Timeout;
-          }
-        );
+        vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+          // Call original to use fake timers
+          return originalSetTimeout(
+            callback as () => void,
+            ms ?? 0
+          ) as unknown as NodeJS.Timeout;
+        });
 
         const retryPromise = retry(fn, {
           maxAttempts: 5,
@@ -844,16 +842,16 @@ describe('Retry utility', () => {
         };
 
         const originalSetTimeout = global.setTimeout;
-        vi.spyOn(global, 'setTimeout').mockImplementation(
-          (callback: (...args: unknown[]) => void, ms: number) => {
+        vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+          if (ms !== undefined) {
             delays.push(ms);
-            // Call original to use fake timers
-            return originalSetTimeout(
-              callback,
-              ms
-            ) as unknown as NodeJS.Timeout;
           }
-        );
+          // Call original to use fake timers
+          return originalSetTimeout(
+            callback as () => void,
+            ms ?? 0
+          ) as unknown as NodeJS.Timeout;
+        });
 
         const retryPromise = retry(fn, {
           baseDelay: 500,
@@ -881,16 +879,16 @@ describe('Retry utility', () => {
         };
 
         const originalSetTimeout = global.setTimeout;
-        vi.spyOn(global, 'setTimeout').mockImplementation(
-          (callback: (...args: unknown[]) => void, ms: number) => {
+        vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+          if (ms !== undefined) {
             delays.push(ms);
-            // Call original to use fake timers
-            return originalSetTimeout(
-              callback,
-              ms
-            ) as unknown as NodeJS.Timeout;
           }
-        );
+          // Call original to use fake timers
+          return originalSetTimeout(
+            callback as () => void,
+            ms ?? 0
+          ) as unknown as NodeJS.Timeout;
+        });
 
         const retryPromise = retry(fn, {
           baseDelay: 1000,
@@ -1052,12 +1050,13 @@ describe('Retry utility', () => {
       };
 
       const originalSetTimeout = global.setTimeout;
-      vi.spyOn(global, 'setTimeout').mockImplementation(
-        (callback: (...args: unknown[]) => void, ms: number) => {
-          // Call original to use fake timers
-          return originalSetTimeout(callback, ms) as unknown as NodeJS.Timeout;
-        }
-      );
+      vi.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
+        // Call original to use fake timers
+        return originalSetTimeout(
+          callback as () => void,
+          ms ?? 0
+        ) as unknown as NodeJS.Timeout;
+      });
 
       const retryPromise = retryAgentPrompt(() => mockAgent.prompt(), {
         agentType: 'Coder',

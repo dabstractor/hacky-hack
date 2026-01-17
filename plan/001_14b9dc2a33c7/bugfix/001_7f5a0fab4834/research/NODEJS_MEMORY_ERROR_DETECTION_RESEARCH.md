@@ -22,6 +22,7 @@
 This research document identifies the key patterns for detecting Node.js memory errors, particularly in test runner environments. Based on the codebase analysis at `/home/dustin/projects/hacky-hack`, the project is experiencing **Worker termination due to reaching memory limit: JS heap out of memory** errors.
 
 **Key Findings:**
+
 - Node.js has specific error messages for OOM conditions
 - Worker threads have different error codes than main thread
 - Test runners (Vitest, Jest) require special memory configuration
@@ -36,26 +37,31 @@ This research document identifies the key patterns for detecting Node.js memory 
 These are the most common Node.js OOM errors:
 
 #### Pattern 1.1: Standard Heap OOM
+
 ```
 FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
 ```
 
 #### Pattern 1.2: CALL_AND_RETRY_LAST Pattern
+
 ```
 CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
 ```
 
 #### Pattern 1.3: Simple Heap OOM
+
 ```
 JavaScript heap out of memory
 ```
 
 #### Pattern 1.4: Worker Thread OOM
+
 ```
 Worker terminated due to reaching memory limit: JS heap out of memory
 ```
 
 #### Pattern 1.5: Node.js Error Code
+
 ```
 Error: Worker terminated due to reaching memory limit: JS heap out of memory
     at new NodeError (node:internal/errors)
@@ -65,6 +71,7 @@ Error: Worker terminated due to reaching memory limit: JS heap out of memory
 ### 2. System-Level OOM Patterns
 
 #### Pattern 2.1: Process Killed by OOM Killer
+
 ```
 Command terminated by signal SIGKILL (Out of memory)
 <--- Last few GCs --->
@@ -76,6 +83,7 @@ Command terminated by signal SIGKILL (Out of memory)
 ```
 
 #### Pattern 2.2: Build Pipeline OOM
+
 ```
 gyp ERR! stack Error: `make` failed with exit code: 2
 gyp ERR! not ok
@@ -84,6 +92,7 @@ gyp ERR! not ok
 ### 3. Worker Thread Specific Errors
 
 #### Pattern 3.1: ERR_WORKER_OUT_OF_MEMORY
+
 ```javascript
 {
   code: 'ERR_WORKER_OUT_OF_MEMORY',
@@ -92,6 +101,7 @@ gyp ERR! not ok
 ```
 
 #### Pattern 3.2: Worker Exit Code
+
 ```
 Worker exited with exit code: 134 (SIGABRT)
 Worker exited with exit code: 137 (SIGKILL)
@@ -150,7 +160,7 @@ export function setupMemoryErrorDetection(): void {
   });
 
   // Warning events (pre-OOM)
-  process.on('warning', (warning) => {
+  process.on('warning', warning => {
     if (warning.message.includes('memory')) {
       console.warn('⚠️  Memory warning:', warning);
     }
@@ -199,7 +209,7 @@ export function isWorkerExitCodeOOM(exitCode: number | null): boolean {
   const oomExitCodes = [
     134, // SIGABRT (abort(), often from V8 OOM)
     137, // SIGKILL (OOM killer)
-    1,   // General error (may include OOM in worker_threads)
+    1, // General error (may include OOM in worker_threads)
   ];
 
   return exitCode !== null && oomExitCodes.includes(exitCode);
@@ -234,10 +244,7 @@ export function detectTestRunnerMemoryError(
   output: string,
   testRunner: 'vitest' | 'jest' | 'mocha' | 'unknown'
 ): boolean {
-  const basePatterns = [
-    /JavaScript heap out of memory/i,
-    /FATAL ERROR.*heap/i,
-  ];
+  const basePatterns = [/JavaScript heap out of memory/i, /FATAL ERROR.*heap/i];
 
   const runnerPatterns = {
     vitest: [/Worker terminated.*memory/i, /ERR_WORKER_OUT_OF_MEMORY/],
@@ -320,7 +327,8 @@ export function detectMemoryErrorInTestOutput(
         errorType: type,
         matchedPattern: pattern.source,
         exitCode,
-        suggestion: 'Set NODE_OPTIONS="--max-old-space-size=4096" before running tests',
+        suggestion:
+          'Set NODE_OPTIONS="--max-old-space-size=4096" before running tests',
         severity: 'fatal',
       };
     }
@@ -333,7 +341,8 @@ export function detectMemoryErrorInTestOutput(
       errorType: 'WORKER_OOM',
       matchedPattern: 'Worker terminated.*memory',
       exitCode,
-      suggestion: 'Add memory limits to vitest.config.ts: test.workspaceConfig = { maxOldSpaceSize: 4096 }',
+      suggestion:
+        'Add memory limits to vitest.config.ts: test.workspaceConfig = { maxOldSpaceSize: 4096 }',
       severity: 'fatal',
     };
   }
@@ -473,9 +482,11 @@ export class TestOutputParser {
   /**
    * Parses test pass/fail counts from output
    */
-  private parseTestResults():
-    | { pass: number; fail: number; total: number }
-    | null {
+  private parseTestResults(): {
+    pass: number;
+    fail: number;
+    total: number;
+  } | null {
     // Vitest format: "Tests       58 failed | 1593 passed (1688)"
     const vitestPattern =
       /Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/;
@@ -530,7 +541,7 @@ export class MemoryAwareTestRunner {
       NODE_OPTIONS: `--max-old-space-size=${this.maxOldSpaceSize}`,
     };
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const child = spawn(testCommand[0], testCommand.slice(1), {
         env,
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -551,15 +562,15 @@ export class MemoryAwareTestRunner {
         }
       }, this.monitoringInterval);
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('close', (exitCode) => {
+      child.on('close', exitCode => {
         clearInterval(monitor);
 
         const combinedOutput = stdout + stderr;
@@ -684,25 +695,33 @@ export function detectMemoryErrorInTestOutput(
       errorType: 'HEAP_OOM',
       matchedPattern: 'FATAL_ERROR_OR_CALL_RETRY',
       exitCode,
-      suggestion: 'Set NODE_OPTIONS="--max-old-space-size=4096" before running tests',
+      suggestion:
+        'Set NODE_OPTIONS="--max-old-space-size=4096" before running tests',
       severity: 'fatal',
     };
   }
 
   // Check worker errors
-  if (OOM_PATTERNS.worker.test(output) || OOM_PATTERNS.error_code.test(output)) {
+  if (
+    OOM_PATTERNS.worker.test(output) ||
+    OOM_PATTERNS.error_code.test(output)
+  ) {
     return {
       hasMemoryError: true,
       errorType: 'WORKER_OOM',
       matchedPattern: 'WORKER_TERMINATED',
       exitCode,
-      suggestion: 'Add memory limits to vitest.config.ts: test.workspaceConfig = { maxOldSpaceSize: 4096 }',
+      suggestion:
+        'Add memory limits to vitest.config.ts: test.workspaceConfig = { maxOldSpaceSize: 4096 }',
       severity: 'fatal',
     };
   }
 
   // Check system OOM
-  if (OOM_PATTERNS.standard.test(output) || OOM_PATTERNS.oom_killer.test(output)) {
+  if (
+    OOM_PATTERNS.standard.test(output) ||
+    OOM_PATTERNS.oom_killer.test(output)
+  ) {
     return {
       hasMemoryError: true,
       errorType: 'SYSTEM_OOM',
@@ -803,6 +822,7 @@ This research provides a comprehensive foundation for detecting and handling Nod
 5. **Implementation**: Create utility functions for parsing test output
 
 **Next Steps:**
+
 1. Implement `src/utils/memory-error-detector.ts`
 2. Update package.json test scripts with memory limits
 3. Configure vitest.config.ts for reduced parallelism

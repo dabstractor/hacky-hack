@@ -12,6 +12,7 @@
 The Groundswell library is a **hierarchical workflow orchestration engine with full observability** built on TypeScript. It provides a robust foundation for building AI-powered workflows with hierarchical task management, state persistence, and seamless integration with the Anthropic Claude API via z.ai/Anthropic SDK.
 
 **Key Findings:**
+
 - ✅ Library exists and is fully accessible at `~/projects/groundswell`
 - ✅ Comprehensive API with Workflow, Agent, Prompt, and MCPHandler classes
 - ✅ Full decorator support with `@Step`, `@Task`, and `@ObservedState`
@@ -24,6 +25,7 @@ The Groundswell library is a **hierarchical workflow orchestration engine with f
 ## 1. Library Overview
 
 ### Location & Structure
+
 ```
 /home/dustin/projects/groundswell/
 ├── src/
@@ -41,6 +43,7 @@ The Groundswell library is a **hierarchical workflow orchestration engine with f
 ```
 
 ### Dependencies
+
 - `@anthropic-ai/sdk: ^0.71.1` - Anthropic API integration
 - `zod: ^3.23.0` - Schema validation
 - `lru-cache: ^10.4.3` - LLM response caching
@@ -53,9 +56,11 @@ The Groundswell library is a **hierarchical workflow orchestration engine with f
 ### 2.1 Primary Classes
 
 #### **Workflow** (`src/core/workflow.ts`)
+
 The base class for all workflows. Supports both class-based and functional patterns.
 
 **Key Properties:**
+
 ```typescript
 class Workflow<T = unknown> {
   readonly id: string;
@@ -68,6 +73,7 @@ class Workflow<T = unknown> {
 ```
 
 **Key Methods:**
+
 - `constructor(name?: string | WorkflowConfig, parent?: Workflow)` - Overloaded constructor
 - `async run(...args: unknown[]): Promise<T>` - Execute the workflow
 - `attachChild(child: Workflow): void` - Attach child workflow with validation
@@ -81,6 +87,7 @@ class Workflow<T = unknown> {
 **Usage Patterns:**
 
 **Class-Based:**
+
 ```typescript
 class MyWorkflow extends Workflow {
   @Step({ snapshotState: true })
@@ -100,18 +107,19 @@ await workflow.run();
 ```
 
 **Functional:**
+
 ```typescript
 const workflow = createWorkflow(
   { name: 'MyWorkflow', enableReflection: true },
-  async (ctx) => {
+  async ctx => {
     const result1 = await ctx.step('step1', async () => {
       return await fetchData();
     });
-    
+
     const result2 = await ctx.step('step2', async () => {
       return await processData(result1);
     });
-    
+
     return result2;
   }
 );
@@ -122,14 +130,17 @@ const { data, node, duration } = await workflow.run();
 ---
 
 #### **Agent** (`src/core/agent.ts`)
+
 Lightweight wrapper around Anthropic SDK for LLM execution.
 
 **Constructor:**
+
 ```typescript
 constructor(config: AgentConfig = {})
 ```
 
 **AgentConfig Interface:**
+
 ```typescript
 interface AgentConfig {
   name?: string;
@@ -148,47 +159,53 @@ interface AgentConfig {
 ```
 
 **Key Methods:**
+
 - `async prompt<T>(prompt: Prompt<T>, overrides?: PromptOverrides): Promise<T>` - Execute prompt
 - `async promptWithMetadata<T>(prompt: Prompt<T>, overrides?: PromptOverrides): Promise<PromptResult<T>>` - Execute with metadata
 - `async reflect<T>(prompt: Prompt<T>, overrides?: PromptOverrides): Promise<T>` - Execute with reflection
 - `getMcpHandler(): MCPHandler` - Access MCP handler for custom tool registration
 
 **PromptResult Interface:**
+
 ```typescript
 interface PromptResult<T> {
-  data: T;              // Validated response
-  usage: TokenUsage;    // Token counts
-  duration: number;     // Milliseconds
-  toolCalls: number;    // Tool invocation count
+  data: T; // Validated response
+  usage: TokenUsage; // Token counts
+  duration: number; // Milliseconds
+  toolCalls: number; // Tool invocation count
 }
 ```
 
 ---
 
 #### **Prompt** (`src/core/prompt.ts`)
+
 Immutable type-safe prompt definition with Zod validation.
 
 **Constructor:**
+
 ```typescript
 constructor(config: PromptConfig<T>)
 ```
 
 **PromptConfig Interface:**
+
 ```typescript
 interface PromptConfig<T> {
-  user: string;                    // User message
-  data?: Record<string, unknown>;  // Structured data injection
-  responseFormat: z.ZodType<T>;    // Zod schema for validation
-  system?: string;                 // System prompt override
-  tools?: Tool[];                  // Tools override
-  mcps?: MCPServer[];              // MCPs override
-  skills?: Skill[];                // Skills override
-  hooks?: AgentHooks;              // Hooks override
-  enableReflection?: boolean;      // Enable reflection
+  user: string; // User message
+  data?: Record<string, unknown>; // Structured data injection
+  responseFormat: z.ZodType<T>; // Zod schema for validation
+  system?: string; // System prompt override
+  tools?: Tool[]; // Tools override
+  mcps?: MCPServer[]; // MCPs override
+  skills?: Skill[]; // Skills override
+  hooks?: AgentHooks; // Hooks override
+  enableReflection?: boolean; // Enable reflection
 }
 ```
 
 **Key Methods:**
+
 - `validateResponse(data: unknown): T` - Validate response (throws on error)
 - `safeValidateResponse(data: unknown): { success: true; data: T } | { success: false; error: z.ZodError }` - Safe validation
 - `buildUserMessage(): string` - Build formatted user message with data
@@ -197,14 +214,15 @@ interface PromptConfig<T> {
 - `getResponseFormat(): z.ZodType<T>` - Get response schema
 
 **Example:**
+
 ```typescript
 import { z } from 'zod';
 import { createPrompt, createAgent } from 'groundswell';
 
 const analysisPrompt = createPrompt({
   user: 'Analyze this code for bugs',
-  data: { 
-    code: 'function foo() { return 42; }' 
+  data: {
+    code: 'function foo() { return 42; }',
   },
   responseFormat: z.object({
     bugs: z.array(z.string()),
@@ -225,9 +243,11 @@ const result = await agent.prompt(analysisPrompt);
 ---
 
 #### **MCPHandler** (`src/core/mcp-handler.ts`)
+
 Manages MCP (Model Context Protocol) server connections and tool execution.
 
 **Key Methods:**
+
 - `registerServer(server: MCPServer): void` - Register MCP server
 - `unregisterServer(name: string): void` - Unregister server
 - `registerToolExecutor(serverName: string, toolName: string, executor: ToolExecutor): void` - Register custom executor
@@ -237,19 +257,21 @@ Manages MCP (Model Context Protocol) server connections and tool execution.
 - `getServerNames(): string[]` - Get registered server names
 
 **MCPServer Interface:**
+
 ```typescript
 interface MCPServer {
   name: string;
   version?: string;
   transport: 'stdio' | 'inprocess';
-  command?: string;      // For stdio transport
-  args?: string[];       // For stdio transport
-  tools?: Tool[];        // Tools provided by server
+  command?: string; // For stdio transport
+  args?: string[]; // For stdio transport
+  tools?: Tool[]; // Tools provided by server
   env?: Record<string, string>;
 }
 ```
 
 **Example:**
+
 ```typescript
 const agent = createAgent({
   name: 'DataProcessor',
@@ -275,13 +297,11 @@ const agent = createAgent({
 });
 
 // Register executor
-agent.getMcpHandler().registerToolExecutor(
-  'filesystem',
-  'read_file',
-  async (input) => {
+agent
+  .getMcpHandler()
+  .registerToolExecutor('filesystem', 'read_file', async input => {
     return await fs.readFile(input.path, 'utf-8');
-  }
-);
+  });
 ```
 
 ---
@@ -289,20 +309,23 @@ agent.getMcpHandler().registerToolExecutor(
 ### 2.2 Decorators
 
 #### **@Step** (`src/decorators/step.ts`)
+
 Emits lifecycle events and tracks step execution timing.
 
 **Options:**
+
 ```typescript
 interface StepOptions {
-  name?: string;              // Custom step name (default: method name)
-  trackTiming?: boolean;      // Include duration in event (default: true)
-  snapshotState?: boolean;    // Capture state snapshot (default: false)
-  logStart?: boolean;         // Log message at step start (default: false)
-  logFinish?: boolean;        // Log message at step end (default: false)
+  name?: string; // Custom step name (default: method name)
+  trackTiming?: boolean; // Include duration in event (default: true)
+  snapshotState?: boolean; // Capture state snapshot (default: false)
+  logStart?: boolean; // Log message at step start (default: false)
+  logFinish?: boolean; // Log message at step end (default: false)
 }
 ```
 
 **Example:**
+
 ```typescript
 class DataProcessor extends Workflow {
   @Step({ trackTiming: true, snapshotState: true, logStart: true })
@@ -314,6 +337,7 @@ class DataProcessor extends Workflow {
 ```
 
 **Events Emitted:**
+
 - `stepStart` - When step begins execution
 - `stepEnd` - When step completes (includes duration if trackTiming is true)
 - `error` - If step throws (includes state snapshot and logs)
@@ -321,14 +345,17 @@ class DataProcessor extends Workflow {
 ---
 
 #### **@Task** (`src/decorators/task.ts`)
+
 Spawns and manages child workflows.
 
 **Options:**
+
 ```typescript
 interface TaskOptions {
-  name?: string;                      // Custom task name (default: method name)
-  concurrent?: boolean;               // Run workflows in parallel (default: false)
-  errorMergeStrategy?: {              // Error merging for concurrent tasks
+  name?: string; // Custom task name (default: method name)
+  concurrent?: boolean; // Run workflows in parallel (default: false)
+  errorMergeStrategy?: {
+    // Error merging for concurrent tasks
     enabled: boolean;
     maxMergeDepth?: number;
     combine?(errors: WorkflowError[]): WorkflowError;
@@ -337,6 +364,7 @@ interface TaskOptions {
 ```
 
 **Behavior:**
+
 - Workflow objects (with `id` property) are automatically attached as children
 - Non-workflow objects are silently skipped (lenient validation)
 - Original return value is always preserved
@@ -345,6 +373,7 @@ interface TaskOptions {
 **Examples:**
 
 **Single Child:**
+
 ```typescript
 @Task()
 async createChild(): Promise<ChildWorkflow> {
@@ -353,6 +382,7 @@ async createChild(): Promise<ChildWorkflow> {
 ```
 
 **Multiple Concurrent Children:**
+
 ```typescript
 @Task({ concurrent: true })
 async createWorkers(): Promise<WorkerWorkflow[]> {
@@ -364,6 +394,7 @@ async createWorkers(): Promise<WorkerWorkflow[]> {
 ```
 
 **Mixed Return (only workflows attached):**
+
 ```typescript
 @Task()
 async mixedReturn(): Promise<(Workflow | string)[]> {
@@ -376,6 +407,7 @@ async mixedReturn(): Promise<(Workflow | string)[]> {
 ```
 
 **Events Emitted:**
+
 - `taskStart` - When task begins
 - `taskEnd` - When task completes
 - `error` - If task fails (with optional merged errors for concurrent tasks)
@@ -383,26 +415,29 @@ async mixedReturn(): Promise<(Workflow | string)[]> {
 ---
 
 #### **@ObservedState** (`src/decorators/observed-state.ts`)
+
 Marks fields for state snapshots.
 
 **Metadata:**
+
 ```typescript
 interface StateFieldMetadata {
-  hidden?: boolean;   // Not shown in debugger
-  redact?: boolean;   // Shown as '***' in debugger
+  hidden?: boolean; // Not shown in debugger
+  redact?: boolean; // Shown as '***' in debugger
 }
 ```
 
 **Example:**
+
 ```typescript
 class MyWorkflow extends Workflow {
   @ObservedState()
   progress: number = 0;
 
-  @ObservedState({ redact: true })  // Shown as '***'
+  @ObservedState({ redact: true }) // Shown as '***'
   apiKey: string = 'secret';
 
-  @ObservedState({ hidden: true })  // Not shown at all
+  @ObservedState({ hidden: true }) // Not shown at all
   internalState: string = 'internal';
 }
 ```
@@ -417,7 +452,7 @@ class MyWorkflow extends Workflow {
 // Create workflow
 const workflow = createWorkflow(
   { name: 'DataPipeline', enableReflection: true },
-  async (ctx) => {
+  async ctx => {
     const data = await ctx.step('fetch', () => fetchData());
     return data;
   }
@@ -440,7 +475,7 @@ const prompt = createPrompt({
 });
 
 // Quick workflow (shorthand)
-const workflow = quickWorkflow('ProcessData', async (ctx) => {
+const workflow = quickWorkflow('ProcessData', async ctx => {
   return await ctx.step('process', () => processData());
 });
 
@@ -455,6 +490,7 @@ const agent = quickAgent('Helper', 'You are helpful.');
 ### 3.1 Parent-Child Relationships
 
 **Automatic Attachment:**
+
 ```typescript
 class ParentWorkflow extends Workflow {
   @Task()
@@ -466,6 +502,7 @@ class ParentWorkflow extends Workflow {
 ```
 
 **Manual Attachment:**
+
 ```typescript
 const parent = new Workflow('Parent');
 const child = new Workflow('Child');
@@ -480,6 +517,7 @@ parent.attachChild(child);
 ```
 
 **Reparenting:**
+
 ```typescript
 const parent1 = new Workflow('Parent1');
 const parent2 = new Workflow('Parent2');
@@ -497,6 +535,7 @@ parent2.attachChild(child);
 ### 3.2 Hierarchical State
 
 **Workflow Tree:**
+
 ```
 ParentWorkflow
 ├── children: Workflow[]
@@ -511,6 +550,7 @@ ParentWorkflow
 ```
 
 **Tree Traversal:**
+
 ```typescript
 // Get root workflow
 const root = workflow.getRoot();
@@ -554,6 +594,7 @@ child.emitEvent({ type: 'stepStart', node: child.node, step: 'process' });
 ### 4.1 Observed State
 
 **Marking Fields:**
+
 ```typescript
 class DataProcessor extends Workflow {
   @ObservedState()
@@ -570,6 +611,7 @@ class DataProcessor extends Workflow {
 ### 4.2 State Snapshots
 
 **Manual Snapshot:**
+
 ```typescript
 // Capture and emit state snapshot
 workflow.snapshotState();
@@ -579,6 +621,7 @@ workflow.snapshotState();
 ```
 
 **Automatic Snapshot (via @Step):**
+
 ```typescript
 @Step({ snapshotState: true })
 async processItem(): Promise<void> {
@@ -588,9 +631,10 @@ async processItem(): Promise<void> {
 ```
 
 **Snapshot Format:**
+
 ```typescript
 interface SerializedWorkflowState {
-  [key: string]: unknown;  // All @ObservedState fields
+  [key: string]: unknown; // All @ObservedState fields
 }
 ```
 
@@ -604,8 +648,8 @@ interface WorkflowError {
   original: unknown;
   workflowId: string;
   stack?: string;
-  state: SerializedWorkflowState;  // Snapshot at error time
-  logs: LogEntry[];                // Logs from this node only
+  state: SerializedWorkflowState; // Snapshot at error time
+  logs: LogEntry[]; // Logs from this node only
 }
 ```
 
@@ -616,6 +660,7 @@ interface WorkflowError {
 ### 5.1 Creating Agents
 
 **Basic Agent:**
+
 ```typescript
 const agent = createAgent({
   name: 'Assistant',
@@ -624,6 +669,7 @@ const agent = createAgent({
 ```
 
 **Agent with Tools:**
+
 ```typescript
 const calculatorTool: Tool = {
   name: 'calculate',
@@ -647,6 +693,7 @@ const agent = createAgent({
 ```
 
 **Agent with MCP:**
+
 ```typescript
 const agent = createAgent({
   name: 'FileSystemAgent',
@@ -663,6 +710,7 @@ const agent = createAgent({
 ### 5.2 Tool Registration
 
 **Direct Tools:**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
@@ -671,6 +719,7 @@ const agent = createAgent({
 ```
 
 **MCP Tools (inprocess):**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
@@ -684,12 +733,13 @@ const agent = createAgent({
 });
 
 // Register executors
-agent.getMcpHandler().registerToolExecutor('mytools', 'tool1', async (input) => {
+agent.getMcpHandler().registerToolExecutor('mytools', 'tool1', async input => {
   return await executeTool1(input);
 });
 ```
 
 **Tool Execution Flow:**
+
 1. Agent calls Anthropic API with tool definitions
 2. API returns tool_use request
 3. Agent executes tool (direct or via MCP)
@@ -700,6 +750,7 @@ agent.getMcpHandler().registerToolExecutor('mytools', 'tool1', async (input) => 
 ### 5.3 Hooks
 
 **Agent Hooks:**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
@@ -735,6 +786,7 @@ const agent = createAgent({
 ### 6.1 Creating Prompts
 
 **Basic Prompt:**
+
 ```typescript
 const prompt = createPrompt({
   user: 'What is the capital of France?',
@@ -746,6 +798,7 @@ const prompt = createPrompt({
 ```
 
 **Prompt with Data:**
+
 ```typescript
 const prompt = createPrompt({
   user: 'Analyze this code for bugs',
@@ -771,13 +824,16 @@ const prompt = createPrompt({
 ### 6.2 Structured Output
 
 **Zod Schema Validation:**
+
 ```typescript
 const analysisSchema = z.object({
-  bugs: z.array(z.object({
-    line: z.number(),
-    description: z.string(),
-    severity: z.enum(['low', 'medium', 'high']),
-  })),
+  bugs: z.array(
+    z.object({
+      line: z.number(),
+      description: z.string(),
+      severity: z.enum(['low', 'medium', 'high']),
+    })
+  ),
   recommendations: z.array(z.string()),
 });
 
@@ -791,6 +847,7 @@ const result = await agent.prompt(prompt);
 ```
 
 **Immutable Updates:**
+
 ```typescript
 const basePrompt = createPrompt({
   user: 'Process this data',
@@ -805,6 +862,7 @@ const updatedPrompt = basePrompt.withData({ items: [4, 5, 6] });
 ### 6.3 Prompt Overrides
 
 **Per-Prompt Configuration:**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
@@ -832,6 +890,7 @@ const result = await agent.prompt(prompt, {
 ### 7.1 Authentication
 
 **Environment Variable:**
+
 ```typescript
 // Groundswell automatically uses ANTHROPIC_API_KEY
 process.env.ANTHROPIC_API_KEY = 'sk-ant-xxx';
@@ -845,6 +904,7 @@ const agent = createAgent({
 ### 7.2 Model Configuration
 
 **Default Model:**
+
 ```typescript
 // Default: claude-sonnet-4-20250514
 const agent = createAgent({
@@ -853,16 +913,18 @@ const agent = createAgent({
 ```
 
 **Custom Model:**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
-  model: 'claude-opus-4-20250514',  // Opus
+  model: 'claude-opus-4-20250514', // Opus
   maxTokens: 8192,
   temperature: 0.5,
 });
 ```
 
 **Per-Prompt Model:**
+
 ```typescript
 const result = await agent.prompt(prompt, {
   model: 'claude-sonnet-4-20250514',
@@ -873,17 +935,19 @@ const result = await agent.prompt(prompt, {
 ### 7.3 API Configuration
 
 **Request Parameters:**
+
 ```typescript
 interface AgentConfig {
-  model?: string;          // Model identifier
-  maxTokens?: number;      // Max tokens in response (default: 4096)
-  temperature?: number;    // Response randomness (0-1)
-  tools?: Tool[];          // Available tools
-  system?: string;         // System prompt
+  model?: string; // Model identifier
+  maxTokens?: number; // Max tokens in response (default: 4096)
+  temperature?: number; // Response randomness (0-1)
+  tools?: Tool[]; // Available tools
+  system?: string; // System prompt
 }
 ```
 
 **API Call Flow:**
+
 1. Agent builds messages from prompt
 2. Merges configuration (Prompt > Overrides > Config)
 3. Checks cache (if enabled)
@@ -895,6 +959,7 @@ interface AgentConfig {
 ### 7.4 Tool Invocation
 
 **Tool Definition:**
+
 ```typescript
 const tool: Tool = {
   name: 'get_weather',
@@ -911,13 +976,17 @@ const tool: Tool = {
 ```
 
 **Tool Registration:**
+
 ```typescript
-agent.getMcpHandler().registerToolExecutor('weather', 'get_weather', async (input) => {
-  return await weatherService.getWeather(input.location, input.units);
-});
+agent
+  .getMcpHandler()
+  .registerToolExecutor('weather', 'get_weather', async input => {
+    return await weatherService.getWeather(input.location, input.units);
+  });
 ```
 
 **Tool Loop:**
+
 ```typescript
 // Agent automatically handles:
 // 1. API returns tool_use request
@@ -933,17 +1002,19 @@ agent.getMcpHandler().registerToolExecutor('weather', 'get_weather', async (inpu
 ### 8.1 Environment Variables
 
 **Required:**
+
 ```bash
 # Anthropic API key
 export ANTHROPIC_API_KEY="sk-ant-xxx"
 ```
 
 **Optional (Agent-level):**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
   env: {
-    CUSTOM_VAR: 'value',  // Available during agent execution
+    CUSTOM_VAR: 'value', // Available during agent execution
   },
 });
 ```
@@ -951,6 +1022,7 @@ const agent = createAgent({
 ### 8.2 Build Configuration
 
 **TypeScript Configuration:**
+
 ```json
 {
   "compilerOptions": {
@@ -966,10 +1038,12 @@ const agent = createAgent({
 ### 8.3 Runtime Requirements
 
 **Node.js Version:**
+
 - Minimum: Node.js 18+
 - Recommended: Node.js 20+
 
 **TypeScript Version:**
+
 - Minimum: TypeScript 5.2+
 
 ---
@@ -979,31 +1053,34 @@ const agent = createAgent({
 ### 9.1 Caching
 
 **Enable Caching:**
+
 ```typescript
 const agent = createAgent({
   name: 'Agent',
   enableCache: true,
 });
 
-const result1 = await agent.prompt(prompt);  // API call
-const result2 = await agent.prompt(prompt);  // Cached
+const result1 = await agent.prompt(prompt); // API call
+const result2 = await agent.prompt(prompt); // Cached
 
 console.log(defaultCache.metrics());
 // { hits: 1, misses: 1, hitRate: 50, size: 1, sizeBytes: 1234 }
 ```
 
 **Cache Configuration:**
+
 ```typescript
 import { LLMCache } from 'groundswell';
 
 const cache = new LLMCache({
-  maxItems: 1000,           // Maximum items
-  maxSizeBytes: 52428800,   // 50MB
-  defaultTTLMs: 3600000,    // 1 hour
+  maxItems: 1000, // Maximum items
+  maxSizeBytes: 52428800, // 50MB
+  defaultTTLMs: 3600000, // 1 hour
 });
 ```
 
 **Cache Key:**
+
 ```typescript
 // Deterministic SHA-256 key based on:
 // - User message
@@ -1019,11 +1096,12 @@ const cache = new LLMCache({
 ### 9.2 Reflection
 
 **Enable Reflection:**
+
 ```typescript
 // Workflow-level
 const workflow = createWorkflow(
   { name: 'MyWorkflow', enableReflection: true },
-  async (ctx) => {
+  async ctx => {
     await ctx.step('unreliable', async () => {
       // If this fails, reflection will analyze and retry
     });
@@ -1040,11 +1118,12 @@ const agent = createAgent({
 const prompt = createPrompt({
   user: 'Execute this task',
   responseFormat: z.object({ result: z.string() }),
-  enableReflection: true,  // Enable for this prompt only
+  enableReflection: true, // Enable for this prompt only
 });
 ```
 
 **Reflection Behavior:**
+
 - Analyzes errors with self-correction prompt
 - Determines if retry is worthwhile
 - Revises prompt data or system prompt
@@ -1054,12 +1133,13 @@ const prompt = createPrompt({
 ### 9.3 Introspection Tools
 
 **Built-in Tools:**
+
 ```typescript
 import { INTROSPECTION_TOOLS, createAgent } from 'groundswell';
 
 const agent = createAgent({
   name: 'IntrospectionAgent',
-  tools: INTROSPECTION_TOOLS,  // 6 tools for hierarchy navigation
+  tools: INTROSPECTION_TOOLS, // 6 tools for hierarchy navigation
 });
 
 // Available tools:
@@ -1072,6 +1152,7 @@ const agent = createAgent({
 ```
 
 **Use Cases:**
+
 - Agents can inspect their position in workflow hierarchy
 - Access prior step outputs for context
 - Make decisions about spawning child workflows
@@ -1080,6 +1161,7 @@ const agent = createAgent({
 ### 9.4 Observability
 
 **WorkflowTreeDebugger:**
+
 ```typescript
 const workflow = new MyWorkflow('MyWorkflow');
 const debugger = new WorkflowTreeDebugger(workflow);
@@ -1098,6 +1180,7 @@ console.log(debugger.getStats());
 ```
 
 **Observer Pattern:**
+
 ```typescript
 class MyObserver implements WorkflowObserver {
   onLog(entry: LogEntry): void {
@@ -1165,6 +1248,7 @@ Located in `/home/dustin/projects/groundswell/docs/`:
 - **prompt.md** - Prompt documentation (9KB)
 
 **Full LLM Documentation:**
+
 ```bash
 npm run generate:llms
 # Generates llms_full.txt with complete API reference
@@ -1177,6 +1261,7 @@ npm run generate:llms
 ### 11.1 Alignment with PRD Requirements
 
 **Hierarchical Task Management:**
+
 - ✅ Full parent-child relationship support
 - ✅ Automatic attachment via @Task decorator
 - ✅ Event propagation from children to root
@@ -1184,12 +1269,14 @@ npm run generate:llms
 - ✅ Reparenting support with observer propagation
 
 **State Persistence:**
+
 - ✅ @ObservedState decorator for marking fields
 - ✅ Manual and automatic state snapshots
 - ✅ State included in error context
 - ✅ State validation and redaction support
 
 **Agent Creation:**
+
 - ✅ createAgent() factory function
 - ✅ Comprehensive AgentConfig interface
 - ✅ System prompt, tools, MCPs, skills support
@@ -1197,6 +1284,7 @@ npm run generate:llms
 - ✅ Environment variable passthrough
 
 **Tool Registration:**
+
 - ✅ Direct tool registration via AgentConfig
 - ✅ MCP server support (inprocess, stdio)
 - ✅ Custom tool executors via MCPHandler
@@ -1204,6 +1292,7 @@ npm run generate:llms
 - ✅ Introspection tools for hierarchy navigation
 
 **Prompt Templates:**
+
 - ✅ createPrompt() factory function
 - ✅ Immutable value objects
 - ✅ Data injection with XML formatting
@@ -1211,6 +1300,7 @@ npm run generate:llms
 - ✅ Per-prompt overrides (system, tools, model, etc.)
 
 **z.ai/Anthropic API Integration:**
+
 - ✅ Uses @anthropic-ai/sdk v0.71.1
 - ✅ Automatic ANTHROPIC_API_KEY pickup
 - ✅ Model configuration (claude-sonnet-4, claude-opus-4)
@@ -1221,12 +1311,14 @@ npm run generate:llms
 ### 11.2 Production Readiness
 
 **Test Coverage:**
+
 - ✅ 50+ test cases across unit, integration, and adversarial suites
 - ✅ Tests for decorators, workflows, agents, caching
 - ✅ Edge case coverage (circular references, concurrent failures)
 - ✅ 100% test pass rate maintained
 
 **Recent Fixes (v0.0.3):**
+
 - ✅ WorkflowLogger.child() signature fixed
 - ✅ Promise.allSettled() for concurrent task errors
 - ✅ ErrorMergeStrategy implementation
@@ -1236,6 +1328,7 @@ npm run generate:llms
 - ✅ isDescendantOf() public API
 
 **Documentation:**
+
 - ✅ Comprehensive README with quick start
 - ✅ 11 executable examples
 - ✅ Detailed API documentation
@@ -1245,24 +1338,28 @@ npm run generate:llms
 ### 11.3 Integration Recommendations
 
 **For Task Management System:**
+
 1. Use `Workflow` as base class for all tasks
 2. Use `@Task` decorator for spawning subtasks
 3. Use `@ObservedState` for task progress tracking
 4. Use `WorkflowTreeDebugger` for visualization
 
 **For Agent System:**
+
 1. Use `createAgent()` with appropriate tools/MCPs
 2. Use `createPrompt()` with Zod schemas for validation
 3. Enable caching for repeated prompts
 4. Use reflection for error recovery
 
 **For State Management:**
+
 1. Mark stateful fields with `@ObservedState`
 2. Use `snapshotState()` for checkpoints
 3. Use state snapshots in error handling
 4. Leverage state in workflow tree debugger
 
 **For Tool System:**
+
 1. Register tools via AgentConfig or MCP servers
 2. Use inprocess transport for custom tools
 3. Implement tool executors for MCP tools
@@ -1292,6 +1389,7 @@ The Groundswell library is **production-ready** and provides a comprehensive fou
 ## Appendix A: Quick Reference
 
 ### Import Paths
+
 ```typescript
 import {
   // Core classes
@@ -1299,34 +1397,34 @@ import {
   Agent,
   Prompt,
   MCPHandler,
-  
+
   // Decorators
   Step,
   Task,
   ObservedState,
-  
+
   // Factory functions
   createWorkflow,
   createAgent,
   createPrompt,
   quickWorkflow,
   quickAgent,
-  
+
   // Debugger
   WorkflowTreeDebugger,
-  
+
   // Caching
   LLMCache,
   defaultCache,
   generateCacheKey,
-  
+
   // Reflection
   ReflectionManager,
   executeWithReflection,
-  
+
   // Introspection
   INTROSPECTION_TOOLS,
-  
+
   // Utilities
   Observable,
   generateId,
@@ -1334,6 +1432,7 @@ import {
 ```
 
 ### Type Imports
+
 ```typescript
 import type {
   WorkflowStatus,

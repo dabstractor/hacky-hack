@@ -406,7 +406,7 @@ describe('E2E Delta Session Tests', () => {
     writeFileSync(prdPath, mockSimplePRD);
     const initialBacklogV1 = createMockBacklogV1();
 
-    vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
+    vi.mocked(readFile).mockImplementation(path => {
       const pathStr = String(path);
       if (pathStr.includes('PRD.md')) {
         return Promise.resolve(mockSimplePRD);
@@ -493,7 +493,7 @@ describe('E2E Delta Session Tests', () => {
       () => mockDeltaWorkflow as never
     );
 
-    vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
+    vi.mocked(readFile).mockImplementation(path => {
       const pathStr = String(path);
       if (pathStr.includes('PRD.md')) {
         return Promise.resolve(mockSimplePRDv2);
@@ -733,7 +733,7 @@ describe('E2E Delta Session Tests', () => {
     writeFileSync(prdPath, mockSimplePRD);
     const initialBacklog = createMockBacklogV1();
 
-    vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
+    vi.mocked(readFile).mockImplementation(path => {
       const pathStr = String(path);
       if (pathStr.includes('PRD.md')) {
         return Promise.resolve(mockSimplePRD);
@@ -796,7 +796,7 @@ describe('E2E Delta Session Tests', () => {
       () => mockDeltaWorkflow as never
     );
 
-    vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
+    vi.mocked(readFile).mockImplementation(path => {
       const pathStr = String(path);
       if (pathStr.includes('PRD.md')) {
         return Promise.resolve(mockSimplePRDv2);

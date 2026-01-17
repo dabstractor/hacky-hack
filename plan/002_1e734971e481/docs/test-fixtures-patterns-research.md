@@ -5,7 +5,9 @@
 ### From `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts`
 
 #### Setup/Execute/Verify Pattern
+
 All loadSession tests follow this pattern:
+
 ```typescript
 describe('loadSession', () => {
   beforeEach(() => {
@@ -32,6 +34,7 @@ describe('loadSession', () => {
 #### Key loadSession Test Patterns:
 
 1. **JSON Reading Test Pattern**
+
    ```typescript
    it('should read tasks.json using readTasksJSON()', async () => {
      const testBacklog = createTestBacklog([
@@ -43,6 +46,7 @@ describe('loadSession', () => {
    ```
 
 2. **PRD Snapshot Reading Test Pattern**
+
    ```typescript
    it('should read prd_snapshot.md from session directory', async () => {
      mockReadTasksJSON.mockResolvedValue({ backlog: [] });
@@ -52,6 +56,7 @@ describe('loadSession', () => {
    ```
 
 3. **Metadata Parsing Test Pattern**
+
    ```typescript
    it('should parse metadata from directory name', async () => {
      // ... setup
@@ -62,6 +67,7 @@ describe('loadSession', () => {
    ```
 
 4. **Parent Session Loading Test Pattern**
+
    ```typescript
    it('should check for parent_session.txt file', async () => {
      mockReadFile
@@ -81,6 +87,7 @@ describe('loadSession', () => {
    ```
 
 5. **Filesystem Stat Test Pattern**
+
    ```typescript
    it('should get directory creation time from stat()', async () => {
      const mtime = new Date('2024-01-15T10:30:00Z');
@@ -91,6 +98,7 @@ describe('loadSession', () => {
    ```
 
 6. **Complete Hierarchy Restoration Test Pattern**
+
    ```typescript
    it('should reconstruct complete SessionState from disk', async () => {
      const testBacklog = createTestBacklog([
@@ -103,8 +111,9 @@ describe('loadSession', () => {
        ]),
      ]);
      // ... execute
-     expect(session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].id)
-       .toBe('P1.M1.T1.S1');
+     expect(
+       session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].id
+     ).toBe('P1.M1.T1.S1');
    });
    ```
 
@@ -117,7 +126,9 @@ describe('loadSession', () => {
      );
      mockReadTasksJSON.mockRejectedValue(error);
      // ... execute and verify
-     await expect(manager.loadSession(sessionPath)).rejects.toThrow(SessionFileError);
+     await expect(manager.loadSession(sessionPath)).rejects.toThrow(
+       SessionFileError
+     );
    });
    ```
 
@@ -126,8 +137,9 @@ describe('loadSession', () => {
 ### Test Fixtures Directory: `/home/dustin/projects/hacky-hack/tests/fixtures/`
 
 #### 1. `/tests/fixtures/simple-prd.ts`
+
 - **Purpose**: Minimal PRD for fast E2E pipeline testing
-- **Structure**: 
+- **Structure**:
   - 1 Phase: P1 (Test Phase)
   - 1 Milestone: P1.M1 (Test Milestone)
   - 1 Task: P1.M1.T1 (Create Hello World)
@@ -135,6 +147,7 @@ describe('loadSession', () => {
 - **Usage**: Used for rapid validation of pipeline functionality
 
 #### 2. `/tests/fixtures/simple-prd-v2.ts`
+
 - **Purpose**: Modified PRD for delta session E2E testing
 - **Changes from v1**:
   - Added P1.M1.T2: Add Calculator Functions (new task with 1 subtask)
@@ -142,6 +155,7 @@ describe('loadSession', () => {
 - **Usage**: Testing delta detection and session management
 
 #### 3. `/tests/fixtures/mock-delta-data.ts`
+
 - **Purpose**: Mock data for delta analysis testing (content not shown in research)
 
 ### Real tasks.json Fixtures
@@ -149,12 +163,14 @@ describe('loadSession', () => {
 The project contains actual tasks.json files created by running sessions:
 
 #### 1. `/plan/001_14b9dc2a33c7/tasks.json`
+
 - **Session**: First session with comprehensive project structure
 - **Structure**: Complete backlog with phases, milestones, tasks, and subtasks
 - **Status**: Most items marked as "Complete"
 - **Size**: Large file (25,038 tokens) with detailed implementation scope
 
 #### 2. `/plan/002_1e734971e481/tasks.json`
+
 - **Session**: Second session (delta session)
 - **Purpose**: Bootstrap core infrastructure with Groundswell integration
 - **Structure**: Similar hierarchical structure but different content
@@ -242,7 +258,10 @@ describe('SessionManager.initialize()', () => {
     prdPath = join(tempDir, 'PRD.md');
 
     // Create initial PRD file
-    writeFileSync(prdPath, '# Test PRD\n\nThis is a test PRD for session creation.');
+    writeFileSync(
+      prdPath,
+      '# Test PRD\n\nThis is a test PRD for session creation.'
+    );
   });
 
   afterEach(() => {
@@ -327,6 +346,7 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
 ### Key Schema Validation Patterns
 
 1. **BacklogSchema** (top-level validation):
+
    ```typescript
    export const BacklogSchema: z.ZodType<Backlog> = z.object({
      backlog: z.array(PhaseSchema),
@@ -334,10 +354,13 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
    ```
 
 2. **Hierarchical Schema Pattern** with lazy evaluation:
+
    ```typescript
    export const PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
      z.object({
-       id: z.string().regex(/^P\d+$/, 'Invalid phase ID format (expected P{N})'),
+       id: z
+         .string()
+         .regex(/^P\d+$/, 'Invalid phase ID format (expected P{N})'),
        type: z.literal('Phase'),
        // ... other fields
        milestones: z.array(z.lazy(() => MilestoneSchema)),
@@ -355,7 +378,8 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
        if (!value.startsWith(prefix)) {
          ctx.addIssue({
            code: z.ZodIssueCode.custom,
-           message: 'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
+           message:
+             'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
          });
          return;
        }
@@ -377,8 +401,8 @@ const createTestBacklog = (): Backlog => ({
       title: 'Phase 3: PRP Pipeline',
       status: 'Planned',
       // ... complete structure
-    }
-  ]
+    },
+  ],
 });
 
 // From bug-hunt-workflow-integration.test.ts
@@ -403,24 +427,26 @@ const createTestTask = (
 ```typescript
 it('should create new session with unique PRD hash', async () => {
   // SETUP: PRD created in beforeEach
-  
+
   // EXECUTE: Initialize session manager
   const manager = new SessionManager(prdPath, planDir);
   const session = await manager.initialize();
 
   // VERIFY: Real filesystem operations
   expect(existsSync(planDir)).toBe(true);
-  const sessionDirs = readdirSync(planDir).filter((d) =>
+  const sessionDirs = readdirSync(planDir).filter(d =>
     /^\d{3}_[a-f0-9]{12}$/.test(d)
   );
   expect(sessionDirs).toHaveLength(1);
-  
+
   expect(session.metadata.hash).toMatch(/^[a-f0-9]{12}$/);
 });
 ```
 
 ### Atomic Write Pattern Testing
+
 The integration tests don't directly test the atomic write pattern, but they verify that:
+
 1. Session directories are created correctly
 2. tasks.json files contain valid JSON
 3. PRD snapshots are identical to source

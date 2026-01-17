@@ -48,8 +48,8 @@ export class ApiValidationError extends Error {
   ) {
     super(
       `API endpoint validation failed: ${reason}\n` +
-      `Configured endpoint: ${configuredEndpoint}\n` +
-      `Expected: https://api.z.ai/api/anthropic or local/test endpoint`
+        `Configured endpoint: ${configuredEndpoint}\n` +
+        `Expected: https://api.z.ai/api/anthropic or local/test endpoint`
     );
     this.name = 'ApiValidationError';
   }
@@ -93,7 +93,7 @@ export function validateApiEndpoint(): void {
     if (typeof console !== 'undefined' && console.warn) {
       console.warn(
         `[Runtime API Validator] WARNING: Using non-standard API endpoint: ${baseUrl}\n` +
-        `Recommended: https://api.z.ai/api/anthropic`
+          `Recommended: https://api.z.ai/api/anthropic`
       );
     }
   }
@@ -158,7 +158,8 @@ export function getApiEndpointStatus(): {
   }
 
   const isZai = baseUrl.includes('z.ai');
-  const isLocal = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+  const isLocal =
+    baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
   const isTest = baseUrl.includes('mock') || baseUrl.includes('test');
 
   // Non-standard endpoint warning

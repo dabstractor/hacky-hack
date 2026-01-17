@@ -14,11 +14,13 @@ This delta session addresses a modification to section 9.2 of the original PRD. 
 ### Modified Requirement (Section 9.2: Environment Configuration)
 
 **Original (Session 001):**
+
 - Single-layer environment variable mapping
 - Basic z.ai endpoint configuration
 - No validation or safeguards against accidental API usage
 
 **New (Session 002):**
+
 - **Multi-layer configuration strategy** with explicit priority (Shell → .env → Runtime)
 - **API endpoint safeguards** that block execution if Anthropic's production API is configured
 - Explicit warnings for non-z.ai endpoints (excluding localhost/mock/test)
@@ -105,6 +107,7 @@ From `plan/001_14b9dc2a33c7/architecture/`:
 **Task Delta.1.1.T1: Update Environment Configuration Module**
 
 **Subtask Delta.1.1.T1.S1: Add API endpoint validation**
+
 - Implement `validateAPIEndpoint(url: string): { valid: boolean; warning?: string }`
 - Return `{ valid: false }` for `https://api.anthropic.com`
 - Return `{ valid: true, warning: string }` for non-z.ai, non-localhost endpoints
@@ -112,6 +115,7 @@ From `plan/001_14b9dc2a33c7/architecture/`:
 - Status: Pending
 
 **Subtask Delta.1.1.T1.S2: Add .env file loading**
+
 - Use `dotenv` package (add to dependencies)
 - Load `.env` file before processing shell environment
 - Document load order: Shell → .env → Runtime overrides
@@ -120,6 +124,7 @@ From `plan/001_14b9dc2a33c7/architecture/`:
 **Task Delta.1.1.T2: Update Environment Tests**
 
 **Subtask Delta.1.1.T2.S1: Add API endpoint safeguard tests**
+
 - Test that Anthropic official API URL is rejected
 - Test that localhost URLs are accepted without warnings
 - Test that non-z.ai production URLs generate warnings
@@ -128,6 +133,7 @@ From `plan/001_14b9dc2a33c7/architecture/`:
 - Status: Pending
 
 **Subtask Delta.1.1.T2.S2: Create .env.test fixture**
+
 - Add `tests/fixtures/.env.test` with z.ai endpoint
 - Configure test setup to load this file
 - Ensure tests use test-specific API endpoint
@@ -136,6 +142,7 @@ From `plan/001_14b9dc2a33c7/architecture/`:
 **Task Delta.1.1.T3: Update API Validation Script**
 
 **Subtask Delta.1.1.T3.S1: Add endpoint validation to validate-api.ts**
+
 - Check API endpoint before making any test calls
 - Exit with code 1 if using Anthropic's official API
 - Log warnings for non-z.ai endpoints

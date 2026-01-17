@@ -18,12 +18,12 @@ The **hacky-hack** project is a **mature, production-ready TypeScript applicatio
 
 ### 1.1 Component Completeness
 
-| Component | Status | Implementation | File Location |
-|-----------|--------|----------------|---------------|
-| **Session Manager** | ✅ COMPLETE | 1027 lines, batch updates, delta sessions | `/src/core/session-manager.ts` |
-| **Task Orchestrator** | ✅ COMPLETE | 835 lines, DFS traversal, dependency resolution | `/src/core/task-orchestrator.ts` |
-| **Agent Runtime** | ✅ COMPLETE | PRPRuntime with research→implement→validate loop | `/src/agents/prp-runtime.ts` |
-| **Pipeline Controller** | ✅ COMPLETE | 1840 lines, full lifecycle, graceful shutdown | `/src/workflows/prp-pipeline.ts` |
+| Component               | Status      | Implementation                                   | File Location                    |
+| ----------------------- | ----------- | ------------------------------------------------ | -------------------------------- |
+| **Session Manager**     | ✅ COMPLETE | 1027 lines, batch updates, delta sessions        | `/src/core/session-manager.ts`   |
+| **Task Orchestrator**   | ✅ COMPLETE | 835 lines, DFS traversal, dependency resolution  | `/src/core/task-orchestrator.ts` |
+| **Agent Runtime**       | ✅ COMPLETE | PRPRuntime with research→implement→validate loop | `/src/agents/prp-runtime.ts`     |
+| **Pipeline Controller** | ✅ COMPLETE | 1840 lines, full lifecycle, graceful shutdown    | `/src/workflows/prp-pipeline.ts` |
 
 ### 1.2 Additional Implemented Components
 
@@ -43,6 +43,7 @@ The **hacky-hack** project is a **mature, production-ready TypeScript applicatio
 ### 1.3 Project Maturity Indicators
 
 ✅ **Production-Ready Features:**
+
 - Comprehensive error handling and recovery
 - Graceful shutdown (SIGINT/SIGTERM)
 - Resource monitoring and limits
@@ -59,16 +60,17 @@ The **hacky-hack** project is a **mature, production-ready TypeScript applicatio
 
 ### 2.1 Core Technologies
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Node.js** | 20+ | Runtime environment |
-| **TypeScript** | 5.2+ | Application language |
-| **Groundswell** | 0.0.3 (local) | Hierarchical workflow orchestration |
-| **z.ai API** | (via Anthropic SDK) | LLM provider (GLM-4.7, GLM-4.5-Air) |
+| Technology      | Version             | Purpose                             |
+| --------------- | ------------------- | ----------------------------------- |
+| **Node.js**     | 20+                 | Runtime environment                 |
+| **TypeScript**  | 5.2+                | Application language                |
+| **Groundswell** | 0.0.3 (local)       | Hierarchical workflow orchestration |
+| **z.ai API**    | (via Anthropic SDK) | LLM provider (GLM-4.7, GLM-4.5-Air) |
 
 ### 2.2 Key Dependencies
 
 **Production:**
+
 - `commander` ^14.0.2 - CLI argument parsing
 - `pino` ^9.14.0 - Structured logging
 - `simple-git` ^3.30.0 - Git operations
@@ -76,6 +78,7 @@ The **hacky-hack** project is a **mature, production-ready TypeScript applicatio
 - `fast-glob` ^3.3.3 - Pattern-based file matching
 
 **Development:**
+
 - `vitest` ^1.6.1 - Testing framework with 100% coverage enforcement
 - `tsx` ^4.7.0 - TypeScript execution engine
 - `esbuild` ^0.27.2 - Fast bundling (used by Vitest)
@@ -161,6 +164,7 @@ The **hacky-hack** project is a **mature, production-ready TypeScript applicatio
 **Library Location:** `/home/dustin/projects/hacky-hack/node_modules/groundswell` → `~/projects/groundswell`
 
 **Import Pattern:**
+
 ```typescript
 import { createAgent, type Agent, type MCPHandler } from 'groundswell';
 import { Workflow, Step } from 'groundswell';
@@ -169,6 +173,7 @@ import { createPrompt, type Prompt } from 'groundswell';
 ```
 
 **Usage Across 17 Files:**
+
 - `PRPPipeline` extends `Workflow` from Groundswell
 - Agents created via `createAgent()` factory
 - MCP tools inherit from `MCPHandler`
@@ -189,11 +194,13 @@ import { createPrompt, type Prompt } from 'groundswell';
 ### 4.3 Groundswell Configuration
 
 **Available Decorators:**
+
 - `@Step({ snapshotState, trackTiming, logStart, logFinish })`
 - `@Task({ concurrent, errorMergeStrategy })`
 - `@ObservedState({ hidden, redact })`
 
 **Agent Creation:**
+
 ```typescript
 const agent = createAgent({
   name: string,
@@ -214,14 +221,15 @@ const agent = createAgent({
 
 ### 5.1 Required Environment Variables
 
-| Variable | Source | Purpose |
-|----------|--------|---------|
-| `ANTHROPIC_API_KEY` | Mapped from `ANTHROPIC_AUTH_TOKEN` | z.ai API authentication |
-| `ANTHROPIC_BASE_URL` | Default or override | API endpoint (default: `https://api.z.ai/api/anthropic`) |
+| Variable             | Source                             | Purpose                                                  |
+| -------------------- | ---------------------------------- | -------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`  | Mapped from `ANTHROPIC_AUTH_TOKEN` | z.ai API authentication                                  |
+| `ANTHROPIC_BASE_URL` | Default or override                | API endpoint (default: `https://api.z.ai/api/anthropic`) |
 
 ### 5.2 Environment Variable Mapping
 
 **Configuration Layer** (`/src/config/environment.ts`):
+
 ```typescript
 // Maps AUTH_TOKEN to API_KEY for SDK compatibility
 if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
@@ -236,20 +244,22 @@ if (!process.env.ANTHROPIC_BASE_URL) {
 
 ### 5.3 Model Configuration
 
-| Tier | Model | Usage |
-|------|-------|-------|
-| opus | GLM-4.7 | Architect agent (complex reasoning) |
-| sonnet | GLM-4.7 | Researcher, Coder, QA agents |
-| haiku | GLM-4.5-Air | Fast operations (future use) |
+| Tier   | Model       | Usage                               |
+| ------ | ----------- | ----------------------------------- |
+| opus   | GLM-4.7     | Architect agent (complex reasoning) |
+| sonnet | GLM-4.7     | Researcher, Coder, QA agents        |
+| haiku  | GLM-4.5-Air | Fast operations (future use)        |
 
 ### 5.4 API Safety Measures
 
 **Test Setup Safeguard** (`tests/setup.ts`):
+
 - Blocks execution if `ANTHROPIC_BASE_URL` is set to Anthropic's official API
 - Validates on test load and before each test
 - Prevents accidental usage of production Anthropic API
 
 **Validation Script** (`src/scripts/validate-api.ts`):
+
 - Checks endpoint availability
 - Tests authentication
 - Validates response structure
@@ -262,6 +272,7 @@ if (!process.env.ANTHROPIC_BASE_URL) {
 ### 6.1 Task Hierarchy
 
 **Four-Level Hierarchy** (defined in `/src/core/models.ts`):
+
 ```
 Phase (P[#])
   └─ Milestone (P[#].M[#])
@@ -270,10 +281,11 @@ Phase (P[#])
 ```
 
 **Type Definitions:**
+
 ```typescript
 interface Phase {
   type: 'Phase';
-  id: string;  // P[#]
+  id: string; // P[#]
   title: string;
   status: TaskStatus;
   description: string;
@@ -282,7 +294,7 @@ interface Phase {
 
 interface Milestone {
   type: 'Milestone';
-  id: string;  // P[#].M[#]
+  id: string; // P[#].M[#]
   title: string;
   status: TaskStatus;
   description: string;
@@ -291,7 +303,7 @@ interface Milestone {
 
 interface Task {
   type: 'Task';
-  id: string;  // P[#].M[#].T[#]
+  id: string; // P[#].M[#].T[#]
   title: string;
   status: TaskStatus;
   description: string;
@@ -300,7 +312,7 @@ interface Task {
 
 interface Subtask {
   type: 'Subtask';
-  id: string;  // P[#].M[#].T[#].S[#]
+  id: string; // P[#].M[#].T[#].S[#]
   title: string;
   status: TaskStatus;
   story_points: 0.5 | 1 | 2;
@@ -313,18 +325,19 @@ interface Subtask {
 
 ```typescript
 type TaskStatus =
-  | 'Planned'        // Initial state
-  | 'Researching'    // PRP generation in progress
-  | 'Ready'          // PRP ready, awaiting execution
-  | 'Implementing'   // PRP execution in progress
-  | 'Complete'       // Successfully completed
-  | 'Failed'         // Failed with error
-  | 'Obsolete';      // Removed by delta analysis
+  | 'Planned' // Initial state
+  | 'Researching' // PRP generation in progress
+  | 'Ready' // PRP ready, awaiting execution
+  | 'Implementing' // PRP execution in progress
+  | 'Complete' // Successfully completed
+  | 'Failed' // Failed with error
+  | 'Obsolete'; // Removed by delta analysis
 ```
 
 ### 6.3 Session State
 
 **Session Directory Structure:**
+
 ```
 plan/
   {sequence}_{hash}/
@@ -345,6 +358,7 @@ plan/
 ### 6.4 Protected Files
 
 **NEVER DELETE:**
+
 - `tasks.json` - Pipeline state
 - `bug_hunt_tasks.json` - Bug fix state
 - `prd_snapshot.md` - PRD snapshot
@@ -358,19 +372,20 @@ plan/
 
 ### 7.1 Implemented Agents
 
-| Agent | Role | Location | System Prompt |
-|-------|------|----------|---------------|
-| **Architect** | Task Breakdown | `/src/agents/prompts/architect-prompt.ts` | Task Breakdown System Prompt |
-| **Researcher** | PRP Generation | `/src/agents/prompts/prp-blueprint-prompt.ts` | PRP Blueprint Prompt |
-| **Coder** | PRP Execution | `/src/agents/prompts/` (inline) | PRP Execution Prompt |
-| **QA** | Bug Hunting | `/src/agents/prompts/bug-hunt-prompt.ts` | Creative Bug Finding Prompt |
-| **Change Manager** | Delta Analysis | `/src/agents/prompts/delta-analysis-prompt.ts` | Delta PRD Generation Prompt |
+| Agent              | Role           | Location                                       | System Prompt                |
+| ------------------ | -------------- | ---------------------------------------------- | ---------------------------- |
+| **Architect**      | Task Breakdown | `/src/agents/prompts/architect-prompt.ts`      | Task Breakdown System Prompt |
+| **Researcher**     | PRP Generation | `/src/agents/prompts/prp-blueprint-prompt.ts`  | PRP Blueprint Prompt         |
+| **Coder**          | PRP Execution  | `/src/agents/prompts/` (inline)                | PRP Execution Prompt         |
+| **QA**             | Bug Hunting    | `/src/agents/prompts/bug-hunt-prompt.ts`       | Creative Bug Finding Prompt  |
+| **Change Manager** | Delta Analysis | `/src/agents/prompts/delta-analysis-prompt.ts` | Delta PRD Generation Prompt  |
 
 ### 7.2 Prompt Templates
 
 **Location:** `/src/agents/prompts.ts` and `/src/agents/prompts/`
 
 **Key Prompts:**
+
 1. **Architect Prompt** - Decomposes PRD into JSON hierarchy
 2. **PRP Blueprint Prompt** - Generates implementation contracts
 3. **Bug Hunt Prompt** - Adversarial QA testing
@@ -380,6 +395,7 @@ plan/
 ### 7.3 Prompt Structure
 
 **All prompts follow this pattern:**
+
 ```typescript
 const prompt = createPrompt({
   user: string,              // Main instruction
@@ -398,23 +414,27 @@ const prompt = createPrompt({
 ### 8.1 Four-Level Validation System
 
 **Level 1: Syntax & Style** (Immediate feedback)
+
 - Linting (ESLint)
 - Type checking (tsc --noEmit)
 - Formatting (Prettier)
 - **Success Criteria:** Zero errors
 
 **Level 2: Unit Tests** (Component validation)
+
 - Component-level tests
 - Isolated function/class tests
 - **Success Criteria:** All tests pass
 
 **Level 3: Integration Testing** (System validation)
+
 - Service startup
 - Endpoint testing
 - Database validation
 - **Success Criteria:** All integrations working
 
 **Level 4: Creative & Domain-Specific** (Real-world validation)
+
 - Playwright (web interfaces)
 - Docker (containerized services)
 - Performance testing
@@ -426,15 +446,17 @@ const prompt = createPrompt({
 **Location:** `/src/agents/prp-executor.ts`
 
 **Flow:**
+
 ```typescript
 // After code generation
-await runLevel1Validation();  // Syntax
-await runLevel2Validation();  // Unit tests
-await runLevel3Validation();  // Integration
-await runLevel4Validation();  // Creative
+await runLevel1Validation(); // Syntax
+await runLevel2Validation(); // Unit tests
+await runLevel3Validation(); // Integration
+await runLevel4Validation(); // Creative
 ```
 
 **Failure Protocol:**
+
 - Fix issues using PRP patterns
 - Re-run validation until passing
 - Halt on fundamental issues with explanation
@@ -465,6 +487,7 @@ if (existingSession && existingSession.hash !== currentHash) {
 **Location:** `/src/core/session-manager.ts` - `createDeltaSession()`
 
 **Process:**
+
 1. Create new session directory: `plan/{sequence}_{new_hash}/`
 2. Link to previous session via `delta_from.txt`
 3. Copy previous session state for reference
@@ -476,6 +499,7 @@ if (existingSession && existingSession.hash !== currentHash) {
 **Location:** `/src/core/task-patcher.ts`
 
 **Change Types:**
+
 - **New requirements** → Add new tasks
 - **Modified requirements** → Mark existing tasks for "Update/Re-implementation"
 - **Removed requirements** → Mark tasks as "Obsolete"
@@ -483,6 +507,7 @@ if (existingSession && existingSession.hash !== currentHash) {
 ### 9.4 Previous Session Context
 
 **Priority Order:**
+
 1. Check `$PREV_SESSION_DIR/architecture/` for existing research
 2. Check `$PREV_SESSION_DIR/docs/` for implementation notes
 3. Reference completed work instead of re-researching
@@ -564,6 +589,7 @@ For each Subtask:
 **Location:** `/src/utils/errors.ts`
 
 **Error Types:**
+
 - `PipelineError` - Top-level pipeline errors
 - `TaskError` - Task execution errors
 - `AgentError` - Agent execution errors
@@ -574,6 +600,7 @@ For each Subtask:
 - `PRPError` - PRP generation/execution errors
 
 **Error Structure:**
+
 ```typescript
 class PipelineError extends Error {
   code: string;
@@ -587,6 +614,7 @@ class PipelineError extends Error {
 ### 11.2 Error Recovery
 
 **Strategies:**
+
 1. **Agent Retries** - Exponential backoff with reflection
 2. **Validation Retries** - Fix and re-run validation gates
 3. **Graceful Shutdown** - Finish current task on SIGINT
@@ -598,11 +626,13 @@ class PipelineError extends Error {
 **Location:** `/src/utils/resource-monitor.ts`
 
 **Monitored Resources:**
+
 - File handles (limit: 1000)
 - Memory usage (limit: 2GB)
 - Task execution time (timeout: 30 minutes)
 
 **Actions on Limits:**
+
 - Log warnings
 - Trigger graceful shutdown
 - Save state before exit
@@ -616,6 +646,7 @@ class PipelineError extends Error {
 **Framework:** Vitest with 100% coverage requirements
 
 **Directory Structure:**
+
 ```
 tests/
 ├── unit/              # Unit tests
@@ -634,6 +665,7 @@ tests/
 ### 12.2 Coverage Requirements
 
 **Enforced Thresholds:**
+
 - Statements: 100%
 - Branches: 100%
 - Functions: 100%
@@ -642,6 +674,7 @@ tests/
 ### 12.3 Test Safeguards
 
 **Global Setup** (`tests/setup.ts`):
+
 - Loads .env file
 - **Validates z.ai endpoint** (blocks Anthropic API)
 - Clears mocks before each test
@@ -653,31 +686,31 @@ tests/
 
 ### 13.1 Core Components
 
-| Component | File | Lines |
-|-----------|------|-------|
-| Session Manager | `/src/core/session-manager.ts` | 1027 |
-| Task Orchestrator | `/src/core/task-orchestrator.ts` | 835 |
-| PRP Runtime | `/src/agents/prp-runtime.ts` | 328 |
-| PRP Pipeline | `/src/workflows/prp-pipeline.ts` | 1840 |
-| Models (Types) | `/src/core/models.ts` | 1786 |
+| Component         | File                             | Lines |
+| ----------------- | -------------------------------- | ----- |
+| Session Manager   | `/src/core/session-manager.ts`   | 1027  |
+| Task Orchestrator | `/src/core/task-orchestrator.ts` | 835   |
+| PRP Runtime       | `/src/agents/prp-runtime.ts`     | 328   |
+| PRP Pipeline      | `/src/workflows/prp-pipeline.ts` | 1840  |
+| Models (Types)    | `/src/core/models.ts`            | 1786  |
 
 ### 13.2 Critical Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `/src/config/environment.ts` | z.ai API compatibility |
-| `/src/config/constants.ts` | Model names, env var names |
-| `/tsconfig.json` | TypeScript configuration |
-| `/vitest.config.ts` | Test configuration |
-| `/package.json` | Dependencies and scripts |
+| File                         | Purpose                    |
+| ---------------------------- | -------------------------- |
+| `/src/config/environment.ts` | z.ai API compatibility     |
+| `/src/config/constants.ts`   | Model names, env var names |
+| `/tsconfig.json`             | TypeScript configuration   |
+| `/vitest.config.ts`          | Test configuration         |
+| `/package.json`              | Dependencies and scripts   |
 
 ### 13.3 Entry Points
 
-| File | Purpose |
-|------|---------|
-| `/src/index.ts` | Main application entry point |
-| `/src/cli/index.ts` | CLI argument parsing |
-| `/src/cli/index.ts` | Pipeline execution trigger |
+| File                | Purpose                      |
+| ------------------- | ---------------------------- |
+| `/src/index.ts`     | Main application entry point |
+| `/src/cli/index.ts` | CLI argument parsing         |
+| `/src/cli/index.ts` | Pipeline execution trigger   |
 
 ---
 
@@ -765,6 +798,7 @@ npm start           # Run compiled code
 The **hacky-hack** project is a **mature, production-ready implementation** of an Autonomous PRP Development Pipeline. All core components are fully implemented, tested, and operational.
 
 **Key Facts:**
+
 - ✅ 69 TypeScript files, ~29K lines of code
 - ✅ All 4 core components complete
 - ✅ Groundswell fully integrated
@@ -778,6 +812,7 @@ The **hacky-hack** project is a **mature, production-ready implementation** of a
 
 **Next Steps:**
 This project is in **maintenance and enhancement mode**. Any new work should focus on:
+
 1. Bug fixes and stability improvements
 2. Performance optimizations
 3. Feature enhancements (not replacements)

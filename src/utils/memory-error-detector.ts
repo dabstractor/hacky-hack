@@ -129,7 +129,7 @@ const OOM_PATTERNS = {
  * - 137: SIGKILL (OOM killer)
  * - 1: General error (may include OOM in worker_threads)
  */
-const OOM_EXIT_CODES = [134, 137, 1] as const;
+const OOM_EXIT_CODES = [134, 137, 1];
 
 // ============================================================================
 // PUBLIC API

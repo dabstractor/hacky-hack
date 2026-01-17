@@ -30,11 +30,11 @@ The PRD was updated to add:
 
 The following completed tasks from Session 001 require modifications:
 
-| Task ID | Title | Modification Required |
-|---------|-------|----------------------|
-| P1.M1.T2.S1 | Environment configuration module | Add API endpoint validation, .env loading |
-| P1.M1.T2.S2 | Environment validation tests | Add safeguard tests, .env priority tests |
-| P1.M1.T2.S3 | z.ai API compatibility validation | Add endpoint check before API calls |
+| Task ID     | Title                             | Modification Required                     |
+| ----------- | --------------------------------- | ----------------------------------------- |
+| P1.M1.T2.S1 | Environment configuration module  | Add API endpoint validation, .env loading |
+| P1.M1.T2.S2 | Environment validation tests      | Add safeguard tests, .env priority tests  |
+| P1.M1.T2.S3 | z.ai API compatibility validation | Add endpoint check before API calls       |
 
 ### Files to Update
 

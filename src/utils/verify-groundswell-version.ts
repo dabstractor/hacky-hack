@@ -580,7 +580,6 @@ async function testBasicFunctionality(): Promise<FunctionalityTestResult> {
   try {
     // Use dynamic imports to test runtime instantiation
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    // @ts-expect-error - Groundswell is a linked dependency, may not be available at compile time
     const groundswell = await import('groundswell');
 
     // Test Workflow class availability

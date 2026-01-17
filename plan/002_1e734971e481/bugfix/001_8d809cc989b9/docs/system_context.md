@@ -21,6 +21,7 @@ The PRP Development Pipeline is **substantially complete** with excellent archit
 **Location**: `/home/dustin/projects/hacky-hack/src/utils/errors.ts`
 
 **Error Classes Implemented**:
+
 ```typescript
 PipelineError (abstract base class)
 ├── SessionError         // Session load/save failures
@@ -30,6 +31,7 @@ PipelineError (abstract base class)
 ```
 
 **Key Features**:
+
 - Error codes for programmatic handling
 - Context objects with debugging info
 - `toJSON()` method for structured logging
@@ -39,6 +41,7 @@ PipelineError (abstract base class)
 ### 1.2 Missing Error Handling Components
 
 #### ❌ **Missing: `EnvironmentError` Class**
+
 - **Expected In**: `/home/dustin/projects/hacky-hack/src/utils/errors.ts`
 - **Purpose**: Environment configuration validation failures (missing API keys, invalid config)
 - **Error Code**: `ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT`
@@ -46,6 +49,7 @@ PipelineError (abstract base class)
 - **Pattern**: Should follow same structure as `SessionError`, `TaskError`, `AgentError`
 
 #### ❌ **Missing: `isFatalError()` Export Function**
+
 - **Expected In**: `/home/dustin/projects/hacky-hack/src/utils/errors.ts` (exported)
 - **Current State**: Private method `#isFatalError()` exists in `PRPPipeline` class
 - **Purpose**: Determine if error should halt execution immediately (fatal) vs. allow retry/continuation (non-fatal)
@@ -56,6 +60,7 @@ PipelineError (abstract base class)
 ### 1.3 Error Usage Patterns
 
 **Pipeline Fatal Error Detection** (from `/home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts`):
+
 ```typescript
 #isFatalError(error: unknown): boolean {
   // Private method implementation exists
@@ -64,6 +69,7 @@ PipelineError (abstract base class)
 ```
 
 **Expected Public API**:
+
 ```typescript
 // In src/utils/errors.ts
 export function isFatalError(error: unknown): boolean {
@@ -84,6 +90,7 @@ export function isFatalError(error: unknown): boolean {
 **Location**: `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 
 **Initialization Sequence**:
+
 1. **PRD Hash Generation**: SHA-256 hash of PRD content
 2. **Session Directory Creation**: `plan/{sequence}_{hash}/`
 3. **Tasks JSON Write**: Atomic write of `tasks.json` with Zod validation
@@ -106,12 +113,14 @@ plan/
 ### 2.3 Critical Files
 
 **tasks.json**:
+
 - **Format**: Zod-validated JSON backlog
 - **Structure**: Phase → Milestone → Task → Subtask hierarchy
 - **Validation**: Strict schema including `context_scope` format
 - **Write Pattern**: Atomic (temp file + rename)
 
 **prd_snapshot.md**:
+
 - **Content**: Exact PRD content at session creation
 - **Purpose**: Immutable record of requirements
 - **Location**: `{sessionPath}/prd_snapshot.md`
@@ -121,12 +130,14 @@ plan/
 **Current Issue**: Pipeline returns `success: false` and fails to create expected files
 
 **Symptoms**:
+
 - `prd_snapshot.md` not created (ENOENT)
 - `tasks.json` not created (ENOENT)
 - Execution timeout (not completing in 30 seconds)
 - Pipeline workflow not reaching completion
 
 **Hypothesis**: Session initialization failing silently, likely during:
+
 1. PRD hash generation
 2. Directory creation (permissions?)
 3. Atomic file write operations
@@ -141,11 +152,13 @@ plan/
 **Location**: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 
 **Current Logger**: Pino structured logging
+
 ```typescript
 this.#logger = getLogger('TaskOrchestrator');
 ```
 
 **Expected Logging Pattern** (from failing tests):
+
 ```typescript
 // Tests expect console.log calls like:
 console.log('[TaskOrchestrator] Executing Phase: P1 - Phase 1');
@@ -155,6 +168,7 @@ console.log('[TaskOrchestrator] Executing Subtask: P1.M1.T1.S1 - Subtask 1');
 ```
 
 **Current Implementation**: Uses Pino logger with structured objects
+
 ```typescript
 this.#logger.info({ taskId, status }, 'Task status changed');
 this.#logger.debug({ pendingCount }, 'Status update batched');
@@ -165,6 +179,7 @@ this.#logger.debug({ pendingCount }, 'Status update batched');
 **Root Cause**: Test mock setup expects console.log, but implementation uses Pino
 
 **Fix Options**:
+
 1. Update implementation to use console.log (regression)
 2. Update test mocks to expect Pino logger calls (recommended)
 3. Add wrapper that logs to both console and Pino
@@ -175,6 +190,7 @@ this.#logger.debug({ pendingCount }, 'Status update batched');
 **Processing Order**: Phase → Milestone → Task → Subtask
 
 **State Management**:
+
 - Maintains execution state in SessionManager
 - Updates task status in `tasks.json`
 - Uses ResearchQueue for parallel PRP generation
@@ -188,13 +204,18 @@ this.#logger.debug({ pendingCount }, 'Status update batched');
 **Location**: `/home/dustin/projects/hacky-hack/src/utils/retry.ts`
 
 **Current Implementation**:
+
 ```typescript
-const exponentialDelay = Math.min(baseDelay * Math.pow(backoffFactor, attempt), maxDelay);
+const exponentialDelay = Math.min(
+  baseDelay * Math.pow(backoffFactor, attempt),
+  maxDelay
+);
 const jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2;
 const delay = Math.max(0, Math.floor(exponentialDelay + jitter));
 ```
 
 **Default Configuration**:
+
 - `baseDelay: 1000ms`
 - `maxDelay: 30000ms`
 - `backoffFactor: 2`
@@ -207,12 +228,14 @@ const delay = Math.max(0, Math.floor(exponentialDelay + jitter));
 **Issue**: Jitter can be zero when `Math.random() - 0.5` returns near -0.5, making delay equal to base
 
 **Example Calculation**:
+
 - Attempt 0: 1000ms ± 100ms (range: 900-1100ms)
 - If jitter = -100ms: delay = 900ms (less than base)
 - If jitter = 0ms: delay = 1000ms (equal to base)
 - If jitter = +100ms: delay = 1100ms (greater than base)
 
 **Fix Pattern**: Ensure jitter is always positive
+
 ```typescript
 const jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random());
 ```
@@ -226,14 +249,19 @@ const jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random());
 **Schema Location**: `/home/dustin/projects/hacky-hack/src/core/session-utils.ts` (Zod schema)
 
 **Required Format**:
+
 ```typescript
 context_scope: z.string().refine(
-  (val) => val.startsWith("CONTRACT DEFINITION:\n"),
-  { message: "context_scope must start with \"CONTRACT DEFINITION:\" followed by a newline" }
-)
+  val => val.startsWith('CONTRACT DEFINITION:\n'),
+  {
+    message:
+      'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
+  }
+);
 ```
 
 **Test Fixture Issue**:
+
 - Test uses: `context_scope: 'Test scope'`
 - Validation expects: `context_scope: "CONTRACT DEFINITION:\n..."`
 - Error: "context_scope must start with \"CONTRACT DEFINITION:\" followed by a newline"
@@ -247,17 +275,20 @@ context_scope: z.string().refine(
 ### 6.1 Error Handling Timeline
 
 **January 14, 2026** - Error Hierarchy Established
+
 - `b2c18ca`: Added `PipelineError`, `SessionError`, `TaskError`, `AgentError`, `ValidationError`
 - `d81e5cc`: Added retry utility with exponential backoff
 - `dba41a5`: Added private `#isFatalError()` method in PRPPipeline
 
 **Missing from Timeline**:
+
 - `EnvironmentError` class was never added
 - Public `isFatalError()` export was never created
 
 ### 6.2 Bug Fix Patterns
 
 **Observed Patterns** (from recent commits):
+
 1. **Test-Driven**: Comprehensive test coverage (800-1200+ tests per fix)
 2. **Incremental Status Tracking**: Use `tasks.json` to track Researching → Complete
 3. **Documentation First**: Research documents before implementation
@@ -266,6 +297,7 @@ context_scope: z.string().refine(
 ### 6.3 E2E Pipeline Timeline
 
 **January 13, 2026**:
+
 - `c5b6f0a`: Added minimal test PRD fixture
 - `70cf815`: Added E2E pipeline test with comprehensive mocking
 - `10a50a8`: Added delta session E2E test
@@ -279,30 +311,36 @@ context_scope: z.string().refine(
 ### 7.1 Error Handling Dependencies
 
 **Internal**:
+
 - `src/utils/errors.ts` - Error hierarchy (missing components)
 - `src/workflows/prp-pipeline.ts` - Has private `#isFatalError()` to extract
 
 **External**:
+
 - None (pure TypeScript error handling)
 
 ### 7.2 Session Management Dependencies
 
 **Internal**:
+
 - `src/core/session-manager.ts` - Session lifecycle
 - `src/core/session-utils.ts` - Session utilities and Zod schemas
 - `src/utils/file-utils.ts` - Atomic file operations
 
 **External**:
+
 - `zod` - Schema validation
 - `fs/promises` - File system operations
 
 ### 7.3 Task Orchestrator Dependencies
 
 **Internal**:
+
 - `src/core/task-orchestrator.ts` - Task execution
 - `src/core/session-manager.ts` - State persistence
 
 **External**:
+
 - `pino` - Structured logging
 
 ---
@@ -319,16 +357,13 @@ context_scope: z.string().refine(
 ### 8.2 Failing Test Categories
 
 **Critical Issues**:
+
 1. **Error Handling Integration**: 11 tests expecting `EnvironmentError` and `isFatalError()`
 2. **E2E Pipeline**: 4 tests (session initialization failures)
 
-**Major Issues**:
-3. **Task Orchestrator Logging**: 21 tests (console vs Pino mismatch)
-4. **Session Utils Validation**: 1 test (test data format issue)
-5. **Retry Utility Jitter**: 1 test (edge case)
+**Major Issues**: 3. **Task Orchestrator Logging**: 21 tests (console vs Pino mismatch) 4. **Session Utils Validation**: 1 test (test data format issue) 5. **Retry Utility Jitter**: 1 test (edge case)
 
-**Minor Issues**:
-6. **Integration Test Setup**: PromiseRejectionHandledWarning (setup issue)
+**Minor Issues**: 6. **Integration Test Setup**: PromiseRejectionHandledWarning (setup issue)
 
 ---
 

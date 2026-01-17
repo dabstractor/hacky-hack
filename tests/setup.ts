@@ -66,7 +66,7 @@ function validateApiEndpoint(): void {
   const baseUrl = process.env.ANTHROPIC_BASE_URL || '';
 
   // Block Anthropic's official API and all its variants
-  if (BLOCKED_PATTERNS.some((pattern) => baseUrl.includes(pattern))) {
+  if (BLOCKED_PATTERNS.some(pattern => baseUrl.includes(pattern))) {
     const errorMessage = [
       '\n========================================',
       'CRITICAL: Tests are configured to use Anthropic API!',
@@ -197,9 +197,9 @@ afterEach(() => {
   // REJECTION TRACKING: Fail test if there were unhandled rejections
   // Only fail if the test itself hasn't already failed (prevents confusing errors)
   if (unhandledRejections.length > 0) {
-    const errorMessages = unhandledRejections.map((r) =>
-      r instanceof Error ? r.message : String(r)
-    ).join('; ');
+    const errorMessages = unhandledRejections
+      .map(r => (r instanceof Error ? r.message : String(r)))
+      .join('; ');
 
     // Format rejection details for debugging
     const rejectionDetails = unhandledRejections

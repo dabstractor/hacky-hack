@@ -10,7 +10,9 @@ This directory contains comprehensive research and tools for TypeScript module r
 ## 📚 Documentation Files
 
 ### [typescript-module-resolution-research.md](../typescript-module-resolution-research.md)
+
 **Comprehensive research documentation** covering:
+
 - Official TypeScript documentation links
 - NodeNext module resolution details
 - TypeScript paths configuration
@@ -22,7 +24,9 @@ This directory contains comprehensive research and tools for TypeScript module r
 **Use this for:** Deep understanding of TypeScript module resolution concepts and troubleshooting.
 
 ### [typescript-resolution-quick-reference.md](../typescript-resolution-quick-reference.md)
+
 **Quick reference guide** for common tasks:
+
 - Fast verification commands
 - Common error codes and fixes
 - Quick checklist for npm link setup
@@ -32,7 +36,9 @@ This directory contains comprehensive research and tools for TypeScript module r
 **Use this for:** Quick lookup when solving module resolution issues.
 
 ### [research-summary.md](../research-summary.md)
+
 **Executive summary** of research findings:
+
 - Key findings overview
 - Configuration examples
 - Best practices
@@ -43,6 +49,7 @@ This directory contains comprehensive research and tools for TypeScript module r
 ## 🛠️ Tools
 
 ### [verify-module-resolution.ts](../../scripts/verify-module-resolution.ts)
+
 **TypeScript module resolution verifier**
 
 ```bash
@@ -57,6 +64,7 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
 ```
 
 **What it does:**
+
 - Checks all imports can be resolved
 - Reports module resolution errors
 - Shows detailed resolution information in verbose mode
@@ -65,6 +73,7 @@ npx tsx scripts/verify-module-resolution.ts --project=./packages/app
 **Use this for:** Verifying TypeScript can resolve all imports in your project.
 
 ### [test-import-resolution.ts](../../scripts/test-import-resolution.ts)
+
 **Comprehensive test suite for module resolution**
 
 ```bash
@@ -73,6 +82,7 @@ npx tsx scripts/test-import-resolution.ts
 ```
 
 **What it tests:**
+
 - TypeScript compilation (tsc --noEmit)
 - Configuration existence
 - npm linked packages detection
@@ -201,6 +211,7 @@ Modern TypeScript resolution strategy for Node.js ES modules:
 ```
 
 **Key features:**
+
 - Requires `.js` extensions for ES module imports
 - Respects `package.json` `type` field
 - Supports conditional exports
@@ -233,6 +244,7 @@ cd . && npm link package
 ```
 
 **Requirements:**
+
 - Package must be built (`.d.ts` files generated)
 - `types` field in package.json
 - Matching `module` settings
@@ -240,17 +252,20 @@ cd . && npm link package
 ## 📚 Additional Resources
 
 ### Official Documentation
+
 - [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/modules/reference.html)
 - [tsconfig Reference](https://www.typescriptlang.org/tsconfig)
 - [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
 
 ### Community
+
 - [TypeScript GitHub Issues](https://github.com/microsoft/TypeScript/issues)
 - [Stack Overflow - TypeScript](https://stackoverflow.com/questions/tagged/typescript)
 
 ## 🎯 Best Practices
 
 1. **Always build before linking**
+
    ```bash
    cd ../pkg && npm run build && npm link
    ```
@@ -259,6 +274,7 @@ cd . && npm link package
    All packages should use the same `module` and `moduleResolution`.
 
 3. **Enable declaration generation**
+
    ```json
    {
      "compilerOptions": {
@@ -269,6 +285,7 @@ cd . && npm link package
    ```
 
 4. **Verify regularly**
+
    ```bash
    npx tsc --noEmit
    ```
@@ -276,9 +293,7 @@ cd . && npm link package
 5. **Use project references for monorepos**
    ```json
    {
-     "references": [
-       { "path": "../shared" }
-     ]
+     "references": [{ "path": "../shared" }]
    }
    ```
 
@@ -313,6 +328,7 @@ When adding new research or tools:
 - **Node.js Version:** 20.0.0+
 
 Review and update when:
+
 - New TypeScript versions are released
 - New module resolution patterns emerge
 - Common issues are discovered

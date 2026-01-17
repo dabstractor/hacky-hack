@@ -236,6 +236,7 @@ npm run test tests/unit/utils/errors-fatal.test.ts
 - [ ] This is expected - we're in RED phase
 
 **Expected failures:**
+
 - Cannot import `FatalError` (not implemented yet)
 - Cannot import `isFatalError` (not implemented yet)
 - TypeScript compilation errors
@@ -375,6 +376,7 @@ npm run validate
 ## 📊 Success Metrics
 
 ### Code Quality
+
 - [ ] 100% test coverage (statements, branches, functions, lines)
 - [ ] No TypeScript errors
 - [ ] No linting errors
@@ -382,6 +384,7 @@ npm run validate
 - [ ] JSDoc comments present
 
 ### Test Quality
+
 - [ ] All tests pass
 - [ ] Tests follow SEV pattern
 - [ ] Tests cover happy path
@@ -390,6 +393,7 @@ npm run validate
 - [ ] Tests verify type narrowing
 
 ### Functionality
+
 - [ ] FatalError can be instantiated
 - [ ] FatalError extends PipelineError correctly
 - [ ] isFatalError type guard works

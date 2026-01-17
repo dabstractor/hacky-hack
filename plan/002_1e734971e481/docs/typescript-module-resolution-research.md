@@ -88,11 +88,11 @@ NodeNext handles both CommonJS and ES Modules based on context:
 
 ```typescript
 // ES Module import
-import { something } from 'pkg';        // Resolves based on package.json "type"
-import { other } from 'pkg/sub.mjs';    // Explicit ESM
+import { something } from 'pkg'; // Resolves based on package.json "type"
+import { other } from 'pkg/sub.mjs'; // Explicit ESM
 
 // CommonJS require
-const pkg = require('pkg');             // Resolves based on context
+const pkg = require('pkg'); // Resolves based on context
 ```
 
 #### 2. File Extension Requirements
@@ -101,12 +101,12 @@ For ES module imports, file extensions are **required**:
 
 ```typescript
 // ✅ Correct - ES Module
-import { foo } from './local.js';       // .js for TypeScript files
-import { bar } from './local.mjs';      // .mjs for explicit ESM
-import { baz } from './local.cjs';      // .cjs for explicit CommonJS
+import { foo } from './local.js'; // .js for TypeScript files
+import { bar } from './local.mjs'; // .mjs for explicit ESM
+import { baz } from './local.cjs'; // .cjs for explicit CommonJS
 
 // ❌ Incorrect - ES Module
-import { foo } from './local';          // Missing extension
+import { foo } from './local'; // Missing extension
 ```
 
 **Note:** TypeScript files still use `.ts` extension in source, but imports use `.js` extension.
@@ -117,7 +117,7 @@ import { foo } from './local';          // Missing extension
 {
   "name": "my-package",
   "version": "1.0.0",
-  "type": "module",     // or "commonjs" or omitted (defaults to CommonJS)
+  "type": "module", // or "commonjs" or omitted (defaults to CommonJS)
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -191,11 +191,11 @@ NodeNext follows this resolution order:
 ```json
 {
   "compilerOptions": {
-    "baseUrl": ".",                    // Base directory for path resolution
+    "baseUrl": ".", // Base directory for path resolution
     "paths": {
       "@my-scope/shared-lib": ["packages/shared/src"],
       "@my-scope/utils": ["packages/utils/src"],
-      "@/*": ["src/*"]                 // Wildcard patterns
+      "@/*": ["src/*"] // Wildcard patterns
     }
   }
 }
@@ -224,6 +224,7 @@ NodeNext follows this resolution order:
 ### Monorepo Example
 
 **Project Structure:**
+
 ```
 monorepo/
 ├── packages/
@@ -241,6 +242,7 @@ monorepo/
 ```
 
 **packages/app/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -249,15 +251,14 @@ monorepo/
       "@shared": ["../shared/src"]
     }
   },
-  "references": [
-    { "path": "../shared" }
-  ]
+  "references": [{ "path": "../shared" }]
 }
 ```
 
 **packages/app/src/main.ts:**
+
 ```typescript
-import { something } from '@shared';  // Resolves to ../shared/src
+import { something } from '@shared'; // Resolves to ../shared/src
 ```
 
 ### Important Considerations
@@ -270,7 +271,7 @@ TypeScript paths are **compile-time only**. They don't affect runtime resolution
 {
   "compilerOptions": {
     "paths": {
-      "my-lib": ["../local-lib/src"]  // TypeScript only
+      "my-lib": ["../local-lib/src"] // TypeScript only
     }
   }
 }
@@ -283,6 +284,7 @@ At runtime, Node.js will still look in `node_modules/my-lib`, not `../local-lib/
 For runtime resolution, you need additional tooling:
 
 **Option A: npm link**
+
 ```bash
 cd ../local-lib
 npm link
@@ -291,23 +293,23 @@ npm link local-lib
 ```
 
 **Option B: tsconfig paths + bundler**
+
 ```javascript
 // webpack.config.js
 module.exports = {
   resolve: {
     alias: {
-      'my-lib': path.resolve(__dirname, '../local-lib/src')
-    }
-  }
+      'my-lib': path.resolve(__dirname, '../local-lib/src'),
+    },
+  },
 };
 ```
 
 **Option C: package.json workspace**
+
 ```json
 {
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": ["packages/*"]
 }
 ```
 
@@ -339,12 +341,13 @@ npm unlink local-package
 #### Package Being Linked
 
 **local-package/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
-    "declaration": true,           // Generate .d.ts files
-    "declarationMap": true,        // Generate .d.ts.map files
-    "composite": true,             // Enable project references
+    "declaration": true, // Generate .d.ts files
+    "declarationMap": true, // Generate .d.ts.map files
+    "composite": true, // Enable project references
     "outDir": "./dist",
     "rootDir": "./src"
   },
@@ -353,6 +356,7 @@ npm unlink local-package
 ```
 
 **local-package/package.json:**
+
 ```json
 {
   "name": "local-package",
@@ -376,6 +380,7 @@ npm unlink local-package
 #### Consuming Project
 
 **your-project/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -383,11 +388,11 @@ npm unlink local-package
     "moduleResolution": "NodeNext",
     "baseUrl": ".",
     "paths": {
-      "local-package": ["../local-package/src"]  // Optional: for development
+      "local-package": ["../local-package/src"] // Optional: for development
     }
   },
   "references": [
-    { "path": "../local-package" }  // Optional: project references
+    { "path": "../local-package" } // Optional: project references
   ]
 }
 ```
@@ -397,6 +402,7 @@ npm unlink local-package
 #### Issue 1: Type Definitions Not Found
 
 **Problem:**
+
 ```
 TS2307: Cannot find module 'local-package' or its corresponding type declarations.
 ```
@@ -404,19 +410,22 @@ TS2307: Cannot find module 'local-package' or its corresponding type declaration
 **Solutions:**
 
 1. **Build the linked package first:**
+
 ```bash
 cd ../local-package
 npm run build
 ```
 
 2. **Check types field in package.json:**
+
 ```json
 {
-  "types": "./dist/index.d.ts"  // Must point to built declaration files
+  "types": "./dist/index.d.ts" // Must point to built declaration files
 }
 ```
 
 3. **Verify declaration files are generated:**
+
 ```bash
 ls -la ../local-package/dist/
 # Should see index.d.ts and index.d.ts.map
@@ -425,6 +434,7 @@ ls -la ../local-package/dist/
 #### Issue 2: Module Resolution Mismatch
 
 **Problem:**
+
 ```
 TS1479: The 'local-package' package has a 'module' kind that is not compatible with this project.
 ```
@@ -432,6 +442,7 @@ TS1479: The 'local-package' package has a 'module' kind that is not compatible w
 **Solutions:**
 
 1. **Match module settings:**
+
 ```json
 // Both packages should have the same module setting
 {
@@ -443,9 +454,10 @@ TS1479: The 'local-package' package has a 'module' kind that is not compatible w
 ```
 
 2. **Check package.json type field:**
+
 ```json
 {
-  "type": "module"  // Should match between packages
+  "type": "module" // Should match between packages
 }
 ```
 
@@ -456,6 +468,7 @@ TS1479: The 'local-package' package has a 'module' kind that is not compatible w
 **Solutions:**
 
 1. **Use tsconfig paths:**
+
 ```json
 {
   "compilerOptions": {
@@ -468,15 +481,15 @@ TS1479: The 'local-package' package has a 'module' kind that is not compatible w
 ```
 
 2. **Use project references:**
+
 ```json
 {
-  "references": [
-    { "path": "../local-package" }
-  ]
+  "references": [{ "path": "../local-package" }]
 }
 ```
 
 3. **Enable preserveSymlinks:**
+
 ```json
 {
   "compilerOptions": {
@@ -508,12 +521,14 @@ npx tsc --noEmit --traceResolution
 ```
 
 **What it checks:**
+
 - All imports can be resolved
 - Type definitions are found
 - No type errors
 - Module compatibility
 
 **Example output:**
+
 ```
 src/index.ts:3:20 - error TS2307: Cannot find module 'local-package' or its corresponding type declarations.
 3 import { foo } from 'local-package';
@@ -529,7 +544,8 @@ For detailed resolution information:
 npx tsc --noEmit --traceResolution 2>&1 | grep "local-package"
 ```
 
-**Example output:`
+\*\*Example output:`
+
 ```
 ======== Resolving module 'local-package' from '/project/src/index.ts'. ========
 Explicitly specified module resolution kind: 'NodeNext'.
@@ -548,6 +564,7 @@ Resolved to '/project/node_modules/local-package/dist/index.js'.
 Create a verification script:
 
 **verify-typescript.ts:**
+
 ```typescript
 import ts from 'typescript';
 
@@ -581,7 +598,7 @@ function verifyResolution(projectPath: string): void {
     ...program.getOptionsDiagnostics(),
     ...program.getSyntacticDiagnostics(),
     ...program.getSemanticDiagnostics(),
-    ...program.getDeclarationDiagnostics()
+    ...program.getDeclarationDiagnostics(),
   ];
 
   if (diagnostics.length === 0) {
@@ -605,6 +622,7 @@ verifyResolution(process.cwd());
 ```
 
 **Usage:**
+
 ```bash
 npx tsx verify-typescript.ts
 ```
@@ -624,6 +642,7 @@ npx ts-node -e "import { foo } from 'local-package'; console.log(foo);"
 ### Method 5: Using ESLint TypeScript Plugin
 
 **.eslintrc.json:**
+
 ```json
 {
   "parser": "@typescript-eslint/parser",
@@ -638,6 +657,7 @@ npx ts-node -e "import { foo } from 'local-package'; console.log(foo);"
 ```
 
 **Usage:**
+
 ```bash
 npx eslint src/**/*.ts
 ```
@@ -649,11 +669,13 @@ npx eslint src/**/*.ts
 ### Issue 1: "Cannot find module" Error
 
 **Symptoms:**
+
 ```
 TS2307: Cannot find module 'my-local-package' or its corresponding type declarations.
 ```
 
 **Causes:**
+
 1. Package not linked properly
 2. Type declarations not built
 3. TypeScript paths not configured
@@ -662,18 +684,21 @@ TS2307: Cannot find module 'my-local-package' or its corresponding type declarat
 **Solutions:**
 
 1. **Verify npm link:**
+
 ```bash
 npm link my-local-package
 ls -la node_modules/my-local-package  # Should be a symlink
 ```
 
 2. **Build type declarations:**
+
 ```bash
 cd ../my-local-package
 npm run build  # Ensure .d.ts files are generated
 ```
 
 3. **Check tsconfig paths:**
+
 ```json
 {
   "compilerOptions": {
@@ -686,6 +711,7 @@ npm run build  # Ensure .d.ts files are generated
 ```
 
 4. **Match module resolution:**
+
 ```json
 {
   "compilerOptions": {
@@ -698,11 +724,13 @@ npm run build  # Ensure .d.ts files are generated
 ### Issue 2: Module Kind Mismatch
 
 **Symptoms:**
+
 ```
 TS1479: The 'my-local-package' package has a 'module' kind that is not compatible with this project.
 ```
 
 **Causes:**
+
 1. Different `module` settings between packages
 2. Different `type` field in package.json
 3. ESM vs CommonJS mismatch
@@ -710,6 +738,7 @@ TS1479: The 'my-local-package' package has a 'module' kind that is not compatibl
 **Solutions:**
 
 1. **Match module settings:**
+
 ```json
 // Both packages
 {
@@ -721,13 +750,15 @@ TS1479: The 'my-local-package' package has a 'module' kind that is not compatibl
 ```
 
 2. **Match package.json type:**
+
 ```json
 {
-  "type": "module"  // Same in both packages
+  "type": "module" // Same in both packages
 }
 ```
 
 3. **Use conditional exports:**
+
 ```json
 {
   "exports": {
@@ -743,6 +774,7 @@ TS1479: The 'my-local-package' package has a 'module' kind that is not compatibl
 ### Issue 3: File Extension Required
 
 **Symptoms:**
+
 ```
 TS2834: Relative import paths need explicit file extensions in ECMA import mode when 'module' is set to 'NodeNext'.
 ```
@@ -753,15 +785,17 @@ Using ES module imports without file extensions.
 **Solutions:**
 
 1. **Add file extensions:**
+
 ```typescript
 // ❌ Wrong
 import { foo } from './local';
 
 // ✅ Correct
-import { foo } from './local.js';  // Note: .js for .ts files
+import { foo } from './local.js'; // Note: .js for .ts files
 ```
 
 2. **Or use CommonJS:**
+
 ```typescript
 // Works without extension
 const { foo } = require('./local');
@@ -770,11 +804,13 @@ const { foo } = require('./local');
 ### Issue 4: Type Declarations Not Found
 
 **Symptoms:**
+
 ```
 Could not find a declaration file for module 'my-local-package'.
 ```
 
 **Causes:**
+
 1. Package not built with declarations
 2. `declaration` flag not set
 3. `types` field incorrect in package.json
@@ -782,6 +818,7 @@ Could not find a declaration file for module 'my-local-package'.
 **Solutions:**
 
 1. **Enable declaration generation:**
+
 ```json
 {
   "compilerOptions": {
@@ -793,6 +830,7 @@ Could not find a declaration file for module 'my-local-package'.
 ```
 
 2. **Set types field:**
+
 ```json
 {
   "types": "./dist/index.d.ts"
@@ -800,6 +838,7 @@ Could not find a declaration file for module 'my-local-package'.
 ```
 
 3. **Build before linking:**
+
 ```bash
 cd ../my-local-package
 npm run build
@@ -811,6 +850,7 @@ npm run build
 TypeScript resolves to wrong location or doesn't follow symlinks.
 
 **Causes:**
+
 1. Symlink created incorrectly
 2. TypeScript not configured to follow symlinks
 3. Path mapping conflicts
@@ -818,12 +858,14 @@ TypeScript resolves to wrong location or doesn't follow symlinks.
 **Solutions:**
 
 1. **Verify symlink:**
+
 ```bash
 ls -la node_modules/my-local-package
 # Should show: my-local-package -> ../../my-local-package
 ```
 
 2. **Enable preserveSymlinks:**
+
 ```json
 {
   "compilerOptions": {
@@ -833,22 +875,23 @@ ls -la node_modules/my-local-package
 ```
 
 3. **Use project references:**
+
 ```json
 {
-  "references": [
-    { "path": "../my-local-package" }
-  ]
+  "references": [{ "path": "../my-local-package" }]
 }
 ```
 
 ### Issue 6: Circular Dependencies
 
 **Symptoms:**
+
 ```
 TS2307: Cannot find module 'my-local-package' when it exists.
 ```
 
 **Causes:**
+
 1. Packages reference each other
 2. Build order issues
 3. Project reference cycles
@@ -856,6 +899,7 @@ TS2307: Cannot find module 'my-local-package' when it exists.
 **Solutions:**
 
 1. **Use composite projects:**
+
 ```json
 {
   "compilerOptions": {
@@ -865,15 +909,15 @@ TS2307: Cannot find module 'my-local-package' when it exists.
 ```
 
 2. **Use project references:**
+
 ```json
 {
-  "references": [
-    { "path": "../shared", "prepend": true }
-  ]
+  "references": [{ "path": "../shared", "prepend": true }]
 }
 ```
 
 3. **Build in correct order:**
+
 ```bash
 cd ../shared && npm run build
 cd ../app && npm run build
@@ -886,6 +930,7 @@ cd ../app && npm run build
 ### Example 1: Simple Monorepo with npm link
 
 **Project Structure:**
+
 ```
 my-monorepo/
 ├── packages/
@@ -903,6 +948,7 @@ my-monorepo/
 ```
 
 **packages/shared/package.json:**
+
 ```json
 {
   "name": "@my-monorepo/shared",
@@ -924,6 +970,7 @@ my-monorepo/
 ```
 
 **packages/shared/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -941,6 +988,7 @@ my-monorepo/
 ```
 
 **packages/app/package.json:**
+
 ```json
 {
   "name": "@my-monorepo/app",
@@ -953,6 +1001,7 @@ my-monorepo/
 ```
 
 **packages/app/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -964,14 +1013,13 @@ my-monorepo/
       "@my-monorepo/shared": ["../shared/src"]
     }
   },
-  "references": [
-    { "path": "../shared" }
-  ],
+  "references": [{ "path": "../shared" }],
   "include": ["src/**/*"]
 }
 ```
 
 **Setup commands:**
+
 ```bash
 # Build shared package
 cd packages/shared
@@ -991,12 +1039,14 @@ npx tsc --noEmit
 ### Example 2: Workspace with pnpm
 
 **pnpm-workspace.yaml:**
+
 ```yaml
 packages:
   - 'packages/*'
 ```
 
 **package.json (root):**
+
 ```json
 {
   "name": "my-monorepo",
@@ -1009,6 +1059,7 @@ packages:
 ```
 
 **packages/shared/package.json:**
+
 ```json
 {
   "name": "@my-monorepo/shared",
@@ -1026,6 +1077,7 @@ packages:
 ```
 
 **packages/app/package.json:**
+
 ```json
 {
   "name": "@my-monorepo/app",
@@ -1038,6 +1090,7 @@ packages:
 ```
 
 **Setup commands:**
+
 ```bash
 # Install all workspace dependencies
 pnpm install
@@ -1052,6 +1105,7 @@ pnpm typecheck
 ### Example 3: TypeScript Paths Only (Development)
 
 **tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -1069,6 +1123,7 @@ pnpm typecheck
 ```
 
 **Usage:**
+
 ```typescript
 import { foo } from '@shared';
 import { bar } from '@utils';
@@ -1125,10 +1180,7 @@ For complex monorepos, use project references:
 
 ```json
 {
-  "references": [
-    { "path": "../shared" },
-    { "path": "../utils" }
-  ]
+  "references": [{ "path": "../shared" }, { "path": "../utils" }]
 }
 ```
 
@@ -1165,7 +1217,7 @@ Support both ESM and CommonJS:
 
 Create a README explaining your module resolution setup:
 
-```markdown
+````markdown
 # Module Resolution Setup
 
 This project uses npm link for local package development.
@@ -1176,8 +1228,10 @@ This project uses npm link for local package development.
    ```bash
    cd packages/shared && npm run build
    ```
+````
 
 2. Link packages:
+
    ```bash
    cd packages/shared && npm link
    cd packages/app && npm link @my-monorepo/shared
@@ -1187,7 +1241,8 @@ This project uses npm link for local package development.
    ```bash
    npm run typecheck
    ```
-```
+
+````
 
 ### 8. Use Workspaces When Possible
 
@@ -1197,23 +1252,21 @@ For new projects, prefer workspaces over npm link:
 ```yaml
 packages:
   - 'packages/*'
-```
+````
 
 **Yarn:**
+
 ```json
 {
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": ["packages/*"]
 }
 ```
 
 **npm:**
+
 ```json
 {
-  "workspaces": [
-    "packages/*"
-  ]
+  "workspaces": ["packages/*"]
 }
 ```
 
@@ -1235,7 +1288,7 @@ If using TypeScript 5.0+, leverage new resolution features:
 {
   "compilerOptions": {
     "moduleResolution": "NodeNext",
-    "allowImportingTsExtensions": false,  // Require .js extensions
+    "allowImportingTsExtensions": false, // Require .js extensions
     "resolvePackageJsonExports": true,
     "resolvePackageJsonImports": true,
     "customConditions": ["development", "production"]
@@ -1346,16 +1399,19 @@ When experiencing module resolution issues:
 ## Additional Resources
 
 ### Official Documentation
+
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [tsconfig.json Reference](https://www.typescriptlang.org/tsconfig)
 - [TypeScript 5.0 Release Notes](https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/)
 
 ### Community Resources
+
 - [TypeScript Discord](https://discord.gg/typescript)
 - [Stack Overflow - TypeScript](https://stackoverflow.com/questions/tagged/typescript)
 - [TypeScript GitHub Discussions](https://github.com/microsoft/TypeScript/discussions)
 
 ### Tools
+
 - [tsc-alias](https://github.com/justkey007/tsc-alias) - Path alias resolver
 - [ts-node](https://github.com/TypeStrong/ts-node) - TypeScript execution
 - [tsx](https://github.com/privatenumber/tsx) - TypeScript execution (ESM)

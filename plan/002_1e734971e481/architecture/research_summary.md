@@ -13,6 +13,7 @@ This document summarizes the comprehensive research performed and the resulting 
 ### Critical Finding
 
 **This is NOT a greenfield project.** The codebase is a **mature, production-ready TypeScript application** with:
+
 - **69 TypeScript files**
 - **~29,249 lines of code**
 - **All 4 core components fully implemented**
@@ -26,8 +27,10 @@ This document summarizes the comprehensive research performed and the resulting 
 Four specialized research agents were launched concurrently to validate the PRD and understand the codebase:
 
 #### Agent 1: Codebase Structure Analysis
+
 **Location:** `/home/dustin/projects/hacky-hack/src/`
 **Findings:**
+
 - Complete implementation of all four core engines
 - SessionManager (1027 lines) - Full state management with batch updates
 - TaskOrchestrator (835 lines) - DFS traversal with dependency resolution
@@ -37,8 +40,10 @@ Four specialized research agents were launched concurrently to validate the PRD 
 - Production-ready features: graceful shutdown, error recovery, resource monitoring
 
 #### Agent 2: Groundswell Library Analysis
+
 **Location:** `/home/dustin/projects/groundswell`
 **Findings:**
+
 - Library accessible at ~/projects/groundswell
 - Version 0.0.3, production-ready
 - Full API coverage: Workflow, Agent, Prompt, MCPHandler
@@ -49,19 +54,23 @@ Four specialized research agents were launched concurrently to validate the PRD 
 - Complete documentation
 
 #### Agent 3: Requirements Analysis
+
 **Sources:** PRD.md, PROMPTS.md
 **Findings:**
+
 - **5 Agent Personas** identified: Architect, Researcher, Coder, QA, Change Manager
 - **5 Critical Prompts** catalogued with templates
 - **4-Level Validation Gates** documented (Syntax → Unit → Integration → Creative)
 - **JSON Schema** specified for tasks.json
 - **Delta Workflow** logic detailed (PRD change detection)
-- **Session Structure** defined (plan/{sequence}_{hash}/)
+- **Session Structure** defined (plan/{sequence}\_{hash}/)
 - **Context Scope** contract format specified
 
 #### Agent 4: Environment & Configuration Analysis
+
 **Sources:** package.json, tsconfig.json, vitest.config.ts, .env
 **Findings:**
+
 - Node.js 20+, TypeScript 5.2+, ESM modules
 - z.ai API integration with safeguards
 - Environment variable mapping: AUTH_TOKEN → API_KEY
@@ -75,8 +84,10 @@ Four specialized research agents were launched concurrently to validate the PRD 
 ## Architecture Documentation Created
 
 ### 1. System Context
+
 **File:** `./plan/002_1e734971e481/architecture/system_context.md`
 **Content:**
+
 - Current implementation status (all components complete)
 - Technology stack (Groundswell, z.ai, TypeScript)
 - Architecture patterns (Factory, Repository, Strategy, Observer)
@@ -93,8 +104,10 @@ Four specialized research agents were launched concurrently to validate the PRD 
 - Development workflow
 
 ### 2. Groundswell Library Analysis
+
 **File:** `./plan/002_1e734971e481/architecture/groundswell_analysis.md`
 **Content:**
+
 - Library overview and structure
 - Core API surface (Workflow, Agent, Prompt, MCPHandler)
 - Decorators (@Step, @Task, @ObservedState)
@@ -113,6 +126,7 @@ Four specialized research agents were launched concurrently to validate the PRD 
 ## Task Breakdown Created
 
 ### Output File
+
 **Location:** `./plan/002_1e734971e481/tasks.json`
 
 ### Structure Summary
@@ -120,6 +134,7 @@ Four specialized research agents were launched concurrently to validate the PRD 
 #### Phase 1: Bootstrap Core Infrastructure (READY)
 
 **Milestone P1.M1: Groundswell Integration & Validation**
+
 - Task P1.M1.T1: Verify Groundswell Library Link
   - S1: Validate npm link configuration (1 SP)
   - S2: Test Groundswell imports (1 SP)
@@ -130,6 +145,7 @@ Four specialized research agents were launched concurrently to validate the PRD 
   - S3: Test MCP tool registration (2 SP)
 
 **Milestone P1.M2: Environment Configuration & API Safety**
+
 - Task P1.M2.T1: Validate environment variable mapping
   - S1: Test AUTH_TOKEN to API_KEY mapping (1 SP)
   - S2: Test default BASE_URL configuration (1 SP)
@@ -140,6 +156,7 @@ Four specialized research agents were launched concurrently to validate the PRD 
   - S3: Document API configuration requirements (0.5 SP)
 
 **Milestone P1.M3: Data Structure Validation**
+
 - Task P1.M3.T1: Validate task hierarchy models
   - S1: Test Phase/Milestone/Task/Subtask type definitions (1 SP)
   - S2: Test task status transitions (1 SP)
@@ -152,6 +169,7 @@ Four specialized research agents were launched concurrently to validate the PRD 
 #### Phase 2: Core Engine Validation (PLANNED)
 
 **Milestone P2.M1: Session Manager Validation**
+
 - Task P2.M1.T1: Test session initialization logic
   - S1: Test new session creation (2 SP)
   - S2: Test existing session loading (2 SP)
@@ -170,6 +188,7 @@ Four specialized research agents were launched concurrently to validate the PRD 
 ### 1. Project Maturity
 
 This is an **enhancement project**, not a new implementation. All core functionality exists. Focus on:
+
 - **Validation** - Ensure existing components work correctly
 - **Testing** - Improve test coverage (currently aiming for 100%)
 - **Bug Fixes** - Address any issues found during validation
@@ -178,6 +197,7 @@ This is an **enhancement project**, not a new implementation. All core functiona
 ### 2. Groundswell Integration
 
 Groundswell is **fully integrated** and production-ready. Use existing patterns:
+
 - Extend `Workflow` for new workflows
 - Use `@Step`, `@Task`, `@ObservedState` decorators
 - Create agents via `createAgent()` factory
@@ -187,6 +207,7 @@ Groundswell is **fully integrated** and production-ready. Use existing patterns:
 ### 3. Architecture Patterns
 
 Follow existing patterns for consistency:
+
 - **Factory Pattern** - Agent creation via agent-factory.ts
 - **Repository Pattern** - Session persistence via SessionManager
 - **Strategy Pattern** - Agent personas
@@ -196,6 +217,7 @@ Follow existing patterns for consistency:
 ### 4. Context Scope Contracts
 
 Each subtask's `context_scope` field is a **critical handoff document**. Format:
+
 ```
 CONTRACT DEFINITION:
 1. RESEARCH NOTE: [Finding from architecture/ research]
@@ -207,6 +229,7 @@ CONTRACT DEFINITION:
 ### 5. Protected Files
 
 **NEVER DELETE:**
+
 - `tasks.json` - Pipeline state
 - `prd_snapshot.md` - PRD snapshot
 - `delta_from.txt` - Delta linkage
@@ -220,6 +243,7 @@ CONTRACT DEFINITION:
 ### 7. Delta Workflow
 
 PRD changes trigger delta sessions:
+
 1. Detect hash mismatch
 2. Create new session directory
 3. Link via `delta_from.txt`
@@ -232,6 +256,7 @@ PRD changes trigger delta sessions:
 ## Recommendations for PRP Agents
 
 ### For Architect Agent
+
 - This breakdown focuses on **validation**, not new features
 - Phase 1 validates infrastructure is solid
 - Phase 2 validates core engines work correctly
@@ -239,12 +264,14 @@ PRD changes trigger delta sessions:
 - Context scopes reference research findings
 
 ### For Researcher Agent
+
 - Use architecture/ research documents extensively
 - Reference existing implementation patterns
 - Don't re-research what's already documented
 - Focus on validation strategies and test approaches
 
 ### For Coder Agent
+
 - Follow existing code patterns (read existing files first)
 - Use Groundswell decorators (@Step, @Task, @ObservedState)
 - Implement tests using Vitest patterns from tests/
@@ -252,6 +279,7 @@ PRD changes trigger delta sessions:
 - Use vi.mock() for external dependencies
 
 ### For QA Agent
+
 - Focus on integration and e2e tests
 - Test error scenarios and edge cases
 - Validate API safeguards work correctly

@@ -191,7 +191,9 @@ describe('isFatalError', () => {
       });
 
       it('should return true for SessionError with whitespace-only message', () => {
-        const error = new SessionError('   ', { sessionPath: '/path/to/session' });
+        const error = new SessionError('   ', {
+          sessionPath: '/path/to/session',
+        });
         expect(isFatalError(error)).toBe(true);
       });
 
@@ -392,9 +394,13 @@ describe('isFatalError', () => {
 
       it('should return true for ValidationError with parse_prd and cause', () => {
         const cause = new Error('Markdown parsing failed');
-        const error = new ValidationError('PRD parsing failed', {
-          operation: 'parse_prd',
-        }, cause);
+        const error = new ValidationError(
+          'PRD parsing failed',
+          {
+            operation: 'parse_prd',
+          },
+          cause
+        );
         expect(isFatalError(error)).toBe(true);
       });
 
@@ -592,7 +598,9 @@ describe('isFatalError', () => {
       it('should return false for TaskError with different taskIds', () => {
         const error1 = new TaskError('Task failed', { taskId: 'P1.M1.T1.S1' });
         const error2 = new TaskError('Task failed', { taskId: 'P2.M3.T5.S10' });
-        const error3 = new TaskError('Task failed', { taskId: 'P99.M99.T99.S99' });
+        const error3 = new TaskError('Task failed', {
+          taskId: 'P99.M99.T99.S99',
+        });
         expect(isFatalError(error1)).toBe(false);
         expect(isFatalError(error2)).toBe(false);
         expect(isFatalError(error3)).toBe(false);
@@ -600,7 +608,11 @@ describe('isFatalError', () => {
 
       it('should return false for TaskError with cause', () => {
         const cause = new Error('LLM timeout');
-        const error = new TaskError('Task execution failed', { taskId: 'P1.M1.T1' }, cause);
+        const error = new TaskError(
+          'Task execution failed',
+          { taskId: 'P1.M1.T1' },
+          cause
+        );
         expect(isFatalError(error)).toBe(false);
       });
 
@@ -712,9 +724,13 @@ describe('isFatalError', () => {
       });
 
       it('should return false for AgentError with different taskIds', () => {
-        const error1 = new AgentError('Agent failed', { taskId: 'P1.M1.T1.S1' });
+        const error1 = new AgentError('Agent failed', {
+          taskId: 'P1.M1.T1.S1',
+        });
         const error2 = new AgentError('Agent failed', { taskId: 'P2.M3.T5' });
-        const error3 = new AgentError('Agent failed', { taskId: 'P99.M99.T99' });
+        const error3 = new AgentError('Agent failed', {
+          taskId: 'P99.M99.T99',
+        });
         expect(isFatalError(error1)).toBe(false);
         expect(isFatalError(error2)).toBe(false);
         expect(isFatalError(error3)).toBe(false);
@@ -739,7 +755,11 @@ describe('isFatalError', () => {
 
       it('should return false for AgentError with cause', () => {
         const cause = new Error('Network timeout');
-        const error = new AgentError('LLM call failed', { taskId: 'P1.M1.T1' }, cause);
+        const error = new AgentError(
+          'LLM call failed',
+          { taskId: 'P1.M1.T1' },
+          cause
+        );
         expect(isFatalError(error)).toBe(false);
       });
 
@@ -957,9 +977,12 @@ describe('isFatalError', () => {
       });
 
       it('should return false for ValidationError with special characters', () => {
-        const error = new ValidationError('Validation error: \n\t\r\u0010[Special]', {
-          operation: 'validate_scope',
-        });
+        const error = new ValidationError(
+          'Validation error: \n\t\r\u0010[Special]',
+          {
+            operation: 'validate_scope',
+          }
+        );
         expect(isFatalError(error)).toBe(false);
       });
 
@@ -1207,7 +1230,9 @@ describe('isFatalError', () => {
     });
 
     it('should return false for object with error-like properties', () => {
-      expect(isFatalError({ name: 'Error', message: 'test', stack: 'stack trace' })).toBe(false);
+      expect(
+        isFatalError({ name: 'Error', message: 'test', stack: 'stack trace' })
+      ).toBe(false);
     });
 
     it('should return false for empty array', () => {
@@ -1330,7 +1355,9 @@ describe('isFatalError', () => {
     });
 
     it('should work with isEnvironmentError type guard', () => {
-      const error = new EnvironmentError('Test error', { variable: 'TEST_VAR' });
+      const error = new EnvironmentError('Test error', {
+        variable: 'TEST_VAR',
+      });
 
       if (isEnvironmentError(error)) {
         // Type is narrowed to EnvironmentError
@@ -1593,8 +1620,14 @@ describe('isFatalError', () => {
     });
 
     it('should handle wrapped PipelineError', () => {
-      const innerError = new TaskError('Inner task error', { taskId: 'P1.M1.T1' });
-      const outerError = new SessionError('Outer session error', {}, innerError);
+      const innerError = new TaskError('Inner task error', {
+        taskId: 'P1.M1.T1',
+      });
+      const outerError = new SessionError(
+        'Outer session error',
+        {},
+        innerError
+      );
       expect(isFatalError(outerError)).toBe(true);
       expect(isFatalError(innerError)).toBe(false);
     });

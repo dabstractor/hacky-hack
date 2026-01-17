@@ -51,6 +51,7 @@ The following official TypeScript documentation is essential for understanding m
 ```
 
 **Key characteristics:**
+
 - Aligns with Node.js ES module resolution
 - Requires file extensions for ES module imports (`import { x } from './file.js'`)
 - Respects `package.json` `type` field (`"type": "module"` or `"type": "commonjs"`)
@@ -58,6 +59,7 @@ The following official TypeScript documentation is essential for understanding m
 - Handles both ESM and CommonJS
 
 **Conditional exports example:**
+
 ```json
 {
   "exports": {
@@ -87,6 +89,7 @@ TypeScript paths allow compile-time aliasing of local packages:
 ```
 
 **Important limitation:** TypeScript paths are **compile-time only**. Runtime resolution requires:
+
 - npm link (for development)
 - Workspace configuration (pnpm, Yarn, npm)
 - Bundler configuration (webpack, esbuild, etc.)
@@ -94,6 +97,7 @@ TypeScript paths allow compile-time aliasing of local packages:
 ### 4. npm Link and TypeScript
 
 **Workflow:**
+
 ```bash
 # 1. Build the package (generates .d.ts files)
 cd ../local-package
@@ -113,6 +117,7 @@ npx tsc --noEmit
 **Critical requirements for linked packages:**
 
 1. **Generate type declarations:**
+
    ```json
    {
      "compilerOptions": {
@@ -124,6 +129,7 @@ npx tsc --noEmit
    ```
 
 2. **Configure package.json:**
+
    ```json
    {
      "types": "./dist/index.d.ts",
@@ -153,12 +159,14 @@ npx tsc --noEmit --traceResolution
 ```
 
 **What it checks:**
+
 - All imports can be resolved
 - Type definitions are found
 - No type errors
 - Module compatibility
 
 **Alternative:** Use the provided verification script:
+
 ```bash
 npx tsx scripts/verify-module-resolution.ts
 npx tsx scripts/verify-module-resolution.ts --verbose
@@ -169,6 +177,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ### Minimal Configuration (ES Modules)
 
 **tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -182,6 +191,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ```
 
 **package.json:**
+
 ```json
 {
   "type": "module"
@@ -191,17 +201,16 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ### Monorepo Configuration
 
 **Root tsconfig.json:**
+
 ```json
 {
   "files": [],
-  "references": [
-    { "path": "./packages/shared" },
-    { "path": "./packages/app" }
-  ]
+  "references": [{ "path": "./packages/shared" }, { "path": "./packages/app" }]
 }
 ```
 
 **packages/shared/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -217,6 +226,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ```
 
 **packages/app/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -228,9 +238,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
       "@shared": ["../shared/src"]
     }
   },
-  "references": [
-    { "path": "../shared" }
-  ]
+  "references": [{ "path": "../shared" }]
 }
 ```
 
@@ -239,6 +247,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ### Issue 1: "Cannot find module" (TS2307)
 
 **Solutions:**
+
 1. Build the linked package: `cd ../pkg && npm run build`
 2. Create npm link: `npm link pkg`
 3. Check tsconfig.json paths configuration
@@ -247,6 +256,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ### Issue 2: Module kind mismatch (TS1479)
 
 **Solutions:**
+
 1. Match `module` settings in all packages
 2. Match `package.json` `type` field
 3. Use conditional exports for dual ESM/CJS support
@@ -254,6 +264,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ### Issue 3: Missing file extensions (TS2834)
 
 **Solutions:**
+
 1. Add `.js` extension to ES module imports
 2. Remember to use `.js` for `.ts` files
 3. Or use CommonJS (`require`)
@@ -261,6 +272,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ### Issue 4: Cannot find type declarations (TS6137)
 
 **Solutions:**
+
 1. Enable `declaration: true` in tsconfig.json
 2. Build the package to generate `.d.ts` files
 3. Check `types` field in package.json
@@ -268,6 +280,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 ## Best Practices
 
 1. **Always build before linking**
+
    ```bash
    cd ../local-package && npm run build && npm link
    ```
@@ -276,6 +289,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
    All packages should use the same `module` and `moduleResolution`.
 
 3. **Enable declaration generation**
+
    ```json
    {
      "compilerOptions": {
@@ -286,16 +300,16 @@ npx tsx scripts/verify-module-resolution.ts --verbose
    ```
 
 4. **Use project references for monorepos**
+
    ```json
    {
-     "references": [
-       { "path": "../shared" }
-     ]
+     "references": [{ "path": "../shared" }]
    }
    ```
 
 5. **Verify resolution regularly**
    Add to your build process:
+
    ```json
    {
      "scripts": {
@@ -313,6 +327,7 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 The following tools have been created to help verify TypeScript module resolution:
 
 ### 1. verify-module-resolution.ts
+
 ```bash
 npx tsx scripts/verify-module-resolution.ts
 npx tsx scripts/verify-module-resolution.ts --verbose
@@ -321,11 +336,13 @@ npx tsx scripts/verify-module-resolution.ts --verbose
 Verifies that TypeScript can resolve all imports. Shows detailed resolution information in verbose mode.
 
 ### 2. test-import-resolution.ts
+
 ```bash
 npx tsx scripts/test-import-resolution.ts
 ```
 
 Runs a test suite checking:
+
 - TypeScript compilation
 - Configuration existence
 - npm linked packages
@@ -357,22 +374,26 @@ Import not working
 ## Quick Reference
 
 **Verify resolution:**
+
 ```bash
 npx tsc --noEmit
 ```
 
 **Trace resolution:**
+
 ```bash
 npx tsc --noEmit --traceResolution
 ```
 
 **Build and link:**
+
 ```bash
 cd ../pkg && npm run build && npm link
 cd . && npm link pkg
 ```
 
 **Check configuration:**
+
 ```bash
 npx tsx scripts/verify-module-resolution.ts
 ```
@@ -387,17 +408,20 @@ npx tsx scripts/verify-module-resolution.ts
 ## URLs and Resources
 
 ### Official TypeScript Documentation
+
 - Module Resolution: https://www.typescriptlang.org/docs/handbook/modules/reference.html
 - Module Resolution Theory: https://www.typescriptlang.org/docs/handbook/modules/theory.html
 - tsconfig Reference: https://www.typescriptlang.org/tsconfig
 - Project References: https://www.typescriptlang.org/docs/handbook/project-references.html
 
 ### Community Resources
+
 - TypeScript GitHub Issues: https://github.com/microsoft/TypeScript/issues
 - TypeScript Discussions: https://github.com/microsoft/TypeScript/discussions
 - Stack Overflow (TypeScript): https://stackoverflow.com/questions/tagged/typescript
 
 ### Tools
+
 - TypeScript: https://www.typescriptlang.org/
 - tsx: https://github.com/privatenumber/tsx
 - ts-node: https://github.com/TypeStrong/ts-node

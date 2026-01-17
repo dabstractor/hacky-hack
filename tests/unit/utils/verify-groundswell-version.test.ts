@@ -325,6 +325,7 @@ describe('verifyGroundswellVersion', () => {
 
     it('should handle missing version field', async () => {
       const packageJson = createValidPackageJson('0.0.3');
+      // @ts-expect-error - Testing missing version field
       delete packageJson.version;
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify(packageJson));
       vi.mocked(valid).mockReturnValue(null);
@@ -778,7 +779,7 @@ describe('verifyGroundswellVersion', () => {
 
     it('should handle empty package.json dependencies', async () => {
       const packageJson = createValidPackageJson('0.0.3');
-      packageJson.dependencies = {};
+      packageJson.dependencies = {} as any;
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify(packageJson));
 
       const report = await verifyGroundswellVersion();

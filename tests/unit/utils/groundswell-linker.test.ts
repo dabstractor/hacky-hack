@@ -980,7 +980,7 @@ describe('linkGroundswellLocally', () => {
       // Mock symlink verification
       vi.mocked(lstat).mockResolvedValue({
         isSymbolicLink: () => true,
-      } as ReturnType<typeof lstat>);
+      } as unknown as Awaited<ReturnType<typeof lstat>>);
 
       vi.mocked(readlink).mockResolvedValue(mockGlobalLinkPath);
 

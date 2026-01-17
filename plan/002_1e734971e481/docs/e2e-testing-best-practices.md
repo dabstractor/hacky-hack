@@ -45,6 +45,7 @@ import { createAgent } from 'groundswell';
 ```
 
 **Best Practices:**
+
 - Always place `vi.mock()` calls at the top level before imports
 - Use `vi.importActual()` to preserve real exports when needed
 - Use `vi.mocked()` for type-safe mock access
@@ -58,6 +59,7 @@ vi.mocked(createAgent).mockResolvedValue({ data: 'test' });
 ```
 
 **Benefits:**
+
 - Provides TypeScript autocomplete and type checking
 - Catches type errors at compile time
 - Improves IDE support
@@ -65,11 +67,13 @@ vi.mocked(createAgent).mockResolvedValue({ data: 'test' });
 #### Pattern 3: Mock Factories for Complex Objects
 
 ```typescript
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
   return {
@@ -99,6 +103,7 @@ function createMockChild(options: {
 ```
 
 **Benefits:**
+
 - Reusable mock creation
 - Consistent mock behavior
 - Easy to customize with options
@@ -116,6 +121,7 @@ afterEach(() => {
 ```
 
 **When to Use:**
+
 - When mocks use `setTimeout` for async behavior
 - When testing timing-dependent code
 - When fake timers interfere with mock execution
@@ -144,6 +150,7 @@ describe('E2E Pipeline Tests', () => {
 ```
 
 **Best Practices:**
+
 - Group related tests in `describe` blocks
 - Use descriptive test names that explain what is being tested
 - Follow AAA pattern (Arrange, Act, Assert)
@@ -202,9 +209,11 @@ expect(mockAgent.prompt).toHaveBeenCalled();
 
 // Verify call counts and arguments
 expect(mockAgent.prompt).toHaveBeenCalledTimes(3);
-expect(mockAgent.prompt).toHaveBeenCalledWith(expect.objectContaining({
-  user: expect.stringContaining('test')
-}));
+expect(mockAgent.prompt).toHaveBeenCalledWith(
+  expect.objectContaining({
+    user: expect.stringContaining('test'),
+  })
+);
 ```
 
 ### 2.2 Schema Validation with Zod
@@ -213,12 +222,14 @@ expect(mockAgent.prompt).toHaveBeenCalledWith(expect.objectContaining({
 import { z } from 'zod';
 
 const BacklogSchema = z.object({
-  backlog: z.array(z.object({
-    id: z.string(),
-    type: z.enum(['Phase', 'Milestone', 'Task', 'Subtask']),
-    title: z.string(),
-    status: z.enum(['Planned', 'InProgress', 'Complete', 'Failed']),
-  }))
+  backlog: z.array(
+    z.object({
+      id: z.string(),
+      type: z.enum(['Phase', 'Milestone', 'Task', 'Subtask']),
+      title: z.string(),
+      status: z.enum(['Planned', 'InProgress', 'Complete', 'Failed']),
+    })
+  ),
 });
 
 // Validate in tests
@@ -270,6 +281,7 @@ describe('File System Tests', () => {
 ```
 
 **Benefits:**
+
 - Each test gets isolated directory
 - Automatic cleanup prevents disk space issues
 - Concurrent test execution support
@@ -340,6 +352,7 @@ vi.mocked(readFile).mockImplementation((path: string | Buffer) => {
 ```
 
 **When to Use:**
+
 - Need to control file read content
 - Want real file system for writes
 - Testing file creation workflows
@@ -358,6 +371,7 @@ vi.mock('node:fs', async importOriginal => {
 ```
 
 **When to Use:**
+
 - Testing with non-existent files
 - Conditional file logic
 - Path resolution testing
@@ -383,6 +397,7 @@ afterEach(() => {
 ```
 
 **When to Use:**
+
 - Complete isolation from real file system
 - CI/CD environments with restricted file access
 - Performance (memory is faster than disk)
@@ -455,6 +470,7 @@ it('should complete execution in under 30 seconds', async () => {
 ```
 
 **Benefits:**
+
 - High precision (sub-millisecond)
 - No external dependencies
 - Works in all modern Node.js versions
@@ -542,6 +558,7 @@ it('should complete long operation', async () => {
 #### Issue 1: Slow Mock Setup
 
 **Problem:**
+
 ```typescript
 // Slow: Creating complex mocks in each test
 beforeEach(() => {
@@ -555,6 +572,7 @@ beforeEach(() => {
 ```
 
 **Solution:**
+
 ```typescript
 // Fast: Create shared mock factory
 function createMockAgent() {
@@ -574,6 +592,7 @@ beforeEach(() => {
 #### Issue 2: Synchronous File Operations in Loops
 
 **Problem:**
+
 ```typescript
 // Slow: Sync operations in loop
 for (const file of files) {
@@ -582,11 +601,10 @@ for (const file of files) {
 ```
 
 **Solution:**
+
 ```typescript
 // Fast: Parallel async operations
-const contents = await Promise.all(
-  files.map(file => readFile(file, 'utf-8'))
-);
+const contents = await Promise.all(files.map(file => readFile(file, 'utf-8')));
 ```
 
 ---
@@ -626,6 +644,7 @@ afterEach(() => {
 ```
 
 **Benefits:**
+
 - Automatic cleanup across all tests
 - Prevents test pollution
 - Manages memory in long test runs
@@ -727,6 +746,7 @@ afterEach(() => {
 ```
 
 **To enable:**
+
 ```bash
 node --expose-gc ./node_modules/.bin/vitest
 ```
@@ -786,12 +806,14 @@ it('should clean up temp directory after test', async () => {
 ### 6.1 Official Documentation
 
 #### Vitest
+
 - **Main Guide:** https://vitest.dev/guide/
 - **E2E Testing:** https://vitest.dev/guide/e2e.html
 - **API Reference:** https://vitest.dev/api/
 - **Configuration:** https://vitest.dev/config/
 
 #### Node.js File System
+
 - **File System (fs):** https://nodejs.org/api/fs.html
 - **File System Promises:** https://nodejs.org/api/fs.html#fspromises-api
 - **Path Module:** https://nodejs.org/api/path.html
@@ -799,10 +821,12 @@ it('should clean up temp directory after test', async () => {
 ### 6.2 Best Practices Articles
 
 #### E2E Testing
+
 - **Vitest Best Practices:** https://vitest.dev/guide/best-practices.html
 - **Testing Library Principles:** https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
 
 #### File System Testing
+
 - **Node.js Testing Patterns:** https://nodejs.org/en/docs/guides/testing-patterns/
 - **mock-fs Documentation:** https://github.com/tschaub/mock-fs
 - **memfs Documentation:** https://github.com/streamich/memfs
@@ -810,16 +834,19 @@ it('should clean up temp directory after test', async () => {
 ### 6.3 Performance Testing
 
 #### Articles
+
 - **Performance Testing in Node.js:** https://nodejs.org/en/docs/guides/simple-profiling/
 - **Vitest Performance:** https://vitest.dev/guide/improving-performance.html
 
 #### Tools
+
 - **clinic.js:** https://clinicjs.org/
 - **0x:** https://npm.im/0x
 
 ### 6.4 Test Isolation
 
 #### Patterns
+
 - **Test Fixtures:** https://vitest.dev/guide/test-context.html
 - **Mock Functions:** https://vitest.dev/api/mock.html
 - **Module Mocking:** https://vitest.dev/api/vi.html#vi-mock
@@ -827,11 +854,13 @@ it('should clean up temp directory after test', async () => {
 ### 6.5 Related Testing Libraries
 
 #### Validation
+
 - **Zod:** https://zod.dev/
 - **Joi:** https://joi.dev/
 - **io-ts:** https://gcanti.github.io/io-ts/
 
 #### Test Utilities
+
 - **fake-timers:** https://npmjs.com/package/@sinonjs/fake-timers
 - **sinon.js:** https://sinonjs.org/
 
@@ -840,30 +869,35 @@ it('should clean up temp directory after test', async () => {
 ## Summary of Key Best Practices
 
 ### 1. Vitest E2E Testing
+
 - Use module-level mocking with `vi.mock()` before imports
 - Use `vi.mocked()` for type-safe mock access
 - Create mock factories for complex objects
 - Use `vi.useRealTimers()` when mocks use async setTimeout
 
 ### 2. Validation Strategies
+
 - Validate at multiple levels: structure, files, content, behavior
 - Use schema validation (Zod) for complex data structures
 - Always test error cases and edge cases
 - Verify both success and failure paths
 
 ### 3. File System Testing
+
 - Use unique temp directories per test with `mkdtempSync()`
 - Always cleanup with `rmSync(dir, { recursive: true, force: true })`
 - Mock readFile for controlled input, use real fs for writes
 - Use `existsSync()` and content validation for verification
 
 ### 4. Performance Testing
+
 - Use `performance.now()` for millisecond precision
 - Set hierarchical timeouts (operation, suite, global)
 - Track performance history to detect regressions
 - Log actual durations for analysis
 
 ### 5. Test Isolation
+
 - Use `beforeEach`/`afterEach` for setup/teardown
 - Clear mocks with `vi.clearAllMocks()` in `beforeEach`
 - Use `afterEach` for cleanup (dirs, env vars, timers)

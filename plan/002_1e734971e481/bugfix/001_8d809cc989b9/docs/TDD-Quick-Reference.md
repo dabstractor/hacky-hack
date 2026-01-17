@@ -147,7 +147,7 @@ describe('isFatalError type guard', () => {
 
 ## 💻 Implementation Template
 
-```typescript
+````typescript
 // In src/utils/errors.ts
 
 // 1. Add to ErrorCodes enum
@@ -176,11 +176,7 @@ export class FatalError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_EXECUTION_FATAL_ERROR;
   readonly isFatal = true;
 
-  constructor(
-    message: string,
-    context?: PipelineErrorContext,
-    cause?: Error
-  ) {
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
     super(message, context, cause);
     Object.setPrototypeOf(this, FatalError.prototype);
   }
@@ -212,13 +208,14 @@ export class FatalError extends PipelineError {
 export function isFatalError(error: unknown): error is FatalError {
   return error instanceof FatalError;
 }
-```
+````
 
 ---
 
 ## 🎯 Test Categories to Cover
 
 ### 1. Constructor Tests (7 tests)
+
 - [ ] Message only
 - [ ] Message + context
 - [ ] Message + cause
@@ -228,6 +225,7 @@ export function isFatalError(error: unknown): error is FatalError {
 - [ ] Empty message edge case
 
 ### 2. Property Tests (5 tests)
+
 - [ ] Error code is `PIPELINE_EXECUTION_FATAL_ERROR`
 - [ ] Name is `FatalError`
 - [ ] Timestamp is set correctly
@@ -235,10 +233,12 @@ export function isFatalError(error: unknown): error is FatalError {
 - [ ] isFatal is `true`
 
 ### 3. Prototype Chain Tests (2 tests)
+
 - [ ] Correct prototype chain
 - [ ] instanceof works for all types
 
 ### 4. Serialization Tests (8 tests)
+
 - [ ] toJSON returns plain object
 - [ ] Includes name
 - [ ] Includes code
@@ -249,6 +249,7 @@ export function isFatalError(error: unknown): error is FatalError {
 - [ ] JSON.stringify compatible
 
 ### 5. Context Sanitization Tests (7 tests)
+
 - [ ] Redacts apiKey
 - [ ] Redacts token
 - [ ] Redacts password
@@ -258,6 +259,7 @@ export function isFatalError(error: unknown): error is FatalError {
 - [ ] Handles non-serializable objects
 
 ### 6. Type Guard Tests (15 tests)
+
 - [ ] Returns true for FatalError
 - [ ] Returns true for subclasses
 - [ ] Returns false for SessionError
@@ -275,12 +277,14 @@ export function isFatalError(error: unknown): error is FatalError {
 - [ ] Narrows type in conditional
 
 ### 7. Type Narrowing Tests (4 tests)
+
 - [ ] Narrows type in if statement
 - [ ] Narrows type in catch block
 - [ ] Works with array filter
 - [ ] Works in switch-style handling
 
 ### 8. Edge Case Tests (8 tests)
+
 - [ ] Empty message
 - [ ] Undefined context
 - [ ] Null context
@@ -291,6 +295,7 @@ export function isFatalError(error: unknown): error is FatalError {
 - [ ] Complex context objects
 
 ### 9. Integration Scenario Tests (5 tests)
+
 - [ ] Throwing pattern
 - [ ] Try-catch with type guard
 - [ ] Error chaining

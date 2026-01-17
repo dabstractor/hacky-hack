@@ -114,8 +114,8 @@ describe('core/models Zod Schemas', () => {
 
       // VERIFY: Error should mention missing status field
       if (!result.success) {
-        const statusError = result.error.issues.find(
-          issue => issue.path.includes('status')
+        const statusError = result.error.issues.find(issue =>
+          issue.path.includes('status')
         );
         expect(statusError).toBeDefined();
         expect(statusError?.path).toEqual(['status']);
@@ -155,10 +155,10 @@ describe('core/models Zod Schemas', () => {
     it('should validate normal workflow progression: Planned → Researching → Implementing → Complete', () => {
       // SETUP: Define the workflow progression
       const workflowProgression = [
-        'Planned',      // Initial state
-        'Researching',  // PRP generation in progress
+        'Planned', // Initial state
+        'Researching', // PRP generation in progress
         'Implementing', // PRP execution in progress
-        'Complete',     // Successfully completed
+        'Complete', // Successfully completed
       ] as const;
 
       // EXECUTE & VERIFY: Each status in workflow is valid
@@ -178,10 +178,10 @@ describe('core/models Zod Schemas', () => {
     it('should validate error workflow progression: Planned → Researching → Implementing → Failed', () => {
       // SETUP: Define error workflow progression
       const errorProgression = [
-        'Planned',      // Initial state
-        'Researching',  // PRP generation in progress
+        'Planned', // Initial state
+        'Researching', // PRP generation in progress
         'Implementing', // PRP execution in progress
-        'Failed',       // Failed with error
+        'Failed', // Failed with error
       ] as const;
 
       // EXECUTE & VERIFY: Each status in error workflow is valid
@@ -519,7 +519,8 @@ describe('core/models Zod Schemas', () => {
         status: 'Planned',
         story_points: 1,
         dependencies: [],
-        context_scope: '1. RESEARCH NOTE: Missing CONTRACT DEFINITION prefix.\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
+        context_scope:
+          '1. RESEARCH NOTE: Missing CONTRACT DEFINITION prefix.\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
       };
 
       // EXECUTE
@@ -530,8 +531,8 @@ describe('core/models Zod Schemas', () => {
 
       // VERIFY: Error mentions missing CONTRACT DEFINITION
       if (!result.success) {
-        const contextError = result.error.issues.find(
-          (issue) => issue.path.includes('context_scope')
+        const contextError = result.error.issues.find(issue =>
+          issue.path.includes('context_scope')
         );
         expect(contextError).toBeDefined();
         expect(contextError?.message).toMatch(/CONTRACT DEFINITION/i);
@@ -561,8 +562,8 @@ describe('core/models Zod Schemas', () => {
 
       // VERIFY: Error mentions missing section
       if (!result.success) {
-        const contextError = result.error.issues.find(
-          (issue) => issue.path.includes('context_scope')
+        const contextError = result.error.issues.find(issue =>
+          issue.path.includes('context_scope')
         );
         expect(contextError).toBeDefined();
         expect(contextError?.message).toMatch(/section/i);
@@ -661,8 +662,8 @@ describe('core/models Zod Schemas', () => {
       expect(result.success).toBe(false);
 
       if (!result.success) {
-        const contextError = result.error.issues.find(
-          (issue) => issue.path.includes('context_scope')
+        const contextError = result.error.issues.find(issue =>
+          issue.path.includes('context_scope')
         );
         expect(contextError).toBeDefined();
       }
@@ -732,7 +733,8 @@ describe('core/models Zod Schemas', () => {
         status: 'Planned',
         story_points: 1,
         dependencies: [],
-        context_scope: 'CONTRACT DEFINITION:1. RESEARCH NOTE: No newline after prefix\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
+        context_scope:
+          'CONTRACT DEFINITION:1. RESEARCH NOTE: No newline after prefix\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
       };
 
       // EXECUTE
@@ -761,7 +763,8 @@ describe('core/models Zod Schemas', () => {
 
     it('should reject string not starting with CONTRACT DEFINITION:', () => {
       // SETUP: Invalid context_scope without prefix
-      const invalidScope = '1. RESEARCH NOTE: Missing prefix\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test';
+      const invalidScope =
+        '1. RESEARCH NOTE: Missing prefix\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test';
 
       // EXECUTE
       const result = ContextScopeSchema.safeParse(invalidScope);
@@ -1740,7 +1743,8 @@ describe('core/models Zod Schemas', () => {
       return {
         taskId: 'P1.M2.T2.S2',
         objective: 'Add PRP document interfaces to models.ts',
-        context: '# All Needed Context\n\nComplete context for implementation...',
+        context:
+          '# All Needed Context\n\nComplete context for implementation...',
         implementationSteps: [
           'Create ValidationGate interface',
           'Create ValidationGateSchema',
@@ -1800,7 +1804,9 @@ describe('core/models Zod Schemas', () => {
         if (result.success) {
           // VERIFY: All 7 fields present and correct
           expect(result.data.taskId).toBe('P1.M2.T2.S2');
-          expect(result.data.objective).toBe('Add PRP document interfaces to models.ts');
+          expect(result.data.objective).toBe(
+            'Add PRP document interfaces to models.ts'
+          );
           expect(result.data.context).toContain('All Needed Context');
           expect(result.data.implementationSteps).toHaveLength(2);
           expect(result.data.validationGates).toHaveLength(4);
@@ -2059,7 +2065,9 @@ describe('core/models Zod Schemas', () => {
         ];
 
         // EXECUTE
-        const prp = createTestPRPDocument({ implementationSteps: yamlCreateSteps });
+        const prp = createTestPRPDocument({
+          implementationSteps: yamlCreateSteps,
+        });
         const result = PRPDocumentSchema.safeParse(prp);
 
         // VERIFY: YAML CREATE pattern accepted
@@ -2080,7 +2088,9 @@ describe('core/models Zod Schemas', () => {
         ];
 
         // EXECUTE
-        const prp = createTestPRPDocument({ implementationSteps: yamlModifySteps });
+        const prp = createTestPRPDocument({
+          implementationSteps: yamlModifySteps,
+        });
         const result = PRPDocumentSchema.safeParse(prp);
 
         // VERIFY: YAML MODIFY pattern accepted
@@ -2096,22 +2106,26 @@ describe('core/models Zod Schemas', () => {
         // SETUP: implementationSteps with complete YAML pattern
         const yamlCompleteSteps = [
           'Task 1: CREATE src/core/models.ts\n' +
-          '  - IMPLEMENT: PRPDocument interface\n' +
-          '  - FOLLOW pattern: src/core/models.ts (interface structure)\n' +
-          '  - NAMING: CamelCase for interfaces\n' +
-          '  - DEPENDENCIES: None\n' +
-          '  - PLACEMENT: Core models file',
+            '  - IMPLEMENT: PRPDocument interface\n' +
+            '  - FOLLOW pattern: src/core/models.ts (interface structure)\n' +
+            '  - NAMING: CamelCase for interfaces\n' +
+            '  - DEPENDENCIES: None\n' +
+            '  - PLACEMENT: Core models file',
         ];
 
         // EXECUTE
-        const prp = createTestPRPDocument({ implementationSteps: yamlCompleteSteps });
+        const prp = createTestPRPDocument({
+          implementationSteps: yamlCompleteSteps,
+        });
         const result = PRPDocumentSchema.safeParse(prp);
 
         // VERIFY: All YAML fields accepted
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data.implementationSteps[0]).toContain('IMPLEMENT');
-          expect(result.data.implementationSteps[0]).toContain('FOLLOW pattern');
+          expect(result.data.implementationSteps[0]).toContain(
+            'FOLLOW pattern'
+          );
           expect(result.data.implementationSteps[0]).toContain('NAMING');
           expect(result.data.implementationSteps[0]).toContain('DEPENDENCIES');
           expect(result.data.implementationSteps[0]).toContain('PLACEMENT');
@@ -2132,9 +2146,11 @@ describe('core/models Zod Schemas', () => {
 
         const validationGatesMd = prp.validationGates
           .map(
-            (gate) =>
+            gate =>
               `### Level ${gate.level}\n\n${
-                gate.command !== null ? gate.command : 'Manual validation required'
+                gate.command !== null
+                  ? gate.command
+                  : 'Manual validation required'
               }`
           )
           .join('\n\n');
@@ -2209,7 +2225,9 @@ ${referencesMd}
         expect(markdown).toContain('- [ ] All schemas validated');
 
         // VERIFY: References bullet format
-        expect(markdown).toContain('- https://github.com/anthropics/claude-code');
+        expect(markdown).toContain(
+          '- https://github.com/anthropics/claude-code'
+        );
         expect(markdown).toContain('- src/core/models.ts');
       });
 
@@ -2221,8 +2239,18 @@ ${referencesMd}
           context: '## Test Context\n\nTest context content',
           implementationSteps: ['Step 1', 'Step 2'],
           validationGates: [
-            { level: 1, description: 'Level 1', command: 'npm test', manual: false },
-            { level: 2, description: 'Level 2', command: 'npm run lint', manual: false },
+            {
+              level: 1,
+              description: 'Level 1',
+              command: 'npm test',
+              manual: false,
+            },
+            {
+              level: 2,
+              description: 'Level 2',
+              command: 'npm run lint',
+              manual: false,
+            },
             { level: 3, description: 'Level 3', command: null, manual: true },
             { level: 4, description: 'Level 4', command: null, manual: true },
           ],
@@ -2241,22 +2269,34 @@ ${referencesMd}
         expect(markdown).toMatch(/^# PRP for P1\.M3\.T2\.S2\n/);
 
         // Objective section
-        expect(markdown).toMatch(/## Objective\n\nTest PRPDocument structure\n/);
+        expect(markdown).toMatch(
+          /## Objective\n\nTest PRPDocument structure\n/
+        );
 
         // Context section
-        expect(markdown).toMatch(/## Context\n\n## Test Context\n\nTest context content\n/);
+        expect(markdown).toMatch(
+          /## Context\n\n## Test Context\n\nTest context content\n/
+        );
 
         // Implementation steps (numbered)
-        expect(markdown).toMatch(/## Implementation Steps\n\n1\. Step 1\n2\. Step 2\n/);
+        expect(markdown).toMatch(
+          /## Implementation Steps\n\n1\. Step 1\n2\. Step 2\n/
+        );
 
         // Validation gates (### Level X format)
-        expect(markdown).toMatch(/## Validation Gates\n\n### Level 1\n\nnpm test\n\n### Level 2\n\nnpm run lint\n\n### Level 3\n\nManual validation required\n\n### Level 4\n\nManual validation required\n/);
+        expect(markdown).toMatch(
+          /## Validation Gates\n\n### Level 1\n\nnpm test\n\n### Level 2\n\nnpm run lint\n\n### Level 3\n\nManual validation required\n\n### Level 4\n\nManual validation required\n/
+        );
 
         // Success criteria (checkbox format)
-        expect(markdown).toMatch(/## Success Criteria\n\n- \[ \] Criterion 1\n- \[ \] Criterion 2\n/);
+        expect(markdown).toMatch(
+          /## Success Criteria\n\n- \[ \] Criterion 1\n- \[ \] Criterion 2\n/
+        );
 
         // References (bullet format)
-        expect(markdown).toMatch(/## References\n\n- https:\/\/example\.com\n- src\/test\.ts\n/);
+        expect(markdown).toMatch(
+          /## References\n\n- https:\/\/example\.com\n- src\/test\.ts\n/
+        );
       });
     });
   });
@@ -3096,34 +3136,24 @@ ${referencesMd}
   describe('TypeScript type definitions', () => {
     describe('Subtask type structure', () => {
       it('should have correct property types', () => {
-        expectTypeOf<Subtask>()
-          .toHaveProperty('id')
-          .toBeString();
+        expectTypeOf<Subtask>().toHaveProperty('id').toBeString();
 
         expectTypeOf<Subtask>()
           .toHaveProperty('type')
           .extract<'type'>()
           .toEqualTypeOf<'Subtask'>();
 
-        expectTypeOf<Subtask>()
-          .toHaveProperty('title')
-          .toBeString();
+        expectTypeOf<Subtask>().toHaveProperty('title').toBeString();
 
         expectTypeOf<Subtask>()
           .toHaveProperty('status')
           .toEqualTypeOf<Status>();
 
-        expectTypeOf<Subtask>()
-          .toHaveProperty('story_points')
-          .toBeNumber();
+        expectTypeOf<Subtask>().toHaveProperty('story_points').toBeNumber();
 
-        expectTypeOf<Subtask>()
-          .toHaveProperty('dependencies')
-          .toBeArray();
+        expectTypeOf<Subtask>().toHaveProperty('dependencies').toBeArray();
 
-        expectTypeOf<Subtask>()
-          .toHaveProperty('context_scope')
-          .toBeString();
+        expectTypeOf<Subtask>().toHaveProperty('context_scope').toBeString();
       });
 
       it('should have readonly properties', () => {
@@ -3158,30 +3188,20 @@ ${referencesMd}
 
     describe('Task type structure', () => {
       it('should have correct property types', () => {
-        expectTypeOf<Task>()
-          .toHaveProperty('id')
-          .toBeString();
+        expectTypeOf<Task>().toHaveProperty('id').toBeString();
 
         expectTypeOf<Task>()
           .toHaveProperty('type')
           .extract<'type'>()
           .toEqualTypeOf<'Task'>();
 
-        expectTypeOf<Task>()
-          .toHaveProperty('title')
-          .toBeString();
+        expectTypeOf<Task>().toHaveProperty('title').toBeString();
 
-        expectTypeOf<Task>()
-          .toHaveProperty('status')
-          .toEqualTypeOf<Status>();
+        expectTypeOf<Task>().toHaveProperty('status').toEqualTypeOf<Status>();
 
-        expectTypeOf<Task>()
-          .toHaveProperty('description')
-          .toBeString();
+        expectTypeOf<Task>().toHaveProperty('description').toBeString();
 
-        expectTypeOf<Task>()
-          .toHaveProperty('subtasks')
-          .toBeArray();
+        expectTypeOf<Task>().toHaveProperty('subtasks').toBeArray();
       });
 
       it('should have subtasks array of Subtask type', () => {
@@ -3212,30 +3232,22 @@ ${referencesMd}
 
     describe('Milestone type structure', () => {
       it('should have correct property types', () => {
-        expectTypeOf<Milestone>()
-          .toHaveProperty('id')
-          .toBeString();
+        expectTypeOf<Milestone>().toHaveProperty('id').toBeString();
 
         expectTypeOf<Milestone>()
           .toHaveProperty('type')
           .extract<'type'>()
           .toEqualTypeOf<'Milestone'>();
 
-        expectTypeOf<Milestone>()
-          .toHaveProperty('title')
-          .toBeString();
+        expectTypeOf<Milestone>().toHaveProperty('title').toBeString();
 
         expectTypeOf<Milestone>()
           .toHaveProperty('status')
           .toEqualTypeOf<Status>();
 
-        expectTypeOf<Milestone>()
-          .toHaveProperty('description')
-          .toBeString();
+        expectTypeOf<Milestone>().toHaveProperty('description').toBeString();
 
-        expectTypeOf<Milestone>()
-          .toHaveProperty('tasks')
-          .toBeArray();
+        expectTypeOf<Milestone>().toHaveProperty('tasks').toBeArray();
       });
 
       it('should have tasks array of Task type', () => {
@@ -3252,30 +3264,20 @@ ${referencesMd}
 
     describe('Phase type structure', () => {
       it('should have correct property types', () => {
-        expectTypeOf<Phase>()
-          .toHaveProperty('id')
-          .toBeString();
+        expectTypeOf<Phase>().toHaveProperty('id').toBeString();
 
         expectTypeOf<Phase>()
           .toHaveProperty('type')
           .extract<'type'>()
           .toEqualTypeOf<'Phase'>();
 
-        expectTypeOf<Phase>()
-          .toHaveProperty('title')
-          .toBeString();
+        expectTypeOf<Phase>().toHaveProperty('title').toBeString();
 
-        expectTypeOf<Phase>()
-          .toHaveProperty('status')
-          .toEqualTypeOf<Status>();
+        expectTypeOf<Phase>().toHaveProperty('status').toEqualTypeOf<Status>();
 
-        expectTypeOf<Phase>()
-          .toHaveProperty('description')
-          .toBeString();
+        expectTypeOf<Phase>().toHaveProperty('description').toBeString();
 
-        expectTypeOf<Phase>()
-          .toHaveProperty('milestones')
-          .toBeArray();
+        expectTypeOf<Phase>().toHaveProperty('milestones').toBeArray();
       });
 
       it('should have milestones array of Milestone type', () => {
@@ -3292,7 +3294,13 @@ ${referencesMd}
 
     describe('Status enum type', () => {
       it('should have all 6 status values', () => {
-        type StatusValues = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete';
+        type StatusValues =
+          | 'Planned'
+          | 'Researching'
+          | 'Implementing'
+          | 'Complete'
+          | 'Failed'
+          | 'Obsolete';
         expectTypeOf<Status>().toEqualTypeOf<StatusValues>();
       });
 
@@ -3334,24 +3342,32 @@ ${referencesMd}
 4. OUTPUT: Validation result.`,
     };
 
-    const validPoints = [1, 2, 3, 5, 8, 13, 21, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20];
+    const validPoints = [
+      1, 2, 3, 5, 8, 13, 21, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20,
+    ];
     const invalidPoints = [0, 22, -1, 1.5, 100, 21.5];
 
-    test.each(validPoints)('should accept valid story_points (1-21): %d', (points) => {
-      const result = SubtaskSchema.safeParse({
-        ...validSubtask,
-        story_points: points,
-      });
-      expect(result.success).toBe(true);
-    });
+    test.each(validPoints)(
+      'should accept valid story_points (1-21): %d',
+      points => {
+        const result = SubtaskSchema.safeParse({
+          ...validSubtask,
+          story_points: points,
+        });
+        expect(result.success).toBe(true);
+      }
+    );
 
-    test.each(invalidPoints)('should reject invalid story_points: %d', (points) => {
-      const result = SubtaskSchema.safeParse({
-        ...validSubtask,
-        story_points: points,
-      });
-      expect(result.success).toBe(false);
-    });
+    test.each(invalidPoints)(
+      'should reject invalid story_points: %d',
+      points => {
+        const result = SubtaskSchema.safeParse({
+          ...validSubtask,
+          story_points: points,
+        });
+        expect(result.success).toBe(false);
+      }
+    );
   });
 
   // =============================================================================
@@ -3374,25 +3390,32 @@ ${referencesMd}
 4. OUTPUT: Validation result.`,
       };
 
-      const validSubtaskIds = ['P1.M1.T1.S1', 'P123.M456.T789.S999', 'P99.M99.T99.S99'];
+      const validSubtaskIds = [
+        'P1.M1.T1.S1',
+        'P123.M456.T789.S999',
+        'P99.M99.T99.S99',
+      ];
       const invalidSubtaskIds = [
-        'P1.M1.T1',          // Missing S segment
-        'P1.M1.T1.S1.S2',    // Extra segment
-        'p1.m1.t1.s1',       // Lowercase letters
-        'P1-M1-T1-S1',       // Wrong separator
-        'P1.M1.T1.S',        // Missing number after S
-        'P1.M1.T1.S1a',      // Non-numeric suffix
+        'P1.M1.T1', // Missing S segment
+        'P1.M1.T1.S1.S2', // Extra segment
+        'p1.m1.t1.s1', // Lowercase letters
+        'P1-M1-T1-S1', // Wrong separator
+        'P1.M1.T1.S', // Missing number after S
+        'P1.M1.T1.S1a', // Non-numeric suffix
       ];
 
-      test.each(validSubtaskIds)('should accept valid Subtask ID: %s', (id) => {
+      test.each(validSubtaskIds)('should accept valid Subtask ID: %s', id => {
         const result = SubtaskSchema.safeParse({ ...validSubtask, id });
         expect(result.success).toBe(true);
       });
 
-      test.each(invalidSubtaskIds)('should reject invalid Subtask ID: %s', (id) => {
-        const result = SubtaskSchema.safeParse({ ...validSubtask, id });
-        expect(result.success).toBe(false);
-      });
+      test.each(invalidSubtaskIds)(
+        'should reject invalid Subtask ID: %s',
+        id => {
+          const result = SubtaskSchema.safeParse({ ...validSubtask, id });
+          expect(result.success).toBe(false);
+        }
+      );
     });
 
     describe('Task ID format', () => {
@@ -3407,19 +3430,19 @@ ${referencesMd}
 
       const validTaskIds = ['P1.M1.T1', 'P123.M456.T789', 'P99.M99.T99'];
       const invalidTaskIds = [
-        'P1.M1',             // Missing T segment
-        'P1.M1.T1.S1',       // Extra S segment
-        'p1.m1.t1',          // Lowercase letters
-        'P1-M1-T1',          // Wrong separator
-        'P1.M1.T',           // Missing number after T
+        'P1.M1', // Missing T segment
+        'P1.M1.T1.S1', // Extra S segment
+        'p1.m1.t1', // Lowercase letters
+        'P1-M1-T1', // Wrong separator
+        'P1.M1.T', // Missing number after T
       ];
 
-      test.each(validTaskIds)('should accept valid Task ID: %s', (id) => {
+      test.each(validTaskIds)('should accept valid Task ID: %s', id => {
         const result = TaskSchema.safeParse({ ...validTask, id });
         expect(result.success).toBe(true);
       });
 
-      test.each(invalidTaskIds)('should reject invalid Task ID: %s', (id) => {
+      test.each(invalidTaskIds)('should reject invalid Task ID: %s', id => {
         const result = TaskSchema.safeParse({ ...validTask, id });
         expect(result.success).toBe(false);
       });
@@ -3437,22 +3460,28 @@ ${referencesMd}
 
       const validMilestoneIds = ['P1.M1', 'P123.M456', 'P99.M99'];
       const invalidMilestoneIds = [
-        'P1',                // Missing M segment
-        'P1.M1.T1',          // Extra T segment
-        'p1.m1',             // Lowercase letters
-        'P1-M1',             // Wrong separator
-        'P1.M',              // Missing number after M
+        'P1', // Missing M segment
+        'P1.M1.T1', // Extra T segment
+        'p1.m1', // Lowercase letters
+        'P1-M1', // Wrong separator
+        'P1.M', // Missing number after M
       ];
 
-      test.each(validMilestoneIds)('should accept valid Milestone ID: %s', (id) => {
-        const result = MilestoneSchema.safeParse({ ...validMilestone, id });
-        expect(result.success).toBe(true);
-      });
+      test.each(validMilestoneIds)(
+        'should accept valid Milestone ID: %s',
+        id => {
+          const result = MilestoneSchema.safeParse({ ...validMilestone, id });
+          expect(result.success).toBe(true);
+        }
+      );
 
-      test.each(invalidMilestoneIds)('should reject invalid Milestone ID: %s', (id) => {
-        const result = MilestoneSchema.safeParse({ ...validMilestone, id });
-        expect(result.success).toBe(false);
-      });
+      test.each(invalidMilestoneIds)(
+        'should reject invalid Milestone ID: %s',
+        id => {
+          const result = MilestoneSchema.safeParse({ ...validMilestone, id });
+          expect(result.success).toBe(false);
+        }
+      );
     });
 
     describe('Phase ID format', () => {
@@ -3467,19 +3496,19 @@ ${referencesMd}
 
       const validPhaseIds = ['P1', 'P123', 'P99'];
       const invalidPhaseIds = [
-        'P1.M1',             // Extra M segment
-        'p1',                // Lowercase letter
-        'Phase1',            // Wrong format
-        '1',                 // Missing P prefix
-        'P',                 // Missing number
+        'P1.M1', // Extra M segment
+        'p1', // Lowercase letter
+        'Phase1', // Wrong format
+        '1', // Missing P prefix
+        'P', // Missing number
       ];
 
-      test.each(validPhaseIds)('should accept valid Phase ID: %s', (id) => {
+      test.each(validPhaseIds)('should accept valid Phase ID: %s', id => {
         const result = PhaseSchema.safeParse({ ...validPhase, id });
         expect(result.success).toBe(true);
       });
 
-      test.each(invalidPhaseIds)('should reject invalid Phase ID: %s', (id) => {
+      test.each(invalidPhaseIds)('should reject invalid Phase ID: %s', id => {
         const result = PhaseSchema.safeParse({ ...validPhase, id });
         expect(result.success).toBe(false);
       });
@@ -3508,7 +3537,7 @@ ${referencesMd}
 
       const invalidTypes = ['Phase', 'Milestone', 'Task', 'Invalid', 'SubTask'];
 
-      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+      test.each(invalidTypes)('should reject invalid type: %s', type => {
         const result = SubtaskSchema.safeParse({
           ...validSubtask,
           type: type as any,
@@ -3529,7 +3558,7 @@ ${referencesMd}
 
       const invalidTypes = ['Phase', 'Milestone', 'Subtask', 'Invalid'];
 
-      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+      test.each(invalidTypes)('should reject invalid type: %s', type => {
         const result = TaskSchema.safeParse({
           ...validTask,
           type: type as any,
@@ -3550,7 +3579,7 @@ ${referencesMd}
 
       const invalidTypes = ['Phase', 'Task', 'Subtask', 'Invalid'];
 
-      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+      test.each(invalidTypes)('should reject invalid type: %s', type => {
         const result = MilestoneSchema.safeParse({
           ...validMilestone,
           type: type as any,
@@ -3571,7 +3600,7 @@ ${referencesMd}
 
       const invalidTypes = ['Milestone', 'Task', 'Subtask', 'Invalid'];
 
-      test.each(invalidTypes)('should reject invalid type: %s', (type) => {
+      test.each(invalidTypes)('should reject invalid type: %s', type => {
         const result = PhaseSchema.safeParse({
           ...validPhase,
           type: type as any,
@@ -3725,7 +3754,7 @@ ${referencesMd}
         description: 'Test task',
         subtasks: [
           {
-            id: 'INVALID-ID',  // Invalid ID format
+            id: 'INVALID-ID', // Invalid ID format
             type: 'Subtask',
             title: 'Test',
             status: 'Planned',
@@ -3746,8 +3775,8 @@ ${referencesMd}
       // VERIFY
       expect(result.success).toBe(false);
       if (!result.success) {
-        const subtaskError = result.error.issues.find(
-          (issue) => issue.path.includes('subtasks')
+        const subtaskError = result.error.issues.find(issue =>
+          issue.path.includes('subtasks')
         );
         expect(subtaskError?.path).toEqual(['subtasks', 0, 'id']);
       }

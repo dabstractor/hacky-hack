@@ -37,6 +37,7 @@
 ### Coverage Requirements
 
 Your project enforces **100% coverage**:
+
 - **Statements**: Every executable statement
 - **Branches**: Every `if/else`, `switch`, ternary
 - **Functions**: Every function declaration
@@ -49,18 +50,21 @@ Your project enforces **100% coverage**:
 ### 1. TDD Methodology
 
 **Red Phase (Write Failing Tests):**
+
 - Tests MUST fail before writing production code
 - Verify tests fail for the right reason (not compilation errors)
 - Use descriptive test names with Setup/Execute/Verify pattern
 - Test one behavior at a time
 
 **Green Phase (Make Tests Pass):**
+
 - Write minimum viable code
 - Hard-coded values acceptable initially
 - Run tests frequently
 - No refactoring in this phase
 
 **Refactor Phase (Clean Up):**
+
 - Only refactor when tests pass
 - Remove duplication
 - Improve readability
@@ -71,6 +75,7 @@ Your project enforces **100% coverage**:
 **Test Categories:**
 
 1. **Positive Cases** (should return `true`)
+
    ```typescript
    it('should return true for FatalError instances', () => {
      const error = new FatalError('Test error');
@@ -79,6 +84,7 @@ Your project enforces **100% coverage**:
    ```
 
 2. **Negative Cases** (should return `false`)
+
    ```typescript
    it('should return false for other error types', () => {
      const error = new SessionError('Session error');
@@ -101,12 +107,14 @@ Your project enforces **100% coverage**:
 ### 3. Vitest Best Practices
 
 **Test Structure:**
+
 - Use `describe` blocks to group related tests
 - Use `it` for individual test cases
 - Follow Setup/Execute/Verify (SEV) pattern
 - Add descriptive comments
 
 **From Your Project:**
+
 ```typescript
 describe('isEnvironmentError type guard', () => {
   it('should return true for EnvironmentError instances', () => {
@@ -162,6 +170,7 @@ describe('isEnvironmentError type guard', () => {
 ### 5. Project-Specific Patterns
 
 **Error Hierarchy:**
+
 ```typescript
 Error
   └── PipelineError (abstract base)
@@ -174,6 +183,7 @@ Error
 ```
 
 **Each Error Class Must Have:**
+
 - Unique error code
 - Optional context
 - Timestamp
@@ -181,6 +191,7 @@ Error
 - Type guard function
 
 **Test File Organization:**
+
 ```
 tests/
 ├── unit/
@@ -246,6 +257,7 @@ describe('FatalError class (TDD RED PHASE)', () => {
 ```
 
 **Run tests - they should fail:**
+
 ```bash
 npm run test:run tests/unit/utils/errors-fatal.test.ts
 ```
@@ -266,11 +278,7 @@ export class FatalError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_EXECUTION_FATAL_ERROR;
   readonly isFatal = true;
 
-  constructor(
-    message: string,
-    context?: PipelineErrorContext,
-    cause?: Error
-  ) {
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
     super(message, context, cause);
     Object.setPrototypeOf(this, FatalError.prototype);
   }
@@ -283,6 +291,7 @@ export function isFatalError(error: unknown): error is FatalError {
 ```
 
 **Run tests - they should pass:**
+
 ```bash
 npm run test:run tests/unit/utils/errors-fatal.test.ts
 ```
@@ -308,6 +317,7 @@ Ensure 100% coverage for the new code.
 ### Pattern 1: Constructor Tests
 
 From `errors-environment.test.ts`:
+
 ```typescript
 describe('EnvironmentError class', () => {
   it('should create EnvironmentError with message only', () => {
@@ -323,6 +333,7 @@ describe('EnvironmentError class', () => {
 ### Pattern 2: Type Guard Tests
 
 From `errors-environment.test.ts`:
+
 ```typescript
 describe('isEnvironmentError type guard', () => {
   it('should return true for EnvironmentError instances', () => {
@@ -350,6 +361,7 @@ describe('isEnvironmentError type guard', () => {
 ### Pattern 3: Edge Case Tests
 
 From `errors-environment.test.ts`:
+
 ```typescript
 describe('EnvironmentError edge cases', () => {
   it('should handle empty message', () => {
@@ -382,22 +394,27 @@ describe('EnvironmentError edge cases', () => {
 ## Common Pitfalls to Avoid
 
 ### 1. Skipping the Red Phase
+
 ❌ **Bad**: Write implementation first, then tests
 ✅ **Good**: Write failing tests first, then implementation
 
 ### 2. Testing Implementation Details
+
 ❌ **Bad**: Testing internal implementation
 ✅ **Good**: Testing public behavior and API
 
 ### 3. Weak Assertions
+
 ❌ **Bad**: `expect(result).toBeDefined()`
 ✅ **Good**: `expect(result).toBe(expectedValue)`
 
 ### 4. Missing Edge Cases
+
 ❌ **Bad**: Only testing happy path
 ✅ **Good**: Testing all branches, errors, and edge cases
 
 ### 5. Not Verifying Type Narrowing
+
 ❌ **Bad**: Only checking return value
 ✅ **Good**: Verifying type is narrowed correctly
 
@@ -427,17 +444,21 @@ npm run test tests/unit/utils/errors-fatal.test.ts
 ## Reference Materials
 
 **Full Documentation:**
+
 - `/home/dustin/projects/hacky-hack/docs/research/TDD-TypeScript-Testing-Best-Practices.md`
 
 **Reference Test Files:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/errors-environment.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/core/task-utils.test.ts`
 
 **Implementation File:**
+
 - `/home/dustin/projects/hacky-hack/src/utils/errors.ts`
 
 **Configuration:**
+
 - `/home/dustin/projects/hacky-hack/vitest.config.ts`
 
 ---

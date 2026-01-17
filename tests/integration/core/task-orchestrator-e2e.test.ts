@@ -196,7 +196,9 @@ function createComplexBacklog(): Backlog {
 
 function createSessionState(backlog: Backlog, planDir: string) {
   const { createHash } = require('node:crypto');
-  const hash = createHash('sha256').update(JSON.stringify(backlog)).digest('hex');
+  const hash = createHash('sha256')
+    .update(JSON.stringify(backlog))
+    .digest('hex');
   return {
     metadata: {
       id: `001_${hash.substring(0, 12)}`,
@@ -263,7 +265,7 @@ describe('TaskOrchestrator E2E Workflow Tests', () => {
     sessionManager = env.sessionManager;
     sessionPath = env.sessionPath;
 
-    await sessionManager.loadSession(sessionPath).catch((err) => {
+    await sessionManager.loadSession(sessionPath).catch(err => {
       // Log the error for debugging
       console.error('Session load failed in beforeEach:', err);
       // Re-throw to fail the test
@@ -579,12 +581,22 @@ describe('TaskOrchestrator E2E Workflow Tests', () => {
 
       // VERIFY: State should be consistent
       const finalSession = newSessionManager.currentSession!;
-      const completeCount = finalSession.taskRegistry.backlog.reduce((count, phase) =>
-        count + phase.milestones.reduce((mCount, milestone) =>
-          mCount + milestone.tasks.reduce((tCount, task) =>
-            tCount + task.subtasks.filter(s => s.status === 'Complete').length, 0
-          ), 0)
-        , 0);
+      const completeCount = finalSession.taskRegistry.backlog.reduce(
+        (count, phase) =>
+          count +
+          phase.milestones.reduce(
+            (mCount, milestone) =>
+              mCount +
+              milestone.tasks.reduce(
+                (tCount, task) =>
+                  tCount +
+                  task.subtasks.filter(s => s.status === 'Complete').length,
+                0
+              ),
+            0
+          ),
+        0
+      );
 
       expect(completeCount).toBeGreaterThan(0);
 

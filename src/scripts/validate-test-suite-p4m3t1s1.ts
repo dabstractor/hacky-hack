@@ -7,7 +7,10 @@
 
 import { runSingleTestFile } from '../utils/single-test-runner.js';
 import { runFullTestSuite } from '../utils/full-test-suite-runner.js';
-import { analyzePassRate, type TestSuiteResult } from '../utils/pass-rate-analyzer.js';
+import {
+  analyzePassRate,
+  type TestSuiteResult,
+} from '../utils/pass-rate-analyzer.js';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -113,7 +116,9 @@ async function main() {
     results: fullResult.testResults,
     hasMemoryErrors: fullResult.memoryErrors,
     // P4.M2.T1.S1 validation: Check for promise rejection warnings
-    hasPromiseRejections: fullResult.output.includes('PromiseRejectionHandledWarning'),
+    hasPromiseRejections: fullResult.output.includes(
+      'PromiseRejectionHandledWarning'
+    ),
     executionTime,
     output: fullResult.output,
     exitCode: fullResult.exitCode ?? 1,
@@ -148,12 +153,16 @@ async function main() {
   const checks = {
     passRate: analysis.passRate >= TARGET_PASS_RATE,
     failingCount: analysis.failedCount <= MAX_FAILING_TESTS,
-    noCritical: !analysis.failingTests.some((t) => t.toLowerCase().includes('critical')),
-    noMajor: !analysis.failingTests.some((t) => t.toLowerCase().includes('major')),
+    noCritical: !analysis.failingTests.some(t =>
+      t.toLowerCase().includes('critical')
+    ),
+    noMajor: !analysis.failingTests.some(t =>
+      t.toLowerCase().includes('major')
+    ),
     noRegressions: analysis.failedCount < BASELINE_FAILING_TESTS,
   };
 
-  const allPassed = Object.values(checks).every((v) => v);
+  const allPassed = Object.values(checks).every(v => v);
 
   if (allPassed) {
     console.log('✓ All validation checks passed');
@@ -163,10 +172,14 @@ async function main() {
   } else {
     console.log('✗ Validation failed:');
     if (!checks.passRate) {
-      console.log(`  ✗ Pass rate below target (${analysis.passRate}% < ${TARGET_PASS_RATE}%)`);
+      console.log(
+        `  ✗ Pass rate below target (${analysis.passRate}% < ${TARGET_PASS_RATE}%)`
+      );
     }
     if (!checks.failingCount) {
-      console.log(`  ✗ Too many failing tests (${analysis.failedCount} > ${MAX_FAILING_TESTS})`);
+      console.log(
+        `  ✗ Too many failing tests (${analysis.failedCount} > ${MAX_FAILING_TESTS})`
+      );
     }
     if (!checks.noCritical) {
       console.log('  ✗ Critical issues detected in failing tests');
@@ -175,7 +188,9 @@ async function main() {
       console.log('  ✗ Major issues detected in failing tests');
     }
     if (!checks.noRegressions) {
-      console.log(`  ✗ More failures than baseline (${analysis.failedCount} >= ${BASELINE_FAILING_TESTS})`);
+      console.log(
+        `  ✗ More failures than baseline (${analysis.failedCount} >= ${BASELINE_FAILING_TESTS})`
+      );
     }
   }
   console.log('');
@@ -187,13 +202,17 @@ async function main() {
   console.log('Stage 5: Checking for promise rejection warnings...');
   console.log('-'.repeat(70));
 
-  const hasPromiseRejections = fullResult.output.includes('PromiseRejectionHandledWarning');
+  const hasPromiseRejections = fullResult.output.includes(
+    'PromiseRejectionHandledWarning'
+  );
 
   if (hasPromiseRejections) {
     const matches = fullResult.output.match(/PromiseRejectionHandledWarning/g);
     const count = matches ? matches.length : 0;
 
-    console.log(`⚠ Warning: ${count} PromiseRejectionHandledWarning(s) detected`);
+    console.log(
+      `⚠ Warning: ${count} PromiseRejectionHandledWarning(s) detected`
+    );
     console.log('  P4.M2.T1.S1 may not have fully resolved promise rejections');
     console.log('  This may indicate incomplete fix or new issues introduced');
   } else {
@@ -249,9 +268,11 @@ async function main() {
 
 ## Failing Tests
 
-${analysis.failingTests.length === 0
+${
+  analysis.failingTests.length === 0
     ? 'None'
-    : analysis.failingTests.map((t) => `- ${t}`).join('\n')}
+    : analysis.failingTests.map(t => `- ${t}`).join('\n')
+}
 
 ## Memory Error Check
 
@@ -261,9 +282,11 @@ ${analysis.failingTests.length === 0
 ## Promise Rejection Check
 
 - **Warnings Detected**: ${hasPromiseRejections ? 'Yes' : 'No'}
-- **Count**: ${hasPromiseRejections
-    ? (fullResult.output.match(/PromiseRejectionHandledWarning/g) || []).length
-    : 0
+- **Count**: ${
+    hasPromiseRejections
+      ? (fullResult.output.match(/PromiseRejectionHandledWarning/g) || [])
+          .length
+      : 0
   }
 - **P4.M2.T1.S1 Status**: ${hasPromiseRejections ? '⚠ Incomplete' : '✓ Validated'}
 
@@ -283,7 +306,8 @@ ${analysis.failingTests.length === 0
 
 ## Conclusion
 
-${allPassed
+${
+  allPassed
     ? '✓ Test suite validation PASSED. All P1-P4 bug fixes validated. System fully functional.'
     : '✗ Test suite validation FAILED. Review failing tests and address issues before marking P4.M3 complete.'
 }
@@ -300,20 +324,28 @@ ${allPassed
   console.log('='.repeat(70));
   if (allPassed) {
     console.log('✓ Test suite validation PASSED');
-    console.log(`  Pass rate: ${analysis.passRate}% (target: ${TARGET_PASS_RATE}%)`);
-    console.log(`  Delta: ${analysis.delta > 0 ? '+' : ''}${analysis.delta}% from baseline`);
+    console.log(
+      `  Pass rate: ${analysis.passRate}% (target: ${TARGET_PASS_RATE}%)`
+    );
+    console.log(
+      `  Delta: ${analysis.delta > 0 ? '+' : ''}${analysis.delta}% from baseline`
+    );
   } else {
     console.log('✗ Test suite validation FAILED');
-    console.log(`  Pass rate: ${analysis.passRate}% (target: ${TARGET_PASS_RATE}%)`);
+    console.log(
+      `  Pass rate: ${analysis.passRate}% (target: ${TARGET_PASS_RATE}%)`
+    );
     console.log(`  Gap: ${(TARGET_PASS_RATE - analysis.passRate).toFixed(2)}%`);
-    console.log(`  Failing tests: ${analysis.failedCount} (max: ${MAX_FAILING_TESTS})`);
+    console.log(
+      `  Failing tests: ${analysis.failedCount} (max: ${MAX_FAILING_TESTS})`
+    );
   }
   console.log('='.repeat(70));
 
   process.exit(allPassed ? 0 : 1);
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('Unexpected error:', error);
   process.exit(1);
 });

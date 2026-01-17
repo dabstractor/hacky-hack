@@ -40,11 +40,12 @@ import { test } from 'pino/test';
 // Official pino/test usage (NOT for mocking, for validation)
 test(pino(), 'info message', {
   level: 30,
-  msg: 'info message'
+  msg: 'info message',
 });
 ```
 
 **Limitations for Our Use Case:**
+
 - `pino/test` validates log output, doesn't mock the logger
 - Not suitable for unit testing business logic that calls logger
 - Doesn't help with mocking `getLogger()` factory function
@@ -56,6 +57,7 @@ test(pino(), 'info message', {
 **Official Recommendations:**
 
 1. **Use a writable stream for output capture**
+
 ```typescript
 import { Writable } from 'stream';
 import pino from 'pino';
@@ -65,19 +67,21 @@ const stream = new Writable({
     const log = JSON.parse(chunk);
     // Assert on log properties
     callback();
-  }
+  },
 });
 
 const logger = pino(stream);
 ```
 
 2. **Use silent logger for tests**
+
 ```typescript
 const logger = pino({ level: 'silent' });
 // No output during tests
 ```
 
 **Why This Doesn't Fit Our Needs:**
+
 - Our code uses `getLogger()` factory function
 - We need to verify logger methods were called (spy behavior)
 - We want to avoid actual log output during unit tests
@@ -123,7 +127,7 @@ const { mockLogger } = vi.hoisted(() => ({
     error: vi.fn(),
     warn: vi.fn(),
     debug: vi.fn(),
-    child: vi.fn(function(this: any) {
+    child: vi.fn(function (this: any) {
       return this;
     }),
   },
@@ -150,6 +154,7 @@ const mockGetLogger = getLogger as any;
 ```
 
 **Why This Works:**
+
 - `vi.hoisted()` ensures variables are available before mock evaluation
 - Mock returns consistent logger instance
 - Supports child logger mocking (returns self)
@@ -209,8 +214,9 @@ vi.mock('../../../src/utils/logger.js', () => ({
 **Pattern:** Mock only specific exports, preserve rest
 
 ```typescript
-vi.mock('../../../src/utils/logger.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../src/utils/logger.js')>();
+vi.mock('../../../src/utils/logger.js', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../../../src/utils/logger.js')>();
   return {
     ...actual,
     // Only mock getLogger, preserve LogLevel, etc.
@@ -220,6 +226,7 @@ vi.mock('../../../src/utils/logger.js', async (importOriginal) => {
 ```
 
 **Use Cases:**
+
 - Want to use real LogLevel enum
 - Want to use real LoggerConfig type
 - Only mocking factory function behavior
@@ -246,6 +253,7 @@ describe('with spy', () => {
 ```
 
 **Limitations:**
+
 - Requires real logger initialization (Pino dependency)
 - Slower than pure mocks
 - May have side effects (file I/O for pretty print)
@@ -286,6 +294,7 @@ it('should log warning for added change', () => {
 ```
 
 **Analysis:**
+
 - ✅ Uses `vi.hoisted()` correctly
 - ✅ Mocks all 4 log levels
 - ❌ Missing `child` method mock
@@ -313,6 +322,7 @@ vi.mock('../../../src/utils/logger.js', () => ({
 ```
 
 **Analysis:**
+
 - ✅ Same pattern as task-patcher
 - ❌ Also missing child logger support
 - ⚠️ No mock cleanup in beforeEach
@@ -353,6 +363,7 @@ expect(mockLoggerInstance.info).toHaveBeenCalledWith(
 ```
 
 **Analysis:**
+
 - ✅ Includes `child` method mock (returns self)
 - ✅ Exports mock via `__mockLogger` for test access
 - ⚠️ Uses `getLogger()` in tests (creates new instance each time)
@@ -388,6 +399,7 @@ beforeEach(() => {
 ```
 
 **Analysis:**
+
 - ✅ Consistent mock clearing in beforeEach
 - ✅ Uses `vi.hoisted()` pattern
 - ❌ Missing child logger mock
@@ -418,6 +430,7 @@ it('should return a Logger interface', () => {
 ```
 
 **Analysis:**
+
 - ✅ Tests actual logger implementation
 - ✅ Proper cache clearing
 - ✅ No mocking needed for logger tests
@@ -519,6 +532,7 @@ vi.mock('../../../src/utils/logger.js', () => ({
 ```
 
 **Trade-offs:**
+
 - ❌ No child logger support
 - ✅ Simpler, less code
 - ✅ Faster to write
@@ -628,6 +642,7 @@ it('should create logger with correct context', () => {
 ### 5.1 Missing Child Logger Mock
 
 **Pitfall:**
+
 ```typescript
 // ❌ WRONG - Missing child method
 const mockLogger = {
@@ -643,6 +658,7 @@ taskLogger.info('message'); // TypeError: taskLogger.info is not a function
 ```
 
 **Solution:**
+
 ```typescript
 // ✅ CORRECT - Include child method
 const mockLogger = {
@@ -659,6 +675,7 @@ const mockLogger = {
 ### 5.2 Mock State Leakage
 
 **Pitfall:**
+
 ```typescript
 // ❌ WRONG - No cleanup
 it('test 1', () => {
@@ -672,6 +689,7 @@ it('test 2', () => {
 ```
 
 **Solution:**
+
 ```typescript
 // ✅ CORRECT - Clear mocks
 beforeEach(() => {
@@ -695,6 +713,7 @@ it('test 2', () => {
 ### 5.3 Incorrect Assertion Patterns
 
 **Pitfall:**
+
 ```typescript
 // ❌ WRONG - Too specific, brittle
 expect(mockLogger.info).toHaveBeenCalledWith(
@@ -708,6 +727,7 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 **Solutions:**
 
 **Option 1: Partial object matching**
+
 ```typescript
 // ✅ CORRECT - Flexible matching
 expect(mockLogger.info).toHaveBeenCalledWith(
@@ -719,6 +739,7 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 ```
 
 **Option 2: Match call count**
+
 ```typescript
 // ✅ CORRECT - Just check it was called
 expect(mockLogger.info).toHaveBeenCalled();
@@ -726,6 +747,7 @@ expect(mockLogger.info).toHaveBeenCalledTimes(1);
 ```
 
 **Option 3: Match message only**
+
 ```typescript
 // ✅ CORRECT - Check message, ignore data
 expect(mockLogger.info).toHaveBeenCalledWith(
@@ -737,6 +759,7 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 ### 5.4 Timing Issues with Mocks
 
 **Pitfall:**
+
 ```typescript
 // ❌ WRONG - Import before mock
 import { getLogger } from '../../../src/utils/logger.js';
@@ -750,6 +773,7 @@ vi.mock('../../../src/utils/logger.js', () => ({
 ```
 
 **Solution:**
+
 ```typescript
 // ✅ CORRECT - Mock before imports
 vi.mock('../../../src/utils/logger.js', () => ({
@@ -765,6 +789,7 @@ import { myFunction } from './my-module.js';
 ### 5.5 Forgetting to Mock clearLoggerCache
 
 **Pitfall:**
+
 ```typescript
 // ❌ WRONG - clearLoggerCache not mocked
 it('should create new logger', () => {
@@ -778,6 +803,7 @@ it('should create new logger', () => {
 ```
 
 **Solution:**
+
 ```typescript
 // ✅ CORRECT - Mock cache functions
 vi.mock('../../../src/utils/logger.js', () => ({
@@ -790,6 +816,7 @@ vi.mock('../../../src/utils/logger.js', () => ({
 ### 5.6 Async Logger Calls
 
 **Pitfall:**
+
 ```typescript
 // ❌ WRONG - Doesn't wait for async
 async function processData() {
@@ -807,6 +834,7 @@ it('should log both messages', async () => {
 ```
 
 **Solution:**
+
 ```typescript
 // ✅ CORRECT - Pino is synchronous, but be explicit
 it('should log both messages', async () => {
@@ -1079,9 +1107,7 @@ describe('MyService', () => {
       });
 
       // VERIFY child was used
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        'Task processing started'
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith('Task processing started');
     });
   });
 
@@ -1529,7 +1555,9 @@ const mockLogger = {
   error: vi.fn(),
   warn: vi.fn(),
   debug: vi.fn(),
-  child: vi.fn(function () { return this; }),
+  child: vi.fn(function () {
+    return this;
+  }),
 };
 
 // ❌ BAD - Complex implementations in mocks
@@ -1634,7 +1662,9 @@ const { mockLogger } = vi.hoisted(() => ({
     error: vi.fn(),
     warn: vi.fn(),
     debug: vi.fn(),
-    child: vi.fn(function (this: any) { return this; }),
+    child: vi.fn(function (this: any) {
+      return this;
+    }),
   },
 }));
 
@@ -1661,10 +1691,7 @@ expect(mockLogger.info).toHaveBeenCalled();
 expect(mockLogger.info).toHaveBeenCalledTimes(1);
 
 // With what args (exact)?
-expect(mockLogger.info).toHaveBeenCalledWith(
-  { taskId: 'P1.M1.T1' },
-  'Message'
-);
+expect(mockLogger.info).toHaveBeenCalledWith({ taskId: 'P1.M1.T1' }, 'Message');
 
 // With what args (partial)?
 expect(mockLogger.info).toHaveBeenCalledWith(
@@ -1678,13 +1705,13 @@ expect(mockLogger.error).not.toHaveBeenCalled();
 
 ### 11.3 Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
+| Issue                                       | Solution                                                |
+| ------------------------------------------- | ------------------------------------------------------- |
 | `TypeError: logger.child is not a function` | Add `child: vi.fn(function() { return this; })` to mock |
-| Test sees calls from previous test | Add `mockClear()` in `beforeEach()` |
-| Mock not working | Ensure `vi.mock()` is before imports |
-| `getLogger` returns same instance | Mock `clearLoggerCache` |
-| Child logger not returning methods | Make `child` return `this` |
+| Test sees calls from previous test          | Add `mockClear()` in `beforeEach()`                     |
+| Mock not working                            | Ensure `vi.mock()` is before imports                    |
+| `getLogger` returns same instance           | Mock `clearLoggerCache`                                 |
+| Child logger not returning methods          | Make `child` return `this`                              |
 
 ---
 
@@ -1693,12 +1720,14 @@ expect(mockLogger.error).not.toHaveBeenCalled();
 ### 12.1 Immediate Actions
 
 1. **Add Child Logger Support** to all Task Orchestrator tests
+
 ```typescript
 // Add to existing mocks
 child: vi.fn(function (this: any) { return this; }),
 ```
 
 2. **Standardize Mock Cleanup** across all test files
+
 ```typescript
 beforeEach(() => {
   mockLogger.info.mockClear();
@@ -1710,9 +1739,12 @@ beforeEach(() => {
 ```
 
 3. **Add Mock Helper** to reduce duplication
+
 ```typescript
 // Create tests/utils/logger-mock.ts
-export function createMockLogger() { /* ... */ }
+export function createMockLogger() {
+  /* ... */
+}
 ```
 
 ### 12.2 Test Categories to Implement

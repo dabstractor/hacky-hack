@@ -314,7 +314,7 @@ The system shall compute SHA-256 hashes of PRD content for session detection.
 
     // VERIFY: Session directory created
     expect(existsSync(planDir)).toBe(true);
-    const sessionDirs = readdirSync(planDir).filter((d) =>
+    const sessionDirs = readdirSync(planDir).filter(d =>
       /^\d{3}_[a-f0-9]{12}$/.test(d)
     );
     expect(sessionDirs).toHaveLength(1);
@@ -499,8 +499,8 @@ different hash value.
     // VERIFY: Both sessions exist in plan/
     const hash1 = session1.metadata.hash;
     const hash2 = session2.metadata.hash;
-    expect(sessionDirs.some((d) => d.includes(hash1))).toBe(true);
-    expect(sessionDirs.some((d) => d.includes(hash2))).toBe(true);
+    expect(sessionDirs.some(d => d.includes(hash1))).toBe(true);
+    expect(sessionDirs.some(d => d.includes(hash2))).toBe(true);
   });
 
   // =============================================================================
@@ -534,9 +534,7 @@ This test verifies that the session sequence numbers increment correctly.
     const sessionDirs = readdirSync(planDir);
     expect(sessionDirs).toHaveLength(3);
 
-    const sequences = sessionDirs
-      .map((d) => d.match(/^(\d{3})_/)?.[1])
-      .sort();
+    const sequences = sessionDirs.map(d => d.match(/^(\d{3})_/)?.[1]).sort();
 
     expect(sequences).toEqual(['001', '002', '003']);
   });
@@ -920,7 +918,7 @@ describe('SessionManager Delta Session Detection', () => {
     const session2 = await manager2.initialize();
 
     // VERIFY: New session directory created
-    const sessionDirs = readdirSync(planDir).filter((d) =>
+    const sessionDirs = readdirSync(planDir).filter(d =>
       /^\d{3}_[a-f0-9]{12}$/.test(d)
     );
     expect(sessionDirs).toHaveLength(2);
@@ -929,10 +927,10 @@ describe('SessionManager Delta Session Detection', () => {
     expect(session2.metadata.hash).not.toBe(session1.metadata.hash);
 
     // VERIFY: Both sessions exist in plan/
-    expect(sessionDirs.some((d) => d.includes(session1.metadata.hash))).toBe(
+    expect(sessionDirs.some(d => d.includes(session1.metadata.hash))).toBe(
       true
     );
-    expect(sessionDirs.some((d) => d.includes(session2.metadata.hash))).toBe(
+    expect(sessionDirs.some(d => d.includes(session2.metadata.hash))).toBe(
       true
     );
   });
@@ -955,7 +953,7 @@ describe('SessionManager Delta Session Detection', () => {
     // VERIFY: Delta session has incremented sequence
     const sessionDirs = readdirSync(planDir);
     const sequences = sessionDirs
-      .map((d) => d.match(/^(\d{3})_/)?.[1])
+      .map(d => d.match(/^(\d{3})_/)?.[1])
       .filter((s): s is string => s !== undefined)
       .sort();
 
@@ -980,7 +978,7 @@ describe('SessionManager Delta Session Detection', () => {
 
     // VERIFY: Previous session prd_snapshot.md contains original PRD
     const sessionDirs = readdirSync(planDir);
-    const firstSessionId = sessionDirs.find((d) => d.startsWith('001_'));
+    const firstSessionId = sessionDirs.find(d => d.startsWith('001_'));
     expect(firstSessionId).toBeDefined();
 
     const firstSessionPath = join(planDir, firstSessionId!);
@@ -1012,7 +1010,7 @@ describe('SessionManager Delta Session Detection', () => {
 
     // VERIFY: New session has different hash from first session
     const sessionDirs = readdirSync(planDir);
-    const secondSessionId = sessionDirs.find((d) => d.startsWith('002_'));
+    const secondSessionId = sessionDirs.find(d => d.startsWith('002_'));
     expect(secondSessionId).toBeDefined();
     expect(secondSessionId).toContain(session2.metadata.hash);
   });
@@ -1040,7 +1038,11 @@ describe('SessionManager Delta Session Detection', () => {
 
     // Write parent_session.txt with fake parent
     writeFileSync(join(deltaPath, 'parent_session.txt'), fakeParentId, 'utf-8');
-    writeFileSync(join(deltaPath, 'tasks.json'), JSON.stringify({ backlog: [] }, null, 2), 'utf-8');
+    writeFileSync(
+      join(deltaPath, 'tasks.json'),
+      JSON.stringify({ backlog: [] }, null, 2),
+      'utf-8'
+    );
     writeFileSync(join(deltaPath, 'prd_snapshot.md'), '# Fake PRD', 'utf-8');
 
     // EXECUTE: Try to load the session with missing parent
@@ -1128,7 +1130,7 @@ describe('SessionManager Delta Session Detection', () => {
     expect(sessionDirs).toHaveLength(2);
 
     // Get first session path
-    const firstSessionId = sessionDirs.find((d) => d.startsWith('001_'));
+    const firstSessionId = sessionDirs.find(d => d.startsWith('001_'));
     expect(firstSessionId).toBeDefined();
 
     const firstSessionPath = join(planDir, firstSessionId!);
@@ -1187,18 +1189,18 @@ describe('SessionManager Delta Session Detection', () => {
 
     // VERIFY: Correct sequence numbers (001, 002, 003)
     const sequences = sessionDirs
-      .map((d) => d.match(/^(\d{3})_/)?.[1])
+      .map(d => d.match(/^(\d{3})_/)?.[1])
       .filter((s): s is string => s !== undefined)
       .sort();
     expect(sequences).toEqual(['001', '002', '003']);
 
     // VERIFY: All sessions have unique hashes
-    const hashes = sessions.map((s) => s.metadata.hash);
+    const hashes = sessions.map(s => s.metadata.hash);
     const uniqueHashes = new Set(hashes);
     expect(uniqueHashes.size).toBe(3);
 
     // VERIFY: All sessions have null parentSession (not delta sessions)
-    sessions.forEach((session) => {
+    sessions.forEach(session => {
       expect(session.metadata.parentSession).toBeNull();
     });
 
@@ -1278,7 +1280,8 @@ using temp file + rename pattern to prevent JSON corruption.
 
     // VERIFY: In-memory state changed
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe('Failed');
   });
 
@@ -1305,12 +1308,14 @@ using temp file + rename pattern to prevent JSON corruption.
     // VERIFY: File on disk unchanged
     const fileContent = readFileSync(tasksPath, 'utf-8');
     const fileData = JSON.parse(fileContent) as Backlog;
-    const fileStatus = fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status;
+    const fileStatus =
+      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status;
     expect(fileStatus).toBe('Planned'); // Original status
 
     // VERIFY: In-memory state updated
     const session = manager.currentSession!;
-    const memStatus = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status;
+    const memStatus =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status;
     expect(memStatus).toBe('Complete');
   });
 
@@ -1337,7 +1342,7 @@ using temp file + rename pattern to prevent JSON corruption.
         story_points: 1,
         dependencies: [],
         context_scope:
-                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+          'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
       },
       {
         type: 'Subtask',
@@ -1347,7 +1352,7 @@ using temp file + rename pattern to prevent JSON corruption.
         story_points: 1,
         dependencies: [],
         context_scope:
-                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+          'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
       }
     );
     writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
@@ -1408,7 +1413,7 @@ using temp file + rename pattern to prevent JSON corruption.
 
     // VERIFY: No orphaned temp files remain
     const sessionFiles = readdirSync(sessionPath);
-    const tempFiles = sessionFiles.filter((f) => f.endsWith('.tmp'));
+    const tempFiles = sessionFiles.filter(f => f.endsWith('.tmp'));
     expect(tempFiles).toHaveLength(0);
   });
 
@@ -1444,11 +1449,13 @@ using temp file + rename pattern to prevent JSON corruption.
 
     // VERIFY: File is valid JSON
     const fileData = JSON.parse(currentContent) as Backlog;
-    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe('Complete');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Complete'
+    );
 
     // VERIFY: No orphaned temp files
     const sessionFiles = readdirSync(sessionPath);
-    const tempFiles = sessionFiles.filter((f) => f.endsWith('.tmp'));
+    const tempFiles = sessionFiles.filter(f => f.endsWith('.tmp'));
     expect(tempFiles).toHaveLength(0);
   });
 
@@ -1475,7 +1482,7 @@ using temp file + rename pattern to prevent JSON corruption.
         story_points: 1,
         dependencies: [],
         context_scope:
-                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+          'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
       });
     }
     writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
@@ -1501,7 +1508,7 @@ using temp file + rename pattern to prevent JSON corruption.
 
     // VERIFY: No orphaned temp files remain
     const sessionFiles = readdirSync(sessionPath);
-    const tempFiles = sessionFiles.filter((f) => f.endsWith('.tmp'));
+    const tempFiles = sessionFiles.filter(f => f.endsWith('.tmp'));
     expect(tempFiles).toHaveLength(0);
   });
 
@@ -1529,9 +1536,9 @@ using temp file + rename pattern to prevent JSON corruption.
 
     let fileContent = readFileSync(tasksPath, 'utf-8');
     let fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Researching');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Researching'
+    );
 
     // Cycle 2: Update and flush again
     await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -1539,16 +1546,16 @@ using temp file + rename pattern to prevent JSON corruption.
 
     fileContent = readFileSync(tasksPath, 'utf-8');
     fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Complete');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Complete'
+    );
 
     // VERIFY: File integrity maintained
     expect(() => JSON.parse(fileContent)).not.toThrow();
 
     // VERIFY: No orphaned temp files
     const sessionFiles = readdirSync(sessionPath);
-    const tempFiles = sessionFiles.filter((f) => f.endsWith('.tmp'));
+    const tempFiles = sessionFiles.filter(f => f.endsWith('.tmp'));
     expect(tempFiles).toHaveLength(0);
   });
 
@@ -1575,7 +1582,7 @@ using temp file + rename pattern to prevent JSON corruption.
         story_points: 1,
         dependencies: [],
         context_scope:
-                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+          'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
       });
     }
     writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
@@ -1628,7 +1635,7 @@ using temp file + rename pattern to prevent JSON corruption.
         story_points: 1,
         dependencies: [],
         context_scope:
-                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+          'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
       });
     }
     writeFileSync(tasksPath, JSON.stringify(initialTasks, null, 2), 'utf-8');
@@ -1680,9 +1687,9 @@ using temp file + rename pattern to prevent JSON corruption.
 
     let fileContent = readFileSync(tasksPath, 'utf-8');
     let fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Researching');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Researching'
+    );
 
     // EXECUTE: Cycle 2 - Update to Complete and flush
     await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -1690,9 +1697,9 @@ using temp file + rename pattern to prevent JSON corruption.
 
     fileContent = readFileSync(tasksPath, 'utf-8');
     fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Complete');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Complete'
+    );
 
     // EXECUTE: Cycle 3 - Update to Failed and flush
     await manager.updateItemStatus('P1.M1.T1.S1', 'Failed');
@@ -1700,9 +1707,9 @@ using temp file + rename pattern to prevent JSON corruption.
 
     fileContent = readFileSync(tasksPath, 'utf-8');
     fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Failed');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Failed'
+    );
 
     // VERIFY: Batching state reset between cycles (no errors thrown)
     // Each cycle independently succeeded
@@ -1770,7 +1777,8 @@ the ID.
 
     // VERIFY: Subtask status changed
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe('Complete');
 
     // VERIFY: Parent task unchanged
@@ -1943,10 +1951,12 @@ the ID.
 
     // VERIFY: All updates in memory
     const session = manager.currentSession!;
-    const subtask1 = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask1 =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask1.status).toBe('Complete');
 
-    const subtask2 = session.taskRegistry.backlog[0].milestones[0].tasks[1].subtasks[0];
+    const subtask2 =
+      session.taskRegistry.backlog[0].milestones[0].tasks[1].subtasks[0];
     expect(subtask2.status).toBe('Failed');
 
     const task3 = session.taskRegistry.backlog[0].milestones[0].tasks[2];
@@ -1996,7 +2006,8 @@ the ID.
 
     // VERIFY: All status values work correctly
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe('Obsolete');
 
     // NOTE: TypeScript compiler prevents invalid status values at compile time.
@@ -2025,7 +2036,10 @@ the ID.
     const originalContent = readFileSync(tasksPath, 'utf-8');
 
     // EXECUTE: Try to update non-existent item
-    const result = await manager.updateItemStatus('P999.M999.T999.S999', 'Complete');
+    const result = await manager.updateItemStatus(
+      'P999.M999.T999.S999',
+      'Complete'
+    );
 
     // VERIFY: No error thrown
     expect(result).toBeDefined();
@@ -2036,7 +2050,8 @@ the ID.
 
     // VERIFY: In-memory state unchanged
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe('Planned');
   });
 
@@ -2127,9 +2142,9 @@ the ID.
 
     let fileContent = readFileSync(tasksPath, 'utf-8');
     let fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Researching');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Researching'
+    );
 
     // EXECUTE: Cycle 2 - Update to Complete and flush
     await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -2137,9 +2152,9 @@ the ID.
 
     fileContent = readFileSync(tasksPath, 'utf-8');
     fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Complete');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Complete'
+    );
 
     // EXECUTE: Cycle 3 - Update to Failed and flush
     await manager.updateItemStatus('P1.M1.T1.S1', 'Failed');
@@ -2147,9 +2162,9 @@ the ID.
 
     fileContent = readFileSync(tasksPath, 'utf-8');
     fileData = JSON.parse(fileContent) as Backlog;
-    expect(
-      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status
-    ).toBe('Failed');
+    expect(fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+      'Failed'
+    );
 
     // VERIFY: Each cycle independently successful
     // VERIFY: Batching state reset between cycles (no errors thrown)
@@ -2166,7 +2181,7 @@ the ID.
     ['Complete'],
     ['Failed'],
     ['Obsolete'],
-  ])('should accept status value: %s', async (status) => {
+  ])('should accept status value: %s', async status => {
     // SETUP: Create session with tasks.json
     const manager = new SessionManager(prdPath, planDir);
     await manager.initialize();
@@ -2184,7 +2199,8 @@ the ID.
 
     // VERIFY: Status updated correctly
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe(status);
   });
 });
@@ -2239,11 +2255,7 @@ describe('SessionManager Session Discovery Methods', () => {
       JSON.stringify({ backlog: [] }, null, 2),
       'utf-8'
     );
-    writeFileSync(
-      join(sessionPath, 'prd_snapshot.md'),
-      '# Test PRD',
-      'utf-8'
-    );
+    writeFileSync(join(sessionPath, 'prd_snapshot.md'), '# Test PRD', 'utf-8');
 
     // Optional parent session file
     if (hasParent) {
@@ -2349,7 +2361,12 @@ describe('SessionManager Session Discovery Methods', () => {
 
   it('should include parentSession when parent_session.txt exists', async () => {
     // SETUP: Create session with parent_session.txt
-    const sessionName = createSessionDirectory(planDir, 2, 'abcdef123456', true);
+    const sessionName = createSessionDirectory(
+      planDir,
+      2,
+      'abcdef123456',
+      true
+    );
     const expectedParent = '001_abc123def456';
 
     // EXECUTE: List sessions
@@ -2456,7 +2473,12 @@ describe('SessionManager Session Discovery Methods', () => {
 
   it('should populate all metadata fields correctly', async () => {
     // SETUP: Create session with all files
-    const sessionName = createSessionDirectory(planDir, 1, 'abcdef123456', false);
+    const sessionName = createSessionDirectory(
+      planDir,
+      1,
+      'abcdef123456',
+      false
+    );
     const sessionPath = join(planDir, sessionName);
 
     // EXECUTE: List sessions

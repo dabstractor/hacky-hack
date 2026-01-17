@@ -11,6 +11,7 @@ The `#isFatalError()` method is a private method in the `PRPPipeline` class that
 ## Implementation Details
 
 ### Source Location
+
 - **File**: `src/workflows/prp-pipeline.ts`
 - **Lines**: 377-417
 - **Visibility**: Private (`#isFatalError`)
@@ -141,28 +142,31 @@ An error is considered **non-fatal** when ANY of the following are true:
 ## Dependencies
 
 ### Type Guards Used
+
 ```typescript
 import {
-  isPipelineError,    // Checks if error is PipelineError subclass
-  isSessionError,     // Checks if error is SessionError instance
-  isTaskError,        // Checks if error is TaskError instance
-  isAgentError,       // Checks if error is AgentError instance
-  isValidationError,  // Checks if error is ValidationError instance
-  ErrorCodes,         // Error code constants
+  isPipelineError, // Checks if error is PipelineError subclass
+  isSessionError, // Checks if error is SessionError instance
+  isTaskError, // Checks if error is TaskError instance
+  isAgentError, // Checks if error is AgentError instance
+  isValidationError, // Checks if error is ValidationError instance
+  ErrorCodes, // Error code constants
 } from '../utils/errors.js';
 ```
 
 ### Error Codes Referenced
+
 ```typescript
-ErrorCodes.PIPELINE_SESSION_LOAD_FAILED      // Fatal
-ErrorCodes.PIPELINE_SESSION_SAVE_FAILED      // Fatal
-ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT // Conditionally fatal
+ErrorCodes.PIPELINE_SESSION_LOAD_FAILED; // Fatal
+ErrorCodes.PIPELINE_SESSION_SAVE_FAILED; // Fatal
+ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT; // Conditionally fatal
 ```
 
 ### Instance State Accessed
+
 ```typescript
-this.#continueOnError  // Boolean flag from CLI --continue-on-error
-this.logger           // Pino logger instance
+this.#continueOnError; // Boolean flag from CLI --continue-on-error
+this.logger; // Pino logger instance
 ```
 
 ## Usage in PRPPipeline
@@ -170,6 +174,7 @@ this.logger           // Pino logger instance
 The method is called in **5 locations** within error handling blocks:
 
 1. **`initializeSession()`** (line 539)
+
    ```typescript
    if (this.#isFatalError(error)) {
      throw error; // Re-throw to abort pipeline
@@ -178,6 +183,7 @@ The method is called in **5 locations** within error handling blocks:
    ```
 
 2. **`handleDelta()`** (line 666)
+
    ```typescript
    if (this.#isFatalError(error)) {
      throw error; // Re-throw to abort pipeline
@@ -186,6 +192,7 @@ The method is called in **5 locations** within error handling blocks:
    ```
 
 3. **`decomposePRD()`** (line 764)
+
    ```typescript
    if (this.#isFatalError(error)) {
      throw error; // Re-throw to abort pipeline
@@ -194,6 +201,7 @@ The method is called in **5 locations** within error handling blocks:
    ```
 
 4. **`executeBacklog()`** (line 953)
+
    ```typescript
    if (this.#isFatalError(error)) {
      throw error; // Re-throw to abort pipeline
@@ -212,25 +220,32 @@ The method is called in **5 locations** within error handling blocks:
 ## Key Design Decisions
 
 ### 1. Default to Non-Fatal
+
 The method defaults to returning `false` (non-fatal) for unknown error types. This follows the principle of resilience: continue execution when uncertain, logging the error for later analysis.
 
 ### 2. Context-Sensitive Fatal Classification
+
 The `ValidationError` fatal check uses `error.context?.operation` to distinguish between different validation scenarios. Only PRD parsing validation errors are fatal; other validation errors (e.g., task validation, schema validation) are non-fatal.
 
 ### 3. Continue-On-Error Override
+
 The CLI `--continue-on-error` flag overrides all fatal error detection, treating all errors as non-fatal. This allows users to maximize progress even in the presence of fatal errors.
 
 ### 4. Specific Error Code Matching
+
 The method checks specific error codes rather than treating all SessionErrors or ValidationErrors as fatal. This allows fine-grained control over which specific failure modes should halt execution.
 
 ## Differences from PRD Specification
 
 ### PRD Specification (Issue 2)
+
 According to the bugfix documentation, the PRD specifies:
+
 - **Fatal errors**: SessionError, EnvironmentError
 - **Non-fatal errors**: TaskError, AgentError, ValidationError
 
 ### Actual Implementation
+
 - **Fatal errors**:
   - SessionError (specifically LOAD_FAILED and SAVE_FAILED codes)
   - ValidationError (only when parsing PRD)
@@ -241,6 +256,7 @@ According to the bugfix documentation, the PRD specifies:
   - ValidationError (most cases)
 
 **Key Differences**:
+
 1. EnvironmentError is not explicitly handled (defaults to non-fatal, which aligns with PRD)
 2. Not all SessionErrors are fatal (only specific error codes)
 3. ValidationError is conditionally fatal (PRD parsing only)
@@ -248,6 +264,7 @@ According to the bugfix documentation, the PRD specifies:
 ## Testing Considerations
 
 ### Edge Cases Covered
+
 1. `null` and `undefined` errors
 2. Non-object errors (strings, numbers, booleans)
 3. Unknown error types (plain Error, custom errors)
@@ -255,7 +272,9 @@ According to the bugfix documentation, the PRD specifies:
 5. Continue-on-error flag override
 
 ### Type Narrowing
+
 The method relies on type guards for proper TypeScript type narrowing:
+
 - `isPipelineError(error)` narrows to `PipelineError`
 - `isSessionError(error)` further narrows to `SessionError`
 - This allows safe access to `error.code` and `error.context`
@@ -263,7 +282,9 @@ The method relies on type guards for proper TypeScript type narrowing:
 ## Integration Points
 
 ### Error Tracking
+
 Non-fatal errors are tracked via `#trackFailure()`:
+
 ```typescript
 this.#trackFailure(taskId, error, {
   phase: this.currentPhase,
@@ -273,7 +294,9 @@ this.#trackFailure(taskId, error, {
 ```
 
 ### Error Reporting
+
 Failed tasks are aggregated and reported in:
+
 - ERROR_REPORT.md (generated at shutdown)
 - Pipeline result object
 - Structured logs with error context
@@ -290,6 +313,7 @@ To extract this logic to a public utility function:
 6. **Export from errors.ts**: Place alongside other error utilities
 
 ### Proposed Signature
+
 ```typescript
 /**
  * Determines if an error should be treated as fatal
