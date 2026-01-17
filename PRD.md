@@ -65,14 +65,20 @@ For every item in the backlog (iterating Phase -> Milestone -> Task -> Subtask):
 
 If the user modifies `PRD.md` mid-project:
 
-1.  **Detection:** System detects hash mismatch.
-2.  **Delta Session:** Creates a new session directory linked to the previous one.
+1.  **Detection:** System detects hash mismatch (computed from `prd_snapshot.md` content).
+2.  **Delta Session:** Creates a new session directory linked to the previous one via `delta_from.txt`.
 3.  **Delta Analysis:** An agent compares Old PRD vs. New PRD.
-4.  **Task Patching:**
+4.  **Delta PRD Generation (with retry logic):**
+    - Agent generates `delta_prd.md` focusing only on differences.
+    - If delta PRD not created on first attempt, system demands agent retry.
+    - Session fails fast if delta PRD cannot be generated after retry.
+    - Incomplete delta sessions detect and regenerate missing delta PRDs on resume.
+5.  **Task Patching:**
     - Identifies new requirements -> Adds new tasks.
     - Identifies modified requirements -> Marks affected existing tasks for "Update/Re-implementation".
     - Identifies removed requirements -> Marks tasks as "Obsolete".
-5.  **Resume:** The pipeline continues execution using the updated backlog.
+    - Phase indexing searches for matching IDs (handles non-sequential phase IDs in delta sessions).
+6.  **Resume:** The pipeline continues execution using the updated backlog.
 
 ### 4.4 The QA & Bug Hunt Loop
 
@@ -80,10 +86,18 @@ Once all tasks are complete, or if run in `bug-hunt` mode:
 
 1.  **Validation Scripting:** An agent generates a custom `validate.sh` based on the PRD requirements and codebase tools.
 2.  **Creative Bug Hunt:** The **QA Agent** (Adversarial Persona) creates a `TEST_RESULTS.md` report. It looks for logic gaps, not just failing tests.
-3.  **The Fix Cycle:**
-    - If critical/major bugs are found, a "Bug Fix" sub-pipeline starts.
-    - It treats the `TEST_RESULTS.md` as a mini-PRD.
+3.  **The Fix Cycle (Self-Contained Sessions):**
+    - If critical/major bugs are found, a self-contained "Bug Fix" sub-pipeline starts.
+    - Each bug hunt iteration creates a new numbered session: `bugfix/001_hash/`, `bugfix/002_hash/`, etc.
+    - Bug reports (`TEST_RESULTS.md`) and tasks are stored within the bugfix session directory.
+    - It treats the `TEST_RESULTS.md` as a mini-PRD with simplified task breakdown (one task per bug, 1-3 subtasks max).
     - It loops (Fix -> Re-test) until the QA Agent reports no issues.
+4.  **Interactive Prompts:**
+    - User is prompted before starting a new bug hunt on a completed session.
+    - User is prompted before resuming an incomplete bug fix cycle, with option to archive and start fresh.
+5.  **Artifact Preservation:**
+    - Bug fix artifacts are archived (not deleted) for audit trail and debugging history.
+    - Session structure: `plan/NNN_hash/bugfix/NNN_hash/` contains `tasks.json` and `TEST_RESULTS.md`.
 
 ## 5. Functional Requirements
 
@@ -91,9 +105,21 @@ Once all tasks are complete, or if run in `bug-hunt` mode:
 
 - **Must** maintain a `tasks.json` file as the single source of truth.
 - **Must** create a `plan/` directory structure: `plan/{sequence}_{hash}/`.
-- **Must** never delete `tasks.json`, `PRD.md`, or test results during cleanup.
+- **Must** support bugfix session structure: `plan/{sequence}_{hash}/bugfix/{sequence}_{hash}/`.
 - **Must** support "Smart Commit": Automatically staging changes while protecting pipeline state files.
 - **Must** handle graceful shutdown (finish current task before exiting on SIGINT).
+- **Must** implement nested execution guard via `PRP_PIPELINE_RUNNING` environment variable.
+- **Must** validate session paths in bug fix mode (must contain "bugfix" in path).
+
+**Protected Files (NEVER delete or move):**
+- `$SESSION_DIR/tasks.json` - Pipeline state tracking
+- `$SESSION_DIR/prd_snapshot.md` - PRD snapshot for session
+- `$SESSION_DIR/delta_prd.md` - Delta PRD for incremental sessions
+- `$SESSION_DIR/delta_from.txt` - Delta session linkage
+- `$SESSION_DIR/TEST_RESULTS.md` - Bug report file
+- `PRD.md` - Product requirements document (human-owned)
+- Any file matching `*tasks*.json` pattern
+- Any file directly in `$SESSION_DIR/` root (never move to subdirectories)
 
 ### 5.2 Agent Capabilities
 
@@ -104,10 +130,45 @@ Once all tasks are complete, or if run in `bug-hunt` mode:
   - Web Research (for fetching docs).
 - **Context Management:** The system must inject specific context (Previous session notes, Architecture docs) into agent prompts.
 
+**Agent Operational Boundaries (FORBIDDEN OPERATIONS):**
+
+Each agent type has strictly defined output scopes and forbidden operations to prevent pipeline corruption:
+
+| Agent Type | Allowed Output Scope | Forbidden Operations |
+|------------|---------------------|---------------------|
+| Task Breakdown | `tasks.json`, `architecture/` | PRD.md, source code, .gitignore |
+| Research (PRP) | `PRP.md`, `research/` | tasks.json, source code, prd_snapshot.md |
+| Implementation | `src/`, `tests/`, `lib/` | plan/, PRD.md, tasks.json, pipeline scripts |
+| Cleanup | `docs/` organization | plan/, PRD.md, tasks.json, session directories |
+| Task Update | `tasks.json` modifications | PRD.md, source code, prd_snapshot.md |
+| Validation | `validate.sh`, `validation_report.md` | plan/, source code, tasks.json |
+| Bug Hunter | `TEST_RESULTS.md` (if bugs found) | plan/, source code, tasks.json |
+
+**Universal Forbidden Operations (all agents):**
+- Never modify `PRD.md` (human-owned document)
+- Never add `plan/`, `PRD.md`, or task files to `.gitignore`
+- Never run `prd`, `run-prd.sh`, or `tsk` commands (prevents recursive execution)
+- Never create session-pattern directories (`[0-9]*_*`) outside designated locations
+
 ### 5.3 Task Management
 
 - Support status: `Planned`, `Researching`, `Implementing`, `Complete`, `Failed`, `Obsolete`.
 - Support scopes: User can execute specific scopes (`--scope=milestone`, `--task=3`).
+
+**`prd task` Subcommand:**
+
+Provides convenient wrapper to interact with tasks in the current session:
+
+```bash
+prd task              # Show tasks for current session
+prd task next         # Get next task
+prd task status       # Show status
+prd task -f <file>    # Override with specific file
+```
+
+**Task File Discovery Priority:**
+1. Incomplete bugfix session tasks (`SESSION_DIR/bugfix/NNN_hash/tasks.json`)
+2. Main session tasks (`SESSION_DIR/tasks.json`)
 
 ## 6. Critical Prompts & Personas
 
@@ -154,6 +215,21 @@ The system relies on specific, highly-engineered prompts. These must be preserve
   2.  Creative E2E Testing (Happy path + Edge cases).
   3.  Adversarial Testing (Unexpected inputs).
 - **Output:** `TEST_RESULTS.md` (only if bugs exist).
+
+### 6.6 PRD Brainstormer Prompt ("Requirements Interrogation Engine")
+
+- **Role:** Requirements Interrogation and Convergence Engine.
+- **Goal:** Produce comprehensive PRDs through aggressive questioning rather than invention.
+- **Four-Phase Model:**
+  1.  **Discovery:** Initial requirements gathering.
+  2.  **Interrogation:** Deep questioning to uncover gaps and ambiguities.
+  3.  **Convergence:** Consolidating answers into coherent specifications.
+  4.  **Finalization:** Final PRD generation with testability validation.
+- **Key Rules:**
+  - Maintains a Decision Ledger for tracking confirmed facts.
+  - Linear questioning rule (no parallel questions that could invalidate each other).
+  - All specifications must have testability requirements.
+  - Impossibility detection for conflicting requirements.
 
 ## 7. Improvements for the Rewrite
 
@@ -204,6 +280,16 @@ Configuration is loaded in the following order (later sources override earlier o
   - `ANTHROPIC_AUTH_TOKEN`: z.ai API authentication token (mapped to `ANTHROPIC_API_KEY` for SDK compatibility)
   - `ANTHROPIC_BASE_URL`: API endpoint (defaults to `https://api.z.ai/api/anthropic` if not set)
 
+- **Pipeline Control**:
+  - `PRP_PIPELINE_RUNNING`: Guard to prevent nested execution (set to PID when pipeline starts)
+  - `SKIP_BUG_FINDING`: Skip bug hunt stage; also identifies bug fix mode when `true`
+  - `SKIP_EXECUTION_LOOP`: Internal flag to skip task execution while allowing validation/bug hunt
+
+- **Bug Hunt Configuration**:
+  - `BUG_FINDER_AGENT`: Agent used for bug discovery (default: `glp`)
+  - `BUG_RESULTS_FILE`: Bug report output file (default: `TEST_RESULTS.md`)
+  - `BUGFIX_SCOPE`: Granularity for bug fix tasks (default: `subtask`)
+
 #### 9.2.3 Model Selection
 
 - **`ANTHROPIC_DEFAULT_SONNET_MODEL`**: Model for complex reasoning tasks (default: `GLM-4.7`)
@@ -220,6 +306,25 @@ These values should be read from the environment at runtime, not hardcoded.
 - Warnings are issued for non-z.ai endpoints (excluding localhost/mock/test endpoints)
 
 This prevents the massive usage spikes that occurred when tests were accidentally configured to use Anthropic's production API.
+
+#### 9.2.5 Nested Execution Guard
+
+**Problem:** Agents could accidentally invoke `run-prd.sh` during implementation, causing recursive execution and corrupted pipeline state.
+
+**Solution:** The pipeline sets `PRP_PIPELINE_RUNNING` environment variable at script entry and validates it before proceeding.
+
+**Guard Logic:**
+1. On pipeline start, check if `PRP_PIPELINE_RUNNING` is already set
+2. If set, only allow execution if BOTH conditions are true:
+   - `SKIP_BUG_FINDING=true` (legitimate bug fix recursion)
+   - `PLAN_DIR` contains "bugfix" (validates bugfix context)
+3. If validation fails, exit with clear error message
+4. On valid entry, set `PRP_PIPELINE_RUNNING` to current PID
+
+**Session Creation Guards:**
+- In bug fix mode, prevent creating sessions in main `plan/` directory
+- Bug fix session paths must contain "bugfix" in the path
+- Provides debug logging showing `PLAN_DIR`, `SESSION_DIR`, and `SKIP_BUG_FINDING` values
 
 ### 9.3 System Components (Groundswell Mapping)
 
