@@ -109,7 +109,7 @@
               "type": "Task",
               "id": "P1.M1.T3",
               "title": "Task 1.1.3: Agent Runtime Verification",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Verify Agent Runtime implements all four agent types (Architect, Researcher, Coder, QA) with proper prompts and tool integration as specified in PRD §6.",
               "subtasks": [
                 {
@@ -147,7 +147,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S4",
                   "title": "Verify QA Agent and bug hunting workflow",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S3"
@@ -167,7 +167,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T4.S1",
                   "title": "Verify main execution loop and task processing",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - PRPPipeline at `src/workflows/prp-pipeline.ts` (1848 lines) extends Groundswell Workflow. Main loop: init → backlog execution → QA cycle.\n2. INPUT: PRPPipeline implementation, TaskOrchestrator interface, session management integration.\n3. LOGIC: Write integration test that verifies: (a) pipeline initializes session from PRD hash, (b) main loop processes tasks until queue empty, (c) individual task failures don't stop pipeline (tracked and continued), (d) progress metrics are updated (total/completed/failed counts), (e) pipeline status transitions (running → completed/failed). Mock session state, task outcomes, and orchestrator behavior.\n4. OUTPUT: Integration test file `tests/integration/pipeline-main-loop.test.ts` with execution flow and progress tracking verification."
