@@ -116,7 +116,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S1",
                   "title": "Verify Architect Agent integration and prompts",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and PROMPTS.md - Architect Agent uses TASK_BREAKDOWN_SYSTEM_PROMPT. Role: Lead Technical Architect. Output: JSON backlog to tasks.json.\n2. INPUT: Agent factory at `src/agents/agent-factory.ts`, TASK_BREAKDOWN_PROMPT from `PROMPTS.md` (lines 54-169), architect prompt schema validation.\n3. LOGIC: Write integration test that verifies: (a) Architect Agent is created with correct config (GLM-4.7, 8192 tokens, cache enabled), (b) TASK_BREAKDOWN_PROMPT contains all required sections (research-driven architecture, implicit TDD, context scope), (c) agent output matches Zod schema for Backlog type, (d) agent writes JSON to specified tasks.json path. Mock Groundswell agent to return test data.\n4. OUTPUT: Integration test file `tests/integration/architect-agent.test.ts` with prompt validation and output schema verification."
@@ -125,7 +125,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S2",
                   "title": "Verify Researcher Agent and PRP generation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S1"
