@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Milestone 1.1: Core Component Verification",
-          "status": "Planned",
+          "status": "Ready",
           "description": "Verify all four processing engines (Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller) are implemented and functional.",
           "tasks": [
             {
@@ -160,7 +160,7 @@
               "type": "Task",
               "id": "P1.M1.T4",
               "title": "Task 1.1.4: Pipeline Controller Verification",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Verify Pipeline Controller implements main loop, graceful shutdown, resource monitoring, and progress tracking as specified in PRD §3.4.",
               "subtasks": [
                 {
@@ -187,7 +187,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T4.S3",
                   "title": "Verify resource monitoring and limits",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T4.S1"
@@ -198,7 +198,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T4.S4",
                   "title": "Verify nested execution guard",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T4.S1"
