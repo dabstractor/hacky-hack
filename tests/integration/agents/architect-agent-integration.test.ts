@@ -349,7 +349,8 @@ describe('integration/agents/architect-agent-integration', () => {
       // SETUP: Import createArchitectPrompt and BacklogSchema
       const { createArchitectPrompt } =
         await import('/home/dustin/projects/hacky-hack/src/agents/prompts/architect-prompt.js');
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
 
       // SETUP: Mock createPrompt to return a prompt object
       const mockPrompt = {
@@ -378,7 +379,8 @@ describe('integration/agents/architect-agent-integration', () => {
       // SETUP: Import createArchitectPrompt
       const { createArchitectPrompt } =
         await import('/home/dustin/projects/hacky-hack/src/agents/prompts/architect-prompt.js');
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
 
       // SETUP: Mock createPrompt return value
       const mockPrompt = {
@@ -409,7 +411,8 @@ describe('integration/agents/architect-agent-integration', () => {
         await import('/home/dustin/projects/hacky-hack/src/agents/prompts/architect-prompt.js');
       const { TASK_BREAKDOWN_PROMPT } =
         await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
 
       // SETUP: Mock createPrompt return value
       const mockPrompt = {
@@ -441,7 +444,8 @@ describe('integration/agents/architect-agent-integration', () => {
   describe('agent output validation', () => {
     it('should validate output against BacklogSchema', async () => {
       // SETUP: Import BacklogSchema and createArchitectAgent
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
       const { createArchitectAgent } =
         await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
       const { createArchitectPrompt } =
@@ -468,7 +472,8 @@ describe('integration/agents/architect-agent-integration', () => {
 
     it('should validate all ID formats', async () => {
       // SETUP: Import and create mock agent
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
       const { createArchitectAgent } =
         await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
       const { createArchitectPrompt } =
@@ -520,7 +525,8 @@ describe('integration/agents/architect-agent-integration', () => {
 
     it('should validate story_points are integers 1-21', async () => {
       // SETUP: Import and create mock agent
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
       const { createArchitectAgent } =
         await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
       const { createArchitectPrompt } =
@@ -565,7 +571,8 @@ describe('integration/agents/architect-agent-integration', () => {
 
     it('should validate context_scope format', async () => {
       // SETUP: Import and create mock agent
-      const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { BacklogSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
       const { createArchitectAgent } =
         await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
       const { createArchitectPrompt } =

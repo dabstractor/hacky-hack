@@ -492,7 +492,12 @@ export class FilesystemMCP extends MCPHandler {
   public readonly transport = 'inprocess' as const;
 
   /** Tools for MCPServer interface */
-  public readonly tools = [fileReadTool, fileWriteTool, globFilesTool, grepSearchTool];
+  public readonly tools = [
+    fileReadTool,
+    fileWriteTool,
+    globFilesTool,
+    grepSearchTool,
+  ];
 
   constructor() {
     super();

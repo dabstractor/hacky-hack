@@ -125,7 +125,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S2",
                   "title": "Verify Researcher Agent and PRP generation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S1"
@@ -136,7 +136,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S3",
                   "title": "Verify Coder Agent and PRP execution",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S2"

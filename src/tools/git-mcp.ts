@@ -484,7 +484,12 @@ export class GitMCP extends MCPHandler {
   public readonly transport = 'inprocess' as const;
 
   /** Tools for MCPServer interface */
-  public readonly tools = [gitStatusTool, gitDiffTool, gitAddTool, gitCommitTool];
+  public readonly tools = [
+    gitStatusTool,
+    gitDiffTool,
+    gitAddTool,
+    gitCommitTool,
+  ];
 
   constructor() {
     super();
