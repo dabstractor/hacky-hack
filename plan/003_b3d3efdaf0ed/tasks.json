@@ -176,7 +176,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T4.S2",
                   "title": "Verify graceful shutdown and signal handling",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T4.S1"
@@ -187,7 +187,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T4.S3",
                   "title": "Verify resource monitoring and limits",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T4.S1"

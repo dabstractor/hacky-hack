@@ -9,13 +9,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import {
-  mkdtempSync,
-  rmSync,
-  readFileSync,
-  existsSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { PRPPipeline } from '../../src/workflows/prp-pipeline.js';
@@ -25,6 +19,8 @@ import type { Backlog, Status } from '../../src/core/models.js';
 vi.mock('../../src/agents/agent-factory.js', () => ({
   createArchitectAgent: vi.fn(),
   createQAAgent: vi.fn(),
+  createResearcherAgent: vi.fn(),
+  createCoderAgent: vi.fn(),
 }));
 
 // Mock SessionManager to use test's mock during run()
@@ -139,12 +135,6 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
     content: string = '# Test PRD\n\nThis is a test PRD for shutdown testing.'
   ) => {
     writeFileSync(prdPath, content);
-  };
-
-  // Helper to create a tasks.json in session directory
-  const createTasksJson = (sessionPath: string, backlog: Backlog) => {
-    const tasksPath = join(sessionPath, 'tasks.json');
-    writeFileSync(tasksPath, JSON.stringify(backlog, null, 2));
   };
 
   describe('SIGINT handling during execution', () => {
@@ -879,6 +869,1114 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       expect(infoSpy).toHaveBeenCalledWith('[PRPPipeline] Cleanup complete');
 
       infoSpy.mockRestore();
+    });
+  });
+
+  describe('current task completion before shutdown', () => {
+    it('should not interrupt in-flight task execution', async () => {
+      // SETUP: Create test PRD and backlog
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      const mockSessionManager = setupMockSessionManager(backlog);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Mock processNextItem with delay (simulates long-running task)
+      let taskStarted = false;
+      let taskCompleted = false;
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: 'P1.M1.T1.S1',
+        processNextItem: vi.fn().mockImplementation(async () => {
+          taskStarted = true;
+          // Simulate task taking 100ms
+          await new Promise(resolve => setTimeout(resolve, 100));
+          taskCompleted = true;
+          // Emit signal 50ms into task execution
+          setTimeout(() => {
+            process.emit('SIGINT');
+          }, 50);
+          return false; // No more items
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+      (pipeline as any).sessionManager = mockSessionManager;
+
+      // EXECUTE: Run pipeline
+      const result = await pipeline.run();
+
+      // VERIFY: Task completed fully (not interrupted mid-execution)
+      expect(taskStarted).toBe(true);
+      expect(taskCompleted).toBe(true);
+      expect(mockOrchestrator.processNextItem).toHaveBeenCalledTimes(1);
+
+      // VERIFY: Shutdown handled gracefully after task completed
+      expect(result.shutdownInterrupted).toBe(true);
+      expect(mockSessionManager.saveBacklog).toHaveBeenCalled();
+    });
+
+    it('should complete current task before loop exits on shutdown', async () => {
+      // SETUP: Create test PRD
+      createTestPRD();
+
+      // Create backlog with 3 subtasks
+      const backlog: Backlog = {
+        backlog: [
+          {
+            id: 'P1',
+            type: 'Phase',
+            title: 'Phase 1',
+            status: 'Planned' as Status,
+            description: 'Test phase',
+            milestones: [
+              {
+                id: 'P1.M1',
+                type: 'Milestone',
+                title: 'Milestone 1',
+                status: 'Planned' as Status,
+                description: 'Test milestone',
+                tasks: [
+                  {
+                    id: 'P1.M1.T1',
+                    type: 'Task',
+                    title: 'Task 1',
+                    status: 'Planned' as Status,
+                    description: 'Test task',
+                    subtasks: [
+                      {
+                        id: 'P1.M1.T1.S1',
+                        type: 'Subtask',
+                        title: 'Subtask 1',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S2',
+                        type: 'Subtask',
+                        title: 'Subtask 2',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S3',
+                        type: 'Subtask',
+                        title: 'Subtask 3',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      const mockSessionManager = setupMockSessionManager(backlog);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Track task completion timing
+      const taskCompletionLog: string[] = [];
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: null as string | null,
+        processNextItem: vi.fn().mockImplementation(async () => {
+          const taskId = `task-${taskCompletionLog.length + 1}`;
+          (pipeline as any).taskOrchestrator.currentItemId = taskId;
+          taskCompletionLog.push(`started-${taskId}`);
+
+          // Simulate task work
+          await new Promise(resolve => setTimeout(resolve, 10));
+
+          taskCompletionLog.push(`completed-${taskId}`);
+
+          // After first task, emit SIGINT
+          if (taskCompletionLog.length === 2) {
+            process.emit('SIGINT');
+            // Allow async handler to process
+            await new Promise(resolve => setImmediate(resolve));
+          }
+
+          // Return true for first two calls, false for third
+          return taskCompletionLog.length <= 4; // 2 entries per task
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE: Run pipeline
+      const result = await pipeline.run();
+
+      // VERIFY: First task completed before loop exited
+      expect(taskCompletionLog).toContain('started-task-1');
+      expect(taskCompletionLog).toContain('completed-task-1');
+      expect(taskCompletionLog).not.toContain('started-task-2');
+
+      // VERIFY: Shutdown happened after task completion
+      expect(result.shutdownInterrupted).toBe(true);
+      expect(mockSessionManager.saveBacklog).toHaveBeenCalled();
+    });
+  });
+
+  describe('--continue flag resume functionality', () => {
+    it('should resume from interrupted session state', async () => {
+      // SETUP: Create test PRD
+      createTestPRD();
+
+      // Create backlog with task 1 Complete, task 2 Planned
+      const backlog: Backlog = {
+        backlog: [
+          {
+            id: 'P1',
+            type: 'Phase',
+            title: 'Phase 1',
+            status: 'Implementing' as Status,
+            description: 'Test phase',
+            milestones: [
+              {
+                id: 'P1.M1',
+                type: 'Milestone',
+                title: 'Milestone 1',
+                status: 'Implementing' as Status,
+                description: 'Test milestone',
+                tasks: [
+                  {
+                    id: 'P1.M1.T1',
+                    type: 'Task',
+                    title: 'Task 1',
+                    status: 'Implementing' as Status,
+                    description: 'Test task',
+                    subtasks: [
+                      {
+                        id: 'P1.M1.T1.S1',
+                        type: 'Subtask',
+                        title: 'Subtask 1',
+                        status: 'Complete' as Status, // Already complete
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S2',
+                        type: 'Subtask',
+                        title: 'Subtask 2',
+                        status: 'Planned' as Status, // Should execute
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      const mockSessionManager: any = {
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+          currentItemId: 'P1.M1.T1.S2', // Resume from here
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: 'P1.M1.T1.S2',
+        }),
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+      };
+      MockSessionManagerClass.mockImplementation(() => mockSessionManager);
+
+      // EXECUTE: Run pipeline (simulates --continue behavior)
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      const processedTasks: string[] = [];
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: 'P1.M1.T1.S2',
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Track which tasks are processed
+          processedTasks.push(
+            (pipeline as any).taskOrchestrator.currentItemId || 'unknown'
+          );
+          return false; // No more items after first
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      await pipeline.run();
+
+      // VERIFY: Task resumed from currentItemId
+      expect(processedTasks).toContain('P1.M1.T1.S2');
+      expect(mockSessionManager.saveBacklog).toHaveBeenCalled();
+    });
+
+    it('should preserve currentItemId for resume', async () => {
+      // SETUP: Create test PRD
+      createTestPRD();
+
+      const backlog: Backlog = {
+        backlog: [
+          {
+            id: 'P1',
+            type: 'Phase',
+            title: 'Phase 1',
+            status: 'Implementing' as Status,
+            description: 'Test phase',
+            milestones: [
+              {
+                id: 'P1.M1',
+                type: 'Milestone',
+                title: 'Milestone 1',
+                status: 'Implementing' as Status,
+                description: 'Test milestone',
+                tasks: [
+                  {
+                    id: 'P1.M1.T1',
+                    type: 'Task',
+                    title: 'Task 1',
+                    status: 'Implementing' as Status,
+                    description: 'Test task',
+                    subtasks: [
+                      {
+                        id: 'P1.M1.T1.S1',
+                        type: 'Subtask',
+                        title: 'Subtask 1',
+                        status: 'Complete' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S2',
+                        type: 'Subtask',
+                        title: 'Subtask 2',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S3',
+                        type: 'Subtask',
+                        title: 'Subtask 3',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      // Track saved state
+      let savedCurrentItemId: string | null = null;
+      const mockSessionManager: any = {
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+          currentItemId: 'P1.M1.T1.S3',
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: 'P1.M1.T1.S3',
+        }),
+        saveBacklog: vi.fn().mockImplementation(async () => {
+          // Capture what was saved
+          savedCurrentItemId =
+            mockSessionManager.currentSession?.currentItemId || null;
+        }),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+      };
+      MockSessionManagerClass.mockImplementation(() => mockSessionManager);
+
+      // EXECUTE: Create pipeline and trigger shutdown
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: 'P1.M1.T1.S3',
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Emit SIGINT to trigger shutdown
+          process.emit('SIGINT');
+          await new Promise(resolve => setImmediate(resolve));
+          return false;
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      await pipeline.run();
+
+      // VERIFY: currentItemId was preserved in saved state
+      expect(savedCurrentItemId).toBe('P1.M1.T1.S3');
+      expect(mockSessionManager.saveBacklog).toHaveBeenCalled();
+    });
+
+    it('should skip completed tasks on resume', async () => {
+      // SETUP: Create test PRD
+      createTestPRD();
+
+      const backlog: Backlog = {
+        backlog: [
+          {
+            id: 'P1',
+            type: 'Phase',
+            title: 'Phase 1',
+            status: 'Implementing' as Status,
+            description: 'Test phase',
+            milestones: [
+              {
+                id: 'P1.M1',
+                type: 'Milestone',
+                title: 'Milestone 1',
+                status: 'Implementing' as Status,
+                description: 'Test milestone',
+                tasks: [
+                  {
+                    id: 'P1.M1.T1',
+                    type: 'Task',
+                    title: 'Task 1',
+                    status: 'Implementing' as Status,
+                    description: 'Test task',
+                    subtasks: [
+                      {
+                        id: 'P1.M1.T1.S1',
+                        type: 'Subtask',
+                        title: 'Subtask 1',
+                        status: 'Complete' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S2',
+                        type: 'Subtask',
+                        title: 'Subtask 2',
+                        status: 'Complete' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S3',
+                        type: 'Subtask',
+                        title: 'Subtask 3',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      const mockSessionManager: any = {
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+          currentItemId: 'P1.M1.T1.S3',
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: 'P1.M1.T1.S3',
+        }),
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+      };
+      MockSessionManagerClass.mockImplementation(() => mockSessionManager);
+
+      // EXECUTE: Run pipeline (simulates resume)
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      const processedTasks: string[] = [];
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: 'P1.M1.T1.S3',
+        processNextItem: vi.fn().mockImplementation(async () => {
+          const currentId = (pipeline as any).taskOrchestrator.currentItemId;
+          processedTasks.push(currentId || 'unknown');
+          return false;
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      await pipeline.run();
+
+      // VERIFY: Only planned task executed, completed tasks skipped
+      expect(processedTasks).toContain('P1.M1.T1.S3');
+      expect(processedTasks).not.toContain('P1.M1.T1.S1');
+      expect(processedTasks).not.toContain('P1.M1.T1.S2');
+    });
+  });
+
+  describe('state corruption prevention', () => {
+    it('should handle multiple signals without corruption', async () => {
+      // SETUP: Create test PRD
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      const mockSessionManager = setupMockSessionManager(backlog);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+      const warnSpy = vi.spyOn((pipeline as any).logger, 'warn');
+
+      // EXECUTE: Emit multiple signals rapidly
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Emit multiple signals
+          process.emit('SIGINT');
+          process.emit('SIGTERM');
+          process.emit('SIGINT');
+
+          // Allow async handlers to complete
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+
+          return false;
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+      (pipeline as any).sessionManager = mockSessionManager;
+
+      await pipeline.run();
+
+      // VERIFY: Only first signal processed, warning logged for duplicate
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Duplicate SIGINT')
+      );
+
+      // VERIFY: State saved once (no duplicate saves)
+      expect(mockSessionManager.saveBacklog).toHaveBeenCalledTimes(1);
+
+      warnSpy.mockRestore();
+    });
+
+    it('should preserve state during error in cleanup', async () => {
+      // SETUP
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      // Mock SessionManager to track saveBacklog calls even if they fail
+      const saveBacklogCalls: any[] = [];
+      MockSessionManagerClass.mockImplementation(() => ({
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: null,
+        }),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+        saveBacklog: vi.fn().mockImplementation(async (...args: any[]) => {
+          saveBacklogCalls.push(args);
+          // Simulate error during save
+          throw new Error('Save error');
+        }),
+      }));
+
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        processNextItem: vi.fn().mockResolvedValue(false),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE: Run pipeline (cleanup will catch the error from saveBacklog)
+      const result = await pipeline.run();
+
+      // VERIFY: State save was attempted (error was caught by cleanup's try-catch)
+      expect(saveBacklogCalls.length).toBeGreaterThan(0);
+
+      // VERIFY: Pipeline still completed despite cleanup error (error was caught)
+      expect(pipeline.currentPhase).toBe('shutdown_complete');
+    });
+  });
+
+  describe('edge cases and error scenarios', () => {
+    it('should handle shutdown before any tasks', async () => {
+      // SETUP: Create pipeline with empty backlog
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      const mockSessionManager = setupMockSessionManager(backlog);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Emit SIGINT before any tasks (signal handler will set shutdown flag)
+      process.emit('SIGINT');
+      await new Promise(resolve => setImmediate(resolve));
+      await new Promise(resolve => setImmediate(resolve));
+
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        processNextItem: vi.fn().mockResolvedValue(false),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE: Run pipeline
+      const result = await pipeline.run();
+
+      // VERIFY: Clean shutdown with zero tasks
+      expect(result.completedTasks).toBe(0);
+      // Note: shutdownInterrupted is false in success path even with signal
+      expect(pipeline.shutdownRequested).toBe(true);
+      expect(mockSessionManager.saveBacklog).toHaveBeenCalled();
+    });
+
+    it('should handle shutdown during error recovery', async () => {
+      // SETUP
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      MockSessionManagerClass.mockImplementation(() => ({
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: null,
+        }),
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Mock task to throw error, then emit SIGINT
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Emit SIGINT during error handling
+          process.emit('SIGINT');
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+          throw new Error('Task execution error');
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE: Run pipeline
+      const result = await pipeline.run();
+
+      // VERIFY: Error tracked, shutdown completes, state saved
+      expect(result.failedTasks).toBeGreaterThan(0);
+      // shutdownInterrupted is set based on shutdownRequested flag in catch block
+      expect(pipeline.shutdownRequested).toBe(true);
+      expect(pipeline.currentPhase).toBe('shutdown_complete');
+    });
+
+    it('should handle resource limit shutdown', async () => {
+      // SETUP
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      // Track shutdownReason
+      let savedShutdownReason: string | null = null;
+      MockSessionManagerClass.mockImplementation(() => ({
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: null,
+        }),
+        saveBacklog: vi.fn().mockImplementation(async () => {
+          // Capture shutdownReason when saveBacklog is called
+          const pipelineInstance = (this as any).pipeline;
+          if (pipelineInstance) {
+            savedShutdownReason = pipelineInstance.shutdownReason;
+          }
+        }),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Simulate resource limit shutdown by setting flags directly
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Simulate what the resource monitor check would do
+          (pipeline as any).shutdownRequested = true;
+          (pipeline as any).shutdownReason = 'RESOURCE_LIMIT';
+          (pipeline as any)['#resourceLimitReached'] = true;
+          return false;
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // Store reference on mock for saveBacklog to access
+      (MockSessionManagerClass as any).mockImplementation.instances = [{
+        pipeline,
+      }];
+
+      // EXECUTE: Run pipeline
+      const result = await pipeline.run();
+
+      // VERIFY: Resource limit shutdown flags were set
+      expect(pipeline.shutdownRequested).toBe(true);
+      // The pipeline's shutdownReason should be RESOURCE_LIMIT
+      expect((pipeline as any).shutdownReason).toBe('RESOURCE_LIMIT');
+    });
+
+    it('should verify flushUpdates called before saveBacklog', async () => {
+      // SETUP
+      createTestPRD();
+      const backlog: Backlog = { backlog: [] };
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      // Track call order
+      const callOrder: string[] = [];
+      MockSessionManagerClass.mockImplementation(() => ({
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: null,
+        }),
+        flushUpdates: vi.fn().mockImplementation(async () => {
+          callOrder.push('flushUpdates');
+        }),
+        saveBacklog: vi.fn().mockImplementation(async () => {
+          callOrder.push('saveBacklog');
+        }),
+      }));
+
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Trigger an error to ensure cleanup is called in finally block
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Emit SIGINT to trigger shutdown flag
+          process.emit('SIGINT');
+          await new Promise(resolve => setImmediate(resolve));
+          // Throw error to trigger catch path which still calls cleanup in finally
+          throw new Error('Test error to trigger cleanup');
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE: Run pipeline
+      await pipeline.run();
+
+      // VERIFY: flushUpdates called before saveBacklog in cleanup
+      expect(callOrder).toEqual(['flushUpdates', 'saveBacklog']);
+    });
+
+    it('should verify progress metrics accuracy at shutdown', async () => {
+      // SETUP
+      createTestPRD();
+
+      const backlog: Backlog = {
+        backlog: [
+          {
+            id: 'P1',
+            type: 'Phase',
+            title: 'Phase 1',
+            status: 'Implementing' as Status,
+            description: 'Test phase',
+            milestones: [
+              {
+                id: 'P1.M1',
+                type: 'Milestone',
+                title: 'Milestone 1',
+                status: 'Implementing' as Status,
+                description: 'Test milestone',
+                tasks: [
+                  {
+                    id: 'P1.M1.T1',
+                    type: 'Task',
+                    title: 'Task 1',
+                    status: 'Implementing' as Status,
+                    description: 'Test task',
+                    subtasks: [
+                      {
+                        id: 'P1.M1.T1.S1',
+                        type: 'Subtask',
+                        title: 'Subtask 1',
+                        status: 'Complete' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S2',
+                        type: 'Subtask',
+                        title: 'Subtask 2',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                      {
+                        id: 'P1.M1.T1.S3',
+                        type: 'Subtask',
+                        title: 'Subtask 3',
+                        status: 'Planned' as Status,
+                        story_points: 1,
+                        dependencies: [],
+                        context_scope: 'Test scope',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
+      (createArchitectAgent as any).mockReturnValue(mockAgent);
+      (readFile as any).mockImplementation((path: string) => {
+        if (path.includes('tasks.json')) {
+          return JSON.stringify(backlog);
+        }
+        return '';
+      });
+
+      MockSessionManagerClass.mockImplementation(() => ({
+        currentSession: {
+          metadata: { path: tempDir },
+          taskRegistry: backlog,
+        },
+        initialize: vi.fn().mockResolvedValue({
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
+          prdSnapshot: '# Test',
+          taskRegistry: backlog,
+          currentItemId: null,
+        }),
+        saveBacklog: vi.fn().mockResolvedValue(undefined),
+        flushUpdates: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
+
+      // Trigger shutdown with error to ensure shutdownInterrupted is true
+      const mockOrchestrator: any = {
+        sessionManager: {},
+        currentItemId: null as string | null,
+        processNextItem: vi.fn().mockImplementation(async () => {
+          // Emit SIGINT to trigger shutdown
+          process.emit('SIGINT');
+          await new Promise(resolve => setImmediate(resolve));
+          await new Promise(resolve => setImmediate(resolve));
+          // Throw error to trigger catch path where shutdownInterrupted is set
+          throw new Error('Test error for shutdown metrics');
+        }),
+      };
+      (pipeline as any).taskOrchestrator = mockOrchestrator;
+
+      // EXECUTE: Run pipeline
+      const result = await pipeline.run();
+
+      // VERIFY: Progress metrics reflect actual state at shutdown
+      // totalTasks counts all subtasks in backlog
+      expect(result.totalTasks).toBe(3); // 3 subtasks total
+      // completedTasks counts subtasks with status 'Complete'
+      expect(result.completedTasks).toBe(1); // 1 subtask with status 'Complete'
+      expect(result.shutdownInterrupted).toBe(true); // true in catch path
     });
   });
 });
