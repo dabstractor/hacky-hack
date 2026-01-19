@@ -109,7 +109,7 @@
               "type": "Task",
               "id": "P1.M1.T3",
               "title": "Task 1.1.3: Agent Runtime Verification",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Verify Agent Runtime implements all four agent types (Architect, Researcher, Coder, QA) with proper prompts and tool integration as specified in PRD §6.",
               "subtasks": [
                 {
@@ -136,7 +136,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S3",
                   "title": "Verify Coder Agent and PRP execution",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S2"
@@ -147,7 +147,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S4",
                   "title": "Verify QA Agent and bug hunting workflow",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T3.S3"
