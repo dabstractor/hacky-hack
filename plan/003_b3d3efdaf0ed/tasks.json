@@ -69,7 +69,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Task 1.1.2: Task Orchestrator Verification",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Verify Task Orchestrator implements hierarchical traversal, dependency resolution, and status tracking as specified in PRD §5.3.",
               "subtasks": [
                 {
@@ -85,7 +85,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Verify dependency resolution logic",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"
@@ -96,7 +96,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S3",
                   "title": "Verify parallel PRP generation via ResearchQueue",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"
