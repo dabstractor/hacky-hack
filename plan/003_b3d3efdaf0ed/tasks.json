@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Milestone 1.1: Core Component Verification",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Verify all four processing engines (Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller) are implemented and functional.",
           "tasks": [
             {
@@ -160,7 +160,7 @@
               "type": "Task",
               "id": "P1.M1.T4",
               "title": "Task 1.1.4: Pipeline Controller Verification",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Verify Pipeline Controller implements main loop, graceful shutdown, resource monitoring, and progress tracking as specified in PRD §3.4.",
               "subtasks": [
                 {
@@ -198,7 +198,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T4.S4",
                   "title": "Verify nested execution guard",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T4.S1"
@@ -227,7 +227,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Verify tasks.json as single source of truth",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - tasks.json contains Backlog with Phase/Milestone/Task/Subtask hierarchy. Atomic write pattern prevents corruption. All agents read/write through SessionManager.\n2. INPUT: Task models from `src/core/models.ts`, SessionManager state operations, Zod validation schemas.\n3. LOGIC: Write integration test that verifies: (a) all task status updates flow through tasks.json, (b) tasks.json is the authoritative source for task execution, (c) no other files duplicate task state, (d) schema validation prevents malformed tasks.json, (e) backups/temp files are cleaned up after successful writes. Mock session lifecycle with multiple state transitions.\n4. OUTPUT: Integration test file `tests/integration/tasks-json-authority.test.ts` with state management and schema validation verification."
