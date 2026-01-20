@@ -236,7 +236,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Verify plan/ directory structure and artifacts",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S1"
@@ -247,7 +247,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
                   "title": "Verify smart commit functionality",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S1"
