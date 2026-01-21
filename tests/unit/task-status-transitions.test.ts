@@ -20,7 +20,10 @@ import type {
 } from '../../src/core/models.js';
 import { updateItemStatus } from '../../src/utils/task-utils.js';
 import { patchBacklog } from '../../src/core/task-patcher.js';
-import type { RequirementChange, DeltaAnalysis } from '../../src/core/models.js';
+import type {
+  RequirementChange,
+  DeltaAnalysis,
+} from '../../src/core/models.js';
 
 // Mock the logger with hoisted variables
 const { mockLogger } = vi.hoisted(() => ({

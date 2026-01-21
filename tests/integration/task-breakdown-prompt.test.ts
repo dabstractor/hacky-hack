@@ -85,12 +85,16 @@ describe('integration/task-breakdown-prompt', () => {
 
     it('should require validation before breaking down', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('VALIDATE BEFORE BREAKING DOWN');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('You cannot plan what you do not understand');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'You cannot plan what you do not understand'
+      );
     });
 
     it('should specify spawning subagents for research', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('SPAWN SUBAGENTS');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('spawn agents to research the codebase');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'spawn agents to research the codebase'
+      );
     });
 
     it('should require reality check against codebase state', () => {
@@ -109,7 +113,9 @@ describe('integration/task-breakdown-prompt', () => {
     it('should specify output to ./tasks.json file', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('./$TASKS_FILE');
       expect(TASK_BREAKDOWN_PROMPT).toContain('CURRENT WORKING DIRECTORY');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('Do NOT output JSON to the conversation');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'Do NOT output JSON to the conversation'
+      );
       expect(TASK_BREAKDOWN_PROMPT).toContain('WRITE IT TO THE FILE');
     });
 
@@ -154,18 +160,24 @@ describe('integration/task-breakdown-prompt', () => {
   // PATTERN: Test suite 5 - Requirement (d) - Implicit TDD Approach
   describe('requirement (d): implicit TDD approach', () => {
     it('should forbid separate test subtasks', () => {
-      expect(TASK_BREAKDOWN_PROMPT).toContain('**DO NOT** create subtasks for "Write Tests."');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        '**DO NOT** create subtasks for "Write Tests."'
+      );
       expect(TASK_BREAKDOWN_PROMPT).toContain('IMPLICIT TDD & QUALITY');
     });
 
     it('should define implied test-first workflow', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('IMPLIED WORKFLOW:');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('Write the failing test -> Implement the code -> Pass the test');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'Write the failing test -> Implement the code -> Pass the test'
+      );
     });
 
     it('should specify that code is not complete without tests', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('DEFINITION OF DONE');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('Code is not complete without tests');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'Code is not complete without tests'
+      );
     });
   });
 
@@ -177,20 +189,30 @@ describe('integration/task-breakdown-prompt', () => {
 
     it('should specify INPUT/OUTPUT/MOCKING requirements', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('INPUT:');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('What specific data/interfaces are available');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'What specific data/interfaces are available'
+      );
       expect(TASK_BREAKDOWN_PROMPT).toContain('OUTPUT:');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('What exact interface does this subtask expose');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'What exact interface does this subtask expose'
+      );
       expect(TASK_BREAKDOWN_PROMPT).toContain('MOCKING:');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('What external services must be mocked');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'What external services must be mocked'
+      );
     });
 
     it('should specify context_scope must be strict set of instructions', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('strict set of instructions');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('developer who cannot see the rest of the project');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'developer who cannot see the rest of the project'
+      );
     });
 
     it('should include context_scope template in JSON schema example', () => {
-      expect(TASK_BREAKDOWN_PROMPT).toContain('"context_scope": "CONTRACT DEFINITION:');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        '"context_scope": "CONTRACT DEFINITION:'
+      );
       expect(TASK_BREAKDOWN_PROMPT).toContain('RESEARCH NOTE:');
       expect(TASK_BREAKDOWN_PROMPT).toContain('INPUT:');
       expect(TASK_BREAKDOWN_PROMPT).toContain('LOGIC:');
@@ -210,7 +232,9 @@ describe('integration/task-breakdown-prompt', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('_1 to 12 weeks._');
 
       expect(TASK_BREAKDOWN_PROMPT).toContain('**TASK:**');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('Complete features within a Milestone');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'Complete features within a Milestone'
+      );
       expect(TASK_BREAKDOWN_PROMPT).toContain('_Days to weeks._');
 
       expect(TASK_BREAKDOWN_PROMPT).toContain('**SUBTASK:**');
@@ -221,7 +245,9 @@ describe('integration/task-breakdown-prompt', () => {
     it('should specify subtask story point limits', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('0.5, 1, or 2 Story Points');
       expect(TASK_BREAKDOWN_PROMPT).toContain('Max 2 SP');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('do not break subtasks down further than 2 SP');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'do not break subtasks down further than 2 SP'
+      );
     });
 
     it('should have HIERARCHY DEFINITIONS section header', () => {
@@ -247,17 +273,27 @@ describe('integration/task-breakdown-prompt', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('highest level of scope');
 
       expect(TASK_BREAKDOWN_PROMPT).toContain('**DECOMPOSE**');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('strictly downwards to the Subtask level');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'strictly downwards to the Subtask level'
+      );
     });
 
     it('should specify research subagent spawning instructions', () => {
-      expect(TASK_BREAKDOWN_PROMPT).toContain('**Spawn** subagents to map the codebase');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('**Spawn** subagents to find external documentation');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('**Store** findings in `$SESSION_DIR/architecture/`');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        '**Spawn** subagents to map the codebase'
+      );
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        '**Spawn** subagents to find external documentation'
+      );
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        '**Store** findings in `$SESSION_DIR/architecture/`'
+      );
     });
 
     it('should specify using research to populate context_scope', () => {
-      expect(TASK_BREAKDOWN_PROMPT).toContain('using your research to populate the `context_scope`');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'using your research to populate the `context_scope`'
+      );
     });
   });
 
@@ -272,13 +308,17 @@ describe('integration/task-breakdown-prompt', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('EXPLICIT HANDOFFS');
       expect(TASK_BREAKDOWN_PROMPT).toContain('Subtask A');
       expect(TASK_BREAKDOWN_PROMPT).toContain('Subtask B');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('explicitly instructed to consume');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'explicitly instructed to consume'
+      );
     });
 
     it('should require strict references from research phase', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('STRICT REFERENCES');
       expect(TASK_BREAKDOWN_PROMPT).toContain('Reference specific file paths');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('confirmed during your **Research Phase**');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'confirmed during your **Research Phase**'
+      );
     });
   });
 
@@ -290,7 +330,9 @@ describe('integration/task-breakdown-prompt', () => {
 
     it('should specify CONSTRAINT for writing to file', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('**CONSTRAINT:**');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('MUST write the JSON to the file');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'MUST write the JSON to the file'
+      );
     });
 
     it('should include JSON code block example', () => {
@@ -307,12 +349,30 @@ describe('integration/task-breakdown-prompt', () => {
       console.log('\n=== Prompt (first 500 chars) ===');
       console.log(TASK_BREAKDOWN_PROMPT.slice(0, 500) + '...');
       console.log('\n=== Key sections verification ===');
-      console.log('✓ Contains LEAD TECHNICAL ARCHITECT:', TASK_BREAKDOWN_PROMPT.includes('LEAD TECHNICAL ARCHITECT'));
-      console.log('✓ Contains HIERARCHY DEFINITIONS:', TASK_BREAKDOWN_PROMPT.includes('## HIERARCHY DEFINITIONS'));
-      console.log('✓ Contains RESEARCH-DRIVEN ARCHITECTURE:', TASK_BREAKDOWN_PROMPT.includes('RESEARCH-DRIVEN ARCHITECTURE'));
-      console.log('✓ Contains PROCESS section:', TASK_BREAKDOWN_PROMPT.includes('## PROCESS'));
-      console.log('✓ Contains OUTPUT FORMAT:', TASK_BREAKDOWN_PROMPT.includes('## OUTPUT FORMAT'));
-      console.log('✓ Contains JSON schema:', TASK_BREAKDOWN_PROMPT.includes('"backlog": ['));
+      console.log(
+        '✓ Contains LEAD TECHNICAL ARCHITECT:',
+        TASK_BREAKDOWN_PROMPT.includes('LEAD TECHNICAL ARCHITECT')
+      );
+      console.log(
+        '✓ Contains HIERARCHY DEFINITIONS:',
+        TASK_BREAKDOWN_PROMPT.includes('## HIERARCHY DEFINITIONS')
+      );
+      console.log(
+        '✓ Contains RESEARCH-DRIVEN ARCHITECTURE:',
+        TASK_BREAKDOWN_PROMPT.includes('RESEARCH-DRIVEN ARCHITECTURE')
+      );
+      console.log(
+        '✓ Contains PROCESS section:',
+        TASK_BREAKDOWN_PROMPT.includes('## PROCESS')
+      );
+      console.log(
+        '✓ Contains OUTPUT FORMAT:',
+        TASK_BREAKDOWN_PROMPT.includes('## OUTPUT FORMAT')
+      );
+      console.log(
+        '✓ Contains JSON schema:',
+        TASK_BREAKDOWN_PROMPT.includes('"backlog": [')
+      );
 
       // VERIFY: All assertions pass
       expect(TASK_BREAKDOWN_PROMPT).toBeDefined();

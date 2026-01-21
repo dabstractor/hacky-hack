@@ -282,7 +282,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains P3 phase + all descendants (1 phase + 2 milestones + 4 tasks + 8 subtasks = 15 items)
       expect(queue.length).toBe(15);
-      expect(queue.every(item => item.id === 'P3' || item.id.startsWith('P3.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P3' || item.id.startsWith('P3.'))
+      ).toBe(true);
 
       // VERIFY: P3 phase is in queue
       expect(queue.some(item => item.id === 'P3')).toBe(true);
@@ -314,7 +316,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains P1 phase + all descendants (1 phase + 2 milestones + 4 tasks + 8 subtasks = 15 items)
       expect(queue.length).toBe(15);
-      expect(queue.every(item => item.id === 'P1' || item.id.startsWith('P1.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P1' || item.id.startsWith('P1.'))
+      ).toBe(true);
 
       // VERIFY: P1 phase is in queue
       expect(queue.some(item => item.id === 'P1')).toBe(true);
@@ -336,7 +340,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains P2 phase + all descendants (1 phase + 2 milestones + 4 tasks + 8 subtasks = 15 items)
       expect(queue.length).toBe(15);
-      expect(queue.every(item => item.id === 'P2' || item.id.startsWith('P2.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P2' || item.id.startsWith('P2.'))
+      ).toBe(true);
 
       // VERIFY: P2 phase is in queue
       expect(queue.some(item => item.id === 'P2')).toBe(true);
@@ -364,7 +370,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains P3.M4 milestone + all descendants (1 milestone + 2 tasks + 4 subtasks = 7 items)
       expect(queue.length).toBe(7);
-      expect(queue.every(item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.'))
+      ).toBe(true);
 
       // VERIFY: P3.M4 milestone is in queue
       expect(queue.some(item => item.id === 'P3.M4')).toBe(true);
@@ -391,7 +399,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains P1.M2 milestone + all descendants (1 milestone + 2 tasks + 4 subtasks = 7 items)
       expect(queue.length).toBe(7);
-      expect(queue.every(item => item.id === 'P1.M2' || item.id.startsWith('P1.M2.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P1.M2' || item.id.startsWith('P1.M2.'))
+      ).toBe(true);
 
       // VERIFY: P1.M2 milestone is in queue
       expect(queue.some(item => item.id === 'P1.M2')).toBe(true);
@@ -446,7 +456,11 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains task + all subtasks (1 task + 3 subtasks = 4 items)
       expect(queue.length).toBe(4);
-      expect(queue.every(item => item.id === 'P1.M2.T3' || item.id.startsWith('P1.M2.T3.'))).toBe(true);
+      expect(
+        queue.every(
+          item => item.id === 'P1.M2.T3' || item.id.startsWith('P1.M2.T3.')
+        )
+      ).toBe(true);
 
       // VERIFY: Task is in queue
       expect(queue.some(item => item.id === 'P1.M2.T3')).toBe(true);
@@ -507,7 +521,11 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains T1 + its subtasks, not T2 (1 task + 2 subtasks = 3 items)
       expect(queue.length).toBe(3);
-      expect(queue.every(item => item.id === 'P1.M1.T1' || item.id.startsWith('P1.M1.T1.'))).toBe(true);
+      expect(
+        queue.every(
+          item => item.id === 'P1.M1.T1' || item.id.startsWith('P1.M1.T1.')
+        )
+      ).toBe(true);
       expect(queue.some(item => item.id.startsWith('P1.M1.T2.'))).toBe(false);
 
       // VERIFY: T1 task is in queue
@@ -782,7 +800,9 @@ describe('Scope Resolution Integration Tests', () => {
       // VERIFY: Queue only has P2 items, not P1 + P2
       expect(orchestrator.executionQueue.length).toBe(15);
       expect(
-        orchestrator.executionQueue.every(item => item.id === 'P2' || item.id.startsWith('P2.'))
+        orchestrator.executionQueue.every(
+          item => item.id === 'P2' || item.id.startsWith('P2.')
+        )
       ).toBe(true);
       expect(
         orchestrator.executionQueue.some(item => item.id.startsWith('P1.'))
@@ -808,7 +828,9 @@ describe('Scope Resolution Integration Tests', () => {
       // VERIFY: Queue narrowed to only P3.M4 items
       expect(orchestrator.executionQueue.length).toBe(7);
       expect(
-        orchestrator.executionQueue.every(item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.'))
+        orchestrator.executionQueue.every(
+          item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.')
+        )
       ).toBe(true);
     });
   });
@@ -850,7 +872,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Only P3 items (phase + all descendants = 15 items)
       expect(queue.length).toBe(15);
-      expect(queue.every(item => item.id === 'P3' || item.id.startsWith('P3.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P3' || item.id.startsWith('P3.'))
+      ).toBe(true);
     });
 
     it('should parse and resolve milestone scope end-to-end', async () => {
@@ -865,7 +889,9 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains milestone + all descendants (1 milestone + 2 tasks + 4 subtasks = 7 items)
       expect(queue.length).toBe(7);
-      expect(queue.every(item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.'))).toBe(true);
+      expect(
+        queue.every(item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.'))
+      ).toBe(true);
     });
 
     it('should parse and resolve task scope end-to-end', async () => {
@@ -888,7 +914,11 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Queue contains task + all subtasks (1 task + 2 subtasks = 3 items)
       expect(queue.length).toBe(3);
-      expect(queue.every(item => item.id === 'P1.M1.T1' || item.id.startsWith('P1.M1.T1.'))).toBe(true);
+      expect(
+        queue.every(
+          item => item.id === 'P1.M1.T1' || item.id.startsWith('P1.M1.T1.')
+        )
+      ).toBe(true);
     });
 
     it('should parse and resolve subtask scope end-to-end', async () => {
@@ -936,13 +966,19 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: Each scope only contains its own items (including the phase itself)
       expect(
-        p1Orchestrator.executionQueue.every(item => item.id === 'P1' || item.id.startsWith('P1.'))
+        p1Orchestrator.executionQueue.every(
+          item => item.id === 'P1' || item.id.startsWith('P1.')
+        )
       ).toBe(true);
       expect(
-        p2Orchestrator.executionQueue.every(item => item.id === 'P2' || item.id.startsWith('P2.'))
+        p2Orchestrator.executionQueue.every(
+          item => item.id === 'P2' || item.id.startsWith('P2.')
+        )
       ).toBe(true);
       expect(
-        p3Orchestrator.executionQueue.every(item => item.id === 'P3' || item.id.startsWith('P3.'))
+        p3Orchestrator.executionQueue.every(
+          item => item.id === 'P3' || item.id.startsWith('P3.')
+        )
       ).toBe(true);
     });
 
@@ -961,8 +997,8 @@ describe('Scope Resolution Integration Tests', () => {
 
       // VERIFY: No cross-leakage (including the milestone itself)
       expect(
-        p3m3Orchestrator.executionQueue.every(item =>
-          item.id === 'P3.M3' || item.id.startsWith('P3.M3.')
+        p3m3Orchestrator.executionQueue.every(
+          item => item.id === 'P3.M3' || item.id.startsWith('P3.M3.')
         )
       ).toBe(true);
       expect(
@@ -972,8 +1008,8 @@ describe('Scope Resolution Integration Tests', () => {
       ).toBe(false);
 
       expect(
-        p3m4Orchestrator.executionQueue.every(item =>
-          item.id === 'P3.M4' || item.id.startsWith('P3.M4.')
+        p3m4Orchestrator.executionQueue.every(
+          item => item.id === 'P3.M4' || item.id.startsWith('P3.M4.')
         )
       ).toBe(true);
       expect(

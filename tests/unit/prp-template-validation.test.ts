@@ -58,7 +58,8 @@ interface ValidationResult {
 // ============================================================================
 
 // Use absolute path from project root
-const VALID_PRP_PATH = '/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P1M1T1S1/PRP.md';
+const VALID_PRP_PATH =
+  '/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P1M1T1S1/PRP.md';
 
 // Required sections (9 total, excluding optional User Persona)
 const REQUIRED_SECTIONS = [
@@ -219,7 +220,8 @@ function parsePRPStructure(content: string): PRPStructure {
       // Only treat as subsection if we're in a section that uses this format
       // (Goal, User Persona) or if there's no existing subsection
       const isGoalOrPersonaSection =
-        currentSection.name === 'Goal' || currentSection.name === 'User Persona';
+        currentSection.name === 'Goal' ||
+        currentSection.name === 'User Persona';
 
       if (subsectionName && isGoalOrPersonaSection) {
         currentSubsection = {
@@ -299,7 +301,9 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   if (goalSection) {
     for (const subsectionName of REQUIRED_GOAL_SUBSECTIONS) {
       if (!goalSection.subsections.has(subsectionName)) {
-        errors.push(`Goal section missing required subsection: ${subsectionName}`);
+        errors.push(
+          `Goal section missing required subsection: ${subsectionName}`
+        );
       }
     }
   } else {
@@ -311,7 +315,9 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   if (userPersonaSection) {
     for (const subsectionName of REQUIRED_USER_PERSONA_SUBSECTIONS) {
       if (!userPersonaSection.subsections.has(subsectionName)) {
-        errors.push(`User Persona section missing required subsection: ${subsectionName}`);
+        errors.push(
+          `User Persona section missing required subsection: ${subsectionName}`
+        );
       }
     }
   }
@@ -328,9 +334,13 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   if (contextSection) {
     const existingSubsections = Array.from(contextSection.subsections.keys());
     for (const requiredName of REQUIRED_CONTEXT_SUBSECTIONS) {
-      const hasMatch = existingSubsections.some(name => name.startsWith(requiredName) || requiredName.startsWith(name));
+      const hasMatch = existingSubsections.some(
+        name => name.startsWith(requiredName) || requiredName.startsWith(name)
+      );
       if (!hasMatch) {
-        errors.push(`All Needed Context section missing required subsection: ${requiredName}`);
+        errors.push(
+          `All Needed Context section missing required subsection: ${requiredName}`
+        );
       }
     }
   }
@@ -341,9 +351,13 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   if (blueprintSection) {
     const existingSubsections = Array.from(blueprintSection.subsections.keys());
     for (const requiredName of REQUIRED_BLUEPRINT_SUBSECTIONS) {
-      const hasMatch = existingSubsections.some(name => name.startsWith(requiredName) || requiredName.startsWith(name));
+      const hasMatch = existingSubsections.some(
+        name => name.startsWith(requiredName) || requiredName.startsWith(name)
+      );
       if (!hasMatch) {
-        errors.push(`Implementation Blueprint section missing required subsection: ${requiredName}`);
+        errors.push(
+          `Implementation Blueprint section missing required subsection: ${requiredName}`
+        );
       }
     }
   }
@@ -351,23 +365,32 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   // Check Validation Loop has 4 levels
   const validationLoopSection = structure.sections.get('Validation Loop');
   if (validationLoopSection) {
-    const levelSubsections = Array.from(validationLoopSection.subsections.keys()).filter(name =>
-      REQUIRED_VALIDATION_LEVELS.some(level => name.startsWith(level.split(':')[0]))
+    const levelSubsections = Array.from(
+      validationLoopSection.subsections.keys()
+    ).filter(name =>
+      REQUIRED_VALIDATION_LEVELS.some(level =>
+        name.startsWith(level.split(':')[0])
+      )
     );
 
     if (levelSubsections.length < 4) {
-      errors.push(`Validation Loop must have 4 levels, found ${levelSubsections.length}`);
+      errors.push(
+        `Validation Loop must have 4 levels, found ${levelSubsections.length}`
+      );
     }
 
     // Check each level has bash code blocks
     for (const levelName of REQUIRED_VALIDATION_LEVELS) {
-      const matchingSubsection = Array.from(validationLoopSection.subsections.keys()).find(name =>
-        name.startsWith(levelName.split(':')[0])
-      );
+      const matchingSubsection = Array.from(
+        validationLoopSection.subsections.keys()
+      ).find(name => name.startsWith(levelName.split(':')[0]));
       if (matchingSubsection) {
-        const subsection = validationLoopSection.subsections.get(matchingSubsection);
+        const subsection =
+          validationLoopSection.subsections.get(matchingSubsection);
         if (subsection) {
-          const hasBashBlock = subsection.codeBlocks.some(block => block.language === 'bash');
+          const hasBashBlock = subsection.codeBlocks.some(
+            block => block.language === 'bash'
+          );
           if (!hasBashBlock) {
             warnings.push(`${levelName} missing bash code block with commands`);
           }
@@ -382,9 +405,13 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   if (checklistSection) {
     const existingSubsections = Array.from(checklistSection.subsections.keys());
     for (const requiredName of REQUIRED_CHECKLIST_SUBSECTIONS) {
-      const hasMatch = existingSubsections.some(name => name.startsWith(requiredName) || requiredName.startsWith(name));
+      const hasMatch = existingSubsections.some(
+        name => name.startsWith(requiredName) || requiredName.startsWith(name)
+      );
       if (!hasMatch) {
-        errors.push(`Final Validation Checklist section missing required subsection: ${requiredName}`);
+        errors.push(
+          `Final Validation Checklist section missing required subsection: ${requiredName}`
+        );
       }
     }
   }
@@ -393,13 +420,20 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   // Accepts either ❌ emoji or **Don't** format
   const antiPatternsSection = structure.sections.get('Anti-Patterns to Avoid');
   if (antiPatternsSection) {
-    const hasEmojiPattern = antiPatternsSection.content.some(line => line.includes('❌'));
-    const hasDontPattern = antiPatternsSection.content.some(line =>
-      line.match(/\*\*Don't\*\*/i) || line.match(/\*\*Do not\*\*/i) || line.match(/- \*\*/i)
+    const hasEmojiPattern = antiPatternsSection.content.some(line =>
+      line.includes('❌')
+    );
+    const hasDontPattern = antiPatternsSection.content.some(
+      line =>
+        line.match(/\*\*Don't\*\*/i) ||
+        line.match(/\*\*Do not\*\*/i) ||
+        line.match(/- \*\*/i)
     );
     const hasAntiPattern = hasEmojiPattern || hasDontPattern;
     if (!hasAntiPattern) {
-      errors.push('Anti-Patterns section must contain at least one anti-pattern (❌ or **Don\'t** format)');
+      errors.push(
+        "Anti-Patterns section must contain at least one anti-pattern (❌ or **Don't** format)"
+      );
     }
   }
 
@@ -491,8 +525,12 @@ describe('unit/prp-template-validation', () => {
       // ASSERT
       expect(validationLoopSection).toBeDefined();
 
-      const levelSubsections = Array.from(validationLoopSection?.subsections.keys() || []).filter(name =>
-        REQUIRED_VALIDATION_LEVELS.some(level => name.startsWith(level.split(':')[0]))
+      const levelSubsections = Array.from(
+        validationLoopSection?.subsections.keys() || []
+      ).filter(name =>
+        REQUIRED_VALIDATION_LEVELS.some(level =>
+          name.startsWith(level.split(':')[0])
+        )
       );
 
       expect(levelSubsections.length).toBe(4);
@@ -508,14 +546,18 @@ describe('unit/prp-template-validation', () => {
 
       // ASSERT: Each level should have bash code blocks
       for (const levelName of REQUIRED_VALIDATION_LEVELS) {
-        const matchingSubsection = Array.from(validationLoopSection?.subsections.keys() || []).find(name =>
-          name.startsWith(levelName.split(':')[0])
-        );
+        const matchingSubsection = Array.from(
+          validationLoopSection?.subsections.keys() || []
+        ).find(name => name.startsWith(levelName.split(':')[0]));
 
         expect(matchingSubsection).toBeDefined();
 
-        const subsection = validationLoopSection?.subsections.get(matchingSubsection!);
-        const hasBashBlock = subsection?.codeBlocks.some(block => block.language === 'bash');
+        const subsection = validationLoopSection?.subsections.get(
+          matchingSubsection!
+        );
+        const hasBashBlock = subsection?.codeBlocks.some(
+          block => block.language === 'bash'
+        );
 
         expect(hasBashBlock).toBe(true);
       }
@@ -527,15 +569,19 @@ describe('unit/prp-template-validation', () => {
 
       // ACT
       const structure = parsePRPStructure(validPRPContent);
-      const antiPatternsSection = structure.sections.get('Anti-Patterns to Avoid');
+      const antiPatternsSection = structure.sections.get(
+        'Anti-Patterns to Avoid'
+      );
 
       // ASSERT
       expect(antiPatternsSection).toBeDefined();
 
       // Accepts either ❌ emoji or **Don't** format
-      const hasEmojiPattern = antiPatternsSection?.content.some(line => line.includes('❌'));
-      const hasDontPattern = antiPatternsSection?.content.some(line =>
-        line.match(/\*\*Don't\*\*/i) || line.match(/- \*\*/)
+      const hasEmojiPattern = antiPatternsSection?.content.some(line =>
+        line.includes('❌')
+      );
+      const hasDontPattern = antiPatternsSection?.content.some(
+        line => line.match(/\*\*Don't\*\*/i) || line.match(/- \*\*/)
       );
       const hasAntiPattern = hasEmojiPattern || hasDontPattern;
       expect(hasAntiPattern).toBe(true);
@@ -628,7 +674,9 @@ Build something
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Missing required section: All Needed Context');
+      expect(result.errors).toContain(
+        'Missing required section: All Needed Context'
+      );
     });
 
     it('should detect missing Implementation Blueprint section', () => {
@@ -689,7 +737,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Missing required section: Implementation Blueprint');
+      expect(result.errors).toContain(
+        'Missing required section: Implementation Blueprint'
+      );
     });
 
     it('should detect missing Validation Loop section', () => {
@@ -733,7 +783,9 @@ Models here
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Missing required section: Validation Loop');
+      expect(result.errors).toContain(
+        'Missing required section: Validation Loop'
+      );
     });
 
     it('should detect missing Final Validation Checklist section', () => {
@@ -794,7 +846,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Missing required section: Final Validation Checklist');
+      expect(result.errors).toContain(
+        'Missing required section: Final Validation Checklist'
+      );
     });
 
     it('should detect missing Anti-Patterns to Avoid section', () => {
@@ -856,7 +910,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Missing required section: Anti-Patterns to Avoid');
+      expect(result.errors).toContain(
+        'Missing required section: Anti-Patterns to Avoid'
+      );
     });
   });
 
@@ -972,7 +1028,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Goal section missing required subsection: Feature Goal');
+      expect(result.errors).toContain(
+        'Goal section missing required subsection: Feature Goal'
+      );
     });
 
     it('should detect missing Deliverable subsection', () => {
@@ -1085,7 +1143,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Goal section missing required subsection: Deliverable');
+      expect(result.errors).toContain(
+        'Goal section missing required subsection: Deliverable'
+      );
     });
 
     it('should detect missing Success Definition subsection', () => {
@@ -1198,7 +1258,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Goal section missing required subsection: Success Definition');
+      expect(result.errors).toContain(
+        'Goal section missing required subsection: Success Definition'
+      );
     });
 
     it('should detect missing Context Completeness Check subsection', () => {
@@ -1428,7 +1490,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('What section missing required subsection: Success Criteria');
+      expect(result.errors).toContain(
+        'What section missing required subsection: Success Criteria'
+      );
     });
   });
 
@@ -1536,7 +1600,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Validation Loop must have 4 levels, found 2');
+      expect(result.errors).toContain(
+        'Validation Loop must have 4 levels, found 2'
+      );
     });
 
     it('should warn when validation level missing bash code block', () => {
@@ -1650,7 +1716,9 @@ echo "test"
 
       // ASSERT: Should be valid (all 4 levels present) but with warning
       expect(result.valid).toBe(true);
-      expect(result.warnings).toContain('Level 1: Syntax & Style missing bash code block with commands');
+      expect(result.warnings).toContain(
+        'Level 1: Syntax & Style missing bash code block with commands'
+      );
     });
   });
 
@@ -1769,7 +1837,9 @@ echo "test"
 
       // ASSERT
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Anti-Patterns section must contain at least one anti-pattern (❌ or **Don\'t** format)');
+      expect(result.errors).toContain(
+        "Anti-Patterns section must contain at least one anti-pattern (❌ or **Don't** format)"
+      );
     });
 
     it('should accept anti-patterns with ❌ emoji', () => {
@@ -2142,8 +2212,12 @@ echo "test"
 
       // ASSERT: Should have errors for missing User Persona subsections
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('User Persona section missing required subsection: User Journey');
-      expect(result.errors).toContain('User Persona section missing required subsection: Pain Points Addressed');
+      expect(result.errors).toContain(
+        'User Persona section missing required subsection: User Journey'
+      );
+      expect(result.errors).toContain(
+        'User Persona section missing required subsection: Pain Points Addressed'
+      );
     });
 
     it('should allow PRP without User Persona section', () => {
@@ -2355,7 +2429,9 @@ Checklist here
 
       // ASSERT: Should have errors for missing subsections
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Goal section missing required subsection: Feature Goal');
+      expect(result.errors).toContain(
+        'Goal section missing required subsection: Feature Goal'
+      );
     });
 
     it('should handle nested code blocks correctly', () => {
@@ -2481,8 +2557,12 @@ domain validation
       expect(result.valid).toBe(true);
 
       // Verify multiple code blocks in Implementation Patterns
-      const blueprintSection = structure.sections.get('Implementation Blueprint');
-      const patternsSubsection = blueprintSection?.subsections.get('Implementation Patterns & Key Details');
+      const blueprintSection = structure.sections.get(
+        'Implementation Blueprint'
+      );
+      const patternsSubsection = blueprintSection?.subsections.get(
+        'Implementation Patterns & Key Details'
+      );
       expect(patternsSubsection?.codeBlocks.length).toBeGreaterThanOrEqual(1);
     });
 
@@ -2722,12 +2802,22 @@ echo "test"
       expect(result.valid).toBe(true);
 
       const contextSection = structure.sections.get('All Needed Context');
-      const gotchasSubsection = contextSection?.subsections.get('Known Gotchas & Library Quirks');
-      expect(gotchasSubsection?.codeBlocks.some(b => b.language === 'python')).toBe(true);
+      const gotchasSubsection = contextSection?.subsections.get(
+        'Known Gotchas & Library Quirks'
+      );
+      expect(
+        gotchasSubsection?.codeBlocks.some(b => b.language === 'python')
+      ).toBe(true);
 
-      const blueprintSection = structure.sections.get('Implementation Blueprint');
-      const modelsSubsection = blueprintSection?.subsections.get('Data Models and Structure');
-      expect(modelsSubsection?.codeBlocks.some(b => b.language === 'typescript')).toBe(true);
+      const blueprintSection = structure.sections.get(
+        'Implementation Blueprint'
+      );
+      const modelsSubsection = blueprintSection?.subsections.get(
+        'Data Models and Structure'
+      );
+      expect(
+        modelsSubsection?.codeBlocks.some(b => b.language === 'typescript')
+      ).toBe(true);
     });
   });
 
@@ -2835,8 +2925,12 @@ Just some content without subsections
 
       // ASSERT: Should have errors for missing Final Validation Checklist subsections
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Final Validation Checklist section missing required subsection: Technical Validation');
-      expect(result.errors).toContain('Final Validation Checklist section missing required subsection: Feature Validation');
+      expect(result.errors).toContain(
+        'Final Validation Checklist section missing required subsection: Technical Validation'
+      );
+      expect(result.errors).toContain(
+        'Final Validation Checklist section missing required subsection: Feature Validation'
+      );
     });
   });
 });

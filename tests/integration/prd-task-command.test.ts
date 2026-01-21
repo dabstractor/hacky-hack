@@ -16,7 +16,14 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { SessionManager } from '../../src/core/session-manager.js';
 import { TaskOrchestrator } from '../../src/core/task-orchestrator.js';
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../src/core/models.js';
 
 // Mock the logger with hoisted variables
 const { mockLogger } = vi.hoisted(() => ({
@@ -33,7 +40,7 @@ vi.mock('../../src/utils/logger.js', () => ({
 }));
 
 // Mock the node:fs module
-vi.mock('node:fs', async (importOriginal) => {
+vi.mock('node:fs', async importOriginal => {
   const actual = await importOriginal();
   const mockStats = {
     isFile: vi.fn(() => true),
@@ -42,7 +49,7 @@ vi.mock('node:fs', async (importOriginal) => {
   return {
     ...actual,
     existsSync: vi.fn(() => true),
-    readFileSync: vi.fn((path) => {
+    readFileSync: vi.fn(path => {
       if (path.includes('tasks.json')) {
         return JSON.stringify({ backlog: createTestBacklog().backlog });
       }
@@ -57,7 +64,7 @@ vi.mock('node:fs', async (importOriginal) => {
 });
 
 // Mock the SessionManager to avoid file system issues
-vi.mock('../../src/core/session-manager.js', async (importOriginal) => {
+vi.mock('../../src/core/session-manager.js', async importOriginal => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -67,7 +74,11 @@ vi.mock('../../src/core/session-manager.js', async (importOriginal) => {
           backlog: createTestBacklog(),
           currentSession: '/tmp/prd-task-test-XXXXXX/plan/001_testsession',
         }),
-        discoverSessions: vi.fn().mockResolvedValue(['/tmp/prd-task-test-XXXXXX/plan/001_testsession']),
+        discoverSessions: vi
+          .fn()
+          .mockResolvedValue([
+            '/tmp/prd-task-test-XXXXXX/plan/001_testsession',
+          ]),
         currentSession: '/tmp/prd-task-test-XXXXXX/plan/001_testsession',
       };
       return mockInstance;
@@ -76,7 +87,7 @@ vi.mock('../../src/core/session-manager.js', async (importOriginal) => {
 });
 
 // Mock the node:path module
-vi.mock('node:path', async (importOriginal) => {
+vi.mock('node:path', async importOriginal => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -86,7 +97,7 @@ vi.mock('node:path', async (importOriginal) => {
 });
 
 // Mock the node:os module
-vi.mock('node:os', async (importOriginal) => {
+vi.mock('node:os', async importOriginal => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -95,7 +106,7 @@ vi.mock('node:os', async (importOriginal) => {
 });
 
 // Mock the node:crypto module
-vi.mock('node:crypto', async (importOriginal) => {
+vi.mock('node:crypto', async importOriginal => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -104,7 +115,14 @@ vi.mock('node:crypto', async (importOriginal) => {
 });
 
 // Import mocked modules
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, mkdtempSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+  mkdtempSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -146,7 +164,11 @@ const createTestSubtask = (
   context_scope: 'Test scope',
 });
 
-const createTestTask = (id: string, title: string, subtasks: Subtask[] = []): Task => ({
+const createTestTask = (
+  id: string,
+  title: string,
+  subtasks: Subtask[] = []
+): Task => ({
   id,
   type: 'Task' as const,
   title,
@@ -168,7 +190,11 @@ const createTestMilestone = (
   tasks,
 });
 
-const createTestPhase = (id: string, title: string, milestones: Milestone[] = []): Phase => ({
+const createTestPhase = (
+  id: string,
+  title: string,
+  milestones: Milestone[] = []
+): Phase => ({
   id,
   type: 'Phase' as const,
   title,
@@ -181,8 +207,18 @@ const createTestPhase = (id: string, title: string, milestones: Milestone[] = []
 function createTestBacklog(): Backlog {
   const s1 = createTestSubtask('P1.M1.T1.S1', 'Complete Task', 'Complete', 1);
   const s2 = createTestSubtask('P1.M1.T1.S2', 'Planned Task', 'Planned', 2);
-  const s3 = createTestSubtask('P1.M1.T2.S1', 'Researching Task', 'Researching', 3);
-  const s4 = createTestSubtask('P1.M1.T2.S2', 'Implementing Task', 'Implementing', 1);
+  const s3 = createTestSubtask(
+    'P1.M1.T2.S1',
+    'Researching Task',
+    'Researching',
+    3
+  );
+  const s4 = createTestSubtask(
+    'P1.M1.T2.S2',
+    'Implementing Task',
+    'Implementing',
+    1
+  );
 
   const t1 = createTestTask('P1.M1.T1', 'Task 1', [s1, s2]);
   const t2 = createTestTask('P1.M1.T2', 'Task 2', [s3, s4]);
@@ -195,7 +231,11 @@ function createTestBacklog(): Backlog {
 }
 
 // Setup a test session with required directory structure
-function setupTestSession(tempDir: string, sessionId: string, backlog: Backlog): string {
+function setupTestSession(
+  tempDir: string,
+  sessionId: string,
+  backlog: Backlog
+): string {
   const planDir = join(tempDir, 'plan');
   const sessionDir = join(planDir, sessionId);
 
@@ -233,7 +273,7 @@ describe('PRD Task Command Integration Tests', () => {
     mockMkdtempSync.mockReturnValue('/tmp/prd-task-test-XXXXXX');
     mockTmpdir.mockReturnValue('/tmp');
     mockJoin.mockImplementation((...paths) => paths.join('/'));
-    mockResolve.mockImplementation((path) => path);
+    mockResolve.mockImplementation(path => path);
 
     // Setup original process.argv and process.exit
     originalArgv = process.argv;
@@ -388,7 +428,7 @@ describe('PRD Task Command Integration Tests', () => {
       };
 
       // Mock reading alternative file
-      mockReadFileSync.mockImplementation((path) => {
+      mockReadFileSync.mockImplementation(path => {
         if (path.includes('alternative-tasks.json')) {
           return JSON.stringify(altBacklog, null, 2);
         }
@@ -421,7 +461,12 @@ describe('PRD Task Command Integration Tests', () => {
           createTestPhase('PFIX', 'Bugfix Phase', [
             createTestMilestone('PFIX.M1', 'Bugfix Milestone', [
               createTestTask('PFIX.M1.T1', 'Bugfix Task', [
-                createTestSubtask('PFIX.M1.T1.S1', 'Critical Bug Fix', 'Planned', 13),
+                createTestSubtask(
+                  'PFIX.M1.T1.S1',
+                  'Critical Bug Fix',
+                  'Planned',
+                  13
+                ),
               ]),
             ]),
           ]),
@@ -429,11 +474,15 @@ describe('PRD Task Command Integration Tests', () => {
       };
       (sessionManager.loadSession as any).mockResolvedValue({
         tasks: bugfixBacklog.backlog,
-        currentSession: '/tmp/prd-task-test-XXXXXX/plan/001_mainsession/bugfix/001_bugfix',
+        currentSession:
+          '/tmp/prd-task-test-XXXXXX/plan/001_mainsession/bugfix/001_bugfix',
       });
 
       // EXECUTE: Discover sessions (bugfix should be found first)
-      const sessions = ['/tmp/prd-task-test-XXXXXX/plan/001_mainsession', '/tmp/prd-task-test-XXXXXX/plan/001_mainsession/bugfix/001_bugfix'];
+      const sessions = [
+        '/tmp/prd-task-test-XXXXXX/plan/001_mainsession',
+        '/tmp/prd-task-test-XXXXXX/plan/001_mainsession/bugfix/001_bugfix',
+      ];
 
       // VERIFY: Bugfix session comes first in priority
       const bugfixIndex = sessions.findIndex(s => s.includes('bugfix'));
@@ -456,7 +505,7 @@ describe('PRD Task Command Integration Tests', () => {
     it('should handle invalid JSON', () => {
       // SETUP: Invalid JSON file
       const invalidJsonPath = mockJoin(tempDir, 'invalid.json');
-      mockReadFileSync.mockImplementation((path) => {
+      mockReadFileSync.mockImplementation(path => {
         if (path.includes('invalid.json')) {
           return '{ invalid json }';
         }

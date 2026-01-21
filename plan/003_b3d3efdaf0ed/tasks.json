@@ -360,7 +360,7 @@
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Task 1.3.1: Task Breakdown Prompt Verification",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Verify Task Breakdown System Prompt matches PRD §6.1 specification: research-driven architecture, strict JSON format, implicit TDD.",
               "subtasks": [
                 {
@@ -376,7 +376,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S2",
                   "title": "Verify Task Breakdown JSON output schema",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S1"
