@@ -22,7 +22,7 @@
  * ```
  */
 
-import { Workflow, Step, type Prompt } from 'groundswell';
+import { Workflow, Step } from 'groundswell';
 import { readFile } from 'node:fs/promises';
 import type { SessionManager } from '../core/session-manager.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
@@ -645,10 +645,11 @@ export class PRPPipeline extends Workflow {
         '[PRPPipeline] New session, generating backlog from PRD'
       );
 
-      // Import agent factory dynamically
+      // Import agent factory and prompt generator dynamically
       const { createArchitectAgent } =
         await import('../agents/agent-factory.js');
-      const { TASK_BREAKDOWN_PROMPT } = await import('../agents/prompts.js');
+      const { createArchitectPrompt } =
+        await import('../agents/prompts/architect-prompt.js');
 
       // Create Architect agent
       const architectAgent = createArchitectAgent();
@@ -656,16 +657,13 @@ export class PRPPipeline extends Workflow {
       // Get PRD content from session snapshot
       const prdContent = this.sessionManager.currentSession?.prdSnapshot ?? '';
 
-      // Create prompt with PRD content
-      const architectPrompt = `${TASK_BREAKDOWN_PROMPT}\n\n## PRD Content\n\n${prdContent}`;
+      // Create properly typed prompt with PRD content
+      const architectPrompt = createArchitectPrompt(prdContent);
 
       // Generate backlog with retry logic
       this.logger.info('[PRPPipeline] Calling Architect agent...');
       const _result = await retryAgentPrompt(
-        () =>
-          architectAgent.prompt(
-            architectPrompt as unknown as Prompt<unknown>
-          ) as Promise<unknown>,
+        () => architectAgent.prompt(architectPrompt),
         { agentType: 'Architect', operation: 'decomposePRD' }
       );
 

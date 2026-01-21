@@ -396,7 +396,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S1",
                   "title": "Verify PRP Creation Prompt research process",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 189-639 and system_context.md - Role: Product Owner/Researcher. Research: codebase analysis (spawn subagents), internal research (check architecture/), external research (spawn subagents for docs), user clarification.\n2. INPUT: PRP_CREATE_PROMPT from `PROMPTS.md`, research workflow in PRPGenerator.\n3. LOGIC: Write integration test that verifies: (a) prompt instructs agent to spawn subagents for codebase analysis, (b) prompt checks $SESSION_DIR/architecture/ for prior research, (c) prompt instructs external research for documentation, (d) prompt asks user for clarification on ambiguous requirements. Mock agent behavior and research subagent calls.\n4. OUTPUT: Integration test file `tests/integration/prp-create-prompt.test.ts` with research process and workflow verification."
@@ -405,7 +405,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S2",
                   "title": "Verify PRP template structure compliance",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S1"
