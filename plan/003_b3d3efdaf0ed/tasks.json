@@ -367,7 +367,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Verify Task Breakdown Prompt structure and content",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 54-169 and system_context.md - Role: Lead Technical Architect. Must validate before breaking down. Spawn subagents to research. Store findings in architecture/.\n2. INPUT: TASK_BREAKDOWN_PROMPT from `src/agents/prompts/task-breakdown.md` or `PROMPTS.md`, prompt template structure.\n3. LOGIC: Write integration test that verifies: (a) prompt defines architect role and responsibilities, (b) prompt requires research-driven architecture (spawn subagents before planning), (c) prompt enforces strict JSON output format, (d) prompt specifies implicit TDD (tests part of subtask, not separate), (e) prompt defines context_scope requirements. Load prompt and validate content sections.\n4. OUTPUT: Integration test file `tests/integration/task-breakdown-prompt.test.ts` with prompt structure and requirement verification."
@@ -389,7 +389,7 @@
               "type": "Task",
               "id": "P1.M3.T2",
               "title": "Task 1.3.2: PRP Creation Prompt Verification",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Verify PRP Creation Prompt matches PRD §6.2 specification: research process, template structure, quality gates.",
               "subtasks": [
                 {
@@ -405,7 +405,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S2",
                   "title": "Verify PRP template structure compliance",
-                  "status": "Researching",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S1"
@@ -416,7 +416,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S3",
                   "title": "Verify PRP quality gates enforcement",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S2"
