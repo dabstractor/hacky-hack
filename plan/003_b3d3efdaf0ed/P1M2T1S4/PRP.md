@@ -10,7 +10,7 @@
 
 **Success Definition**: All tests pass, verifying:
 
-- Git commits exclude all protected files (tasks.json, PRD.md, prd_snapshot.md, delta_prd.md, delta_from.txt, TEST_RESULTS.md, _tasks_.json pattern)
+- Git commits exclude all protected files (tasks.json, PRD.md, prd*snapshot.md, delta_prd.md, delta_from.txt, TEST_RESULTS.md, \_tasks*.json pattern)
 - Filesystem operations prevent deletion of protected files
 - Filesystem operations prevent movement of protected files
 - Agents cannot modify PRD.md through file operations

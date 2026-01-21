@@ -318,7 +318,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T3.S1",
                   "title": "Verify task status values and transitions",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Status values: Planned, Researching, Implementing, Complete, Failed, Obsolete. Transitions: Planned → Researching → Implementing → Complete/Failed.\n2. INPUT: Status type definition from `src/core/models.ts`, status update logic in TaskOrchestrator.\n3. LOGIC: Write unit test that verifies: (a) all six status values are defined, (b) status transitions follow valid order, (c) invalid transitions are prevented or logged, (d) 'Obsolete' status is set for tasks removed in delta sessions. Create mock tasks with various status transitions.\n4. OUTPUT: Unit test file `tests/unit/task-status-transitions.test.ts` with status values and transition validation."
@@ -327,7 +327,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T3.S2",
                   "title": "Verify scope execution (--scope, --task flags)",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T3.S1"

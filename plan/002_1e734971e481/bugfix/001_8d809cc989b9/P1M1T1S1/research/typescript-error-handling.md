@@ -764,9 +764,7 @@ function handleAppError(error: AppError) {
 /**
  * Type guard based on error code
  */
-function isSessionError(
-  error: unknown
-): error is PipelineError & {
+function isSessionError(error: unknown): error is PipelineError & {
   code: 'PIPELINE_SESSION_LOAD_FAILED' | 'PIPELINE_SESSION_SAVE_FAILED';
 } {
   return isPipelineError(error) && error.code.startsWith('PIPELINE_SESSION_');

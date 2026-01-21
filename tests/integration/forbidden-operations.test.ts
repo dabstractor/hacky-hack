@@ -256,7 +256,12 @@ function validateBashCommand(command: string): {
 
   // Check for .gitignore modification with forbidden patterns
   if (normalizedCommand.includes('.gitignore')) {
-    const FORBIDDEN_PATTERNS = ['plan/', 'prd.md', 'tasks.json', '*tasks*.json'];
+    const FORBIDDEN_PATTERNS = [
+      'plan/',
+      'prd.md',
+      'tasks.json',
+      '*tasks*.json',
+    ];
     for (const pattern of FORBIDDEN_PATTERNS) {
       if (normalizedCommand.includes(pattern.toLowerCase())) {
         return {
@@ -346,7 +351,9 @@ describe('integration/forbidden-operations > agent constraint enforcement', () =
       // SETUP: Mock write to check for protected file
       const mockWrite = vi.fn().mockImplementation(async (input: any) => {
         if (isProtectedFile(input.path)) {
-          throw new Error(`Cannot modify protected file: ${basename(input.path)}`);
+          throw new Error(
+            `Cannot modify protected file: ${basename(input.path)}`
+          );
         }
         return { success: true };
       });
