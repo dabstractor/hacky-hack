@@ -213,7 +213,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Milestone 1.2: PRD Requirement Coverage",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Verify all functional requirements from PRD §5 are implemented and tested.",
           "tasks": [
             {
@@ -311,7 +311,7 @@
               "type": "Task",
               "id": "P1.M2.T3",
               "title": "Task 1.2.3: Task Management Verification",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Verify task management requirements from PRD §5.3: status values, scope execution, prd task subcommand.",
               "subtasks": [
                 {
@@ -327,7 +327,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T3.S2",
                   "title": "Verify scope execution (--scope, --task flags)",
-                  "status": "Ready",
+                  "status": "Failed",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T3.S1"
@@ -338,7 +338,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T3.S3",
                   "title": "Verify prd task subcommand",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T3.S2"
@@ -367,7 +367,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Verify Task Breakdown Prompt structure and content",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 54-169 and system_context.md - Role: Lead Technical Architect. Must validate before breaking down. Spawn subagents to research. Store findings in architecture/.\n2. INPUT: TASK_BREAKDOWN_PROMPT from `src/agents/prompts/task-breakdown.md` or `PROMPTS.md`, prompt template structure.\n3. LOGIC: Write integration test that verifies: (a) prompt defines architect role and responsibilities, (b) prompt requires research-driven architecture (spawn subagents before planning), (c) prompt enforces strict JSON output format, (d) prompt specifies implicit TDD (tests part of subtask, not separate), (e) prompt defines context_scope requirements. Load prompt and validate content sections.\n4. OUTPUT: Integration test file `tests/integration/task-breakdown-prompt.test.ts` with prompt structure and requirement verification."
