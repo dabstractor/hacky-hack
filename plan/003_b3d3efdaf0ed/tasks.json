@@ -220,7 +220,7 @@
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Task 1.2.1: State & File Management Verification",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Verify all state management requirements from PRD §5.1 are implemented: tasks.json as single source of truth, plan/ directory structure, smart commits, protected files.",
               "subtasks": [
                 {
@@ -258,7 +258,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S4",
                   "title": "Verify protected files are never modified",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S3"
@@ -278,7 +278,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Verify MCP tool integration (Bash, Filesystem, Git)",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and external_deps.md - Three MCP servers: BashMCP (shell commands via spawn), FilesystemMCP (read, write, glob, grep), GitMCP (git operations). All agents share these tools.\n2. INPUT: MCP tool implementations at `src/tools/bash-mcp.ts`, `src/tools/filesystem-mcp.ts`, `src/tools/git-mcp.ts`, tool registration in agent factory.\n3. LOGIC: Write integration test that verifies: (a) all three MCP servers are registered with each agent, (b) tools are accessible via agent.tool() calls, (c) BashMCP uses spawn() (no shell injection), (d) FilesystemMCP validates file paths, (e) GitMCP uses simple-git library. Mock agent tool invocations and MCP handler.\n4. OUTPUT: Integration test file `tests/integration/mcp-tools.test.ts` with tool registration and execution verification."
