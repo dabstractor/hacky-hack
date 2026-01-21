@@ -1,12 +1,14 @@
 # ResearchQueue Implementation Analysis
 
 ## Overview
+
 **File**: `src/core/research-queue.ts`
 **Purpose**: Manages parallel PRP generation with concurrency limit of 3, fire-and-forget error handling
 
 ## Complete API
 
 ### Constructor
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -17,28 +19,31 @@ constructor(
 
 ### Public Methods
 
-| Method | Signature | Purpose |
-|--------|-----------|---------|
-| `enqueue` | `async enqueue(task: TaskOrSubtask, backlog: Backlog): Promise<void>` | Add task to queue for background PRP generation |
-| `isResearching` | `isResearching(taskId: string): boolean` | Check if task is currently being processed |
-| `getPRP` | `getPRP(taskId: string): PRPDocument \| null` | Get cached PRP for task |
-| `waitForPRP` | `async waitForPRP(taskId: string): Promise<PRPDocument>` | Wait for PRP generation to complete |
-| `getStats` | `getStats(): { queued: number; researching: number; cached: number }` | Get queue statistics |
-| `clearCache` | `clearCache(): void` | Clear cached PRP results |
+| Method          | Signature                                                             | Purpose                                         |
+| --------------- | --------------------------------------------------------------------- | ----------------------------------------------- |
+| `enqueue`       | `async enqueue(task: TaskOrSubtask, backlog: Backlog): Promise<void>` | Add task to queue for background PRP generation |
+| `isResearching` | `isResearching(taskId: string): boolean`                              | Check if task is currently being processed      |
+| `getPRP`        | `getPRP(taskId: string): PRPDocument \| null`                         | Get cached PRP for task                         |
+| `waitForPRP`    | `async waitForPRP(taskId: string): Promise<PRPDocument>`              | Wait for PRP generation to complete             |
+| `getStats`      | `getStats(): { queued: number; researching: number; cached: number }` | Get queue statistics                            |
+| `clearCache`    | `clearCache(): void`                                                  | Clear cached PRP results                        |
 
 ## Key Implementation Details
 
 ### Concurrency Limiting (Lines 143-145)
+
 ```typescript
 if (this.queue.length === 0 || this.researching.size >= this.maxSize) {
   return;
 }
 ```
+
 - `maxSize` defaults to 3 but is configurable
 - Tracks in-flight promises in `researching` Map
 - New tasks only start if `researching.size < maxSize`
 
 ### Fire-and-Forget Pattern (Lines 159-197)
+
 ```typescript
 const promise = this.#prpGenerator
   .generate(task, backlog)
@@ -63,6 +68,7 @@ this.researching.set(task.id, promise);
 ```
 
 Key points:
+
 1. Errors are logged with structured logging
 2. Failed results are NOT cached (line 163 skipped)
 3. Error is re-thrown for `waitForPRP` to handle
@@ -70,17 +76,21 @@ Key points:
 5. Background failures in `finally` don't block queue processing
 
 ### Cache Deduplication (Lines 119-122)
+
 ```typescript
 if (this.results.has(task.id)) {
   return;
 }
 ```
+
 - Simple deduplication by task ID
 - Cache is checked before enqueuing
 - Actual cache logic (hash, TTL) is in PRPGenerator
 
 ### Dependency Ordering
+
 **CRITICAL**: ResearchQueue does NOT implement dependency ordering:
+
 - Simple FIFO queue
 - No consideration of task dependencies
 - Dependencies handled by TaskOrchestrator (caller)
@@ -89,11 +99,11 @@ if (this.results.has(task.id)) {
 
 Three core data structures:
 
-| Property | Type | Purpose |
-|----------|------|---------|
-| `queue` | `TaskOrSubtask[]` | Pending tasks waiting to be researched |
-| `researching` | `Map<string, Promise<PRPDocument>>` | In-flight PRP generations |
-| `results` | `Map<string, PRPDocument>` | Completed PRP results |
+| Property      | Type                                | Purpose                                |
+| ------------- | ----------------------------------- | -------------------------------------- |
+| `queue`       | `TaskOrSubtask[]`                   | Pending tasks waiting to be researched |
+| `researching` | `Map<string, Promise<PRPDocument>>` | In-flight PRP generations              |
+| `results`     | `Map<string, PRPDocument>`          | Completed PRP results                  |
 
 ## Dependencies
 
@@ -108,11 +118,13 @@ import type { SessionManager } from '../core/session-manager.js';
 ## Testing Considerations
 
 ### Mockable Components
+
 1. **PRPGenerator** - Primary mock target
 2. **Logger** - Verify error logging
 3. **SessionManager** - Minimal mocking needed
 
 ### Test Hooks
+
 - `isResearching(taskId)` - Check if task is in-flight
 - `getStats()` - Monitor queue state during tests
 - `getPRP(taskId)` - Check cached results

@@ -17,35 +17,39 @@ export interface SessionState {
 ## Complete Field Documentation
 
 ### Field 1: `metadata`
+
 - **Type:** `SessionMetadata` (interface)
 - **Location:** Lines 761-814 of `/home/dustin/projects/hacky-hack/src/core/models.ts`
 - **Properties:**
   ```typescript
   interface SessionMetadata {
-    readonly id: string;              // Format: {sequence}_{hash} (e.g., "001_14b9dc2a33c7")
-    readonly hash: string;            // First 12 chars of SHA-256 PRD hash
-    readonly path: string;            // Filesystem path to session directory
-    readonly createdAt: Date;         // Timestamp when session was created
-    readonly parentSession: string | null;  // Parent session ID for delta sessions
+    readonly id: string; // Format: {sequence}_{hash} (e.g., "001_14b9dc2a33c7")
+    readonly hash: string; // First 12 chars of SHA-256 PRD hash
+    readonly path: string; // Filesystem path to session directory
+    readonly createdAt: Date; // Timestamp when session was created
+    readonly parentSession: string | null; // Parent session ID for delta sessions
   }
   ```
 
 ### Field 2: `prdSnapshot`
+
 - **Type:** `string`
 - **Purpose:** Full PRD content at session initialization
 - **Details:** Stores complete PRD markdown content as a string
 
 ### Field 3: `taskRegistry`
+
 - **Type:** `Backlog` (interface)
 - **Location:** Lines 685-697 of `/home/dustin/projects/hacky-hack/src/core/models.ts`
 - **Structure:**
   ```typescript
   interface Backlog {
-    readonly backlog: Phase[];  // Array of phases comprising complete project backlog
+    readonly backlog: Phase[]; // Array of phases comprising complete project backlog
   }
   ```
 
 ### Field 4: `currentItemId`
+
 - **Type:** `string | null`
 - **Purpose:** Currently executing work item ID
 - **Format:** `P{phase}.M{milestone}.T{task}.S{subtask}` or similar
@@ -55,6 +59,7 @@ export interface SessionState {
 **Important Finding:** There are **NO Zod schemas** for SessionState in the codebase.
 
 **Existing Zod schemas in the codebase:**
+
 - `BacklogSchema` - validates task hierarchy
 - `PhaseSchema`, `MilestoneSchema`, `TaskSchema`, `SubtaskSchema`
 - `PRPDocumentSchema`, `PRPArtifactSchema`
@@ -94,10 +99,10 @@ const state: SessionState = {
         title: 'Phase 1',
         status: 'Planned',
         description: 'Foundation',
-        milestones: []
-      }
-    ]
+        milestones: [],
+      },
+    ],
   },
-  currentItemId: 'P1.M1.T1.S1'
+  currentItemId: 'P1.M1.T1.S1',
 };
 ```

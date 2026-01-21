@@ -37,16 +37,19 @@ This document consolidates research findings about z.ai's GLM model series, incl
 **Classification:** Premium / Flagship model
 
 **Description:**
+
 - Highest quality model in the z.ai GLM series
 - Designed for complex reasoning tasks
 - Supports nuanced analysis, creative writing, and research
 - Used for both Opus and Sonnet tiers in this project
 
 **Mapped Tiers:**
+
 - Opus tier: GLM-4.7
 - Sonnet tier: GLM-4.7
 
 **Source Files:**
+
 - `/home/dustin/projects/hacky-hack/src/config/constants.ts` (lines 43-50)
 
 ### GLM-4.5-Air
@@ -56,15 +59,18 @@ This document consolidates research findings about z.ai's GLM model series, incl
 **Classification:** Lightweight / Fast model
 
 **Description:**
+
 - Optimized for speed and efficiency
 - Designed for simple operations and quick tasks
 - Lower token costs for high-volume operations
 - Suitable for real-time applications
 
 **Mapped Tiers:**
+
 - Haiku tier: GLM-4.5-Air
 
 **Source Files:**
+
 - `/home/dustin/projects/hacky-hack/src/config/constants.ts` (line 49)
 
 ---
@@ -82,6 +88,7 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Purpose:** Highest quality, most capable model tier
 
 **Characteristics:**
+
 - Maximum reasoning capability
 - Best for complex analysis and creative tasks
 - Higher token costs but superior quality
@@ -90,6 +97,7 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **GLM Model:** `GLM-4.7`
 
 **Use Cases:**
+
 - Architect agent (complex task breakdown)
 - Nuanced code architecture decisions
 - Complex research and analysis
@@ -101,6 +109,7 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Purpose:** Balanced performance tier (default)
 
 **Characteristics:**
+
 - Good balance of quality and speed
 - Default choice for most agent tasks
 - Reasonable token costs
@@ -109,6 +118,7 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **GLM Model:** `GLM-4.7`
 
 **Use Cases:**
+
 - Researcher agent (codebase research and PRP generation)
 - Coder agent (implementation from PRPs)
 - QA agent (validation and bug hunting)
@@ -121,6 +131,7 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Purpose:** Fastest, most efficient tier
 
 **Characteristics:**
+
 - Lowest latency
 - Optimized for simple queries
 - Minimal token costs
@@ -129,6 +140,7 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **GLM Model:** `GLM-4.5-Air`
 
 **Use Cases:**
+
 - Simple operations
 - Quick tasks
 - High-volume operations
@@ -149,12 +161,14 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Token Limit:** 8192 tokens
 
 **Capabilities Required:**
+
 - Complex PRD analysis
 - Hierarchical task breakdown
 - Architectural pattern recognition
 - Context synthesis from multiple sources
 
 **Why GLM-4.7:**
+
 - Requires maximum reasoning capability
 - Needs to understand complex requirements
 - Must generate structured outputs (tasks.json)
@@ -169,12 +183,14 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Token Limit:** 4096 tokens
 
 **Capabilities Required:**
+
 - Codebase analysis and pattern recognition
 - External documentation research
 - PRP (Product Requirement Prompt) generation
 - Context scope contract creation
 
 **Why GLM-4.7:**
+
 - Needs strong analytical capabilities
 - Must synthesize information from multiple sources
 - Requires coherent documentation generation
@@ -189,12 +205,14 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Token Limit:** 4096 tokens
 
 **Capabilities Required:**
+
 - Code implementation from PRP specifications
 - Following existing code patterns
 - Understanding project architecture
 - Implementing tests with proper mocking
 
 **Why GLM-4.7:**
+
 - Requires strong code generation capabilities
 - Must understand complex requirements
 - Needs to generate working, tested code
@@ -209,12 +227,14 @@ z.ai uses Anthropic's tier naming convention (Opus, Sonnet, Haiku) to maintain c
 **Token Limit:** 4096 tokens
 
 **Capabilities Required:**
+
 - End-to-end validation
 - Creative bug hunting
 - Adversarial testing approach
 - Logic gap detection
 
 **Why GLM-4.7:**
+
 - Requires strong analytical reasoning
 - Must identify subtle bugs and logic errors
 - Needs to think adversarially
@@ -239,6 +259,7 @@ z.ai supports environment variable overrides for model selection, allowing devel
 **Purpose:** Override the model used for the Opus tier
 
 **Usage:**
+
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL="GLM-4.7"
 ```
@@ -254,6 +275,7 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL="GLM-4.7"
 **Purpose:** Override the model used for the Sonnet tier
 
 **Usage:**
+
 ```bash
 export ANTHROPIC_DEFAULT_SONNET_MODEL="GLM-4.7"
 ```
@@ -269,6 +291,7 @@ export ANTHROPIC_DEFAULT_SONNET_MODEL="GLM-4.7"
 **Purpose:** Override the model used for the Haiku tier
 
 **Usage:**
+
 ```bash
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="GLM-4.5-Air"
 ```
@@ -290,10 +313,12 @@ export function getModel(tier: ModelTier): string {
 ```
 
 **Priority:**
+
 1. Check environment variable override
 2. Fall back to default MODEL_NAMES mapping
 
 **Example Usage:**
+
 ```typescript
 import { getModel } from './config/environment.js';
 
@@ -330,6 +355,7 @@ In addition to model overrides, these environment variables must be set:
 **Purpose:** z.ai API endpoint URL
 
 **Override:**
+
 ```bash
 export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 ```
@@ -345,12 +371,14 @@ export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 #### GLM-4.7 (Opus/Sonnet)
 
 **Expected Performance:**
+
 - Higher latency due to complex model architecture
 - Superior quality outputs
 - Better for complex reasoning tasks
 - Longer processing times for large prompts
 
 **Token Limits by Agent:**
+
 - Architect: 8192 tokens (highest)
 - Researcher: 4096 tokens
 - Coder: 4096 tokens
@@ -361,6 +389,7 @@ export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 #### GLM-4.5-Air (Haiku)
 
 **Expected Performance:**
+
 - Lower latency (optimized for speed)
 - Good quality for simple tasks
 - Faster response times
@@ -373,10 +402,12 @@ export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 **Note:** Specific pricing information was not available in the codebase. Consult z.ai's official documentation for current pricing.
 
 **General Expectations:**
+
 - GLM-4.7: Higher cost per token (premium model)
 - GLM-4.5-Air: Lower cost per token (optimized model)
 
 **Cost Optimization Strategy:**
+
 - Use appropriate tier for each task
 - Haiku for simple operations when implemented
 - Sonnet for default agent operations
@@ -399,6 +430,7 @@ export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 - General-purpose agent operations
 
 **Agent Personas:**
+
 - Researcher agent
 - Coder agent
 - QA agent
@@ -414,6 +446,7 @@ export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 - Critical quality requirements
 
 **Agent Personas:**
+
 - Architect agent
 
 #### Use GLM-4.5-Air (Haiku) When:
@@ -430,14 +463,16 @@ export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 
 ```typescript
 // Decision framework in code
-function selectModelTier(taskComplexity: 'simple' | 'standard' | 'complex'): ModelTier {
+function selectModelTier(
+  taskComplexity: 'simple' | 'standard' | 'complex'
+): ModelTier {
   switch (taskComplexity) {
     case 'simple':
-      return 'haiku';    // GLM-4.5-Air
+      return 'haiku'; // GLM-4.5-Air
     case 'standard':
-      return 'sonnet';   // GLM-4.7
+      return 'sonnet'; // GLM-4.7
     case 'complex':
-      return 'opus';     // GLM-4.7
+      return 'opus'; // GLM-4.7
   }
 }
 ```
@@ -447,14 +482,15 @@ function selectModelTier(taskComplexity: 'simple' | 'standard' | 'complex'): Mod
 ```typescript
 // From src/agents/agent-factory.ts
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Highest - needs room for complex analysis
+  architect: 8192, // Highest - needs room for complex analysis
   researcher: 4096, // Standard - research and PRP generation
-  coder: 4096,      // Standard - implementation tasks
-  qa: 4096,         // Standard - validation and bug hunting
+  coder: 4096, // Standard - implementation tasks
+  qa: 4096, // Standard - validation and bug hunting
 } as const;
 ```
 
 **Best Practices:**
+
 - Architect gets highest token limit for complex breakdowns
 - Other agents use standard 4096 token limit
 - Adjust based on actual usage patterns
@@ -523,12 +559,12 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 
 ### Current Configuration Summary
 
-| Agent Persona | Model Tier | GLM Model | Token Limit | Use Case |
-|--------------|------------|-----------|-------------|----------|
-| Architect | Sonnet | GLM-4.7 | 8192 | PRD analysis, task breakdown |
-| Researcher | Sonnet | GLM-4.7 | 4096 | Codebase research, PRP generation |
-| Coder | Sonnet | GLM-4.7 | 4096 | Code implementation from PRPs |
-| QA | Sonnet | GLM-4.7 | 4096 | Validation, bug hunting |
+| Agent Persona | Model Tier | GLM Model | Token Limit | Use Case                          |
+| ------------- | ---------- | --------- | ----------- | --------------------------------- |
+| Architect     | Sonnet     | GLM-4.7   | 8192        | PRD analysis, task breakdown      |
+| Researcher    | Sonnet     | GLM-4.7   | 4096        | Codebase research, PRP generation |
+| Coder         | Sonnet     | GLM-4.7   | 4096        | Code implementation from PRPs     |
+| QA            | Sonnet     | GLM-4.7   | 4096        | Validation, bug hunting           |
 
 **Note:** All agents currently use the Sonnet tier (GLM-4.7), with only the Architect agent having a higher token limit.
 
@@ -539,11 +575,13 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ### Base URL
 
 **Anthropic Official:**
+
 ```
 https://api.anthropic.com
 ```
 
 **z.ai Proxy:**
+
 ```
 https://api.z.ai/api/anthropic
 ```
@@ -553,11 +591,13 @@ https://api.z.ai/api/anthropic
 ### Model Names
 
 **Anthropic Models:**
+
 - `claude-opus-4-20250514`
 - `claude-sonnet-4-20250514`
 - `claude-haiku-4-20250514`
 
 **z.ai GLM Models:**
+
 - `GLM-4.7` (maps to Opus/Sonnet tiers)
 - `GLM-4.5-Air` (maps to Haiku tier)
 
@@ -566,16 +606,19 @@ https://api.z.ai/api/anthropic
 ### Authentication
 
 **Anthropic SDK Expects:**
+
 ```bash
 ANTHROPIC_API_KEY="your-api-key"
 ```
 
 **Shell Environment Uses:**
+
 ```bash
 ANTHROPIC_AUTH_TOKEN="your-api-token"
 ```
 
 **Mapping Implementation:**
+
 ```typescript
 // Maps AUTH_TOKEN to API_KEY automatically
 if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
@@ -588,6 +631,7 @@ if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
 ### Compatibility Features
 
 **z.ai Implements:**
+
 - Anthropic-compatible API endpoints
 - Same request/response format
 - Model tier naming (Opus, Sonnet, Haiku)
@@ -595,6 +639,7 @@ if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
 - Tool/function calling support
 
 **Key Difference:**
+
 - Different base URL
 - Different model identifiers
 - Uses GLM models instead of Claude models
@@ -606,14 +651,17 @@ if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
 ### Source Files
 
 **Configuration Module:**
+
 - `/home/dustin/projects/hacky-hack/src/config/constants.ts` - Model names, environment variables
 - `/home/dustin/projects/hacky-hack/src/config/environment.ts` - Environment configuration and model selection
 - `/home/dustin/projects/hacky-hack/src/config/types.ts` - TypeScript type definitions
 
 **Agent Factory:**
+
 - `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts` - Agent creation with model selection
 
 **Documentation:**
+
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/zai-quick-reference.md` - Quick reference guide
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/zai-api-research.md` - API compatibility research
 - `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/architecture/system_context.md` - System architecture
@@ -622,6 +670,7 @@ if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
 ### External Documentation (To Be Verified)
 
 **Required Verification:**
+
 - [ ] Official z.ai GLM-4.7 documentation URL
 - [ ] Official z.ai GLM-4.5-Air documentation URL
 - [ ] z.ai model tier naming convention documentation
@@ -634,14 +683,16 @@ if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
 ### Code Examples
 
 **Model Selection:**
+
 ```typescript
 // Get model for tier
-const opusModel = getModel('opus');   // 'GLM-4.7'
+const opusModel = getModel('opus'); // 'GLM-4.7'
 const sonnetModel = getModel('sonnet'); // 'GLM-4.7'
-const haikuModel = getModel('haiku');   // 'GLM-4.5-Air'
+const haikuModel = getModel('haiku'); // 'GLM-4.5-Air'
 ```
 
 **Override with Environment Variable:**
+
 ```bash
 # Override haiku to use premium model
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="GLM-4.7"
@@ -694,7 +745,11 @@ export interface EnvironmentConfig {
 
 ```typescript
 // Complete agent creation example
-import { configureEnvironment, getModel, validateEnvironment } from './config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+} from './config/environment.js';
 import { createAgent } from 'groundswell';
 
 // Must configure environment first
@@ -730,6 +785,7 @@ This research document provides a comprehensive overview of z.ai's GLM model ser
 5. **API Compatibility:** z.ai implements an Anthropic-compatible API with different model identifiers
 
 **Action Items:**
+
 - Verify model capabilities against official z.ai documentation when web search is available
 - Consider implementing Haiku tier for simple operations to optimize costs
 - Monitor token usage across agents to optimize token limits

@@ -7,6 +7,7 @@
 **Feature Goal**: Verify Coder Agent is correctly integrated with proper configuration, PRP_BUILDER_PROMPT structure compliance, and PRP executor validation system through comprehensive integration tests.
 
 **Deliverable**: Integration test file `tests/integration/coder-agent.test.ts` with test cases covering:
+
 - Coder Agent configuration verification (model, tokens, MCP tools, cache)
 - PRP_BUILDER_PROMPT structure validation (Execution Process, Progressive Validation, 4-level validation gates)
 - PRP executor integration (PRP path injection, agent orchestration, result parsing)
@@ -17,6 +18,7 @@
 - Mock PRP file, validation commands, and BashMCP tool for deterministic testing
 
 **Success Definition**: All tests pass, verifying:
+
 - Coder Agent created with correct config (GLM-4.7, 4096 tokens, MCP tools: BASH, FILESYSTEM, GIT)
 - PRP_BUILDER_PROMPT contains all required sections (Execution Process, Progressive Validation, JSON output format)
 - PRP executor loads PRP file before execution (critical first step)
@@ -66,7 +68,8 @@ Integration tests that verify Coder Agent is correctly configured, PRP executor 
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Exact file paths and patterns to follow from existing tests
 - Coder Agent configuration values from source code
 - PRP_BUILDER_PROMPT structure from PROMPTS.md and prompts.ts
@@ -216,6 +219,7 @@ tests/
 ```
 
 **New File**: `tests/integration/coder-agent.test.ts`
+
 - Tests Coder Agent configuration from agent-factory
 - Tests PRP_BUILDER_PROMPT structure validation
 - Tests PRP executor integration (PRP loading, path injection)
@@ -227,12 +231,12 @@ tests/
 
 ### Known Gotchas of Our Codebase & Library Quirks
 
-```typescript
+````typescript
 // CRITICAL: Coder Agent uses maxTokens: 4096 (same as Researcher, QA)
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,    // Larger for complex task decomposition
-  researcher: 4096,   // Standard for PRP generation
-  coder: 4096,        // Standard for PRP execution
+  architect: 8192, // Larger for complex task decomposition
+  researcher: 4096, // Standard for PRP generation
+  coder: 4096, // Standard for PRP execution
   qa: 4096,
 } as const;
 
@@ -306,7 +310,7 @@ vi.mock('groundswell', async () => {
 // CRITICAL: PRP path injection replaces $PRP_FILE_PATH globally
 // const injectedPrompt = PRP_BUILDER_PROMPT.replace(/\$PRP_FILE_PATH/g, prpPath);
 // Must verify path is correctly injected
-```
+````
 
 ## Implementation Blueprint
 
@@ -316,8 +320,15 @@ Use existing types from `src/core/models.ts`:
 
 ```typescript
 // Import existing types for use in tests
-import type { PRPDocument, ValidationGate, ValidationGateResult } from '../../src/core/models.js';
-import { PRPDocumentSchema, ValidationGateSchema } from '../../src/core/models.js';
+import type {
+  PRPDocument,
+  ValidationGate,
+  ValidationGateResult,
+} from '../../src/core/models.js';
+import {
+  PRPDocumentSchema,
+  ValidationGateSchema,
+} from '../../src/core/models.js';
 
 // Mock fixture for PRPDocument
 const createMockPRPDocument = (
@@ -375,7 +386,7 @@ const createMinimalPRPDocument = (taskId: string): PRPDocument => ({
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE tests/integration/coder-agent.test.ts
   - IMPLEMENT: File header with JSDoc comments describing test purpose
   - IMPLEMENT: Import statements for Vitest, types, mocks
@@ -569,13 +580,21 @@ Task 12: VERIFY all tests follow project patterns
   - VERIFY: afterEach cleanup includes vi.unstubAllEnvs()
   - VERIFY: Tests validate real createCoderAgent() (not mocked)
   - VERIFY: Tests use real BashMCP (not mocked)
-```
+````
 
 ### Implementation Patterns & Key Details
 
 ```typescript
 // PATTERN: Top-level Groundswell mock (tests real agent-factory)
-import { afterEach, beforeEach, describe, expect, it, vi, beforeAll } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  beforeAll,
+} from 'vitest';
 
 // CRITICAL: Mock Groundswell, NOT agent-factory
 // This allows testing the real createCoderAgent() function
@@ -638,7 +657,11 @@ it('should create coder agent with GLM-4.7 model', () => {
 // PATTERN: MCP tools verification
 it('should create coder agent with MCP tools', () => {
   const { createCoderAgent } = require('../../src/agents/agent-factory.js');
-  const { BASH_MCP, FILESYSTEM_MCP, GIT_MCP } = require('../../src/tools/index.js');
+  const {
+    BASH_MCP,
+    FILESYSTEM_MCP,
+    GIT_MCP,
+  } = require('../../src/tools/index.js');
 
   // EXECUTE
   createCoderAgent();
@@ -669,9 +692,13 @@ it('should contain Execution Process section', () => {
 it('should instruct to Load PRP as first step', () => {
   const { PRP_BUILDER_PROMPT } = require('../../src/agents/prompts.js');
 
-  expect(PRP_BUILDER_PROMPT).toContain('Use the `Read` tool to read the PRP file');
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'Use the `Read` tool to read the PRP file'
+  );
   expect(PRP_BUILDER_PROMPT).toContain('$PRP_FILE_PATH');
-  expect(PRP_BUILDER_PROMPT).toContain('You MUST read this file before doing anything else');
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'You MUST read this file before doing anything else'
+  );
 });
 
 // PATTERN: Progressive validation verification
@@ -679,11 +706,15 @@ it('should contain Progressive Validation section', () => {
   const { PRP_BUILDER_PROMPT } = require('../../src/agents/prompts.js');
 
   expect(PRP_BUILDER_PROMPT).toContain('Progressive Validation');
-  expect(PRP_BUILDER_PROMPT).toContain('Level 1: Run syntax & style validation');
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'Level 1: Run syntax & style validation'
+  );
   expect(PRP_BUILDER_PROMPT).toContain('Level 2: Execute unit test validation');
   expect(PRP_BUILDER_PROMPT).toContain('Level 3: Run integration testing');
   expect(PRP_BUILDER_PROMPT).toContain('Level 4: Execute specified validation');
-  expect(PRP_BUILDER_PROMPT).toContain('Each level must pass before proceeding');
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'Each level must pass before proceeding'
+  );
 });
 
 // PATTERN: Sequential execution test with state machine
@@ -697,23 +728,34 @@ it('should execute 4 validation levels sequentially', async () => {
 
   // Mock agent to return success
   const mockAgent = {
-    prompt: vi.fn().mockResolvedValue(JSON.stringify({
-      result: 'success',
-      message: 'Implementation complete',
-    })),
+    prompt: vi.fn().mockResolvedValue(
+      JSON.stringify({
+        result: 'success',
+        message: 'Implementation complete',
+      })
+    ),
   };
   (gs.createAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
 
   // Track execution order
   const executionOrder: number[] = [];
   const originalExecuteBash = BashMCP.prototype.execute_bash;
-  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(async ({ command }: any) => {
-    if (command.includes('Level 1')) executionOrder.push(1);
-    if (command.includes('Level 2')) executionOrder.push(2);
-    if (command.includes('Level 3')) executionOrder.push(3);
-    if (command.includes('Level 4')) return { success: true, stdout: '', stderr: '', exitCode: 0, skipped: true };
-    return { success: true, stdout: '', stderr: '', exitCode: 0 };
-  });
+  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(
+    async ({ command }: any) => {
+      if (command.includes('Level 1')) executionOrder.push(1);
+      if (command.includes('Level 2')) executionOrder.push(2);
+      if (command.includes('Level 3')) executionOrder.push(3);
+      if (command.includes('Level 4'))
+        return {
+          success: true,
+          stdout: '',
+          stderr: '',
+          exitCode: 0,
+          skipped: true,
+        };
+      return { success: true, stdout: '', stderr: '', exitCode: 0 };
+    }
+  );
 
   const executor = new PRPExecutor(sessionPath);
 
@@ -732,22 +774,36 @@ it('should stop execution on first failure', async () => {
   const prp = createMockPRPDocument('P1.M2.T2.S2', [
     { level: 1, description: 'L1', command: 'echo "L1 pass"', manual: false },
     { level: 2, description: 'L2', command: 'false', manual: false }, // Fails
-    { level: 3, description: 'L3', command: 'echo "L3 not reached"', manual: false },
+    {
+      level: 3,
+      description: 'L3',
+      command: 'echo "L3 not reached"',
+      manual: false,
+    },
   ]);
 
   const mockAgent = {
-    prompt: vi.fn().mockResolvedValue(JSON.stringify({ result: 'success', message: '' })),
+    prompt: vi
+      .fn()
+      .mockResolvedValue(JSON.stringify({ result: 'success', message: '' })),
   };
   (gs.createAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
 
   let level3Executed = false;
-  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(async ({ command }: any) => {
-    if (command.includes('L3')) level3Executed = true;
-    if (command.includes('L2')) {
-      return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
+  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(
+    async ({ command }: any) => {
+      if (command.includes('L3')) level3Executed = true;
+      if (command.includes('L2')) {
+        return {
+          success: false,
+          stdout: '',
+          stderr: 'Test failed',
+          exitCode: 1,
+        };
+      }
+      return { success: true, stdout: '', stderr: '', exitCode: 0 };
     }
-    return { success: true, stdout: '', stderr: '', exitCode: 0 };
-  });
+  );
 
   const executor = new PRPExecutor(process.cwd());
 
@@ -770,7 +826,9 @@ it('should skip manual validation gates', async () => {
   ]);
 
   const mockAgent = {
-    prompt: vi.fn().mockResolvedValue(JSON.stringify({ result: 'success', message: '' })),
+    prompt: vi
+      .fn()
+      .mockResolvedValue(JSON.stringify({ result: 'success', message: '' })),
   };
   (gs.createAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
 
@@ -804,19 +862,31 @@ it('should retry on validation failure up to 2 times', async () => {
   (gs.createAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
 
   // BashMCP state machine: fail Level 2 twice, then pass
-  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(async ({ command }: any) => {
-    validationRunCount++;
-    // First run: Level 1 pass, Level 2 fail
-    if (validationRunCount === 2) {
-      return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
+  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(
+    async ({ command }: any) => {
+      validationRunCount++;
+      // First run: Level 1 pass, Level 2 fail
+      if (validationRunCount === 2) {
+        return {
+          success: false,
+          stdout: '',
+          stderr: 'Test failed',
+          exitCode: 1,
+        };
+      }
+      // Second run: Level 2 fail again
+      if (validationRunCount === 5) {
+        return {
+          success: false,
+          stdout: '',
+          stderr: 'Test failed',
+          exitCode: 1,
+        };
+      }
+      // Third run: all pass
+      return { success: true, stdout: '', stderr: '', exitCode: 0 };
     }
-    // Second run: Level 2 fail again
-    if (validationRunCount === 5) {
-      return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
-    }
-    // Third run: all pass
-    return { success: true, stdout: '', stderr: '', exitCode: 0 };
-  });
+  );
 
   const executor = new PRPExecutor(process.cwd());
 
@@ -846,12 +916,19 @@ it('should provide error context to agent on retry', async () => {
   };
   (gs.createAgent as ReturnType<typeof vi.fn>).mockReturnValue(mockAgent);
 
-  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(async ({ command }: any) => {
-    if (command.includes('Level 2')) {
-      return { success: false, stdout: 'test stdout', stderr: 'test stderr', exitCode: 1 };
+  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(
+    async ({ command }: any) => {
+      if (command.includes('Level 2')) {
+        return {
+          success: false,
+          stdout: 'test stdout',
+          stderr: 'test stderr',
+          exitCode: 1,
+        };
+      }
+      return { success: true, stdout: '', stderr: '', exitCode: 0 };
     }
-    return { success: true, stdout: '', stderr: '', exitCode: 0 };
-  });
+  );
 
   const executor = new PRPExecutor(process.cwd());
 

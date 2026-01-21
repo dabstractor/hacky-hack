@@ -11,6 +11,7 @@
 This document compiles best practices for TypeScript testing with Vitest, specifically focusing on global hooks, environment validation, error handling patterns, and API endpoint validation. Research combines analysis of the existing codebase patterns at `/home/dustin/projects/hacky-hack` with established testing community standards.
 
 **Key Findings:**
+
 1. **Vitest global hooks** provide automatic cleanup and validation when configured in `setupFiles`
 2. **Environment validation** should fail fast with clear, actionable error messages
 3. **Error patterns** in global hooks should distinguish between critical failures and warnings
@@ -38,7 +39,7 @@ This document compiles best practices for TypeScript testing with Vitest, specif
 **File:** `vitest.config.ts`
 
 ```typescript
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -46,13 +47,14 @@ export default defineConfig({
     globals: true,
     include: ['tests/**/*.{test,spec}.ts'],
     exclude: ['**/dist/**', '**/node_modules/**'],
-    setupFiles: ['./tests/setup.ts'],  // Global setup file
+    setupFiles: ['./tests/setup.ts'], // Global setup file
     // ... rest of config
   },
-})
+});
 ```
 
 **Best Practices:**
+
 - Use `setupFiles` for global hooks that run before all tests
 - Enable `globals: true` for cleaner test syntax (optional but recommended)
 - Separate integration and unit test directories for different setup needs
@@ -85,7 +87,7 @@ validateApiEndpoint();
 
 beforeEach(() => {
   vi.clearAllMocks();
-  validateApiEndpoint();  // Re-validate to catch env changes
+  validateApiEndpoint(); // Re-validate to catch env changes
 });
 
 // =============================================================================
@@ -101,6 +103,7 @@ afterEach(() => {
 ```
 
 **Best Practices:**
+
 - **Immediate validation:** Run critical checks at module load time
 - **beforeEach:** Clear mocks, re-validate critical state
 - **afterEach:** Restore environment variables, force GC
@@ -108,13 +111,13 @@ afterEach(() => {
 
 ### 1.3 Hook Responsibilities
 
-| Hook | Responsibilities | Example Operations |
-|------|------------------|-------------------|
-| **Module load** | One-time validation, dotenv loading | API endpoint checks, loading .env |
-| **beforeAll** | Expensive one-time setup | Database connections, service startups |
-| **beforeEach** | Test isolation, state reset | `vi.clearAllMocks()`, env validation |
-| **afterEach** | Cleanup, state restoration | `vi.unstubAllEnvs()`, GC, timer clearing |
-| **afterAll** | Expensive teardown | Database disconnection, service shutdown |
+| Hook            | Responsibilities                    | Example Operations                       |
+| --------------- | ----------------------------------- | ---------------------------------------- |
+| **Module load** | One-time validation, dotenv loading | API endpoint checks, loading .env        |
+| **beforeAll**   | Expensive one-time setup            | Database connections, service startups   |
+| **beforeEach**  | Test isolation, state reset         | `vi.clearAllMocks()`, env validation     |
+| **afterEach**   | Cleanup, state restoration          | `vi.unstubAllEnvs()`, GC, timer clearing |
+| **afterAll**    | Expensive teardown                  | Database disconnection, service shutdown |
 
 ### 1.4 Hook Ordering and Timing
 
@@ -186,6 +189,7 @@ export function configureEnvironment(): void {
 ```
 
 **Best Practices:**
+
 - Use non-destructive defaults (don't overwrite existing values)
 - Document why mapping is necessary
 - Make configuration **idempotent** (safe to call multiple times)
@@ -218,6 +222,7 @@ export function validateEnvironment(): void {
 ```
 
 **Best Practices:**
+
 - Collect **all** missing variables before throwing
 - Use custom error classes for programmatic handling
 - Include variable names in error for easy debugging
@@ -243,7 +248,7 @@ describe('validateEnvironment', () => {
 
     try {
       validateEnvironment();
-      expect(true).toBe(false);  // Should not reach here
+      expect(true).toBe(false); // Should not reach here
     } catch (e) {
       expect(e).toBeInstanceOf(EnvironmentValidationError);
       if (e instanceof EnvironmentValidationError) {
@@ -285,6 +290,7 @@ afterEach(() => {
 ```
 
 **Why this matters:**
+
 - Prevents test pollution
 - Ensures tests run in isolation
 - Catches implicit environment dependencies
@@ -296,11 +302,13 @@ afterEach(() => {
 ### 3.1 Critical vs. Non-Critical Errors
 
 **Critical Errors (throw immediately):**
+
 - Using production API endpoints in tests
 - Missing required authentication credentials
 - Invalid configuration that will cause all tests to fail
 
 **Non-Critical Errors (log warnings):**
+
 - Using non-standard but valid endpoints
 - Optional features not configured
 - Development-only features in production mode
@@ -333,6 +341,7 @@ function validateApiEndpoint(): void {
 ```
 
 **Best Practices:**
+
 - Use **visual separators** (borders of equals signs)
 - Include **current value** for debugging
 - Include **expected value** for guidance
@@ -372,6 +381,7 @@ function validateApiEndpoint(): void {
 ```
 
 **Best Practices:**
+
 - Use `console.warn()` not `throw`
 - Whititelist known-safe patterns (localhost, mock, test)
 - Still provide visual formatting for consistency
@@ -394,13 +404,16 @@ export class ApiEndpointError extends Error {
     public readonly currentEndpoint: string,
     public readonly expectedEndpoint: string
   ) {
-    super(`Invalid API endpoint: ${currentEndpoint} (expected: ${expectedEndpoint})`);
+    super(
+      `Invalid API endpoint: ${currentEndpoint} (expected: ${expectedEndpoint})`
+    );
     this.name = 'ApiEndpointError';
   }
 }
 ```
 
 **Benefits:**
+
 - Programmatic error handling
 - Type-safe error checking with `instanceof`
 - Structured error data for debugging/logging
@@ -450,11 +463,11 @@ it('should include missing variable name in error', () => {
 
 ### 4.1 Console Method Selection Guide
 
-| Method | Use Case | Example |
-|--------|----------|---------|
-| `console.debug()` | Development-only information | ".env file loaded successfully" |
-| `console.log()` | General informational output | Test summaries, validation results |
-| `console.warn()` | Non-critical issues | Non-standard endpoints, optional features |
+| Method            | Use Case                                  | Example                                      |
+| ----------------- | ----------------------------------------- | -------------------------------------------- |
+| `console.debug()` | Development-only information              | ".env file loaded successfully"              |
+| `console.log()`   | General informational output              | Test summaries, validation results           |
+| `console.warn()`  | Non-critical issues                       | Non-standard endpoints, optional features    |
 | `console.error()` | Critical errors (usually before throwing) | Validation failures that will halt execution |
 
 ### 4.2 Output Formatting Pattern
@@ -493,6 +506,7 @@ function info(message: string) {
 ```
 
 **Benefits:**
+
 - Consistent visual language
 - Color-coded severity
 - Easy to scan output
@@ -505,12 +519,15 @@ function validateGcAvailability() {
   if (typeof global.gc === 'function') {
     console.debug('Garbage collection available (--expose-gc flag is set)');
   } else {
-    console.warn('--expose-gc flag not enabled. Memory cleanup will be limited.');
+    console.warn(
+      '--expose-gc flag not enabled. Memory cleanup will be limited.'
+    );
   }
 }
 ```
 
 **Best Practices:**
+
 - Provide context for why output might be missing
 - Use appropriate log level (debug vs warn)
 - Include actionable information when possible
@@ -707,24 +724,30 @@ class EnvironmentValidationError extends Error {
 ### 5.4 Error Message Anti-Patterns
 
 **BAD - Too generic:**
+
 ```typescript
 // ❌ Don't do this
 throw new Error('Configuration error');
 ```
 
 **BAD - Missing actionability:**
+
 ```typescript
 // ❌ Don't do this
 throw new Error(`ANTHROPIC_BASE_URL is wrong: ${baseUrl}`);
 ```
 
 **BAD - Ugly formatting:**
+
 ```typescript
 // ❌ Don't do this
-throw new Error('CRITICAL: WRONG API ENDPOINT: ' + baseUrl + ' SHOULD BE: ' + expected);
+throw new Error(
+  'CRITICAL: WRONG API ENDPOINT: ' + baseUrl + ' SHOULD BE: ' + expected
+);
 ```
 
 **GOOD - Clear and actionable:**
+
 ```typescript
 // ✅ Do this
 throw new Error(
@@ -779,6 +802,7 @@ const errorTemplates = {
 ### 6.1 Why API Endpoint Validation Matters
 
 **Catastrophic scenarios prevented:**
+
 - Accidental calls to production APIs during testing
 - Unexpected API charges from test runs
 - Rate limiting on production endpoints
@@ -947,7 +971,7 @@ if (process.env.CI) {
   // In CI, be extra strict about endpoint validation
   const allowedEndpoints = [
     'https://api.z.ai/api/anthropic',
-    'http://localhost:*/**',  // For local testing in CI
+    'http://localhost:*/**', // For local testing in CI
   ];
 
   if (!allowedEndpoints.some(pattern => matchPattern(baseUrl, pattern))) {
@@ -1006,6 +1030,7 @@ if (process.env.CI) {
 ### 7.3 Related Patterns in Codebase
 
 **Similar validation patterns:**
+
 - Environment variable validation in `/src/config/environment.ts`
 - API endpoint validation in `/tests/setup.ts`
 - Validation testing in `/tests/validation/`
@@ -1013,6 +1038,7 @@ if (process.env.CI) {
 ### 7.4 Community Best Practices
 
 **General testing principles:**
+
 - **Fail fast:** Validate configuration before running tests
 - **Clear errors:** Provide actionable error messages
 - **Test isolation:** Clean up state between tests
@@ -1020,6 +1046,7 @@ if (process.env.CI) {
 - **Developer experience:** Make errors easy to understand and fix
 
 **Resources for further reading:**
+
 - [Testing Best Practices](https://testingjavascript.com/)
 - [Vitest Recipes](https://vitest.dev/guide/why.html)
 - [TypeScript Error Handling](https://basarat.gitbook.io/typescript/type-system/exceptions)

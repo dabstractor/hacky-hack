@@ -10,6 +10,7 @@ description: |
 **Deliverable**: Instrumented `PRPPipeline.run()` method with structured debug logging at each major workflow step using Pino logger with correlation ID context.
 
 **Success Definition**:
+
 - Debug logs are emitted at entry point with PRD path and correlation ID
 - Debug logs are emitted after session initialization with session path
 - Debug logs are emitted after each major workflow step (decomposePRD, executeBacklog, runQACycle)
@@ -25,6 +26,7 @@ description: |
 **Use Case**: Primary scenario is when E2E tests fail with `success: false` and missing files (`tasks.json`, `prd_snapshot.md`). The developer needs to run the pipeline with verbose logging to identify exactly where initialization fails.
 
 **User Journey**:
+
 1. E2E test fails with generic error message
 2. Developer reruns pipeline with `--verbose` flag
 3. Debug logs output shows exactly which step failed (e.g., session initialization, file creation)
@@ -32,6 +34,7 @@ description: |
 5. Developer fixes issue and validates with instrumented tests
 
 **Pain Points Addressed**:
+
 - Silent failures with no error messages
 - No visibility into which step is failing
 - Cannot distinguish between session initialization, file creation, or validation failures
@@ -66,7 +69,7 @@ this.logger.debug(
     prdPath: this.#prdPath,
     scope: this.#scope,
     mode: this.mode,
-    correlationId: this.#correlationId
+    correlationId: this.#correlationId,
   },
   '[PRPPipeline] Starting workflow'
 );
@@ -87,6 +90,7 @@ this.logger.debug(
 ### Context Completeness Check
 
 ✓ **Passes "No Prior Knowledge" test** - This PRP provides complete context on:
+
 - Exact file to modify with line numbers
 - Pino logger usage patterns from existing codebase
 - Structured logging conventions with examples
@@ -219,7 +223,10 @@ this.logger.debug('[PRPPipeline] Workflow started');
 
 // CRITICAL: Use correlationLogger for correlation ID context
 // correlationLogger already has correlationId in context via child()
-this.correlationLogger.debug({ prdPath: this.#prdPath }, '[PRPPipeline] Starting workflow');
+this.correlationLogger.debug(
+  { prdPath: this.#prdPath },
+  '[PRPPipeline] Starting workflow'
+);
 
 // CRITICAL: Child loggers are IMMUTABLE
 // Once created, their context cannot be changed
@@ -234,7 +241,8 @@ if (isFatalError(error, this.#continueOnError)) {
 
 // GOTCHA: SessionManager might not be initialized if constructor fails
 // Check if this.sessionManager exists before accessing its properties
-const sessionPath = this.sessionManager?.currentSession?.metadata.path ?? 'unknown';
+const sessionPath =
+  this.sessionManager?.currentSession?.metadata.path ?? 'unknown';
 
 // GOTCHA: E2E tests fail with missing tasks.json and prd_snapshot.md
 // Suspected failure point is session initialization (createSessionDirectory, writeTasksJSON)
@@ -260,6 +268,7 @@ this.logger.debug(
 ### Data models and structure
 
 No new data models needed - using existing:
+
 - `PipelineResult` interface (lines 57-84) - already contains all needed fields
 - `SessionState` type from session-manager - contains session metadata
 - Existing Logger interface with `debug()` method
@@ -397,7 +406,7 @@ this.logger.debug(
     errorCode: (error as any)?.code,
     currentPhase: this.currentPhase,
     // Add error stack trace if available
-    ...(error instanceof Error && { stack: error.stack })
+    ...(error instanceof Error && { stack: error.stack }),
   },
   '[PRPPipeline] Workflow failed with error'
 );
@@ -415,7 +424,7 @@ this.logger.debug(
   {
     sessionPath: this.sessionManager?.currentSession?.metadata.path,
     phase: 'initializeSession',
-    duration: phaseDuration
+    duration: phaseDuration,
   },
   '[PRPPipeline] Session initialized'
 );
@@ -428,7 +437,7 @@ this.logger.debug(
   {
     fromStatus: 'init',
     toStatus: 'running',
-    phase: 'run'
+    phase: 'run',
   },
   '[PRPPipeline] Status changed'
 );
@@ -438,7 +447,8 @@ this.logger.debug(
 // ============================================================================
 
 // GOOD: Use optional chaining and nullish coalescing
-const sessionPath = this.sessionManager?.currentSession?.metadata.path ?? 'unknown';
+const sessionPath =
+  this.sessionManager?.currentSession?.metadata.path ?? 'unknown';
 const hasBacklog = backlog?.backlog?.length > 0 ?? false;
 
 // BAD: Direct property access can throw if sessionManager is undefined

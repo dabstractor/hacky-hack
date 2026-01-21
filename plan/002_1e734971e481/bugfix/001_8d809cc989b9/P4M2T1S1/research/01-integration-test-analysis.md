@@ -32,6 +32,7 @@ beforeEach(async () => {
 **Issue**: The `sessionManager.loadSession(sessionPath)` call has no `.catch()` handler. If this operation rejects, the rejection will be unhandled.
 
 **Fix Pattern**:
+
 ```typescript
 beforeEach(async () => {
   const backlog = createComplexBacklog();
@@ -60,6 +61,7 @@ return false; // No more items
 **Issue**: Tests emit process signals that may trigger async operations without proper cleanup. If handlers create promises that reject after test ends, warnings occur.
 
 **Current Cleanup**:
+
 ```typescript
 afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
@@ -79,6 +81,7 @@ afterEach(() => {
 **Issue**: This cleanup doesn't wait for any pending async operations triggered by the signals.
 
 **Fix Pattern**: Add a small delay before cleanup to allow async handlers to complete:
+
 ```typescript
 afterEach(async () => {
   // Allow async signal handlers to complete
@@ -130,6 +133,7 @@ return {
 **Issue**: These setTimeout callbacks could create dangling promises if test ends before they complete.
 
 **Fix Pattern**: Store timeout IDs and clear them in afterEach:
+
 ```typescript
 let mockTimeouts: NodeJS.Timeout[] = [];
 
@@ -159,6 +163,7 @@ await expect(Promise.all(flushPromises)).resolves.not.toThrow();
 **Issue**: While this expects no throw, it doesn't handle individual promise rejections properly.
 
 **Fix Pattern**: Use Promise.allSettled for better diagnostics:
+
 ```typescript
 const results = await Promise.allSettled(flushPromises);
 const failures = results.filter(r => r.status === 'rejected');
@@ -225,7 +230,7 @@ afterEach(() => {
   if (unhandledRejections.length > 0) {
     throw new Error(
       `Test had ${unhandledRejections.length} unhandled rejection(s): ` +
-      unhandledRejections.map(String).join(', ')
+        unhandledRejections.map(String).join(', ')
     );
   }
 

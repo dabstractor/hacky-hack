@@ -7,6 +7,7 @@
 **Deliverable**: All 4 E2E pipeline tests passing with files created correctly and execution completing in under 30 seconds.
 
 **Success Definition**:
+
 - All 7 E2E tests in `tests/e2e/pipeline.test.ts` pass successfully
 - `should complete full pipeline workflow successfully` test passes (result.success = true)
 - `should create valid prd_snapshot.md in session directory` test passes (file exists, valid markdown)
@@ -22,12 +23,14 @@
 **Use Case**: Running `npm run test:run -- tests/e2e/pipeline.test.ts` to verify that the complete E2E pipeline workflow functions correctly after applying fixes from P2.M1.T2.S1, P2.M1.T2.S2, and P2.M1.T2.S3.
 
 **User Journey**:
+
 1. Developer completes P2.M1.T2 subtasks (session initialization, tasks.json, prd_snapshot.md fixes)
 2. Developer needs to validate that all fixes work together correctly
 3. E2E test execution confirms complete pipeline workflow functions end-to-end
 4. All tests passing enables progression to Phase P3 (Test Alignment fixes)
 
 **Pain Points Addressed**:
+
 - Need for comprehensive validation that all fixes integrate correctly
 - Uncertainty whether individual fixes combine to restore full E2E functionality
 - Risk of proceeding to Phase P3 with broken E2E pipeline
@@ -63,6 +66,7 @@ Execute the complete E2E pipeline test suite to validate that all fixes from P2.
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact commands to run E2E tests with all required flags
 2. Complete understanding of what the tests validate
 3. Dependencies on previous PRPs and their contracts
@@ -853,7 +857,7 @@ done
 
 ### Feature Validation
 
-- [ ] Session directory created successfully (plan/{sequence}_{hash}/)
+- [ ] Session directory created successfully (plan/{sequence}\_{hash}/)
 - [ ] prd_snapshot.md file exists in session directory
 - [ ] prd_snapshot.md contains original PRD content
 - [ ] tasks.json file exists in session directory
@@ -903,6 +907,7 @@ done
 **One-Pass Implementation Success Likelihood**: VERY HIGH
 
 **Rationale**:
+
 1. Clear success criteria - all 7 tests must pass
 2. Comprehensive validation commands provided
 3. Troubleshooting guide for common failure scenarios
@@ -914,6 +919,7 @@ done
 9. Research findings from parallel agents incorporated
 
 **Potential Risks**:
+
 - **Risk 1**: P2.M1.T2 fixes may not be fully applied (Low)
   - Mitigation: Task 1 verifies all fixes are complete before running tests
   - Mitigation: If tests fail, investigate root cause before making changes

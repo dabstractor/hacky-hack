@@ -48,16 +48,19 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
 ### External URLs
 
 **Official Documentation:**
+
 - Node.js fs.promises.rename(): https://nodejs.org/api/fs.html#fspromisesrenameoldpath-newpath
 - Node.js fs.promises.writeFile(): https://nodejs.org/api/fs.html#fspromiseswritefilefile-data-options
 - Node.js Error Codes: https://nodejs.org/api/errors.html#common-system-errors
 - POSIX rename() specification: https://pubs.opengroup.org/onlinepubs/9699919799/functions/rename.html
 
 **Community Resources:**
+
 - Node.js Best Practices: https://github.com/goldbergyoni/nodebestpractices
 - Atomic file writes blog: https://manuel.bleichschmidt.de/blog/120706/atomic-file-writes-with-nodejs/
 
 **NPM Packages:**
+
 - write-file-atomic: https://github.com/npm/write-file-atomic
 - atomically: https://github.com/fabiospampinato/atomically
 - write-json-file: https://github.com/sindresorhus/write-json-file
@@ -92,7 +95,7 @@ try {
 test.each([1, 2, 3, 5, 8, 13, 21])('should accept %d story points', points => {
   const result = SubtaskSchema.safeParse({
     ...validSubtask,
-    story_points: points
+    story_points: points,
   });
   expect(result.success).toBe(true);
 });
@@ -122,7 +125,7 @@ it('should reject string numbers', () => {
 it('should validate nested structure', () => {
   const result = NestedSchema.safeParse({
     id: 'P1',
-    subtasks: [{ id: 'S1', title: '' }] // Invalid: empty title
+    subtasks: [{ id: 'S1', title: '' }], // Invalid: empty title
   });
   expect(result.success).toBe(false);
 });
@@ -139,10 +142,12 @@ it('should validate nested structure', () => {
 ### External URLs
 
 **Official Documentation:**
+
 - Zod API Documentation: https://zod.dev/api
 - Zod GitHub Repository: https://github.com/colinhacks/zod
 
 **Test Files in Zod:**
+
 - `/node_modules/zod/src/v3/tests/object.test.ts`
 - `/node_modules/zod/src/v3/tests/number.test.ts`
 - `/node_modules/zod/src/v3/tests/string.test.ts`
@@ -182,6 +187,7 @@ describe('File Operations Tests', () => {
 ### Mock vs Real File System
 
 **Unit Tests (Mocked):**
+
 ```typescript
 vi.mock('node:fs/promises', async importOriginal => {
   const actual = await importOriginal<typeof import('node:fs/promises')>();
@@ -197,6 +203,7 @@ mockReadFile.mockResolvedValue(Buffer.from('content'));
 ```
 
 **Integration Tests (Real FS):**
+
 ```typescript
 it('should handle real file operations', async () => {
   const testFile = join(tempDir, 'test.txt');
@@ -217,6 +224,7 @@ it('should handle real file operations', async () => {
 ### External URLs
 
 **Official Documentation:**
+
 - Vitest Mocking Guide: https://vitest.dev/guide/mocking.html
 - Vitest vi.mock API: https://vitest.dev/api/vi.html#vi-mock
 - Vitest vi.mocked() Helper: https://vitest.dev/api/vi.html#vi-mocked
@@ -224,9 +232,11 @@ it('should handle real file operations', async () => {
 - Node.js fs/promises API: https://nodejs.org/api/fs.html#fspromisesreadfilepath-options
 
 **Community Resources:**
+
 - Vitest GitHub Examples: https://github.com/vitest-dev/vitest/tree/main/examples/mocking
 
 **Alternative Libraries:**
+
 - memfs: In-memory file system for Node.js
 - tmp: Temporary file and directory creation
 - fake-fs: File system mocking library
@@ -279,9 +289,7 @@ it('should mock state transitions without file I/O', () => {
   const mockReadFile = vi.mocked(readFile);
 
   // Mock initial state
-  mockReadFile.mockResolvedValueOnce(
-    Buffer.from('{"version": 1, "data": {}}')
-  );
+  mockReadFile.mockResolvedValueOnce(Buffer.from('{"version": 1, "data": {}}'));
 
   // Mock updated state
   mockReadFile.mockResolvedValueOnce(
@@ -388,6 +396,7 @@ describe('Temp File Cleanup Verification', () => {
 ## Summary of External URLs
 
 ### Official Documentation
+
 1. Node.js File System: https://nodejs.org/api/fs.html
 2. Node.js Error Codes: https://nodejs.org/api/errors.html#common-system-errors
 3. POSIX rename(): https://pubs.opengroup.org/onlinepubs/9699919799/functions/rename.html
@@ -396,12 +405,14 @@ describe('Temp File Cleanup Verification', () => {
 6. Vitest API: https://vitest.dev/api/vi.html#vi-mock
 
 ### Community Resources
+
 1. Node.js Best Practices: https://github.com/goldbergyoni/nodebestpractices
 2. Atomic Writes Blog: https://manuel.bleichschmidt.de/blog/120706/atomic-file-writes-with-nodejs/
 3. Vitest Examples: https://github.com/vitest-dev/vitest/tree/main/examples/mocking
 4. Zod GitHub: https://github.com/colinhacks/zod
 
 ### NPM Packages
+
 1. write-file-atomic: https://github.com/npm/write-file-atomic
 2. atomically: https://github.com/fabiospampinato/atomically
 3. memfs: In-memory file system for testing

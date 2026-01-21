@@ -6,9 +6,11 @@
 ## 1. Existing Test Patterns Analysis
 
 ### Session Structure Tests Reference
+
 **File**: `tests/integration/core/session-structure.test.ts`
 
 #### Temp Directory Setup/Cleanup Pattern
+
 ```typescript
 describe('Session Directory Structure', () => {
   let tempDir: string;
@@ -29,6 +31,7 @@ describe('Session Directory Structure', () => {
 ```
 
 #### File Structure Verification Pattern
+
 ```typescript
 it('should create architecture, prps, and artifacts subdirectories', async () => {
   const requiredSubdirs = ['architecture', 'prps', 'artifacts'];
@@ -42,6 +45,7 @@ it('should create architecture, prps, and artifacts subdirectories', async () =>
 ```
 
 #### File Permissions Verification Pattern
+
 ```typescript
 it('should create directories with mode 0o755', async () => {
   const sessionStats = statSync(sessionPath);
@@ -51,6 +55,7 @@ it('should create directories with mode 0o755', async () => {
 ```
 
 ### Real File System Usage
+
 - Uses synchronous Node.js fs operations (`mkdtempSync`, `rmSync`, `writeFileSync`)
 - Creates actual directories and files to verify real behavior
 - Tests file permissions (`0o755` for directories, `0o644` for files)
@@ -58,6 +63,7 @@ it('should create directories with mode 0o755', async () => {
 ## 2. Key Patterns Extracted
 
 ### Helper Functions for File Operations
+
 ```typescript
 function createTestPRD(path: string, content: string): void {
   writeFileSync(path, content, { mode: 0o644 });
@@ -85,13 +91,17 @@ function verifyFileContent(filePath: string, expectedContent: string[]) {
 ```
 
 ### Recursive Directory Check Pattern
+
 ```typescript
-function verifyAllDirectoriesExist(basePath: string, expectedDirs: string[]): void {
+function verifyAllDirectoriesExist(
+  basePath: string,
+  expectedDirs: string[]
+): void {
   const entries = readdirSync(basePath, { withFileTypes: true });
 
   for (const dir of expectedDirs) {
-    const dirExists = entries.some(entry =>
-      entry.isDirectory() && entry.name === dir
+    const dirExists = entries.some(
+      entry => entry.isDirectory() && entry.name === dir
     );
     expect(dirExists).toBe(true);
   }
@@ -101,17 +111,20 @@ function verifyAllDirectoriesExist(basePath: string, expectedDirs: string[]): vo
 ## 3. External Documentation References
 
 ### Vitest Mocking Documentation
+
 - [Vitest Guide - Mocking](https://vitest.dev/guide/mocking.html)
 - [Vitest Guide - Testing Node.js Modules](https://vitest.dev/guide/testing-nodejs.html)
 - [Vitest API Reference - vi.mock()](https://vitest.dev/api/vi.html#vi-mock)
 
 ### Node.js File System Testing Resources
+
 - [Node.js fs Module Documentation](https://nodejs.org/api/fs.html)
 - [Node.js Path Module Documentation](https://nodejs.org/api/path.html)
 
 ## 4. Common Pitfalls to Avoid
 
 ### 1. Insufficient Cleanup
+
 ```typescript
 // BAD: Only cleans up if test passes
 afterEach(() => {
@@ -128,6 +141,7 @@ afterEach(() => {
 ```
 
 ### 2. Testing Implementation Details
+
 ```typescript
 // BAD: Testing internal methods
 expect(sessionManager.tempDirCreator()).toBe('some-path');
@@ -137,6 +151,7 @@ expect(existsSync(session.metadata.path)).toBe(true);
 ```
 
 ### 3. Race Conditions in Async Tests
+
 ```typescript
 // BAD: No async handling
 it('should handle signals', async () => {

@@ -69,7 +69,10 @@ describe('fs operations', () => {
 
     // VERIFY: Atomic pattern used
     expect(mockWriteFile).toHaveBeenCalledWith('/test/temp.tmp', content);
-    expect(mockRename).toHaveBeenCalledWith('/test/temp.tmp', '/test/final.json');
+    expect(mockRename).toHaveBeenCalledWith(
+      '/test/temp.tmp',
+      '/test/final.json'
+    );
   });
 });
 ```
@@ -112,7 +115,10 @@ describe('sync fs operations', () => {
 
 ```typescript
 vi.mock('node:fs/promises', async importOriginal => {
-  const actualFs = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
+  const actualFs =
+    await vi.importActual<typeof import('node:fs/promises')>(
+      'node:fs/promises'
+    );
   return {
     ...actualFs,
     // Only mock specific methods
@@ -165,11 +171,9 @@ describe('atomic write pattern', () => {
     await mockRename(tempPath, targetPath);
 
     // VERIFY: Atomic pattern used correctly
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      tempPath,
-      expect.any(String),
-      { mode: 0o644 }
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith(tempPath, expect.any(String), {
+      mode: 0o644,
+    });
     expect(mockRename).toHaveBeenCalledWith(tempPath, targetPath);
 
     // VERIFY: Content is valid JSON
@@ -193,11 +197,9 @@ describe('writeFileSync with file modes', () => {
     const content = 'sensitive data';
     await mockWriteFile('/test/secret.json', content, { mode: 0o600 });
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      '/test/secret.json',
-      content,
-      { mode: 0o600 }
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith('/test/secret.json', content, {
+      mode: 0o600,
+    });
   });
 
   it('should write file with default permissions', async () => {
@@ -329,7 +331,9 @@ describe('rename failures', () => {
 describe('cross-device rename errors', () => {
   it('should handle EXDEV error correctly', async () => {
     // SETUP: Create EXDEV error
-    const error = new Error('EXDEV: cross-device link not permitted') as NodeJS.ErrnoException;
+    const error = new Error(
+      'EXDEV: cross-device link not permitted'
+    ) as NodeJS.ErrnoException;
     error.code = 'EXDEV';
     mockRename.mockRejectedValue(error);
     mockUnlink.mockResolvedValue(undefined);
@@ -359,7 +363,9 @@ describe('cross-device rename errors', () => {
 describe('write failure scenarios', () => {
   it('should clean up temp file on ENOSPC error', async () => {
     // SETUP: Mock write failure with ENOSPC
-    const writeError = new Error('ENOSPC: no space left') as NodeJS.ErrnoException;
+    const writeError = new Error(
+      'ENOSPC: no space left'
+    ) as NodeJS.ErrnoException;
     writeError.code = 'ENOSPC';
     mockWriteFile.mockRejectedValue(writeError);
     mockUnlink.mockResolvedValue(undefined);
@@ -368,7 +374,9 @@ describe('write failure scenarios', () => {
 
     // EXECUTE: Attempt write (will fail)
     try {
-      await mockWriteFile(tempPath, JSON.stringify({ data: 'test' }), { mode: 0o644 });
+      await mockWriteFile(tempPath, JSON.stringify({ data: 'test' }), {
+        mode: 0o644,
+      });
     } catch (error) {
       // Expected failure
     }
@@ -378,11 +386,9 @@ describe('write failure scenarios', () => {
 
     // VERIFY: Cleanup attempted
     expect(mockUnlink).toHaveBeenCalledWith(tempPath);
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      tempPath,
-      expect.any(String),
-      { mode: 0o644 }
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith(tempPath, expect.any(String), {
+      mode: 0o644,
+    });
   });
 });
 ```
@@ -393,14 +399,16 @@ describe('write failure scenarios', () => {
 describe('permission errors', () => {
   it('should handle EACCES error correctly', async () => {
     // SETUP: Mock permission error
-    const error = new Error('EACCES: permission denied') as NodeJS.ErrnoException;
+    const error = new Error(
+      'EACCES: permission denied'
+    ) as NodeJS.ErrnoException;
     error.code = 'EACCES';
     mockWriteFile.mockRejectedValue(error);
 
     // EXECUTE & VERIFY
-    await expect(
-      mockWriteFile('/root/protected.json', 'data')
-    ).rejects.toThrow('EACCES');
+    await expect(mockWriteFile('/root/protected.json', 'data')).rejects.toThrow(
+      'EACCES'
+    );
   });
 });
 ```
@@ -411,14 +419,16 @@ describe('permission errors', () => {
 describe('read-only filesystem', () => {
   it('should handle EROFS error', async () => {
     // SETUP: Mock read-only filesystem error
-    const error = new Error('EROFS: read-only file system') as NodeJS.ErrnoException;
+    const error = new Error(
+      'EROFS: read-only file system'
+    ) as NodeJS.ErrnoException;
     error.code = 'EROFS';
     mockWriteFile.mockRejectedValue(error);
 
     // EXECUTE & VERIFY
-    await expect(
-      mockWriteFile('/readonly/file.json', 'data')
-    ).rejects.toThrow('EROFS');
+    await expect(mockWriteFile('/readonly/file.json', 'data')).rejects.toThrow(
+      'EROFS'
+    );
   });
 });
 ```
@@ -453,9 +463,9 @@ describe('partial write failures', () => {
     mockWriteFile.mockRejectedValue(new Error('Validation failed'));
 
     // EXECUTE & VERIFY
-    await expect(
-      mockWriteFile('/test/temp.tmp', 'content')
-    ).rejects.toThrow('Validation failed');
+    await expect(mockWriteFile('/test/temp.tmp', 'content')).rejects.toThrow(
+      'Validation failed'
+    );
     expect(mockRename).not.toHaveBeenCalled(); // Rename never attempted
   });
 });
@@ -470,8 +480,12 @@ describe('retry logic', () => {
   it('should retry on transient write failure', async () => {
     // SETUP: Fail twice, succeed on third try
     mockWriteFile
-      .mockRejectedValueOnce(new Error('EAGAIN: resource temporarily unavailable'))
-      .mockRejectedValueOnce(new Error('EAGAIN: resource temporarily unavailable'))
+      .mockRejectedValueOnce(
+        new Error('EAGAIN: resource temporarily unavailable')
+      )
+      .mockRejectedValueOnce(
+        new Error('EAGAIN: resource temporarily unavailable')
+      )
       .mockResolvedValueOnce(undefined);
 
     mockRename.mockResolvedValue(undefined);
@@ -571,7 +585,9 @@ describe('dynamic mocking', () => {
     mockWrite = vi.fn().mockRejectedValue(new Error('Failed'));
 
     // Use new implementation
-    await expect(mockWrite('/test/file2.txt', 'data2')).rejects.toThrow('Failed');
+    await expect(mockWrite('/test/file2.txt', 'data2')).rejects.toThrow(
+      'Failed'
+    );
   });
 });
 ```
@@ -812,13 +828,19 @@ vi.mock('node:fs/promises', async () => {
     ...actualFs,
     // Mock only PRP/artifacts operations
     mkdir: vi.fn((path: string, options: any) => {
-      if (path?.toString().includes('prps') || path?.toString().includes('artifacts')) {
+      if (
+        path?.toString().includes('prps') ||
+        path?.toString().includes('artifacts')
+      ) {
         return Promise.resolve(undefined);
       }
       return actualFs.mkdir(path, options);
     }),
     writeFile: vi.fn((path: string, data: any, options: any) => {
-      if (path?.toString().includes('prps') || path?.toString().includes('artifacts')) {
+      if (
+        path?.toString().includes('prps') ||
+        path?.toString().includes('artifacts')
+      ) {
         return Promise.resolve(undefined);
       }
       return actualFs.writeFile(path, data, options);
@@ -836,7 +858,9 @@ describe('argument verification', () => {
   it('should verify write with specific content', async () => {
     mockWriteFile.mockResolvedValue(undefined);
 
-    await mockWriteFile('/test/file.json', JSON.stringify({ key: 'value' }), { mode: 0o644 });
+    await mockWriteFile('/test/file.json', JSON.stringify({ key: 'value' }), {
+      mode: 0o644,
+    });
 
     // VERIFY: Exact match
     expect(mockWriteFile).toHaveBeenCalledWith(
@@ -951,11 +975,9 @@ describe('atomic write pattern', () => {
     await mockRename(tempPath, targetPath);
 
     // VERIFY: Atomic write pattern used
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      tempPath,
-      expect.any(String),
-      { mode: 0o644 }
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith(tempPath, expect.any(String), {
+      mode: 0o644,
+    });
     expect(mockRename).toHaveBeenCalledWith(tempPath, targetPath);
 
     // VERIFY: Content is valid JSON
@@ -1078,7 +1100,9 @@ describe('SessionManager', () => {
       });
 
       // EXECUTE & VERIFY
-      expect(() => new SessionManager('/test/PRD.md')).toThrow(SessionFileError);
+      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+        SessionFileError
+      );
     });
   });
 });
@@ -1261,7 +1285,9 @@ describe('atomic file write operations', () => {
       await mockRename(tempPath, targetPath);
 
       // VERIFY: Correct sequence
-      expect(mockWriteFile).toHaveBeenCalledWith(tempPath, content, { mode: 0o644 });
+      expect(mockWriteFile).toHaveBeenCalledWith(tempPath, content, {
+        mode: 0o644,
+      });
       expect(mockRename).toHaveBeenCalledWith(tempPath, targetPath);
       expect(mockWriteFile).toHaveBeenCalledBefore(mockRename);
     });
@@ -1286,7 +1312,9 @@ describe('atomic file write operations', () => {
   describe('write failure scenarios', () => {
     it('should not corrupt target file when write fails', async () => {
       // SETUP: Write fails
-      const writeError = new Error('ENOSPC: no space left') as NodeJS.ErrnoException;
+      const writeError = new Error(
+        'ENOSPC: no space left'
+      ) as NodeJS.ErrnoException;
       writeError.code = 'ENOSPC';
       mockWriteFile.mockRejectedValue(writeError);
 
@@ -1341,7 +1369,9 @@ describe('atomic file write operations', () => {
 
     it('should handle EXDEV error (cross-device rename)', async () => {
       // SETUP: Cross-device error
-      const error = new Error('EXDEV: cross-device link') as NodeJS.ErrnoException;
+      const error = new Error(
+        'EXDEV: cross-device link'
+      ) as NodeJS.ErrnoException;
       error.code = 'EXDEV';
       mockWriteFile.mockResolvedValue(undefined);
       mockRename.mockRejectedValue(error);
@@ -1658,6 +1688,7 @@ This research document provides comprehensive patterns for mocking Node.js `fs` 
 5. **Real-world examples** from the codebase demonstrating production-ready patterns
 
 The patterns documented here enable testing of critical file system operations including:
+
 - Atomic writes for data integrity
 - Error handling and cleanup
 - Batch update patterns

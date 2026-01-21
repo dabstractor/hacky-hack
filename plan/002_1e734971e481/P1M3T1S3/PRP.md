@@ -11,6 +11,7 @@
 **Feature Goal**: Create comprehensive unit tests for the `context_scope` contract format to validate the 4-part CONTRACT DEFINITION structure that serves as the critical handoff document between PRP generation and execution.
 
 **Deliverable**: Extended test file at `tests/unit/core/models.test.ts` with:
+
 1. Test for valid context_scope following 4-part CONTRACT DEFINITION format
 2. Test for missing context_scope failing validation
 3. Test for malformed context_scope (missing sections) failing validation
@@ -18,6 +19,7 @@
 5. Optional: Zod schema for context_scope format validation
 
 **Success Definition**:
+
 - Valid context_scope with CONTRACT DEFINITION format passes validation
 - Missing context_scope correctly rejected by SubtaskSchema
 - Malformed context_scope (missing required sections) fails validation
@@ -35,12 +37,14 @@
 **Use Case**: Implementing features that depend on context_scope contracts and needing assurance that the contract format is enforced through validation.
 
 **User Journey**:
+
 1. Architect Agent generates subtasks with context_scope in CONTRACT DEFINITION format
 2. Task Orchestrator validates subtask structure before passing to PRPGenerator
 3. PRPGenerator consumes valid context_scope to create PRP documents
 4. Coder Agent receives properly formatted contracts with clear INPUT/OUTPUT specifications
 
 **Pain Points Addressed**:
+
 - **Silent contract format errors**: Runtime tests catch malformed contracts early
 - **Missing section validation**: Tests ensure all 4 required sections are present
 - **Handoff clarity**: Validated contracts ensure clear communication between agents
@@ -69,6 +73,7 @@ Extend the existing `tests/unit/core/models.test.ts` file to add comprehensive t
 ### Current State Analysis
 
 **Existing Test File**: `tests/unit/core/models.test.ts` (2000+ lines)
+
 - Contains basic SubtaskSchema tests (lines 129-277)
 - Already tests context_scope as required field (line 267-276: empty context_scope fails)
 - Missing: Format validation for CONTRACT DEFINITION structure
@@ -76,16 +81,19 @@ Extend the existing `tests/unit/core/models.test.ts` file to add comprehensive t
 - Missing: Dependency ID reference validation
 
 **context_scope Type Definition** (from `src/core/models.ts` lines 195-210):
+
 ```typescript
 readonly context_scope: string;
 ```
 
 **context_scope Zod Schema** (from `src/core/models.ts` line 252):
+
 ```typescript
 context_scope: z.string().min(1, 'Context scope is required'),
 ```
 
 **Contract Format** (from PROMPTS.md line 158):
+
 ```
 CONTRACT DEFINITION:
 1. RESEARCH NOTE: [Finding from $SESSION_DIR/architecture/ regarding this feature].
@@ -113,6 +121,7 @@ CONTRACT DEFINITION:
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] context_scope type definition analyzed (string field on Subtask)
 - [x] Contract format specification documented (4-part CONTRACT DEFINITION)
 - [x] Real-world examples collected from tasks.json and test fixtures
@@ -441,7 +450,8 @@ describe('context_scope contract format validation', () => {
       status: 'Planned',
       story_points: 1,
       dependencies: [],
-      context_scope: '1. RESEARCH NOTE: Missing CONTRACT DEFINITION prefix.\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
+      context_scope:
+        '1. RESEARCH NOTE: Missing CONTRACT DEFINITION prefix.\n2. INPUT: None\n3. LOGIC: Test\n4. OUTPUT: Test',
     };
 
     // EXECUTE
@@ -452,8 +462,8 @@ describe('context_scope contract format validation', () => {
 
     // VERIFY: Error mentions missing CONTRACT DEFINITION
     if (!result.success) {
-      const contextError = result.error.issues.find(
-        issue => issue.path.includes('context_scope')
+      const contextError = result.error.issues.find(issue =>
+        issue.path.includes('context_scope')
       );
       expect(contextError).toBeDefined();
     }
@@ -486,8 +496,8 @@ describe('context_scope contract format validation', () => {
 
     // VERIFY: Error mentions missing section
     if (!result.success) {
-      const contextError = result.error.issues.find(
-        issue => issue.path.includes('context_scope')
+      const contextError = result.error.issues.find(issue =>
+        issue.path.includes('context_scope')
       );
       expect(contextError).toBeDefined();
       // Check error message mentions missing section
@@ -585,46 +595,52 @@ describe('context_scope contract format validation', () => {
 
 import { z } from 'zod';
 
-export const ContextScopeSchema: z.ZodType<string> = z.string().min(1).superRefine((value, ctx) => {
-  // Check for CONTRACT DEFINITION prefix
-  if (!value.startsWith('CONTRACT DEFINITION:\n')) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'context_scope must start with "CONTRACT DEFINITION:"',
-    });
-    return; // Exit early if prefix missing
-  }
-
-  // Extract sections after the prefix
-  const content = value.slice('CONTRACT DEFINITION:\n'.length);
-
-  // Check for all 4 numbered sections in order
-  const requiredSections = [
-    { num: 1, name: 'RESEARCH NOTE' },
-    { num: 2, name: 'INPUT' },
-    { num: 3, name: 'LOGIC' },
-    { num: 4, name: 'OUTPUT' },
-  ];
-
-  let remainingContent = content;
-
-  for (const section of requiredSections) {
-    const sectionPattern = new RegExp(`^${section.num}\\.\\s*${section.name}:`, 'm');
-    const match = remainingContent.match(sectionPattern);
-
-    if (!match) {
+export const ContextScopeSchema: z.ZodType<string> = z
+  .string()
+  .min(1)
+  .superRefine((value, ctx) => {
+    // Check for CONTRACT DEFINITION prefix
+    if (!value.startsWith('CONTRACT DEFINITION:\n')) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Missing or incorrect section: "${section.num}. ${section.name}:"`,
+        message: 'context_scope must start with "CONTRACT DEFINITION:"',
       });
-      return;
+      return; // Exit early if prefix missing
     }
 
-    // Move past this section
-    const matchIndex = remainingContent.indexOf(match[0]);
-    remainingContent = remainingContent.slice(matchIndex + match[0].length);
-  }
-});
+    // Extract sections after the prefix
+    const content = value.slice('CONTRACT DEFINITION:\n'.length);
+
+    // Check for all 4 numbered sections in order
+    const requiredSections = [
+      { num: 1, name: 'RESEARCH NOTE' },
+      { num: 2, name: 'INPUT' },
+      { num: 3, name: 'LOGIC' },
+      { num: 4, name: 'OUTPUT' },
+    ];
+
+    let remainingContent = content;
+
+    for (const section of requiredSections) {
+      const sectionPattern = new RegExp(
+        `^${section.num}\\.\\s*${section.name}:`,
+        'm'
+      );
+      const match = remainingContent.match(sectionPattern);
+
+      if (!match) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Missing or incorrect section: "${section.num}. ${section.name}:"`,
+        });
+        return;
+      }
+
+      // Move past this section
+      const matchIndex = remainingContent.indexOf(match[0]);
+      remainingContent = remainingContent.slice(matchIndex + match[0].length);
+    }
+  });
 
 // Then in SubtaskSchema:
 export const SubtaskSchema: z.ZodType<Subtask> = z.object({
@@ -860,6 +876,7 @@ The CONTRACT DEFINITION format is about structure (sections, headers), not about
 ### Why consider a Zod schema approach?
 
 A dedicated ContextScopeSchema would:
+
 1. Provide reusability across the codebase
 2. Give more structured error messages
 3. Separate validation logic from test code
@@ -882,6 +899,7 @@ Standalone subtasks (no dependencies) use "INPUT: None" to indicate they don't c
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from research agents (3 parallel research tasks)
 - [x] Existing test patterns analyzed and documented
 - [x] Contract format fully documented with examples
@@ -892,6 +910,7 @@ Standalone subtasks (no dependencies) use "INPUT: None" to indicate they don't c
 - [x] Previous PRP context integrated
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking structure)
 - Tests only (no production code changes, unless schema approach)
 - Can be implemented independently
@@ -899,6 +918,7 @@ Standalone subtasks (no dependencies) use "INPUT: None" to indicate they don't c
 - Clear acceptance criteria
 
 **Known Risks**:
+
 - **Schema vs. test validation**: Decision point on whether to create ContextScopeSchema
   - Mitigation: PRP presents both options, implementation can choose
 - **Regex complexity**: Contract format validation may require complex regex

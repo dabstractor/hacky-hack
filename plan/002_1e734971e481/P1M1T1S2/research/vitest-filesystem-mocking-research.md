@@ -50,7 +50,14 @@ vi.mock('node:fs/promises', () => ({
 }));
 
 // Import mocked modules
-import { readFile, writeFile, mkdir, rename, unlink, stat } from 'node:fs/promises';
+import {
+  readFile,
+  writeFile,
+  mkdir,
+  rename,
+  unlink,
+  stat,
+} from 'node:fs/promises';
 
 // Type assertions for mocked functions
 const mockReadFile = readFile as any;
@@ -180,7 +187,9 @@ describe('fs.readFile patterns', () => {
 
   it('should mock permission error', async () => {
     // SETUP: Permission denied
-    const error = new Error('EACCES: permission denied') as NodeJS.ErrnoException;
+    const error = new Error(
+      'EACCES: permission denied'
+    ) as NodeJS.ErrnoException;
     error.code = 'EACCES';
     mockReadFile.mockRejectedValue(error);
 
@@ -229,9 +238,9 @@ describe('fs.writeFile patterns', () => {
     mockWriteFile.mockRejectedValue(error);
 
     // EXECUTE & VERIFY
-    await expect(
-      writeFile('/test/output.txt', 'content')
-    ).rejects.toThrow('ENOSPC');
+    await expect(writeFile('/test/output.txt', 'content')).rejects.toThrow(
+      'ENOSPC'
+    );
   });
 
   it('should verify JSON serialization in write', async () => {
@@ -303,12 +312,7 @@ describe('fs.readdir patterns', () => {
   });
 
   it('should include subdirectories in listing', () => {
-    const items = [
-      'file.txt',
-      'subdir1',
-      'subdir2',
-      '.hidden',
-    ];
+    const items = ['file.txt', 'subdir1', 'subdir2', '.hidden'];
     mockReaddirSync.mockReturnValue(items);
 
     const result = readdirSync('/test/mixed');
@@ -328,15 +332,16 @@ describe('fs.mkdir patterns', () => {
 
     await mkdir('/test/new-dir', { recursive: true });
 
-    expect(mockMkdir).toHaveBeenCalledWith(
-      '/test/new-dir',
-      { recursive: true }
-    );
+    expect(mockMkdir).toHaveBeenCalledWith('/test/new-dir', {
+      recursive: true,
+    });
   });
 
   it('should handle EEXIST error gracefully', async () => {
     // Directory already exists
-    const error = new Error('EEXIST: directory already exists') as NodeJS.ErrnoException;
+    const error = new Error(
+      'EEXIST: directory already exists'
+    ) as NodeJS.ErrnoException;
     error.code = 'EEXIST';
     mockMkdir.mockRejectedValue(error);
 
@@ -349,13 +354,13 @@ describe('fs.mkdir patterns', () => {
   });
 
   it('should handle permission error', async () => {
-    const error = new Error('EACCES: permission denied') as NodeJS.ErrnoException;
+    const error = new Error(
+      'EACCES: permission denied'
+    ) as NodeJS.ErrnoException;
     error.code = 'EACCES';
     mockMkdir.mockRejectedValue(error);
 
-    await expect(
-      mkdir('/root/protected')
-    ).rejects.toThrow('EACCES');
+    await expect(mkdir('/root/protected')).rejects.toThrow('EACCES');
   });
 });
 ```
@@ -416,7 +421,9 @@ describe('crypto.createHash patterns', () => {
 
     // VERIFY
     expect(mockCreateHash).toHaveBeenCalledWith('sha256');
-    expect(result).toBe('14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123');
+    expect(result).toBe(
+      '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123'
+    );
     expect(result.length).toBe(64); // SHA-256 produces 64 hex characters
   });
 
@@ -638,9 +645,7 @@ describe('atomic write pattern', () => {
     mockWriteFile.mockRejectedValue(new Error('ENOSPC'));
 
     // EXECUTE
-    await expect(
-      atomicWrite('/test/target.json', '{}')
-    ).rejects.toThrow();
+    await expect(atomicWrite('/test/target.json', '{}')).rejects.toThrow();
 
     // VERIFY: Cleanup attempted
     expect(mockUnlink).toHaveBeenCalled();
@@ -652,9 +657,7 @@ describe('atomic write pattern', () => {
     mockRename.mockRejectedValue(new Error('EIO'));
 
     // EXECUTE
-    await expect(
-      atomicWrite('/test/target.json', '{}')
-    ).rejects.toThrow();
+    await expect(atomicWrite('/test/target.json', '{}')).rejects.toThrow();
 
     // VERIFY: Cleanup attempted
     expect(mockUnlink).toHaveBeenCalled();
@@ -1046,7 +1049,9 @@ describe('filesystem operations', () => {
       hash.update('test content');
       const result = hash.digest('hex');
 
-      expect(result).toBe('14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123');
+      expect(result).toBe(
+        '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123'
+      );
       expect(result.length).toBe(64);
     });
 
@@ -1126,8 +1131,12 @@ mockExistsSync.mockImplementation((path: string) => {
 
 // Return this for chaining
 class MockHash {
-  update(): this { return this; }
-  digest(): string { return 'hash'; }
+  update(): this {
+    return this;
+  }
+  digest(): string {
+    return 'hash';
+  }
 }
 ```
 

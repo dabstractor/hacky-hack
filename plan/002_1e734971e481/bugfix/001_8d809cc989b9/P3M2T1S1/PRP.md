@@ -7,6 +7,7 @@
 **Deliverable**: Modified test file at `/home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts` where the `createTestSubtask()` factory function returns subtasks with valid `context_scope` format matching the Zod schema requirements.
 
 **Success Definition**:
+
 - Test 'should handle deep hierarchy in backlog' passes
 - `context_scope` field in test fixture matches the CONTRACT DEFINITION format
 - Zod validation in `writeTasksJSON()` and `readTasksJSON()` succeeds
@@ -19,6 +20,7 @@
 **Use Case**: Test 'should handle deep hierarchy in backlog' fails because the `createTestSubtask()` factory function returns subtasks with `context_scope: 'Test scope'` which does not match the Zod schema validation format.
 
 **User Journey**:
+
 1. Developer runs tests and discovers 'should handle deep hierarchy in backlog' is failing
 2. Developer investigates and finds Zod validation error for `context_scope` field
 3. Developer consults this PRP to understand the required format
@@ -27,6 +29,7 @@
 6. Developer commits changes with reference to this PRP
 
 **Pain Points Addressed**:
+
 - **Uncertainty about correct format**: PRP provides exact CONTRACT DEFINITION pattern to follow
 - **Risk of breaking other tests**: PRP identifies all tests using `createTestSubtask()` for impact analysis
 - **Need to understand Zod validation**: PRP provides complete schema requirements
@@ -56,6 +59,7 @@ Update the `createTestSubtask()` factory function in the session-utils test file
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact file location and line number to modify
 2. Complete CONTRACT DEFINITION format specification
 3. Zod schema validation requirements with exact regex patterns
@@ -615,6 +619,7 @@ npm run test:run 2>&1 | grep -i "zod\|context_scope\|validation"
 **One-Pass Implementation Success Likelihood**: EXTREMELY HIGH
 
 **Rationale**:
+
 1. Clear task boundaries - update factory function return value only
 2. Exact file location and line numbers provided (lines 75-76)
 3. Complete format specification with CONTRACT DEFINITION template
@@ -627,6 +632,7 @@ npm run test:run 2>&1 | grep -i "zod\|context_scope\|validation"
 10. Straightforward string replacement with clear before/after
 
 **Potential Risks**:
+
 - **Risk 1**: Other tests might explicitly check for 'Test scope' value (Very Low - unlikely in unit tests)
 - **Risk 2**: Some tests might parse context_scope expecting simple format (Low - Zod schema ensures structure)
 - **Risk 3**: Multiple sections in single line might be harder to read (Very Low - can use template literals for readability)

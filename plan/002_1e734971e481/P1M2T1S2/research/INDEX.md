@@ -69,24 +69,31 @@
 ### I Want To...
 
 #### Understand the Pattern
+
 → Read: [constant-testing-patterns.md](./constant-testing-patterns.md)
 
 #### See Code Examples
+
 → Read: [code-examples.md](./code-examples.md)
 
 #### Fix Current Codebase
+
 → Read: [action-plan.md](./action-plan.md)
 
 #### Get Quick Summary
+
 → Read: [SUMMARY.md](./SUMMARY.md)
 
 #### Find Specific Pattern
+
 → Read: [constant-testing-patterns.md](./constant-testing-patterns.md) - search for pattern name
 
 #### Copy Code Templates
+
 → Read: [code-examples.md](./code-examples.md) - copy examples
 
 #### Learn Vitest Patterns
+
 → Read: [vitest-env-testing.md](./vitest-env-testing.md)
 
 ---
@@ -121,21 +128,25 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 ## 📋 Implementation Checklist
 
 ### Phase 1: Learn the Pattern
+
 - [ ] Read [SUMMARY.md](./SUMMARY.md)
 - [ ] Read [constant-testing-patterns.md](./constant-testing-patterns.md)
 - [ ] Review [code-examples.md](./code-examples.md)
 
 ### Phase 2: Plan Changes
+
 - [ ] Read [action-plan.md](./action-plan.md)
 - [ ] Identify files to update
 - [ ] Review current codebase issues
 
 ### Phase 3: Implement
+
 - [ ] Follow [action-plan.md](./action-plan.md) Priority 1 tasks
 - [ ] Apply patterns from [code-examples.md](./code-examples.md)
 - [ ] Run tests to verify
 
 ### Phase 4: Validate
+
 - [ ] Run full test suite
 - [ ] Check for magic strings
 - [ ] Update documentation
@@ -156,14 +167,17 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 ## 🔗 Key Concepts
 
 ### Pattern Names
+
 - **Constant Synchronization Testing** (primary)
 - Constant Verification Tests
 - Configuration Synchronization Tests
 
 ### Core Principle
+
 Import constants and assert runtime values match them.
 
 ### Key Benefit
+
 Tests fail if constants change, preventing configuration drift.
 
 ---
@@ -171,16 +185,19 @@ Tests fail if constants change, preventing configuration drift.
 ## 🎓 Learning Path
 
 ### Beginner
+
 1. Start with [README.md](./README.md)
 2. Read [SUMMARY.md](./SUMMARY.md)
 3. Review code examples in [code-examples.md](./code-examples.md)
 
 ### Intermediate
+
 1. Read [constant-testing-patterns.md](./constant-testing-patterns.md)
 2. Study anti-patterns
 3. Apply to simple test files
 
 ### Advanced
+
 1. Read all research documents
 2. Implement [action-plan.md](./action-plan.md)
 3. Create team guidelines
@@ -199,15 +216,15 @@ Tests fail if constants change, preventing configuration drift.
 
 ## 📝 Document Metadata
 
-| Document | Size | Focus | Audience |
-|----------|------|-------|----------|
-| SUMMARY.md | 7 KB | Executive summary | Everyone |
-| README.md | 4 KB | Quick reference | Everyone |
-| constant-testing-patterns.md | 18 KB | Theory & patterns | Learners |
-| code-examples.md | 17 KB | Code templates | Implementers |
-| action-plan.md | 13 KB | Implementation | Developers |
-| test-gap-analysis.md | 13 KB | Coverage gaps | QA/Dev |
-| vitest-env-testing.md | 17 KB | Framework patterns | Vitest users |
+| Document                     | Size  | Focus              | Audience     |
+| ---------------------------- | ----- | ------------------ | ------------ |
+| SUMMARY.md                   | 7 KB  | Executive summary  | Everyone     |
+| README.md                    | 4 KB  | Quick reference    | Everyone     |
+| constant-testing-patterns.md | 18 KB | Theory & patterns  | Learners     |
+| code-examples.md             | 17 KB | Code templates     | Implementers |
+| action-plan.md               | 13 KB | Implementation     | Developers   |
+| test-gap-analysis.md         | 13 KB | Coverage gaps      | QA/Dev       |
+| vitest-env-testing.md        | 17 KB | Framework patterns | Vitest users |
 
 ---
 

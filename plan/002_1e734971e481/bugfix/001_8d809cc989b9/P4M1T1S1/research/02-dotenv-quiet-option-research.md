@@ -9,6 +9,7 @@ This document compiles comprehensive research on the dotenv library's `quiet` op
 ### Source: dotenv npm package (v17.2.3)
 
 **quiet Option**:
+
 - **Default**: `false` (since v17.0.0)
 - **Type**: `boolean`
 - **Purpose**: Suppress runtime logging message
@@ -22,7 +23,7 @@ This document compiles comprehensive research on the dotenv library's `quiet` op
 export interface DotenvConfigOptions {
   path?: string | string[] | URL;
   encoding?: string;
-  quiet?: boolean;          // ← Target option
+  quiet?: boolean; // ← Target option
   debug?: boolean;
   override?: boolean;
   processEnv?: DotenvPopulateInput;
@@ -31,6 +32,7 @@ export interface DotenvConfigOptions {
 ```
 
 **JSDoc Comment** (lines 46-53):
+
 ```typescript
 /**
  * Default: `false`
@@ -64,6 +66,7 @@ Hello World
 ### Messages Suppressed by `quiet: true`:
 
 1. **Runtime injection message**:
+
    ```
    [dotenv@17.2.3] injecting env (0) from .env
    ```
@@ -86,6 +89,7 @@ Hello World
 ### What is NOT Suppressed:
 
 According to the TypeScript definition:
+
 > "Suppress all output (except errors)"
 
 **Errors are still shown** - The quiet option does NOT suppress error messages, only informational logs.
@@ -93,11 +97,13 @@ According to the TypeScript definition:
 ## Usage Examples
 
 ### CommonJS:
+
 ```javascript
 require('dotenv').config({ quiet: true });
 ```
 
 ### ES6 import:
+
 ```javascript
 import dotenv from 'dotenv';
 
@@ -105,6 +111,7 @@ dotenv.config({ quiet: true });
 ```
 
 ### With error handling:
+
 ```javascript
 const result = dotenv.config({ quiet: true });
 
@@ -115,10 +122,11 @@ if (result.error) {
 ```
 
 ### Multiple path configuration:
+
 ```javascript
 dotenv.config({
   path: ['.env.local', '.env'],
-  quiet: true
+  quiet: true,
 });
 ```
 
@@ -140,31 +148,37 @@ node index.js
 ## Version History
 
 ### v17.2.0 (2025-07-09):
+
 - ✅ Added `DOTENV_CONFIG_QUIET` environment variable support
 - ✅ Full quiet option functionality available
 
 ### v17.0.0 (2025-06-27) - MAJOR BREAKING CHANGE:
+
 - ⚠️ **Changed default `quiet` from `true` to `false`**
 - Informational runtime log message now shows by default
 - Use `config({ quiet: true })` to suppress the message
 
 ### v16.6.1 (2025-06-27):
+
 - Default `quiet` was `true` (hiding runtime log message)
 - Notice added: "17.0.0 will be released with quiet defaulting to false"
 
 ### v16.6.0 (2025-06-26):
+
 - Added default log message: `[dotenv@16.6.0] injecting env (1) from .env`
 - Introduced `{ quiet: true }` option to suppress
 
 ## Best Practices for Test Environments
 
 ### 1. Always Use Quiet Mode in Tests
+
 ```typescript
 // Recommended for test setup
 const result = dotenv.config({ quiet: true });
 ```
 
 ### 2. Combine with Proper Error Handling
+
 ```typescript
 const result = dotenv.config({ quiet: true });
 if (result.error) {
@@ -174,15 +188,17 @@ if (result.error) {
 ```
 
 ### 3. Use Conditional Quiet Mode
+
 ```typescript
 // Enable quiet in tests, verbose in development
 const isTest = process.env.NODE_ENV === 'test';
 const result = dotenv.config({
-  quiet: isTest || process.env.CI
+  quiet: isTest || process.env.CI,
 });
 ```
 
 ### 4. Environment Variable Approach
+
 ```bash
 # In test scripts
 DOTENV_CONFIG_QUIET=true vitest run

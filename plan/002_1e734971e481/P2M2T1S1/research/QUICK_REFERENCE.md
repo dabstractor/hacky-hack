@@ -45,6 +45,7 @@ Comprehensive research on task orchestrator patterns has been completed and stor
 ## Key URLs and Resources
 
 ### Open Source Projects
+
 - **Apache Airflow**: https://github.com/apache/airflow
 - **Prefect**: https://github.com/PrefectHQ/prefect
 - **Temporal**: https://github.com/temporalio/api
@@ -53,18 +54,21 @@ Comprehensive research on task orchestrator patterns has been completed and stor
 - **Bull**: https://github.com/OptimalBits/bull
 
 ### Documentation
+
 - **Airflow DAG Concepts**: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html
 - **AWS Step Functions**: https://docs.aws.amazon.com/step-functions/latest/dg/concepts-state-machine.html
 - **Temporal Workflows**: https://docs.temporal.io/workflows
 - **Statecharts**: https://statecharts.github.io/
 
 ### Libraries
+
 - **XState (JS/TS)**: https://xstate.js.org/docs/
 - **Spring State Machine (Java)**: https://spring.io/projects/spring-statemachine
 - **Transitions (Python)**: https://github.com/pytransitions/transitions
 - **Stateless (C#)**: https://github.com/dotnet-state-machine/stateless
 
 ### Testing Tools
+
 - **Jest**: https://jestjs.io/
 - **pytest**: https://docs.pytest.org/
 - **Testcontainers**: https://www.testcontainers.org/
@@ -86,27 +90,32 @@ Core Components:
 ## Key Patterns by Category
 
 ### Dependency Resolution
+
 - **Use**: Kahn's Algorithm for most cases
 - **Why**: Intuitive, parallel-friendly, natural cycle detection
 - **Alternative**: DFS for deep graphs (memory efficient)
 
 ### State Management
+
 - **Use**: Table-driven state machine
 - **Why**: Simple, fast, easy to maintain
 - **Add**: Guard conditions for business rules
 - **Scale**: State Pattern for complex behavior
 
 ### Execution Strategy
+
 - **Use**: Hybrid execution
 - **Why**: Balanced approach, clear phase boundaries
 - **Pattern**: Sequential phases, parallel tasks within phases
 
 ### Prioritization
+
 - **Use**: Dynamic priority with aging
 - **Why**: Prevents starvation, fair to all tasks
 - **Alternative**: Multi-level feedback for adaptive behavior
 
 ### Persistence
+
 - **Use**: Database transactions + optimistic locking
 - **Why**: True ACID, good performance, distributed-friendly
 - **Scale**: Saga pattern for microservices
@@ -142,6 +151,7 @@ Core Components:
 ## File Location
 
 All research files are in:
+
 ```
 /home/dustin/projects/hacky-hack/plan/002_1e734971e481/P2M2T1S1/research/
 ```

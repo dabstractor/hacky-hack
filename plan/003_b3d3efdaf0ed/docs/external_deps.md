@@ -11,42 +11,44 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-  baseURL: process.env.ANTHROPIC_BASE_URL ?? 'https://api.z.ai/api/anthropic'
+  baseURL: process.env.ANTHROPIC_BASE_URL ?? 'https://api.z.ai/api/anthropic',
 });
 ```
 
 ### Available Models
 
-| Model Name | Purpose | Max Tokens |
-|------------|---------|------------|
-| **GLM-4.7** | High-quality reasoning | 8192 (architect), 4096 (others) |
-| **GLM-4.5-Air** | Fast/lightweight tasks | 4096 |
+| Model Name      | Purpose                | Max Tokens                      |
+| --------------- | ---------------------- | ------------------------------- |
+| **GLM-4.7**     | High-quality reasoning | 8192 (architect), 4096 (others) |
+| **GLM-4.5-Air** | Fast/lightweight tasks | 4096                            |
 
 ### Model Selection Strategy
 
 ```typescript
 // Architect Agent - Complex reasoning
-getModel('sonnet')  // Returns 'GLM-4.7'
+getModel('sonnet'); // Returns 'GLM-4.7'
 
 // Researcher/Coder/QA Agents - Balanced performance
-getModel('sonnet')  // Returns 'GLM-4.7'
+getModel('sonnet'); // Returns 'GLM-4.7'
 
 // Quick lookups (future enhancement)
-getModel('haiku')   // Returns 'GLM-4.5-Air'
+getModel('haiku'); // Returns 'GLM-4.5-Air'
 ```
 
 ### Authentication Flow
 
 **Environment Variable Mapping**:
+
 ```typescript
 // Shell environment
-ANTHROPIC_AUTH_TOKEN=zk-xxxxx
+ANTHROPIC_AUTH_TOKEN = zk - xxxxx;
 
 // Internal mapping (performed at startup)
-process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_AUTH_TOKEN
+process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_AUTH_TOKEN;
 ```
 
 **Agent Configuration**:
+
 ```typescript
 const agent = createAgent({
   name: 'ArchitectAgent',
@@ -54,14 +56,15 @@ const agent = createAgent({
   model: 'GLM-4.7',
   env: {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-    ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL
-  }
+    ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL,
+  },
 });
 ```
 
 ### API Endpoint Safeguards
 
 **Tests Enforce z.ai Usage**:
+
 ```typescript
 // From test setup
 if (process.env.ANTHROPIC_BASE_URL?.includes('api.anthropic.com')) {
@@ -70,6 +73,7 @@ if (process.env.ANTHROPIC_BASE_URL?.includes('api.anthropic.com')) {
 ```
 
 **Validation Scripts Block Execution**:
+
 - Prevent accidental usage of Anthropic's production API
 - Warn on non-z.ai endpoints (excluding localhost/mock/test)
 - Prevent massive usage spikes from misconfigured tests
@@ -79,6 +83,7 @@ if (process.env.ANTHROPIC_BASE_URL?.includes('api.anthropic.com')) {
 ### Installation & Linking
 
 **Local Development Setup**:
+
 ```bash
 # In groundswell project
 cd ~/projects/groundswell
@@ -90,10 +95,12 @@ npm link groundswell
 ```
 
 **Vitest Path Alias** (vitest.config.ts):
+
 ```typescript
 resolve: {
   alias: {
-    groundswell: new URL('../groundswell/dist/index.js', import.meta.url).pathname
+    groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
+      .pathname;
   }
 }
 ```
@@ -123,6 +130,7 @@ class PRPPipeline extends Workflow {
 ```
 
 **Key Features**:
+
 - Automatic status tracking (`running`, `completed`, `failed`)
 - Built-in logging with structured events
 - State snapshots for error recovery
@@ -140,7 +148,7 @@ const agent = createAgent({
   enableCache: true,
   enableReflection: true,
   maxTokens: 4096,
-  mcps: [BASH_MCP, FILESYSTEM_MCP, GIT_MCP]
+  mcps: [BASH_MCP, FILESYSTEM_MCP, GIT_MCP],
 });
 
 const result = await agent.prompt('Research this codebase...');
@@ -172,11 +180,17 @@ const prompt = createPrompt({
         type: z.literal('Phase'),
         id: z.string(),
         title: z.string(),
-        status: z.enum(['Planned', 'Researching', 'Implementing', 'Complete', 'Failed']),
-        milestones: z.array(/* ... */)
+        status: z.enum([
+          'Planned',
+          'Researching',
+          'Implementing',
+          'Complete',
+          'Failed',
+        ]),
+        milestones: z.array(/* ... */),
       })
-    )
-  })
+    ),
+  }),
 });
 
 const result = await agent.prompt(prompt);
@@ -184,6 +198,7 @@ const result = await agent.prompt(prompt);
 ```
 
 **Features**:
+
 - Automatic schema validation
 - Type-safe responses
 - Retry on parse errors
@@ -200,17 +215,17 @@ class MyWorkflow extends Workflow {
   progress: number = 0;
 
   @ObservedState({ redact: true })
-  apiKey: string = 'secret-key';  // Shown as '***' in logs
+  apiKey: string = 'secret-key'; // Shown as '***' in logs
 
   @ObservedState({ hidden: true })
-  internalDebug: object = {};  // Excluded from snapshots
+  internalDebug: object = {}; // Excluded from snapshots
 }
 ```
 
 **Metadata Options**:
 | Option | Type | Description |
 |--------|------|-------------|
-| `redact` | `boolean` | Hide value in logs (show as '***') |
+| `redact` | `boolean` | Hide value in logs (show as '\*\*\*') |
 | `hidden` | `boolean` | Exclude from state snapshots |
 
 #### @Step
@@ -227,6 +242,7 @@ class MyWorkflow extends Workflow {
 ```
 
 **Event Types**:
+
 - `step:start`: Step execution started
 - `step:complete`: Step execution finished (with duration)
 - `step:failed`: Step execution failed (with error)
@@ -249,13 +265,14 @@ class ParentWorkflow extends Workflow {
   async createWorkers(): Promise<WorkerWorkflow[]> {
     return [
       new WorkerWorkflow('worker1', this),
-      new WorkerWorkflow('worker2', this)
+      new WorkerWorkflow('worker2', this),
     ];
   }
 }
 ```
 
 **Concurrency Behavior**:
+
 - `concurrent: false` (default): Execute sequentially
 - `concurrent: true`: Execute via `Promise.all()`
 - Non-workflow returns are silently skipped (lenient validation)
@@ -278,13 +295,13 @@ class MyMCP implements MCPServer {
       input_schema: {
         type: 'object',
         properties: {
-          param1: { type: 'string', description: 'A parameter' }
+          param1: { type: 'string', description: 'A parameter' },
         },
-        required: ['param1']
-      }
+        required: ['param1'],
+      },
     };
 
-    const executor: ToolExecutor = async (input) => {
+    const executor: ToolExecutor = async input => {
       return { result: 'success' };
     };
 
@@ -296,6 +313,7 @@ class MyMCP implements MCPServer {
 **Tool Naming Convention**: `serverName__toolName` (double underscore)
 
 **Transport Types**:
+
 - `inprocess`: Direct function calls (currently supported)
 - `stdio`: External process communication (planned)
 
@@ -308,7 +326,7 @@ import { INTROSPECTION_TOOLS } from 'groundswell';
 
 const agent = createAgent({
   name: 'IntrospectionAgent',
-  tools: INTROSPECTION_TOOLS
+  tools: INTROSPECTION_TOOLS,
 });
 
 // Available tools:
@@ -341,9 +359,9 @@ const agent = createAgent({ enableCache: true });
 // Manual cache operations
 await defaultCache.set(key, value, { ttl: 3600000, prefix: 'agent1' });
 const value = await defaultCache.get(key);
-await defaultCache.bust(key);  // Remove specific key
-await defaultCache.bustPrefix('agent1');  // Remove all with prefix
-await defaultCache.clear();  // Clear all
+await defaultCache.bust(key); // Remove specific key
+await defaultCache.bustPrefix('agent1'); // Remove all with prefix
+await defaultCache.clear(); // Clear all
 
 // Metrics
 const metrics = defaultCache.metrics();
@@ -351,17 +369,20 @@ const metrics = defaultCache.metrics();
 ```
 
 **Cache Configuration**:
+
 - Default max items: 1000
 - Default max size: 50MB
 - Default TTL: 1 hour
 
 **PRP Cache Implementation**:
+
 ```typescript
 // PRP-specific cache (24-hour TTL)
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Cache key: SHA-256 hash of task definition
-const taskHash = crypto.createHash('sha256')
+const taskHash = crypto
+  .createHash('sha256')
   .update(JSON.stringify(task))
   .digest('hex');
 
@@ -370,7 +391,7 @@ interface PRPCacheMetadata {
   taskId: string;
   taskHash: string;
   createdAt: number;
-  prp: PRPDocument;  // Full PRP content
+  prp: PRPDocument; // Full PRP content
 }
 ```
 
@@ -382,7 +403,7 @@ import { executeWithReflection, ReflectionManager } from 'groundswell';
 const reflection = new ReflectionManager({
   enabled: true,
   maxAttempts: 3,
-  retryDelayMs: 1000
+  retryDelayMs: 1000,
 });
 
 const result = await executeWithReflection(
@@ -396,17 +417,19 @@ const result = await executeWithReflection(
     error,
     failedNode: currentNode,
     attemptNumber: attempt,
-    previousAttempts: history
+    previousAttempts: history,
   })
 );
 ```
 
 **Non-Retryable Errors** (automatic detection):
+
 - Rate limits / quota exceeded
 - Authentication / authorization errors
 - Network connection errors
 
 **Retry Strategy**:
+
 - Max 3 attempts
 - Exponential backoff: 1s → 2s → 4s
 - Reflection context provided on each retry
@@ -459,7 +482,7 @@ const observer = {
   },
   onTreeChanged(root: WorkflowNode): void {
     console.log('Tree updated');
-  }
+  },
 };
 
 workflow.addObserver(observer);
@@ -494,6 +517,7 @@ project/
 ### TypeScript Configuration
 
 **tsconfig.json**:
+
 ```json
 {
   "compilerOptions": {
@@ -513,6 +537,7 @@ project/
 ```
 
 **Key Settings**:
+
 - `strict: true`: All strict type checking enabled
 - `moduleResolution: "NodeNext"`: ES Module support with .js extensions
 - `isolatedModules: true`: Each file must be transpilable independently
@@ -520,6 +545,7 @@ project/
 ### Async/Await Patterns
 
 **Sequential Processing**:
+
 ```typescript
 for (const item of items) {
   await processItem(item);
@@ -527,13 +553,13 @@ for (const item of items) {
 ```
 
 **Parallel with Promise.all**:
+
 ```typescript
-const results = await Promise.all(
-  items.map(item => processItem(item))
-);
+const results = await Promise.all(items.map(item => processItem(item)));
 ```
 
 **Concurrent Workflows**:
+
 ```typescript
 @Task({ concurrent: true })
 async createWorkers(): Promise<Workflow[]> {
@@ -544,6 +570,7 @@ async createWorkers(): Promise<Workflow[]> {
 ### Error Handling
 
 **Decorator-Based** (@Step):
+
 ```typescript
 @Step({ snapshotState: true })
 async processData(): Promise<void> {
@@ -553,6 +580,7 @@ async processData(): Promise<void> {
 ```
 
 **Try-Catch with Isolation**:
+
 ```typescript
 for (const child of children) {
   try {
@@ -565,6 +593,7 @@ for (const child of children) {
 ```
 
 **Error Merge Strategy**:
+
 ```typescript
 @Task({
   concurrent: true,
@@ -581,6 +610,7 @@ async processBatch(): Promise<Workflow[]> { }
 ### Vitest Configuration
 
 **vitest.config.ts**:
+
 ```typescript
 import { defineConfig } from 'vitest/config';
 
@@ -596,13 +626,13 @@ export default defineConfig({
         statements: 100,
         branches: 100,
         functions: 100,
-        lines: 100
-      }
-    }
+        lines: 100,
+      },
+    },
   },
   esbuild: {
-    target: 'node18'
-  }
+    target: 'node18',
+  },
 });
 ```
 
@@ -630,6 +660,7 @@ tests/
 ### Test Utilities
 
 **Environment Setup** (tests/setup.ts):
+
 ```typescript
 import { beforeEach } from 'vitest';
 
@@ -642,12 +673,13 @@ beforeEach(async () => {
 ```
 
 **Mock Patterns**:
+
 ```typescript
 // Mock agent responses
 vi.mock('../src/agents/agent-factory.js', () => ({
   createArchitectAgent: () => ({
-    prompt: vi.fn().mockResolvedValue({ backlog: mockBacklog })
-  })
+    prompt: vi.fn().mockResolvedValue({ backlog: mockBacklog }),
+  }),
 }));
 ```
 
@@ -694,6 +726,7 @@ vi.mock('../src/agents/agent-factory.js', () => ({
 ### Import Patterns
 
 **ES Module Imports** (requires .js extensions):
+
 ```typescript
 // Correct
 import { Workflow } from 'groundswell';
@@ -704,12 +737,14 @@ import { SessionManager } from './core/session-manager';
 ```
 
 **Absolute Imports** (recommended for stability):
+
 ```typescript
 // Use absolute paths from project root
 import { TaskOrchestrator } from '/home/dustin/projects/hacky-hack/src/core/task-orchestrator.js';
 ```
 
 **Dynamic Imports**:
+
 ```typescript
 // Load module at runtime
 const module = await import('./utils/helper.js');
@@ -718,16 +753,19 @@ const module = await import('./utils/helper.js');
 ### Path Resolution
 
 **Vitest Path Aliases**:
+
 ```typescript
 // vitest.config.ts
 resolve: {
   alias: {
-    groundswell: new URL('../groundswell/dist/index.js', import.meta.url).pathname
+    groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
+      .pathname;
   }
 }
 ```
 
 **TypeScript Path Mapping** (optional):
+
 ```json
 {
   "compilerOptions": {
@@ -743,24 +781,31 @@ resolve: {
 ### MCP Tool Schema
 
 **Tool Definition**:
+
 ```typescript
 interface Tool {
   name: string;
   description: string;
   input_schema: {
     type: 'object';
-    properties: Record<string, {
-      type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-      description?: string;
-      enum?: string[];
-      items?: { /* array item schema */ };
-    }>;
+    properties: Record<
+      string,
+      {
+        type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+        description?: string;
+        enum?: string[];
+        items?: {
+          /* array item schema */
+        };
+      }
+    >;
     required: string[];
   };
 }
 ```
 
 **Registration Pattern**:
+
 ```typescript
 class MyMCP implements MCPServer {
   readonly name = 'my-mcp';
@@ -775,13 +820,13 @@ class MyMCP implements MCPServer {
         properties: {
           operation: { type: 'string', enum: ['add', 'subtract'] },
           a: { type: 'number' },
-          b: { type: 'number' }
+          b: { type: 'number' },
         },
-        required: ['operation', 'a', 'b']
-      }
+        required: ['operation', 'a', 'b'],
+      },
     };
 
-    const executor: ToolExecutor = async (input) => {
+    const executor: ToolExecutor = async input => {
       const { operation, a, b } = input as CalculateInput;
       return { result: operation === 'add' ? a + b : a - b };
     };
@@ -832,6 +877,7 @@ BUGFIX_SCOPE=subtask
 ## Summary
 
 This document provides comprehensive reference material for:
+
 - z.ai API integration with Anthropic SDK
 - Groundswell library (decorators, workflows, agents, MCP, caching, reflection)
 - TypeScript best practices (project structure, async patterns, error handling)

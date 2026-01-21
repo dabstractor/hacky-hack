@@ -11,11 +11,13 @@
 **Feature Goal**: Fix the **Constant Synchronization Gap** in existing `getModel()` tests by replacing hardcoded model name strings ('GLM-4.7', 'GLM-4.5-Air') with imports of `MODEL_NAMES` from `constants.ts`, ensuring tests fail if the constant values change.
 
 **Deliverable**: Updated test file `tests/unit/config/environment.test.ts` with modifications to the `getModel()` test suite:
+
 1. Add import of `MODEL_NAMES` from constants.ts
 2. Replace hardcoded model name strings with `MODEL_NAMES[tier]` constant references
 3. Ensure all model tier tests verify against the imported constants
 
 **Success Definition**:
+
 - Import statement added: `import { MODEL_NAMES } from '../../../src/config/constants.js';`
 - Line 107: `expect(getModel('opus')).toBe(MODEL_NAMES.opus);`
 - Line 115: `expect(getModel('sonnet')).toBe(MODEL_NAMES.sonnet);`
@@ -32,6 +34,7 @@
 **Use Case**: Third validation step in Phase 1 Milestone 2 (P1.M2) to ensure model tier mapping tests use constant synchronization pattern rather than magic strings.
 
 **User Journey**:
+
 1. Pipeline completes P1.M2.T1.S1 (AUTH_TOKEN to API_KEY mapping) with success
 2. Pipeline completes P1.M2.T1.S2 (BASE_URL constant synchronization) with success
 3. Pipeline starts P1.M2.T1.S3 (Test model configuration tier mapping)
@@ -41,6 +44,7 @@
 7. If `MODEL_NAMES` values change in constants.ts, tests will fail (detecting drift)
 
 **Pain Points Addressed**:
+
 - **Magic String Anti-Pattern**: Tests currently hardcode 'GLM-4.7' and 'GLM-4.5-Air' in 3 locations
 - **False Sense of Security**: Tests pass even if `MODEL_NAMES` constants change
 - **Configuration Drift**: No synchronization between test expectations and actual constant values
@@ -69,6 +73,7 @@ Fix the "Constant Synchronization Gap" in existing `getModel()` tests by importi
 ### Test Context
 
 **Current State**: The test file `tests/unit/config/environment.test.ts` has tests for `getModel()` function (lines 102-150):
+
 - Lines 103-109: "should return default model for opus tier" - uses hardcoded `'GLM-4.7'`
 - Lines 111-117: "should return default model for sonnet tier" - uses hardcoded `'GLM-4.7'`
 - Lines 119-125: "should return default model for haiku tier" - uses hardcoded `'GLM-4.5-Air'`
@@ -77,12 +82,14 @@ Fix the "Constant Synchronization Gap" in existing `getModel()` tests by importi
 **The Gap**: Tests verify the correct model names are returned, but they use hardcoded strings instead of importing and comparing against the `MODEL_NAMES` constant.
 
 **Risk Scenario**:
+
 1. Developer changes `MODEL_NAMES.opus` in `src/config/constants.ts` to `'GLM-4.8'`
 2. Tests still pass because they compare against hardcoded `'GLM-4.7'`
 3. Application now uses different model than tests expect
 4. Tests provide false sense of security
 
 **Contract Clarification**: The contract definition mentions "Test 3: Verify invalid tier throws appropriate error" - however, this is **not currently applicable** because:
+
 - The `getModel()` implementation (lines 96-99 in environment.ts) does not include runtime validation
 - The `ModelTier` type is a compile-time union type (`'opus' | 'sonnet' | 'haiku'`)
 - Invalid tiers are caught at compile time by TypeScript, not at runtime
@@ -145,6 +152,7 @@ expect(getModel('haiku')).toBe(MODEL_NAMES.haiku);
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] `getModel()` function implementation understood (lines 96-99 in environment.ts)
 - [x] `MODEL_NAMES` constant location and values identified (constants.ts lines 43-50)
 - [x] Existing test patterns analyzed (environment.test.ts lines 102-150)
@@ -307,12 +315,16 @@ import {
   validateEnvironment,
   EnvironmentValidationError,
 } from '../../../src/config/environment.js';
-import { MODEL_NAMES } from '../../../src/config/constants.js';  // Add this
+import { MODEL_NAMES } from '../../../src/config/constants.js'; // Add this
 
 // BAD: Creating separate import blocks
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { MODEL_NAMES } from '../../../src/config/constants.js';
-import { configureEnvironment, getModel, validateEnvironment } from '../../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+} from '../../../src/config/environment.js';
 
 // GOTCHA: Don't change the environment override tests (lines 127-149)
 // Those tests verify custom values are respected - they correctly use hardcoded strings
@@ -430,7 +442,7 @@ describe('getModel', () => {
     delete process.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
 
     // EXECUTE & VERIFY
-    expect(getModel('opus')).toBe('GLM-4.7');  // ❌ MAGIC STRING
+    expect(getModel('opus')).toBe('GLM-4.7'); // ❌ MAGIC STRING
   });
 
   it('should return default model for sonnet tier', () => {
@@ -438,7 +450,7 @@ describe('getModel', () => {
     delete process.env.ANTHROPIC_DEFAULT_SONNET_MODEL;
 
     // EXECUTE & VERIFY
-    expect(getModel('sonnet')).toBe('GLM-4.7');  // ❌ MAGIC STRING
+    expect(getModel('sonnet')).toBe('GLM-4.7'); // ❌ MAGIC STRING
   });
 
   it('should return default model for haiku tier', () => {
@@ -446,7 +458,7 @@ describe('getModel', () => {
     delete process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
 
     // EXECUTE & VERIFY
-    expect(getModel('haiku')).toBe('GLM-4.5-Air');  // ❌ MAGIC STRING
+    expect(getModel('haiku')).toBe('GLM-4.5-Air'); // ❌ MAGIC STRING
   });
 });
 
@@ -468,7 +480,7 @@ describe('getModel', () => {
     delete process.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
 
     // EXECUTE & VERIFY
-    expect(getModel('opus')).toBe(MODEL_NAMES.opus);  // ✅ CONSTANT SYNC
+    expect(getModel('opus')).toBe(MODEL_NAMES.opus); // ✅ CONSTANT SYNC
   });
 
   it('should return default model for sonnet tier', () => {
@@ -476,7 +488,7 @@ describe('getModel', () => {
     delete process.env.ANTHROPIC_DEFAULT_SONNET_MODEL;
 
     // EXECUTE & VERIFY
-    expect(getModel('sonnet')).toBe(MODEL_NAMES.sonnet);  // ✅ CONSTANT SYNC
+    expect(getModel('sonnet')).toBe(MODEL_NAMES.sonnet); // ✅ CONSTANT SYNC
   });
 
   it('should return default model for haiku tier', () => {
@@ -484,7 +496,7 @@ describe('getModel', () => {
     delete process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
 
     // EXECUTE & VERIFY
-    expect(getModel('haiku')).toBe(MODEL_NAMES.haiku);  // ✅ CONSTANT SYNC
+    expect(getModel('haiku')).toBe(MODEL_NAMES.haiku); // ✅ CONSTANT SYNC
   });
 });
 
@@ -836,6 +848,7 @@ npm test -- -t "haiku"
 ### Why is this a separate subtask from S1 and S2?
 
 P1.M2.T1.S1 added the idempotency test. P1.M2.T1.S2 fixed the BASE_URL constant synchronization. P1.M2.T1.S3 fixes the MODEL_NAMES constant synchronization. They're separate because:
+
 1. **Different Goals**: S1 verified idempotency, S2 verified BASE_URL constants, S3 verifies MODEL_NAMES constants
 2. **Incremental Improvement**: Each subtask addresses one configuration aspect
 3. **Parallel Execution Potential**: S2 and S3 could have run in parallel (both fix constant synchronization gaps)
@@ -843,6 +856,7 @@ P1.M2.T1.S1 added the idempotency test. P1.M2.T1.S2 fixed the BASE_URL constant 
 ### What about "Test 3: Invalid tier throws error" from the contract?
 
 This requirement is **NOT APPLICABLE** for the following reasons:
+
 1. **No Implementation**: The `getModel()` function does not include runtime validation for invalid tiers
 2. **Compile-Time Only**: The `ModelTier` type is a TypeScript union type (`'opus' | 'sonnet' | 'haiku'`) that provides compile-time safety
 3. **Type Safety**: Invalid tiers are caught at compile time by TypeScript, not at runtime
@@ -854,6 +868,7 @@ This requirement is **NOT APPLICABLE** for the following reasons:
 ### Why do opus and sonnet both map to GLM-4.7?
 
 This is **intentional by design**:
+
 - **Opus tier**: Represents the highest quality usage pattern for complex reasoning tasks
 - **Sonnet tier**: Represents balanced performance for most agent operations
 - **Same model**: Both use GLM-4.7 but represent different token limits and usage contexts
@@ -863,6 +878,7 @@ This is **intentional by design**:
 ### Is this a bug fix or quality improvement?
 
 It's a **quality improvement**:
+
 - Tests currently pass (no bug)
 - Tests work correctly for the current constant values
 - The issue is that tests don't detect if the constants change
@@ -879,6 +895,7 @@ S1 focused on adding idempotency testing. S2 focused on BASE_URL synchronization
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from source code (constants.ts, environment.ts, types.ts)
 - [x] Existing test patterns analyzed and documented
 - [x] Constant synchronization pattern established in P1.M2.T1.S2
@@ -890,6 +907,7 @@ S1 focused on adding idempotency testing. S2 focused on BASE_URL synchronization
 - [x] Contract issues clarified (Test 3 not applicable)
 
 **Risk Mitigation**:
+
 - Minimal change (4 modifications: 1 import, 3 assertions)
 - Existing tests provide reference pattern
 - No new dependencies or complex logic
@@ -898,6 +916,7 @@ S1 focused on adding idempotency testing. S2 focused on BASE_URL synchronization
 - Follows established pattern from P1.M2.T1.S2
 
 **Known Risks**:
+
 - None - this is a straightforward quality improvement with comprehensive context
 
 ---

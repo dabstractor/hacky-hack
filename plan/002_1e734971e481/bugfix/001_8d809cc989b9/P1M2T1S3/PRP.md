@@ -13,6 +13,7 @@
 **Deliverable**: Exported `isFatalError(error: unknown, continueOnError?: boolean): boolean` function in `src/utils/errors.ts` that passes all 23 integration tests and 172 unit tests from P1.M2.T1.S2.
 
 **Success Definition**:
+
 - All 172 unit tests in `tests/unit/utils/is-fatal-error.test.ts` pass
 - Function follows existing type guard patterns in errors.ts
 - Proper JSDoc documentation with examples
@@ -25,12 +26,14 @@
 **Use Case**: Determining whether a caught error should immediately abort pipeline execution (fatal) or be tracked and allow continuation (non-fatal).
 
 **User Journey**:
+
 1. Developer catches an error in a try/catch block
 2. Calls `isFatalError(error)` to classify the error
 3. If true: re-throws error to halt pipeline
 4. If false: tracks error and continues execution
 
 **Pain Points Addressed**:
+
 - Eliminates duplication of fatal error detection logic across 5 PRPPipeline methods
 - Provides centralized, testable error classification
 - Enables consistent error handling patterns throughout codebase
@@ -207,6 +210,7 @@ src/utils/errors.ts
 ### Data models and structure
 
 No new data models - uses existing error classes from `src/utils/errors.ts`:
+
 - `PipelineError` (base class)
 - `SessionError` (fatal: LOAD_FAILED, SAVE_FAILED codes)
 - `EnvironmentError` (fatal: ALL instances)
@@ -216,7 +220,7 @@ No new data models - uses existing error classes from `src/utils/errors.ts`:
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: READ src/utils/errors.ts (lines 497-614)
   - UNDERSTAND: Existing type guard patterns and JSDoc format
   - NOTE: JSDoc structure: /**, description, @remarks, @example, */
@@ -339,11 +343,11 @@ Task 5: RUN unit tests to validate implementation
   - EXPECTED: All 172 tests pass
   - IF FAILING: Read test output, identify failing test, fix implementation
   - DEPENDENCIES: Task 3, Task 4
-```
+````
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // CRITICAL PATTERN: Type guard chaining for type narrowing
 // TypeScript type guards enable safe property access after instanceof checks
 
@@ -365,15 +369,19 @@ if (isPipelineError(error)) {
 // Because SessionError is ALSO a PipelineError, order matters
 // Correct order:
 if (isPipelineError(error)) {
-  if (isEnvironmentError(error)) return true;      // Check first
-  if (isSessionError(error)) { /* ... */ }         // Check second
-  if (isValidationError(error)) { /* ... */ }      // Check third
+  if (isEnvironmentError(error)) return true; // Check first
+  if (isSessionError(error)) {
+    /* ... */
+  } // Check second
+  if (isValidationError(error)) {
+    /* ... */
+  } // Check third
 }
 
 // CRITICAL: continueOnError parameter is an OVERRIDE
 // When true, it MUST return false BEFORE any other logic
 if (continueOnError) {
-  return false;  // Short-circuit all other checks
+  return false; // Short-circuit all other checks
 }
 
 // CRITICAL: Null/undefined/object check BEFORE instanceof
@@ -410,7 +418,7 @@ if (error == null || typeof error !== 'object') {
  * // Include both fatal and non-fatal paths
  * ```
  */
-```
+````
 
 ### Integration Points
 
@@ -418,7 +426,7 @@ if (error == null || typeof error !== 'object') {
 ERRORS_TS:
   - add to: /home/dustin/projects/hacky-hack/src/utils/errors.ts
   - location: After line 614 (after isEnvironmentError function)
-  - pattern: "Add complete function with JSDoc after isEnvironmentError export"
+  - pattern: 'Add complete function with JSDoc after isEnvironmentError export'
 
 NO_CHANGES_TO:
   - src/workflows/prp-pipeline.ts (will be updated in P1.M2.T2)
@@ -555,6 +563,7 @@ grep -r "#isFatalError\|private.*isFatalError" src/ --exclude-dir=node_modules  
 **9/10** - One-pass implementation success likelihood
 
 **Justification**:
+
 - Complete test suite (172 tests) defines exact contract
 - Existing implementation analyzed with documented differences
 - Clear file location, line numbers, and patterns provided
@@ -563,6 +572,7 @@ grep -r "#isFatalError\|private.*isFatalError" src/ --exclude-dir=node_modules  
 - Single function addition with minimal integration complexity
 
 **Risk factors**:
+
 - EnvironmentError handling differs from existing implementation (documented in PRP)
 - Must ensure exact JSDoc format matches codebase patterns
 - Test output interpretation may require debugging

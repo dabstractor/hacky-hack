@@ -11,7 +11,7 @@
 export function isFatalError(
   error: unknown,
   continueOnError: boolean = false
-): boolean
+): boolean;
 ```
 
 ## Implementation Logic
@@ -130,9 +130,7 @@ try {
 
   // Check if error is fatal
   if (isFatalError(error, this.#continueOnError)) {
-    this.logger.error(
-      `[PRPPipeline] Fatal {operation} error: ${errorMessage}`
-    );
+    this.logger.error(`[PRPPipeline] Fatal {operation} error: ${errorMessage}`);
     throw error; // Re-throw to abort pipeline
   }
 
@@ -184,6 +182,7 @@ Before P1.M2.T2.S1, `isFatalError` was a private method in PRPPipeline:
 **Location**: `/home/dustin/projects/hacky-hack/tests/unit/utils/is-fatal-error.test.ts`
 
 Comprehensive coverage including:
+
 - Fatal error types (SessionError, EnvironmentError, ValidationError)
 - Non-fatal error types (TaskError, AgentError)
 - continueOnError flag behavior

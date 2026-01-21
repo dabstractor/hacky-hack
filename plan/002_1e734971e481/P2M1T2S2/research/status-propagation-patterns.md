@@ -21,6 +21,7 @@ This document provides comprehensive research on hierarchical status update prop
 **Description**: Status updates affect only the target item with no side effects on children or parents.
 
 **Characteristics**:
+
 - Exact ID matching required
 - No cascading to descendants
 - No propagation to ancestors
@@ -28,6 +29,7 @@ This document provides comprehensive research on hierarchical status update prop
 - Manual status management required
 
 **Example**:
+
 ```typescript
 // Update subtask: only that subtask changes
 updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -39,12 +41,14 @@ updateItemStatus('P1.M1', 'Implementing');
 ```
 
 **Use Cases**:
+
 - Granular status control needed
 - Different items progress independently
 - Manual coordination acceptable
 - Simple workflow requirements
 
 **Pros**:
+
 - Simple implementation
 - Predictable behavior
 - No surprising side effects
@@ -52,6 +56,7 @@ updateItemStatus('P1.M1', 'Implementing');
 - Fast (no recursive updates)
 
 **Cons**:
+
 - Manual status coordination required
 - Possible inconsistency (parent Complete with children Planned)
 - More manual work to maintain consistency
@@ -66,18 +71,20 @@ updateItemStatus('P1.M1', 'Implementing');
 **Description**: Parent status automatically derived from child statuses. When children change, parent recalculates.
 
 **Characteristics**:
+
 - Child updates trigger parent recalculation
 - Parent status is computed, not stored (or synced with children)
 - Recursive propagation up the hierarchy
 - Ensures consistency between parent and children
 
 **Aggregation Rules**:
+
 ```typescript
 function calculateParentStatus(children: HierarchyItem[]): Status {
   const allComplete = children.every(c => c.status === 'Complete');
   const anyFailed = children.some(c => c.status === 'Failed');
-  const anyInProgress = children.some(c =>
-    c.status === 'Researching' || c.status === 'Implementing'
+  const anyInProgress = children.some(
+    c => c.status === 'Researching' || c.status === 'Implementing'
   );
 
   if (anyFailed) return 'Failed';
@@ -88,6 +95,7 @@ function calculateParentStatus(children: HierarchyItem[]): Status {
 ```
 
 **Example**:
+
 ```typescript
 // Update all subtasks to Complete
 updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -101,6 +109,7 @@ updateItemStatus('P1.M1.T1.S1', 'Failed');
 ```
 
 **Implementation Pattern**:
+
 ```typescript
 function updateItemStatusWithPropagation(
   backlog: Backlog,
@@ -120,10 +129,7 @@ function updateItemStatusWithPropagation(
   return propagateParentStatus(updated, parentId);
 }
 
-function propagateParentStatus(
-  backlog: Backlog,
-  parentId: string
-): Backlog {
+function propagateParentStatus(backlog: Backlog, parentId: string): Backlog {
   const parent = findItem(backlog, parentId);
   if (!parent) return backlog;
 
@@ -141,18 +147,21 @@ function propagateParentStatus(
 ```
 
 **Use Cases**:
+
 - Parent status should reflect children status
 - Automatic status consistency desired
 - Reduced manual coordination
 - Clear progress visibility
 
 **Pros**:
+
 - Automatic consistency
 - Clear progress indicators
 - Reduced manual work
 - Parent always accurate
 
 **Cons**:
+
 - More complex implementation
 - Recursive updates can be expensive
 - Less granular control
@@ -165,12 +174,14 @@ function propagateParentStatus(
 **Description**: Parent status changes automatically propagate to all descendants. When parent changes, children sync.
 
 **Characteristics**:
+
 - Parent updates trigger child updates
 - All descendants receive same status
 - Recursive propagation down the hierarchy
 - Ensures uniform status across subtree
 
 **Example**:
+
 ```typescript
 // Update milestone to Obsolete
 updateItemStatusCascade('P1.M1', 'Obsolete');
@@ -182,6 +193,7 @@ updateItemStatusCascade('P1.M1.T1', 'Failed');
 ```
 
 **Implementation Pattern**:
+
 ```typescript
 function updateItemStatusCascade(
   backlog: Backlog,
@@ -202,10 +214,7 @@ function updateItemStatusCascade(
   return updated;
 }
 
-function getAllDescendants(
-  backlog: Backlog,
-  itemId: string
-): HierarchyItem[] {
+function getAllDescendants(backlog: Backlog, itemId: string): HierarchyItem[] {
   const descendants: HierarchyItem[] = [];
   const item = findItem(backlog, itemId);
 
@@ -234,18 +243,21 @@ function getAllDescendants(
 ```
 
 **Use Cases**:
+
 - Bulk status changes needed
 - Terminal states (Obsolete, Failed) should apply to subtree
 - Simplified workflow management
 - Uniform subtree status
 
 **Pros**:
+
 - Easy bulk updates
 - Consistent subtree status
 - Useful for terminal states
 - Reduced manual work
 
 **Cons**:
+
 - Loss of granular status
 - May not match all workflows
 - Recursive updates expensive
@@ -258,12 +270,14 @@ function getAllDescendants(
 **Description**: Combines bottom-up and top-down strategies based on context and status type.
 
 **Characteristics**:
+
 - Some statuses cascade down (e.g., Obsolete)
 - Some statuses aggregate up (e.g., Complete)
 - Different behavior based on status type
 - Most flexible approach
 
 **Rules Example**:
+
 ```typescript
 const CASCADE_DOWN = ['Obsolete', 'Failed'];
 const AGGREGATE_UP = ['Complete', 'Implementing'];
@@ -291,18 +305,21 @@ function updateItemStatusHybrid(
 ```
 
 **Use Cases**:
+
 - Complex workflow requirements
 - Different behavior for different statuses
 - Maximum flexibility
 - Advanced use cases
 
 **Pros**:
+
 - Most flexible
 - Matches complex workflows
 - Can optimize for each status
 - Best user experience
 
 **Cons**:
+
 - Most complex implementation
 - Harder to reason about
 - More edge cases
@@ -315,12 +332,14 @@ function updateItemStatusHybrid(
 **Description**: Status changes emit events that trigger propagation. Decoupled architecture with listeners.
 
 **Characteristics**:
+
 - Status changes emit events
 - Listeners react to events
 - Fully decoupled architecture
 - Extensible and flexible
 
 **Implementation Pattern**:
+
 ```typescript
 interface StatusChangeEvent {
   itemId: string;
@@ -369,43 +388,49 @@ class StatusUpdateManager {
 const manager = new StatusUpdateManager();
 
 // Listener for parent aggregation
-manager.onStatusChange((event) => {
+manager.onStatusChange(event => {
   if (shouldAggregateToParent(event.newStatus)) {
     updateParentStatus(event.itemId);
   }
 });
 
 // Listener for child cascade
-manager.onStatusChange((event) => {
+manager.onStatusChange(event => {
   if (shouldCascadeToChildren(event.newStatus)) {
     cascadeToChildren(event.itemId, event.newStatus);
   }
 });
 
 // Listener for logging
-manager.onStatusChange((event) => {
-  logger.info({
-    item: event.itemId,
-    from: event.oldStatus,
-    to: event.newStatus,
-    time: event.timestamp,
-  }, 'Status changed');
+manager.onStatusChange(event => {
+  logger.info(
+    {
+      item: event.itemId,
+      from: event.oldStatus,
+      to: event.newStatus,
+      time: event.timestamp,
+    },
+    'Status changed'
+  );
 });
 ```
 
 **Use Cases**:
+
 - Complex business logic
 - Multiple propagation strategies
 - Audit logging requirements
 - External system integration
 
 **Pros**:
+
 - Highly extensible
 - Decoupled architecture
 - Easy to add new listeners
 - Clear event history
 
 **Cons**:
+
 - Most complex to implement
 - More overhead
 - Harder to debug
@@ -420,6 +445,7 @@ manager.onStatusChange((event) => {
 **Description**: Enforce valid status transitions using a state machine. Prevent invalid status changes.
 
 **Valid Transitions**:
+
 ```typescript
 const VALID_TRANSITIONS: Record<Status, Status[]> = {
   Planned: ['Researching', 'Implementing', 'Obsolete', 'Failed'],
@@ -432,6 +458,7 @@ const VALID_TRANSITIONS: Record<Status, Status[]> = {
 ```
 
 **Validation Function**:
+
 ```typescript
 function isValidStatusTransition(
   currentStatus: Status,
@@ -443,6 +470,7 @@ function isValidStatusTransition(
 ```
 
 **Error Type**:
+
 ```typescript
 export class InvalidStatusTransitionError extends Error {
   constructor(
@@ -453,8 +481,8 @@ export class InvalidStatusTransitionError extends Error {
   ) {
     super(
       `Invalid status transition for item "${itemId}": ` +
-      `${currentStatus} → ${newStatus}. ` +
-      `Valid transitions are: ${validTransitions.join(', ')}`
+        `${currentStatus} → ${newStatus}. ` +
+        `Valid transitions are: ${validTransitions.join(', ')}`
     );
     this.name = 'InvalidStatusTransitionError';
   }
@@ -462,6 +490,7 @@ export class InvalidStatusTransitionError extends Error {
 ```
 
 **Usage**:
+
 ```typescript
 function updateItemStatusWithValidation(
   backlog: Backlog,
@@ -506,10 +535,12 @@ it('should update subtask without affecting parents', async () => {
 
   // VERIFY: Subtask changed, parents unchanged
   const session = manager.currentSession!;
-  expect(session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status)
-    .toBe('Complete');
-  expect(session.taskRegistry.backlog[0].milestones[0].tasks[0].status)
-    .toBe('Planned'); // Unchanged
+  expect(
+    session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status
+  ).toBe('Complete');
+  expect(session.taskRegistry.backlog[0].milestones[0].tasks[0].status).toBe(
+    'Planned'
+  ); // Unchanged
 });
 ```
 
@@ -525,13 +556,14 @@ it.each([
   ['Complete'],
   ['Failed'],
   ['Obsolete'],
-])('should accept status value: %s', async (status) => {
+])('should accept status value: %s', async status => {
   const manager = await createTestSession();
   await manager.updateItemStatus('P1.M1.T1.S1', status as Status);
 
   const session = manager.currentSession!;
-  expect(session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status)
-    .toBe(status);
+  expect(
+    session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status
+  ).toBe(status);
 });
 ```
 
@@ -561,7 +593,10 @@ it('should preserve hierarchy structure after updates', async () => {
 });
 
 function countAllItems(backlog: Backlog) {
-  let phases = 0, milestones = 0, tasks = 0, subtasks = 0;
+  let phases = 0,
+    milestones = 0,
+    tasks = 0,
+    subtasks = 0;
   for (const phase of backlog.backlog) {
     phases++;
     for (const milestone of phase.milestones) {
@@ -581,10 +616,12 @@ function countAllItems(backlog: Backlog) {
 ## 4. URLs and References
 
 **Documentation**:
+
 - [Vitest Documentation](https://vitest.dev/guide/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 
 **Your Project Files**:
+
 - `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 - `/home/dustin/projects/hacky-hack/src/utils/task-utils.ts`
 - `/home/dustin/projects/hacky-hack/src/core/models.ts`
@@ -597,12 +634,14 @@ function countAllItems(backlog: Backlog) {
 **Current Implementation**: No propagation (exact match only)
 
 **Recommended Enhancements** (if needed):
+
 1. Add bottom-up aggregation for parent status consistency
 2. Add state machine validation for status transitions
 3. Keep no-propagation as default, add opt-in propagation modes
 4. Consider event-driven architecture for complex workflows
 
 **Testing Strategy**:
+
 - Document actual behavior (no propagation)
 - Test all hierarchy levels independently
 - Verify no side effects on other levels

@@ -13,6 +13,7 @@
 **Deliverable**: New integration test file at `tests/integration/core/session-manager.test.ts` with full coverage of new session creation scenarios using real filesystem operations in temp directories.
 
 **Success Definition**:
+
 - Session directory created with correct format `plan/{sequence}_{hash}/` (zero-padded sequence, 12-char hash)
 - `tasks.json` created with empty backlog structure `{ backlog: [] }`
 - `prd_snapshot.md` copied with identical content to original PRD
@@ -30,6 +31,7 @@
 **Use Case**: Validating that SessionManager.initialize() creates proper session structures on disk for new PRDs, which is foundational for the entire PRP pipeline.
 
 **User Journey**:
+
 1. Developer creates new PRD file
 2. SessionManager.initialize() is called with PRD path
 3. SHA-256 hash is computed from PRD content
@@ -41,6 +43,7 @@
 9. Integration tests verify all steps completed correctly
 
 **Pain Points Addressed**:
+
 - **Unit test coverage gaps**: Existing unit tests mock filesystem, hiding real-world integration issues
 - **Directory structure bugs**: Session directories may not be created correctly in real filesystems
 - **Hash computation issues**: PRD hashing may fail with real file encodings
@@ -73,6 +76,7 @@ Create a new integration test file at `tests/integration/core/session-manager.te
 ### Current State Analysis
 
 **SessionManager.initialize() Method** (from `/src/core/session-manager.ts` lines 210-336):
+
 ```typescript
 async initialize(): Promise<SessionState> {
   // 1. Hash PRD
@@ -121,6 +125,7 @@ async initialize(): Promise<SessionState> {
 ```
 
 **Existing Unit Tests** (from `/tests/unit/core/session-manager.test.ts`):
+
 - Use `vi.mock()` for all filesystem operations
 - Test hashPRD calling, readdir searching, new session creation
 - Test PRD snapshot writing, SessionState return value
@@ -132,6 +137,7 @@ async initialize(): Promise<SessionState> {
 - **MISSING**: Sequential numbering with real directories
 
 **hashPRD Implementation** (from `/src/core/session-utils.ts` lines 160-167):
+
 ```typescript
 export async function hashPRD(prdPath: string): Promise<string> {
   const content = await readFile(prdPath, 'utf-8');
@@ -140,6 +146,7 @@ export async function hashPRD(prdPath: string): Promise<string> {
 ```
 
 **Session Directory Structure** (created by `createSessionDirectory`):
+
 ```
 plan/
   └── {sequence}_{hash}/          # e.g., 001_14b9dc2a33c7/
@@ -152,6 +159,7 @@ plan/
 ```
 
 **Session Directory Format**:
+
 - Pattern: `/^(\d{3})_([a-f0-9]{12})$/`
 - Sequence: Zero-padded 3 digits (001, 002, ..., 999)
 - Hash: First 12 characters of SHA-256 hash
@@ -179,6 +187,7 @@ plan/
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] SessionManager.initialize() method fully analyzed (lines 210-336)
 - [x] hashPRD implementation documented (session-utils.ts lines 160-167)
 - [x] Session directory format specified (sequence_hash pattern)
@@ -734,7 +743,10 @@ describe('SessionManager.initialize()', () => {
     prdPath = join(tempDir, 'PRD.md');
 
     // Create initial PRD file
-    writeFileSync(prdPath, '# Test PRD\n\nThis is a test PRD for session creation.');
+    writeFileSync(
+      prdPath,
+      '# Test PRD\n\nThis is a test PRD for session creation.'
+    );
   });
 
   afterEach(() => {
@@ -757,7 +769,7 @@ describe('SessionManager.initialize()', () => {
 
     // VERIFY: Session directory created
     expect(existsSync(planDir)).toBe(true);
-    const sessionDirs = readdirSync(planDir).filter((d) =>
+    const sessionDirs = readdirSync(planDir).filter(d =>
       /^\d{3}_[a-f0-9]{12}$/.test(d)
     );
     expect(sessionDirs).toHaveLength(1);
@@ -845,7 +857,8 @@ describe('SessionManager.initialize()', () => {
 
   it('should copy PRD to prd_snapshot.md with identical content', async () => {
     // SETUP: Create PRD with specific content
-    const prdContent = '# Test PRD\n\nSpecific content for snapshot verification.';
+    const prdContent =
+      '# Test PRD\n\nSpecific content for snapshot verification.';
     writeFileSync(prdPath, prdContent);
 
     // EXECUTE
@@ -909,8 +922,8 @@ describe('SessionManager.initialize()', () => {
     // VERIFY: Both sessions exist in plan/
     const hash1 = session1.metadata.hash;
     const hash2 = session2.metadata.hash;
-    expect(sessionDirs.some((d) => d.includes(hash1))).toBe(true);
-    expect(sessionDirs.some((d) => d.includes(hash2))).toBe(true);
+    expect(sessionDirs.some(d => d.includes(hash1))).toBe(true);
+    expect(sessionDirs.some(d => d.includes(hash2))).toBe(true);
   });
 
   // =============================================================================
@@ -933,9 +946,7 @@ describe('SessionManager.initialize()', () => {
     const sessionDirs = readdirSync(planDir);
     expect(sessionDirs).toHaveLength(3);
 
-    const sequences = sessionDirs
-      .map((d) => d.match(/^(\d{3})_/)?.[1])
-      .sort();
+    const sequences = sessionDirs.map(d => d.match(/^(\d{3})_/)?.[1]).sort();
 
     expect(sequences).toEqual(['001', '002', '003']);
   });
@@ -1182,7 +1193,7 @@ node /tmp/test-multiple.js
 
 ### Feature Validation
 
-- [ ] Session directory format matches /^(\d{3})_([a-f0-9]{12})$/
+- [ ] Session directory format matches /^(\d{3})\_([a-f0-9]{12})$/
 - [ ] Hash computation uses SHA-256 correctly
 - [ ] Hash is first 12 characters (not full 64)
 - [ ] Session numbering is sequential and zero-padded
@@ -1241,6 +1252,7 @@ node /tmp/test-multiple.js
 ### Why integration tests instead of extending unit tests?
 
 The existing unit test file (`tests/unit/core/session-manager.test.ts`) has 2613 lines of comprehensive tests using mocked filesystem operations. However, unit tests with mocks can't catch:
+
 1. **Filesystem-specific bugs**: Encoding issues, permission problems, path resolution errors
 2. **Real-world behavior**: Actual directory creation, file content verification
 3. **Integration issues**: How SessionManager works with real filesystem APIs
@@ -1250,6 +1262,7 @@ Integration tests complement unit tests by validating actual behavior with real 
 ### Why use real filesystem instead of mocks?
 
 Real filesystem operations expose issues that mocks hide:
+
 - **Encoding problems**: UTF-8 vs ASCII, BOM handling
 - **Permissions**: File mode bits, access control
 - **Path resolution**: Relative vs absolute paths, symlinks
@@ -1261,6 +1274,7 @@ Mocked tests are valuable for unit testing but insufficient for integration vali
 ### Why create tests/integration/core/ directory?
 
 Existing integration tests are in `tests/integration/` but not organized by module. Creating `tests/integration/core/`:
+
 1. Mirrors the `tests/unit/core/` structure
 2. Groups core module integration tests together
 3. Makes it easy to find SessionManager integration tests
@@ -1269,6 +1283,7 @@ Existing integration tests are in `tests/integration/` but not organized by modu
 ### Why verify subdirectories (architecture/, prps/, artifacts/)?
 
 The `createSessionDirectory()` function creates these subdirectories as part of the session structure. Tests must verify they exist because:
+
 1. Other parts of the pipeline depend on these directories
 2. Missing directories cause runtime errors
 3. Directory structure is a documented contract
@@ -1276,6 +1291,7 @@ The `createSessionDirectory()` function creates these subdirectories as part of 
 ### Why test sequential numbering with multiple sessions?
 
 The `#getNextSequence()` method scans the plan/ directory to find the highest sequence number. Testing with multiple sessions:
+
 1. Validates the scanning logic works correctly
 2. Confirms zero-padding works for sequences >= 10
 3. Ensures no sequence number collisions
@@ -1292,6 +1308,7 @@ The `initialize()` method creates SessionState in memory with `{ backlog: [] }` 
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from research agents (5 parallel research tasks)
 - [x] SessionManager.initialize() fully analyzed with line numbers
 - [x] Existing unit tests reviewed to avoid duplication
@@ -1308,6 +1325,7 @@ The `initialize()` method creates SessionState in memory with `{ backlog: [] }` 
 - [x] Integration vs unit test distinction clear
 
 **Risk Mitigation**:
+
 - New test file (low risk of breaking existing tests)
 - Integration tests only (no production code changes)
 - Temp directory isolation (no side effects on plan/)
@@ -1316,6 +1334,7 @@ The `initialize()` method creates SessionState in memory with `{ backlog: [] }` 
 - Follows established integration test patterns
 
 **Known Risks**:
+
 - **Temp directory cleanup**: If rmSync() fails, temp files may accumulate
   - Mitigation: Use `force: true` option to ignore ENOENT
 - **Hash consistency**: Different encodings produce different hashes

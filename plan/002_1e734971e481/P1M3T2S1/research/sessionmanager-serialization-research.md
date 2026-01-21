@@ -3,10 +3,12 @@
 ## File Overview
 
 **Primary File:** `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
+
 - **Total Lines:** 1,036 lines
 - **Class:** SessionManager (lines 93-1035)
 
 **Supporting File:** `/home/dustin/projects/hacky-hack/src/core/session-utils.ts`
+
 - **Total Lines:** 531 lines
 - **Key Functions:**
   - `atomicWrite()` (lines 93-111) - Core atomic write implementation
@@ -79,6 +81,7 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
 ```
 
 ### Temp File Naming Pattern
+
 - **Format:** `.{basename}.{random-hex}.tmp`
 - **Example:** `.tasks.json.abc123def456.tmp`
 - **Location:** Same directory as target file
@@ -123,6 +126,7 @@ const content = JSON.stringify(validated, null, 2);
 ## Batching Architecture
 
 ### Private State Variables
+
 ```typescript
 #dirty: boolean = false;           // Flag indicating pending changes
 #pendingUpdates: Backlog | null = null;  // Accumulated backlog state
@@ -130,6 +134,7 @@ const content = JSON.stringify(validated, null, 2);
 ```
 
 ### Batching Flow
+
 1. Update call: `updateItemStatus()` is called
 2. In-memory update: Status changed in `#pendingUpdates`
 3. Flag set: `#dirty = true`, `#updateCount++`
@@ -140,10 +145,12 @@ const content = JSON.stringify(validated, null, 2);
 ## Existing Test Coverage
 
 ### Test Files
+
 1. **SessionManager Unit Tests** - `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts` (2,613 lines)
 2. **Session Utils Tests** - `/home/dustin/projects/hacky-hack/tests/unit/core/session-utils.test.ts` (1,392 lines)
 
 ### Atomic Write Pattern Tests (session-utils.test.ts lines 430-567)
+
 - "should write tasks.json with atomic write pattern"
 - "should clean up temp file on write failure"
 - "should clean up temp file on rename failure"

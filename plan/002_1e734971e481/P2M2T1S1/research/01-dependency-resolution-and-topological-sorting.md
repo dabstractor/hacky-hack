@@ -1,6 +1,7 @@
 # Task Dependency Resolution and Topological Sorting - Research Findings
 
 ## Overview
+
 Task dependency resolution is a fundamental problem in workflow orchestration. This document summarizes best practices, algorithms, and patterns for efficiently resolving and executing tasks with dependencies.
 
 ## Core Concepts
@@ -8,6 +9,7 @@ Task dependency resolution is a fundamental problem in workflow orchestration. T
 ### 1. Graph Representation
 
 **Adjacency List (Recommended for Sparse Graphs)**
+
 ```typescript
 interface TaskGraph {
   nodes: Map<TaskId, TaskNode>;
@@ -23,6 +25,7 @@ interface TaskNode {
 ```
 
 **Best Practices:**
+
 - Use adjacency lists for sparse graphs (most workflow graphs are sparse)
 - Store both forward (dependencies) and reverse (dependents) edges for O(1) lookups
 - Use immutable data structures for thread safety
@@ -33,12 +36,14 @@ interface TaskNode {
 #### Kahn's Algorithm (BFS-based)
 
 **Advantages:**
+
 - Intuitive and easy to understand
 - Naturally detects cycles
 - Better for parallel execution (processes level by level)
 - Memory efficient for wide graphs
 
 **Algorithm:**
+
 ```typescript
 function kahnTopologicalSort(graph: TaskGraph): TaskId[] {
   const inDegree = new Map<TaskId, number>();
@@ -70,7 +75,7 @@ function kahnTopologicalSort(graph: TaskGraph): TaskId[] {
 
   // Check for cycles
   if (result.length !== graph.nodes.size) {
-    throw new Error("Cycle detected in task graph");
+    throw new Error('Cycle detected in task graph');
   }
 
   return result;
@@ -80,11 +85,13 @@ function kahnTopologicalSort(graph: TaskGraph): TaskId[] {
 #### DFS-based Algorithm
 
 **Advantages:**
+
 - More memory efficient for deep graphs
 - Single pass through graph
 - Natural recursion structure
 
 **Algorithm:**
+
 ```typescript
 function dfsTopologicalSort(graph: TaskGraph): TaskId[] {
   const visited = new Set<TaskId>();
@@ -120,16 +127,19 @@ function dfsTopologicalSort(graph: TaskGraph): TaskId[] {
 ### 3. Cycle Detection Strategies
 
 **Early Detection (Pre-execution)**
+
 - Detect cycles before any task execution
 - Provide clear error messages with cycle path
 - Use strongly connected components (Tarjan's algorithm) for complex cycles
 
 **Runtime Detection**
+
 - Detect cycles as they form (useful for dynamic dependencies)
 - Track temporary marks during DFS
 - Fail fast with actionable error messages
 
 **Best Practice:**
+
 ```typescript
 function detectCycle(graph: TaskGraph): TaskId[] | null {
   const visited = new Set<TaskId>();
@@ -167,6 +177,7 @@ function detectCycle(graph: TaskGraph): TaskId[] | null {
 ### 4. Performance Optimizations
 
 **Incremental Updates**
+
 ```typescript
 class IncrementalSorter {
   private sortedOrder: TaskId[];
@@ -192,6 +203,7 @@ class IncrementalSorter {
 ```
 
 **Level-based Sorting for Parallelization**
+
 ```typescript
 interface LevelizedGraph {
   levels: TaskId[][]; // levels[i] contains tasks at level i
@@ -234,6 +246,7 @@ function levelizeSort(graph: TaskGraph): LevelizedGraph {
 ```
 
 **Lazy Evaluation for Large Graphs**
+
 ```typescript
 class LazyTopologicalSorter {
   private graph: TaskGraph;
@@ -280,6 +293,7 @@ class LazyTopologicalSorter {
 ### 5. Advanced Patterns
 
 **Conditional Dependencies**
+
 ```typescript
 interface ConditionalTask {
   id: TaskId;
@@ -298,6 +312,7 @@ function resolveConditionalDependencies(
 ```
 
 **Dynamic Dependencies**
+
 ```typescript
 interface DynamicTaskGraph {
   addDependency(from: TaskId, to: TaskId): void;
@@ -308,6 +323,7 @@ interface DynamicTaskGraph {
 ```
 
 **Soft Dependencies (Hints, Not Requirements)**
+
 ```typescript
 interface TaskNode {
   id: TaskId;
@@ -326,11 +342,13 @@ function prioritizeWithSoftDeps(graph: TaskGraph): TaskId[] {
 ### 6. Error Handling and Recovery
 
 **Graceful Degradation**
+
 - Allow execution to continue when non-critical tasks fail
 - Skip downstream tasks that depend on failed tasks
 - Implement "continue on error" flags
 
 **Dependency Resolution Errors**
+
 ```typescript
 class DependencyResolutionError extends Error {
   constructor(
@@ -347,16 +365,19 @@ class DependencyResolutionError extends Error {
 ### 7. Real-world Considerations
 
 **Persistent State**
+
 - Store resolved order in database for recovery
 - Version the dependency graph for rollback
 - Cache sorting results for repeated executions
 
 **Concurrency**
+
 - Use locks or atomic operations for graph updates
 - Implement optimistic concurrency with versioning
 - Handle race conditions in dynamic dependency addition
 
 **Monitoring and Observability**
+
 - Track sort time and graph complexity
 - Log cycle detection results
 - Monitor queue depths during execution
@@ -364,39 +385,46 @@ class DependencyResolutionError extends Error {
 ## Key Resources
 
 ### Documentation
+
 - **Apache Airflow DAG Concepts**: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html
 - **AWS Step Functions State Machines**: https://docs.aws.amazon.com/step-functions/latest/dg/concepts-state-machine.html
 - **Temporal Workflow Patterns**: https://docs.temporal.io/workflows
 
 ### Academic Papers
+
 - "On the Topological Sorting Problem" (Kahn, 1962)
 - "Depth-First Search and Linear Graph Algorithms" (Tarjan, 1972)
 
 ### Open Source Implementations
+
 - **Apache Airflow**: https://github.com/apache/airflow
 - **Prefect**: https://github.com/PrefectHQ/prefect
 - **Temporal**: https://github.com/temporalio/api
 - **Dagster**: https://github.com/dagster-io/dagster
 
 ### Blog Posts and Articles
+
 - Martin Fowler: "Patterns of Distributed Systems"
 - "Topological Sorting for Task Scheduling" (various engineering blogs)
 
 ## Testing Strategies
 
 ### Unit Tests
+
 - Test cycle detection with various cycle patterns
 - Verify topological order correctness
 - Test incremental updates
 - Validate performance on large graphs
 
 ### Integration Tests
+
 - Test with real dependency graphs from production
 - Verify concurrent graph modifications
 - Test recovery from mid-sort failures
 - Validate persistent state correctness
 
 ### Performance Tests
+
 - Benchmark with 1000+ task graphs
 - Measure memory usage for deep vs wide graphs
 - Compare Kahn's vs DFS algorithms

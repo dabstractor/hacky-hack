@@ -7,12 +7,14 @@
 **Feature Goal**: Verify Architect Agent is correctly integrated with proper configuration, TASK_BREAKDOWN_PROMPT validation, and JSON output schema compliance through comprehensive integration tests.
 
 **Deliverable**: Integration test file `tests/integration/agents/architect-agent-integration.test.ts` with test cases covering:
+
 - Architect Agent configuration verification (model, tokens, cache, reflection)
 - TASK_BREAKDOWN_PROMPT structure validation (required sections)
 - Agent output schema validation against Backlog Zod schema
 - JSON file output verification to tasks.json path
 
 **Success Definition**: All tests pass, verifying:
+
 - Architect Agent created with correct config (GLM-4.7, 8192 tokens, cache enabled, reflection enabled)
 - TASK_BREAKDOWN_PROMPT contains all required sections (research-driven architecture, implicit TDD, context scope)
 - Agent output matches Zod schema for Backlog type
@@ -47,7 +49,8 @@ Integration tests that verify Architect Agent is correctly configured and produc
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Exact file paths and patterns to follow from existing tests
 - Architect Agent configuration values from source code
 - TASK_BREAKDOWN_PROMPT structure from PROMPTS.md
@@ -172,6 +175,7 @@ tests/
 ```
 
 **New File**: `tests/integration/agents/architect-agent-integration.test.ts`
+
 - Tests Architect Agent configuration from agent-factory
 - Tests TASK_BREAKDOWN_PROMPT structure validation
 - Tests prompt generation with BacklogSchema
@@ -183,7 +187,7 @@ tests/
 ```typescript
 // CRITICAL: Architect Agent uses maxTokens: 8192 (vs. 4096 for other personas)
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,    // Larger for complex task decomposition
+  architect: 8192, // Larger for complex task decomposition
   researcher: 4096,
   coder: 4096,
   qa: 4096,
@@ -244,13 +248,25 @@ Use existing Backlog type and schema from `src/core/models.ts`:
 
 ```typescript
 // Backlog type (already exists, import for use)
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../src/core/models.js';
 
 // BacklogSchema for validation (already exists, import for use)
-import { BacklogSchema, StatusEnum, ContextScopeSchema } from '../../src/core/models.js';
+import {
+  BacklogSchema,
+  StatusEnum,
+  ContextScopeSchema,
+} from '../../src/core/models.js';
 ```
 
 **Test Fixture for Mock Backlog**:
+
 ```typescript
 const createMockBacklog = (): Backlog => ({
   backlog: [
@@ -485,7 +501,9 @@ it('should contain Implicit TDD section', () => {
   const { TASK_BREAKDOWN_PROMPT } = require('../../src/agents/prompts.js');
 
   expect(TASK_BREAKDOWN_PROMPT).toContain('IMPLICIT TDD');
-  expect(TASK_BREAKDOWN_PROMPT).toContain('DO NOT create subtasks for "Write Tests"');
+  expect(TASK_BREAKDOWN_PROMPT).toContain(
+    'DO NOT create subtasks for "Write Tests"'
+  );
   expect(TASK_BREAKDOWN_PROMPT).toContain('DEFINITION OF DONE');
 });
 
@@ -502,7 +520,9 @@ it('should contain Context Scope Blinder section', () => {
 // PATTERN: Prompt generation test
 it('should create prompt with BacklogSchema responseFormat', () => {
   // SETUP: Import createArchitectPrompt
-  const { createArchitectPrompt } = require('../../src/agents/prompts/architect-prompt.js');
+  const {
+    createArchitectPrompt,
+  } = require('../../src/agents/prompts/architect-prompt.js');
   const { BacklogSchema } = require('../../src/core/models.js');
 
   // EXECUTE: Create prompt
@@ -530,7 +550,9 @@ it('should validate story_points are integers 1-21', async () => {
   // EXECUTE: Call architect agent
   const { createArchitectAgent } = require('../../src/agents/agent-factory.js');
   const architect = createArchitectAgent();
-  const { createArchitectPrompt } = require('../../src/agents/prompts/architect-prompt.js');
+  const {
+    createArchitectPrompt,
+  } = require('../../src/agents/prompts/architect-prompt.js');
   const prompt = createArchitectPrompt('# Test');
   const result = await architect.prompt(prompt);
 

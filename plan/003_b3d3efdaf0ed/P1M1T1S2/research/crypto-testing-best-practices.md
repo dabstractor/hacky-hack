@@ -7,10 +7,12 @@ Research findings on best practices for testing Node.js crypto operations (SHA-2
 ## Node.js Crypto API Reference
 
 ### Official Documentation
+
 - **Primary URL**: https://nodejs.org/api/crypto.html#crypto_createhash_algorithm_options
 - **Hash Class**: https://nodejs.org/api/crypto.html#class-hash
 
 ### Key API Methods
+
 ```typescript
 import { createHash } from 'crypto';
 
@@ -25,6 +27,7 @@ hash.digest('hex'); // Returns 64-character hex string
 ```
 
 ### Supported Encodings
+
 - `'hex'` - 64 hex characters (0-9, a-f)
 - `'base64'` - Base64 encoded string
 - `'latin1` - Binary string
@@ -89,9 +92,11 @@ import { vi, describe, it, expect } from 'vitest';
 vi.mock('node:crypto', () => ({
   createHash: vi.fn(() => ({
     update: vi.fn(() => ({
-      digest: vi.fn(() => '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123')
-    }))
-  }))
+      digest: vi.fn(
+        () => '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123'
+      ),
+    })),
+  })),
 }));
 
 import { createHash } from 'node:crypto';
@@ -100,7 +105,9 @@ describe('Hash Computation with Mocks', () => {
   it('should use mocked hash value', () => {
     const hash = createHash('sha256').update('test').digest('hex');
 
-    expect(hash).toBe('14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123');
+    expect(hash).toBe(
+      '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123'
+    );
     expect(createHash).toHaveBeenCalledWith('sha256');
   });
 
@@ -145,8 +152,14 @@ describe('Hash-based Change Detection', () => {
     const originalContent = '# Original PRD';
     const modifiedContent = '# Modified PRD';
 
-    const hash1 = createHash('sha256').update(originalContent).digest('hex').slice(0, 12);
-    const hash2 = createHash('sha256').update(modifiedContent).digest('hex').slice(0, 12);
+    const hash1 = createHash('sha256')
+      .update(originalContent)
+      .digest('hex')
+      .slice(0, 12);
+    const hash2 = createHash('sha256')
+      .update(modifiedContent)
+      .digest('hex')
+      .slice(0, 12);
 
     expect(hash1).not.toBe(hash2);
   });
@@ -154,22 +167,40 @@ describe('Hash-based Change Detection', () => {
   it('should not detect change for identical content', () => {
     const content = '# Test PRD';
 
-    const hash1 = createHash('sha256').update(content).digest('hex').slice(0, 12);
-    const hash2 = createHash('sha256').update(content).digest('hex').slice(0, 12);
+    const hash1 = createHash('sha256')
+      .update(content)
+      .digest('hex')
+      .slice(0, 12);
+    const hash2 = createHash('sha256')
+      .update(content)
+      .digest('hex')
+      .slice(0, 12);
 
     expect(hash1).toBe(hash2);
   });
 
   it('should be case-sensitive', () => {
-    const hash1 = createHash('sha256').update('Content').digest('hex').slice(0, 12);
-    const hash2 = createHash('sha256').update('content').digest('hex').slice(0, 12);
+    const hash1 = createHash('sha256')
+      .update('Content')
+      .digest('hex')
+      .slice(0, 12);
+    const hash2 = createHash('sha256')
+      .update('content')
+      .digest('hex')
+      .slice(0, 12);
 
     expect(hash1).not.toBe(hash2);
   });
 
   it('should detect whitespace changes', () => {
-    const hash1 = createHash('sha256').update('content').digest('hex').slice(0, 12);
-    const hash2 = createHash('sha256').update('content ').digest('hex').slice(0, 12);
+    const hash1 = createHash('sha256')
+      .update('content')
+      .digest('hex')
+      .slice(0, 12);
+    const hash2 = createHash('sha256')
+      .update('content ')
+      .digest('hex')
+      .slice(0, 12);
 
     expect(hash1).not.toBe(hash2);
   });
@@ -186,18 +217,24 @@ Use these for validating hash computation:
 describe('SHA-256 Test Vectors', () => {
   it('should hash empty string correctly', () => {
     const hash = createHash('sha256').update('').digest('hex');
-    expect(hash).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+    expect(hash).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+    );
   });
 
   it('should hash "abc" correctly', () => {
     const hash = createHash('sha256').update('abc').digest('hex');
-    expect(hash).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+    expect(hash).toBe(
+      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+    );
   });
 
   it('should hash long message correctly', () => {
     const message = 'abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq';
     const hash = createHash('sha256').update(message).digest('hex');
-    expect(hash).toBe('248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1');
+    expect(hash).toBe(
+      '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1'
+    );
   });
 });
 ```
@@ -211,10 +248,16 @@ describe('SHA-256 Test Vectors', () => {
 ```typescript
 // BAD: No cleanup
 describe('Tests', () => {
-  vi.mock('crypto', () => ({ /* mock */ }));
+  vi.mock('crypto', () => ({
+    /* mock */
+  }));
 
-  it('test 1', () => { /* uses mock */ });
-  it('test 2', () => { /* still uses mock! */ });
+  it('test 1', () => {
+    /* uses mock */
+  });
+  it('test 2', () => {
+    /* still uses mock! */
+  });
 });
 
 // GOOD: Proper cleanup
@@ -227,8 +270,12 @@ describe('Tests', () => {
     vi.restoreAllMocks();
   });
 
-  it('test 1', () => { /* uses mock */ });
-  it('test 2', () => { /* restored to real */ });
+  it('test 1', () => {
+    /* uses mock */
+  });
+  it('test 2', () => {
+    /* restored to real */
+  });
 });
 ```
 
@@ -240,17 +287,17 @@ describe('Tests', () => {
 // BAD: Wrong chaining pattern
 vi.mock('crypto', () => ({
   createHash: vi.fn().mockReturnValue({
-    digest: vi.fn(() => 'hash') // Missing update()
-  })
+    digest: vi.fn(() => 'hash'), // Missing update()
+  }),
 }));
 
 // GOOD: Correct chaining pattern
 vi.mock('crypto', () => ({
   createHash: vi.fn(() => ({
     update: vi.fn(() => ({
-      digest: vi.fn(() => 'hash')
-    }))
-  }))
+      digest: vi.fn(() => 'hash'),
+    })),
+  })),
 }));
 ```
 
@@ -330,12 +377,12 @@ export default defineConfig({
       'node:crypto': {
         createHash: vi.fn(() => ({
           update: vi.fn(() => ({
-            digest: vi.fn(() => 'mock-hash-64-chars...')
-          }))
-        }))
-      }
-    }
-  }
+            digest: vi.fn(() => 'mock-hash-64-chars...'),
+          })),
+        })),
+      },
+    },
+  },
 });
 ```
 

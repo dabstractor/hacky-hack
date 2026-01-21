@@ -1,6 +1,7 @@
 # Atomic State Persistence Patterns - Research Findings
 
 ## Overview
+
 Atomic state persistence is critical for orchestrator reliability and consistency. This document covers patterns, techniques, and best practices for ensuring atomic state updates in distributed task orchestration systems.
 
 ## Core Concepts
@@ -35,11 +36,9 @@ class TransactionalStateManager {
     newStatus: TaskStatus,
     metadata: Record<string, unknown>
   ): Promise<void> {
-    await this.db.transaction(async (trx) => {
+    await this.db.transaction(async trx => {
       // Verify current state
-      const current = await trx('tasks')
-        .where('id', taskId)
-        .first();
+      const current = await trx('tasks').where('id', taskId).first();
 
       if (!current) {
         throw new Error(`Task ${taskId} not found`);
@@ -57,7 +56,7 @@ class TransactionalStateManager {
         .update({
           status: newStatus,
           updated_at: new Date(),
-          version: current.version + 1
+          version: current.version + 1,
         });
 
       // Record state transition
@@ -66,7 +65,7 @@ class TransactionalStateManager {
         from_status: oldStatus,
         to_status: newStatus,
         timestamp: new Date(),
-        metadata: JSON.stringify(metadata)
+        metadata: JSON.stringify(metadata),
       });
 
       // Update dependent tasks if needed
@@ -88,15 +87,16 @@ class TransactionalStateManager {
 
     // Update their status based on this task's completion
     for (const dependentId of dependents) {
-      const newDependentStatus = this.calculateDependentStatus(dependentId, newStatus);
+      const newDependentStatus = this.calculateDependentStatus(
+        dependentId,
+        newStatus
+      );
 
       if (newDependentStatus) {
-        await trx('tasks')
-          .where('id', dependentId)
-          .update({
-            status: newDependentStatus,
-            updated_at: new Date()
-          });
+        await trx('tasks').where('id', dependentId).update({
+          status: newDependentStatus,
+          updated_at: new Date(),
+        });
       }
     }
   }
@@ -116,16 +116,19 @@ class TransactionalStateManager {
 ```
 
 **Advantages:**
+
 - True atomicity
 - Rollback on failure
 - Data consistency guaranteed
 
 **Disadvantages:**
+
 - Database lock contention
 - Limited scalability
 - Complex distributed transactions
 
 **Use Cases:**
+
 - Single-database scenarios
 - When ACID is required
 - Moderate scale systems
@@ -157,7 +160,9 @@ class OptimisticStateManager {
         if (error instanceof ConcurrentModificationError) {
           attempt++;
           if (attempt >= maxRetries) {
-            throw new Error(`Max retries (${maxRetries}) exceeded for ${stateId}`);
+            throw new Error(
+              `Max retries (${maxRetries}) exceeded for ${stateId}`
+            );
           }
           // Retry with exponential backoff
           await this.sleep(Math.pow(2, attempt) * 100);
@@ -194,10 +199,9 @@ class OptimisticStateManager {
   }
 
   private async readState(stateId: string): Promise<VersionedState> {
-    const result = await this.db.query(
-      'SELECT * FROM states WHERE id = $1',
-      [stateId]
-    );
+    const result = await this.db.query('SELECT * FROM states WHERE id = $1', [
+      stateId,
+    ]);
 
     if (result.rows.length === 0) {
       throw new Error(`State ${stateId} not found`);
@@ -220,16 +224,19 @@ class ConcurrentModificationError extends Error {
 ```
 
 **Advantages:**
+
 - No locking overhead
 - High concurrency
 - Works well for low-contention scenarios
 
 **Disadvantages:**
+
 - Retry overhead on contention
 - Not suitable for high-contention scenarios
 - Complex error handling
 
 **Use Cases:**
+
 - Low-contention scenarios
 - When read performance is critical
 - Distributed systems
@@ -297,16 +304,19 @@ interface Lock {
 ```
 
 **Advantages:**
+
 - Prevents conflicts
 - Simple error handling
 - Predictable behavior
 
 **Disadvantages:**
+
 - Lock overhead
 - Potential deadlocks
 - Reduced concurrency
 
 **Use Cases:**
+
 - High-contention scenarios
 - When conflicts are expensive
 - Simple update patterns
@@ -319,24 +329,18 @@ interface Lock {
 class TwoPhaseCommitCoordinator {
   private participants: TransactionParticipant[] = [];
 
-  async executeTransaction(
-    operations: TransactionOperation[]
-  ): Promise<void> {
+  async executeTransaction(operations: TransactionOperation[]): Promise<void> {
     // Phase 1: Prepare
     const prepareResults = await Promise.allSettled(
       this.participants.map(p => p.prepare(operations))
     );
 
     // Check if all participants prepared successfully
-    const allPrepared = prepareResults.every(
-      r => r.status === 'fulfilled'
-    );
+    const allPrepared = prepareResults.every(r => r.status === 'fulfilled');
 
     if (!allPrepared) {
       // Phase 2: Rollback
-      await Promise.allSettled(
-        this.participants.map(p => p.rollback())
-      );
+      await Promise.allSettled(this.participants.map(p => p.rollback()));
       throw new Error('Transaction failed during prepare phase');
     }
 
@@ -345,9 +349,7 @@ class TwoPhaseCommitCoordinator {
       this.participants.map(p => p.commit())
     );
 
-    const allCommitted = commitResults.every(
-      r => r.status === 'fulfilled'
-    );
+    const allCommitted = commitResults.every(r => r.status === 'fulfilled');
 
     if (!allCommitted) {
       throw new Error('Transaction failed during commit phase');
@@ -363,23 +365,26 @@ interface TransactionParticipant {
 ```
 
 **Advantages:**
+
 - Atomicity across databases
 - Strong consistency
 - Standard protocol
 
 **Disadvantages:**
+
 - Blocking coordinator
 - Single point of failure
 - Performance overhead
 
 **Use Cases:**
+
 - Multi-database transactions
 - When strong consistency is required
 - Legacy system integration
 
 #### Pattern 2: Saga Pattern
 
-```Description**: Break transaction into sequence of local transactions with compensating actions.
+````Description**: Break transaction into sequence of local transactions with compensating actions.
 
 ```typescript
 interface SagaStep {
@@ -444,19 +449,22 @@ const updateTaskSaga: SagaStep[] = [
 ];
 
 await sagaOrchestrator.execute(updateTaskSaga);
-```
+````
 
 **Advantages:**
+
 - No distributed locks
 - Better performance
 - Fault tolerance
 
 **Disadvantages:**
+
 - Temporary inconsistency
 - Complex compensation logic
 - Not truly atomic
 
 **Use Cases:**
+
 - Long-running transactions
 - Microservices architectures
 - When availability is more important than immediate consistency
@@ -479,11 +487,9 @@ class EventSourcedStateManager {
     events: StateEvent[]
   ): Promise<void> {
     // Append events atomically
-    await this.db.transaction(async (trx) => {
+    await this.db.transaction(async trx => {
       // Verify version
-      const current = await trx('aggregates')
-        .where('id', aggregateId)
-        .first();
+      const current = await trx('aggregates').where('id', aggregateId).first();
 
       if (current.version !== expectedVersion) {
         throw new ConcurrentModificationError(
@@ -498,7 +504,7 @@ class EventSourcedStateManager {
           aggregate_id: event.aggregateId,
           version: event.version,
           timestamp: event.timestamp,
-          data: JSON.stringify(event.data)
+          data: JSON.stringify(event.data),
         });
       }
 
@@ -507,7 +513,7 @@ class EventSourcedStateManager {
         .where('id', aggregateId)
         .update({
           version: expectedVersion + events.length,
-          updated_at: new Date()
+          updated_at: new Date(),
         });
     });
   }
@@ -527,7 +533,9 @@ class EventSourcedStateManager {
     }
   }
 
-  private async getLatestSnapshot(aggregateId: string): Promise<{ state: any; version: number } | null> {
+  private async getLatestSnapshot(
+    aggregateId: string
+  ): Promise<{ state: any; version: number } | null> {
     const result = await this.db.query(
       'SELECT * FROM snapshots WHERE aggregate_id = $1 ORDER BY version DESC LIMIT 1',
       [aggregateId]
@@ -552,7 +560,7 @@ class EventSourcedStateManager {
       aggregateId: row.aggregate_id,
       version: row.version,
       timestamp: row.timestamp,
-      data: JSON.parse(row.data)
+      data: JSON.parse(row.data),
     }));
   }
 
@@ -579,18 +587,21 @@ class EventSourcedStateManager {
 ```
 
 **Advantages:**
+
 - Complete audit trail
 - Temporal queries
 - Event replay
 - Strong consistency
 
 **Disadvantages:**
+
 - Event schema evolution
 - Replay overhead
 - Snapshot management
 - Complex implementation
 
 **Use Cases:**
+
 - Audit requirements
 - Temporal queries
 - Event replay
@@ -643,7 +654,13 @@ class RedisAtomicManager {
       end
     `;
 
-    const result = await this.client.eval(script, 1, key, expectedStatus, newStatus);
+    const result = await this.client.eval(
+      script,
+      1,
+      key,
+      expectedStatus,
+      newStatus
+    );
     return result === 1;
   }
 
@@ -653,10 +670,7 @@ class RedisAtomicManager {
     return await this.client.incr(key);
   }
 
-  async atomicAddToSet(
-    setKey: string,
-    ...members: string[]
-  ): Promise<number> {
+  async atomicAddToSet(setKey: string, ...members: string[]): Promise<number> {
     return await this.client.sadd(setKey, ...members);
   }
 }
@@ -684,7 +698,7 @@ class BatchAtomicUpdater {
     const updates = Array.from(this.pendingUpdates.values());
     this.pendingUpdates.clear();
 
-    await this.db.transaction(async (trx) => {
+    await this.db.transaction(async trx => {
       for (const update of updates) {
         await trx('states')
           .where('id', update.stateId)
@@ -692,7 +706,7 @@ class BatchAtomicUpdater {
           .update({
             status: update.newStatus,
             version: update.expectedVersion + 1,
-            updated_at: new Date()
+            updated_at: new Date(),
           });
       }
     });
@@ -709,21 +723,25 @@ interface StateUpdate {
 ## Key Resources
 
 ### Documentation
+
 - **PostgreSQL Transactions**: https://www.postgresql.org/docs/current/tutorial-transactions.html
 - **MySQL Transactions**: https://dev.mysql.com/doc/refman/8.0/en/commit.html
 - **Redis Transactions**: https://redis.io/docs/manual/transactions/
 
 ### Academic Papers
+
 - "The Saga Pattern" (Garcia-Molina et al., 1987)
 - "Event Sourcing" (Martin Fowler, 2005)
 - "Optimistic Concurrency Control" (Kung and Robinson, 1981)
 
 ### Books
+
 - "Designing Data-Intensive Applications" by Martin Kleppmann
 - "Database Systems: The Complete Book" by Garcia-Molina et al.
 - "Distributed Systems: Principles and Paradigms" by Tanenbaum and van Steen
 
 ### Open Source Projects
+
 - **EventStoreDB**: https://eventstore.com/ - Event sourcing database
 - **Axon Framework**: https://axoniq.io/ - DDD and event sourcing framework
 - **Temporal**: https://temporal.io/ - Distributed state machine
@@ -731,6 +749,7 @@ interface StateUpdate {
 ## Best Practices
 
 ### Design Principles
+
 1. **Atomicity first**: Always design for atomic operations
 2. **Idempotency**: Make operations idempotent for safe retry
 3. **Compensation**: Provide compensation for failed operations
@@ -738,6 +757,7 @@ interface StateUpdate {
 5. **Simplicity**: Prefer simple solutions over complex ones
 
 ### Implementation Guidelines
+
 1. **Use transactions**: When available, use database transactions
 2. **Version everything**: Use optimistic concurrency control
 3. **Batch operations**: Batch updates for performance
@@ -746,6 +766,7 @@ interface StateUpdate {
 6. **Monitor**: Track conflicts, retries, and failures
 
 ### Performance Considerations
+
 1. **Minimize lock time**: Hold locks for minimum time
 2. **Batch writes**: Batch multiple updates together
 3. **Use indexes**: Proper indexes for concurrent access

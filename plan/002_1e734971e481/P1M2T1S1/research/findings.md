@@ -17,13 +17,13 @@ The test file `tests/unit/config/environment.test.ts` already exists with compre
 
 ### Existing Test Coverage
 
-| Test Name | Line Range | Status |
-|-----------|------------|--------|
-| should map AUTH_TOKEN to API_KEY when API_KEY is not set | 26-36 | ✅ EXISTS |
-| should preserve existing API_KEY when AUTH_TOKEN is also set | 38-48 | ✅ EXISTS |
-| should set default BASE_URL when not provided | 50-61 | ✅ EXISTS |
-| should preserve custom BASE_URL when already set | 63-74 | ✅ EXISTS |
-| **should be idempotent - calling multiple times produces same result** | **N/A** | ❌ MISSING |
+| Test Name                                                              | Line Range | Status     |
+| ---------------------------------------------------------------------- | ---------- | ---------- |
+| should map AUTH_TOKEN to API_KEY when API_KEY is not set               | 26-36      | ✅ EXISTS  |
+| should preserve existing API_KEY when AUTH_TOKEN is also set           | 38-48      | ✅ EXISTS  |
+| should set default BASE_URL when not provided                          | 50-61      | ✅ EXISTS  |
+| should preserve custom BASE_URL when already set                       | 63-74      | ✅ EXISTS  |
+| **should be idempotent - calling multiple times produces same result** | **N/A**    | ❌ MISSING |
 
 ### configureEnvironment() Implementation
 
@@ -95,10 +95,10 @@ describe('config/environment', () => {
 
 ### Key APIs
 
-| Function | Purpose |
-|----------|---------|
+| Function                  | Purpose                                        |
+| ------------------------- | ---------------------------------------------- |
 | `vi.stubEnv(name, value)` | Set environment variable (with proper cleanup) |
-| `vi.unstubAllEnvs()` | Restore all stubbed environment variables |
+| `vi.unstubAllEnvs()`      | Restore all stubbed environment variables      |
 
 ### Best Practices
 
@@ -156,6 +156,7 @@ it('should be idempotent - calling multiple times produces same result', () => {
 ### P1.M2.T1.S2: Test default BASE_URL configuration
 
 The existing tests already cover BASE_URL default behavior:
+
 - "should set default BASE_URL when not provided" (line 50-61)
 - "should preserve custom BASE_URL when already set" (line 63-74)
 
@@ -171,17 +172,17 @@ The `getModel()` function is already tested in `tests/unit/config/environment.te
 
 ### Shell Convention vs SDK Expectation
 
-| Context | Variable Name | Purpose |
-|---------|---------------|---------|
-| Shell | `ANTHROPIC_AUTH_TOKEN` | Authentication token (shell environment) |
-| SDK | `ANTHROPIC_API_KEY` | Expected by Anthropic SDK |
+| Context | Variable Name          | Purpose                                  |
+| ------- | ---------------------- | ---------------------------------------- |
+| Shell   | `ANTHROPIC_AUTH_TOKEN` | Authentication token (shell environment) |
+| SDK     | `ANTHROPIC_API_KEY`    | Expected by Anthropic SDK                |
 
 **Critical**: The application must map between these.
 
 ### API Endpoint
 
-| Variable | Value |
-|----------|-------|
+| Variable             | Value                            |
+| -------------------- | -------------------------------- |
 | `ANTHROPIC_BASE_URL` | `https://api.z.ai/api/anthropic` |
 
 **Documentation**: See `plan/001_14b9dc2a33c7/architecture/environment_config.md`
@@ -215,6 +216,7 @@ npm run test:coverage
 **Current Test**: Does NOT cover this scenario (out of scope for this PRP)
 
 **Recommendation**: Consider adding a test that verifies:
+
 1. Call `configureEnvironment()` with AUTH_TOKEN="token1"
 2. Change AUTH_TOKEN to "token2"
 3. Call `configureEnvironment()` again

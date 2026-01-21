@@ -19,54 +19,66 @@ This document provides comprehensive research on testing patterns for deep hiera
 **Description**: Create individual item objects with factory functions.
 
 **Example** (from current codebase):
+
 ```typescript
 function createMinimalTasksJson(): Backlog {
   return {
-    backlog: [{
-      type: 'Phase',
-      id: 'P1',
-      title: 'Test Phase',
-      status: 'Planned',
-      description: 'Test phase description',
-      milestones: [{
-        type: 'Milestone',
-        id: 'P1.M1',
-        title: 'Test Milestone',
+    backlog: [
+      {
+        type: 'Phase',
+        id: 'P1',
+        title: 'Test Phase',
         status: 'Planned',
-        description: 'Test milestone description',
-        tasks: [{
-          type: 'Task',
-          id: 'P1.M1.T1',
-          title: 'Test Task',
-          status: 'Planned',
-          description: 'Test task description',
-          subtasks: [{
-            type: 'Subtask',
-            id: 'P1.M1.T1.S1',
-            title: 'Test Subtask',
+        description: 'Test phase description',
+        milestones: [
+          {
+            type: 'Milestone',
+            id: 'P1.M1',
+            title: 'Test Milestone',
             status: 'Planned',
-            story_points: 1,
-            dependencies: [],
-            context_scope: 'CONTRACT DEFINITION:\n1. Test',
-          }],
-        }],
-      }],
-    }],
+            description: 'Test milestone description',
+            tasks: [
+              {
+                type: 'Task',
+                id: 'P1.M1.T1',
+                title: 'Test Task',
+                status: 'Planned',
+                description: 'Test task description',
+                subtasks: [
+                  {
+                    type: 'Subtask',
+                    id: 'P1.M1.T1.S1',
+                    title: 'Test Subtask',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope: 'CONTRACT DEFINITION:\n1. Test',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   };
 }
 ```
 
 **Use Cases**:
+
 - Simple test fixtures
 - Minimal hierarchy depth
 - Few items per level
 
 **Pros**:
+
 - Simple and straightforward
 - Easy to understand
 - Minimal code
 
 **Cons**:
+
 - Verbose for complex hierarchies
 - Hard to maintain
 - Repetitive code
@@ -78,6 +90,7 @@ function createMinimalTasksJson(): Backlog {
 **Description**: Create complex hierarchies with a fluent API that mirrors the structure.
 
 **Implementation**:
+
 ```typescript
 class HierarchyBuilder {
   private phases: Phase[] = [];
@@ -209,22 +222,23 @@ class SubtaskBuilder {
 ```
 
 **Usage in Tests**:
+
 ```typescript
 it('should handle deep hierarchy updates', async () => {
   // SETUP: Create complex hierarchy with builder
   const backlog = HierarchyBuilder.create()
     .addPhase('P1', 'Phase 1', 'Planned')
-      .addMilestone('P1.M1', 'Milestone 1', 'Planned')
-        .addTask('P1.M1.T1', 'Task 1', 'Planned')
-          .addSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete')
-          .addSubtask('P1.M1.T1.S2', 'Subtask 2', 'Implementing', 2, ['P1.M1.T1.S1'])
-        .backToRoot()
-        .addTask('P1.M1.T2', 'Task 2', 'Planned')
-          .addSubtask('P1.M1.T2.S1', 'Subtask 1', 'Planned')
-      .backToRoot()
-      .addMilestone('P1.M2', 'Milestone 2', 'Planned')
-        .addTask('P1.M2.T1', 'Task 1', 'Planned')
-          .addSubtask('P1.M2.T1.S1', 'Subtask 1', 'Failed')
+    .addMilestone('P1.M1', 'Milestone 1', 'Planned')
+    .addTask('P1.M1.T1', 'Task 1', 'Planned')
+    .addSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete')
+    .addSubtask('P1.M1.T1.S2', 'Subtask 2', 'Implementing', 2, ['P1.M1.T1.S1'])
+    .backToRoot()
+    .addTask('P1.M1.T2', 'Task 2', 'Planned')
+    .addSubtask('P1.M1.T2.S1', 'Subtask 1', 'Planned')
+    .backToRoot()
+    .addMilestone('P1.M2', 'Milestone 2', 'Planned')
+    .addTask('P1.M2.T1', 'Task 1', 'Planned')
+    .addSubtask('P1.M2.T1.S1', 'Subtask 1', 'Failed')
     .build();
 
   // EXECUTE: Update deep item
@@ -238,6 +252,7 @@ it('should handle deep hierarchy updates', async () => {
 ```
 
 **Pros**:
+
 - Readable and intuitive
 - Mirrors hierarchy structure
 - Reduces repetition
@@ -245,6 +260,7 @@ it('should handle deep hierarchy updates', async () => {
 - Type-safe
 
 **Cons**:
+
 - More code to maintain
 - Learning curve for new developers
 - Overkill for simple fixtures
@@ -258,6 +274,7 @@ it('should handle deep hierarchy updates', async () => {
 **Description**: Define hierarchy as configuration object and generate.
 
 **Implementation**:
+
 ```typescript
 interface HierarchyConfig {
   phases: Array<{
@@ -321,34 +338,42 @@ function createBacklogFromConfig(config: HierarchyConfig): Backlog {
 
 // Usage
 const config: HierarchyConfig = {
-  phases: [{
-    id: 'P1',
-    title: 'Phase 1',
-    milestones: [{
-      id: 'P1.M1',
-      title: 'Milestone 1',
-      tasks: [{
-        id: 'P1.M1.T1',
-        title: 'Task 1',
-        subtasks: [
-          { id: 'P1.M1.T1.S1', title: 'Subtask 1', status: 'Complete' },
-          { id: 'P1.M1.T1.S2', title: 'Subtask 2', status: 'Planned' },
-        ],
-      }],
-    }],
-  }],
+  phases: [
+    {
+      id: 'P1',
+      title: 'Phase 1',
+      milestones: [
+        {
+          id: 'P1.M1',
+          title: 'Milestone 1',
+          tasks: [
+            {
+              id: 'P1.M1.T1',
+              title: 'Task 1',
+              subtasks: [
+                { id: 'P1.M1.T1.S1', title: 'Subtask 1', status: 'Complete' },
+                { id: 'P1.M1.T1.S2', title: 'Subtask 2', status: 'Planned' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 const backlog = createBacklogFromConfig(config);
 ```
 
 **Pros**:
+
 - Compact configuration
 - Easy to read
 - Simple to maintain
 - JSON-serializable
 
 **Cons**:
+
 - Loss of type safety in config
 - Less flexibility than builder
 - Still verbose for large hierarchies
@@ -369,13 +394,14 @@ describe.each([
   ['Complete'],
   ['Failed'],
   ['Obsolete'],
-])('Status value: %s', (status) => {
+])('Status value: %s', status => {
   it('should accept status when updating subtask', async () => {
     const manager = await createTestSession();
     await manager.updateItemStatus('P1.M1.T1.S1', status as Status);
 
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe(status);
   });
 });
@@ -398,11 +424,13 @@ describe.each([
     const manager = await createTestSession(from);
 
     if (valid) {
-      await expect(manager.updateItemStatus('P1.M1.T1.S1', to))
-        .resolves.toBeDefined();
+      await expect(
+        manager.updateItemStatus('P1.M1.T1.S1', to)
+      ).resolves.toBeDefined();
     } else {
-      await expect(manager.updateItemStatus('P1.M1.T1.S1', to))
-        .rejects.toThrow();
+      await expect(
+        manager.updateItemStatus('P1.M1.T1.S1', to)
+      ).rejects.toThrow();
     }
   });
 });
@@ -432,7 +460,10 @@ describe.each([
     expect(parent?.status).toBe('Planned');
 
     // Verify grandparent unchanged
-    const grandparent = findItem(manager.currentSession!.taskRegistry, grandparentId);
+    const grandparent = findItem(
+      manager.currentSession!.taskRegistry,
+      grandparentId
+    );
     expect(grandparent?.status).toBe('Planned');
   });
 });
@@ -472,7 +503,10 @@ it('should preserve hierarchy structure after updates', async () => {
 });
 
 function countHierarchy(backlog: Backlog) {
-  let phases = 0, milestones = 0, tasks = 0, subtasks = 0;
+  let phases = 0,
+    milestones = 0,
+    tasks = 0,
+    subtasks = 0;
   for (const phase of backlog.backlog) {
     phases++;
     for (const milestone of phase.milestones) {
@@ -664,21 +698,25 @@ function createDeepHierarchy(depth: number): Backlog {
   }
 
   return {
-    backlog: [{
-      type: 'Phase',
-      id: 'P0',
-      title: 'Root',
-      status: 'Planned',
-      description: 'Test',
-      milestones: [{
-        type: 'Milestone',
-        id: 'P0.M0',
-        title: 'Root Milestone',
+    backlog: [
+      {
+        type: 'Phase',
+        id: 'P0',
+        title: 'Root',
         status: 'Planned',
         description: 'Test',
-        tasks: [current],
-      }],
-    }],
+        milestones: [
+          {
+            type: 'Milestone',
+            id: 'P0.M0',
+            title: 'Root Milestone',
+            status: 'Planned',
+            description: 'Test',
+            tasks: [current],
+          },
+        ],
+      },
+    ],
   };
 }
 ```
@@ -690,24 +728,22 @@ function createDeepHierarchy(depth: number): Backlog {
 ### 5.1 Invalid Item ID Test
 
 ```typescript
-it.each([
-  '',
-  'INVALID',
-  'P999',
-  'P1.M999',
-  'P1.M1.T999.S999',
-])('should handle invalid item ID: %s', async (invalidId) => {
-  const manager = await createTestSession();
+it.each(['', 'INVALID', 'P999', 'P1.M999', 'P1.M1.T999.S999'])(
+  'should handle invalid item ID: %s',
+  async invalidId => {
+    const manager = await createTestSession();
 
-  // Should not throw, should return unchanged backlog
-  const result = await manager.updateItemStatus(invalidId, 'Complete');
+    // Should not throw, should return unchanged backlog
+    const result = await manager.updateItemStatus(invalidId, 'Complete');
 
-  expect(result).toBeDefined();
-  // Verify no changes made
-  const subtask = manager.currentSession!.taskRegistry.backlog[0]
-    .milestones[0].tasks[0].subtasks[0];
-  expect(subtask.status).toBe('Planned'); // Unchanged
-});
+    expect(result).toBeDefined();
+    // Verify no changes made
+    const subtask =
+      manager.currentSession!.taskRegistry.backlog[0].milestones[0].tasks[0]
+        .subtasks[0];
+    expect(subtask.status).toBe('Planned'); // Unchanged
+  }
+);
 ```
 
 ### 5.2 Non-Existent Item Test
@@ -747,15 +783,18 @@ it('should match snapshot after multiple updates', async () => {
 ## 7. URLs and References
 
 **Testing Frameworks**:
+
 - [Vitest Documentation](https://vitest.dev/guide/)
 - [Vitest test.each API](https://vitest.dev/api/#test-each)
 - [Vitest expect API](https://vitest.dev/api/expect.html)
 
 **Performance Testing**:
+
 - [Performance API](https://nodejs.org/api/performance.html)
 - [performance.now() MDN](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now)
 
 **Your Project Files**:
+
 - `/home/dustin/projects/hacky-hack/tests/integration/core/session-manager.test.ts`
 - `/home/dustin/projects/hacky-hack/vitest.config.ts`
 
@@ -764,6 +803,7 @@ it('should match snapshot after multiple updates', async () => {
 ## 8. Summary
 
 **Recommended Patterns**:
+
 1. Use builder pattern for complex hierarchies
 2. Use `test.each()` for parameterized tests
 3. Validate hierarchy integrity after updates
@@ -771,6 +811,7 @@ it('should match snapshot after multiple updates', async () => {
 5. Test all error cases and edge cases
 
 **Test Coverage Goals**:
+
 - All 4 hierarchy levels (Phase, Milestone, Task, Subtask)
 - All 6 status values
 - Invalid inputs (IDs, status values)

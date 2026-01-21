@@ -11,6 +11,7 @@
 **Feature Goal**: Create comprehensive unit tests for the four-level task hierarchy type definitions (Phase, Milestone, Task, Subtask) to validate TypeScript type definitions and Zod schema constraints.
 
 **Deliverable**: Test file at `tests/unit/core/models.test.ts` with:
+
 1. Type system tests using `expectTypeOf()` for compile-time verification
 2. Runtime validation tests using `safeParse()` for all Zod schemas
 3. ID format regex validation tests for each hierarchy level
@@ -20,6 +21,7 @@
 7. Nested hierarchy validation (4-level deep structure)
 
 **Success Definition**:
+
 - All 4 task hierarchy types have passing type tests
 - Zod schema validation covers all constraints (ID patterns, status, story_points)
 - TypeScript compilation verified without errors
@@ -35,12 +37,14 @@
 **Use Case**: Implementing features that depend on task hierarchy types and needing assurance that type definitions and validation constraints work correctly.
 
 **User Journey**:
+
 1. Developer modifies task hierarchy models or adds new features
 2. Developer runs test suite to verify changes
 3. Tests pass if types and schemas are correct
 4. Tests fail with clear error messages if constraints violated
 
 **Pain Points Addressed**:
+
 - **Unclear type errors**: Tests provide clear examples of correct type usage
 - **Silent validation failures**: Runtime tests catch Zod validation errors
 - **Broken hierarchies**: Nested structure tests prevent regressions
@@ -69,12 +73,14 @@ Create a comprehensive test file for the task hierarchy type definitions defined
 ### Current State Analysis
 
 **Existing Test File**: `tests/unit/core/models.test.ts` (2020 lines)
+
 - Contains comprehensive Zod schema tests for all hierarchy types
 - Already tests: StatusEnum, ItemTypeEnum, SubtaskSchema, TaskSchema, MilestoneSchema, PhaseSchema
 - Tests cover: ID validation, type validation, nested structures
 
 **Task Context** (from `plan/002_1e734971e481/tasks.json`):
 The P1.M3.T1.S1 context specifies:
+
 > "Test 1: Create valid Phase object with nested Milestone→Task→Subtask, verify TypeScript compilation.
 > Test 2: Test invalid type field ('Invalid') causes Zod validation error.
 > Test 3: Test invalid story_points (3) fails validation.
@@ -100,6 +106,7 @@ The P1.M3.T1.S1 context specifies:
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Task hierarchy types analyzed (Phase, Milestone, Task, Subtask)
 - [x] Zod schemas documented with all constraints
 - [x] Existing test patterns identified
@@ -116,8 +123,8 @@ The P1.M3.T1.S1 context specifies:
 - file: /home/dustin/projects/hacky-hack/src/core/models.ts
   why: Contains all type definitions and Zod schemas to test
   section: Lines 55-61 (Status), 149-211 (Subtask), 236-253 (SubtaskSchema),
-         286-322 (Task), 346-358 (TaskSchema), 381-416 (Milestone),
-         440-454 (MilestoneSchema), 478-513 (Phase), 537-546 (PhaseSchema)
+    286-322 (Task), 346-358 (TaskSchema), 381-416 (Milestone),
+    440-454 (MilestoneSchema), 478-513 (Phase), 537-546 (PhaseSchema)
   critical: |
     - All interfaces use readonly properties
     - All have type discriminator field ('Phase', 'Milestone', 'Task', 'Subtask')
@@ -469,33 +476,19 @@ Task 15: RUN typecheck and verify compilation
 describe('TypeScript type definitions', () => {
   describe('Subtask type structure', () => {
     it('should have correct property types', () => {
-      expectTypeOf<Subtask>()
-        .toHaveProperty('id')
-        .toBeString();
+      expectTypeOf<Subtask>().toHaveProperty('id').toBeString();
 
-      expectTypeOf<Subtask>()
-        .toHaveProperty('type')
-        .toBeLiteral('Subtask');
+      expectTypeOf<Subtask>().toHaveProperty('type').toBeLiteral('Subtask');
 
-      expectTypeOf<Subtask>()
-        .toHaveProperty('title')
-        .toBeString();
+      expectTypeOf<Subtask>().toHaveProperty('title').toBeString();
 
-      expectTypeOf<Subtask>()
-        .toHaveProperty('status')
-        .toEqualTypeOf<Status>();
+      expectTypeOf<Subtask>().toHaveProperty('status').toEqualTypeOf<Status>();
 
-      expectTypeOf<Subtask>()
-        .toHaveProperty('story_points')
-        .toBeNumber();
+      expectTypeOf<Subtask>().toHaveProperty('story_points').toBeNumber();
 
-      expectTypeOf<Subtask>()
-        .toHaveProperty('dependencies')
-        .toBeArray();
+      expectTypeOf<Subtask>().toHaveProperty('dependencies').toBeArray();
 
-      expectTypeOf<Subtask>()
-        .toHaveProperty('context_scope')
-        .toBeString();
+      expectTypeOf<Subtask>().toHaveProperty('context_scope').toBeString();
     });
 
     it('should have readonly properties', () => {
@@ -548,11 +541,11 @@ describe('SubtaskSchema runtime validation', () => {
   describe('ID format validation', () => {
     const validIds = ['P1.M1.T1.S1', 'P123.M456.T789.S999'];
     const invalidIds = [
-      'P1.M1.T1',          // Missing S segment
-      'P1.M1.T1.S1.S2',    // Extra segment
-      'p1.m1.t1.s1',       // Lowercase letters
-      'P1-M1-T1-S1',       // Wrong separator
-      'P1.M1.T1.S',        // Missing number after S
+      'P1.M1.T1', // Missing S segment
+      'P1.M1.T1.S1.S2', // Extra segment
+      'p1.m1.t1.s1', // Lowercase letters
+      'P1-M1-T1-S1', // Wrong separator
+      'P1.M1.T1.S', // Missing number after S
     ];
 
     validIds.forEach(id => {
@@ -575,7 +568,7 @@ describe('Story points validation', () => {
   const validPoints = [1, 2, 3, 5, 8, 13, 21];
   const invalidPoints = [0, 4, 6, 7, 9, 10, 22, -1, 1.5];
 
-  test.each(validPoints)('should accept valid story_points: %d', (points) => {
+  test.each(validPoints)('should accept valid story_points: %d', points => {
     const result = SubtaskSchema.safeParse({
       ...validSubtask,
       story_points: points,
@@ -583,7 +576,7 @@ describe('Story points validation', () => {
     expect(result.success).toBe(true);
   });
 
-  test.each(invalidPoints)('should reject story_points: %d', (points) => {
+  test.each(invalidPoints)('should reject story_points: %d', points => {
     const result = SubtaskSchema.safeParse({
       ...validSubtask,
       story_points: points,
@@ -660,7 +653,8 @@ describe('Nested hierarchy validation', () => {
 
 describe('TypeScript compilation verification', () => {
   it('should verify models.ts compiles without errors', async () => {
-    const { runTypecheck } = await import('../../src/utils/typecheck-runner.js');
+    const { runTypecheck } =
+      await import('../../src/utils/typecheck-runner.js');
 
     const result = await runTypecheck({
       projectPath: '/home/dustin/projects/hacky-hack',
@@ -699,8 +693,8 @@ describe('Error path validation', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      const subtaskError = result.error.issues.find(
-        issue => issue.path.includes('subtasks')
+      const subtaskError = result.error.issues.find(issue =>
+        issue.path.includes('subtasks')
       );
       expect(subtaskError?.path).toEqual(['subtasks', 0, 'id']);
     }
@@ -945,6 +939,7 @@ The task hierarchy is designed to be 4 levels deep (Phase > Milestone > Task > S
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from research agents (5 parallel research tasks)
 - [x] Existing test patterns analyzed and documented
 - [x] Type definitions fully documented with line numbers
@@ -956,12 +951,14 @@ The task hierarchy is designed to be 4 levels deep (Phase > Milestone > Task > S
 - [x] Anti-patterns documented to avoid
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking structure)
 - Tests only (no production code changes)
 - Can be implemented independently
 - Easy to verify and iterate
 
 **Known Risks**:
+
 - **Type system complexity**: expectTypeOf() may have learning curve
   - Mitigation: Research documentation with examples provided
 - **Coverage requirements**: Must maintain 100% coverage

@@ -7,6 +7,7 @@
 **Deliverable**: Modified `/home/dustin/projects/hacky-hack/tests/setup.ts` where the `dotenv.config()` call includes `{ quiet: true }` option to suppress loading messages while preserving environment variable loading functionality.
 
 **Success Definition**:
+
 - dotenv loading messages (`[dotenv@17.2.3] injecting env...`) no longer appear in test output
 - Environment variables from `.env` file still load correctly
 - All tests continue to pass with no regressions
@@ -20,6 +21,7 @@
 **Use Case**: The test output currently shows 20+ dotenv loading messages with rotating tips, making it difficult to read actual test results. This fix will suppress those informational messages while keeping the `.env` file loading functionality intact.
 
 **User Journey**:
+
 1. Developer runs tests and sees excessive dotenv loading messages cluttering output
 2. Developer reads this PRP to understand the required fix
 3. Developer modifies `tests/setup.ts` to add `{ quiet: true }` option
@@ -28,6 +30,7 @@
 6. Developer commits changes with reference to this PRP
 
 **Pain Points Addressed**:
+
 - **Excessive output noise**: 20+ dotenv loading messages appear during each test run
 - **Poor readability**: Test results are buried among repetitive dotenv messages
 - **Distraction**: Rotating tip messages (suppress logs, sync secrets, encrypt, etc.) add no value during test execution
@@ -63,6 +66,7 @@ Modify the `dotenv.config()` call in the test setup file to include the `{ quiet
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact file location and line number for the fix
 2. Current implementation with context
 3. Recommended fix with code examples
@@ -638,6 +642,7 @@ time npm run test:run
 **One-Pass Implementation Success Likelihood**: EXTREMELY HIGH
 
 **Rationale**:
+
 1. Clear task boundaries - add one option to one function call
 2. Exact file location and line number provided (line 23 in tests/setup.ts)
 3. Complete before/after code comparison
@@ -650,6 +655,7 @@ time npm run test:run
 10. Research phase thoroughly documented for reference
 
 **Potential Risks**:
+
 - **Risk 1**: Typo in option name (Very Low - `quiet` is well-documented)
 - **Risk 2**: Syntax error in object literal (Very Low - simple `{ quiet: true }` syntax)
 - **Risk 3**: Environment variables fail to load (Extremely Low - quiet option doesn't affect loading)

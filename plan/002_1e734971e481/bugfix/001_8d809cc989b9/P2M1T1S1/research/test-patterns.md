@@ -3,10 +3,12 @@
 ## Test Files Structure and Locations
 
 **Primary PRPPipeline test files:**
+
 - `tests/unit/workflows/prp-pipeline.test.ts` - Main PRPPipeline unit tests
 - `tests/unit/workflows/prp-pipeline-progress.test.ts` - Progress tracking integration tests
 
 **Test file naming convention:**
+
 - Unit tests: `*.test.ts` (e.g., `prp-pipeline.test.ts`)
 - Located in: `tests/unit/[module]/` directory structure
 - Follows the pattern: `{component-name}.test.ts`
@@ -14,6 +16,7 @@
 ## Logger Mocking Patterns
 
 ### Standard logger mock setup
+
 ```typescript
 // Mock the logger with hoisted variables
 const { mockLogger } = vi.hoisted(() => ({
@@ -32,6 +35,7 @@ vi.mock('../../../src/utils/logger.js', () => ({
 ```
 
 ### Usage in tests
+
 ```typescript
 const infoSpy = vi.spyOn((pipeline as any).logger, 'info');
 const errorSpy = vi.spyOn((pipeline as any).logger, 'error');
@@ -46,11 +50,16 @@ infoSpy.mockRestore();
 ## Validation Patterns for Debug Logging
 
 ### Enable verbose mode in test logger
+
 ```typescript
-const logger = getLogger('TestContext', { verbose: true, level: LogLevel.DEBUG });
+const logger = getLogger('TestContext', {
+  verbose: true,
+  level: LogLevel.DEBUG,
+});
 ```
 
 ### Spy on debug method
+
 ```typescript
 const debugSpy = vi.spyOn((pipeline as any).logger, 'debug');
 
@@ -64,6 +73,7 @@ expect(debugSpy).toHaveBeenCalledWith(
 ```
 
 ### Test log level filtering
+
 ```typescript
 it('should not log debug messages when verbose is disabled', () => {
   const pipeline = new PRPPipeline('./test.md');
@@ -80,6 +90,7 @@ it('should not log debug messages when verbose is disabled', () => {
 ## Specific PRPPipeline Logging Test Examples
 
 ### Shutdown logging validation
+
 ```typescript
 it('should log warning on duplicate SIGINT', () => {
   const pipeline = new PRPPipeline('./test.md');
@@ -95,6 +106,7 @@ it('should log warning on duplicate SIGINT', () => {
 ```
 
 ### Error logging validation
+
 ```typescript
 it('should log fatal errors appropriately', async () => {
   const pipeline = new PRPPipeline('./test.md');

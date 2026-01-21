@@ -12,14 +12,14 @@
 
 ```typescript
 // Common assertions
-expect(value).toBe(expected)           // Strict equality
-expect(value).toEqual(expected)        // Deep equality
-expect(value).toBeDefined()            // Check if defined
-expect(value).toContain(substring)     // String/array contains
-expect(object).toHaveProperty(property) // Object has property
-expect(array).toContainEqual(item)     // Array contains item
-expect(promise).resolves.toBe(value)   // Async resolving
-expect(promise).rejects.toThrow(error) // Async rejection
+expect(value).toBe(expected); // Strict equality
+expect(value).toEqual(expected); // Deep equality
+expect(value).toBeDefined(); // Check if defined
+expect(value).toContain(substring); // String/array contains
+expect(object).toHaveProperty(property); // Object has property
+expect(array).toContainEqual(item); // Array contains item
+expect(promise).resolves.toBe(value); // Async resolving
+expect(promise).rejects.toThrow(error); // Async rejection
 ```
 
 ### Mock Patterns
@@ -91,13 +91,13 @@ describe('Test Suite Description', () => {
 
 ### Pipeline Integration Tests
 
-| File | Purpose |
-|------|---------|
-| `tests/integration/prp-pipeline-integration.test.ts` | End-to-end pipeline testing |
-| `tests/integration/prp-pipeline-shutdown.test.ts` | Graceful shutdown testing |
-| `tests/integration/core/task-orchestrator.test.ts` | Orchestrator testing |
-| `tests/integration/core/task-orchestrator-runtime.test.ts` | Runtime orchestrator testing |
-| `tests/integration/core/task-orchestrator-e2e.test.ts` | End-to-end orchestrator testing |
+| File                                                       | Purpose                         |
+| ---------------------------------------------------------- | ------------------------------- |
+| `tests/integration/prp-pipeline-integration.test.ts`       | End-to-end pipeline testing     |
+| `tests/integration/prp-pipeline-shutdown.test.ts`          | Graceful shutdown testing       |
+| `tests/integration/core/task-orchestrator.test.ts`         | Orchestrator testing            |
+| `tests/integration/core/task-orchestrator-runtime.test.ts` | Runtime orchestrator testing    |
+| `tests/integration/core/task-orchestrator-e2e.test.ts`     | End-to-end orchestrator testing |
 
 ## Mock Setup Patterns
 
@@ -212,7 +212,10 @@ function setupTestEnvironment(): {
 
   // Write files
   writeFileSync(prdPath, mockSimplePRD);
-  writeFileSync(join(sessionPath, 'tasks.json'), JSON.stringify({ backlog: backlog.backlog }, null, 2));
+  writeFileSync(
+    join(sessionPath, 'tasks.json'),
+    JSON.stringify({ backlog: backlog.backlog }, null, 2)
+  );
   writeFileSync(join(sessionPath, 'prd_snapshot.md'), mockSimplePRD);
   writeFileSync(join(sessionPath, 'delta_from.txt'), '');
 
@@ -236,7 +239,8 @@ expect(result.failedTasks).toBe(0);
 ```typescript
 // From task-orchestrator-runtime.test.ts
 const statuses: string[] = [];
-const originalUpdateStatus = sessionManager.updateItemStatus.bind(sessionManager);
+const originalUpdateStatus =
+  sessionManager.updateItemStatus.bind(sessionManager);
 vi.spyOn(sessionManager, 'updateItemStatus').mockImplementation(
   async (id, status) => {
     statuses.push(status);

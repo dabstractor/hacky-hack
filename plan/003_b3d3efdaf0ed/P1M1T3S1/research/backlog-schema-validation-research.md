@@ -36,11 +36,11 @@ export const BacklogSchema: z.ZodType<Backlog> = z.object({
 
 ```typescript
 interface Phase {
-  readonly id: string;              // Format: "P{number}"
+  readonly id: string; // Format: "P{number}"
   readonly type: 'Phase';
-  readonly title: string;           // min: 1, max: 200
+  readonly title: string; // min: 1, max: 200
   readonly status: Status;
-  readonly description: string;     // min: 1
+  readonly description: string; // min: 1
   readonly milestones: Milestone[];
 }
 
@@ -63,11 +63,11 @@ export const PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
 
 ```typescript
 interface Milestone {
-  readonly id: string;           // Format: "P{N}.M{N}"
+  readonly id: string; // Format: "P{N}.M{N}"
   readonly type: 'Milestone';
-  readonly title: string;        // min: 1, max: 200
+  readonly title: string; // min: 1, max: 200
   readonly status: Status;
-  readonly description: string;  // min: 1
+  readonly description: string; // min: 1
   readonly tasks: Task[];
 }
 
@@ -90,11 +90,11 @@ export const MilestoneSchema: z.ZodType<Milestone> = z.lazy(() =>
 
 ```typescript
 interface Task {
-  readonly id: string;              // Format: "P{N}.M{N}.T{N}"
+  readonly id: string; // Format: "P{N}.M{N}.T{N}"
   readonly type: 'Task';
-  readonly title: string;           // min: 1, max: 200
+  readonly title: string; // min: 1, max: 200
   readonly status: Status;
-  readonly description: string;     // min: 1
+  readonly description: string; // min: 1
   readonly subtasks: Subtask[];
 }
 
@@ -117,13 +117,13 @@ export const TaskSchema: z.ZodType<Task> = z.lazy(() =>
 
 ```typescript
 interface Subtask {
-  readonly id: string;                    // Format: "P{N}.M{N}.T{N}.S{N}"
+  readonly id: string; // Format: "P{N}.M{N}.T{N}.S{N}"
   readonly type: 'Subtask';
-  readonly title: string;                 // min: 1, max: 200
+  readonly title: string; // min: 1, max: 200
   readonly status: Status;
-  readonly story_points: number;          // Integer: 1-21
-  readonly dependencies: string[];        // Array of prerequisite subtask IDs
-  readonly context_scope: string;         // CONTRACT DEFINITION format
+  readonly story_points: number; // Integer: 1-21
+  readonly dependencies: string[]; // Array of prerequisite subtask IDs
+  readonly context_scope: string; // CONTRACT DEFINITION format
 }
 
 export const SubtaskSchema: z.ZodType<Subtask> = z.object({
@@ -195,7 +195,8 @@ export const ContextScopeSchema: z.ZodType<string> = z
     if (!value.startsWith(prefix)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
+        message:
+          'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
       });
       return;
     }
@@ -351,7 +352,7 @@ import { BacklogSchema } from './models.js';
 const prompt = createPrompt({
   user: prdContent,
   system: TASK_BREAKDOWN_PROMPT,
-  responseFormat: BacklogSchema,  // Groundswell validates output
+  responseFormat: BacklogSchema, // Groundswell validates output
   enableReflection: true,
 });
 
@@ -414,22 +415,22 @@ const minimalBacklog: Backlog = {
 
 ## Summary Table: ID Format Validation
 
-| Level | ID Format | Regex | Examples |
-|-------|-----------|-------|----------|
-| Phase | P{N} | `^P\d+$` | P1, P2, P3 |
-| Milestone | P{N}.M{N} | `^P\d+\.M\d+$` | P1.M1, P1.M2, P2.M1 |
-| Task | P{N}.M{N}.T{N} | `^P\d+\.M\d+\.T\d+$` | P1.M1.T1, P1.M1.T2 |
-| Subtask | P{N}.M{N}.T{N}.S{N} | `^P\d+\.M\d+\.T\d+\.S\d+$` | P1.M1.T1.S1, P1.M1.T1.S2 |
+| Level     | ID Format           | Regex                      | Examples                 |
+| --------- | ------------------- | -------------------------- | ------------------------ |
+| Phase     | P{N}                | `^P\d+$`                   | P1, P2, P3               |
+| Milestone | P{N}.M{N}           | `^P\d+\.M\d+$`             | P1.M1, P1.M2, P2.M1      |
+| Task      | P{N}.M{N}.T{N}      | `^P\d+\.M\d+\.T\d+$`       | P1.M1.T1, P1.M1.T2       |
+| Subtask   | P{N}.M{N}.T{N}.S{N} | `^P\d+\.M\d+\.T\d+\.S\d+$` | P1.M1.T1.S1, P1.M1.T1.S2 |
 
 ## Summary Table: Field Constraints
 
-| Field | Type | Constraints |
-|-------|------|-------------|
-| id | string | Regex pattern per level |
-| type | string | Literal ('Phase', 'Milestone', 'Task', 'Subtask') |
-| title | string | minLength: 1, maxLength: 200 |
-| description | string | minLength: 1 |
-| status | Status | Enum: Planned, Researching, Implementing, Complete, Failed, Obsolete |
-| story_points | number | Integer, min: 1, max: 21 |
-| dependencies | string[] | Array of subtask IDs, can be empty |
-| context_scope | string | CONTRACT DEFINITION format with 4 sections |
+| Field         | Type     | Constraints                                                          |
+| ------------- | -------- | -------------------------------------------------------------------- |
+| id            | string   | Regex pattern per level                                              |
+| type          | string   | Literal ('Phase', 'Milestone', 'Task', 'Subtask')                    |
+| title         | string   | minLength: 1, maxLength: 200                                         |
+| description   | string   | minLength: 1                                                         |
+| status        | Status   | Enum: Planned, Researching, Implementing, Complete, Failed, Obsolete |
+| story_points  | number   | Integer, min: 1, max: 21                                             |
+| dependencies  | string[] | Array of subtask IDs, can be empty                                   |
+| context_scope | string   | CONTRACT DEFINITION format with 4 sections                           |

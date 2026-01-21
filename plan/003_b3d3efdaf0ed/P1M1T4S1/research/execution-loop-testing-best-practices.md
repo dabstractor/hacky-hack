@@ -180,9 +180,10 @@ while (await this.taskOrchestrator.processNextItem()) {
 ```typescript
 // Test individual failures don't stop pipeline
 let callCount = 0;
-mockOrchestrator.processNextItem = vi.fn()
-  .mockResolvedValueOnce(true)  // First succeeds
-  .mockRejectedValueOnce(new Error('Task failed'))  // Second fails
+mockOrchestrator.processNextItem = vi
+  .fn()
+  .mockResolvedValueOnce(true) // First succeeds
+  .mockRejectedValueOnce(new Error('Task failed')) // Second fails
   .mockResolvedValueOnce(true); // Third succeeds
 
 const result = await pipeline.run();
@@ -278,7 +279,8 @@ mockOrchestrator.processNextItem = vi.fn().mockImplementation(async () => {
 mockOrchestrator.currentItemId = 'P1.M1.T1.S1';
 
 // Mock that throws on specific call
-mockOrchestrator.processNextItem = vi.fn()
+mockOrchestrator.processNextItem = vi
+  .fn()
   .mockResolvedValueOnce(true)
   .mockRejectedValueOnce(new Error('Simulated failure'))
   .mockResolvedValueOnce(false);
@@ -348,10 +350,11 @@ test('continues after individual task failure', async () => {
   const mockOrchestrator = createMockTaskOrchestrator();
 
   // Task 1: success, Task 2: failure, Task 3: success
-  mockOrchestrator.processNextItem = vi.fn()
-    .mockResolvedValueOnce(true)  // Task 1
-    .mockRejectedValueOnce(new Error('Task 2 failed'))  // Task 2 fails
-    .mockResolvedValueOnce(true)  // Task 3
+  mockOrchestrator.processNextItem = vi
+    .fn()
+    .mockResolvedValueOnce(true) // Task 1
+    .mockRejectedValueOnce(new Error('Task 2 failed')) // Task 2 fails
+    .mockResolvedValueOnce(true) // Task 3
     .mockResolvedValueOnce(false); // Done
 
   const pipeline = new PRPPipeline(prdPath);

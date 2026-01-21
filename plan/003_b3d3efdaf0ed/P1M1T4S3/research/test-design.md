@@ -9,6 +9,7 @@ This document outlines the comprehensive test design for verifying resource moni
 **File**: `tests/unit/resource-monitoring.test.ts`
 
 **Why unit tests, not integration?**
+
 - ResourceMonitor is a self-contained utility class
 - All external dependencies (process, os, child_process) can be mocked
 - Fast, deterministic tests without real resource constraints
@@ -19,6 +20,7 @@ This document outlines the comprehensive test design for verifying resource moni
 ### 1. File Handle Monitoring Tests
 
 #### 1.1 Linux Platform Tests
+
 ```typescript
 describe('File Handle Monitoring - Linux', () => {
   beforeEach(() => {
@@ -40,6 +42,7 @@ describe('File Handle Monitoring - Linux', () => {
 ```
 
 #### 1.2 macOS Platform Tests
+
 ```typescript
 describe('File Handle Monitoring - macOS', () => {
   beforeEach(() => {
@@ -67,6 +70,7 @@ describe('File Handle Monitoring - macOS', () => {
 ```
 
 #### 1.3 Windows Platform Tests
+
 ```typescript
 describe('File Handle Monitoring - Windows', () => {
   beforeEach(() => {
@@ -87,11 +91,11 @@ describe('Heap Memory Monitoring', () => {
   it('should capture V8 heap stats via process.memoryUsage()', () => {
     // SETUP: Mock process.memoryUsage() to return specific values
     const mockMemoryUsage = {
-      heapUsed: 128 * 1024 * 1024,  // 128 MB
+      heapUsed: 128 * 1024 * 1024, // 128 MB
       heapTotal: 256 * 1024 * 1024, // 256 MB
-      rss: 180 * 1024 * 1024,       // 180 MB
-      external: 10 * 1024 * 1024,   // 10 MB
-      arrayBuffers: 5 * 1024 * 1024 // 5 MB
+      rss: 180 * 1024 * 1024, // 180 MB
+      external: 10 * 1024 * 1024, // 10 MB
+      arrayBuffers: 5 * 1024 * 1024, // 5 MB
     };
     vi.mocked(process.memoryUsage).mockReturnValue(mockMemoryUsage);
 
@@ -256,7 +260,7 @@ describe('RESOURCE_LIMIT_REPORT.md Generation', () => {
       max_tasks: 'Increase --max-tasks or split workload',
       max_duration: 'Increase --max-duration or optimize tasks',
       file_handles: 'Check for unclosed files/streams, run "ulimit -n 4096"',
-      memory: 'Close other applications, increase system memory'
+      memory: 'Close other applications, increase system memory',
     };
 
     for (const type of limitTypes) {
@@ -276,7 +280,7 @@ describe('RESOURCE_LIMIT_REPORT.md Generation', () => {
     const mockSnapshot = {
       fileHandles: { count: 245, limit: 1024, percentage: 23.9 },
       heapMemory: { used: 128.45, unit: 'MB' },
-      systemMemory: { percentage: 45.2 }
+      systemMemory: { percentage: 45.2 },
     };
 
     // EXECUTE: Generate report
@@ -294,7 +298,7 @@ describe('Combined Limits', () => {
     // Mock file handles at 90% of ulimit
     const monitor = new ResourceMonitor({
       maxTasks: 100,
-      fileHandleCriticalThreshold: 85
+      fileHandleCriticalThreshold: 85,
     });
 
     // EXECUTE: Check shouldStop after only 1 task
@@ -310,7 +314,7 @@ describe('Combined Limits', () => {
     // SETUP: Create monitor with both maxTasks and maxDuration
     const monitor = new ResourceMonitor({
       maxTasks: 10,
-      maxDuration: 5000
+      maxDuration: 5000,
     });
     monitor.start();
 
@@ -409,12 +413,14 @@ function mockMemoryUsage(usage: NodeJS.MemoryUsage): void {
 /**
  * Helper to create a mock child process for spawn
  */
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-  delay?: number;
-} = {}): ChildProcess {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+    delay?: number;
+  } = {}
+): ChildProcess {
   const { exitCode = 0, stdout = '', stderr = '', delay = 5 } = options;
 
   return {
@@ -457,34 +463,34 @@ function mockSystemMemory(totalGB: number, freeGB: number): void {
 // Realistic memory usage values (in bytes)
 const MEMORY_FIXTURES = {
   low: {
-    heapUsed: 64 * 1024 * 1024,      // 64 MB
-    heapTotal: 128 * 1024 * 1024,    // 128 MB
-    rss: 90 * 1024 * 1024,           // 90 MB
-    external: 5 * 1024 * 1024,       // 5 MB
-    arrayBuffers: 2 * 1024 * 1024    // 2 MB
+    heapUsed: 64 * 1024 * 1024, // 64 MB
+    heapTotal: 128 * 1024 * 1024, // 128 MB
+    rss: 90 * 1024 * 1024, // 90 MB
+    external: 5 * 1024 * 1024, // 5 MB
+    arrayBuffers: 2 * 1024 * 1024, // 2 MB
   },
   medium: {
-    heapUsed: 256 * 1024 * 1024,     // 256 MB
-    heapTotal: 512 * 1024 * 1024,    // 512 MB
-    rss: 350 * 1024 * 1024,          // 350 MB
-    external: 20 * 1024 * 1024,      // 20 MB
-    arrayBuffers: 10 * 1024 * 1024   // 10 MB
+    heapUsed: 256 * 1024 * 1024, // 256 MB
+    heapTotal: 512 * 1024 * 1024, // 512 MB
+    rss: 350 * 1024 * 1024, // 350 MB
+    external: 20 * 1024 * 1024, // 20 MB
+    arrayBuffers: 10 * 1024 * 1024, // 10 MB
   },
   high: {
-    heapUsed: 1024 * 1024 * 1024,    // 1 GB
-    heapTotal: 2048 * 1024 * 1024,   // 2 GB
-    rss: 1500 * 1024 * 1024,         // 1.5 GB
-    external: 100 * 1024 * 1024,     // 100 MB
-    arrayBuffers: 50 * 1024 * 1024   // 50 MB
-  }
+    heapUsed: 1024 * 1024 * 1024, // 1 GB
+    heapTotal: 2048 * 1024 * 1024, // 2 GB
+    rss: 1500 * 1024 * 1024, // 1.5 GB
+    external: 100 * 1024 * 1024, // 100 MB
+    arrayBuffers: 50 * 1024 * 1024, // 50 MB
+  },
 };
 
 // Realistic ulimit values
 const ULIMIT_FIXTURES = {
-  low: 256,      // Development environment
+  low: 256, // Development environment
   default: 1024, // Typical macOS/Linux default
-  high: 65536,   // Production server
-  unlimited: null // No limit
+  high: 65536, // Production server
+  unlimited: null, // No limit
 };
 ```
 

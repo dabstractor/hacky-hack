@@ -7,6 +7,7 @@
 **Feature Goal**: Verify Researcher Agent is correctly integrated with proper configuration, PRP_CREATE_PROMPT structure compliance, and cache system behavior through comprehensive integration tests.
 
 **Deliverable**: Integration test file `tests/integration/researcher-agent.test.ts` with test cases covering:
+
 - Researcher Agent configuration verification (model, tokens, MCP tools, cache)
 - PRP_CREATE_PROMPT structure validation (Research Process, PRP Generation Process, Template)
 - PRP template structure compliance (Goal, Why, What, Context, Blueprint, Validation, Anti-Patterns)
@@ -14,6 +15,7 @@
 - Mock subagent spawning and file operations for deterministic testing
 
 **Success Definition**: All tests pass, verifying:
+
 - Researcher Agent created with correct config (GLM-4.7, 4096 tokens, MCP tools: BASH, FILESYSTEM, GIT)
 - PRP_CREATE_PROMPT contains all required sections (Research Process, PRP Generation Process, Template)
 - PRP template contains all required sections (Goal, User Persona, Why, What, All Needed Context, Implementation Blueprint, Validation Loop, Final Validation Checklist, Anti-Patterns)
@@ -56,7 +58,8 @@ Integration tests that verify Researcher Agent is correctly configured, generate
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Exact file paths and patterns to follow from existing tests
 - Researcher Agent configuration values from source code
 - PRP_CREATE_PROMPT structure from PROMPTS.md
@@ -197,6 +200,7 @@ tests/
 ```
 
 **New File**: `tests/integration/researcher-agent.test.ts`
+
 - Tests Researcher Agent configuration from agent-factory
 - Tests PRP_CREATE_PROMPT structure validation
 - Tests PRP template structure compliance
@@ -209,8 +213,8 @@ tests/
 ```typescript
 // CRITICAL: Researcher Agent uses maxTokens: 4096 (vs. 8192 for Architect)
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,    // Larger for complex task decomposition
-  researcher: 4096,   // Standard for PRP generation
+  architect: 8192, // Larger for complex task decomposition
+  researcher: 4096, // Standard for PRP generation
   coder: 4096,
   qa: 4096,
 } as const;
@@ -274,7 +278,12 @@ Use existing types from `src/core/models.ts`:
 
 ```typescript
 // Import existing types for use in tests
-import type { Backlog, Task, Subtask, PRPDocument } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Task,
+  Subtask,
+  PRPDocument,
+} from '../../src/core/models.js';
 import { PRPDocumentSchema } from '../../src/core/models.js';
 
 // Mock fixture for PRPDocument
@@ -604,7 +613,9 @@ describe('integration/researcher-agent', () => {
 // PATTERN: Configuration verification test
 it('should create researcher agent with GLM-4.7 model', () => {
   // SETUP: Import real agent-factory after mocks
-  const { createResearcherAgent } = require('../../src/agents/agent-factory.js');
+  const {
+    createResearcherAgent,
+  } = require('../../src/agents/agent-factory.js');
   const { PRP_BLUEPRINT_PROMPT } = require('../../src/agents/prompts.js');
 
   // EXECUTE: Create researcher agent
@@ -624,8 +635,14 @@ it('should create researcher agent with GLM-4.7 model', () => {
 
 // PATTERN: MCP tools verification
 it('should create researcher agent with MCP tools', () => {
-  const { createResearcherAgent } = require('../../src/agents/agent-factory.js');
-  const { BASH_MCP, FILESYSTEM_MCP, GIT_MCP } = require('../../src/tools/index.js');
+  const {
+    createResearcherAgent,
+  } = require('../../src/agents/agent-factory.js');
+  const {
+    BASH_MCP,
+    FILESYSTEM_MCP,
+    GIT_MCP,
+  } = require('../../src/tools/index.js');
 
   // EXECUTE
   createResearcherAgent();
@@ -657,9 +674,13 @@ it('should contain PRP Generation Process section', () => {
 
   expect(PRP_BLUEPRINT_PROMPT).toContain('PRP Generation Process');
   expect(PRP_BLUEPRINT_PROMPT).toContain('Step 1: Review Template');
-  expect(PRP_BLUEPRINT_PROMPT).toContain('Step 2: Context Completeness Validation');
+  expect(PRP_BLUEPRINT_PROMPT).toContain(
+    'Step 2: Context Completeness Validation'
+  );
   expect(PRP_BLUEPRINT_PROMPT).toContain('Step 3: Research Integration');
-  expect(PRP_BLUEPRINT_PROMPT).toContain('Step 4: Information Density Standards');
+  expect(PRP_BLUEPRINT_PROMPT).toContain(
+    'Step 4: Information Density Standards'
+  );
   expect(PRP_BLUEPRINT_PROMPT).toContain('Step 5: ULTRATHINK Before Writing');
 });
 
@@ -676,7 +697,9 @@ it('should instruct to use TodoWrite tool', () => {
   const { PRP_BLUEPRINT_PROMPT } = require('../../src/agents/prompts.js');
 
   expect(PRP_BLUEPRINT_PROMPT).toContain('TodoWrite');
-  expect(PRP_BLUEPRINT_PROMPT).toContain('create comprehensive PRP writing plan');
+  expect(PRP_BLUEPRINT_PROMPT).toContain(
+    'create comprehensive PRP writing plan'
+  );
 });
 
 // PATTERN: Architecture directory instruction validation
@@ -757,7 +780,9 @@ it('should return mock PRPDocument data', async () => {
   });
 
   // EXECUTE: Call researcher agent
-  const { createResearcherAgent } = require('../../src/agents/agent-factory.js');
+  const {
+    createResearcherAgent,
+  } = require('../../src/agents/agent-factory.js');
   const researcher = createResearcherAgent();
   const result = await researcher.prompt({ user: 'test', system: 'test' });
 

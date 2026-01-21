@@ -21,17 +21,20 @@ Atomic file writes are critical for preventing JSON file corruption when Node.js
 Standard file write operations (`fs.writeFile`, `fs.writeFileSync`) are **not atomic**. When writing large JSON files, several failure scenarios can result in corruption:
 
 #### Failure Scenario 1: Process Crash During Write
+
 ```javascript
 // DANGEROUS: Non-atomic write
 await fs.writeFile('data.json', JSON.stringify(largeObject, null, 2));
 ```
 
 **What happens if process crashes mid-write:**
+
 - File contains incomplete JSON (missing closing brace `}`)
 - Subsequent reads fail with `SyntaxError: Unexpected end of JSON input`
 - Application cannot recover - data is permanently lost
 
 #### Failure Scenario 2: Disk Full
+
 ```javascript
 // DANGEROUS: Disk space exhausted mid-write
 {
@@ -44,6 +47,7 @@ await fs.writeFile('data.json', JSON.stringify(largeObject, null, 2));
 **Result:** File exists but contains truncated, invalid JSON. Application cannot determine if this is old data or corrupted new data.
 
 #### Failure Scenario 3: Power Loss
+
 - OS may not flush buffers to disk before power cutoff
 - File metadata shows correct size but content is partially written
 - Filesystem journaling may help, but doesn't guarantee JSON integrity
@@ -53,6 +57,7 @@ await fs.writeFile('data.json', JSON.stringify(largeObject, null, 2));
 **Atomic write means:** The operation either completes entirely or fails completely, with no intermediate state visible to other processes.
 
 **Benefits:**
+
 1. **No partial writes:** Target file is never seen in an invalid state
 2. **Recoverable:** Either old file (valid) or new file (valid) exists
 3. **Deterministic:** No ambiguity about whether write succeeded or failed
@@ -100,12 +105,12 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
 
 ### 2.2 Why This Works
 
-| Step | Operation | Atomic? | Failure Handling |
-|------|-----------|---------|------------------|
-| 1 | Create temp filename | N/A | Unique name prevents conflicts |
-| 2 | Write to temp file | **No** | If crash here: target file untouched |
-| 3 | Rename temp → target | **Yes** | Either succeeds (new file) or fails (old file) |
-| 4 | Cleanup temp | N/A | Best-effort, orphaned .tmp files are harmless |
+| Step | Operation            | Atomic? | Failure Handling                               |
+| ---- | -------------------- | ------- | ---------------------------------------------- |
+| 1    | Create temp filename | N/A     | Unique name prevents conflicts                 |
+| 2    | Write to temp file   | **No**  | If crash here: target file untouched           |
+| 3    | Rename temp → target | **Yes** | Either succeeds (new file) or fails (old file) |
+| 4    | Cleanup temp         | N/A     | Best-effort, orphaned .tmp files are harmless  |
 
 **Critical insight:** The atomicity comes from `rename()`, not `writeFile()`. The temp file acts as a staging area where we can safely fail without affecting the target.
 
@@ -156,15 +161,18 @@ export async function writeTasksJSON(
 ### 3.1 POSIX Guarantees (Linux, macOS, Unix)
 
 **POSIX specification for `rename()`:**
+
 > "The rename() function shall cause the file named by the old argument to be renamed to the path given by the new argument. [...] If the new argument names an existing file, that file shall be removed and the old argument shall be renamed to the new argument."
 
 **Key guarantees:**
+
 1. **Atomic operation:** Rename is performed as a single filesystem operation
 2. **All-or-nothing:** Either complete success or complete failure
 3. **No partial state:** Filesystem never shows intermediate state during rename
 4. **Metadata update:** File size, permissions, timestamps update atomically
 
 **Implementation in filesystems:**
+
 - **ext4:** Uses journaling to ensure atomic metadata updates
 - **APFS (macOS):** Uses copy-on-write for atomic operations
 - **ZFS:** Always atomic due to copy-on-write architecture
@@ -172,6 +180,7 @@ export async function writeTasksJSON(
 ### 3.2 Cross-Platform Considerations
 
 #### Windows (NTFS, ReFS)
+
 - `fs.rename()` is **NOT** atomic when overwriting existing files
 - Windows requires deletion of target file first
 - Workaround: Delete target, then rename (not atomic, but close)
@@ -189,12 +198,14 @@ await fs.rename(tempPath, targetPath);
 ```
 
 #### Network Filesystems (NFS, SMB)
+
 - Atomicity **not guaranteed** on network filesystems
 - Network partitions can cause inconsistent states
 - Recommendation: Avoid atomic writes on network mounts
 - Alternative: Use application-level locking or transactional databases
 
 #### Container/Mount Boundaries
+
 - Atomic rename **only works** on same filesystem/mount point
 - Cannot rename across filesystems (throws `EXDEV` error)
 - Ensure temp file and target file are on same mount
@@ -211,21 +222,23 @@ atomicWrite('/data/config/settings.json', data);
 ### 3.3 Verification of Atomic Behavior
 
 **From POSIX rename() specification:**
+
 - If new exists, it's atomically replaced
 - If new doesn't exist, old is atomically moved
 - Operation is atomic from perspective of all processes
 - No check-then-race condition possible
 
 **Non-atomic alternatives to avoid:**
+
 ```javascript
 // DANGEROUS: Check-then-race condition
 if (fs.existsSync(targetPath)) {
-  fs.unlinkSync(targetPath);  // ← Process could crash here
+  fs.unlinkSync(targetPath); // ← Process could crash here
 }
-fs.renameSync(tempPath, targetPath);  // ← Or here
+fs.renameSync(tempPath, targetPath); // ← Or here
 
 // SAFE: Single atomic operation
-fs.renameSync(tempPath, targetPath);  // Overwrites atomically
+fs.renameSync(tempPath, targetPath); // Overwrites atomically
 ```
 
 ---
@@ -234,14 +247,14 @@ fs.renameSync(tempPath, targetPath);  // Overwrites atomically
 
 ### 4.1 Scenario Matrix
 
-| Failure Point | State After Failure | Recovery | Data Integrity |
-|---------------|---------------------|----------|----------------|
-| **Before writeFile()** | No temp file, old target intact | N/A | ✅ Safe |
-| **During writeFile()** | Partial temp file, old target intact | Delete orphaned .tmp | ✅ Safe |
-| **After writeFile(), before rename()** | Complete temp file, old target intact | Delete orphaned .tmp | ✅ Safe |
-| **During rename()** | Either old target OR new target, never both | Check which exists | ✅ Safe |
-| **After rename()** | New target in place, no temp file | N/A | ✅ Safe |
-| **During cleanup (unlink)** | New target in place, orphaned .tmp | Manual cleanup | ✅ Safe |
+| Failure Point                          | State After Failure                         | Recovery             | Data Integrity |
+| -------------------------------------- | ------------------------------------------- | -------------------- | -------------- |
+| **Before writeFile()**                 | No temp file, old target intact             | N/A                  | ✅ Safe        |
+| **During writeFile()**                 | Partial temp file, old target intact        | Delete orphaned .tmp | ✅ Safe        |
+| **After writeFile(), before rename()** | Complete temp file, old target intact       | Delete orphaned .tmp | ✅ Safe        |
+| **During rename()**                    | Either old target OR new target, never both | Check which exists   | ✅ Safe        |
+| **After rename()**                     | New target in place, no temp file           | N/A                  | ✅ Safe        |
+| **During cleanup (unlink)**            | New target in place, orphaned .tmp          | Manual cleanup       | ✅ Safe        |
 
 ### 4.2 Detailed Failure Scenarios
 
@@ -304,6 +317,7 @@ fs.renameSync(tempPath, targetPath);  // Overwrites atomically
 #### Scenario 4: Power Loss (System Crash)
 
 **Subscenario 4a: Power loss during writeFile()**
+
 ```
 State before power loss:
 - Target file: OLD DATA (intact)
@@ -320,6 +334,7 @@ Filesystem journaling ensures:
 ```
 
 **Subscenario 4b: Power loss during rename()**
+
 ```
 State before power loss:
 - Target file: OLD DATA (still intact)
@@ -362,6 +377,7 @@ Filesystem ensures atomicity:
 **Cause:** Process crashes after writeFile() but before cleanup unlink().
 
 **Characteristics:**
+
 - Filename pattern: `.targetFilename.RANDOM_HEX.tmp`
 - Content: Complete, valid JSON (ready to be committed)
 - Location: Same directory as target file
@@ -466,8 +482,9 @@ describe('writeTasksJSON', () => {
     ]);
 
     // EXECUTE & VERIFY: Should throw from writeFile
-    await expect(writeTasksJSON('/test/session', backlog))
-      .rejects.toThrow('Disk full');
+    await expect(writeTasksJSON('/test/session', backlog)).rejects.toThrow(
+      'Disk full'
+    );
 
     // VERIFY: Cleanup was attempted
     expect(mockUnlink).toHaveBeenCalled();
@@ -488,8 +505,9 @@ describe('writeTasksJSON', () => {
     ]);
 
     // EXECUTE & VERIFY: Should throw from rename
-    await expect(writeTasksJSON('/test/session', backlog))
-      .rejects.toThrow('Permission denied');
+    await expect(writeTasksJSON('/test/session', backlog)).rejects.toThrow(
+      'Permission denied'
+    );
 
     // VERIFY: Cleanup was attempted
     expect(mockUnlink).toHaveBeenCalled();
@@ -572,24 +590,28 @@ describe('atomicWrite concurrency', () => {
 ### 5.5 Verification Checklist
 
 ✅ **Pattern Verification:**
+
 - [ ] Uses unique temp filename (with random bytes or UUID)
 - [ ] Writes to temp file first
 - [ ] Uses `fs.rename()` for final commit
 - [ ] Cleans up temp file on error
 
 ✅ **Failure Scenario Tests:**
+
 - [ ] writeFile() failure → target untouched
 - [ ] rename() failure → target untouched, temp cleaned up
 - [ ] Process crash simulation → target intact
 - [ ] Concurrent writes → no corruption
 
 ✅ **Edge Cases:**
+
 - [ ] Empty file write
 - [ ] Large file write (>1MB)
 - [ ] Special characters in filename
 - [ ] Read-only target directory (error handling)
 
 ✅ **Cross-Platform Tests:**
+
 - [ ] Linux/macOS: Atomic rename verified
 - [ ] Windows: Fallback to delete+rename
 - [ ] Network mount: Warning logged
@@ -601,22 +623,26 @@ describe('atomicWrite concurrency', () => {
 ### 6.1 DO ✅
 
 1. **Always use atomic writes for JSON files**
+
    ```typescript
    await atomicWrite(jsonPath, JSON.stringify(data, null, 2));
    ```
 
 2. **Use unique temp filenames**
+
    ```typescript
    const tempPath = `${targetPath}.${randomBytes(8).toString('hex')}.tmp`;
    ```
 
 3. **Validate data before writing**
+
    ```typescript
    const validated = MySchema.parse(data);
    await atomicWrite(path, JSON.stringify(validated));
    ```
 
 4. **Clean up temp files on error**
+
    ```typescript
    try {
      await writeFile(tempPath, data);
@@ -628,6 +654,7 @@ describe('atomicWrite concurrency', () => {
    ```
 
 5. **Set appropriate file permissions**
+
    ```typescript
    await writeFile(tempPath, data, { mode: 0o644 });
    ```
@@ -642,18 +669,21 @@ describe('atomicWrite concurrency', () => {
 ### 6.2 DON'T ❌
 
 1. **Don't write directly to target file**
+
    ```typescript
    // WRONG: Not atomic
    await writeFile(targetPath, JSON.stringify(data));
    ```
 
 2. **Don't use predictable temp names**
+
    ```typescript
    // WRONG: Race condition with multiple processes
    const tempPath = `${targetPath}.tmp`;
    ```
 
 3. **Don't forget cleanup on error**
+
    ```typescript
    // WRONG: Orphaned temp files
    await writeFile(tempPath, data);
@@ -661,6 +691,7 @@ describe('atomicWrite concurrency', () => {
    ```
 
 4. **Don't assume atomic rename across filesystems**
+
    ```typescript
    // WRONG: May fail with EXDEV
    const tempPath = `/tmp/${basename(targetPath)}.tmp`;
@@ -698,10 +729,12 @@ async function writeWithLock(filePath: string, data: string): Promise<void> {
 ```
 
 **Pros:**
+
 - Prevents concurrent writes
 - Can detect if another process is writing
 
 **Cons:**
+
 - Requires cleanup of stale locks
 - Not atomic (process can crash during write)
 - More complex error handling
@@ -710,16 +743,18 @@ async function writeWithLock(filePath: string, data: string): Promise<void> {
 
 ```typescript
 // Write to log first, then apply
-await appendFile('wal.log', JSON.stringify({op: 'update', data}));
+await appendFile('wal.log', JSON.stringify({ op: 'update', data }));
 await applyOperation(data);
 await truncateLog();
 ```
 
 **Pros:**
+
 - Can recover from crashes
 - Supports transactions
 
 **Cons:**
+
 - Much more complex
 - Overkill for single file writes
 - Requires log management
@@ -734,11 +769,13 @@ db.prepare('INSERT INTO state VALUES (?)').run(JSON.stringify(data));
 ```
 
 **Pros:**
+
 - True ACID guarantees
 - Built-in crash recovery
 - Supports complex queries
 
 **Cons:**
+
 - Additional dependency
 - Overkill for simple JSON files
 - Requires database management
@@ -748,25 +785,30 @@ db.prepare('INSERT INTO state VALUES (?)').run(JSON.stringify(data));
 ## 8. References and Further Reading
 
 ### Node.js Documentation
+
 - **fs.promises.rename()** - https://nodejs.org/api/fs.html#fspromisesrenameoldpath-newpath
 - **fs.writeFile()** - https://nodejs.org/api/fs.html#fspromiseswritefilefile-data-options
 - **fs File System** - https://nodejs.org/api/fs.html
 
 ### POSIX Standards
+
 - **POSIX rename() specification** - IEEE Std 1003.1-2017
 - **Atomic operations** - https://pubs.opengroup.org/onlinepubs/9699919799/functions/rename.html
 
 ### Filesystem Documentation
+
 - **ext4 journaling** - https://ext4.wiki.kernel.org/index.php/Ext4_Design#Journaling
 - **APFS (Apple)** - https://developer.apple.com/support/downloads/APFS_Technical_Overview.pdf
 - **ZFS atomic writes** - https://openzfs.github.io/openzfs-docs/
 
 ### Community Resources
+
 - **Node.js best practices** - https://github.com/goldbergyoni/nodebestpractices
 - **Atomic file writes** - https://manuel.bleichschmidt.de/blog/120706/atomic-file-writes-with-nodejs/
 - **Write patterns** - https://www.ibm.com/developerworks/aix/library/au-endianc/
 
 ### Code Examples
+
 - **Project implementation:** `/home/dustin/projects/hacky-hack/src/core/session-utils.ts`
   - `atomicWrite()` function (lines 93-111)
   - `writeTasksJSON()` usage example (lines 266-290)
@@ -789,6 +831,7 @@ db.prepare('INSERT INTO state VALUES (?)').run(JSON.stringify(data));
 5. **Cross-platform:** Works on POSIX, with Windows workarounds
 
 **Implementation requirements:**
+
 - Unique temp filenames (random bytes or UUID)
 - Write to temp file first
 - Atomic rename for final commit
@@ -796,6 +839,7 @@ db.prepare('INSERT INTO state VALUES (?)').run(JSON.stringify(data));
 - Validate data before writing
 
 **Testing requirements:**
+
 - Mock-based unit tests for failure scenarios
 - Integration tests for real filesystem behavior
 - Concurrency tests for multi-process safety
@@ -822,7 +866,9 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
     await writeFile(tempPath, data, { mode: 0o644 });
     await rename(tempPath, targetPath);
   } catch (error) {
-    try { await unlink(tempPath); } catch {}
+    try {
+      await unlink(tempPath);
+    } catch {}
     throw error;
   }
 }
@@ -835,21 +881,18 @@ import { atomicWrite } from './utils/fs.js';
 
 // Write JSON atomically
 const data = { users: [{ id: 1, name: 'Alice' }] };
-await atomicWrite(
-  './data/users.json',
-  JSON.stringify(data, null, 2)
-);
+await atomicWrite('./data/users.json', JSON.stringify(data, null, 2));
 ```
 
 ### Common Error Codes
 
-| Code | Meaning | Recovery |
-|------|---------|----------|
-| `ENOSPC` | Disk full | Free space, retry |
-| `EACCES` | Permission denied | Check permissions |
-| `ENOENT` | Parent directory missing | Create directory |
-| `EXDEV` | Cross-device link | Use same filesystem |
-| `EISDIR` | Target is directory | Check path |
+| Code     | Meaning                  | Recovery            |
+| -------- | ------------------------ | ------------------- |
+| `ENOSPC` | Disk full                | Free space, retry   |
+| `EACCES` | Permission denied        | Check permissions   |
+| `ENOENT` | Parent directory missing | Create directory    |
+| `EXDEV`  | Cross-device link        | Use same filesystem |
+| `EISDIR` | Target is directory      | Check path          |
 
 ---
 

@@ -7,9 +7,11 @@ This document provides a deep analysis of the dependency resolution logic in `sr
 ## 1. canExecute() Method (Lines 251-265)
 
 ### Purpose
+
 Determines whether a subtask can be executed based on its dependencies.
 
 ### Return Value
+
 - `boolean`: `true` if the subtask can execute, `false` otherwise
 
 ### Logic Flow
@@ -32,13 +34,16 @@ public canExecute(subtask: Subtask): boolean {
 ```
 
 ### Conditions for `true`
+
 1. **No dependencies**: When `dependencies` array is empty (line 256-258)
 2. **All dependencies Complete**: When ALL dependencies have `status === 'Complete'` (line 262)
 
 ### Conditions for `false`
+
 - ANY dependency has `status !== 'Complete'`
 
 ### Edge Cases & Gotchas
+
 - **Empty dependencies array**: Returns `true` immediately (line 256)
 - **Strict equality**: Uses `===` for status comparison (line 262)
 - **Array.every()**: Critical - returns `false` if ANY dependency fails the condition
@@ -46,9 +51,11 @@ public canExecute(subtask: Subtask): boolean {
 ## 2. getBlockingDependencies() Method (Lines 284-293)
 
 ### Purpose
+
 Identifies which dependencies are preventing a subtask from executing.
 
 ### Return Value
+
 - `Subtask[]`: Array of Subtask objects that are NOT complete
 
 ### Logic Flow
@@ -66,11 +73,13 @@ public getBlockingDependencies(subtask: Subtask): Subtask[] {
 ```
 
 ### Filtering Logic
+
 - Uses `Array.filter()` to create a new array (immutable)
 - Filters out dependencies where `status !== 'Complete'`
 - Returns empty array if no blocking dependencies exist
 
 ### Edge Cases
+
 - **Empty dependencies**: Returns empty array
 - **All Complete**: Returns empty array
 - **Some Complete**: Returns only incomplete ones
@@ -78,9 +87,11 @@ public getBlockingDependencies(subtask: Subtask): Subtask[] {
 ## 3. getDependencies Utility (task-utils.ts Lines 131-142)
 
 ### Purpose
+
 Resolves dependency IDs to actual Subtask objects.
 
 ### Return Value
+
 - `Subtask[]`: Array of valid Subtask objects matching the dependency IDs
 
 ### Logic Flow
@@ -101,12 +112,14 @@ export function getDependencies(task: Subtask, backlog: Backlog): Subtask[] {
 ```
 
 ### Resolution Process
+
 1. Iterates through each `depId` in `task.dependencies` (line 134)
 2. Calls `findItem()` to locate the item in the backlog (line 135)
 3. Uses `isSubtask()` type guard to ensure it's a Subtask (line 136)
 4. Only pushes valid Subtask objects to results (line 137)
 
 ### Error Handling
+
 - **Non-existent IDs**: `findItem()` returns `null` → filtered out
 - **Non-subtask items**: `isSubtask()` returns `false` → filtered out
 - **Circular dependencies**: Handled gracefully by returning empty array
@@ -123,12 +136,15 @@ if (!this.canExecute(subtask)) {
 
   // Log each blocking dependency for clarity
   for (const blocker of blockers) {
-    this.#logger.info({
-      subtaskId: subtask.id,
-      blockerId: blocker.id,
-      blockerTitle: blocker.title,
-      blockerStatus: blocker.status,
-    }, 'Blocked on dependency');
+    this.#logger.info(
+      {
+        subtaskId: subtask.id,
+        blockerId: blocker.id,
+        blockerTitle: blocker.title,
+        blockerStatus: blocker.status,
+      },
+      'Blocked on dependency'
+    );
   }
 
   this.#logger.warn(
@@ -142,6 +158,7 @@ if (!this.canExecute(subtask)) {
 ```
 
 ### Execution Flow
+
 1. **Line 617**: Calls `canExecute()` to check if dependencies are satisfied
 2. **Line 618**: If blocked, calls `getBlockingDependencies()` to get specific blockers
 3. **Lines 621-631**: Logs each blocking dependency with detailed information
@@ -149,6 +166,7 @@ if (!this.canExecute(subtask)) {
 5. **Line 639**: Returns early without executing the subtask
 
 ### Key Behaviors
+
 - **Early return**: If blocked, subtask is skipped entirely
 - **Detailed logging**: Each blocker is logged with ID, title, and status
 - **Status progression**: Subtask stays in current status (doesn't change to Failed)
@@ -171,12 +189,14 @@ readonly dependencies: string[];
 ```
 
 ### Structure
+
 - **Type**: `string[]` - readonly array of dependency IDs
 - **Values**: Array of subtask IDs (e.g., `'P1.M1.T1.S1'`)
 - **Empty array**: Indicates no dependencies
 - **Reference semantics**: Contains IDs, not Subtask objects
 
 ### Valid Values
+
 - `[]`: No dependencies
 - `['P1.M1.T1.S1']`: Single dependency
 - `['P1.M1.T1.S1', 'P1.M1.T1.S2']`: Multiple dependencies
@@ -203,12 +223,14 @@ readonly dependencies: string[];
 ```
 
 ### Error Resilience
+
 - **Missing dependencies**: Filtered out by `getDependencies()`
 - **Circular dependencies**: Not detected but handled gracefully
 - **Status changes**: Reflected on next call due to backlog refresh
 - **Race conditions**: Handled by polling in `waitForDependencies()`
 
 ### Performance Considerations
+
 - **Efficient resolution**: `getDependencies()` caches nothing, resolves fresh each time
 - **Immutable operations**: `filter()` and `every()` create new arrays
 - **Early returns**: `canExecute()` returns early for empty dependencies
@@ -217,6 +239,7 @@ readonly dependencies: string[];
 ## 7. Testing Considerations
 
 ### Test Scenarios
+
 1. **No dependencies**: Should always return `true`
 2. **Single complete dependency**: Should return `true`
 3. **Single incomplete dependency**: Should return `false`
@@ -225,6 +248,7 @@ readonly dependencies: string[];
 6. **Circular dependencies**: Should not cause infinite loops
 
 ### Mock Data Examples
+
 ```typescript
 // No dependencies
 const subtask1 = { id: 'S1', dependencies: [], status: 'Planned' };
@@ -241,6 +265,7 @@ const subtask1 = { id: 'S1', dependencies: [], status: 'Implementing' };
 ## 8. Critical Patterns & Best Practices
 
 ### Patterns Observed
+
 1. **Immutable operations**: All filtering creates new arrays
 2. **Type safety**: Extensive use of type guards and discriminated unions
 3. **Early returns**: Fast path for empty dependencies
@@ -248,6 +273,7 @@ const subtask1 = { id: 'S1', dependencies: [], status: 'Implementing' };
 5. **Detailed logging**: Comprehensive blocker information for debugging
 
 ### Best Practices
+
 - **Always check dependencies before execution**
 - **Use specific error messages for debugging**
 - **Consider adding cycle detection for complex dependency graphs**

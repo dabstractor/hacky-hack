@@ -13,6 +13,7 @@
 **Deliverable**: Extended integration test file at `tests/integration/core/session-manager.test.ts` with full coverage of atomic flush scenarios using real filesystem operations and mocked fs operations for failure simulation.
 
 **Success Definition**:
+
 - Multiple `updateItemStatus()` calls accumulate updates in memory (not written to disk)
 - `flushUpdates()` writes all accumulated updates atomically in single operation
 - Atomic write pattern (temp file + rename) prevents JSON file corruption
@@ -31,6 +32,7 @@
 **Use Case**: Validating that SessionManager's `flushUpdates()` method correctly writes accumulated status updates atomically, preventing corruption if the process crashes during write, and properly serializes concurrent flush calls.
 
 **User Journey**:
+
 1. Task Orchestrator calls `updateItemStatus('P1.M1.T1.S1', 'Complete')` - update queued in memory
 2. Task Orchestrator calls `updateItemStatus('P1.M1.T1.S2', 'Complete')` - update queued in memory
 3. Task Orchestrator calls `flushUpdates()` - all updates written atomically
@@ -39,6 +41,7 @@
 6. If multiple flush calls happen concurrently, they execute serially
 
 **Pain Points Addressed**:
+
 - **JSON corruption risk**: Without atomic writes, process crashes leave truncated JSON
 - **Write amplification**: Without batching, each update triggers separate disk write
 - **Race conditions**: Concurrent flush calls could corrupt data
@@ -70,6 +73,7 @@ Extend the integration test file at `tests/integration/core/session-manager.test
 ### Current State Analysis
 
 **SessionManager Batch Update State** (from `/src/core/session-manager.ts` lines 110-116):
+
 ```typescript
 /** Batching state: flag indicating pending changes */
 #dirty: boolean = false;
@@ -82,6 +86,7 @@ Extend the integration test file at `tests/integration/core/session-manager.test
 ```
 
 **SessionManager.updateItemStatus() Method** (from `/src/core/session-manager.ts` lines 632-664):
+
 ```typescript
 async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
   // Get current backlog from session
@@ -109,6 +114,7 @@ async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
 ```
 
 **SessionManager.flushUpdates() Method** (from `/src/core/session-manager.ts` lines 534-584):
+
 ```typescript
 async flushUpdates(): Promise<void> {
   // Early return if no pending changes
@@ -155,6 +161,7 @@ async flushUpdates(): Promise<void> {
 ```
 
 **Atomic Write Pattern** (from `/src/core/session-utils.ts` lines 93-111):
+
 ```typescript
 async function atomicWrite(targetPath: string, data: string): Promise<void> {
   // Step 1: Generate unique temp file name
@@ -182,6 +189,7 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
 ```
 
 **writeTasksJSON() Using Atomic Write** (from `/src/core/session-utils.ts` lines 266-290):
+
 ```typescript
 export async function writeTasksJSON(
   sessionPath: string,
@@ -232,6 +240,7 @@ export async function writeTasksJSON(
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] SessionManager batch update state documented (#dirty, #pendingUpdates, #updateCount)
 - [x] updateItemStatus() implementation analyzed (lines 632-664)
 - [x] flushUpdates() implementation analyzed (lines 534-584)
@@ -788,7 +797,8 @@ The system shall correctly batch and flush updates atomically.
 
     // VERIFY: In-memory state changed
     const session = manager.currentSession!;
-    const subtask = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
+    const subtask =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0];
     expect(subtask.status).toBe('Failed');
   });
 
@@ -812,12 +822,14 @@ The system shall correctly batch and flush updates atomically.
     // VERIFY: File on disk unchanged
     const fileContent = readFileSync(tasksPath, 'utf-8');
     const fileData = JSON.parse(fileContent) as Backlog;
-    const fileStatus = fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status;
+    const fileStatus =
+      fileData.backlog[0].milestones[0].tasks[0].subtasks[0].status;
     expect(fileStatus).toBe('Planned'); // Original status
 
     // VERIFY: In-memory state updated
     const session = manager.currentSession!;
-    const memStatus = session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status;
+    const memStatus =
+      session.taskRegistry.backlog[0].milestones[0].tasks[0].subtasks[0].status;
     expect(memStatus).toBe('Complete');
   });
 
@@ -930,7 +942,9 @@ The system shall correctly batch and flush updates atomically.
   it('should leave original file intact on write failure', async () => {
     // SETUP: Mock writeFile to throw ENOSPC error
     const mockWriteFile = writeFile as any;
-    const error = new Error('ENOSPC: No space left on device') as NodeJS.ErrnoException;
+    const error = new Error(
+      'ENOSPC: No space left on device'
+    ) as NodeJS.ErrnoException;
     error.code = 'ENOSPC';
     mockWriteFile.mockRejectedValue(error);
 
@@ -1392,6 +1406,7 @@ npm test -- --testNamePattern="write failure"
 ### Why test atomic flush with integration tests instead of unit tests?
 
 Unit tests use mocks and test the logic in isolation. Integration tests:
+
 1. Validate actual atomic write behavior with real filesystem
 2. Test temp file creation and rename operations
 3. Verify file integrity with JSON.parse()
@@ -1401,6 +1416,7 @@ Unit tests use mocks and test the logic in isolation. Integration tests:
 ### Why use both real filesystem and vi.mock()?
 
 Different tests require different approaches:
+
 - **Real filesystem**: Verify actual atomic behavior, file integrity, temp directory cleanup
 - **vi.mock()**: Simulate write failures (ENOSPC), verify temp+rename pattern, test error handling
 
@@ -1409,6 +1425,7 @@ Both approaches are needed for comprehensive coverage.
 ### Why test concurrent flush serialization?
 
 In production, multiple async operations might trigger flush concurrently:
+
 1. Task Orchestrator flushes after each subtask
 2. Multiple subtasks could complete simultaneously
 3. Concurrent flushes could cause race conditions
@@ -1417,6 +1434,7 @@ In production, multiple async operations might trigger flush concurrently:
 ### What about the #dirty flag and early returns?
 
 The flushUpdates() method has early return logic:
+
 - Returns immediately if #dirty === false (no pending changes)
 - Returns with warning if #dirty === true but #pendingUpdates === null
 
@@ -1429,6 +1447,7 @@ Tests should verify this behavior works correctly.
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from parallel research (3 research tasks + code analysis)
 - [x] SessionManager.flushUpdates() fully analyzed with line numbers
 - [x] SessionManager.updateItemStatus() implementation documented
@@ -1444,6 +1463,7 @@ Tests should verify this behavior works correctly.
 - [x] Integration vs unit test distinction clear
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking existing tests)
 - Integration tests only (no production code changes)
 - Temp directory isolation (no side effects on plan/)
@@ -1452,6 +1472,7 @@ Tests should verify this behavior works correctly.
 - Follows established integration test patterns
 
 **Known Risks**:
+
 - **vi.mock() setup complexity**: Module-level mocks require careful placement
   - Mitigation: Follow ESM mocking patterns from research
 - **Concurrent execution non-determinism**: Race conditions are hard to reproduce

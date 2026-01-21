@@ -64,7 +64,9 @@ describe('context extraction', () => {
     const task = mockBacklog.backlog[0].milestones[0].tasks[0].subtasks[1];
     const prompt = createPRPBlueprintPrompt(task, mockBacklog);
 
-    expect(prompt.user).toContain('Groundswell agent integration and prompt system');
+    expect(prompt.user).toContain(
+      'Groundswell agent integration and prompt system'
+    );
   });
 
   it('should extract Milestone description for parent context', () => {
@@ -276,9 +278,16 @@ describe('Context Scope Schema Validation', () => {
       context: '# Context\n...',
       implementationSteps: ['Step 1'],
       validationGates: [
-        { level: 1, description: 'Syntax check', command: 'npm run lint', manual: false }
+        {
+          level: 1,
+          description: 'Syntax check',
+          command: 'npm run lint',
+          manual: false,
+        },
       ],
-      successCriteria: [{ description: 'All interfaces added', satisfied: false }],
+      successCriteria: [
+        { description: 'All interfaces added', satisfied: false },
+      ],
       references: ['https://example.com'],
     };
 
@@ -291,39 +300,52 @@ describe('Context Scope Schema Validation', () => {
 ## 6. Best Practices for Context Injection Testing
 
 ### Practice 1: Comprehensive Mock Data
+
 - Create realistic, hierarchical mock data that matches the actual data structures
 - Include edge cases (empty dependencies, missing descriptions, etc.)
 - Use test fixtures shared across multiple tests
 
 ### Practice 2: Granular Verification
+
 - Test individual pieces of context injection separately
 - Verify both positive cases (content should be present) and negative cases (content should be absent)
 - Test hierarchy traversal from leaf to root
 
 ### Practice 3: Integration Testing
+
 - Test that injected context flows through the entire prompt generation pipeline
 - Verify that the final prompt contains all expected context sections
 - Test the interaction between different context types
 
 ### Practice 4: Performance Testing
+
 ```typescript
 // Benchmark context extraction performance
 import { benchmark } from 'vitest';
 
 describe('context extraction performance', () => {
-  benchmark('extract parent context', () => {
-    const task = mockBacklog.backlog[0].milestones[0].tasks[0].subtasks[1];
-    extractParentContext(task.id, mockBacklog);
-  }, { iterations: 1000 });
+  benchmark(
+    'extract parent context',
+    () => {
+      const task = mockBacklog.backlog[0].milestones[0].tasks[0].subtasks[1];
+      extractParentContext(task.id, mockBacklog);
+    },
+    { iterations: 1000 }
+  );
 
-  benchmark('construct user prompt', () => {
-    const task = mockBacklog.backlog[0].milestones[0].tasks[0].subtasks[1];
-    constructUserPrompt(task, mockBacklog);
-  }, { iterations: 1000 });
+  benchmark(
+    'construct user prompt',
+    () => {
+      const task = mockBacklog.backlog[0].milestones[0].tasks[0].subtasks[1];
+      constructUserPrompt(task, mockBacklog);
+    },
+    { iterations: 1000 }
+  );
 });
 ```
 
 ### Practice 5: Error Handling Tests
+
 ```typescript
 describe('error handling', () => {
   it('should handle invalid task ID gracefully', () => {
@@ -337,7 +359,7 @@ describe('error handling', () => {
   it('should handle missing parent items gracefully', () => {
     const taskWithMissingParent = {
       ...mockSubtask,
-      id: 'P99.M99.T99.S99'
+      id: 'P99.M99.T99.S99',
     };
 
     const prompt = createPRPBlueprintPrompt(taskWithMissingParent, mockBacklog);
@@ -349,6 +371,7 @@ describe('error handling', () => {
 ## 7. Advanced Testing Patterns
 
 ### Pattern 12: Context Token Estimation
+
 ```typescript
 // Estimate token usage for context injection
 function estimateContextTokens(context: string): number {
@@ -366,6 +389,7 @@ it('should respect token limits for context injection', () => {
 ```
 
 ### Pattern 13: Delta Context Merging
+
 ```typescript
 // tests/unit/core/prd-differ.test.ts
 describe('Delta Context Merging', () => {

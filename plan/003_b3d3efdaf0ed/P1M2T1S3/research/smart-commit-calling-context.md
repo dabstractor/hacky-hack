@@ -7,6 +7,7 @@ This document analyzes the integration context of the `smartCommit` function in 
 ## Function Location
 
 **Primary Implementation**: `/home/dustin/projects/hacky-hack/src/utils/git-commit.ts`
+
 - Export: `smartCommit(sessionPath: string, message: string): Promise<string | null>`
 - Uses GitMCP tools: `gitStatus`, `gitAdd`, `gitCommit`
 
@@ -41,6 +42,7 @@ try {
 ```
 
 **Context**:
+
 - Called after subtask execution completes successfully
 - Located in `executeSubtask()` method after status is set to 'Complete'
 - Wrapped in try/catch to prevent commit failures from affecting subtask completion
@@ -94,7 +96,9 @@ import { smartCommit } from '../utils/git-commit.js';
 ## Test Coverage
 
 ### Unit Tests
+
 **File**: `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts`
+
 - Tests various scenarios including:
   - Successful commit creation
   - Protected file filtering
@@ -103,11 +107,14 @@ import { smartCommit } from '../utils/git-commit.js';
   - Message formatting
 
 ### Integration Tests
+
 **File**: `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator-runtime.test.ts`
+
 - Test: "should trigger smart commit after successful execution"
 - Verifies smartCommit is called during subtask execution
 
 **File**: `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator-e2e.test.ts`
+
 - Test: "should create smart commits after successful execution"
 - End-to-end verification of smart commit workflow
 
@@ -135,6 +142,7 @@ formatCommitMessage(message: string): string {
 ```
 
 Example output:
+
 ```
 [PRP Auto] P3.M4.T1.S3: Implement smart commit workflow
 
@@ -151,6 +159,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Summary
 
 The `smartCommit` function is integrated into the PRP pipeline as an automated checkpointing mechanism. It's called after every successful subtask completion to:
+
 1. Create automated commits of subtask work
 2. Filter out protected pipeline files
 3. Provide commit hash observability

@@ -19,6 +19,7 @@
 5. **Test 5**: Verify PRPDocument can be serialized to markdown format (PRP.md)
 
 **Success Definition**:
+
 - PRPDocument interface structure is validated with all 7 required fields
 - ValidationGate correctly enforces literal union (1 | 2 | 3 | 4) for level field
 - Context field accepts YAML-formatted ContextSection patterns (url, file, docfile)
@@ -37,6 +38,7 @@
 **Use Case**: Implementing PRP generation and needing assurance that PRPDocument structures are valid according to Zod schemas and can be correctly formatted as markdown PRP.md files.
 
 **User Journey**:
+
 1. Researcher Agent generates PRPDocument from task analysis
 2. PRPDocument is validated against PRPDocumentSchema
 3. PRPDocument is serialized to markdown using PRPGenerator.#formatPRPAsMarkdown()
@@ -44,6 +46,7 @@
 5. Tests verify structure validity and markdown serialization
 
 **Pain Points Addressed**:
+
 - **Invalid PRP structures**: Tests catch structural issues before PRP execution
 - **Markdown format errors**: Tests verify correct markdown serialization
 - **ValidationGate level errors**: Tests enforce literal union (1 | 2 | 3 | 4)
@@ -75,29 +78,32 @@ Extend `tests/unit/core/models.test.ts` with comprehensive tests for PRPDocument
 ### Current State Analysis
 
 **PRPDocument Interface** (from `src/core/models.ts` lines 1195-1268):
+
 ```typescript
 export interface PRPDocument {
-  readonly taskId: string;              // Format: P1.M2.T2.S2
-  readonly objective: string;           // Feature Goal
-  readonly context: string;             // Complete "All Needed Context" as markdown
+  readonly taskId: string; // Format: P1.M2.T2.S2
+  readonly objective: string; // Feature Goal
+  readonly context: string; // Complete "All Needed Context" as markdown
   readonly implementationSteps: string[]; // Implementation task descriptions
-  readonly validationGates: ValidationGate[];  // 4 validation gates
+  readonly validationGates: ValidationGate[]; // 4 validation gates
   readonly successCriteria: SuccessCriterion[]; // Success criteria
-  readonly references: string[];        // URLs and file paths
+  readonly references: string[]; // URLs and file paths
 }
 ```
 
 **ValidationGate Interface** (from `src/core/models.ts` lines 999-1043):
+
 ```typescript
 export interface ValidationGate {
-  readonly level: 1 | 2 | 3 | 4;        // Literal union, NOT generic number
+  readonly level: 1 | 2 | 3 | 4; // Literal union, NOT generic number
   readonly description: string;
-  readonly command: string | null;       // null for manual validation
+  readonly command: string | null; // null for manual validation
   readonly manual: boolean;
 }
 ```
 
 **Existing PRPDocumentSchema Tests** (from `tests/unit/core/models.test.ts` lines 1566-1730):
+
 - Tests valid PRPDocument parsing
 - Tests empty arrays
 - Tests empty string rejection
@@ -135,6 +141,7 @@ export interface ValidationGate {
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] PRPDocument interface fully analyzed (7 fields with types)
 - [x] ValidationGate structure documented (4 fields with literal union)
 - [x] SuccessCriterion structure documented (2 fields)
@@ -579,7 +586,9 @@ describe('PRPDocument structure', () => {
       if (result.success) {
         // VERIFY: All 7 fields present and correct
         expect(result.data.taskId).toBe('P1.M2.T2.S2');
-        expect(result.data.objective).toBe('Add PRP document interfaces to models.ts');
+        expect(result.data.objective).toBe(
+          'Add PRP document interfaces to models.ts'
+        );
         expect(result.data.context).toContain('All Needed Context');
         expect(result.data.implementationSteps).toHaveLength(2);
         expect(result.data.validationGates).toHaveLength(4);
@@ -842,7 +851,9 @@ describe('PRPDocument structure', () => {
       ];
 
       // EXECUTE
-      const prp = createTestPRPDocument({ implementationSteps: yamlCreateSteps });
+      const prp = createTestPRPDocument({
+        implementationSteps: yamlCreateSteps,
+      });
       const result = PRPDocumentSchema.safeParse(prp);
 
       // VERIFY: YAML CREATE pattern accepted
@@ -863,7 +874,9 @@ describe('PRPDocument structure', () => {
       ];
 
       // EXECUTE
-      const prp = createTestPRPDocument({ implementationSteps: yamlModifySteps });
+      const prp = createTestPRPDocument({
+        implementationSteps: yamlModifySteps,
+      });
       const result = PRPDocumentSchema.safeParse(prp);
 
       // VERIFY: YAML MODIFY pattern accepted
@@ -879,15 +892,17 @@ describe('PRPDocument structure', () => {
       // SETUP: implementationSteps with complete YAML pattern
       const yamlCompleteSteps = [
         'Task 1: CREATE src/core/models.ts\n' +
-        '  - IMPLEMENT: PRPDocument interface\n' +
-        '  - FOLLOW pattern: src/core/models.ts (interface structure)\n' +
-        '  - NAMING: CamelCase for interfaces\n' +
-        '  - DEPENDENCIES: None\n' +
-        '  - PLACEMENT: Core models file',
+          '  - IMPLEMENT: PRPDocument interface\n' +
+          '  - FOLLOW pattern: src/core/models.ts (interface structure)\n' +
+          '  - NAMING: CamelCase for interfaces\n' +
+          '  - DEPENDENCIES: None\n' +
+          '  - PLACEMENT: Core models file',
       ];
 
       // EXECUTE
-      const prp = createTestPRPDocument({ implementationSteps: yamlCompleteSteps });
+      const prp = createTestPRPDocument({
+        implementationSteps: yamlCompleteSteps,
+      });
       const result = PRPDocumentSchema.safeParse(prp);
 
       // VERIFY: All YAML fields accepted
@@ -915,9 +930,11 @@ describe('PRPDocument structure', () => {
 
       const validationGatesMd = prp.validationGates
         .map(
-          (gate) =>
+          gate =>
             `### Level ${gate.level}\n\n${
-              gate.command !== null ? gate.command : 'Manual validation required'
+              gate.command !== null
+                ? gate.command
+                : 'Manual validation required'
             }`
         )
         .join('\n\n');
@@ -1004,8 +1021,18 @@ ${referencesMd}
         context: '## Test Context\n\nTest context content',
         implementationSteps: ['Step 1', 'Step 2'],
         validationGates: [
-          { level: 1, description: 'Level 1', command: 'npm test', manual: false },
-          { level: 2, description: 'Level 2', command: 'npm run lint', manual: false },
+          {
+            level: 1,
+            description: 'Level 1',
+            command: 'npm test',
+            manual: false,
+          },
+          {
+            level: 2,
+            description: 'Level 2',
+            command: 'npm run lint',
+            manual: false,
+          },
           { level: 3, description: 'Level 3', command: null, manual: true },
           { level: 4, description: 'Level 4', command: null, manual: true },
         ],
@@ -1027,19 +1054,29 @@ ${referencesMd}
       expect(markdown).toMatch(/## Objective\n\nTest PRPDocument structure\n/);
 
       // Context section
-      expect(markdown).toMatch(/## Context\n\n## Test Context\n\nTest context content\n/);
+      expect(markdown).toMatch(
+        /## Context\n\n## Test Context\n\nTest context content\n/
+      );
 
       // Implementation steps (numbered)
-      expect(markdown).toMatch(/## Implementation Steps\n\n1\. Step 1\n2\. Step 2\n/);
+      expect(markdown).toMatch(
+        /## Implementation Steps\n\n1\. Step 1\n2\. Step 2\n/
+      );
 
       // Validation gates (### Level X format)
-      expect(markdown).toMatch(/## Validation Gates\n\n### Level 1\n\nnpm test\n\n### Level 2\n\nnpm run lint\n\n### Level 3\n\nManual validation required\n\n### Level 4\n\nManual validation required\n/);
+      expect(markdown).toMatch(
+        /## Validation Gates\n\n### Level 1\n\nnpm test\n\n### Level 2\n\nnpm run lint\n\n### Level 3\n\nManual validation required\n\n### Level 4\n\nManual validation required\n/
+      );
 
       // Success criteria (checkbox format)
-      expect(markdown).toMatch(/## Success Criteria\n\n- \[ \] Criterion 1\n- \[ \] Criterion 2\n/);
+      expect(markdown).toMatch(
+        /## Success Criteria\n\n- \[ \] Criterion 1\n- \[ \] Criterion 2\n/
+      );
 
       // References (bullet format)
-      expect(markdown).toMatch(/## References\n\n- https:\/\/example\.com\n- src\/test\.ts\n/);
+      expect(markdown).toMatch(
+        /## References\n\n- https:\/\/example\.com\n- src\/test\.ts\n/
+      );
     });
   });
 });
@@ -1315,6 +1352,7 @@ time npm test -- tests/unit/core/models.test.ts
 ### Why extend existing models.test.ts instead of creating new file?
 
 The existing `models.test.ts` already contains PRPDocumentSchema tests (lines 1566-1730). Adding new tests in the same file:
+
 1. Keeps all PRPDocument-related tests together
 2. Follows the established pattern of grouping tests by subject
 3. Makes it easier to see all PRPDocument validation in one place
@@ -1323,6 +1361,7 @@ The existing `models.test.ts` already contains PRPDocumentSchema tests (lines 15
 ### Why test YAML patterns if they're not TypeScript interfaces?
 
 While ContextSection and ImplementationTask are not TypeScript interfaces, they are critical documentation patterns used in PRP templates. Testing them:
+
 1. Validates that PRPDocument fields accept YAML-formatted strings
 2. Documents the expected pattern format for future developers
 3. Ensures PRP templates can be parsed and stored correctly
@@ -1331,6 +1370,7 @@ While ContextSection and ImplementationTask are not TypeScript interfaces, they 
 ### Why test markdown serialization if PRPGenerator handles it?
 
 Testing markdown serialization:
+
 1. Validates the expected format for PRP.md files
 2. Ensures PRPDocument can be correctly formatted for human consumption
 3. Documents the exact format that PRPGenerator should produce
@@ -1339,6 +1379,7 @@ Testing markdown serialization:
 ### What about the literal union for ValidationGate.level?
 
 The literal union `1 | 2 | 3 | 4` (not generic number) is critical because:
+
 1. It enforces exactly 4 validation levels
 2. Prevents typos like level: 5 or level: 0
 3. Makes the validation level system explicit in the type system
@@ -1347,6 +1388,7 @@ The literal union `1 | 2 | 3 | 4` (not generic number) is critical because:
 ### Why use SETUP/EXECUTE/VERIFY comments?
 
 The codebase uses this pattern consistently:
+
 1. Separates test concerns clearly
 2. Makes tests easier to read and understand
 3. Helps identify where assertions happen
@@ -1359,6 +1401,7 @@ The codebase uses this pattern consistently:
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from research agents (3 parallel research tasks)
 - [x] PRPDocument interface fully analyzed and documented
 - [x] ValidationGate literal union requirement identified
@@ -1371,6 +1414,7 @@ The codebase uses this pattern consistently:
 - [x] Research documents stored in research/ subdirectory
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking existing tests)
 - Tests only (no production code changes)
 - Can be implemented independently
@@ -1379,6 +1423,7 @@ The codebase uses this pattern consistently:
 - Follows established patterns from models.test.ts
 
 **Known Risks**:
+
 - **YAML patterns are not interfaces**: Tests validate string content, not type safety
   - Mitigation: Tests document YAML patterns and verify they're accepted
 - **Literal union for levels**: Must use exactly 1, 2, 3, or 4

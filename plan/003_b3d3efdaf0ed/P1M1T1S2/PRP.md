@@ -7,6 +7,7 @@
 **Deliverable**: Unit test file `tests/unit/core/session-hash-detection.test.ts` with comprehensive test coverage for hash computation and change detection logic.
 
 **Success Definition**:
+
 - All 4 validation requirements from CONTRACT DEFINITION are tested and passing
 - Test file runs successfully with `npx vitest run tests/unit/core/session-hash-detection.test.ts`
 - Tests validate: (a) hash is computed from PRD file content using SHA-256, (b) hash changes when PRD content changes, (c) `hasSessionChanged()` returns true when hash mismatch detected, (d) hash comparison is case-sensitive and deterministic
@@ -17,12 +18,14 @@
 **Business Value**: Validates the foundational hash-based change detection mechanism that enables delta session creation. Incorrect hash computation would break PRD modification detection across the entire system.
 
 **Integration Points**:
+
 - Validates `hashPRD()` from `src/core/session-utils.ts` (lines 229-255) for SHA-256 hash computation
 - Validates `hasSessionChanged()` from `src/core/session-manager.ts` (lines 1162-1170) for hash comparison logic
 - Validates `initialize()` hash caching behavior from `src/core/session-manager.ts` (lines 224-233)
 - Uses test fixtures from `tests/fixtures/simple-prd.ts` and `tests/fixtures/simple-prd-v2.ts`
 
 **Problems Solved**:
+
 - Ensures SHA-256 hash computation produces correct 64-character hex strings
 - Verifies first 12-character slice pattern used for session hashes
 - Confirms hash-based change detection correctly identifies PRD modifications
@@ -33,6 +36,7 @@
 **User-Visible Behavior**: Test validates hash computation internals - no direct user-visible behavior, but ensures the pipeline correctly detects PRD modifications for delta session creation.
 
 **Success Criteria**:
+
 - [ ] Test verifies SHA-256 hash is computed from PRD file content (64-character hex string)
 - [ ] Test verifies hash changes when PRD content changes (different content = different hash)
 - [ ] Test verifies `hasSessionChanged()` returns true when hash mismatch detected
@@ -163,15 +167,15 @@ manager.hasSessionChanged(); // Still compares with OLD cached hash!
 
 // CRITICAL: Hash computation is CASE-SENSITIVE
 createHash('sha256').update('Content').digest('hex') !==
-createHash('sha256').update('content').digest('hex')
+  createHash('sha256').update('content').digest('hex');
 
 // CRITICAL: Hash computation is DETERMINISTIC
 createHash('sha256').update('same content').digest('hex') ===
-createHash('sha256').update('same content').digest('hex')
+  createHash('sha256').update('same content').digest('hex');
 
 // CRITICAL: Hash changes with ANY content difference (including whitespace)
 createHash('sha256').update('content').digest('hex') !==
-createHash('sha256').update('content ').digest('hex') // Extra space
+  createHash('sha256').update('content ').digest('hex'); // Extra space
 
 // CRITICAL: Use REAL crypto for deterministic tests (not mocks)
 import { createHash } from 'node:crypto';
@@ -368,7 +372,9 @@ it('should compute SHA-256 hash from PRD file content', async () => {
   expect(hash).toBe(expectedHash);
 
   // VERIFY: Uses SHA-256 algorithm
-  const manualHash = createHash('sha256').update(prdContent, 'utf-8').digest('hex');
+  const manualHash = createHash('sha256')
+    .update(prdContent, 'utf-8')
+    .digest('hex');
   expect(hash).toBe(manualHash);
 });
 
@@ -448,8 +454,12 @@ it('should be case-sensitive in hash comparison', async () => {
   expect(hash1).not.toBe(hash2);
 
   // VERIFY: Can verify with real crypto
-  const expectedHash1 = computeExpectedHash('# Test PRD\nContent with uppercase');
-  const expectedHash2 = computeExpectedHash('# Test PRD\ncontent with lowercase');
+  const expectedHash1 = computeExpectedHash(
+    '# Test PRD\nContent with uppercase'
+  );
+  const expectedHash2 = computeExpectedHash(
+    '# Test PRD\ncontent with lowercase'
+  );
   expect(hash1).toBe(expectedHash1);
   expect(hash2).toBe(expectedHash2);
   expect(expectedHash1).not.toBe(expectedHash2);
@@ -546,7 +556,9 @@ describe('Hash computation edge cases', () => {
     const hash = await hashPRD(prdPath);
 
     // Known SHA-256 hash of empty string
-    expect(hash).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+    expect(hash).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+    );
   });
 
   it('should handle unicode characters', async () => {

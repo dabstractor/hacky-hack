@@ -13,6 +13,7 @@ This document analyzes the existing resource monitoring implementation to unders
 **Key Components**:
 
 #### FileHandleMonitor (lines ~50-180)
+
 - **Primary method**: `process._getActiveHandles()` (internal Node.js API, fastest)
 - **Linux fallback**: Read `/proc/<pid>/fd` directory count
 - **macOS fallback**: Execute `lsof -p <pid>` (5s timeout)
@@ -20,11 +21,13 @@ This document analyzes the existing resource monitoring implementation to unders
 - **Ulimit detection**: `ulimit -n` command
 
 #### MemoryMonitor (lines ~185-250)
+
 - **V8 heap**: `process.memoryUsage().heapUsed`
 - **System memory**: `os.totalmem()` and `os.freemem()`
 - **RSS memory**: `process.memoryUsage().rss`
 
 #### Main ResourceMonitor Class (lines ~255-600)
+
 - **Constructor**: Takes `ResourceConfig` with limits
 - **Polling**: 30-second intervals for status checks
 - **Task tracking**: `recordTaskComplete()` increments counter
@@ -32,38 +35,43 @@ This document analyzes the existing resource monitoring implementation to unders
 - **Leak detection**: 20-sample circular buffer for trend analysis
 
 **Key Methods**:
+
 ```typescript
 class ResourceMonitor {
-  constructor(config: ResourceConfig)
-  start(): void  // Starts polling interval
-  stop(): void   // Stops polling interval
-  shouldStop(): boolean  // Checks if any limit exceeded
-  getStatus(): ResourceLimitStatus  // Returns current status
-  recordTaskComplete(): void  // Increments task counter
-  getTasksCompleted(): number  // Returns task count
-  getElapsed(): number  // Returns milliseconds since start
+  constructor(config: ResourceConfig);
+  start(): void; // Starts polling interval
+  stop(): void; // Stops polling interval
+  shouldStop(): boolean; // Checks if any limit exceeded
+  getStatus(): ResourceLimitStatus; // Returns current status
+  recordTaskComplete(): void; // Increments task counter
+  getTasksCompleted(): number; // Returns task count
+  getElapsed(): number; // Returns milliseconds since start
 }
 ```
 
 **Limit Enforcement** (shouldStop logic):
+
 1. File handles > 85% of ulimit → critical
 2. System memory > 90% → critical
 3. Task count >= maxTasks → stop
 4. Duration >= maxDuration → stop
 
 **Report Generation** (private method `#generateResourceLimitReport()`):
+
 - Creates `RESOURCE_LIMIT_REPORT.md` in plan directory
 - Includes: timestamp, limit type, resource snapshot, progress summary, actionable suggestions
 
 ### 2. CLI Integration (`src/cli/index.ts`)
 
 **Flag Definitions** (around lines 200-250):
+
 ```typescript
 .option('--max-tasks <number>', 'Maximum number of tasks to execute')
 .option('--max-duration <ms>', 'Maximum execution duration in milliseconds')
 ```
 
 **Validation**:
+
 - Both require positive integers
 - Invalid values trigger `process.exit(1)`
 - Passed to PRPPipeline constructor
@@ -71,6 +79,7 @@ class ResourceMonitor {
 ### 3. Pipeline Integration (`src/workflows/prp-pipeline.ts`)
 
 **Lifecycle**:
+
 1. Constructor: Creates ResourceMonitor if limits provided
 2. Start: `#resourceMonitor.start()` called immediately
 3. Per-task: `#resourceMonitor.recordTaskComplete()` after each task
@@ -79,6 +88,7 @@ class ResourceMonitor {
 6. Cleanup: `#resourceMonitor.stop()` in finally block
 
 **Integration Point** (around line 825-850):
+
 ```typescript
 if (this.#resourceMonitor?.shouldStop()) {
   const status = this.#resourceMonitor.getStatus();
@@ -91,6 +101,7 @@ if (this.#resourceMonitor?.shouldStop()) {
 ## Existing Tests (`tests/unit/utils/resource-monitor.test.ts`)
 
 **Coverage**:
+
 - Construction with various configs
 - Task count tracking
 - Duration tracking with fake timers
@@ -102,6 +113,7 @@ if (this.#resourceMonitor?.shouldStop()) {
 - Polling lifecycle (start/stop)
 
 **Mocking Patterns**:
+
 ```typescript
 // Mock process._getActiveHandles
 const mockActiveHandles = (count: number) => {
@@ -119,26 +131,26 @@ const warnSpy = vi.spyOn(logger, 'warn');
 
 ## Platform-Specific Behaviors
 
-| Platform | File Handle Method | Gotcha |
-|----------|-------------------|--------|
-| Linux | `/proc/<pid>/fd` directory count | Fast, accurate |
-| macOS | `lsof -p <pid>` command | Slow, 5s timeout |
-| Windows | Returns 0 | No ulimit concept |
+| Platform | File Handle Method               | Gotcha            |
+| -------- | -------------------------------- | ----------------- |
+| Linux    | `/proc/<pid>/fd` directory count | Fast, accurate    |
+| macOS    | `lsof -p <pid>` command          | Slow, 5s timeout  |
+| Windows  | Returns 0                        | No ulimit concept |
 
-| Memory Type | Method | Notes |
-|-------------|--------|-------|
-| V8 Heap | `process.memoryUsage().heapUsed` | JS objects only |
-| RSS | `process.memoryUsage().rss` | Includes C++/Buffers |
-| System | `(total - free) / total` | OOM protection |
+| Memory Type | Method                           | Notes                |
+| ----------- | -------------------------------- | -------------------- |
+| V8 Heap     | `process.memoryUsage().heapUsed` | JS objects only      |
+| RSS         | `process.memoryUsage().rss`      | Includes C++/Buffers |
+| System      | `(total - free) / total`         | OOM protection       |
 
 ## Thresholds
 
-| Resource | Warning | Critical | Action |
-|----------|---------|----------|--------|
-| File Handles | 70% | 85% | Stop at critical |
-| System Memory | 80% | 90% | Stop at critical |
-| Task Count | N/A | maxTasks | Stop when reached |
-| Duration | N/A | maxDuration | Stop when reached |
+| Resource      | Warning | Critical    | Action            |
+| ------------- | ------- | ----------- | ----------------- |
+| File Handles  | 70%     | 85%         | Stop at critical  |
+| System Memory | 80%     | 90%         | Stop at critical  |
+| Task Count    | N/A     | maxTasks    | Stop when reached |
+| Duration      | N/A     | maxDuration | Stop when reached |
 
 ## RESOURCE_LIMIT_REPORT.md Format
 
@@ -150,11 +162,11 @@ const warnSpy = vi.spyOn(logger, 'warn');
 
 ## Resource Snapshot
 
-| Metric | Value | Limit | Status |
-|--------|-------|-------|--------|
-| File Handles | 245 / 1024 | 85% | 23.9% |
-| Heap Memory | 128.45 MB | N/A | Normal |
-| System Memory | 45.2% | 90% | Normal |
+| Metric        | Value      | Limit | Status |
+| ------------- | ---------- | ----- | ------ |
+| File Handles  | 245 / 1024 | 85%   | 23.9%  |
+| Heap Memory   | 128.45 MB  | N/A   | Normal |
+| System Memory | 45.2%      | 90%   | Normal |
 
 ## Progress Summary
 
@@ -195,6 +207,7 @@ Based on the contract definition in the work item:
 5. **RESOURCE_LIMIT_REPORT.md generation** - Verify report content and suggestions
 
 All of these require mocking of:
+
 - `process._getActiveHandles()` or command execution
 - `process.memoryUsage()` and `os` module
 - Timers (`Date.now()` via fake timers)

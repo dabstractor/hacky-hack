@@ -7,18 +7,21 @@ This document analyzes the batching state machine implemented in `src/core/sessi
 ## State Fields
 
 ### 1. `#dirty: boolean`
+
 - **Location**: Line 110
 - **Purpose**: Flag indicating pending changes that need to be flushed to disk
 - **Default**: `false`
 - **State**: Private class field
 
 ### 2. `#pendingUpdates: Backlog | null`
+
 - **Location**: Line 113
 - **Purpose**: Holds the latest accumulated backlog state containing all pending updates
 - **Default**: `null`
 - **State**: Private class field, stores complete Backlog object or null when no updates
 
 ### 3. `#updateCount: number`
+
 - **Location**: Line 116
 - **Purpose**: Tracks the number of accumulated updates (for statistics and monitoring)
 - **Default**: `0`
@@ -27,41 +30,49 @@ This document analyzes the batching state machine implemented in `src/core/sessi
 ## State Transitions
 
 ### Initial State (No Pending Updates)
+
 ```
 #dirty: false
 #pendingUpdates: null
 #updateCount: 0
 ```
+
 - **Characteristics**: Clean state, no updates queued
 - **Operations**: `updateItemStatus` can be called normally
 - **Behavior**: `flushUpdates()` returns early without action
 
 ### After First `updateItemStatus` Call
+
 ```
 #dirty: true
 #pendingUpdates: Backlog (with single update)
 #updateCount: 1
 ```
+
 - **Characteristics**: First update queued, dirty flag set
 - **Operations**: More updates can be added, flush enabled
 - **Logging**: Debug log "Status update batched" with pendingCount=1
 
 ### After Multiple `updateItemStatus` Calls
+
 ```
 #dirty: true
 #pendingUpdates: Backlog (with all accumulated updates)
 #updateCount: N (where N >= 2)
 ```
+
 - **Characteristics**: Multiple updates batched together
 - **Operations**: Updates accumulate in memory, single flush required
 - **Behavior**: Each update increments `#updateCount` and overwrites `#pendingUpdates`
 
 ### After `flushUpdates` (Success)
+
 ```
 #dirty: false
 #pendingUpdates: null
 #updateCount: 0
 ```
+
 - **Characteristics**: All updates persisted, state reset
 - **Operations**: System ready for new update cycle
 - **Logging**:
@@ -69,11 +80,13 @@ This document analyzes the batching state machine implemented in `src/core/sessi
   - "Batching state reset" (debug)
 
 ### After `flushUpdates` (Failure)
+
 ```
 #dirty: true (preserved)
 #pendingUpdates: Backlog (preserved)
 #updateCount: N (preserved)
 ```
+
 - **Characteristics**: Error occurred, updates preserved for retry
 - **Operations**: Can retry flush immediately or later
 - **Logging**:
@@ -83,20 +96,23 @@ This document analyzes the batching state machine implemented in `src/core/sessi
 ## Batch Accumulation Logic
 
 ### Update Accumulation
+
 ```typescript
 // In updateItemStatus() (lines 779-782)
-this.#pendingUpdates = updated;  // Store complete updated backlog
-this.#dirty = true;              // Mark as needing flush
-this.#updateCount++;             // Increment update counter
+this.#pendingUpdates = updated; // Store complete updated backlog
+this.#dirty = true; // Mark as needing flush
+this.#updateCount++; // Increment update counter
 ```
 
 ### Key Characteristics:
+
 1. **Overwrite Behavior**: Each `updateItemStatus` call completely overwrites `#pendingUpdates` with the latest full backlog state
 2. **Immutable Update**: Uses `updateItemStatusUtil()` to create immutable updates
 3. **Single Flush Point**: Only one `flushUpdates()` call needed regardless of update count
 4. **State Synchronization**: Updates `#currentSession` immediately for internal consistency
 
 ### Internal Session Update:
+
 ```typescript
 // Line 785-788: Update internal session state
 this.#currentSession = {
@@ -108,6 +124,7 @@ this.#currentSession = {
 ## Error Handling
 
 ### Error Preservation Strategy
+
 ```typescript
 // In flushUpdates() catch block (lines 712-719)
 } catch (error) {
@@ -121,12 +138,14 @@ this.#currentSession = {
 ```
 
 ### Error Handling Features:
+
 1. **State Preservation**: On flush failure, all batching state is preserved
 2. **Retry Enabled**: Caller can retry flush immediately or retry later
 3. **Error Propagation**: Error is re-thrown for proper error handling upstream
 4. **Logging Context**: Error includes pending update count for debugging
 
 ### Recovery Pattern:
+
 1. Error occurs during `saveBacklog()`
 2. `#dirty` remains `true`
 3. `#pendingUpdates` contains unsaved state
@@ -135,6 +154,7 @@ this.#currentSession = {
 ## Logging and Observability
 
 ### Debug Logs (High Frequency)
+
 ```typescript
 // updateItemStatus() - line 791-794
 this.#logger.debug(
@@ -150,6 +170,7 @@ this.#logger.debug('Batching state reset');
 ```
 
 ### Info Logs (Batch Completion)
+
 ```typescript
 // flushUpdates() - lines 694-704
 this.#logger.info(
@@ -166,14 +187,14 @@ this.#logger.info(
 ```
 
 ### Warning Logs
+
 ```typescript
 // flushUpdates() - lines 678-680
-this.#logger.warn(
-  'Dirty flag set but no pending updates - skipping flush'
-);
+this.#logger.warn('Dirty flag set but no pending updates - skipping flush');
 ```
 
 ### Error Logs
+
 ```typescript
 // flushUpdates() - lines 714-717
 this.#logger.error(
@@ -185,6 +206,7 @@ this.#logger.error(
 ## Statistics Tracking
 
 ### Calculated Metrics
+
 1. **itemsWritten**: Total number of updates in the batch (`#updateCount`)
 2. **writeOpsSaved**: Number of individual writes avoided (`Math.max(0, itemsWritten - 1)`)
 3. **efficiency**: Percentage of write operations saved
@@ -195,6 +217,7 @@ this.#logger.error(
    ```
 
 ### Example Log Output:
+
 ```
 Batch write complete
   itemsWritten: 5

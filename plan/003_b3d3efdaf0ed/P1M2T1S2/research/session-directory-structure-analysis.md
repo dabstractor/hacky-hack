@@ -6,6 +6,7 @@
 ## 1. Directory Structure
 
 ### Session Directory Pattern
+
 The plan/ directory uses a sequence-based session structure with the following pattern:
 
 ```
@@ -28,12 +29,14 @@ plan/
 ```
 
 ### Session Directory Naming Convention
+
 - **Format**: `{sequence}_{hash}`
 - **Sequence**: Zero-padded 3-digit number (e.g., "001", "002")
 - **Hash**: First 12 characters of SHA-256 hash of PRD content
 - **Example**: `001_14b9dc2a33c7`
 
 ### Subdirectories Structure
+
 1. **`architecture/`** - Stores architectural research findings
 2. **`prps/`** - Contains generated PRP (Product Requirement Prompt) documents
 3. **`artifacts/`** - Temporary implementation artifacts (per-task directories)
@@ -41,6 +44,7 @@ plan/
 5. **`bugfix/`** - Bugfix sub-sessions with their own session structure
 
 ### Bugfix Sub-sessions
+
 ```
 plan/001_14b9dc2a33c7/bugfix/
 ├── 001_7f5a0fab4834/
@@ -57,25 +61,28 @@ plan/001_14b9dc2a33c7/bugfix/
 ## 2. PRP Storage and Cache
 
 ### PRP File Naming Convention
+
 - **Location**: `{sessionPath}/prps/{taskId}.md`
 - **Filename Sanitization**: Task ID dots replaced with underscores
 - **Example**: `P1.M2.T2.S2.md` → `P1_M2_T2_S2.md`
 
 ### PRP Cache Metadata System
+
 Cache metadata is stored in `{sessionPath}/prps/.cache/{taskId}.json`:
 
 ```typescript
 interface PRPCacheMetadata {
-  readonly taskId: string;        // Task identifier
-  readonly taskHash: string;      // SHA-256 hash of task inputs
-  readonly createdAt: number;     // Creation timestamp
-  readonly accessedAt: number;     // Last access timestamp
-  readonly version: string;        // Cache version (currently "1.0")
-  readonly prp: PRPDocument;      // Full PRPDocument for retrieval
+  readonly taskId: string; // Task identifier
+  readonly taskHash: string; // SHA-256 hash of task inputs
+  readonly createdAt: number; // Creation timestamp
+  readonly accessedAt: number; // Last access timestamp
+  readonly version: string; // Cache version (currently "1.0")
+  readonly prp: PRPDocument; // Full PRPDocument for retrieval
 }
 ```
 
 ### Cache TTL and Metadata Structure
+
 - **Cache TTL**: 24 hours (86,400,000 ms)
 - **Cache Validation**:
   - File existence check
@@ -84,6 +91,7 @@ interface PRPCacheMetadata {
 - **Cache Bypass**: CLI `--no-cache` flag to disable caching
 
 ### PRP Generation Process
+
 1. Compute task hash from Task/Subtask inputs
 2. Check cache for recent matching PRP
 3. If cache hit and hash matches, return cached PRP
@@ -94,6 +102,7 @@ interface PRPCacheMetadata {
 ## 3. Artifacts Collection
 
 ### Artifact Directory Structure
+
 ```
 plan/{sessionId}/artifacts/{subtaskId}/
 ├── validation-results.json  # Validation gate results
@@ -104,20 +113,22 @@ plan/{sessionId}/artifacts/{subtaskId}/
 ### Artifact File Formats
 
 #### validation-results.json Schema
+
 ```typescript
 interface ValidationGateResult {
-  readonly level: 1 | 2 | 3 | 4;               // Validation level
-  readonly description: string;                 // Description
-  readonly success: boolean;                    // Whether passed
-  readonly command: string | null;              // Command executed
-  readonly stdout: string;                     // Standard output
-  readonly stderr: string;                     // Standard error
-  readonly exitCode: number | null;             // Exit code
-  readonly skipped: boolean;                   // True if skipped
+  readonly level: 1 | 2 | 3 | 4; // Validation level
+  readonly description: string; // Description
+  readonly success: boolean; // Whether passed
+  readonly command: string | null; // Command executed
+  readonly stdout: string; // Standard output
+  readonly stderr: string; // Standard error
+  readonly exitCode: number | null; // Exit code
+  readonly skipped: boolean; // True if skipped
 }
 ```
 
 #### execution-summary.md Format
+
 ```markdown
 # Execution Summary
 
@@ -135,6 +146,7 @@ interface ValidationGateResult {
 ```
 
 #### artifacts-list.json Format
+
 ```json
 [
   "/path/to/created/file1.ts",
@@ -145,12 +157,12 @@ interface ValidationGateResult {
 
 ## 4. Key Source Files
 
-| File | Key Functions | Lines |
-|------|--------------|-------|
-| `src/core/session-utils.ts` | createSessionDirectory, writePRP | 99-180 |
-| `src/core/session-manager.ts` | initialize, saveBacklog | 125-250 |
-| `src/agents/prp-generator.ts` | generate, #saveCacheMetadata | 191-272 |
-| `src/agents/prp-runtime.ts` | #writeArtifacts | 245-285 |
+| File                          | Key Functions                    | Lines   |
+| ----------------------------- | -------------------------------- | ------- |
+| `src/core/session-utils.ts`   | createSessionDirectory, writePRP | 99-180  |
+| `src/core/session-manager.ts` | initialize, saveBacklog          | 125-250 |
+| `src/agents/prp-generator.ts` | generate, #saveCacheMetadata     | 191-272 |
+| `src/agents/prp-runtime.ts`   | #writeArtifacts                  | 245-285 |
 
 ## 5. Gotchas and Constraints
 

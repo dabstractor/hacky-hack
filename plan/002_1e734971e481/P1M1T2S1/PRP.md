@@ -13,6 +13,7 @@
 **Deliverable**: `tests/integration/groundswell/workflow.test.ts` - A comprehensive test file covering all Workflow lifecycle patterns with proper mocking, event verification, state snapshot testing, and parent-child relationship validation.
 
 **Success Definition**:
+
 - Test 1: Simple Workflow extending base class, override run() method, call run() and verify execution
 - Test 2: @Step decorator with trackTiming option, verify stepStart/stepEnd events with duration
 - Test 3: Parent-child workflows with @Task decorator, verify child attachment and events
@@ -31,6 +32,7 @@
 **Use Case**: Fourth validation step in Phase 1 (P1.M1.T2) to verify that after npm link is validated (S1), imports work (S2), and version is compatible (S3), the Groundswell Workflow lifecycle methods work correctly for building hierarchical workflows.
 
 **User Journey**:
+
 1. Pipeline completes P1.M1.T1 (npm link, imports, version compatibility) with success
 2. Pipeline starts P1.M1.T2.S1 (Workflow lifecycle tests)
 3. Test suite runs 4 test categories covering Workflow lifecycle
@@ -42,6 +44,7 @@
 9. If tests fail: Document specific issues for debugging
 
 **Pain Points Addressed**:
+
 - Uncertainty whether Groundswell Workflow lifecycle works correctly
 - Lack of test coverage for decorator patterns (@Step, @Task, @ObservedState)
 - Risk of accidental LLM API calls during testing
@@ -70,6 +73,7 @@
 Create a comprehensive test suite covering 4 main test categories:
 
 ### Test 1: Class-Based Workflow Extension
+
 - Create a simple Workflow class that extends the Groundswell Workflow base class
 - Override the run() method with custom logic
 - Call run() and verify:
@@ -79,6 +83,7 @@ Create a comprehensive test suite covering 4 main test categories:
   - Logger is available and functional
 
 ### Test 2: @Step Decorator with trackTiming
+
 - Create a Workflow with a @Step decorated method
 - Use trackTiming: true option
 - Verify:
@@ -89,6 +94,7 @@ Create a comprehensive test suite covering 4 main test categories:
   - Observer is notified of events
 
 ### Test 3: @Task Decorator for Parent-Child Relationships
+
 - Create a parent Workflow with @Task decorated method
 - Method returns a child Workflow instance
 - Verify:
@@ -99,14 +105,15 @@ Create a comprehensive test suite covering 4 main test categories:
   - isDescendantOf() returns correct results
 
 ### Test 4: @ObservedState Decorator and snapshotState()
+
 - Create a Workflow with @ObservedState decorated fields
 - Test variations:
   - Plain @ObservedState() - field is visible in snapshot
-  - @ObservedState({ redact: true }) - field shows as '***'
+  - @ObservedState({ redact: true }) - field shows as '\*\*\*'
   - @ObservedState({ hidden: true }) - field is excluded from snapshot
 - Verify:
   - snapshotState() captures all non-hidden @ObservedState fields
-  - Redacted fields show as '***'
+  - Redacted fields show as '\*\*\*'
   - Hidden fields are not in snapshot
   - State is emitted in stateUpdated events
   - getObservedState() utility returns correct state
@@ -131,6 +138,7 @@ Create a comprehensive test suite covering 4 main test categories:
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Groundswell Workflow API documented (run(), attachChild(), detachChild(), setStatus(), snapshotState())
 - [x] @Step decorator options documented (trackTiming, snapshotState, logStart, logFinish)
 - [x] @Task decorator options documented (concurrent, errorMergeStrategy)
@@ -307,7 +315,7 @@ hacky-hack/
 // This is required by the z.ai API endpoint enforcement
 vi.mock('@anthropic-ai/sdk', () => ({
   Anthropic: vi.fn(() => ({
-    messages: { create: vi.fn() }
+    messages: { create: vi.fn() },
   })),
 }));
 
@@ -412,7 +420,11 @@ vi.mock('@anthropic-ai/sdk', () => ({
 interface WorkflowLifecycleTestResult {
   testName: string;
   passed: boolean;
-  category: 'class-extension' | 'step-decorator' | 'task-decorator' | 'observed-state';
+  category:
+    | 'class-extension'
+    | 'step-decorator'
+    | 'task-decorator'
+    | 'observed-state';
   issues?: string[];
 }
 
@@ -717,7 +729,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
 
     const observer: gs.WorkflowObserver = {
       onLog: () => {},
-      onEvent: (event) => events.push(event),
+      onEvent: event => events.push(event),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     };
@@ -728,8 +740,8 @@ describe('Workflow lifecycle: @Step decorator', () => {
     await workflow.run();
 
     // VERIFY: Check events
-    const stepStart = events.find((e) => e.type === 'stepStart');
-    const stepEnd = events.find((e) => e.type === 'stepEnd');
+    const stepStart = events.find(e => e.type === 'stepStart');
+    const stepEnd = events.find(e => e.type === 'stepEnd');
 
     expect(stepStart).toBeDefined();
     expect(stepEnd).toBeDefined();
@@ -751,7 +763,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
       @gs.Step({ trackTiming: true })
       async myStep(): Promise<void> {
         // Simulate some work
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
 
       async run(): Promise<void> {
@@ -764,7 +776,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
 
     workflow.addObserver({
       onLog: () => {},
-      onEvent: (e) => events.push(e),
+      onEvent: e => events.push(e),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     });
@@ -773,7 +785,7 @@ describe('Workflow lifecycle: @Step decorator', () => {
     await workflow.run();
 
     // VERIFY: Check duration is present and reasonable
-    const stepEnd = events.find((e) => e.type === 'stepEnd');
+    const stepEnd = events.find(e => e.type === 'stepEnd');
     expect(stepEnd).toBeDefined();
 
     if (stepEnd && stepEnd.type === 'stepEnd') {
@@ -851,7 +863,7 @@ describe('Workflow lifecycle: @Task decorator', () => {
 
     parent.addObserver({
       onLog: () => {},
-      onEvent: (e) => events.push(e),
+      onEvent: e => events.push(e),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     });
@@ -860,8 +872,8 @@ describe('Workflow lifecycle: @Task decorator', () => {
     await parent.run();
 
     // VERIFY: Check task events
-    const taskStart = events.find((e) => e.type === 'taskStart');
-    const taskEnd = events.find((e) => e.type === 'taskEnd');
+    const taskStart = events.find(e => e.type === 'taskStart');
+    const taskEnd = events.find(e => e.type === 'taskEnd');
 
     expect(taskStart).toBeDefined();
     expect(taskEnd).toBeDefined();
@@ -920,7 +932,9 @@ describe('Workflow lifecycle: @Task decorator', () => {
       expect(grandChild.isDescendantOf(child)).toBe(true);
       expect(parent.isDescendantOf(grandChild)).toBe(false);
     } else {
-      console.warn('isDescendantOf() not available - Groundswell version may be < 0.0.3');
+      console.warn(
+        'isDescendantOf() not available - Groundswell version may be < 0.0.3'
+      );
     }
   });
 });
@@ -1036,7 +1050,7 @@ describe('Workflow lifecycle: @ObservedState decorator', () => {
 
     workflow.addObserver({
       onLog: () => {},
-      onEvent: (e) => events.push(e),
+      onEvent: e => events.push(e),
       onStateUpdated: () => {},
       onTreeChanged: () => {},
     });
@@ -1045,7 +1059,7 @@ describe('Workflow lifecycle: @ObservedState decorator', () => {
     await workflow.run();
 
     // VERIFY: Check for stateUpdated event
-    const stateUpdated = events.filter((e) => e.type === 'stateUpdated');
+    const stateUpdated = events.filter(e => e.type === 'stateUpdated');
     expect(stateUpdated.length).toBeGreaterThan(0);
   });
 
@@ -1326,7 +1340,7 @@ npm test -- -t "error handling"
 - ❌ **Don't use sync expectations for async operations** - Use await
 - ❌ **Don't create circular parent-child relationships** - Will throw error
 - ❌ **Don't test hidden fields in snapshots** - They're excluded by design
-- ❌ **Don't expect redacted fields to show values** - They show as '***'
+- ❌ **Don't expect redacted fields to show values** - They show as '\*\*\*'
 - ❌ **Don't skip event type checking** - Use discriminated unions for safety
 - ❌ **Don't ignore duration in stepEnd events** - Should be >= 0
 - ❌ **Don't forget to call run()** - Workflows don't auto-execute
@@ -1338,6 +1352,7 @@ npm test -- -t "error handling"
 ### Why test @Step, @Task, and @ObservedState separately?
 
 These are three core Groundswell decorator patterns that are used throughout the codebase:
+
 - **@Step**: Used in src/workflows/bug-hunt-workflow.ts, src/workflows/fix-cycle-workflow.ts
 - **@Task**: Will be used for hierarchical workflow spawning
 - **@ObservedState**: Used for state persistence and recovery
@@ -1355,6 +1370,7 @@ Groundswell may initialize the Anthropic SDK when imported. Mocking at module le
 ### Why test redaction and hidden fields separately?
 
 These are two distinct features of @ObservedState:
+
 - **redact: true**: Field is present but value is masked
 - **hidden: true**: Field is completely excluded from snapshot
 
@@ -1371,6 +1387,7 @@ The isDescendantOf() method was added in Groundswell v0.0.3. If the installed ve
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from previous PRPs (S1, S2, S3)
 - [x] Comprehensive Groundswell API documented
 - [x] Existing test patterns analyzed and documented
@@ -1383,6 +1400,7 @@ The isDescendantOf() method was added in Groundswell v0.0.3. If the installed ve
 - [x] 100% coverage requirement understood
 
 **Risk Mitigation**:
+
 - S1/S3 dependency checks prevent wasted time on missing/incompatible Groundswell
 - Mock pattern prevents accidental API calls
 - Observer pattern ensures event verification works
@@ -1391,6 +1409,7 @@ The isDescendantOf() method was added in Groundswell v0.0.3. If the installed ve
 - Follows existing codebase patterns for consistency
 
 **Known Risks**:
+
 - Groundswell version discrepancy (npm: 0.0.1, source: 0.0.3) - mitigated by version checks
 - isDescendantOf() may not exist in older versions - mitigated by availability check
 - Decorator configuration may differ across environments - mitigated by documentation

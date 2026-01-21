@@ -7,6 +7,7 @@
 **Deliverable**: Unit test file `tests/unit/core/task-traversal.test.ts` with complete test coverage for DFS traversal order, parent status transitions, hierarchy level limits, and scope filtering.
 
 **Success Definition**:
+
 - All 4 CONTRACT requirements from work item description are tested and passing
 - Test file runs successfully with `npx vitest run tests/unit/core/task-traversal.test.ts`
 - Tests validate: (a) traversal order follows depth-first pre-order (parent before children), (b) parent status changes to 'Implementing' when child starts, (c) traversal stops at Subtask level (subtasks are execution units), (d) traversal respects scope limits (phase/milestone/task filters)
@@ -18,6 +19,7 @@
 **Business Value**: The DFS traversal is the core algorithm that determines task execution order in the PRP Pipeline. Without proper DFS traversal verification, we cannot guarantee that tasks execute in the correct order, that parent status transitions happen appropriately, or that scope filtering works correctly. This could lead to tasks executing out of order, incomplete status tracking, or incorrect scope application.
 
 **Integration Points**:
+
 - Validates `processNextItem()` from `src/core/task-orchestrator.ts` (lines 805-834) for DFS traversal
 - Validates `executePhase()`, `executeMilestone()`, `executeTask()`, `executeSubtask()` methods for status changes (lines 483-750)
 - Validates `#buildQueue()` from `src/core/task-orchestrator.ts` (lines 152-165) for scope filtering
@@ -26,6 +28,7 @@
 - Uses factory functions from `tests/unit/core/task-utils.test.ts` for test data creation
 
 **Problems Solved**:
+
 - Ensures DFS traversal follows parent-before-children semantics (critical for correct execution order)
 - Confirms parent items transition to 'Implementing' status when children start processing
 - Verifies traversal stops at Subtask level (subtasks are the actual execution units)
@@ -38,6 +41,7 @@
 **User-Visible Behavior**: No direct user-visible behavior - this is infrastructure validation for the TaskOrchestrator's DFS traversal that ensures correct task execution order and status management.
 
 **Success Criteria**:
+
 - [ ] Test verifies traversal order follows DFS pre-order (parent before children) (CONTRACT a)
 - [ ] Test verifies parent status changes to 'Implementing' when child processing starts (CONTRACT b)
 - [ ] Test verifies traversal stops at Subtask level (subtasks are execution units) (CONTRACT c)
@@ -56,6 +60,7 @@
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Answer**: YES. This PRP provides:
+
 - Complete DFS traversal algorithm specification with verification patterns
 - Exact mock setup patterns from existing test files
 - All factory functions needed for test data creation
@@ -241,7 +246,15 @@ expect(queue.map(item => item.id)).toEqual(expectedIds);
 ```typescript
 // Import core dependencies
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import type { Backlog, Phase, Milestone, Task, Subtask, Status, HierarchyItem } from '../../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+  HierarchyItem,
+} from '../../../src/core/models.js';
 import { TaskOrchestrator } from '../../../src/core/task-orchestrator.js';
 import type { Scope } from '../../../src/core/scope-resolver.js';
 import { resolveScope } from '../../../src/core/scope-resolver.js';

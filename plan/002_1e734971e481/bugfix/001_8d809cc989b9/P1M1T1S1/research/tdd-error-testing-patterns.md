@@ -49,6 +49,7 @@ describe('CustomError - RED phase', () => {
 ```
 
 **Expected Failure:**
+
 ```
 ReferenceError: CustomError is not defined
 ```
@@ -109,7 +110,7 @@ describe('CustomError with context - RED phase', () => {
       name: 'CustomError',
       message: 'Delete failed',
       code: 'ERR_DELETE',
-      context: { userId: '123', action: 'delete' }
+      context: { userId: '123', action: 'delete' },
     });
   });
 });
@@ -134,7 +135,7 @@ export class CustomError extends Error {
       name: this.name,
       message: this.message,
       code: this.code,
-      context: this.context
+      context: this.context,
     };
   }
 }
@@ -285,7 +286,7 @@ describe('TDD: Write failing test first', () => {
   it('should redact sensitive data in context', () => {
     const error = new CustomError('Test', 'ERR_001', {
       apiKey: 'secret-key-123',
-      userId: 'user-123'
+      userId: 'user-123',
     });
 
     const json = error.toJSON();
@@ -361,7 +362,7 @@ describe('TDD: Progressive feature building', () => {
     expect(json).toMatchObject({
       name: 'CustomError',
       message: 'Test',
-      code: 'ERR_001'
+      code: 'ERR_001',
     });
   });
 
@@ -369,7 +370,7 @@ describe('TDD: Progressive feature building', () => {
   it('should redact sensitive data', () => {
     const error = new CustomError('Test', 'ERR_001', {
       apiKey: 'secret',
-      userId: '123'
+      userId: '123',
     });
     const json = error.toJSON();
     expect(json.context?.apiKey).toBe('[REDACTED]');
@@ -408,9 +409,11 @@ describe('Vitest error throwing patterns', () => {
   it('should throw error with specific code', () => {
     expect(() => {
       throw new CustomError('Test error', 'ERR_001');
-    }).toThrow(expect.objectContaining({
-      code: 'ERR_001'
-    }));
+    }).toThrow(
+      expect.objectContaining({
+        code: 'ERR_001',
+      })
+    );
   });
 
   it('should not throw different error type', () => {
@@ -442,7 +445,7 @@ describe('Vitest async error patterns', () => {
   it('should reject with error containing context', async () => {
     await expect(asyncFunction()).rejects.toMatchObject({
       code: 'ERR_CONN_FAILED',
-      context: { host: 'localhost' }
+      context: { host: 'localhost' },
     });
   });
 
@@ -476,7 +479,7 @@ describe('Vitest snapshot patterns', () => {
   it('should snapshot error structure', () => {
     const error = new CustomError('Test error', 'ERR_001', {
       userId: '123',
-      timestamp: '2024-01-15T10:00:00Z'
+      timestamp: '2024-01-15T10:00:00Z',
     });
 
     // Snapshot the toJSON() output
@@ -486,7 +489,7 @@ describe('Vitest snapshot patterns', () => {
   it('should snapshot error with different context', () => {
     const error = new CustomError('Different error', 'ERR_002', {
       userId: '456',
-      action: 'delete'
+      action: 'delete',
     });
 
     expect(error.toJSON()).toMatchSnapshot();
@@ -502,31 +505,34 @@ describe('Vitest parametrized error tests', () => {
     {
       code: 'ERR_001',
       message: 'Error 1',
-      expectedType: 'CustomError'
+      expectedType: 'CustomError',
     },
     {
       code: 'ERR_002',
       message: 'Error 2',
-      expectedType: 'CustomError'
+      expectedType: 'CustomError',
     },
     {
       code: 'ERR_003',
       message: 'Error 3',
-      expectedType: 'CustomError'
-    }
+      expectedType: 'CustomError',
+    },
   ];
 
-  it.each(testCases)('should create error with code $code', ({ code, message }) => {
-    const error = new CustomError(message, code);
-    expect(error.code).toBe(code);
-    expect(error.message).toBe(message);
-  });
+  it.each(testCases)(
+    'should create error with code $code',
+    ({ code, message }) => {
+      const error = new CustomError(message, code);
+      expect(error.code).toBe(code);
+      expect(error.message).toBe(message);
+    }
+  );
 
   it.each([
     { input: 'apiKey', expected: '[REDACTED]' },
     { input: 'token', expected: '[REDACTED]' },
     { input: 'password', expected: '[REDACTED]' },
-    { input: 'userId', expected: 'user-123' }
+    { input: 'userId', expected: 'user-123' },
   ])('should redact $input if sensitive', ({ input, expected }) => {
     const context = { [input]: 'secret-value' };
     if (input === 'userId') {
@@ -737,7 +743,7 @@ describe('JSON.stringify() compatibility', () => {
     const context = {
       userId: '123',
       metadata: { timestamp: Date.now(), tags: ['test', 'error'] },
-      nested: { deep: { value: 42 } }
+      nested: { deep: { value: 42 } },
     };
 
     const error = new CustomError('Test', 'ERR_001', context);
@@ -830,10 +836,10 @@ describe('Context sanitization', () => {
       'authToken',
       'password',
       'secret',
-      'privateKey'
+      'privateKey',
     ];
 
-    it.each(sensitiveFields)('should redact %s field', (field) => {
+    it.each(sensitiveFields)('should redact %s field', field => {
       const context = { [field]: 'secret-value-123' };
       const error = new CustomError('Test', 'ERR_001', context);
       const json = error.toJSON();
@@ -846,7 +852,7 @@ describe('Context sanitization', () => {
         apiKey: 'secret-key',
         token: 'secret-token',
         password: 'secret-password',
-        safeField: 'public-value'
+        safeField: 'public-value',
       };
 
       const error = new CustomError('Test', 'ERR_001', context);
@@ -860,18 +866,16 @@ describe('Context sanitization', () => {
   });
 
   describe('Case-insensitive matching', () => {
-    it.each([
-      'APIKEY',
-      'ApiSecret',
-      'PASSWORD',
-      'Token'
-    ])('should redact %s case-insensitively', (field) => {
-      const context = { [field]: 'secret-value' };
-      const error = new CustomError('Test', 'ERR_001', context);
-      const json = error.toJSON();
+    it.each(['APIKEY', 'ApiSecret', 'PASSWORD', 'Token'])(
+      'should redact %s case-insensitively',
+      field => {
+        const context = { [field]: 'secret-value' };
+        const error = new CustomError('Test', 'ERR_001', context);
+        const json = error.toJSON();
 
-      expect(json.context?.[field]).toBe('[REDACTED]');
-    });
+        expect(json.context?.[field]).toBe('[REDACTED]');
+      }
+    );
   });
 });
 ```
@@ -889,7 +893,7 @@ describe('Nested error handling in context', () => {
 
     expect(json.context?.originalError).toEqual({
       name: 'Error',
-      message: 'Original error'
+      message: 'Original error',
     });
   });
 
@@ -903,7 +907,7 @@ describe('Nested error handling in context', () => {
     expect(json.context?.cause).toEqual({
       name: 'CustomError',
       message: 'Nested error',
-      code: 'ERR_NESTED'
+      code: 'ERR_NESTED',
     });
   });
 
@@ -987,7 +991,12 @@ describe('Error chaining with cause property', () => {
 
   it('should preserve cause message', () => {
     const cause = new Error('Database connection failed');
-    const error = new CustomError('Query failed', 'ERR_QUERY', undefined, cause);
+    const error = new CustomError(
+      'Query failed',
+      'ERR_QUERY',
+      undefined,
+      cause
+    );
 
     const errorWithCause = error as unknown as { cause?: Error };
     expect(errorWithCause.cause?.message).toBe('Database connection failed');
@@ -1015,7 +1024,12 @@ describe('Error chaining with cause property', () => {
 describe('Chained custom errors', () => {
   it('should chain custom errors', () => {
     const original = new CustomError('Original error', 'ERR_ORIG');
-    const wrapper = new CustomError('Wrapper error', 'ERR_WRAP', undefined, original);
+    const wrapper = new CustomError(
+      'Wrapper error',
+      'ERR_WRAP',
+      undefined,
+      original
+    );
 
     const wrapperWithCause = wrapper as unknown as { cause?: Error };
     expect(wrapperWithCause.cause).toBeInstanceOf(CustomError);
@@ -1024,7 +1038,12 @@ describe('Chained custom errors', () => {
 
   it('should maintain error codes through chain', () => {
     const original = new CustomError('DB error', 'ERR_DB');
-    const wrapper = new CustomError('Service error', 'ERR_SERVICE', undefined, original);
+    const wrapper = new CustomError(
+      'Service error',
+      'ERR_SERVICE',
+      undefined,
+      original
+    );
 
     const wrapperWithCause = wrapper as unknown as { cause?: CustomError };
     expect(wrapper.code).toBe('ERR_SERVICE');
@@ -1041,7 +1060,7 @@ describe('Chained custom errors', () => {
     expect(json.cause).toBeDefined();
     expect(json.cause).toEqual({
       name: 'Error',
-      message: 'Original error'
+      message: 'Original error',
     });
   });
 });
@@ -1053,13 +1072,25 @@ describe('Chained custom errors', () => {
 describe('Deep error chains', () => {
   it('should handle three-level error chain', () => {
     const level1 = new Error('Low-level error');
-    const level2 = new CustomError('Mid-level error', 'ERR_MID', undefined, level1);
-    const level3 = new CustomError('High-level error', 'ERR_HIGH', undefined, level2);
+    const level2 = new CustomError(
+      'Mid-level error',
+      'ERR_MID',
+      undefined,
+      level1
+    );
+    const level3 = new CustomError(
+      'High-level error',
+      'ERR_HIGH',
+      undefined,
+      level2
+    );
 
     const level3WithCause = level3 as unknown as { cause?: CustomError };
     expect(level3WithCause.cause).toBeInstanceOf(CustomError);
 
-    const level2WithCause = level3WithCause.cause as unknown as { cause?: Error };
+    const level2WithCause = level3WithCause.cause as unknown as {
+      cause?: Error;
+    };
     expect(level2WithCause.cause).toBeInstanceOf(Error);
   });
 
@@ -1253,7 +1284,7 @@ describe('Type guard functions', () => {
       const errorLike = {
         name: 'CustomError',
         message: 'Test',
-        code: 'ERR_001'
+        code: 'ERR_001',
       };
 
       expect(isCustomError(errorLike)).toBe(false);
@@ -1298,7 +1329,7 @@ describe('Type narrowing validation', () => {
       new Error('Test 2'),
       new CustomError('Test 3', 'ERR_003'),
       'string error',
-      new TypeError('Test 4')
+      new TypeError('Test 4'),
     ];
 
     const customErrors = errors.filter(isCustomError);
@@ -1314,7 +1345,7 @@ describe('Type narrowing validation', () => {
     const errors: unknown[] = [
       new Error('Test'),
       new CustomError('Found', 'ERR_FOUND'),
-      new TypeError('Test')
+      new TypeError('Test'),
     ];
 
     const found = errors.find(isCustomError);
@@ -1339,7 +1370,7 @@ describe('Switch-style error handling', () => {
       new TypeError('Type'),
       new SyntaxError('Syntax'),
       null,
-      undefined
+      undefined,
     ];
 
     let customCount = 0;
@@ -1378,7 +1409,9 @@ describe('Switch-style error handling', () => {
       return 'Unknown error';
     }
 
-    expect(handleError(new CustomError('Test', 'ERR_001'))).toBe('Custom: ERR_001 - Test');
+    expect(handleError(new CustomError('Test', 'ERR_001'))).toBe(
+      'Custom: ERR_001 - Test'
+    );
     expect(handleError(new Error('Test'))).toBe('Error: Test');
     expect(handleError('string')).toBe('Unknown error');
   });
@@ -1466,10 +1499,18 @@ import { CustomError, BaseError, isCustomError } from '../errors.js';
 
 describe('Error hierarchy', () => {
   // Use nested describe blocks for logical grouping
-  describe('ErrorCodes', () => { /* ... */ });
-  describe('Interfaces', () => { /* ... */ });
-  describe('BaseError', () => { /* ... */ });
-  describe('CustomError', () => { /* ... */ });
+  describe('ErrorCodes', () => {
+    /* ... */
+  });
+  describe('Interfaces', () => {
+    /* ... */
+  });
+  describe('BaseError', () => {
+    /* ... */
+  });
+  describe('CustomError', () => {
+    /* ... */
+  });
 });
 ```
 
@@ -1491,9 +1532,15 @@ describe('Test naming conventions', () => {
   });
 
   // Avoid: Vague or incomplete names
-  it('works', () => { /* Bad: too vague */ });
-  it('test error', () => { /* Bad: doesn't say what it tests */ });
-  it('should error', () => { /* Bad: incomplete thought */ });
+  it('works', () => {
+    /* Bad: too vague */
+  });
+  it('test error', () => {
+    /* Bad: doesn't say what it tests */
+  });
+  it('should error', () => {
+    /* Bad: incomplete thought */
+  });
 });
 ```
 
@@ -1558,14 +1605,16 @@ describe('Test independence', () => {
 ```typescript
 describe('Fixture helper functions', () => {
   // Create reusable test fixtures
-  function createError(overrides?: Partial<{
-    message: string;
-    code: string;
-    context: Record<string, unknown>;
-  }>): CustomError {
+  function createError(
+    overrides?: Partial<{
+      message: string;
+      code: string;
+      context: Record<string, unknown>;
+    }>
+  ): CustomError {
     const defaults = {
       message: 'Test error',
-      code: 'ERR_001'
+      code: 'ERR_001',
     };
 
     const { message, code, context } = { ...defaults, ...overrides };
@@ -1588,7 +1637,7 @@ describe('Fixture helper functions', () => {
     const error = createError({
       message: 'Custom',
       code: 'ERR_CUSTOM',
-      context: { userId: '123' }
+      context: { userId: '123' },
     });
 
     expect(error.message).toBe('Custom');

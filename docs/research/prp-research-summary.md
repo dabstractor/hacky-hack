@@ -46,6 +46,7 @@ tests/
 ### Key Files and Their Purposes
 
 **Global Setup:**
+
 - **File:** `/home/dustin/projects/hacky-hack/tests/setup.ts`
 - **Purpose:** API validation, mock cleanup, promise rejection tracking
 - **Key Features:**
@@ -54,6 +55,7 @@ tests/
   - Memory management
 
 **Configuration:**
+
 - **File:** `/home/dustin/projects/hacky-hack/vitest.config.ts`
 - **Purpose:** Test environment configuration
 - **Key Settings:**
@@ -110,6 +112,7 @@ import { createAgent, createPrompt } from 'groundswell';
 ```
 
 **Key Benefits:**
+
 - Preserves other exports (MCPHandler, MCPServer)
 - Prevents real LLM API calls
 - Enables deterministic testing
@@ -555,7 +558,7 @@ describe('prompt content validation', () => {
 
 **Pattern 3: Formatting Preservation**
 
-```typescript
+````typescript
 describe('formatting preservation', () => {
   it('TASK_BREAKDOWN_PROMPT should preserve markdown code blocks', () => {
     expect(TASK_BREAKDOWN_PROMPT).toContain('```json');
@@ -572,7 +575,7 @@ describe('formatting preservation', () => {
     expect(BUG_HUNT_PROMPT).toContain('$(cat "$TASKS_FILE")');
   });
 });
-```
+````
 
 **Pattern 4: Prompt Generator Testing**
 
@@ -760,19 +763,23 @@ describe('Architect Agent Integration', () => {
 ### Key Files to Reference
 
 **Test Configuration:**
+
 - `/home/dustin/projects/hacky-hack/vitest.config.ts`
 - `/home/dustin/projects/hacky-hack/tests/setup.ts`
 
 **Unit Test Examples:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/agents/agent-factory.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/agents/prompts.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/core/models.test.ts`
 
 **Integration Test Examples:**
+
 - `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/integration/architect-agent.test.ts`
 
 **Source Code:**
+
 - `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts`
 - `/home/dustin/projects/hacky-hack/src/agents/prompts/architect-prompt.ts`
 - `/home/dustin/projects/hacky-hack/src/core/models.ts`

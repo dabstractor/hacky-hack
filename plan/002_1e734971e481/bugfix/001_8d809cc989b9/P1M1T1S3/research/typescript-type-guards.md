@@ -1,6 +1,7 @@
 # TypeScript Type Guard Research
 
 ## Table of Contents
+
 1. [What is a Type Guard?](#what-is-a-type-guard)
 2. [Type Guards for Error Handling in Catch Blocks](#type-guards-for-error-handling-in-catch-blocks)
 3. [Best Practices for Custom Error Class Type Guards](#best-practices-for-custom-error-class-type-guards)
@@ -129,6 +130,7 @@ try {
 ### Why Type Guards Are Better Than Type Assertions
 
 **❌ Bad: Using type assertions**
+
 ```typescript
 catch (error) {
   const err = error as Error; // Unsafe - assumes it's always an Error
@@ -137,6 +139,7 @@ catch (error) {
 ```
 
 **✅ Good: Using type guards**
+
 ```typescript
 catch (error) {
   if (isError(error)) {
@@ -154,7 +157,10 @@ catch (error) {
 ```typescript
 // ✅ Good: Extends Error
 class CustomError extends Error {
-  constructor(public code: string, message: string) {
+  constructor(
+    public code: string,
+    message: string
+  ) {
     super(message);
     this.name = 'CustomError';
     // Maintains proper stack trace
@@ -224,8 +230,8 @@ function isAppError(error: unknown): error is AppError {
   return (
     error instanceof Error &&
     (error instanceof ValidationError ||
-     error instanceof NetworkError ||
-     error instanceof DatabaseError)
+      error instanceof NetworkError ||
+      error instanceof DatabaseError)
   );
 }
 ```
@@ -356,7 +362,9 @@ function isSuccess<T>(result: Result<T>): result is { success: true; data: T } {
   return result.success === true;
 }
 
-function isError<T>(result: Result<T>): result is { success: false; error: Error } {
+function isError<T>(
+  result: Result<T>
+): result is { success: false; error: Error } {
   return result.success === false;
 }
 
@@ -433,7 +441,10 @@ function not<T>(
 }
 
 // Usage
-const isStringWithLength = and(isString, (val): val is string => val.length > 0);
+const isStringWithLength = and(
+  isString,
+  (val): val is string => val.length > 0
+);
 ```
 
 ### Pattern 5: Error Handler with Type Guards
@@ -468,13 +479,14 @@ class ErrorHandlerRegistry {
 const registry = new ErrorHandlerRegistry();
 
 registry.register({
-  canHandle: (error): error is ValidationError => error instanceof ValidationError,
-  handle: (error) => console.log(`Validation failed for ${error.field}`)
+  canHandle: (error): error is ValidationError =>
+    error instanceof ValidationError,
+  handle: error => console.log(`Validation failed for ${error.field}`),
 });
 
 registry.register({
   canHandle: (error): error is NetworkError => error instanceof NetworkError,
-  handle: (error) => console.log(`Network error: ${error.statusCode}`)
+  handle: error => console.log(`Network error: ${error.statusCode}`),
 });
 ```
 
@@ -523,6 +535,7 @@ function handleError(error: AppError) {
 ### Pitfall 1: Using Type Assertions Instead of Type Guards
 
 **❌ Bad:**
+
 ```typescript
 catch (error) {
   const err = error as Error; // Unsafe assumption
@@ -531,6 +544,7 @@ catch (error) {
 ```
 
 **✅ Good:**
+
 ```typescript
 catch (error) {
   if (isError(error)) {
@@ -542,6 +556,7 @@ catch (error) {
 ### Pitfall 2: Type Guards That Don't Actually Check Types
 
 **❌ Bad:**
+
 ```typescript
 function isString(value: unknown): value is string {
   return true; // Always returns true - doesn't check!
@@ -549,6 +564,7 @@ function isString(value: unknown): value is string {
 ```
 
 **✅ Good:**
+
 ```typescript
 function isString(value: unknown): value is string {
   return typeof value === 'string'; // Actual runtime check
@@ -558,6 +574,7 @@ function isString(value: unknown): value is string {
 ### Pitfall 3: Forgetting to Check for null/undefined
 
 **❌ Bad:**
+
 ```typescript
 function isUser(obj: { name?: string }): obj is { name: string } {
   return obj.name !== undefined;
@@ -565,6 +582,7 @@ function isUser(obj: { name?: string }): obj is { name: string } {
 ```
 
 **✅ Good:**
+
 ```typescript
 function isUser(obj: unknown): obj is { name: string } {
   return (
@@ -579,6 +597,7 @@ function isUser(obj: unknown): obj is { name: string } {
 ### Pitfall 4: Type Guards That Modify Values
 
 **❌ Bad:**
+
 ```typescript
 function normalizeAndCheck(value: unknown): value is string {
   if (typeof value === 'string') {
@@ -590,6 +609,7 @@ function normalizeAndCheck(value: unknown): value is string {
 ```
 
 **✅ Good:**
+
 ```typescript
 function isString(value: unknown): value is string {
   return typeof value === 'string';
@@ -603,6 +623,7 @@ function normalize(value: string): string {
 ### Pitfall 5: Overly Complex Type Guards
 
 **❌ Bad:**
+
 ```typescript
 function isValidUser(value: unknown): value is User {
   return (
@@ -621,6 +642,7 @@ function isValidUser(value: unknown): value is User {
 ```
 
 **✅ Good:**
+
 ```typescript
 function isUser(value: unknown): value is User {
   if (typeof value !== 'object' || value === null) {
@@ -644,6 +666,7 @@ function isUser(value: unknown): value is User {
 ### Pitfall 6: Not Considering Prototype Chain Issues
 
 **❌ Bad:**
+
 ```typescript
 // Fails across iframe boundaries
 function isError(error: unknown): error is Error {
@@ -652,17 +675,16 @@ function isError(error: unknown): error is Error {
 ```
 
 **✅ Good:**
+
 ```typescript
 function isError(error: unknown): error is Error {
   return (
     error instanceof Error ||
     // Fallback for cross-frame errors
-    (
-      typeof error === 'object' &&
+    (typeof error === 'object' &&
       error !== null &&
       'message' in error &&
-      'stack' in error
-    )
+      'stack' in error)
   );
 }
 ```
@@ -670,6 +692,7 @@ function isError(error: unknown): error is Error {
 ### Pitfall 7: Type Guards in Array Methods
 
 **❌ Bad:**
+
 ```typescript
 // TypeScript doesn't narrow in filter callbacks
 const strings = values.filter(isString);
@@ -680,6 +703,7 @@ const numbers = values.filter(v => !isString(v));
 ```
 
 **✅ Good:**
+
 ```typescript
 // Use type assertion after filter
 const strings = values.filter(isString) as string[];
@@ -698,6 +722,7 @@ const strings = filterBy(values, isString); // string[]
 ### Pitfall 8: Forgetting to Handle Unknown Cases
 
 **❌ Bad:**
+
 ```typescript
 try {
   // operation
@@ -710,6 +735,7 @@ try {
 ```
 
 **✅ Good:**
+
 ```typescript
 try {
   // operation
@@ -729,6 +755,7 @@ try {
 ### Pitfall 9: Type Guards with Side Effects
 
 **❌ Bad:**
+
 ```typescript
 function isUserWithLogging(value: unknown): value is User {
   console.log('Checking if user...'); // Side effect!
@@ -737,6 +764,7 @@ function isUserWithLogging(value: unknown): value is User {
 ```
 
 **✅ Good:**
+
 ```typescript
 function isUser(value: unknown): value is User {
   return value instanceof User;
@@ -751,6 +779,7 @@ if (isUser(value)) {
 ### Pitfall 10: Not Testing Type Guards
 
 **❌ Bad:**
+
 ```typescript
 // No tests - how do you know it works?
 function isUser(value: unknown): value is User {
@@ -759,6 +788,7 @@ function isUser(value: unknown): value is User {
 ```
 
 **✅ Good:**
+
 ```typescript
 // Write tests for type guards
 describe('isUser', () => {
@@ -840,5 +870,5 @@ describe('isUser', () => {
 
 ---
 
-*Last updated: January 2026*
-*TypeScript Version: 5.x*
+_Last updated: January 2026_
+_TypeScript Version: 5.x_

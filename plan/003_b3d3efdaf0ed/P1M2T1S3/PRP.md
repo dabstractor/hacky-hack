@@ -9,6 +9,7 @@
 **Deliverable**: Integration test file `tests/integration/smart-commit.test.ts` with complete coverage of smart commit behavior including commit triggering, message formatting, protected file filtering, and error handling.
 
 **Success Definition**: All tests pass, verifying:
+
 - Git commit is triggered after successful subtask completion
 - Commit message uses correct format: `{subtask.id}: {subtask.title}` with `[PRP Auto]` prefix and Co-Authored-By trailer
 - Protected files (tasks.json, prd_snapshot.md, PRD.md) are not committed
@@ -50,7 +51,8 @@ Integration tests that verify smart commit functionality triggers correctly afte
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Complete smart commit implementation details from src/utils/git-commit.ts analysis
 - Integration point in TaskOrchestrator at line 707 with exact calling pattern
 - Protected files list and filtering logic with line numbers
@@ -224,8 +226,8 @@ try {
 // CRITICAL: Protected files list
 // From git-commit.ts lines 38-42
 const PROTECTED_FILES = [
-  'tasks.json',      // Pipeline task registry
-  'PRD.md',          // Original PRD document
+  'tasks.json', // Pipeline task registry
+  'PRD.md', // Original PRD document
   'prd_snapshot.md', // PRD snapshot for delta detection
 ] as const;
 // GOTCHA: Uses basename() for comparison, so path/to/tasks.json is also filtered
@@ -254,7 +256,7 @@ export function filterProtectedFiles(files: string[]): string[] {
 export async function smartCommit(
   sessionPath: string,
   message: string
-): Promise<string | null>
+): Promise<string | null>;
 // Returns: commit hash (string) on success, null on no files or failure
 // GOTCHA: Returns null when no files to commit after filtering
 // GOTCHA: Returns null on any git operation failure (status, add, commit)
@@ -338,9 +340,9 @@ The test uses existing models from `src/core/models.ts`:
 // Subtask structure from models.ts
 interface Subtask {
   type: 'Subtask';
-  id: string;              // Format: P1.M2.T1.S3
-  title: string;           // Human-readable title
-  status: TaskStatus;      // 'Planned' | 'Implementing' | 'Complete' | 'Failed'
+  id: string; // Format: P1.M2.T1.S3
+  title: string; // Human-readable title
+  status: TaskStatus; // 'Planned' | 'Implementing' | 'Complete' | 'Failed'
   story_points: number;
   dependencies: string[];
   context_scope: string;
@@ -530,11 +532,17 @@ Task 8: VERIFY test coverage and completeness
 // Mock git-commit module
 vi.mock('../../../src/utils/git-commit.js', () => ({
   smartCommit: vi.fn(),
-  filterProtectedFiles: vi.fn((files: string[]) => files.filter(f =>
-    !['tasks.json', 'PRD.md', 'prd_snapshot.md'].includes(require('node:path').basename(f))
-  )),
-  formatCommitMessage: vi.fn((msg: string) =>
-    `[PRP Auto] ${msg}\n\nCo-Authored-By: Claude <noreply@anthropic.com>`
+  filterProtectedFiles: vi.fn((files: string[]) =>
+    files.filter(
+      f =>
+        !['tasks.json', 'PRD.md', 'prd_snapshot.md'].includes(
+          require('node:path').basename(f)
+        )
+    )
+  ),
+  formatCommitMessage: vi.fn(
+    (msg: string) =>
+      `[PRP Auto] ${msg}\n\nCo-Authored-By: Claude <noreply@anthropic.com>`
   ),
 }));
 
@@ -574,7 +582,11 @@ import { tmpdir } from 'node:os';
 
 import { TaskOrchestrator } from '../../../src/core/task-orchestrator.js';
 import type { Backlog, Subtask } from '../../../src/core/models.js';
-import { smartCommit, filterProtectedFiles, formatCommitMessage } from '../../../src/utils/git-commit.js';
+import {
+  smartCommit,
+  filterProtectedFiles,
+  formatCommitMessage,
+} from '../../../src/utils/git-commit.js';
 import { gitStatus, gitAdd, gitCommit } from '../../../src/tools/git-mcp.js';
 
 // PATTERN: Typed mocks
@@ -594,7 +606,8 @@ function createMockSubtask(overrides: Partial<Subtask> = {}): Subtask {
     status: 'Implementing',
     story_points: 1,
     dependencies: [],
-    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+    context_scope:
+      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
     ...overrides,
   };
 }
@@ -773,7 +786,9 @@ describe('integration/smart-commit > smart commit functionality', () => {
       const formatted = formatCommitMessage(baseMessage);
 
       // VERIFY: Trailer added with blank line before
-      expect(formatted).toContain('Co-Authored-By: Claude <noreply@anthropic.com>');
+      expect(formatted).toContain(
+        'Co-Authored-By: Claude <noreply@anthropic.com>'
+      );
       expect(formatted).toMatch(/\n\nCo-Authored-By:/);
     });
   });
@@ -1189,6 +1204,7 @@ grep -n "VERIFY:" tests/integration/smart-commit.test.ts
 **Confidence Score:** 9/10 for one-pass implementation success
 
 **Rationale:**
+
 - Complete smart commit implementation with exact line numbers and patterns
 - Comprehensive integration test research from existing test files
 - Smart commit calling context analysis with exact integration point

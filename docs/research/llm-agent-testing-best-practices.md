@@ -86,6 +86,7 @@ export default defineConfig({
    - Validates before each test execution
 
 2. **Mock Cleanup**: Automatic cleanup between tests
+
    ```typescript
    beforeEach(() => {
      vi.clearAllMocks();
@@ -201,7 +202,8 @@ vi.mocked(createPrompt).mockReturnValue(mockPrompt as never);
 
 ```typescript
 // Test fixture: Sample PRD content
-const mockPRDContent = '# Test PRD\n\nThis is a test PRD for integration testing.';
+const mockPRDContent =
+  '# Test PRD\n\nThis is a test PRD for integration testing.';
 
 // Test fixture: Sample Subtask
 const mockSubtask: Subtask = {
@@ -314,7 +316,9 @@ describe('environment variable mapping', () => {
     const config = createBaseConfig('architect');
 
     expect(config.env.ANTHROPIC_API_KEY).toBeDefined();
-    expect(config.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+    expect(config.env.ANTHROPIC_BASE_URL).toBe(
+      'https://api.z.ai/api/anthropic'
+    );
   });
 });
 ```
@@ -387,7 +391,7 @@ describe('prompt content validation', () => {
 
 **Test 3: Formatting Preservation**
 
-```typescript
+````typescript
 describe('formatting preservation', () => {
   it('TASK_BREAKDOWN_PROMPT should preserve markdown code blocks', () => {
     expect(TASK_BREAKDOWN_PROMPT).toContain('```json');
@@ -404,7 +408,7 @@ describe('formatting preservation', () => {
     expect(BUG_HUNT_PROMPT).toContain('$(cat "$TASKS_FILE")');
   });
 });
-```
+````
 
 ### Prompt Generator Testing
 

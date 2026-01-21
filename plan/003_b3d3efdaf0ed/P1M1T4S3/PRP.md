@@ -9,7 +9,8 @@
 **Deliverable**: Unit test file `tests/unit/resource-monitoring.test.ts` with complete coverage of resource tracking and limit enforcement verification.
 
 **Success Definition**: All tests pass, verifying:
-- File handle count is monitored using platform-specific methods (process._getActiveHandles, /proc filesystem, lsof on macOS)
+
+- File handle count is monitored using platform-specific methods (process.\_getActiveHandles, /proc filesystem, lsof on macOS)
 - Heap stats are captured via process.memoryUsage() and calculated correctly
 - max-tasks limit stops pipeline after N tasks complete
 - max-duration limit stops pipeline after N milliseconds
@@ -34,12 +35,12 @@ Unit tests that verify ResourceMonitor's core functionality across resource trac
 
 ### Success Criteria
 
-- [ ] File handle count monitored via process._getActiveHandles() (primary method)
+- [ ] File handle count monitored via process.\_getActiveHandles() (primary method)
 - [ ] Linux: Falls back to /proc/<pid>/fd directory counting
 - [ ] macOS: Falls back to lsof -p <pid> command (5s timeout)
 - [ ] Windows: Returns 0 (no ulimit concept)
 - [ ] Heap stats captured via process.memoryUsage() (heapUsed, heapTotal, rss)
-- [ ] Heap usage percentage calculated correctly (heapUsed / heapTotal * 100)
+- [ ] Heap usage percentage calculated correctly (heapUsed / heapTotal \* 100)
 - [ ] Memory leak detection logged when >20% growth over 5 samples
 - [ ] max-tasks limit: shouldStop() returns true after N tasks
 - [ ] max-tasks limit: getTasksCompleted() returns accurate count
@@ -60,7 +61,8 @@ Unit tests that verify ResourceMonitor's core functionality across resource trac
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Complete ResourceMonitor implementation structure from codebase analysis
 - Existing test patterns from resource-monitor.test.ts with working mock examples
 - External research on testing Node.js resource monitoring with specific URLs
@@ -312,9 +314,13 @@ vi.mock('node:fs', () => ({
 }));
 
 // GOTCHA: For lsof tests, verify spawn was called with correct arguments
-expect(mockSpawn).toHaveBeenCalledWith('lsof', ['-p', '1234'], expect.objectContaining({
-  timeout: 5000,
-}));
+expect(mockSpawn).toHaveBeenCalledWith(
+  'lsof',
+  ['-p', '1234'],
+  expect.objectContaining({
+    timeout: 5000,
+  })
+);
 
 // CRITICAL: Report format includes pipe table alignment
 // Tests should verify report contains expected sections, not exact formatting
@@ -334,12 +340,14 @@ import type {
   ResourceConfig,
   ResourceLimitStatus,
   FileHandleStatus,
-  MemoryStatus
+  MemoryStatus,
 } from '../../src/utils/resource-monitor.js';
 import { ResourceMonitor } from '../../src/utils/resource-monitor.js';
 
 // Mock fixture for ResourceConfig
-const createMockResourceConfig = (overrides?: Partial<ResourceConfig>): ResourceConfig => ({
+const createMockResourceConfig = (
+  overrides?: Partial<ResourceConfig>
+): ResourceConfig => ({
   maxTasks: 10,
   maxDuration: 60000,
   fileHandleWarnThreshold: 70,
@@ -351,23 +359,32 @@ const createMockResourceConfig = (overrides?: Partial<ResourceConfig>): Resource
 });
 
 // Mock fixture for ResourceLimitStatus
-const createMockResourceStatus = (overrides?: Partial<ResourceLimitStatus>): ResourceLimitStatus => ({
+const createMockResourceStatus = (
+  overrides?: Partial<ResourceLimitStatus>
+): ResourceLimitStatus => ({
   shouldStop: false,
   limitType: null,
   tasksCompleted: 0,
   elapsedMs: 0,
   fileHandles: { count: 100, limit: 1024, percentage: 9.8, status: 'normal' },
-  memory: { heapUsed: 128, heapTotal: 256, systemPercentage: 45.2, status: 'normal' },
+  memory: {
+    heapUsed: 128,
+    heapTotal: 256,
+    systemPercentage: 45.2,
+    status: 'normal',
+  },
   ...overrides,
 });
 
 // Mock fixture for process.memoryUsage() return value
-const createMockMemoryUsage = (overrides?: Partial<NodeJS.MemoryUsage>): NodeJS.MemoryUsage => ({
-  heapUsed: 128 * 1024 * 1024,     // 128 MB in bytes
-  heapTotal: 256 * 1024 * 1024,    // 256 MB in bytes
-  rss: 180 * 1024 * 1024,          // 180 MB in bytes
-  external: 10 * 1024 * 1024,      // 10 MB in bytes
-  arrayBuffers: 5 * 1024 * 1024,   // 5 MB in bytes
+const createMockMemoryUsage = (
+  overrides?: Partial<NodeJS.MemoryUsage>
+): NodeJS.MemoryUsage => ({
+  heapUsed: 128 * 1024 * 1024, // 128 MB in bytes
+  heapTotal: 256 * 1024 * 1024, // 256 MB in bytes
+  rss: 180 * 1024 * 1024, // 180 MB in bytes
+  external: 10 * 1024 * 1024, // 10 MB in bytes
+  arrayBuffers: 5 * 1024 * 1024, // 5 MB in bytes
   ...overrides,
 });
 ```
@@ -565,7 +582,10 @@ Task 10: DOCUMENT test completion
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { rm } from 'node:fs';
 import { ResourceMonitor } from '../../src/utils/resource-monitor.js';
-import type { ResourceConfig, ResourceLimitStatus } from '../../src/utils/resource-monitor.js';
+import type {
+  ResourceConfig,
+  ResourceLimitStatus,
+} from '../../src/utils/resource-monitor.js';
 import { clearLoggerCache } from '../../src/utils/logger.js';
 
 // CRITICAL: Global mocks at top level (hoisting required)
@@ -606,12 +626,14 @@ function restoreActiveHandles(): void {
   (process as any)._getActiveHandles = undefined;
 }
 
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-  delay?: number;
-} = {}): ChildProcess {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+    delay?: number;
+  } = {}
+): ChildProcess {
   const { exitCode = 0, stdout = '', stderr = '', delay = 5 } = options;
 
   return {
@@ -640,7 +662,9 @@ function createMockChild(options: {
 }
 
 // PATTERN: Test fixture functions
-const createMockResourceConfig = (overrides?: Partial<ResourceConfig>): ResourceConfig => ({
+const createMockResourceConfig = (
+  overrides?: Partial<ResourceConfig>
+): ResourceConfig => ({
   maxTasks: 10,
   maxDuration: 60000,
   fileHandleWarnThreshold: 70,
@@ -651,7 +675,9 @@ const createMockResourceConfig = (overrides?: Partial<ResourceConfig>): Resource
   ...overrides,
 });
 
-const createMockMemoryUsage = (overrides?: Partial<NodeJS.MemoryUsage>): NodeJS.MemoryUsage => ({
+const createMockMemoryUsage = (
+  overrides?: Partial<NodeJS.MemoryUsage>
+): NodeJS.MemoryUsage => ({
   heapUsed: 128 * 1024 * 1024,
   heapTotal: 256 * 1024 * 1024,
   rss: 180 * 1024 * 1024,
@@ -722,7 +748,8 @@ describe('ResourceMonitor Resource Tracking and Limit Enforcement', () => {
 
     it('should use lsof command for handle counting', async () => {
       // SETUP: Mock spawn to return lsof output
-      const mockLsofOutput = 'COMMAND1\nPID1\nUSER1\nFD1\n' + 'COMMAND2\nPID2\nUSER2\nFD2\n';
+      const mockLsofOutput =
+        'COMMAND1\nPID1\nUSER1\nFD1\n' + 'COMMAND2\nPID2\nUSER2\nFD2\n';
       mockSpawn.mockReturnValue(createMockChild({ stdout: mockLsofOutput }));
 
       const monitor = new ResourceMonitor({});
@@ -760,7 +787,7 @@ describe('ResourceMonitor Resource Tracking and Limit Enforcement', () => {
     it('should capture V8 heap stats via process.memoryUsage()', () => {
       // SETUP: Mock process.memoryUsage()
       const mockMemory = createMockMemoryUsage({
-        heapUsed: 128 * 1024 * 1024,  // 128 MB
+        heapUsed: 128 * 1024 * 1024, // 128 MB
         heapTotal: 256 * 1024 * 1024, // 256 MB
       });
       vi.spyOn(process, 'memoryUsage').mockReturnValue(mockMemory);
@@ -787,7 +814,7 @@ describe('ResourceMonitor Resource Tracking and Limit Enforcement', () => {
 
       // EXECUTE: Advance time through 5 polling intervals with growing memory
       for (let i = 0; i < 5; i++) {
-        const growthFactor = 1 + (i * 0.1); // 0%, 10%, 20%, 30%, 40% growth
+        const growthFactor = 1 + i * 0.1; // 0%, 10%, 20%, 30%, 40% growth
         const mockMemory = createMockMemoryUsage({
           heapUsed: 128 * 1024 * 1024 * growthFactor,
         });
@@ -923,13 +950,16 @@ describe('ResourceMonitor Resource Tracking and Limit Enforcement', () => {
     it('should include actionable suggestions based on limit type', () => {
       // Test each limit type has appropriate suggestion
       const suggestions = {
-        max_tasks: 'Increase --max-tasks or split workload into smaller sessions',
+        max_tasks:
+          'Increase --max-tasks or split workload into smaller sessions',
         max_duration: 'Increase --max-duration or optimize task performance',
         file_handles: 'Run "ulimit -n 4096" to increase file handle limit',
         memory: 'Close other applications or increase system memory',
       };
 
-      for (const [limitType, expectedSuggestion] of Object.entries(suggestions)) {
+      for (const [limitType, expectedSuggestion] of Object.entries(
+        suggestions
+      )) {
         // Create monitor that triggers this limit
         const monitor = new ResourceMonitor({});
         // Mock status to return this limit type
@@ -962,7 +992,7 @@ describe('ResourceMonitor Resource Tracking and Limit Enforcement', () => {
       });
       vi.spyOn(process, 'memoryUsage').mockReturnValue(mockMemory);
       mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024); // 16 GB
-      mockFreemem.mockReturnValue(8 * 1024 * 1024 * 1024);   // 8 GB
+      mockFreemem.mockReturnValue(8 * 1024 * 1024 * 1024); // 8 GB
 
       // EXECUTE: Get status
       const monitor = new ResourceMonitor({});
@@ -1211,7 +1241,7 @@ npx vitest run tests/unit/resource-monitoring.test.ts --coverage
 
 ### Feature Validation
 
-- [ ] File handle count monitored via process._getActiveHandles()
+- [ ] File handle count monitored via process.\_getActiveHandles()
 - [ ] Linux /proc filesystem fallback tested
 - [ ] macOS lsof command execution tested (with timeout)
 - [ ] Windows returns 0 for file handles
@@ -1262,7 +1292,7 @@ npx vitest run tests/unit/resource-monitoring.test.ts --coverage
 - ❌ Don't read real /proc filesystem - mock fs.readdir
 - ❌ Don't use real process.memoryUsage() for assertions - mock it
 - ❌ Don't skip vi.useFakeTimers() for duration tests
-- ❌ Don't forget to restore process._getActiveHandles in afterEach
+- ❌ Don't forget to restore process.\_getActiveHandles in afterEach
 - ❌ Don't skip platform stubbing for platform-specific tests
 - ❌ Don't hardcode configuration values - use factory functions
 - ❌ Don't test unit-level behavior with integration tests
@@ -1284,6 +1314,7 @@ npx vitest run tests/unit/resource-monitoring.test.ts --coverage
 **Confidence Score:** 9/10 for one-pass implementation success
 
 **Rationale:**
+
 - Complete implementation analysis with specific line references
 - Comprehensive test design covering all contract requirements
 - Mock helper functions and patterns from existing tests

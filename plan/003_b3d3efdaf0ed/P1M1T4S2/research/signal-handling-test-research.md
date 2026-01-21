@@ -65,6 +65,7 @@ describe('SIGINT handling', () => {
 ```
 
 **Key Points:**
+
 - `process.emit('SIGINT')` triggers all registered SIGINT handlers synchronously
 - Handlers execute in the order they were registered
 - Must clean up listeners in `afterEach` to prevent test pollution
@@ -171,9 +172,33 @@ it('should complete current task before shutdown on SIGINT', async () => {
                 status: 'Planned',
                 description: 'Test task',
                 subtasks: [
-                  { id: 'P1.M1.T1.S1', type: 'Subtask', title: 'Subtask 1', status: 'Planned', story_points: 1, dependencies: [], context_scope: 'Test scope' },
-                  { id: 'P1.M1.T1.S2', type: 'Subtask', title: 'Subtask 2', status: 'Planned', story_points: 1, dependencies: [], context_scope: 'Test scope' },
-                  { id: 'P1.M1.T1.S3', type: 'Subtask', title: 'Subtask 3', status: 'Planned', story_points: 1, dependencies: [], context_scope: 'Test scope' },
+                  {
+                    id: 'P1.M1.T1.S1',
+                    type: 'Subtask',
+                    title: 'Subtask 1',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope: 'Test scope',
+                  },
+                  {
+                    id: 'P1.M1.T1.S2',
+                    type: 'Subtask',
+                    title: 'Subtask 2',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope: 'Test scope',
+                  },
+                  {
+                    id: 'P1.M1.T1.S3',
+                    type: 'Subtask',
+                    title: 'Subtask 3',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope: 'Test scope',
+                  },
                 ],
               },
             ],
@@ -184,7 +209,8 @@ it('should complete current task before shutdown on SIGINT', async () => {
   };
 
   const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-  const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+  const { createArchitectAgent } =
+    await import('../../src/agents/agent-factory.js');
   (createArchitectAgent as any).mockReturnValue(mockAgent);
 
   // Setup mock SessionManager
@@ -193,12 +219,23 @@ it('should complete current task before shutdown on SIGINT', async () => {
       metadata: { path: tempDir },
       taskRegistry: backlog,
     },
-    initialize: vi.fn().mockResolvedValue({ /* session */ }),
+    initialize: vi.fn().mockResolvedValue({
+      /* session */
+    }),
     saveBacklog: vi.fn().mockResolvedValue(undefined),
   };
   MockSessionManagerClass.mockImplementation(() => mockSessionManager);
 
-  const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+  const pipeline = new PRPPipeline(
+    prdPath,
+    undefined,
+    undefined,
+    false,
+    false,
+    undefined,
+    undefined,
+    planDir
+  );
 
   // Mock processNextItem to simulate task execution with shutdown after first task
   let callCount = 0;
@@ -275,8 +312,24 @@ it('should save backlog state in cleanup even on error', async () => {
                 status: 'Implementing',
                 description: 'Test task',
                 subtasks: [
-                  { id: 'P1.M1.T1.S1', type: 'Subtask', title: 'Subtask 1', status: 'Complete', story_points: 1, dependencies: [], context_scope: 'Test scope' },
-                  { id: 'P1.M1.T1.S2', type: 'Subtask', title: 'Subtask 2', status: 'Planned', story_points: 1, dependencies: [], context_scope: 'Test scope' },
+                  {
+                    id: 'P1.M1.T1.S1',
+                    type: 'Subtask',
+                    title: 'Subtask 1',
+                    status: 'Complete',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope: 'Test scope',
+                  },
+                  {
+                    id: 'P1.M1.T1.S2',
+                    type: 'Subtask',
+                    title: 'Subtask 2',
+                    status: 'Planned',
+                    story_points: 1,
+                    dependencies: [],
+                    context_scope: 'Test scope',
+                  },
                 ],
               },
             ],
@@ -286,7 +339,16 @@ it('should save backlog state in cleanup even on error', async () => {
     ],
   };
 
-  const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+  const pipeline = new PRPPipeline(
+    prdPath,
+    undefined,
+    undefined,
+    false,
+    false,
+    undefined,
+    undefined,
+    planDir
+  );
 
   // Simulate error during execution with SIGINT
   const mockOrchestrator: any = {
@@ -308,7 +370,9 @@ it('should save backlog state in cleanup even on error', async () => {
       metadata: { path: tempDir },
       taskRegistry: backlog,
     },
-    initialize: vi.fn().mockResolvedValue({ /* session */ }),
+    initialize: vi.fn().mockResolvedValue({
+      /* session */
+    }),
     saveBacklog: vi.fn().mockResolvedValue(undefined),
   };
   (pipeline as any).sessionManager = mockSessionManager;
@@ -328,7 +392,16 @@ Verify that duplicate signals don't cause state corruption:
 
 ```typescript
 it('should handle duplicate SIGINT signals gracefully', async () => {
-  const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+  const pipeline = new PRPPipeline(
+    prdPath,
+    undefined,
+    undefined,
+    false,
+    false,
+    undefined,
+    undefined,
+    planDir
+  );
   const warnSpy = vi.spyOn((pipeline as any).logger, 'warn');
 
   const mockOrchestrator: any = {
@@ -401,7 +474,16 @@ describe('signal listener cleanup', () => {
   });
 
   it('should remove signal listeners in cleanup', async () => {
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     const initialSigintCount = (process as any)._events?.SIGINT?.length ?? 0;
 
     // Run pipeline
@@ -410,7 +492,9 @@ describe('signal listener cleanup', () => {
         metadata: { path: tempDir },
         taskRegistry: { backlog: [] },
       },
-      initialize: vi.fn().mockResolvedValue({ /* session */ }),
+      initialize: vi.fn().mockResolvedValue({
+        /* session */
+      }),
       saveBacklog: vi.fn().mockResolvedValue(undefined),
     };
     (pipeline as any).sessionManager = mockSessionManager;
@@ -441,13 +525,17 @@ export class PRPPipeline extends Workflow {
   #setupSignalHandlers(): void {
     // Create handlers
     this.#sigintHandler = () => {
-      this.logger.info('[PRPPipeline] SIGINT received, initiating graceful shutdown');
+      this.logger.info(
+        '[PRPPipeline] SIGINT received, initiating graceful shutdown'
+      );
       this.shutdownRequested = true;
       this.shutdownReason = 'SIGINT';
     };
 
     this.#sigtermHandler = () => {
-      this.logger.info('[PRPPipeline] SIGTERM received, initiating graceful shutdown');
+      this.logger.info(
+        '[PRPPipeline] SIGTERM received, initiating graceful shutdown'
+      );
       this.shutdownRequested = true;
       this.shutdownReason = 'SIGTERM';
     };
@@ -658,7 +746,8 @@ describe('--continue flag functionality', () => {
 
     // Mock initial pipeline run
     const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-    const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+    const { createArchitectAgent } =
+      await import('../../src/agents/agent-factory.js');
     (createArchitectAgent as any).mockReturnValue(mockAgent);
 
     // Create interrupted session
@@ -676,7 +765,16 @@ describe('--continue flag functionality', () => {
     };
     MockSessionManagerClass.mockImplementation(() => mockSessionManager);
 
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
 
     // Simulate interruption after first task
     let callCount = 0;
@@ -701,7 +799,16 @@ describe('--continue flag functionality', () => {
     // STEP 2: Resume with --continue
     vi.clearAllMocks();
 
-    const resumePipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const resumePipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
 
     // Mock resumed execution
     const resumeOrchestrator: any = {
@@ -744,13 +851,23 @@ describe('--continue flag functionality', () => {
     };
     MockSessionManagerClass.mockImplementation(() => mockSessionManager);
 
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
     (pipeline as any).sessionManager = mockSessionManager;
 
     await pipeline.decomposePRD();
 
     // VERIFY: Architect agent should NOT be called for existing backlog
-    const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+    const { createArchitectAgent } =
+      await import('../../src/agents/agent-factory.js');
     expect(createArchitectAgent).not.toHaveBeenCalled();
     expect(pipeline.currentPhase).toBe('prd_decomposed');
   });
@@ -783,10 +900,20 @@ describe('state corruption prevention', () => {
     const backlog: Backlog = { backlog: [] };
 
     const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-    const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+    const { createArchitectAgent } =
+      await import('../../src/agents/agent-factory.js');
     (createArchitectAgent as any).mockReturnValue(mockAgent);
 
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
 
     const mockOrchestrator: any = {
       processNextItem: vi.fn().mockImplementation(async () => {
@@ -805,7 +932,9 @@ describe('state corruption prevention', () => {
 
     const mockSessionManager: any = {
       currentSession: { metadata: { path: tempDir }, taskRegistry: backlog },
-      initialize: vi.fn().mockResolvedValue({ /* session */ }),
+      initialize: vi.fn().mockResolvedValue({
+        /* session */
+      }),
       saveBacklog: vi.fn().mockImplementation((savedBacklog: Backlog) => {
         // Verify state is not corrupted
         expect(savedBacklog).toBeDefined();
@@ -837,12 +966,23 @@ describe('state corruption prevention', () => {
       ],
     };
 
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
 
     // Mock saveBacklog to throw error
     const mockSessionManager: any = {
       currentSession: { metadata: { path: tempDir }, taskRegistry: backlog },
-      initialize: vi.fn().mockResolvedValue({ /* session */ }),
+      initialize: vi.fn().mockResolvedValue({
+        /* session */
+      }),
       saveBacklog: vi.fn().mockRejectedValue(new Error('Save failed')),
     };
     (pipeline as any).sessionManager = mockSessionManager;
@@ -902,12 +1042,23 @@ describe('state corruption prevention', () => {
       ],
     };
 
-    const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+    const pipeline = new PRPPipeline(
+      prdPath,
+      undefined,
+      undefined,
+      false,
+      false,
+      undefined,
+      undefined,
+      planDir
+    );
 
     let saveAttempted = false;
     const mockSessionManager: any = {
       currentSession: { metadata: { path: tempDir }, taskRegistry: backlog },
-      initialize: vi.fn().mockResolvedValue({ /* session */ }),
+      initialize: vi.fn().mockResolvedValue({
+        /* session */
+      }),
       saveBacklog: vi.fn().mockImplementation(async (savedBacklog: Backlog) => {
         saveAttempted = true;
         // Simulate signal during save
@@ -972,7 +1123,9 @@ function validateBacklogState(backlog: Backlog): void {
         for (const subtask of task.subtasks) {
           expect(subtask.id).toMatch(/^P\d+\.M\d+\.T\d+\.S\d+$/);
           expect(subtask.type).toBe('Subtask');
-          expect(['Planned', 'Implementing', 'Complete', 'Failed']).toContain(subtask.status);
+          expect(['Planned', 'Implementing', 'Complete', 'Failed']).toContain(
+            subtask.status
+          );
         }
       }
     }
@@ -1019,7 +1172,9 @@ while (await this.taskOrchestrator.processNextItem()) {
 
   // Check for shutdown request after each task
   if (this.shutdownRequested) {
-    this.logger.info('[PRPPipeline] Shutdown requested, finishing current task');
+    this.logger.info(
+      '[PRPPipeline] Shutdown requested, finishing current task'
+    );
     this.currentPhase = 'shutdown_interrupted';
     break;
   }

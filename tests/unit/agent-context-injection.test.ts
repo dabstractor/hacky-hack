@@ -213,9 +213,15 @@ describe('unit/agent-context-injection > context assembly', () => {
 
       // Verify the order: Task description should appear before Milestone,
       // which should appear before Phase
-      const taskIndex = parentContextContent.indexOf('Task: Implement TypeScript interfaces');
-      const milestoneIndex = parentContextContent.indexOf('Milestone: Define core data models');
-      const phaseIndex = parentContextContent.indexOf('Phase: Project initialization and setup');
+      const taskIndex = parentContextContent.indexOf(
+        'Task: Implement TypeScript interfaces'
+      );
+      const milestoneIndex = parentContextContent.indexOf(
+        'Milestone: Define core data models'
+      );
+      const phaseIndex = parentContextContent.indexOf(
+        'Phase: Project initialization and setup'
+      );
 
       expect(taskIndex).toBeGreaterThan(-1);
       expect(milestoneIndex).toBeGreaterThan(-1);

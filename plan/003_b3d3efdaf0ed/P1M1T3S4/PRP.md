@@ -7,6 +7,7 @@
 **Feature Goal**: Verify QA Agent is correctly integrated with proper configuration, BUG_HUNT_PROMPT structure compliance (three testing phases), and bug hunting workflow (BugHuntWorkflow + FixCycleWorkflow) through comprehensive integration tests.
 
 **Deliverable**: Integration test file `tests/integration/qa-agent.test.ts` with test cases covering:
+
 - QA Agent configuration verification (model, tokens, MCP tools, cache, BUG_HUNT_PROMPT)
 - BUG_HUNT_PROMPT structure validation (three phases: Scope Analysis, Creative E2E Testing, Adversarial Testing)
 - Bug severity levels (critical, major, minor, cosmetic) and TestResults schema compliance
@@ -17,6 +18,7 @@
 - Mock agent responses and test scenarios for deterministic testing
 
 **Success Definition**: All tests pass, verifying:
+
 - QA Agent created with correct config (GLM-4.7, 4096 tokens, MCP tools: BASH, FILESYSTEM, GIT, BUG_HUNT_PROMPT)
 - BUG_HUNT_PROMPT contains all three testing phases (Scope Analysis, Creative E2E, Adversarial)
 - BUG_HUNT_PROMPT specifies bug severity levels (critical, major, minor, cosmetic)
@@ -68,7 +70,8 @@ Integration tests that verify QA Agent is correctly configured, bug hunting work
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Exact file paths and patterns to follow from existing tests
 - QA Agent configuration values from source code
 - BUG_HUNT_PROMPT structure from prompts.ts
@@ -223,6 +226,7 @@ tests/
 ```
 
 **New File**: `tests/integration/qa-agent.test.ts`
+
 - Tests QA Agent configuration from agent-factory
 - Tests BUG_HUNT_PROMPT structure validation (three phases)
 - Tests createBugHuntPrompt function
@@ -236,10 +240,10 @@ tests/
 ```typescript
 // CRITICAL: QA Agent uses maxTokens: 4096 (same as Researcher, Coder)
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,    // Larger for complex task decomposition
-  researcher: 4096,   // Standard for PRP generation
-  coder: 4096,        // Standard for PRP execution
-  qa: 4096,           // Standard for bug hunting
+  architect: 8192, // Larger for complex task decomposition
+  researcher: 4096, // Standard for PRP generation
+  coder: 4096, // Standard for PRP execution
+  qa: 4096, // Standard for bug hunting
 } as const;
 
 // CRITICAL: BUG_HUNT_PROMPT has three phases of testing
@@ -594,7 +598,15 @@ Task 12: VERIFY all tests follow project patterns
 
 ```typescript
 // PATTERN: Top-level Groundswell mock (tests real agent-factory)
-import { afterEach, beforeEach, describe, expect, it, vi, beforeAll } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  beforeAll,
+} from 'vitest';
 
 // CRITICAL: Mock Groundswell, NOT agent-factory
 // This allows testing the real createQAAgent() function
@@ -657,7 +669,11 @@ it('should create QA agent with GLM-4.7 model', () => {
 // PATTERN: MCP tools verification
 it('should create QA agent with MCP tools', () => {
   const { createQAAgent } = require('../../src/agents/agent-factory.js');
-  const { BASH_MCP, FILESYSTEM_MCP, GIT_MCP } = require('../../src/tools/index.js');
+  const {
+    BASH_MCP,
+    FILESYSTEM_MCP,
+    GIT_MCP,
+  } = require('../../src/tools/index.js');
 
   // EXECUTE
   createQAAgent();
@@ -677,8 +693,12 @@ it('should contain Phase 1: PRD Scope Analysis', () => {
 
   // VERIFY: Contains key phrases from Phase 1
   expect(BUG_HUNT_PROMPT).toContain('Phase 1: PRD Scope Analysis');
-  expect(BUG_HUNT_PROMPT).toContain('Read and deeply understand the original PRD requirements');
-  expect(BUG_HUNT_PROMPT).toContain('Map each requirement to what should have been implemented');
+  expect(BUG_HUNT_PROMPT).toContain(
+    'Read and deeply understand the original PRD requirements'
+  );
+  expect(BUG_HUNT_PROMPT).toContain(
+    'Map each requirement to what should have been implemented'
+  );
 });
 
 // PATTERN: Phase 2 test categories verification
@@ -720,7 +740,9 @@ it('should specify bug severity levels', () => {
 // PATTERN: createBugHuntPrompt function test
 it('should generate prompt with PRD content', () => {
   // SETUP: Import createBugHuntPrompt
-  const { createBugHuntPrompt } = require('../../src/agents/prompts/bug-hunt-prompt.js');
+  const {
+    createBugHuntPrompt,
+  } = require('../../src/agents/prompts/bug-hunt-prompt.js');
   const prd = '# Test PRD\n\nBuild a feature.';
   const completedTasks = [createTestTask('P1.M1.T1', 'Task 1')];
 
@@ -734,7 +756,9 @@ it('should generate prompt with PRD content', () => {
 
 // PATTERN: createBugHuntPrompt responseFormat test
 it('should have responseFormat set to TestResultsSchema', () => {
-  const { createBugHuntPrompt } = require('../../src/agents/prompts/bug-hunt-prompt.js');
+  const {
+    createBugHuntPrompt,
+  } = require('../../src/agents/prompts/bug-hunt-prompt.js');
   const { TestResultsSchema } = require('../../src/core/models.js');
 
   const prompt = createBugHuntPrompt('# PRD', []);
@@ -747,7 +771,9 @@ it('should have responseFormat set to TestResultsSchema', () => {
 // PATTERN: BugHuntWorkflow sequential execution test
 it('should execute all four phases sequentially', async () => {
   // SETUP
-  const { BugHuntWorkflow } = require('../../src/workflows/bug-hunt-workflow.js');
+  const {
+    BugHuntWorkflow,
+  } = require('../../src/workflows/bug-hunt-workflow.js');
   const prdContent = '# Test PRD';
   const completedTasks = [createTestTask('P1.M1.T1', 'Task')];
 
@@ -760,21 +786,29 @@ it('should execute all four phases sequentially', async () => {
   };
 
   // Spy on phase methods
-  vi.spyOn(BugHuntWorkflow.prototype, 'analyzeScope').mockImplementation(async function() {
-    phaseOrder.push('analyzeScope');
-    return originalMethods.analyzeScope.call(this);
-  });
-  vi.spyOn(BugHuntWorkflow.prototype, 'creativeE2ETesting').mockImplementation(async function() {
-    phaseOrder.push('creativeE2ETesting');
-    return originalMethods.creativeE2ETesting.call(this);
-  });
-  vi.spyOn(BugHuntWorkflow.prototype, 'adversarialTesting').mockImplementation(async function() {
-    phaseOrder.push('adversarialTesting');
-    return originalMethods.adversarialTesting.call(this);
-  });
+  vi.spyOn(BugHuntWorkflow.prototype, 'analyzeScope').mockImplementation(
+    async function () {
+      phaseOrder.push('analyzeScope');
+      return originalMethods.analyzeScope.call(this);
+    }
+  );
+  vi.spyOn(BugHuntWorkflow.prototype, 'creativeE2ETesting').mockImplementation(
+    async function () {
+      phaseOrder.push('creativeE2ETesting');
+      return originalMethods.creativeE2ETesting.call(this);
+    }
+  );
+  vi.spyOn(BugHuntWorkflow.prototype, 'adversarialTesting').mockImplementation(
+    async function () {
+      phaseOrder.push('adversarialTesting');
+      return originalMethods.adversarialTesting.call(this);
+    }
+  );
 
   // Mock QA agent
-  const mockAgent = { prompt: vi.fn().mockResolvedValue(createTestResults(false, [], 'OK', [])) };
+  const mockAgent = {
+    prompt: vi.fn().mockResolvedValue(createTestResults(false, [], 'OK', [])),
+  };
   const { createQAAgent } = require('../../src/agents/agent-factory.js');
   vi.mocked(createQAAgent).mockReturnValue(mockAgent);
 
@@ -783,13 +817,19 @@ it('should execute all four phases sequentially', async () => {
   await workflow.run();
 
   // VERIFY: Phases executed in order
-  expect(phaseOrder).toEqual(['analyzeScope', 'creativeE2ETesting', 'adversarialTesting']);
+  expect(phaseOrder).toEqual([
+    'analyzeScope',
+    'creativeE2ETesting',
+    'adversarialTesting',
+  ]);
 });
 
 // PATTERN: FixCycleWorkflow fix task ID test
 it('should create fix tasks with PFIX task IDs', async () => {
   // SETUP
-  const { FixCycleWorkflow } = require('../../src/workflows/fix-cycle-workflow.js');
+  const {
+    FixCycleWorkflow,
+  } = require('../../src/workflows/fix-cycle-workflow.js');
   const bugs = [
     createTestBug('BUG-001', 'critical', 'Bug 1', 'Desc', 'Rep'),
     createTestBug('BUG-002', 'major', 'Bug 2', 'Desc', 'Rep'),
@@ -799,7 +839,12 @@ it('should create fix tasks with PFIX task IDs', async () => {
   const mockSessionManager = { currentSession: null };
 
   // EXECUTE
-  const workflow = new FixCycleWorkflow(testResults, '# PRD', mockOrchestrator as any, mockSessionManager as any);
+  const workflow = new FixCycleWorkflow(
+    testResults,
+    '# PRD',
+    mockOrchestrator as any,
+    mockSessionManager as any
+  );
   await workflow.createFixTasks();
 
   // VERIFY: Fix task IDs match pattern PFIX.M1.T###.S1
@@ -812,14 +857,25 @@ it('should create fix tasks with PFIX task IDs', async () => {
 // PATTERN: Fix cycle loop termination test
 it('should loop until no critical/major bugs remain', async () => {
   // SETUP
-  const { FixCycleWorkflow } = require('../../src/workflows/fix-cycle-workflow.js');
-  const initialBug = createTestBug('BUG-001', 'critical', 'Critical Bug', 'Desc', 'Rep');
+  const {
+    FixCycleWorkflow,
+  } = require('../../src/workflows/fix-cycle-workflow.js');
+  const initialBug = createTestBug(
+    'BUG-001',
+    'critical',
+    'Critical Bug',
+    'Desc',
+    'Rep'
+  );
   const initialResults = createTestResults(true, [initialBug], 'Found bug', []);
 
   // Mock BugHuntWorkflow to return no bugs on second call
   const mockBugHuntWorkflow = {
-    run: vi.fn()
-      .mockResolvedValueOnce(createTestResults(true, [initialBug], 'Still has bug', []))
+    run: vi
+      .fn()
+      .mockResolvedValueOnce(
+        createTestResults(true, [initialBug], 'Still has bug', [])
+      )
       .mockResolvedValueOnce(createTestResults(false, [], 'No bugs', [])),
   };
   vi.mock('../../src/workflows/bug-hunt-workflow.js', () => ({
@@ -827,10 +883,17 @@ it('should loop until no critical/major bugs remain', async () => {
   }));
 
   const mockOrchestrator = { executeSubtask: vi.fn() };
-  const mockSessionManager = { currentSession: { taskRegistry: { backlog: [] } } };
+  const mockSessionManager = {
+    currentSession: { taskRegistry: { backlog: [] } },
+  };
 
   // EXECUTE
-  const workflow = new FixCycleWorkflow(initialResults, '# PRD', mockOrchestrator as any, mockSessionManager as any);
+  const workflow = new FixCycleWorkflow(
+    initialResults,
+    '# PRD',
+    mockOrchestrator as any,
+    mockSessionManager as any
+  );
   const finalResults = await workflow.run();
 
   // VERIFY: Loop terminated after bugs were fixed

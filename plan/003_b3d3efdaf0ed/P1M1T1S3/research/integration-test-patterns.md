@@ -7,6 +7,7 @@ This document provides comprehensive patterns for writing integration tests in t
 ## Key Integration Test Files
 
 ### Primary Reference Files
+
 - `/home/dustin/projects/hacky-hack/tests/integration/core/session-structure.test.ts` - Session directory structure validation
 - `/home/dustin/projects/hacky-hack/tests/integration/core/session-manager.test.ts` - SessionManager E2E testing
 - `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator-e2e.test.ts` - Complete TaskOrchestrator workflow
@@ -15,6 +16,7 @@ This document provides comprehensive patterns for writing integration tests in t
 - `/home/dustin/projects/hacky-hack/tests/integration/architect-agent.test.ts` - Agent integration pattern
 
 ### Test Fixture Files
+
 - `/home/dustin/projects/hacky-hack/tests/fixtures/simple-prd.ts` - Minimal PRD for fast testing
 - `/home/dustin/projects/hacky-hack/tests/fixtures/simple-prd-v2.ts` - Updated PRD version for delta testing
 - `/home/dustin/projects/hacky-hack/tests/fixtures/mock-delta-data.ts` - Delta analysis test fixtures
@@ -22,6 +24,7 @@ This document provides comprehensive patterns for writing integration tests in t
 ## Test Fixture Patterns
 
 ### PRD Generation Pattern
+
 ```typescript
 // From session-structure.test.ts (lines 49-81)
 function generateValidPRD(uniqueSuffix: string): string {
@@ -60,6 +63,7 @@ CONTRACT DEFINITION:
 ```
 
 ### Backlog Creation Pattern
+
 ```typescript
 // From session-structure.test.ts (lines 86-128)
 function createMinimalBacklog(): Backlog {
@@ -108,6 +112,7 @@ function createMinimalBacklog(): Backlog {
 ```
 
 ### Delta Test Data Pattern
+
 ```typescript
 // From mock-delta-data.ts
 export const mockOldPRD = `
@@ -136,6 +141,7 @@ export const mockCompletedTaskIds = ['P1.M1.T1', 'P1.M2.T1'];
 ## Temp Directory Management Patterns
 
 ### Standard Pattern with Setup/Cleanup
+
 ```typescript
 // From session-structure.test.ts (lines 134-152)
 describe('Session Directory Structure', () => {
@@ -158,6 +164,7 @@ describe('Session Directory Structure', () => {
 ```
 
 ### Enhanced Pattern with Helper Function
+
 ```typescript
 // From error-handling.test.ts (lines 47-50)
 function setupTestDir(): string {
@@ -181,6 +188,7 @@ afterEach(() => {
 ## Mocking Patterns for External Dependencies
 
 ### Agent Factory Mocking
+
 ```typescript
 // From architect-agent.test.ts (lines 30-34)
 vi.mock('../../src/agents/agent-factory.js', () => ({
@@ -194,6 +202,7 @@ import { createArchitectAgent } from '../../src/agents/agent-factory.js';
 ```
 
 ### Groundswell MCP Mocking
+
 ```typescript
 // From agents.test.ts (lines 24-31)
 vi.mock('groundswell', async () => {
@@ -210,6 +219,7 @@ import { createAgent, createPrompt } from 'groundswell';
 ```
 
 ### Complex File System Mocking
+
 ```typescript
 // From prp-runtime-integration.test.ts (lines 28-58)
 vi.mock('node:fs/promises', async () => {
@@ -217,13 +227,21 @@ vi.mock('node:fs/promises', async () => {
   return {
     ...actualFs,
     mkdir: vi.fn((path: string, options: any) => {
-      if (path && (path.toString().includes('prps') || path.toString().includes('artifacts'))) {
+      if (
+        path &&
+        (path.toString().includes('prps') ||
+          path.toString().includes('artifacts'))
+      ) {
         return Promise.resolve(undefined);
       }
       return actualFs.mkdir(path, options);
     }),
     writeFile: vi.fn((path: string, data: any, options: any) => {
-      if (path && (path.toString().includes('prps') || path.toString().includes('artifacts'))) {
+      if (
+        path &&
+        (path.toString().includes('prps') ||
+          path.toString().includes('artifacts'))
+      ) {
         return Promise.resolve(undefined);
       }
       return actualFs.writeFile(path, data, options);
@@ -235,6 +253,7 @@ vi.mock('node:fs/promises', async () => {
 ## Assertion Patterns for Multi-Step Verification
 
 ### Session Structure Validation
+
 ```typescript
 // From session-structure.test.ts
 it('should create session directory with {sequence}_{hash} format', async () => {
@@ -271,6 +290,7 @@ it('should create session directory with {sequence}_{hash} format', async () => 
 ```
 
 ### Delta Session Validation Pattern
+
 ```typescript
 it('should create delta session with parent linkage', async () => {
   // SETUP: Create initial PRD and session
@@ -292,7 +312,10 @@ it('should create delta session with parent linkage', async () => {
   expect(deltaSession.metadata.parentSession).toBe(parentSessionId);
 
   // VERIFY: Parent session file exists
-  const parentSessionPath = join(deltaSession.metadata.path, 'parent_session.txt');
+  const parentSessionPath = join(
+    deltaSession.metadata.path,
+    'parent_session.txt'
+  );
   expect(existsSync(parentSessionPath)).toBe(true);
 
   // VERIFY: Parent session file contains correct ID
@@ -308,6 +331,7 @@ it('should create delta session with parent linkage', async () => {
 ## Setup/Execute/Verify Test Structure
 
 ### Basic Test Structure
+
 ```typescript
 describe('Feature Integration Tests', () => {
   let tempDir: string;
@@ -345,6 +369,7 @@ describe('Feature Integration Tests', () => {
 ```
 
 ### Error Testing Pattern
+
 ```typescript
 // From error-handling.test.ts
 describe('Error Handling', () => {
@@ -354,8 +379,7 @@ describe('Error Handling', () => {
     writeFileSync(prdPath, invalidPRD);
 
     // EXECUTE & VERIFY: Should throw specific error
-    await expect(() => manager.initialize())
-      .rejects.toThrow(ValidationError);
+    await expect(() => manager.initialize()).rejects.toThrow(ValidationError);
   });
 });
 ```
@@ -363,6 +387,7 @@ describe('Error Handling', () => {
 ## Common Mock Patterns for Complex Objects
 
 ### Mock Agent Implementation
+
 ```typescript
 // From prp-pipeline-integration.test.ts
 const mockAgent = {
@@ -377,6 +402,7 @@ const mockAgent = {
 ```
 
 ### Mock Execution Result
+
 ```typescript
 // From prp-runtime-integration.test.ts
 const createMockExecutionResult = (success: boolean): ExecutionResult => ({
@@ -400,6 +426,7 @@ const createMockExecutionResult = (success: boolean): ExecutionResult => ({
 ```
 
 ### Mock Session Manager
+
 ```typescript
 // From fix-cycle-workflow-integration.test.ts
 const createMockSessionManager = (backlog?: Backlog): SessionManager =>
@@ -421,6 +448,7 @@ const createMockSessionManager = (backlog?: Backlog): SessionManager =>
 ## Global Test Setup Patterns
 
 ### Environment Validation (from setup.ts)
+
 ```typescript
 // API endpoint safeguard
 const ZAI_ENDPOINT = 'https://api.z.ai/api/anthropic';
@@ -449,6 +477,7 @@ afterEach(() => {
 ```
 
 ### Promise Rejection Tracking
+
 ```typescript
 // From setup.ts
 let unhandledRejections: unknown[] = [];
@@ -467,7 +496,9 @@ afterEach(() => {
   }
 
   if (unhandledRejections.length > 0) {
-    throw new Error(`Test had ${unhandledRejections.length} unhandled promise rejection(s)`);
+    throw new Error(
+      `Test had ${unhandledRejections.length} unhandled promise rejection(s)`
+    );
   }
 });
 ```
@@ -475,37 +506,57 @@ afterEach(() => {
 ## Test Organization Patterns
 
 ### Grouping by Concern
+
 ```typescript
 describe('Session Directory Structure', () => {
   // Tests for naming pattern
-  it('should create session directory with {sequence}_{hash} format', () => { /* ... */ });
+  it('should create session directory with {sequence}_{hash} format', () => {
+    /* ... */
+  });
 
   // Tests for hash computation
-  it('should compute SHA-256 hash and use first 12 characters', () => { /* ... */ });
+  it('should compute SHA-256 hash and use first 12 characters', () => {
+    /* ... */
+  });
 
   // Tests for subdirectory creation
-  it('should create architecture, prps, and artifacts subdirectories', () => { /* ... */ });
+  it('should create architecture, prps, and artifacts subdirectories', () => {
+    /* ... */
+  });
 
   // Tests for file permissions
-  it('should create directories with mode 0o755', () => { /* ... */ });
+  it('should create directories with mode 0o755', () => {
+    /* ... */
+  });
 });
 ```
 
 ### Nested Describe Blocks
+
 ```typescript
 describe('PRPPipeline Integration Tests', () => {
   let tempDir: string;
 
-  beforeEach(() => { /* setup */ });
-  afterEach(() => { /* cleanup */ });
+  beforeEach(() => {
+    /* setup */
+  });
+  afterEach(() => {
+    /* cleanup */
+  });
 
   describe('full run() workflow with new session', () => {
-    it('should complete workflow successfully', () => { /* ... */ });
+    it('should complete workflow successfully', () => {
+      /* ... */
+    });
   });
 
   describe('error handling scenarios', () => {
-    it('should handle agent failure gracefully', () => { /* ... */ });
-    it('should handle file system errors', () => { /* ... */ });
+    it('should handle agent failure gracefully', () => {
+      /* ... */
+    });
+    it('should handle file system errors', () => {
+      /* ... */
+    });
   });
 });
 ```
@@ -513,6 +564,7 @@ describe('PRPPipeline Integration Tests', () => {
 ## Common Gotchas in Integration Testing
 
 ### 1. Mock Cleanup Issues
+
 ```typescript
 // PROBLEM: Mocks not cleared between tests
 // SOLUTION: Always clear mocks in afterEach
@@ -523,6 +575,7 @@ afterEach(() => {
 ```
 
 ### 2. File Permission Issues
+
 ```typescript
 // PROBLEM: Tests failing due to file permissions
 // SOLUTION: Explicitly set file modes
@@ -531,6 +584,7 @@ mkdirSync(dirPath, { mode: 0o755 });
 ```
 
 ### 3. Async Test Isolation
+
 ```typescript
 // PROBLEM: Promise rejections not handled
 // SOLUTION: Track and fail on unhandled rejections
@@ -550,6 +604,7 @@ afterEach(() => {
 ```
 
 ### 4. Module Import Timing
+
 ```typescript
 // PROBLEM: Mocks not applied due to import timing
 // SOLUTION: Mock at module level before imports
@@ -562,6 +617,7 @@ import { someExport } from 'some-module';
 ```
 
 ### 5. Test Data Pollution
+
 ```typescript
 // PROBLEM: Tests sharing state
 // SOLUTION: Create fresh data for each test
@@ -575,6 +631,7 @@ it('should handle scenario B', () => {
 ```
 
 ### 6. Real LLM Accidents
+
 ```typescript
 // PROBLEM: Accidental real API calls
 // SOLUTION: Environment validation in global setup
@@ -589,12 +646,15 @@ function validateApiEndpoint() {
 ## Performance Considerations
 
 ### Fast Test Setup Patterns
+
 Use simple PRDs for quick tests as shown in `/home/dustin/projects/hacky-hack/tests/fixtures/simple-prd.ts`.
 
 ### Minimal Mocking Strategy
+
 Only mock what's necessary to avoid performance overhead.
 
 ### Memory Management
+
 Force garbage collection between tests in global setup.
 
 ## Reference Implementation for Delta Session Testing
@@ -620,12 +680,22 @@ Based on these patterns, here's how to structure delta session integration tests
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+  readFileSync,
+  existsSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { SessionManager } from '../../src/core/session-manager.js';
 import { patchBacklog } from '../../src/core/task-patcher.js';
-import { mockOldPRD, mockNewPRD, mockCompletedTaskIds } from '../fixtures/mock-delta-data.js';
+import {
+  mockOldPRD,
+  mockNewPRD,
+  mockCompletedTaskIds,
+} from '../fixtures/mock-delta-data.js';
 
 describe('Delta Session Integration', () => {
   let tempDir: string;
@@ -662,7 +732,10 @@ describe('Delta Session Integration', () => {
       expect(deltaSession.metadata.parentSession).toBe(parentSessionId);
 
       // VERIFY: Parent session file
-      const parentSessionPath = join(deltaSession.metadata.path, 'parent_session.txt');
+      const parentSessionPath = join(
+        deltaSession.metadata.path,
+        'parent_session.txt'
+      );
       expect(existsSync(parentSessionPath)).toBe(true);
       const parentContent = readFileSync(parentSessionPath, 'utf-8');
       expect(parentContent.trim()).toBe(parentSessionId);
@@ -696,7 +769,10 @@ describe('Delta Session Integration', () => {
       };
 
       // EXECUTE: Patch backlog
-      const patchedBacklog = patchBacklog(manager.currentSession.taskRegistry, deltaAnalysis);
+      const patchedBacklog = patchBacklog(
+        manager.currentSession.taskRegistry,
+        deltaAnalysis
+      );
 
       // VERIFY: Task marked as modified
       const task = findItem(patchedBacklog, 'P1.M1.T1');

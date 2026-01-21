@@ -1763,9 +1763,11 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       (pipeline as any).taskOrchestrator = mockOrchestrator;
 
       // Store reference on mock for saveBacklog to access
-      (MockSessionManagerClass as any).mockImplementation.instances = [{
-        pipeline,
-      }];
+      (MockSessionManagerClass as any).mockImplementation.instances = [
+        {
+          pipeline,
+        },
+      ];
 
       // EXECUTE: Run pipeline
       const result = await pipeline.run();

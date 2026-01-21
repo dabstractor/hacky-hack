@@ -11,12 +11,14 @@
 **Feature Goal**: Create a test file that validates all major Groundswell library exports can be successfully imported, resolving the npm link configuration validated in S1.
 
 **Deliverable**: A Vitest test file at `tests/unit/groundswell/imports.test.ts` that:
+
 1. Tests import of all major Groundswell exports (classes, decorators, factory functions, utilities)
 2. Verifies TypeScript compilation succeeds for all import patterns
 3. Returns pass/fail status for each import category
 4. Provides a list of any failing imports for downstream consumption by S3
 
 **Success Definition**:
+
 - All major Groundswell exports can be imported successfully
 - TypeScript compilation succeeds for all import patterns
 - Vitest test suite passes with 100% coverage of the import test file
@@ -32,6 +34,7 @@
 **Use Case**: Second validation step in Phase 1 (P1.M1.T1) to verify that after npm link is validated (S1), the actual Groundswell imports work correctly in the TypeScript/Vitest environment.
 
 **User Journey**:
+
 1. Pipeline completes P1.M1.T1.S1 (npm link validation) with `success: true`
 2. Pipeline starts P1.M1.T1.S2 (import tests)
 3. Test file runs vitest on imports.test.ts
@@ -41,6 +44,7 @@
 7. If any imports fail: Report specific failing exports for troubleshooting
 
 **Pain Points Addressed**:
+
 - Silent import failures where TypeScript appears to work but runtime fails
 - Unclear which specific exports are failing when import errors occur
 - Time wasted debugging which Groundswell features are importable
@@ -94,6 +98,7 @@ Create a comprehensive test file that validates all major Groundswell exports ca
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] File paths and test locations specified
 - [x] Groundswell export list documented
 - [x] Test patterns and conventions referenced
@@ -955,6 +960,7 @@ Dynamic imports (`await import('groundswell')`) validate runtime module resoluti
 ### Why test decorators separately?
 
 Decorators require special TypeScript configuration (`experimentalDecorators: true`, `emitDecoratorMetadata: true`). Testing decorator imports separately ensures that:
+
 1. The decorator can be imported as a function
 2. The decorator can be applied to a class
 3. The decorator configuration is correct in both tsconfig and vitest config
@@ -966,6 +972,7 @@ S1 validates that npm link is properly configured. If npm link is broken, all im
 ### Why namespace import test?
 
 Namespace imports (`import * as gs from 'groundswell'`) are a common pattern but can have issues with:
+
 1. Decorators due to TypeScript limitations
 2. Tree-shaking in production builds
 3. Type inference in some scenarios
@@ -975,6 +982,7 @@ Testing this pattern separately ensures it works correctly in the codebase.
 ### Why mock Anthropic SDK?
 
 Groundswell may initialize the Anthropic SDK on import. Without mocking, this could:
+
 1. Make accidental API calls to Anthropic
 2. Require API keys during testing
 3. Violate the z.ai API endpoint requirement
@@ -988,6 +996,7 @@ Mocking ensures tests are isolated and don't make external API calls.
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from previous PRP (S1 outputs)
 - [x] Comprehensive Groundswell export list from research agents
 - [x] Existing test patterns documented and analyzed
@@ -1000,6 +1009,7 @@ Mocking ensures tests are isolated and don't make external API calls.
 - [x] 100% coverage requirement understood
 
 **Risk Mitigation**:
+
 - S1 dependency check prevents wasted time on broken link
 - Anthropic SDK mocking prevents API call issues
 - Separate test categories allow granular failure identification

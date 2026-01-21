@@ -44,14 +44,14 @@ This research document analyzes the mocking patterns used in the hacky-hack proj
 import { vi, beforeEach, afterEach, describe, expect, it } from 'vitest';
 ```
 
-| Function | Purpose | Usage |
-|----------|---------|-------|
-| `vi.mock()` | Module-level mocking (hoisted) | Mock entire modules before imports |
-| `vi.fn()` | Create mock/spy function | Individual function mocking |
-| `vi.mocked()` | Type-safe mock access | Cast mocks to proper types |
-| `vi.hoisted()` | Share state across mocks | Create variables before vi.mock() |
-| `vi.clearAllMocks()` | Clear mock call history | Reset between tests |
-| `vi.restoreAllMocks()` | Restore original implementations | Full mock cleanup |
+| Function               | Purpose                          | Usage                              |
+| ---------------------- | -------------------------------- | ---------------------------------- |
+| `vi.mock()`            | Module-level mocking (hoisted)   | Mock entire modules before imports |
+| `vi.fn()`              | Create mock/spy function         | Individual function mocking        |
+| `vi.mocked()`          | Type-safe mock access            | Cast mocks to proper types         |
+| `vi.hoisted()`         | Share state across mocks         | Create variables before vi.mock()  |
+| `vi.clearAllMocks()`   | Clear mock call history          | Reset between tests                |
+| `vi.restoreAllMocks()` | Restore original implementations | Full mock cleanup                  |
 
 ---
 
@@ -77,6 +77,7 @@ vi.mock('simple-git', () => ({
 ```
 
 **Key Points:**
+
 - Mock the entire `simple-git` module at top level (before imports)
 - Include the `GitError` class in the mock for type compatibility
 - Return a mock instance with all git methods
@@ -101,9 +102,7 @@ const mockGitInstance = {
 // Setup mock response
 mockGitInstance.status.mockResolvedValue({
   current: 'main',
-  files: [
-    { path: 'src/index.ts', index: 'M', working_dir: ' ' },
-  ],
+  files: [{ path: 'src/index.ts', index: 'M', working_dir: ' ' }],
   isClean: () => false,
 } as never);
 
@@ -142,6 +141,7 @@ vi.mock('../../src/tools/git-mcp.js', () => ({
 ```
 
 **Key Points:**
+
 - Mock multiple related modules together
 - Include default implementations for utility functions
 - Use `require()` within mocks for dynamic imports
@@ -240,6 +240,7 @@ vi.mock('node:fs/promises', () => ({
 ```
 
 **Key Points:**
+
 - Use `Map` to simulate file system state
 - Implement realistic read/write behavior
 - Clear state in `beforeEach` hook
@@ -333,6 +334,7 @@ describe('Session Directory Structure', () => {
 ```
 
 **Key Points:**
+
 - Use real file system in temporary directories
 - Clean up after each test with `rmSync`
 - Test actual file/directory structures
@@ -344,6 +346,7 @@ describe('Session Directory Structure', () => {
 ### Module-Level Mocking (Before Imports)
 
 **Use When:**
+
 - Mocking external dependencies (node modules)
 - Mocking entire utility modules
 - Need mock available before module loads
@@ -372,6 +375,7 @@ import { existsSync } from 'node:fs';
 ### Function-Level Mocking (With vi.hoisted)
 
 **Use When:**
+
 - Need shared state across multiple mocks
 - Need to access mock functions in tests
 - Creating complex mock implementations
@@ -405,6 +409,7 @@ expect(mockLogger.info).toHaveBeenCalledWith('message');
 ### Selective Function Mocking (importOriginal)
 
 **Use When:**
+
 - Want to mock some functions but keep others real
 - Need real implementation of utility functions
 
@@ -416,8 +421,8 @@ vi.mock('../../../src/utils/task-utils.js', async importOriginal => {
   const actual =
     await importOriginal<typeof import('../../../src/utils/task-utils.js')>();
   return {
-    ...actual,  // Keep all real functions
-    getNextPendingItem: vi.fn(),  // Only mock specific function
+    ...actual, // Keep all real functions
+    getNextPendingItem: vi.fn(), // Only mock specific function
   };
 });
 ```
@@ -963,10 +968,11 @@ beforeEach(() => {
 
 ```typescript
 vi.mock('./module.js', () => ({
-  func: vi.fn((path: string) =>
-    !['tasks.json', 'PRD.md'].includes(
-      require('node:path').basename(path)  // Use require() in mocks
-    )
+  func: vi.fn(
+    (path: string) =>
+      !['tasks.json', 'PRD.md'].includes(
+        require('node:path').basename(path) // Use require() in mocks
+      )
   ),
 }));
 ```
@@ -1033,10 +1039,10 @@ it('should handle files with paths (use basename)', () => {
   // SETUP
   const files = [
     'src/index.ts',
-    'plan/session/tasks.json',  // Should be filtered
-    'plan/session/PRD.md',      // Should be filtered
+    'plan/session/tasks.json', // Should be filtered
+    'plan/session/PRD.md', // Should be filtered
     'src/utils.ts',
-    'session/prd_snapshot.md',  // Should be filtered
+    'session/prd_snapshot.md', // Should be filtered
   ];
 
   // EXECUTE
@@ -1053,36 +1059,36 @@ it('should handle files with paths (use basename)', () => {
 
 ### Git Operation Tests
 
-| File Path | Lines | Description |
-|-----------|-------|-------------|
-| `/home/dustin/projects/hacky-hack/tests/unit/tools/git-mcp.test.ts` | 1-860 | Unit tests for Git MCP tool operations |
-| `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts` | 1-603 | Unit tests for smart commit with protected file filtering |
-| `/home/dustin/projects/hacky-hack/tests/integration/smart-commit.test.ts` | 1-629 | Integration tests for smart commit workflow |
+| File Path                                                                 | Lines | Description                                               |
+| ------------------------------------------------------------------------- | ----- | --------------------------------------------------------- |
+| `/home/dustin/projects/hacky-hack/tests/unit/tools/git-mcp.test.ts`       | 1-860 | Unit tests for Git MCP tool operations                    |
+| `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts`    | 1-603 | Unit tests for smart commit with protected file filtering |
+| `/home/dustin/projects/hacky-hack/tests/integration/smart-commit.test.ts` | 1-629 | Integration tests for smart commit workflow               |
 
 ### File Operation Tests
 
-| File Path | Lines | Description |
-|-----------|-------|-------------|
-| `/home/dustin/projects/hacky-hack/tests/unit/tools/filesystem-mcp.test.ts` | 1-736 | Unit tests for Filesystem MCP tool |
-| `/home/dustin/projects/hacky-hack/tests/unit/tools/bash-mcp.test.ts` | 1-200+ | Unit tests for Bash MCP with child process mocking |
-| `/home/dustin/projects/hacky-hack/tests/unit/utils/build-logger.test.ts` | 1-150+ | Unit tests with shared file system state |
-| `/home/dustin/projects/hacky-hack/tests/integration/tools.test.ts` | 1-200+ | Integration tests for all MCP tools |
-| `/home/dustin/projects/hacky-hack/tests/integration/core/session-structure.test.ts` | 1-200+ | Integration tests with real temp file system |
+| File Path                                                                           | Lines  | Description                                        |
+| ----------------------------------------------------------------------------------- | ------ | -------------------------------------------------- |
+| `/home/dustin/projects/hacky-hack/tests/unit/tools/filesystem-mcp.test.ts`          | 1-736  | Unit tests for Filesystem MCP tool                 |
+| `/home/dustin/projects/hacky-hack/tests/unit/tools/bash-mcp.test.ts`                | 1-200+ | Unit tests for Bash MCP with child process mocking |
+| `/home/dustin/projects/hacky-hack/tests/unit/utils/build-logger.test.ts`            | 1-150+ | Unit tests with shared file system state           |
+| `/home/dustin/projects/hacky-hack/tests/integration/tools.test.ts`                  | 1-200+ | Integration tests for all MCP tools                |
+| `/home/dustin/projects/hacky-hack/tests/integration/core/session-structure.test.ts` | 1-200+ | Integration tests with real temp file system       |
 
 ### Mock Setup and Patterns
 
-| File Path | Lines | Description |
-|-----------|-------|-------------|
-| `/home/dustin/projects/hacky-hack/tests/setup.ts` | 1-230 | Global test setup with mock cleanup |
+| File Path                                                                    | Lines  | Description                                |
+| ---------------------------------------------------------------------------- | ------ | ------------------------------------------ |
+| `/home/dustin/projects/hacky-hack/tests/setup.ts`                            | 1-230  | Global test setup with mock cleanup        |
 | `/home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts` | 1-200+ | Complex mocking patterns for orchestration |
 
 ### NOT Called Verification Examples
 
-| File Path | Lines | Pattern |
-|-----------|-------|---------|
-| `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts` | 289-290, 304-305 | Verify git operations not called on early exit |
-| `/home/dustin/projects/hacky-hack/tests/unit/utils/build-logger.test.ts` | 120-123 | Multiple file operations not called |
-| `/home/dustin/projects/hacky-hack/tests/unit/core/session-state-batching.test.ts` | 622, 635 | Verify delayed writes not called immediately |
+| File Path                                                                         | Lines            | Pattern                                        |
+| --------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------- |
+| `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts`            | 289-290, 304-305 | Verify git operations not called on early exit |
+| `/home/dustin/projects/hacky-hack/tests/unit/utils/build-logger.test.ts`          | 120-123          | Multiple file operations not called            |
+| `/home/dustin/projects/hacky-hack/tests/unit/core/session-state-batching.test.ts` | 622, 635         | Verify delayed writes not called immediately   |
 
 ---
 
@@ -1108,11 +1114,7 @@ it('should handle files with paths (use basename)', () => {
 From `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts`:
 
 ```typescript
-const PROTECTED_FILES = [
-  'tasks.json',
-  'PRD.md',
-  'prd_snapshot.md',
-];
+const PROTECTED_FILES = ['tasks.json', 'PRD.md', 'prd_snapshot.md'];
 ```
 
 ### Filter Function Pattern

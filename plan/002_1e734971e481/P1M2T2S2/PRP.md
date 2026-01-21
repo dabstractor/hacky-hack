@@ -11,6 +11,7 @@
 **Feature Goal**: Verify and ensure the validation script at `/src/scripts/validate-api.ts` has comprehensive API safety checks that prevent accidental Anthropic production API usage, with clear exit codes and actionable error messages.
 
 **Deliverable**: Reviewed and enhanced validation script (`/src/scripts/validate-api.ts`) with:
+
 1. BASE_URL check before any API calls
 2. Exit code 1 if Anthropic API detected
 3. Clear error message with fix instructions
@@ -19,6 +20,7 @@
 6. Warning if endpoint is neither z.ai nor localhost/mock/test
 
 **Success Definition**:
+
 - `npx tsx src/scripts/validate-api.ts` runs successfully with z.ai endpoint
 - Script exits with code 1 if Anthropic API detected
 - Script exits with code 0 on successful validation
@@ -34,6 +36,7 @@
 **Use Case**: Fifth subtask in Phase 1 Milestone 2 (P1.M2) to ensure the API validation script has comprehensive safety checks before allowing any API operations.
 
 **User Journey**:
+
 1. Pipeline completes P1.M2.T2.S1 (Enhance test setup API validation)
 2. Pipeline starts P1.M2.T2.S2 (Add validation script API checks)
 3. Review existing validation script implementation
@@ -42,6 +45,7 @@
 6. Run validation script to confirm it works correctly
 
 **Pain Points Addressed**:
+
 - **Risk of Accidental API Usage**: Without proper safeguards, developers could accidentally run the script with Anthropic's production API
 - **Unclear Exit Behavior**: Exit codes need to be consistent for CI/CD integration
 - **Missing Warnings**: Non-standard endpoints should trigger warnings
@@ -70,6 +74,7 @@ Review and enhance the validation script at `/src/scripts/validate-api.ts` to en
 ### Current State Analysis
 
 **Existing Implementation** (`/src/scripts/validate-api.ts`):
+
 - ✅ Checks BASE_URL before API calls (lines 104-120)
 - ✅ Exits with code 1 if Anthropic API detected (line 119: `process.exit(1)`)
 - ✅ Provides clear error message (lines 106-118)
@@ -79,13 +84,16 @@ Review and enhance the validation script at `/src/scripts/validate-api.ts` to en
 - ❓ Missing: Warning for localhost/mock/test exceptions (needs verification)
 
 **Current Error Message** (lines 106-118):
+
 ```typescript
 log.error('========================================');
 log.error('CRITICAL: Configured to use Anthropic API!');
 log.error('========================================');
 log.error(`Current ANTHROPIC_BASE_URL: ${configuredBaseUrl}`);
 log.error('');
-log.error('This script requires z.ai API endpoint, never Anthropic official API.');
+log.error(
+  'This script requires z.ai API endpoint, never Anthropic official API.'
+);
 log.error(`Expected: ${ZAI_ENDPOINT}`);
 log.error('');
 log.error('Fix: Unset ANTHROPIC_BASE_URL or set to z.ai endpoint:');
@@ -95,6 +103,7 @@ process.exit(1);
 ```
 
 **Response Structure Validation** (lines 75-88):
+
 ```typescript
 function isValidMessageResponse(data: unknown): data is MessageResponse {
   if (typeof data !== 'object' || data === null) return false;
@@ -115,6 +124,7 @@ function isValidMessageResponse(data: unknown): data is MessageResponse {
 ### Implementation Status
 
 **EXISTING IMPLEMENTATION**: The validation script at `/src/scripts/validate-api.ts` already exists and implements most required safeguards. This task is primarily about:
+
 1. **Verification**: Confirm all required checks are present
 2. **Enhancement**: Add warning for non-z.ai endpoints if missing
 3. **Testing**: Verify exit codes work correctly
@@ -123,23 +133,28 @@ function isValidMessageResponse(data: unknown): data is MessageResponse {
 ### Required Changes
 
 **Change 1: Verify BASE_URL check exists**
+
 - ✅ Already implemented (lines 104-120)
 - The check uses `.includes(ANTHROPIC_ENDPOINT)` pattern
 - This catches variations like `https://api.anthropic.com/v1`
 
 **Change 2: Verify exit code 1 for Anthropic API**
+
 - ✅ Already implemented (line 119: `process.exit(1)`)
 - Error message is clear and actionable
 
 **Change 3: Verify /v1/messages endpoint test**
+
 - ✅ Already implemented (lines 338-448: `testMessageCompletion()`)
 - Tests with `getModel('sonnet')` and validates response
 
 **Change 4: Verify response structure validation**
+
 - ✅ Already implemented (lines 75-88: `isValidMessageResponse()`)
 - Validates: `id`, `type`, `role`, `content`, `model`, `stop_reason`, `usage`
 
 **Change 5: ADD Warning for non-z.ai endpoints** (MISSING - needs implementation)
+
 ```typescript
 // ADD THIS after the Anthropic API check (after line 120)
 // Warn if using a non-z.ai endpoint (unless it's a mock/test endpoint)
@@ -180,6 +195,7 @@ if (
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Validation script implementation analyzed (535 lines)
 - [x] Existing safeguard patterns documented (tests/setup.ts)
 - [x] Environment configuration patterns understood
@@ -418,6 +434,7 @@ hacky-hack/
 ### Data Models and Structure
 
 No new data models. The script uses existing interfaces:
+
 - `ValidationResult` (lines 53-59)
 - `MessageResponse` (lines 61-72)
 - Type guard `isValidMessageResponse()` (lines 75-88)
@@ -525,13 +542,15 @@ if (configuredBaseUrl.includes(ANTHROPIC_ENDPOINT)) {
   log.error('========================================');
   log.error(`Current ANTHROPIC_BASE_URL: ${configuredBaseUrl}`);
   log.error('');
-  log.error('This script requires z.ai API endpoint, never Anthropic official API.');
+  log.error(
+    'This script requires z.ai API endpoint, never Anthropic official API.'
+  );
   log.error(`Expected: ${ZAI_ENDPOINT}`);
   log.error('');
   log.error('Fix: Unset ANTHROPIC_BASE_URL or set to z.ai endpoint:');
   log.error(`  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`);
   log.error('========================================');
-  process.exit(1);  // CRITICAL: Exit code 1 for failure
+  process.exit(1); // CRITICAL: Exit code 1 for failure
 }
 
 // =============================================================================
@@ -646,10 +665,12 @@ const colors = {
 
 const log = {
   info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
+  success: (msg: string) =>
+    console.log(`${colors.green}✓${colors.reset} ${msg}`),
   error: (msg: string) => console.error(`${colors.red}✗${colors.reset} ${msg}`),
   warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  section: (msg: string) => console.log(`\n${colors.bright}${msg}${colors.reset}`),
+  section: (msg: string) =>
+    console.log(`\n${colors.bright}${msg}${colors.reset}`),
 };
 
 // =============================================================================
@@ -909,6 +930,7 @@ npm run validate:api 2>&1 | grep -i "Response structure"
 ### Why is the warning missing?
 
 The validation script was implemented with the critical safeguard (blocking Anthropic API) but the informational warning for non-z.ai endpoints was not included. This is likely because:
+
 1. The critical safeguard was the priority
 2. The warning was considered "nice to have"
 3. Different developers worked on test setup vs validation script
@@ -916,6 +938,7 @@ The validation script was implemented with the critical safeguard (blocking Anth
 ### Why add the warning now?
 
 The warning provides important context:
+
 1. **Developer awareness**: Developers may be using a custom endpoint for testing
 2. **Debugging aid**: If tests fail, the warning helps identify why
 3. **Configuration review**: Encourages developers to verify their endpoint choice
@@ -924,6 +947,7 @@ The warning provides important context:
 ### What is the priority?
 
 The warning is low-risk and low-complexity:
+
 1. It's informational only - doesn't block execution
 2. It follows an existing pattern from tests/setup.ts
 3. It can be added without changing any existing behavior
@@ -932,6 +956,7 @@ The warning is low-risk and low-complexity:
 ### Why use the pattern from tests/setup.ts?
 
 Using the exact same pattern ensures:
+
 1. **Consistency**: Same behavior across the codebase
 2. **Testability**: Pattern is already tested
 3. **Predictability**: Developers know what to expect
@@ -944,6 +969,7 @@ Using the exact same pattern ensures:
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from existing implementation
 - [x] Current implementation analyzed and documented
 - [x] Missing functionality clearly identified
@@ -953,6 +979,7 @@ Using the exact same pattern ensures:
 - [x] Manual verification approach defined
 
 **Risk Mitigation**:
+
 - Minimal change (single feature addition)
 - Existing implementation is already excellent
 - Clear success criteria
@@ -960,6 +987,7 @@ Using the exact same pattern ensures:
 - No new dependencies
 
 **Known Risks**:
+
 - None - this is a verification/addition task with minimal changes
 
 ---

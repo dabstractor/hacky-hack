@@ -29,25 +29,25 @@ This document consolidates the protected files specifications from both `system_
 
 These files are protected within `$SESSION_DIR/` (the session directory):
 
-| File Pattern | Purpose | Rationale |
-|-------------|---------|-----------|
-| `$SESSION_DIR/tasks.json` | Pipeline task registry state | Single source of truth for task hierarchy and status |
-| `$SESSION_DIR/prd_snapshot.md` | PRD snapshot for session | Enables delta detection for PRD changes |
-| `$SESSION_DIR/delta_prd.md` | Delta PRD for incremental sessions | Contains focused changes for delta sessions |
-| `$SESSION_DIR/delta_from.txt` | Delta session linkage | Links delta session to parent session |
-| `$SESSION_DIR/TEST_RESULTS.md` | Bug report file | QA output for bug hunting workflow |
-| `Any file directly in $SESSION_DIR/` | Session root files | Never move to subdirectories |
+| File Pattern                         | Purpose                            | Rationale                                            |
+| ------------------------------------ | ---------------------------------- | ---------------------------------------------------- |
+| `$SESSION_DIR/tasks.json`            | Pipeline task registry state       | Single source of truth for task hierarchy and status |
+| `$SESSION_DIR/prd_snapshot.md`       | PRD snapshot for session           | Enables delta detection for PRD changes              |
+| `$SESSION_DIR/delta_prd.md`          | Delta PRD for incremental sessions | Contains focused changes for delta sessions          |
+| `$SESSION_DIR/delta_from.txt`        | Delta session linkage              | Links delta session to parent session                |
+| `$SESSION_DIR/TEST_RESULTS.md`       | Bug report file                    | QA output for bug hunting workflow                   |
+| `Any file directly in $SESSION_DIR/` | Session root files                 | Never move to subdirectories                         |
 
 ### Project-Level Protected Files
 
-| File Pattern | Purpose | Rationale |
-|-------------|---------|-----------|
-| `PRD.md` | Product requirements document | Human-owned document, must not be modified by agents |
+| File Pattern | Purpose                       | Rationale                                            |
+| ------------ | ----------------------------- | ---------------------------------------------------- |
+| `PRD.md`     | Product requirements document | Human-owned document, must not be modified by agents |
 
 ### Wildcard Pattern Protected Files
 
-| Pattern | Matches | Rationale |
-|---------|---------|-----------|
+| Pattern        | Matches                                   | Rationale                                                   |
+| -------------- | ----------------------------------------- | ----------------------------------------------------------- |
 | `*tasks*.json` | Any file with "tasks" and ".json" in name | Prevents accidental modification of any task registry files |
 
 ---
@@ -67,15 +67,15 @@ From `PRD.md §5.2` and `system_context.md` (Lines 475-481):
 
 From `PRD.md §5.2` (Lines 137-145):
 
-| Agent Type | Allowed Output Scope | Forbidden Operations |
-|------------|---------------------|---------------------|
-| **Task Breakdown** | `tasks.json`, `architecture/` | PRD.md, source code, .gitignore |
-| **Research (PRP)** | `PRP.md`, `research/` | tasks.json, source code, prd_snapshot.md |
-| **Implementation** | `src/`, `tests/`, `lib/` | plan/, PRD.md, tasks.json, pipeline scripts |
-| **Cleanup** | `docs/` organization | plan/, PRD.md, tasks.json, session directories |
-| **Task Update** | `tasks.json` modifications | PRD.md, source code, prd_snapshot.md |
-| **Validation** | `validate.sh`, `validation_report.md` | plan/, source code, tasks.json |
-| **Bug Hunter** | `TEST_RESULTS.md` (if bugs found) | plan/, source code, tasks.json |
+| Agent Type         | Allowed Output Scope                  | Forbidden Operations                           |
+| ------------------ | ------------------------------------- | ---------------------------------------------- |
+| **Task Breakdown** | `tasks.json`, `architecture/`         | PRD.md, source code, .gitignore                |
+| **Research (PRP)** | `PRP.md`, `research/`                 | tasks.json, source code, prd_snapshot.md       |
+| **Implementation** | `src/`, `tests/`, `lib/`              | plan/, PRD.md, tasks.json, pipeline scripts    |
+| **Cleanup**        | `docs/` organization                  | plan/, PRD.md, tasks.json, session directories |
+| **Task Update**    | `tasks.json` modifications            | PRD.md, source code, prd_snapshot.md           |
+| **Validation**     | `validate.sh`, `validation_report.md` | plan/, source code, tasks.json                 |
+| **Bug Hunter**     | `TEST_RESULTS.md` (if bugs found)     | plan/, source code, tasks.json                 |
 
 ---
 
@@ -87,24 +87,27 @@ From `PRD.md §5.2` (Lines 137-145):
 
 ```typescript
 const PROTECTED_FILES = [
-  'tasks.json',        // Pipeline task registry
-  'PRD.md',            // Original PRD document
-  'prd_snapshot.md',   // PRD snapshot for delta detection
+  'tasks.json', // Pipeline task registry
+  'PRD.md', // Original PRD document
+  'prd_snapshot.md', // PRD snapshot for delta detection
 ] as const;
 ```
 
 **Implementation**:
+
 - `filterProtectedFiles()` function (Lines 62-67)
 - Filters protected files from git staging operations
 - Uses basename comparison for path-agnostic matching
 - Called by `smartCommit()` to prevent protected files from being committed
 
 **Rationale**:
+
 - These files contain pipeline state and must remain uncommitted
 - Enables clean pipeline resumption and state management
 - Prevents git history pollution with frequently-changing state files
 
 **Test Coverage**:
+
 - Unit tests: `/home/dustin/projects/hacky-hack/tests/unit/utils/git-commit.test.ts`
 - Integration tests: `/home/dustin/projects/hacky-hack/tests/integration/smart-commit.test.ts`
 
@@ -127,6 +130,7 @@ This prevents agents from accidentally modifying task files outside their design
 From `PRD.md §9.2.5` and `system_context.md` (Lines 383-396):
 
 **Guard Logic**:
+
 1. On pipeline start, check if `PRP_PIPELINE_RUNNING` is already set
 2. If set, only allow execution if BOTH:
    - `SKIP_BUG_FINDING=true` (legitimate bug fix recursion)
@@ -135,6 +139,7 @@ From `PRD.md §9.2.5` and `system_context.md` (Lines 383-396):
 4. On valid entry, set `PRP_PIPELINE_RUNNING` to current PID
 
 **Session Creation Guards**:
+
 - In bug fix mode, prevent creating sessions in main `plan/` directory
 - Bug fix session paths must contain "bugfix" in the path
 - Provides debug logging showing `PLAN_DIR`, `SESSION_DIR`, and `SKIP_BUG_FINDING` values
@@ -146,15 +151,17 @@ From `PRD.md §9.2.5` and `system_context.md` (Lines 383-396):
 ### 1. Missing Protected Files in Git Commit Filter
 
 **Current Implementation** (Lines 38-42):
+
 ```typescript
 const PROTECTED_FILES = [
-  'tasks.json',        // Pipeline task registry
-  'PRD.md',            // Original PRD document
-  'prd_snapshot.md',   // PRD snapshot for delta detection
+  'tasks.json', // Pipeline task registry
+  'PRD.md', // Original PRD document
+  'prd_snapshot.md', // PRD snapshot for delta detection
 ] as const;
 ```
 
 **Missing from Filter**:
+
 - `delta_prd.md` - Delta PRD for incremental sessions
 - `delta_from.txt` - Delta session linkage
 - `TEST_RESULTS.md` - Bug report file
@@ -163,6 +170,7 @@ const PROTECTED_FILES = [
 ### 2. No Enforcement of "Never Delete or Move"
 
 The specifications state these files should "NEVER delete or move", but there is no code-level enforcement:
+
 - No filesystem-level guards against deletion
 - No validation before file operations
 - Agents could potentially delete these files through MCP tools
@@ -170,6 +178,7 @@ The specifications state these files should "NEVER delete or move", but there is
 ### 3. No Agent-Level Operation Validation
 
 While agent prompts specify forbidden operations, there is no runtime validation:
+
 - Agents could potentially use BashMCP to run forbidden commands
 - No tool-level restrictions on file operations
 - Relies entirely on prompt adherence
@@ -240,7 +249,9 @@ describe('agent forbidden operations', () => {
   it('should prevent modifying PRD.md');
   it('should prevent running prd command');
   it('should prevent adding plan/ to .gitignore');
-  it('should prevent creating session directories outside designated locations');
+  it(
+    'should prevent creating session directories outside designated locations'
+  );
 });
 ```
 
@@ -278,19 +289,21 @@ describe('wildcard pattern protection', () => {
 
 ```typescript
 const PROTECTED_FILES = [
-  'tasks.json',        // Pipeline task registry
-  'PRD.md',            // Original PRD document
-  'prd_snapshot.md',   // PRD snapshot for delta detection
-  'delta_prd.md',      // Delta PRD for incremental sessions
-  'delta_from.txt',    // Delta session linkage
-  'TEST_RESULTS.md',   // Bug report file
+  'tasks.json', // Pipeline task registry
+  'PRD.md', // Original PRD document
+  'prd_snapshot.md', // PRD snapshot for delta detection
+  'delta_prd.md', // Delta PRD for incremental sessions
+  'delta_from.txt', // Delta session linkage
+  'TEST_RESULTS.md', // Bug report file
 ] as const;
 
 // Add wildcard pattern matching for *tasks*.json
 function isProtectedFile(filePath: string): boolean {
   const basename = path.basename(filePath);
-  return PROTECTED_FILES.includes(basename as any) ||
-         /\btasks.*\.json$/.test(basename);
+  return (
+    PROTECTED_FILES.includes(basename as any) ||
+    /\btasks.*\.json$/.test(basename)
+  );
 }
 ```
 
@@ -318,7 +331,10 @@ export async function safeDelete(filePath: string): Promise<void> {
   return unlink(filePath);
 }
 
-export async function safeMove(oldPath: string, newPath: string): Promise<void> {
+export async function safeMove(
+  oldPath: string,
+  newPath: string
+): Promise<void> {
   const oldBasename = path.basename(oldPath);
   if (PROTECTED_PATHS.includes(oldBasename)) {
     throw new Error(`Cannot move protected file: ${oldBasename}`);

@@ -85,7 +85,10 @@ Every test uses this three-phase structure with comments:
 ```typescript
 it('should generate valid backlog matching BacklogSchema', async () => {
   // SETUP: Read PRD and create agent
-  vi.stubEnv('ANTHROPIC_AUTH_TOKEN', process.env.ANTHROPIC_API_KEY || 'test-key');
+  vi.stubEnv(
+    'ANTHROPIC_AUTH_TOKEN',
+    process.env.ANTHROPIC_API_KEY || 'test-key'
+  );
   const prdContent = await readFile(PRD_PATH, 'utf-8');
   const architect = createArchitectAgent();
   const prompt = createArchitectPrompt(prdContent);
@@ -274,9 +277,13 @@ const createTestBacklog = (): Backlog => ({
 For LLM calls, use longer timeouts:
 
 ```typescript
-it('should generate valid backlog', async () => {
-  // test code
-}, { timeout: 30000 });
+it(
+  'should generate valid backlog',
+  async () => {
+    // test code
+  },
+  { timeout: 30000 }
+);
 ```
 
 **Source**: `tests/integration/architect-agent.test.ts:160`
@@ -307,7 +314,9 @@ if (USE_REAL_LLM) {
   // VERIFY: Validate against schema
 } else {
   // MOCK: Return fixture data for fast, deterministic testing
-  const mockBacklog: Backlog = { /* ... */ };
+  const mockBacklog: Backlog = {
+    /* ... */
+  };
   vi.spyOn(architect, 'prompt').mockResolvedValue(mockBacklog);
   const result = await architect.prompt(prompt);
   // VERIFY: Validate fixture data
@@ -347,12 +356,12 @@ afterEach(() => {
 
 ## Common Test Locations
 
-| Test Type | Directory | Pattern |
-|-----------|-----------|---------|
-| Integration | `tests/integration/` | `*-agent.test.ts`, `*-integration.test.ts` |
-| Unit | `tests/unit/` | Mirror source structure |
-| Groundswell | `tests/integration/groundswell/` | Component-specific |
-| Core System | `tests/integration/core/` | `session-manager.test.ts`, `task-orchestrator.test.ts` |
+| Test Type   | Directory                        | Pattern                                                |
+| ----------- | -------------------------------- | ------------------------------------------------------ |
+| Integration | `tests/integration/`             | `*-agent.test.ts`, `*-integration.test.ts`             |
+| Unit        | `tests/unit/`                    | Mirror source structure                                |
+| Groundswell | `tests/integration/groundswell/` | Component-specific                                     |
+| Core System | `tests/integration/core/`        | `session-manager.test.ts`, `task-orchestrator.test.ts` |
 
 ## Verification Patterns
 
@@ -382,9 +391,9 @@ expect(prpCall![1]).toContain('# PRP for P3.M3.T3.S1');
 
 ## Summary Table: Mock Patterns
 
-| Test File | Mock Pattern | Test Focus |
-|-----------|--------------|------------|
-| `architect-agent.test.ts` | `vi.mock('../../src/agents/agent-factory.js')` | PRD decomposition |
-| `groundswell/agent-prompt.test.ts` | `vi.mock('@anthropic-ai/sdk')` | Agent/Prompt creation |
-| `task-orchestrator-runtime.test.ts` | `vi.mock('agent-factory')` with `vi.hoisted()` | Queue behavior |
-| `prp-generator-integration.test.ts` | `vi.mock('node:fs/promises')` | File generation |
+| Test File                           | Mock Pattern                                   | Test Focus            |
+| ----------------------------------- | ---------------------------------------------- | --------------------- |
+| `architect-agent.test.ts`           | `vi.mock('../../src/agents/agent-factory.js')` | PRD decomposition     |
+| `groundswell/agent-prompt.test.ts`  | `vi.mock('@anthropic-ai/sdk')`                 | Agent/Prompt creation |
+| `task-orchestrator-runtime.test.ts` | `vi.mock('agent-factory')` with `vi.hoisted()` | Queue behavior        |
+| `prp-generator-integration.test.ts` | `vi.mock('node:fs/promises')`                  | File generation       |

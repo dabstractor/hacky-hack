@@ -19,6 +19,7 @@ This document provides research context for running error handling integration t
 **Location**: `tests/integration/utils/error-handling.test.ts`
 
 **Test Organization**:
+
 ```typescript
 describe('Error Handling Integration Tests', () => {
   describe('Error Type Hierarchy', () => {
@@ -55,6 +56,7 @@ describe('Error Handling Integration Tests', () => {
 ### 1.2 EnvironmentError-Related Tests
 
 **Test 1: Constructor Validation** (Lines 114-123)
+
 ```typescript
 it('should create EnvironmentError with correct properties', () => {
   const error = new EnvironmentError('Test environment error', {
@@ -67,15 +69,18 @@ it('should create EnvironmentError with correct properties', () => {
   expect((error as any).variable).toBe('TEST_VAR');
 });
 ```
+
 **Expected Result**: PASS (EnvironmentError implemented in P1.M1.T1.S2-S4)
 
 **Test 2: Fatal Error Detection** (Lines 136-139)
+
 ```typescript
 it('should identify EnvironmentError as fatal', () => {
   const error = new EnvironmentError('Missing API key');
   expect(isFatalError(error)).toBe(true);
 });
 ```
+
 **Expected Result**: FAIL (isFatalError not yet implemented - planned for P1.M2)
 
 ---
@@ -87,12 +92,14 @@ it('should identify EnvironmentError as fatal', () => {
 **Configuration**: `vitest.config.ts`
 
 **Key Settings**:
+
 - Environment: `node` (tests run in Node.js runtime)
 - Coverage Provider: `v8` (built-in V8 coverage)
 - Coverage Thresholds: 100% for all metrics
 - Test Pattern: `tests/**/*.{test,spec}.ts`
 
 **Test Commands**:
+
 ```bash
 # Run specific test file (CI mode - exits after completion)
 npm run test:run -- tests/integration/utils/error-handling.test.ts
@@ -113,6 +120,7 @@ npm test -- tests/integration/utils/error-handling.test.ts
 ### 2.2 Test Output Interpretation
 
 **Passing Test Output**:
+
 ```
 ✓ tests/integration/utils/error-handling.test.ts (X)
   ✓ Error Handling Integration Tests
@@ -125,6 +133,7 @@ npm test -- tests/integration/utils/error-handling.test.ts
 ```
 
 **Failing Test Output**:
+
 ```
 ✗ tests/integration/utils/error-handling.test.ts (X)
   ✗ Error Handling Integration Tests
@@ -140,12 +149,14 @@ npm test -- tests/integration/utils/error-handling.test.ts
 ### 3.1 Immediate Success (P1.M1.T2.S1)
 
 **Tests That Should Pass**:
+
 1. ✓ "should create EnvironmentError with correct properties"
    - Validates EnvironmentError constructor
    - Validates instanceof checks (PipelineError, Error)
    - Validates context property preservation
 
 **Tests That Will Fail (Expected)**:
+
 1. ✗ "should identify EnvironmentError as fatal"
    - Reason: isFatalError() not yet implemented
    - Planned for: P1.M2 (Add isFatalError Function)
@@ -154,6 +165,7 @@ npm test -- tests/integration/utils/error-handling.test.ts
 ### 3.2 Related Test Status
 
 **Other Error Type Tests** (Should All Pass):
+
 - ✓ PipelineError constructor tests
 - ✓ SessionError constructor tests
 - ✓ TaskError constructor tests
@@ -164,6 +176,7 @@ npm test -- tests/integration/utils/error-handling.test.ts
 - ✓ Error stack trace tests
 
 **Fatal Error Detection Tests** (Will Fail):
+
 - ✗ "should identify SessionError as fatal"
 - ✗ "should identify EnvironmentError as fatal"
 - ✓ "should identify ValidationError as non-fatal" (may pass with default behavior)
@@ -222,6 +235,7 @@ npm run test:run -- tests/integration/
 ### 4.3 Success Criteria
 
 **P1.M1.T2.S1 is Complete When**:
+
 - [ ] Test suite executes successfully
 - [ ] "should create EnvironmentError with correct properties" passes
 - [ ] No regressions in other error handling tests
@@ -237,6 +251,7 @@ npm run test:run -- tests/integration/
 **Problem**: `Cannot find module '../../../src/utils/errors.js'`
 
 **Solution**:
+
 - Verify file paths are correct
 - Check TypeScript compilation: `npm run build`
 - Ensure .js extensions are used (not .ts)
@@ -246,6 +261,7 @@ npm run test:run -- tests/integration/
 **Problem**: Tests timeout after 30 seconds
 
 **Solution**:
+
 - Check for infinite loops in error handling
 - Verify test cleanup in afterEach hooks
 - Increase timeout: `it('test', { timeout: 10000 }, () => { ... })`
@@ -255,6 +271,7 @@ npm run test:run -- tests/integration/
 **Problem**: Coverage below 100% threshold
 
 **Solution**:
+
 - Run coverage report: `npm run test:coverage`
 - Identify uncovered lines
 - Add tests for uncovered code paths
@@ -265,6 +282,7 @@ npm run test:run -- tests/integration/
 **Problem**: Tests fail due to missing environment variables
 
 **Solution**:
+
 - Check .env file exists (optional)
 - Verify tests/setup.ts handles missing .env gracefully
 - Ensure z.ai API endpoint is configured (if needed)
@@ -285,26 +303,32 @@ npm run test:run -- tests/integration/
 ## Results
 
 ### EnvironmentError Tests
+
 - ✓ should create EnvironmentError with correct properties - PASS
 - ✗ should identify EnvironmentError as fatal - FAIL (isFatalError not implemented)
 
 ### Overall Test Suite
+
 - Total Tests: [COUNT]
 - Passed: [COUNT]
 - Failed: [COUNT]
 - Skipped: [COUNT]
 
 ### Expected Failures
+
 The following tests are expected to fail due to isFatalError() not yet implemented:
+
 - should identify SessionError as fatal
 - should identify EnvironmentError as fatal
 
 These will be addressed in P1.M2 (Add isFatalError Function).
 
 ### Regression Check
+
 All other error handling tests continue to pass. No regressions detected.
 
 ## Conclusion
+
 P1.M1.T2.S1 validation complete. EnvironmentError integration validated.
 Ready to proceed with P1.M2 (isFatalError implementation).
 ```
@@ -314,16 +338,19 @@ Ready to proceed with P1.M2 (isFatalError implementation).
 ## 7. References and Resources
 
 ### 7.1 Vitest Documentation
+
 - https://vitest.dev/guide/ - Vitest Guide
 - https://vitest.dev/api/ - Vitest API Reference
 - https://vitest.dev/guide/cli.html - CLI Arguments
 
 ### 7.2 Project-Specific Documentation
+
 - `vitest.config.ts` - Test configuration
 - `tests/setup.ts` - Global test setup
 - `package.json` - Test scripts
 
 ### 7.3 Related PRPs
+
 - `P1M1T1S2/PRP.md` - EnvironmentError implementation
 - `P1M1T1S3/PRP.md` - isEnvironmentError type guard
 - `P1M1T1S4/PRP.md` - EnvironmentError export

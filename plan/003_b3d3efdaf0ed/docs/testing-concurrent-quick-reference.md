@@ -5,6 +5,7 @@ A condensed cheat sheet for common testing patterns in concurrent/parallel opera
 ---
 
 ## Table of Contents
+
 1. [Fake Timers](#1-fake-timers)
 2. [Concurrency Tracking](#2-concurrency-tracking)
 3. [Execution Order](#3-execution-order)
@@ -19,6 +20,7 @@ A condensed cheat sheet for common testing patterns in concurrent/parallel opera
 ## 1. Fake Timers
 
 ### Basic Setup
+
 ```typescript
 import { vi, beforeEach, afterEach } from 'vitest';
 
@@ -32,6 +34,7 @@ afterEach(() => {
 ```
 
 ### Advance Time
+
 ```typescript
 test('timed operation', async () => {
   const callback = vi.fn();
@@ -43,6 +46,7 @@ test('timed operation', async () => {
 ```
 
 ### Run All Timers
+
 ```typescript
 test('all timers', async () => {
   const callback = vi.fn();
@@ -58,6 +62,7 @@ test('all timers', async () => {
 ## 2. Concurrency Tracking
 
 ### Track Active Operations
+
 ```typescript
 test('concurrency limit', async () => {
   const active = new Set<string>();
@@ -83,6 +88,7 @@ test('concurrency limit', async () => {
 ## 3. Execution Order
 
 ### Track Order with Array
+
 ```typescript
 test('execution order', async () => {
   const order: string[] = [];
@@ -98,6 +104,7 @@ test('execution order', async () => {
 ```
 
 ### Verify Parent Before Child
+
 ```typescript
 test('parent before child', async () => {
   const processed: string[] = [];
@@ -120,12 +127,13 @@ test('parent before child', async () => {
 ## 4. Fire-and-Forget
 
 ### Track Errors
+
 ```typescript
 let unhandledRejections: unknown[] = [];
 
 beforeEach(() => {
   unhandledRejections = [];
-  process.on('unhandledRejection', (reason) => {
+  process.on('unhandledRejection', reason => {
     unhandledRejections.push(reason);
   });
 });
@@ -139,6 +147,7 @@ afterEach(() => {
 ```
 
 ### Test Non-Blocking
+
 ```typescript
 test('fire-and-forget non-blocking', async () => {
   let successCount = 0;
@@ -163,6 +172,7 @@ test('fire-and-forget non-blocking', async () => {
 ## 5. Cache Testing
 
 ### Cache Hit/Miss
+
 ```typescript
 test('cache behavior', async () => {
   const cache = new Map<string, string>();
@@ -190,6 +200,7 @@ test('cache behavior', async () => {
 ## 6. Race Conditions
 
 ### Promise.race
+
 ```typescript
 test('promise race', async () => {
   vi.useFakeTimers();
@@ -215,6 +226,7 @@ test('promise race', async () => {
 ```
 
 ### Concurrent State Mutation
+
 ```typescript
 test('concurrent mutations', async () => {
   let counter = 0;
@@ -237,13 +249,20 @@ test('concurrent mutations', async () => {
 ## 7. Queue Testing
 
 ### FIFO Order
+
 ```typescript
 test('FIFO queue', async () => {
   const processed: string[] = [];
 
-  const task1 = vi.fn(async () => { processed.push('task1'); });
-  const task2 = vi.fn(async () => { processed.push('task2'); });
-  const task3 = vi.fn(async () => { processed.push('task3'); });
+  const task1 = vi.fn(async () => {
+    processed.push('task1');
+  });
+  const task2 = vi.fn(async () => {
+    processed.push('task2');
+  });
+  const task3 = vi.fn(async () => {
+    processed.push('task3');
+  });
 
   queue.enqueue(task1);
   queue.enqueue(task2);
@@ -256,6 +275,7 @@ test('FIFO queue', async () => {
 ```
 
 ### Priority Queue
+
 ```typescript
 test('priority queue', async () => {
   const processed: string[] = [];
@@ -263,7 +283,9 @@ test('priority queue', async () => {
   const createTask = (id: string, priority: number) => ({
     id,
     priority,
-    execute: vi.fn(async () => { processed.push(id); })
+    execute: vi.fn(async () => {
+      processed.push(id);
+    }),
   });
 
   queue.enqueue(createTask('low', 1));
@@ -281,9 +303,11 @@ test('priority queue', async () => {
 ## 8. Mock Patterns
 
 ### Retry Logic
+
 ```typescript
 test('retry logic', async () => {
-  const mockFn = vi.fn()
+  const mockFn = vi
+    .fn()
     .mockRejectedValueOnce(new Error('Fail'))
     .mockResolvedValueOnce('Success');
 
@@ -293,6 +317,7 @@ test('retry logic', async () => {
 ```
 
 ### State Preservation
+
 ```typescript
 test('mock state preservation', async () => {
   mockUpdateItem.mockImplementation((backlog, id, status) => {
@@ -305,6 +330,7 @@ test('mock state preservation', async () => {
 ```
 
 ### Factory Functions
+
 ```typescript
 function createTestTask(
   id: string,
@@ -325,6 +351,7 @@ function createTestTask(
 ## Common Assertions
 
 ### Timing
+
 ```typescript
 expect(callback).toHaveBeenCalled();
 expect(callback).toHaveBeenCalledTimes(1);
@@ -333,6 +360,7 @@ expect(callback).toHaveBeenCalledBefore(callback2);
 ```
 
 ### Order
+
 ```typescript
 expect(order).toEqual(['a', 'b', 'c']);
 expect(index1).toBeLessThan(index2);
@@ -340,6 +368,7 @@ expect(array).toContain('item');
 ```
 
 ### Errors
+
 ```typescript
 await expect(promise).resolves.toBe('value');
 await expect(promise).rejects.toThrow('Error');
@@ -363,5 +392,5 @@ expect(mock).toHaveBeenCalledTimes(1);
 
 ---
 
-*Generated: 2026-01-19*
-*Companion to: testing-concurrent-operations-vitest-typescript.md*
+_Generated: 2026-01-19_
+_Companion to: testing-concurrent-operations-vitest-typescript.md_

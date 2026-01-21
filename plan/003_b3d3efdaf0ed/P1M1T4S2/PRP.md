@@ -9,6 +9,7 @@
 **Deliverable**: Integration test file `tests/integration/pipeline-shutdown.test.ts` (note: file already exists as `prp-pipeline-shutdown.test.ts`, this PRP enhances it with additional test coverage for signal handling scenarios).
 
 **Success Definition**: All tests pass, verifying:
+
 - SIGINT/SIGTERM signals are caught and processed correctly
 - Current task completes before shutdown (loop exits after task finishes)
 - Pending tasks are preserved in tasks.json via saveBacklog()
@@ -56,7 +57,8 @@ Integration tests that verify PRPPipeline's graceful shutdown behavior across mu
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Complete PRPPipeline signal handling implementation details with line numbers
 - SessionManager state persistence mechanisms (saveBacklog, flushUpdates, atomic writes)
 - Exact test patterns from existing shutdown tests with code examples
@@ -330,11 +332,18 @@ Use existing types from `src/core/models.ts`:
 
 ```typescript
 // Import existing types for use in tests
-import type { SessionState, Backlog, Status, PipelineResult } from '../../src/core/models.js';
+import type {
+  SessionState,
+  Backlog,
+  Status,
+  PipelineResult,
+} from '../../src/core/models.js';
 import type { PRPPipeline } from '../../src/workflows/prp-pipeline.js';
 
 // Mock fixture for SessionState with shutdown-relevant fields
-const createMockSessionState = (overrides?: Partial<SessionState>): SessionState => ({
+const createMockSessionState = (
+  overrides?: Partial<SessionState>
+): SessionState => ({
   metadata: {
     id: '001_test123',
     hash: 'test123',
@@ -701,11 +710,21 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       createTestPRD();
       const backlog: Backlog = { backlog: [] };
       const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-      const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
       (createArchitectAgent as any).mockReturnValue(mockAgent);
 
       const mockSessionManager = setupMockSessionManager(backlog);
-      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
 
       // Mock processNextItem with delay (simulates long-running task)
       let taskStarted = false;
@@ -796,7 +815,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       };
 
       const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-      const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
       (createArchitectAgent as any).mockReturnValue(mockAgent);
 
       const mockSessionManager: any = {
@@ -806,7 +826,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           currentItemId: 'P1.M1.T1.S2', // Resume from here
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: 'P1.M1.T1.S2',
@@ -817,7 +842,16 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       MockSessionManagerClass.mockImplementation(() => mockSessionManager);
 
       // EXECUTE: Run pipeline (simulates --continue behavior)
-      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
 
       const processedTasks: string[] = [];
       const mockOrchestrator: any = {
@@ -846,11 +880,21 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       createTestPRD();
       const backlog: Backlog = { backlog: [] };
       const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-      const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
       (createArchitectAgent as any).mockReturnValue(mockAgent);
 
       const mockSessionManager = setupMockSessionManager(backlog);
-      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
       const warnSpy = vi.spyOn((pipeline as any).logger, 'warn');
 
       // EXECUTE: Emit multiple signals rapidly
@@ -890,7 +934,8 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       createTestPRD();
       const backlog: Backlog = { backlog: [] };
       const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-      const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
       (createArchitectAgent as any).mockReturnValue(mockAgent);
 
       const mockSessionManager: any = {
@@ -899,7 +944,12 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
           taskRegistry: backlog,
         },
         initialize: vi.fn().mockResolvedValue({
-          metadata: { id: 'test', hash: 'abc', path: tempDir, createdAt: new Date() },
+          metadata: {
+            id: 'test',
+            hash: 'abc',
+            path: tempDir,
+            createdAt: new Date(),
+          },
           prdSnapshot: '# Test',
           taskRegistry: backlog,
           currentItemId: null,
@@ -910,15 +960,26 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
         }),
       };
 
-      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
 
       // Spy on cleanup to throw after saveBacklog
-      const cleanupSpy = vi.spyOn(pipeline as any, 'cleanup').mockImplementation(async function() {
-        // Call original cleanup logic (saves state)
-        await mockSessionManager.saveBacklog();
-        // Then throw error
-        throw new Error('Cleanup error after save');
-      });
+      const cleanupSpy = vi
+        .spyOn(pipeline as any, 'cleanup')
+        .mockImplementation(async function () {
+          // Call original cleanup logic (saves state)
+          await mockSessionManager.saveBacklog();
+          // Then throw error
+          throw new Error('Cleanup error after save');
+        });
 
       const mockOrchestrator: any = {
         sessionManager: {},
@@ -947,11 +1008,21 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       createTestPRD();
       const backlog: Backlog = { backlog: [] };
       const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-      const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
       (createArchitectAgent as any).mockReturnValue(mockAgent);
 
       const mockSessionManager = setupMockSessionManager(backlog);
-      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
 
       // Set shutdown flag immediately
       (pipeline as any).shutdownRequested = true;
@@ -976,11 +1047,21 @@ describe('PRPPipeline Graceful Shutdown Integration Tests', () => {
       createTestPRD();
       const backlog: Backlog = { backlog: [] };
       const mockAgent = { prompt: vi.fn().mockResolvedValue({ backlog }) };
-      const { createArchitectAgent } = await import('../../src/agents/agent-factory.js');
+      const { createArchitectAgent } =
+        await import('../../src/agents/agent-factory.js');
       (createArchitectAgent as any).mockReturnValue(mockAgent);
 
       const mockSessionManager = setupMockSessionManager(backlog);
-      const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+      const pipeline = new PRPPipeline(
+        prdPath,
+        undefined,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        planDir
+      );
 
       // Mock resource monitor to trigger shutdown
       const mockResourceMonitor: any = {

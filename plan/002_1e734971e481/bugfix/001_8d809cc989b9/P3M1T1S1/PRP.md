@@ -5,6 +5,7 @@
 **Feature Goal**: Analyze the mismatch between test expectations and TaskOrchestrator implementation logging to determine the correct fix strategy for 21 failing unit tests.
 
 **Deliverable**: Analysis document at `plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/logging-test-analysis.md` containing:
+
 1. Complete list of all 21 failing tests with their expectations
 2. Corresponding implementation logging statements
 3. Root cause analysis of the mismatch
@@ -12,6 +13,7 @@
 5. Implementation strategy for the recommended fix
 
 **Success Definition**:
+
 - All 21 failing tests are identified and categorized
 - Root cause is documented with specific code references
 - Recommendation is clear and actionable
@@ -24,6 +26,7 @@
 **Use Case**: Developer has completed Phase P2 (E2E Pipeline fixes) and is now addressing Phase P3 test failures. Needs to understand whether the test expectations are wrong or if the implementation needs to change.
 
 **User Journey**:
+
 1. Developer encounters 21 failing tests in `tests/unit/core/task-orchestrator.test.ts`
 2. Tests fail with "expected log to be called with arguments" errors
 3. Developer reads this PRP's analysis document
@@ -31,6 +34,7 @@
 5. Developer proceeds to P3.M1.T1.S2 to implement the fix
 
 **Pain Points Addressed**:
+
 - Uncertainty whether tests or implementation are correct
 - Risk of breaking structured logging architecture
 - Need to understand all 21 failures before fixing
@@ -64,6 +68,7 @@ Analyze the mismatch between test expectations and implementation logging for Ta
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact file locations for all 21 failing tests with line numbers
 2. Complete implementation logging reference with line numbers
 3. Mock setup analysis showing the issue
@@ -262,6 +267,7 @@ Analyze the mismatch between test expectations and implementation logging for Ta
 ### Data Models and Structure
 
 No new data models - this is a research/analysis task. Existing models:
+
 - **Logger**: Interface from `src/utils/logger.ts` with debug/info/warn/error/child methods
 - **mockLogger**: Test fixture with vi.fn() spies for each logger method
 
@@ -623,6 +629,7 @@ grep -i "console.log" plan/.../logging-test-analysis.md | grep -i "implement"
 **One-Pass Implementation Success Likelihood**: EXTREMELY HIGH
 
 **Rationale**:
+
 1. Clear task boundaries - research/analysis only, no implementation
 2. All source files identified with specific line numbers
 3. Comprehensive research already conducted and documented
@@ -635,6 +642,7 @@ grep -i "console.log" plan/.../logging-test-analysis.md | grep -i "implement"
 10. No architectural decisions needed (Pino is correct)
 
 **Potential Risks**:
+
 - **Risk 1**: May discover additional test patterns not covered in initial analysis (Very Low - analysis task allows thorough investigation)
 - **Risk 2**: Recommendation may depend on team preferences (Very Low - architectural best practices are clear)
 - **Risk 3**: Some tests may have unique patterns requiring special handling (Low - research task identifies all patterns)

@@ -11,6 +11,7 @@ This document documents the test validation patterns used in the hacky-hack proj
 **Configuration File**: `/home/dustin/projects/hacky-hack/vitest.config.ts`
 
 **Key Configuration**:
+
 - Environment: `node`
 - Test file patterns: `tests/**/*.{test,spec}.ts`
 - Global setup file: `./tests/setup.ts`
@@ -36,6 +37,7 @@ From `package.json`:
 **File**: `/home/dustin/projects/hacky-hack/tests/setup.ts`
 
 **Key Features**:
+
 1. Loads environment variables from `.env` file
 2. Validates that tests use z.ai API endpoint (not Anthropic's official API)
 3. Global `beforeEach` hook: Clears mocks and validates API endpoint
@@ -62,6 +64,7 @@ npm run test:run -- -t "test name"
 ### Level 2: Check Output
 
 After running tests, verify:
+
 1. No dotenv loading messages appear
 2. All tests pass
 3. No new errors introduced
@@ -72,18 +75,21 @@ After running tests, verify:
 For this work item (P4.M1.T1.S1), the validation is:
 
 **Before fix**:
+
 ```bash
 npm run test:run 2>&1 | grep -c "dotenv"
 # Output: 20+ (multiple dotenv loading messages)
 ```
 
 **After fix**:
+
 ```bash
 npm run test:run 2>&1 | grep -c "dotenv"
 # Output: 0 (no dotenv loading messages)
 ```
 
 Or more specifically:
+
 ```bash
 npm run test:run 2>&1 | grep "\[dotenv@"
 # Before: Multiple matches
@@ -134,6 +140,7 @@ Since this is a test infrastructure change, validation should include:
 This work item (P4.M1.T1.S1) runs in parallel with P3.M3.T1.S1 (Implement positive jitter calculation).
 
 **No conflicts**:
+
 - P4.M1.T1.S1 modifies `tests/setup.ts` (test infrastructure)
 - P3.M3.T1.S1 modifies `src/utils/retry.ts` (source code)
 - Different files, no overlapping changes

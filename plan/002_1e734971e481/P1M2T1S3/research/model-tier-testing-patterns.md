@@ -5,6 +5,7 @@
 This document compiles best practices for testing model configuration tier mapping in TypeScript/Vitest projects, with specific focus on the `hacky-hack` project's environment configuration system where `ModelTier = 'opus' | 'sonnet' | 'haiku'`.
 
 **Sources:**
+
 - [Vitest Documentation](https://vitest.dev/guide/)
 - [Vitest API Reference - expect](https://vitest.dev/api/expect.html)
 - [TypeScript Documentation - Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
@@ -20,6 +21,7 @@ This document compiles best practices for testing model configuration tier mappi
 **Pattern:** Use `vi.stubEnv()` to set environment variables in tests and `vi.unstubAllEnvs()` for cleanup.
 
 **Example from existing codebase:**
+
 ```typescript
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -65,6 +67,7 @@ describe('configureEnvironment', () => {
 **Pattern:** Test both the default path (no environment variable) and the override path (environment variable set).
 
 **Example from existing codebase:**
+
 ```typescript
 describe('getModel', () => {
   it('should return default model for opus tier', () => {
@@ -106,12 +109,13 @@ describe('getModel', () => {
 **Pattern:** Use `as const` arrays to define valid values and iterate through them to ensure all cases are tested.
 
 **Example pattern:**
+
 ```typescript
 describe('ModelTier exhaustiveness', () => {
   const validTiers = ['opus', 'sonnet', 'haiku'] as const;
-  type ModelTier = typeof validTiers[number];
+  type ModelTier = (typeof validTiers)[number];
 
-  validTiers.forEach((tier) => {
+  validTiers.forEach(tier => {
     it(`should accept valid tier: ${tier}`, () => {
       // SETUP: Define valid model for tier
       delete process.env[`ANTHROPIC_DEFAULT_${tier.toUpperCase()}_MODEL`];
@@ -152,6 +156,7 @@ describe('ModelTier exhaustiveness', () => {
 **Pattern:** Use `expect().toThrow()` to verify functions throw expected errors.
 
 **Example from existing codebase:**
+
 ```typescript
 describe('validateEnvironment', () => {
   it('should throw when API_KEY is missing', () => {
@@ -179,6 +184,7 @@ describe('validateEnvironment', () => {
 **Pattern:** Use try-catch to verify error object properties.
 
 **Example from existing codebase:**
+
 ```typescript
 it('should include missing variable name in error', () => {
   // SETUP: Missing API_KEY only
@@ -222,6 +228,7 @@ it('should include missing variable name in error', () => {
 **Pattern:** Use `as const` to create immutable, type-preserving constants.
 
 **Example from existing codebase:**
+
 ```typescript
 // constants.ts
 export const MODEL_NAMES = {
@@ -276,6 +283,7 @@ describe('MODEL_NAMES constant', () => {
 **Pattern:** Use `never` type to ensure all union variants are handled.
 
 **Example pattern:**
+
 ```typescript
 type ModelTier = 'opus' | 'sonnet' | 'haiku';
 
@@ -298,7 +306,7 @@ function getModelName(tier: ModelTier): string {
 describe('getModelName exhaustiveness', () => {
   const tiers: ModelTier[] = ['opus', 'sonnet', 'haiku'];
 
-  tiers.forEach((tier) => {
+  tiers.forEach(tier => {
     it(`should handle ${tier} without throwing`, () => {
       expect(() => getModelName(tier)).not.toThrow();
       expect(getModelName(tier)).toMatch(/^GLM-/);
@@ -338,7 +346,11 @@ Here's a complete test suite for model tier configuration:
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getModel, configureEnvironment, validateEnvironment } from './environment.js';
+import {
+  getModel,
+  configureEnvironment,
+  validateEnvironment,
+} from './environment.js';
 import { MODEL_NAMES, MODEL_ENV_VARS } from './constants.js';
 import { EnvironmentValidationError } from './types.js';
 
@@ -351,7 +363,7 @@ describe('Model Tier Configuration', () => {
   describe('getModel() - Default Values', () => {
     const modelTiers = ['opus', 'sonnet', 'haiku'] as const;
 
-    modelTiers.forEach((tier) => {
+    modelTiers.forEach(tier => {
       it(`should return default model for ${tier}`, () => {
         // SETUP: Clear override env var
         delete process.env[MODEL_ENV_VARS[tier]];
@@ -365,7 +377,7 @@ describe('Model Tier Configuration', () => {
   describe('getModel() - Environment Overrides', () => {
     const modelTiers = ['opus', 'sonnet', 'haiku'] as const;
 
-    modelTiers.forEach((tier) => {
+    modelTiers.forEach(tier => {
       it(`should use env override for ${tier}`, () => {
         // SETUP: Set custom model via env var
         const customModel = `custom-${tier}-model`;
@@ -465,9 +477,21 @@ describe('Model Tier Configuration', () => {
 ```typescript
 describe('getModel()', () => {
   const testCases = [
-    { tier: 'opus' as const, expectedDefault: 'GLM-4.7', envVar: 'ANTHROPIC_DEFAULT_OPUS_MODEL' },
-    { tier: 'sonnet' as const, expectedDefault: 'GLM-4.7', envVar: 'ANTHROPIC_DEFAULT_SONNET_MODEL' },
-    { tier: 'haiku' as const, expectedDefault: 'GLM-4.5-Air', envVar: 'ANTHROPIC_DEFAULT_HAIKU_MODEL' },
+    {
+      tier: 'opus' as const,
+      expectedDefault: 'GLM-4.7',
+      envVar: 'ANTHROPIC_DEFAULT_OPUS_MODEL',
+    },
+    {
+      tier: 'sonnet' as const,
+      expectedDefault: 'GLM-4.7',
+      envVar: 'ANTHROPIC_DEFAULT_SONNET_MODEL',
+    },
+    {
+      tier: 'haiku' as const,
+      expectedDefault: 'GLM-4.5-Air',
+      envVar: 'ANTHROPIC_DEFAULT_HAIKU_MODEL',
+    },
   ];
 
   testCases.forEach(({ tier, expectedDefault, envVar }) => {
@@ -587,7 +611,7 @@ expect(getModel(tier)).toBe('something'); // No compile-time error
 
 // GOOD: Use type guards or const arrays
 const validTiers = ['opus', 'sonnet', 'haiku'] as const;
-validTiers.forEach((tier) => {
+validTiers.forEach(tier => {
   expect(getModel(tier)).toBeDefined();
 });
 ```
@@ -675,7 +699,7 @@ type ModelTier = 'opus' | 'sonnet' | 'haiku';
 const tiers = ['opus', 'sonnet', 'haiku'] as const;
 
 // Test each variant
-tiers.forEach((tier) => {
+tiers.forEach(tier => {
   it(`works for ${tier}`, () => {
     expect(getModel(tier)).toBeDefined();
   });
@@ -684,9 +708,12 @@ tiers.forEach((tier) => {
 // Exhaustiveness check
 function handleTier(tier: ModelTier): string {
   switch (tier) {
-    case 'opus': return 'high';
-    case 'sonnet': return 'medium';
-    case 'haiku': return 'low';
+    case 'opus':
+      return 'high';
+    case 'sonnet':
+      return 'medium';
+    case 'haiku':
+      return 'low';
     default:
       const _exhaustive: never = tier; // Error if new tier added
       return _exhaustive;

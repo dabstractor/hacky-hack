@@ -3,7 +3,9 @@
 ## Unit Tests
 
 ### tests/unit/workflows/prp-pipeline.test.ts
+
 **Coverage**: Comprehensive unit tests for PRPPipeline class
+
 - Constructor validation (empty PRD path handling)
 - `decomposePRD()` method (session management, backlog generation)
 - `executeBacklog()` method (task processing, iteration limits)
@@ -16,7 +18,9 @@
 - Phase transitions and state management
 
 ### tests/unit/workflows/prp-pipeline-progress.test.ts
+
 **Coverage**: Progress tracker integration with PRPPipeline
+
 - ProgressTracker initialization with session backlog
 - Task start/completion tracking
 - Progress logging every 5 tasks
@@ -28,7 +32,9 @@
 ## Integration Tests
 
 ### tests/integration/prp-pipeline-integration.test.ts
+
 **Coverage**: End-to-end PRPPipeline workflow with real components
+
 - Full run() workflow with new sessions
 - Session directory creation (prd_snapshot.md, tasks.json)
 - Full run() workflow with existing sessions
@@ -39,7 +45,9 @@
 - Error handling scenarios
 
 ### tests/integration/prp-pipeline-shutdown.test.ts
+
 **Coverage**: Graceful shutdown handling with real signals
+
 - SIGINT handling during execution
 - SIGTERM handling during execution
 - Current task completion before shutdown
@@ -52,7 +60,9 @@
 ## isFatalError Tests
 
 ### tests/unit/utils/is-fatal-error.test.ts
+
 **Coverage**: Comprehensive unit tests for isFatalError function
+
 - Fatal error detection:
   - SessionError with LOAD_FAILED/SAVE_FAILED codes
   - All EnvironmentError instances

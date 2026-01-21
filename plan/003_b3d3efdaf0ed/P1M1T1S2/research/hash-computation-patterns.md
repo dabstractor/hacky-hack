@@ -7,11 +7,13 @@ PRP work item P1.M1.T1.S2 requires verifying PRD hash-based change detection thr
 ## Core Hash Computation Pattern
 
 ### Location
+
 - `src/core/session-utils.ts:229-255` - `hashPRD()` function
 - `src/core/session-manager.ts:224-225` - Hash computation during `initialize()`
 - `src/core/session-manager.ts:1162-1170` - `hasSessionChanged()` method
 
 ### The Pattern
+
 ```typescript
 import { createHash } from 'node:crypto';
 
@@ -23,6 +25,7 @@ const sessionHash = fullHash.slice(0, 12);
 ```
 
 ### Key Characteristics
+
 1. **Algorithm**: SHA-256 (produces 256-bit hash)
 2. **Output Format**: 64 hexadecimal characters (0-9, a-f)
 3. **Session Hash**: First 12 characters only
@@ -32,9 +35,11 @@ const sessionHash = fullHash.slice(0, 12);
 ## hasSessionChanged() Implementation
 
 ### Location
+
 `src/core/session-manager.ts:1162-1170`
 
 ### Implementation
+
 ```typescript
 hasSessionChanged(): boolean {
   if (!this.#currentSession) {
@@ -48,12 +53,14 @@ hasSessionChanged(): boolean {
 ```
 
 ### How It Works
+
 1. Compares cached PRD hash (`#prdHash`) with session metadata hash
 2. Returns `true` if hashes differ (PRD was modified)
 3. Returns `false` if hashes match (PRD unchanged)
 4. Throws error if no session loaded or hash not computed
 
 ### Hash Caching
+
 - `#prdHash` is set during `initialize()` at line 233
 - Cached to avoid recomputing hash on every check
 - Recomputed only when `initialize()` is called again
@@ -61,6 +68,7 @@ hasSessionChanged(): boolean {
 ## Test Patterns from Codebase
 
 ### Pattern 1: Direct Hash Computation Test
+
 **Location**: `tests/integration/core/session-manager.test.ts`
 
 ```typescript
@@ -83,6 +91,7 @@ it('should compute SHA-256 hash and use first 12 characters', async () => {
 ```
 
 ### Pattern 2: Hash Change Detection Test
+
 **Location**: `tests/e2e/delta.test.ts`
 
 ```typescript
@@ -104,6 +113,7 @@ expect(newHash.slice(0, 12)).not.toBe(session.metadata.hash);
 ```
 
 ### Pattern 3: Deterministic Hash Verification
+
 **Location**: `tests/unit/core/session-utils.test.ts`
 
 ```typescript
@@ -124,6 +134,7 @@ describe('hashPRD', () => {
 ## Mock PRD Content Examples
 
 ### Simple PRD (tests/fixtures/simple-prd.ts)
+
 ```typescript
 export const mockSimplePRD = `
 # Test Project
@@ -162,7 +173,9 @@ CONTRACT DEFINITION:
 **Expected Hash**: `b8c07e8b7d2` (first 12 chars of SHA-256)
 
 ### Modified PRD v2 (tests/fixtures/simple-prd-v2.ts)
+
 Changes from v1:
+
 - Added P1.M1.T2 task
 - Modified P1.M1.T1.S1 story_points from 1 to 2
 
@@ -171,25 +184,31 @@ Changes from v1:
 ## Known Gotchas
 
 ### 1. Whitespace Sensitivity
+
 **Issue**: Any whitespace change alters the hash completely
+
 ```typescript
 // These produce DIFFERENT hashes:
-hashPRD('# Test\nContent')
-hashPRD('# Test\n Content')  // Extra space
+hashPRD('# Test\nContent');
+hashPRD('# Test\n Content'); // Extra space
 ```
 
 **Impact**: Hash-based change detection is extremely sensitive
 
 ### 2. Case Sensitivity
+
 **Issue**: Hash comparison is case-sensitive
+
 ```typescript
 // Different hashes:
-hashPRD('# Test Content')
-hashPRD('# test content')  // Lowercase
+hashPRD('# Test Content');
+hashPRD('# test content'); // Lowercase
 ```
 
 ### 3. First 12 Characters Only
+
 **Issue**: Session IDs use only first 12 characters of 64-char hash
+
 ```typescript
 const fullHash = '14b9dc2a33c7a1234567890abcdef...'; // 64 chars
 const sessionHash = fullHash.slice(0, 12); // '14b9dc2a33c7'
@@ -198,14 +217,18 @@ const sessionHash = fullHash.slice(0, 12); // '14b9dc2a33c7'
 **Impact**: Potential for hash collision (though extremely unlikely)
 
 ### 4. UTF-8 Encoding Required
+
 **Issue**: PRD must be read as UTF-8 before hashing
+
 ```typescript
 const content = await readFile(prdPath, 'utf-8'); // Correct
 const content = await readFile(prdPath); // Wrong (Buffer)
 ```
 
 ### 5. Hash Caching Behavior
+
 **Issue**: `hasSessionChanged()` uses cached hash from `initialize()`
+
 ```typescript
 await manager.initialize(); // Computes and caches hash
 // Modify PRD file...
@@ -215,7 +238,9 @@ manager.hasSessionChanged(); // Still compares with old cached hash!
 **Solution**: Must call `initialize()` again to recompute hash
 
 ### 6. Deterministic JSON Serialization
+
 **Issue**: For task caching, uses `JSON.stringify(input, null, 0)`
+
 ```typescript
 // Location: src/agents/prp-generator.ts:249
 const taskHash = createHash('sha256')
@@ -228,6 +253,7 @@ const taskHash = createHash('sha256')
 ## Testing Best Practices
 
 ### 1. Use Real Crypto for Deterministic Tests
+
 ```typescript
 // GOOD: Use real crypto for hash computation tests
 import { createHash } from 'node:crypto';
@@ -240,18 +266,20 @@ it('should compute deterministic hash', () => {
 ```
 
 ### 2. Use Mocks for Unit Tests
+
 ```typescript
 // GOOD: Mock crypto for unit tests
 vi.mock('node:crypto', () => ({
   createHash: vi.fn(() => ({
     update: vi.fn(() => ({
-      digest: vi.fn(() => 'mock-hash-64-chars...')
-    }))
-  }))
+      digest: vi.fn(() => 'mock-hash-64-chars...'),
+    })),
+  })),
 }));
 ```
 
 ### 3. Test Hash Change Detection
+
 ```typescript
 it('should detect PRD modification', async () => {
   const originalPRD = '# Original PRD';
@@ -263,8 +291,14 @@ it('should detect PRD modification', async () => {
   await manager.initialize();
 
   // Compute hashes
-  const hash1 = createHash('sha256').update(originalPRD).digest('hex').slice(0, 12);
-  const hash2 = createHash('sha256').update(modifiedPRD).digest('hex').slice(0, 12);
+  const hash1 = createHash('sha256')
+    .update(originalPRD)
+    .digest('hex')
+    .slice(0, 12);
+  const hash2 = createHash('sha256')
+    .update(modifiedPRD)
+    .digest('hex')
+    .slice(0, 12);
 
   // Verify hashes differ
   expect(hash1).not.toBe(hash2);
@@ -272,11 +306,14 @@ it('should detect PRD modification', async () => {
 ```
 
 ### 4. Test Edge Cases
+
 ```typescript
 describe('Hash edge cases', () => {
   it('should handle empty string', () => {
     const hash = createHash('sha256').update('').digest('hex');
-    expect(hash).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+    expect(hash).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+    );
   });
 
   it('should handle unicode', () => {
@@ -294,14 +331,17 @@ describe('Hash edge cases', () => {
 ## References
 
 ### Node.js Crypto Documentation
+
 - https://nodejs.org/api/crypto.html#crypto_createhash_algorithm_options
 - https://nodejs.org/api/crypto.html#class-hash
 
 ### Vitest Testing Documentation
+
 - https://vitest.dev/api/mock.html
 - https://vitest.dev/api/expect.html
 
 ### Key Source Files
+
 - `src/core/session-manager.ts:63` - SESSION_DIR_PATTERN regex
 - `src/core/session-manager.ts:1162-1170` - hasSessionChanged()
 - `src/core/session-utils.ts:229-255` - hashPRD()

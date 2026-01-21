@@ -1,6 +1,7 @@
 # Hierarchical Task Execution Patterns - Research Findings
 
 ## Overview
+
 Hierarchical task execution involves organizing work into nested levels (Phase > Milestone > Task > Subtask) and managing execution flow across these levels. This document summarizes patterns, best practices, and implementation strategies.
 
 ## Core Hierarchy Model
@@ -12,7 +13,7 @@ enum HierarchyLevel {
   PHASE = 'phase',
   MILESTONE = 'milestone',
   TASK = 'task',
-  SUBTASK = 'subtask'
+  SUBTASK = 'subtask',
 }
 
 interface HierarchicalItem {
@@ -64,16 +65,19 @@ class SequentialPhaseOrchestrator {
 ```
 
 **Use Cases:**
+
 - Waterfall development methodologies
 - Strict phase-gate processes
 - Regulatory compliance workflows
 
 **Advantages:**
+
 - Predictable execution order
 - Easy to reason about
 - Clear progress tracking
 
 **Disadvantages:**
+
 - Slower overall execution
 - Less parallelism
 - Bottlenecks at phase boundaries
@@ -102,9 +106,7 @@ class ParallelPhaseOrchestrator {
 
     while (executable.length > 0) {
       // Execute all currently executable items in parallel
-      await Promise.all(
-        executable.map(item => this.executeItem(item))
-      );
+      await Promise.all(executable.map(item => this.executeItem(item)));
 
       // Update graph and get next executable items
       this.updateGraph(graph, executable);
@@ -114,16 +116,19 @@ class ParallelPhaseOrchestrator {
 ```
 
 **Use Cases:**
+
 - Agile methodologies
 - Feature development with overlapping phases
 - Continuous deployment pipelines
 
 **Advantages:**
+
 - Maximum parallelism
 - Faster overall execution
 - Better resource utilization
 
 **Disadvantages:**
+
 - More complex dependency management
 - Harder to reason about
 - Potential for resource contention
@@ -154,23 +159,26 @@ class HybridOrchestrator {
     // Execute milestones within phase in parallel
     await executor.execute(milestones, {
       maxConcurrency: this.config.maxConcurrency,
-      respectDependencies: true
+      respectDependencies: true,
     });
   }
 }
 ```
 
 **Use Cases:**
+
 - Most real-world projects
 - Balanced approach between control and speed
 - Complex project management
 
 **Advantages:**
+
 - Balanced parallelism and control
 - Clear phase boundaries
 - Flexible configuration
 
 **Disadvantages:**
+
 - More complex implementation
 - Requires careful tuning
 - Potential phase bottlenecks
@@ -183,10 +191,7 @@ class HybridOrchestrator {
 
 ```typescript
 class BottomUpStatusPropagator {
-  onChildStatusChange(
-    child: HierarchicalItem,
-    newStatus: Status
-  ): void {
+  onChildStatusChange(child: HierarchicalItem, newStatus: Status): void {
     // Update child status
     child.status = newStatus;
 
@@ -207,9 +212,7 @@ class BottomUpStatusPropagator {
     }
   }
 
-  private calculateAggregateStatus(
-    children: HierarchicalItem[]
-  ): Status {
+  private calculateAggregateStatus(children: HierarchicalItem[]): Status {
     const allComplete = children.every(c => c.status === Status.COMPLETE);
     const anyInProgress = children.some(c => c.status === Status.IN_PROGRESS);
     const anyBlocked = children.some(c => c.status === Status.BLOCKED);
@@ -230,10 +233,7 @@ class BottomUpStatusPropagator {
 
 ```typescript
 class TopDownStatusCascader {
-  onParentStatusChange(
-    parent: HierarchicalItem,
-    newStatus: Status
-  ): void {
+  onParentStatusChange(parent: HierarchicalItem, newStatus: Status): void {
     // Update parent status
     parent.status = newStatus;
 
@@ -245,14 +245,10 @@ class TopDownStatusCascader {
 
   private shouldCascade(status: Status): boolean {
     // Only cascade certain statuses
-    return [Status.CANCELLED, Status.BLOCKED, Status.FAILED]
-      .includes(status);
+    return [Status.CANCELLED, Status.BLOCKED, Status.FAILED].includes(status);
   }
 
-  private cascadeToChildren(
-    parent: HierarchicalItem,
-    status: Status
-  ): void {
+  private cascadeToChildren(parent: HierarchicalItem, status: Status): void {
     for (const child of parent.children) {
       child.status = status;
       if (child.children.length > 0) {
@@ -318,6 +314,7 @@ class DepthFirstExecutor {
 ```
 
 **Use Cases:**
+
 - Bottom-up validation
 - Integration testing
 - Build systems
@@ -335,9 +332,7 @@ class BreadthFirstExecutor {
       const levelItems = this.getCurrentLevel(queue);
 
       // Execute all items at this level
-      await Promise.all(
-        levelItems.map(item => this.executeItem(item))
-      );
+      await Promise.all(levelItems.map(item => this.executeItem(item)));
 
       // Enqueue children for next level
       this.enqueueChildren(queue, levelItems);
@@ -347,6 +342,7 @@ class BreadthFirstExecutor {
 ```
 
 **Use Cases:**
+
 - Multi-tenant processing
 - Batch processing
 - Level-by-level validation
@@ -369,9 +365,7 @@ class PriorityExecutor {
   }
 
   private sortByPriority(items: HierarchicalItem[]): HierarchicalItem[] {
-    return items.sort((a, b) =>
-      b.metadata.priority - a.metadata.priority
-    );
+    return items.sort((a, b) => b.metadata.priority - a.metadata.priority);
   }
 
   private isExecutable(item: HierarchicalItem): boolean {
@@ -479,9 +473,7 @@ class CompensatingExecutor {
 class CheckpointRecovery {
   private checkpoints = new Map<string, Checkpoint>();
 
-  async executeWithCheckpoint(
-    item: HierarchicalItem
-  ): Promise<void> {
+  async executeWithCheckpoint(item: HierarchicalItem): Promise<void> {
     // Check for existing checkpoint
     const checkpoint = this.checkpoints.get(item.id);
 
@@ -531,7 +523,7 @@ class ProgressTracker {
       blocked: flat.filter(i => i.status === Status.BLOCKED).length,
       failed: flat.filter(i => i.status === Status.FAILED).length,
       percentage: 0, // Calculated
-      byLevel: this.calculateByLevel(flat)
+      byLevel: this.calculateByLevel(flat),
     };
   }
 }
@@ -579,14 +571,14 @@ class HierarchyTestBuilder {
                   {
                     id: 'S1',
                     level: HierarchyLevel.SUBTASK,
-                    children: []
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
+                    children: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     ];
   }
 
@@ -604,17 +596,20 @@ class HierarchyTestBuilder {
 ## Key Resources
 
 ### Documentation
+
 - **Project Management Institute (PMI)**: Work Breakdown Structure (WBS) standards
 - **Scaled Agile Framework (SAFe)**: Hierarchical portfolio management
 - **Apache Hadoop**: MapReduce hierarchical job execution
 
 ### Open Source Projects
+
 - **Apache Airflow**: DAG-based task hierarchy
 - **Jenkins**: Pipeline stage hierarchy
 - **GitLab CI/OS**: Multi-level job dependencies
 - **GitHub Actions**: Workflow job hierarchy
 
 ### Books and Papers
+
 - "Managing Hierarchical Temporal Data" (VLDB Journal)
 - "Hierarchical Task Networks in AI Planning"
 - "Pattern-Oriented Software Architecture" (POSA)
@@ -622,12 +617,14 @@ class HierarchyTestBuilder {
 ## Best Practices
 
 ### Design Principles
+
 1. **Single Responsibility**: Each level has clear responsibilities
 2. **Open/Closed**: Easy to add new hierarchy levels
 3. **Dependency Inversion**: Depend on abstractions, not concretions
 4. **Interface Segregation**: Small, focused interfaces
 
 ### Implementation Guidelines
+
 1. **Immutable State**: Prefer immutable data structures
 2. **Event-Driven**: Use events for status changes
 3. **Async/Await**: Use async patterns for I/O operations
@@ -636,6 +633,7 @@ class HierarchyTestBuilder {
 6. **Testing**: Comprehensive test coverage
 
 ### Performance Considerations
+
 1. **Lazy Loading**: Load hierarchy on demand
 2. **Caching**: Cache frequently accessed items
 3. **Batching**: Batch database operations

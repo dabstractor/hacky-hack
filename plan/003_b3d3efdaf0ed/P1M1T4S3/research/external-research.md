@@ -41,6 +41,7 @@ This research document provides comprehensive guidance on testing Node.js resour
 ### Official Documentation
 
 **Node.js process.memoryUsage() API:**
+
 - **URL:** https://nodejs.org/api/process.html#processmemoryusage
 - **Section:** `process.memoryUsage()`
 - **Returns:** `Object` with properties:
@@ -65,11 +66,11 @@ describe('Memory Monitoring with Mocked process.memoryUsage', () => {
   beforeEach(() => {
     // Mock process.memoryUsage to return deterministic values
     vi.spyOn(process, 'memoryUsage').mockReturnValue({
-      rss: 50_000_000,      // 50MB
+      rss: 50_000_000, // 50MB
       heapTotal: 40_000_000, // 40MB
-      heapUsed: 30_000_000,  // 30MB
-      external: 2_000_000,   // 2MB
-      arrayBuffers: 0,       // 0MB
+      heapUsed: 30_000_000, // 30MB
+      external: 2_000_000, // 2MB
+      arrayBuffers: 0, // 0MB
     });
   });
 
@@ -152,7 +153,7 @@ describe('System Memory Testing', () => {
   beforeEach(() => {
     // Mock system memory
     vi.spyOn(os, 'totalmem').mockReturnValue(16_000_000_000); // 16GB
-    vi.spyOn(os, 'freemem').mockReturnValue(8_000_000_000);  // 8GB free
+    vi.spyOn(os, 'freemem').mockReturnValue(8_000_000_000); // 8GB free
 
     // Mock process memory
     vi.spyOn(process, 'memoryUsage').mockReturnValue({
@@ -194,6 +195,7 @@ describe('System Memory Testing', () => {
 ### Common Pitfalls
 
 **Pitfall 1:** Not restoring mocks between tests
+
 ```typescript
 // ❌ BAD: Mocks persist between tests
 vi.spyOn(process, 'memoryUsage').mockReturnValue({...});
@@ -205,6 +207,7 @@ afterEach(() => {
 ```
 
 **Pitfall 2:** Using unrealistic memory values
+
 ```typescript
 // ❌ BAD: Unrealistic values
 vi.spyOn(process, 'memoryUsage').mockReturnValue({
@@ -214,15 +217,16 @@ vi.spyOn(process, 'memoryUsage').mockReturnValue({
 
 // ✅ GOOD: Realistic Node.js memory values
 vi.spyOn(process, 'memoryUsage').mockReturnValue({
-  rss: 100_000_000,      // 100MB RSS
+  rss: 100_000_000, // 100MB RSS
   heapTotal: 80_000_000, // 80MB heap
-  heapUsed: 60_000_000,  // 60MB used
+  heapUsed: 60_000_000, // 60MB used
   external: 10_000_000,
   arrayBuffers: 0,
 });
 ```
 
 **Pitfall 3:** Forgetting that heapUsed can exceed heapTotal temporarily
+
 ```typescript
 // ✅ GOOD: Handle edge cases where heapUsed > heapTotal
 const usage = process.memoryUsage();
@@ -244,7 +248,7 @@ const usageRatio = Math.min(usage.heapUsed / usage.heapTotal, 1.0);
 
 ### Mocking Strategy for File Handles
 
-#### Strategy 1: Mocking Internal API (process._getActiveHandles)
+#### Strategy 1: Mocking Internal API (process.\_getActiveHandles)
 
 **Best Practice:** Mock the internal Node.js API for consistent cross-platform testing.
 
@@ -300,7 +304,7 @@ describe('Linux File Handle Detection', () => {
     vi.spyOn(process, 'pid').mockReturnValue(12345);
 
     // Mock existsSync for /proc path
-    vi.mocked(existsSync).mockImplementation((path) => {
+    vi.mocked(existsSync).mockImplementation(path => {
       if (typeof path === 'string' && path.includes('/proc/12345/fd')) {
         return true;
       }
@@ -367,9 +371,11 @@ describe('macOS File Handle Detection', () => {
 
   it('should handle lsof command timeout gracefully', () => {
     // Mock lsof timeout
-    vi.spyOn(require('node:child_process'), 'execSync').mockImplementation(() => {
-      throw new Error('Command timed out');
-    });
+    vi.spyOn(require('node:child_process'), 'execSync').mockImplementation(
+      () => {
+        throw new Error('Command timed out');
+      }
+    );
 
     const monitor = new ResourceMonitor();
     const status = monitor.getStatus();
@@ -436,17 +442,27 @@ describe('File Handle Leak Detection', () => {
 ### Common Pitfalls
 
 **Pitfall 1:** Not testing all code paths (internal API, /proc, lsof)
+
 ```typescript
 // ✅ GOOD: Test all three detection methods
 describe('File Handle Detection', () => {
-  it('should use internal API when available', () => { /* ... */ });
-  it('should fall back to /proc on Linux', () => { /* ... */ });
-  it('should fall back to lsof on macOS', () => { /* ... */ });
-  it('should return 0 on Windows', () => { /* ... */ });
+  it('should use internal API when available', () => {
+    /* ... */
+  });
+  it('should fall back to /proc on Linux', () => {
+    /* ... */
+  });
+  it('should fall back to lsof on macOS', () => {
+    /* ... */
+  });
+  it('should return 0 on Windows', () => {
+    /* ... */
+  });
 });
 ```
 
 **Pitfall 2:** Not handling lsof timeout
+
 ```typescript
 // ❌ BAD: lsof can hang indefinitely
 const result = execSync(`lsof -p ${process.pid}`);
@@ -458,6 +474,7 @@ const result = execSync(`lsof -p ${process.pid}`, {
 ```
 
 **Pitfall 3:** Forgetting lsof output includes header line
+
 ```typescript
 // ❌ BAD: Doesn't subtract header
 const result = execSync(`lsof -p ${process.pid}`);
@@ -477,6 +494,7 @@ const handleCount = parseInt(result.trim(), 10) - 1; // Subtract header
 ### Official Documentation
 
 **Vitest Mocking API:**
+
 - **URL:** https://vitest.dev/api/vi.html#vi-spyon
 - **Section:** `vi.spyOn()`
 - **Description:** Spies on object methods or getters/setters
@@ -520,8 +538,8 @@ describe('Command Execution Testing', () => {
     const mockExecSync = vi.mocked(execSync);
     mockExecSync.mockReturnValue(
       'COMMAND   PID USER   FD     TYPE DEVICE SIZE/OFF NODE NAME\n' +
-      'node    12345 user  cwd      DIR    8,1    4096    2 /home/user\n' +
-      'node    12345 user  rtd      DIR    8,1    4096    2 /\n'
+        'node    12345 user  cwd      DIR    8,1    4096    2 /home/user\n' +
+        'node    12345 user  rtd      DIR    8,1    4096    2 /\n'
     );
 
     const result = execSync('lsof -p 12345', { encoding: 'utf-8' });
@@ -669,6 +687,7 @@ describe('Integration: Real Command Execution', () => {
 ### Common Pitfalls
 
 **Pitfall 1:** Not mocking stdio option properly
+
 ```typescript
 // ❌ BAD: Doesn't mock stdio, may cause test failures
 vi.mocked(execSync).mockReturnValue('1024\n');
@@ -683,6 +702,7 @@ expect(execSync).toHaveBeenCalledWith('ulimit -n', {
 ```
 
 **Pitfall 2:** Not testing platform-specific code paths
+
 ```typescript
 // ✅ GOOD: Test all platforms
 describe('File Handle Monitoring', () => {
@@ -716,6 +736,7 @@ describe('File Handle Monitoring', () => {
 ### Official Documentation
 
 **Vitest Timer Mocking:**
+
 - **URL:** https://vitest.dev/api/vi.html#vi-usefaketimers
 - **Section:** `vi.useFakeTimers()`
 - **Related Methods:**
@@ -1001,6 +1022,7 @@ describe('Timer Edge Cases', () => {
 ### Common Pitfalls
 
 **Pitfall 1:** Not using fake timers in beforeEach
+
 ```typescript
 // ❌ BAD: Forgetting to use fake timers
 describe('Timer Tests', () => {
@@ -1029,6 +1051,7 @@ describe('Timer Tests', () => {
 ```
 
 **Pitfall 2:** Not restoring real timers
+
 ```typescript
 // ❌ BAD: Fake timers persist after tests
 afterEach(() => {
@@ -1042,6 +1065,7 @@ afterEach(() => {
 ```
 
 **Pitfall 3:** Not clearing pending timers
+
 ```typescript
 // ❌ BAD: Pending timers cause test interference
 it('should do something', () => {
@@ -1062,6 +1086,7 @@ afterEach(() => {
 ### Testing Strategy Overview
 
 **Resource Limit Types:**
+
 1. **maxTasks** - Maximum number of tasks to execute
 2. **maxDuration** - Maximum execution duration in milliseconds
 3. **fileHandles** - File handle usage threshold
@@ -1328,6 +1353,7 @@ describe('Limit Priority Testing', () => {
 ### Common Pitfalls
 
 **Pitfall 1:** Not testing all threshold combinations
+
 ```typescript
 // ✅ GOOD: Test all threshold combinations
 describe('Threshold Testing', () => {
@@ -1340,6 +1366,7 @@ describe('Threshold Testing', () => {
 ```
 
 **Pitfall 2:** Not validating suggestion messages
+
 ```typescript
 // ❌ BAD: Not testing suggestions
 expect(status.shouldStop).toBe(true);
@@ -1500,9 +1527,9 @@ vi.spyOn(process, 'memoryUsage').mockReturnValue({
 
 // ✅ GOOD: Realistic values
 vi.spyOn(process, 'memoryUsage').mockReturnValue({
-  rss: 100_000_000,      // 100MB
+  rss: 100_000_000, // 100MB
   heapTotal: 80_000_000, // 80MB
-  heapUsed: 60_000_000,  // 60MB
+  heapUsed: 60_000_000, // 60MB
   external: 10_000_000,
   arrayBuffers: 0,
 });
@@ -1789,10 +1816,7 @@ export function mockMemoryUsage(params: {
   });
 }
 
-export function mockSystemMemory(params: {
-  total?: number;
-  free?: number;
-}) {
+export function mockSystemMemory(params: { total?: number; free?: number }) {
   const { total = 16_000_000_000, free = 8_000_000_000 } = params;
 
   return {
@@ -1802,9 +1826,9 @@ export function mockSystemMemory(params: {
 }
 
 export function mockFileHandles(count: number) {
-  return vi.spyOn(process as any, '_getActiveHandles').mockReturnValue(
-    Array(count).fill({})
-  );
+  return vi
+    .spyOn(process as any, '_getActiveHandles')
+    .mockReturnValue(Array(count).fill({}));
 }
 
 export function mockUlimit(limit: number) {

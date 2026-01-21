@@ -7,6 +7,7 @@
 **Deliverable**: Modified `calculateDelay()` function in `/home/dustin/projects/hacky-hack/src/utils/retry.ts` where the jitter calculation always produces positive values, ensuring `delay > exponentialDelay` (strictly greater).
 
 **Success Definition**:
+
 - Jitter calculation modified to always be positive (no negative or zero jitter)
 - Test 'should add jitter to delay' at line 590 of retry.test.ts passes
 - All other retry utility tests still pass (no regressions)
@@ -20,6 +21,7 @@
 **Use Case**: The test 'should add jitter to delay' expects that jitter will make the delay strictly greater than the base exponential delay, but the current implementation can produce delays less than or equal to the base due to bidirectional jitter.
 
 **User Journey**:
+
 1. Developer runs tests and discovers 'should add jitter to delay' is failing or investigating the issue
 2. Developer reads this PRP to understand the required fix
 3. Developer modifies the `calculateDelay()` function in retry.ts
@@ -27,6 +29,7 @@
 5. Developer commits changes with reference to this PRP
 
 **Pain Points Addressed**:
+
 - **Ambiguous jitter behavior**: Current bidirectional jitter can reduce delays, which is counterintuitive
 - **Test misalignment**: Test expects positive variance but implementation allows negative variance
 - **Industry best practices**: AWS, Google, and Microsoft all recommend positive-only jitter approaches
@@ -64,6 +67,7 @@ Modify the jitter calculation in the `calculateDelay()` function to always produ
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact file location and line numbers for the fix
 2. Current implementation with problem analysis
 3. Recommended fix with code examples
@@ -652,7 +656,7 @@ node --loader ts-node/esm /tmp/test-jitter.js
 - ❌ **Don't modify other retry functions** - Only calculateDelay() needs updating
 - ❌ **Don't add new configuration options** - Use existing jitterFactor parameter
 - ❌ **Don't forget to update the JSDoc comments** - Documentation must match implementation
-- ❌ **Don't use Math.random() * 2 - 1** - This is same as (Math.random() - 0.5) * 2
+- ❌ **Don't use Math.random() \* 2 - 1** - This is same as (Math.random() - 0.5) \* 2
 - ❌ **Don't skip running all tests** - A change like this could affect multiple tests
 - ❌ **Don't assume the fix is correct** - Verify with actual test runs
 - ❌ **Don't ignore edge cases** - Consider what happens when Math.random() returns 0
@@ -664,6 +668,7 @@ node --loader ts-node/esm /tmp/test-jitter.js
 **One-Pass Implementation Success Likelihood**: EXTREMELY HIGH
 
 **Rationale**:
+
 1. Clear task boundaries - modify one line in calculateDelay() function
 2. Exact file location and line number provided (line 263 in retry.ts)
 3. Complete before/after code comparison
@@ -676,6 +681,7 @@ node --loader ts-node/esm /tmp/test-jitter.js
 10. Research phase thoroughly documented for reference
 
 **Potential Risks**:
+
 - **Risk 1**: Other tests might expect bidirectional jitter behavior (Low - test analysis shows no such expectations)
 - **Risk 2**: Average retry delay will increase (Very Low - this is correct behavior per AWS best practices)
 - **Risk 3**: Math.random() returning 0 could cause edge case (Very Low - Math.max(1, ...) handles this)

@@ -9,6 +9,7 @@ The Hacky-Hack project uses Vitest for testing with a comprehensive integration 
 ## Test Organization
 
 ### Directory Structure
+
 ```
 tests/
 ├── integration/          # Integration tests
@@ -65,6 +66,7 @@ import { fixture } from '../../fixtures/fixture-name.js';
 ### 1. Mock Setup
 
 #### Module-Level Mocking
+
 All mocks are set up at the top level before imports due to hoisting:
 
 ```typescript
@@ -84,6 +86,7 @@ const mockExport = vi.mocked(mockedExport);
 ```
 
 #### Mock Instance Pattern
+
 Complex mock objects are created as factories:
 
 ```typescript
@@ -101,6 +104,7 @@ function createMockInstance(options: { behavior: 'success' | 'failure' }) {
 ### 2. Temporary Directory Management
 
 #### Pattern for Isolated Test Environments
+
 Each test suite manages its own temporary directory:
 
 ```typescript
@@ -125,6 +129,7 @@ afterEach(() => {
 ```
 
 #### Session Directory Setup
+
 For SessionManager tests:
 
 ```typescript
@@ -159,13 +164,18 @@ function setupTestEnvironment(): {
     JSON.stringify({ backlog: backlog.backlog }, null, 2)
   );
 
-  return { tempDir, prdPath, sessionManager: new SessionManager(prdPath, planDir) };
+  return {
+    tempDir,
+    prdPath,
+    sessionManager: new SessionManager(prdPath, planDir),
+  };
 }
 ```
 
 ### 3. Test Structure Patterns
 
 #### Describe Block Organization
+
 Tests are organized with descriptive describe blocks:
 
 ```typescript
@@ -199,6 +209,7 @@ describe('ComponentName Feature Tests', () => {
 ```
 
 #### AAA (Arrange-Act-Assert) Pattern
+
 Tests follow the AAA pattern with clear section comments:
 
 ```typescript
@@ -219,6 +230,7 @@ it('should do something correctly', () => {
 ### 4. Git Operation Testing Patterns
 
 #### Smart Commit Testing
+
 From `tests/unit/utils/git-commit.test.ts`:
 
 ```typescript
@@ -260,6 +272,7 @@ it('should return commit hash on success', async () => {
 ```
 
 #### GitMCP Integration Testing
+
 From `tests/integration/tools.test.ts`:
 
 ```typescript
@@ -271,9 +284,7 @@ describe('GitMCP.executeTool', () => {
     // Set up mock git instance
     mockGitInstance.status.mockResolvedValue({
       current: 'main',
-      files: [
-        { path: 'src/index.ts', index: 'M', working_dir: ' ' },
-      ],
+      files: [{ path: 'src/index.ts', index: 'M', working_dir: ' ' }],
       isClean: () => false,
     });
   });
@@ -298,6 +309,7 @@ describe('GitMCP.executeTool', () => {
 ### 5. Import Patterns and .js Extensions
 
 #### Import Pattern
+
 Integration tests use explicit `.js` extensions for imports:
 
 ```typescript
@@ -311,6 +323,7 @@ import { mockSimplePRD } from '../../fixtures/simple-prd.js';
 ```
 
 #### Type Imports
+
 Type-only imports are handled separately:
 
 ```typescript
@@ -321,6 +334,7 @@ import type { Scope } from '../../../src/core/scope-resolver.js';
 ### 6. Helper Function Patterns
 
 #### Fixture Factory Functions
+
 ```typescript
 // Complex object factory
 function createTestBacklog(): Backlog {
@@ -362,6 +376,7 @@ function createSessionState(backlog: Backlog, planDir: string) {
 ```
 
 #### Tool Result Parser
+
 For MCP tool testing:
 
 ```typescript
@@ -381,6 +396,7 @@ function parseToolResult(toolResult: any) {
 ### 7. Vitest Integration Patterns
 
 #### Test Configuration
+
 Integration tests use Vitest with specific patterns:
 
 ```typescript
@@ -393,12 +409,17 @@ it('should handle async operation', async () => {
 });
 
 // Timeout for long-running tests
-it('should complete within timeout', async () => {
-  // Test code
-}, { timeout: 10000 });
+it(
+  'should complete within timeout',
+  async () => {
+    // Test code
+  },
+  { timeout: 10000 }
+);
 ```
 
 #### Mock Management
+
 ```typescript
 beforeEach(() => {
   // Reset all mocks before each test
@@ -413,6 +434,7 @@ spy.mockImplementation(() => mockValue);
 ## Git-Specific Patterns for Smart Commit Integration Tests
 
 ### 1. Mocking Git Operations
+
 ```typescript
 // Mock the git-commit module
 vi.mock('../../../src/utils/git-commit.js', () => ({
@@ -428,6 +450,7 @@ expect(mockSmartCommit).toHaveBeenCalled();
 ```
 
 ### 2. Testing Smart Commit in Context
+
 From the task orchestrator tests:
 
 ```typescript
@@ -445,6 +468,7 @@ it('should trigger smart commit after successful execution', async () => {
 ```
 
 ### 3. File Filtering Integration
+
 ```typescript
 it('should filter protected files before committing', async () => {
   // SETUP: Mock git status to return protected files

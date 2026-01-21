@@ -26,12 +26,12 @@ After searching the Vitest v1.6.1 type definitions (installed in this project), 
 
 The correct Vitest APIs are:
 
-| API | Purpose | Type Definition |
-|-----|---------|-----------------|
-| `vi.stubEnv(name, value)` | Stub `process.env` and `import.meta.env` | `<T extends string>(name: T, value: T extends 'PROD' \| 'DEV' \| 'SSR' ? boolean : string) => VitestUtils` |
-| `vi.stubGlobal(name, value)` | Stub global variables | `(name: string \| symbol \| number, value: unknown) => VitestUtils` |
-| `vi.unstubAllEnvs()` | Restore all environment variables | `() => VitestUtils` |
-| `vi.unstubAllGlobals()` | Restore all global variables | `() => VitestUtils` |
+| API                          | Purpose                                  | Type Definition                                                                                            |
+| ---------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `vi.stubEnv(name, value)`    | Stub `process.env` and `import.meta.env` | `<T extends string>(name: T, value: T extends 'PROD' \| 'DEV' \| 'SSR' ? boolean : string) => VitestUtils` |
+| `vi.stubGlobal(name, value)` | Stub global variables                    | `(name: string \| symbol \| number, value: unknown) => VitestUtils`                                        |
+| `vi.unstubAllEnvs()`         | Restore all environment variables        | `() => VitestUtils`                                                                                        |
+| `vi.unstubAllGlobals()`      | Restore all global variables             | `() => VitestUtils`                                                                                        |
 
 **Source:** `/home/dustin/projects/hacky-hack/node_modules/vitest/dist/index.d.ts`
 
@@ -40,7 +40,10 @@ The correct Vitest APIs are:
  * Changes the value of `import.meta.env` and `process.env`.
  * You can return it back to original value with `vi.unstubAllEnvs`, or by enabling `unstubEnvs` config option.
  */
-stubEnv: <T extends string>(name: T, value: T extends 'PROD' | 'DEV' | 'SSR' ? boolean : string) => VitestUtils;
+stubEnv: <T extends string>(
+  name: T,
+  value: T extends 'PROD' | 'DEV' | 'SSR' ? boolean : string
+) => VitestUtils;
 
 /**
  * Reset environmental variables to the ones that were available before first `vi.stubEnv` was called.
@@ -53,12 +56,14 @@ unstubAllEnvs: () => VitestUtils;
 **Update the contract definition** in `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/tasks.json`:
 
 **Line 122** (P1.M2.T1.S1 contract definition):
+
 ```diff
 - 3. LOGIC: Create test file at tests/unit/config/environment.test.ts. Test 1: Set process.env.ANTHROPIC_AUTH_TOKEN = 'test_token', clear ANTHROPIC_API_KEY, call configureEnvironment(), verify process.env.ANTHROPIC_API_KEY === 'test_token'. Test 2: Verify mapping doesn't override existing API_KEY if already set. Test 3: Verify mapping is idempotent (calling multiple times doesn't change result). Use vi.stubGlobalEnv() and vi.unstubAllEnvs() for isolation. Follow test patterns from tests/unit/config/.
 + 3. LOGIC: Create test file at tests/unit/config/environment.test.ts. Test 1: Set process.env.ANTHROPIC_AUTH_TOKEN = 'test_token', clear ANTHROPIC_API_KEY, call configureEnvironment(), verify process.env.ANTHROPIC_API_KEY === 'test_token'. Test 2: Verify mapping doesn't override existing API_KEY if already set. Test 3: Verify mapping is idempotent (calling multiple times doesn't change result). Use vi.stubEnv() and vi.unstubAllEnvs() for isolation. Follow test patterns from tests/unit/config/.
 ```
 
 **Line 133** (P1.M2.T1.S2 contract definition):
+
 ```diff
 - 3. LOGIC: Extend tests/unit/config/environment.test.ts. Test 1: Clear ANTHROPIC_BASE_URL, call configureEnvironment(), verify process.env.ANTHROPIC_BASE_URL === 'https://api.z.ai/api/anthropic'. Test 2: Set custom BASE_URL before configureEnvironment(), verify it's preserved (not overridden). Test 3: Verify default matches constant DEFAULT_BASE_URL from constants.ts. Use vi.stubGlobalEnv() for isolation.
 + 3. LOGIC: Extend tests/unit/config/environment.test.ts. Test 1: Clear ANTHROPIC_BASE_URL, call configureEnvironment(), verify process.env.ANTHROPIC_BASE_URL === 'https://api.z.ai/api/anthropic'. Test 2: Set custom BASE_URL before configureEnvironment(), verify it's preserved (not overridden). Test 3: Verify default matches constant DEFAULT_BASE_URL from constants.ts. Use vi.stubEnv() for isolation.
@@ -95,12 +100,14 @@ describe('default BASE_URL configuration', () => {
 ```
 
 **Advantages:**
+
 - ✅ Ensures runtime behavior matches the constant
 - ✅ Fails if constant is changed but `configureEnvironment()` is not updated
 - ✅ Tests the actual code path
 - ✅ Single source of truth (the constant)
 
 **Disadvantages:**
+
 - Requires importing the constant
 - Tests implementation details
 
@@ -126,11 +133,13 @@ describe('default BASE_URL configuration', () => {
 ```
 
 **Advantages:**
+
 - ✅ Tests against specification/contract
 - ✅ No import dependency
 - ✅ Clear documentation of expected behavior
 
 **Disadvantages:**
+
 - ❌ Doesn't detect if constant is changed
 - ❌ Duplicate definition (DRY violation)
 
@@ -152,7 +161,7 @@ it('should set default BASE_URL when not provided', () => {
   delete process.env.ANTHROPIC_BASE_URL;
   configureEnvironment();
   expect(process.env.ANTHROPIC_BASE_URL).toBe(
-    'https://api.z.ai/api/anthropic'  // Hardcoded value
+    'https://api.z.ai/api/anthropic' // Hardcoded value
   );
 });
 ```
@@ -165,7 +174,7 @@ import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';
 it('should set default BASE_URL when not provided', () => {
   delete process.env.ANTHROPIC_BASE_URL;
   configureEnvironment();
-  expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);  // Use constant
+  expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL); // Use constant
 });
 ```
 
@@ -242,11 +251,13 @@ afterEach(() => {
 ```
 
 **Advantages:**
+
 - ✅ Automatic cleanup for all tests
 - ✅ Prevents environment variable leaks across the entire test suite
 - ✅ No need to remember cleanup in individual test files
 
 **Disadvantages:**
+
 - ⚠️ May hide issues in tests that forget to clean up (but this is generally acceptable)
 
 ### Gotchas with Environment Variable Testing
@@ -262,6 +273,7 @@ process.env.API_KEY = 'test-value';
 ```
 
 **Why it's wrong:**
+
 - Changes persist across tests (isolation violation)
 - No automatic cleanup mechanism
 - Can't be restored with `vi.unstubAllEnvs()`
@@ -274,6 +286,7 @@ vi.stubEnv('API_KEY', 'test-value');
 ```
 
 **Why it's correct:**
+
 - Automatic cleanup with `vi.unstubAllEnvs()`
 - Proper test isolation
 - Mocks both `process.env` AND `import.meta.env` (Vite-specific)
@@ -320,8 +333,8 @@ configureEnvironment();
 ```typescript
 // GOOD: Clear in beforeEach, then test
 beforeEach(() => {
-  vi.unstubAllEnvs();  // Clear all stubs
-  delete process.env.ANTHROPIC_BASE_URL;  // Clear actual env
+  vi.unstubAllEnvs(); // Clear all stubs
+  delete process.env.ANTHROPIC_BASE_URL; // Clear actual env
 });
 
 it('should set default', () => {
@@ -336,12 +349,12 @@ it('should set default', () => {
 
 ```typescript
 // config.ts
-const apiKey = process.env.API_KEY;  // Read at import time
+const apiKey = process.env.API_KEY; // Read at import time
 
 // test.ts
 import { config } from './config.js';
 vi.stubEnv('API_KEY', 'new-value');
-console.log(config.apiKey);  // Still has old value!
+console.log(config.apiKey); // Still has old value!
 ```
 
 **Solution:** Read environment variables dynamically, not at import time.
@@ -350,13 +363,13 @@ console.log(config.apiKey);  // Still has old value!
 // config.ts (BETTER)
 export function getConfig() {
   return {
-    apiKey: process.env.API_KEY,  // Read when called
+    apiKey: process.env.API_KEY, // Read when called
   };
 }
 
 // test.ts
 vi.stubEnv('API_KEY', 'new-value');
-console.log(getConfig().apiKey);  // Has new value!
+console.log(getConfig().apiKey); // Has new value!
 ```
 
 **This project's approach:** The `configureEnvironment()` function reads from `process.env` at call time, which is the correct pattern.
@@ -410,11 +423,13 @@ describe('default BASE_URL configuration', () => {
 ## References
 
 ### Official Documentation
+
 - **Vitest GitHub:** https://github.com/vitest-dev/vitest
 - **Vitest Documentation:** https://vitest.dev/
 - **Vitest API Reference:** https://vitest.dev/api/
 
 ### Local Files
+
 - **Vitest Type Definitions:** `/home/dustin/projects/hacky-hack/node_modules/vitest/dist/index.d.ts`
 - **Project Test Setup:** `/home/dustin/projects/hacky-hack/tests/setup.ts`
 - **Environment Configuration Tests:** `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
@@ -422,6 +437,7 @@ describe('default BASE_URL configuration', () => {
 - **Environment Module:** `/home/dustin/projects/hacky-hack/src/config/environment.ts`
 
 ### Related Research
+
 - **Environment Setup Documentation:** `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/environment_setup.md`
 - **Test Memory Cleanup Research:** `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/bugfix/001_7f5a0fab4834/docs/test-memory-cleanup-research.md`
 

@@ -14,16 +14,16 @@ This document provides a complete catalog of all 200+ test cases to be implement
 
 ## Test Summary
 
-| Category | Test Count | Expected Result |
-|----------|------------|-----------------|
-| Fatal Errors (Return TRUE) | 50 | All return `true` |
-| Non-Fatal Errors (Return FALSE) | 80 | All return `false` |
-| Standard Error Types | 20 | All return `false` |
-| Null/Undefined/Invalid | 20 | All return `false` |
-| Type Guard Integration | 15 | Varies by test |
-| continueOnError Flag | 15 | All return `false` when true |
-| Edge Cases | 20 | Varies by test |
-| **TOTAL** | **220** | - |
+| Category                        | Test Count | Expected Result              |
+| ------------------------------- | ---------- | ---------------------------- |
+| Fatal Errors (Return TRUE)      | 50         | All return `true`            |
+| Non-Fatal Errors (Return FALSE) | 80         | All return `false`           |
+| Standard Error Types            | 20         | All return `false`           |
+| Null/Undefined/Invalid          | 20         | All return `false`           |
+| Type Guard Integration          | 15         | Varies by test               |
+| continueOnError Flag            | 15         | All return `false` when true |
+| Edge Cases                      | 20         | Varies by test               |
+| **TOTAL**                       | **220**    | -                            |
 
 ---
 
@@ -66,7 +66,11 @@ describe('SessionError with LOAD_FAILED code', () => {
 
   it('should return true for SessionError with LOAD_FAILED and cause', () => {
     const cause = new Error('File system error');
-    const error = new SessionError('Session load failed', { sessionPath: '/path' }, cause);
+    const error = new SessionError(
+      'Session load failed',
+      { sessionPath: '/path' },
+      cause
+    );
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -169,7 +173,11 @@ describe('SessionError with SAVE_FAILED code', () => {
 
   it('should return true for SessionError with SAVE_FAILED and cause', () => {
     const cause = new Error('Disk full');
-    const error = new SessionError('Session save failed', { sessionPath: '/path' }, cause);
+    const error = new SessionError(
+      'Session save failed',
+      { sessionPath: '/path' },
+      cause
+    );
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -184,7 +192,9 @@ describe('SessionError with SAVE_FAILED code', () => {
   });
 
   it('should return true for SessionError with SAVE_FAILED and unicode', () => {
-    const error = new SessionError('Error: 保存失败 💾', { sessionPath: '/path' });
+    const error = new SessionError('Error: 保存失败 💾', {
+      sessionPath: '/path',
+    });
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -273,7 +283,11 @@ describe('EnvironmentError', () => {
 
   it('should return true for EnvironmentError with cause', () => {
     const cause = new Error('Config file not found');
-    const error = new EnvironmentError('Environment error', { variable: 'CONFIG' }, cause);
+    const error = new EnvironmentError(
+      'Environment error',
+      { variable: 'CONFIG' },
+      cause
+    );
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -283,12 +297,16 @@ describe('EnvironmentError', () => {
   });
 
   it('should return true for EnvironmentError with special characters', () => {
-    const error = new EnvironmentError('Error: \n\t\r', { variable: 'API_KEY' });
+    const error = new EnvironmentError('Error: \n\t\r', {
+      variable: 'API_KEY',
+    });
     expect(isFatalError(error)).toBe(true);
   });
 
   it('should return true for EnvironmentError with unicode', () => {
-    const error = new EnvironmentError('Error: 环境变量缺失 🌍', { variable: 'API_KEY' });
+    const error = new EnvironmentError('Error: 环境变量缺失 🌍', {
+      variable: 'API_KEY',
+    });
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -408,7 +426,11 @@ describe('ValidationError with parse_prd operation', () => {
 
   it('should return true for ValidationError with parse_prd and cause', () => {
     const cause = new Error('Parse error');
-    const error = new ValidationError('PRD parsing failed', { operation: 'parse_prd' }, cause);
+    const error = new ValidationError(
+      'PRD parsing failed',
+      { operation: 'parse_prd' },
+      cause
+    );
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -418,12 +440,16 @@ describe('ValidationError with parse_prd operation', () => {
   });
 
   it('should return true for ValidationError with parse_prd and special characters', () => {
-    const error = new ValidationError('Error: \n\t\r', { operation: 'parse_prd' });
+    const error = new ValidationError('Error: \n\t\r', {
+      operation: 'parse_prd',
+    });
     expect(isFatalError(error)).toBe(true);
   });
 
   it('should return true for ValidationError with parse_prd and unicode', () => {
-    const error = new ValidationError('Error: PRD 解析失败 📄', { operation: 'parse_prd' });
+    const error = new ValidationError('Error: PRD 解析失败 📄', {
+      operation: 'parse_prd',
+    });
     expect(isFatalError(error)).toBe(true);
   });
 
@@ -567,7 +593,11 @@ describe('TaskError (non-fatal)', () => {
 
   it('should return false for TaskError with cause', () => {
     const cause = new Error('Sub-task failed');
-    const error = new TaskError('Task execution failed', { taskId: 'P1.M1.T1' }, cause);
+    const error = new TaskError(
+      'Task execution failed',
+      { taskId: 'P1.M1.T1' },
+      cause
+    );
     expect(isFatalError(error)).toBe(false);
   });
 
@@ -671,7 +701,11 @@ describe('AgentError (non-fatal)', () => {
 
   it('should return false for AgentError with cause', () => {
     const cause = new Error('Network error');
-    const error = new AgentError('LLM call failed', { taskId: 'P1.M1.T1' }, cause);
+    const error = new AgentError(
+      'LLM call failed',
+      { taskId: 'P1.M1.T1' },
+      cause
+    );
     expect(isFatalError(error)).toBe(false);
   });
 
@@ -853,23 +887,33 @@ describe('ValidationError with non-parse_prd operations (non-fatal)', () => {
 
   it('should return false for ValidationError with cause', () => {
     const cause = new Error('Parse error');
-    const error = new ValidationError('Validation failed', { operation: 'validate_prd' }, cause);
+    const error = new ValidationError(
+      'Validation failed',
+      { operation: 'validate_prd' },
+      cause
+    );
     expect(isFatalError(error)).toBe(false);
   });
 
   it('should return false for ValidationError with special characters', () => {
-    const error = new ValidationError('Error: \n\t\r', { operation: 'validate_prd' });
+    const error = new ValidationError('Error: \n\t\r', {
+      operation: 'validate_prd',
+    });
     expect(isFatalError(error)).toBe(false);
   });
 
   it('should return false for ValidationError with unicode', () => {
-    const error = new ValidationError('Error: 验证失败 ✅', { operation: 'validate_prd' });
+    const error = new ValidationError('Error: 验证失败 ✅', {
+      operation: 'validate_prd',
+    });
     expect(isFatalError(error)).toBe(false);
   });
 
   it('should return false for ValidationError with long message', () => {
     const longMessage = 'G'.repeat(1000);
-    const error = new ValidationError(longMessage, { operation: 'validate_prd' });
+    const error = new ValidationError(longMessage, {
+      operation: 'validate_prd',
+    });
     expect(isFatalError(error)).toBe(false);
   });
 
@@ -1171,7 +1215,9 @@ describe('Null/Undefined/Invalid values (non-fatal)', () => {
   });
 
   it('should return false for array with error objects', () => {
-    expect(isFatalError([new Error('error1'), new Error('error2')])).toBe(false);
+    expect(isFatalError([new Error('error1'), new Error('error2')])).toBe(
+      false
+    );
   });
 
   // Function values
@@ -1305,7 +1351,9 @@ describe('Type guard integration', () => {
       new Error('Test'),
     ];
 
-    const fatalErrors = errors.filter(e => isPipelineError(e) && isFatalError(e));
+    const fatalErrors = errors.filter(
+      e => isPipelineError(e) && isFatalError(e)
+    );
     expect(fatalErrors).toHaveLength(1);
   });
 
@@ -1355,7 +1403,9 @@ describe('continueOnError flag behavior', () => {
   });
 
   it('should return false for ValidationError (parse_prd) when continueOnError is true', () => {
-    const error = new ValidationError('Invalid PRD', { operation: 'parse_prd' });
+    const error = new ValidationError('Invalid PRD', {
+      operation: 'parse_prd',
+    });
     expect(isFatalError(error, true)).toBe(false);
   });
 
@@ -1400,12 +1450,16 @@ describe('continueOnError flag behavior', () => {
   });
 
   it('should return false for ValidationError (parse_prd) when continueOnError is false', () => {
-    const error = new ValidationError('Invalid PRD', { operation: 'parse_prd' });
+    const error = new ValidationError('Invalid PRD', {
+      operation: 'parse_prd',
+    });
     expect(isFatalError(error, false)).toBe(true);
   });
 
   it('should return false for ValidationError (non-parse_prd) when continueOnError is false', () => {
-    const error = new ValidationError('Invalid scope', { operation: 'resolve_scope' });
+    const error = new ValidationError('Invalid scope', {
+      operation: 'resolve_scope',
+    });
     expect(isFatalError(error, false)).toBe(false);
   });
 
@@ -1551,16 +1605,16 @@ describe('Edge cases and boundary conditions', () => {
 
 ### Total Test Count by Category
 
-| Category | Count | File Section |
-|----------|-------|--------------|
-| Fatal Errors | 50 | Section 1 |
-| Non-Fatal Errors | 80 | Section 2 |
-| Standard Errors | 20 | Section 3 |
-| Null/Undefined/Invalid | 20 | Section 4 |
-| Type Guard Integration | 15 | Section 5 |
-| continueOnError Flag | 15 | Section 6 |
-| Edge Cases | 20 | Section 7 |
-| **TOTAL** | **220** | - |
+| Category               | Count   | File Section |
+| ---------------------- | ------- | ------------ |
+| Fatal Errors           | 50      | Section 1    |
+| Non-Fatal Errors       | 80      | Section 2    |
+| Standard Errors        | 20      | Section 3    |
+| Null/Undefined/Invalid | 20      | Section 4    |
+| Type Guard Integration | 15      | Section 5    |
+| continueOnError Flag   | 15      | Section 6    |
+| Edge Cases             | 20      | Section 7    |
+| **TOTAL**              | **220** | -            |
 
 ### Implementation Order
 

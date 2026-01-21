@@ -1,6 +1,7 @@
 # State Machine Patterns for Task Status Progression - Research Findings
 
 ## Overview
+
 State machines are essential for managing task lifecycle and ensuring valid status transitions. This document covers patterns, implementations, and best practices for state machines in task orchestration systems.
 
 ## Core Concepts
@@ -27,7 +28,7 @@ enum TaskStatus {
 
   // Special states
   SKIPPED = 'skipped',
-  DEFERRED = 'deferred'
+  DEFERRED = 'deferred',
 }
 
 // Define state transitions
@@ -67,21 +68,21 @@ class TableDrivenStateMachine {
     this.transitions.set(TaskStatus.PLANNED, [
       TaskStatus.QUEUED,
       TaskStatus.CANCELLED,
-      TaskStatus.DEFERRED
+      TaskStatus.DEFERRED,
     ]);
 
     this.transitions.set(TaskStatus.QUEUED, [
       TaskStatus.RESEARCHING,
       TaskStatus.IN_PROGRESS,
       TaskStatus.CANCELLED,
-      TaskStatus.BLOCKED
+      TaskStatus.BLOCKED,
     ]);
 
     this.transitions.set(TaskStatus.RESEARCHING, [
       TaskStatus.IN_PROGRESS,
       TaskStatus.BLOCKED,
       TaskStatus.FAILED,
-      TaskStatus.CANCELLED
+      TaskStatus.CANCELLED,
     ]);
 
     this.transitions.set(TaskStatus.IN_PROGRESS, [
@@ -89,7 +90,7 @@ class TableDrivenStateMachine {
       TaskStatus.COMPLETE,
       TaskStatus.BLOCKED,
       TaskStatus.FAILED,
-      TaskStatus.CANCELLED
+      TaskStatus.CANCELLED,
     ]);
 
     // Terminal states - no transitions out
@@ -111,7 +112,7 @@ class TableDrivenStateMachine {
     if (!this.canTransition(currentStatus, newStatus)) {
       return {
         success: false,
-        error: `Invalid transition from ${currentStatus} to ${newStatus}`
+        error: `Invalid transition from ${currentStatus} to ${newStatus}`,
       };
     }
 
@@ -122,12 +123,14 @@ class TableDrivenStateMachine {
 ```
 
 **Advantages:**
+
 - Easy to understand and maintain
 - Simple to add new states/transitions
 - Fast lookups
 - Clear visualization of state machine
 
 **Use Cases:**
+
 - Simple state machines
 - Static state definitions
 - When transitions don't depend on complex conditions
@@ -177,7 +180,7 @@ class PlannedState extends BaseTaskState {
     return [
       TaskStatus.QUEUED,
       TaskStatus.CANCELLED,
-      TaskStatus.DEFERRED
+      TaskStatus.DEFERRED,
     ].includes(status);
   }
 
@@ -187,9 +190,7 @@ class PlannedState extends BaseTaskState {
     await this.initializeResources(context);
   }
 
-  private async initializeResources(
-    context: TransitionContext
-  ): Promise<void> {
+  private async initializeResources(context: TransitionContext): Promise<void> {
     // Task-specific initialization
   }
 }
@@ -203,7 +204,7 @@ class InProgressState extends BaseTaskState {
       TaskStatus.COMPLETE,
       TaskStatus.BLOCKED,
       TaskStatus.FAILED,
-      TaskStatus.CANCELLED
+      TaskStatus.CANCELLED,
     ].includes(status);
   }
 
@@ -244,7 +245,7 @@ class TaskStateMachine {
     if (!this.currentState.canTransitionTo(newState.status)) {
       return {
         success: false,
-        error: `Cannot transition from ${this.currentState.status} to ${newState.status}`
+        error: `Cannot transition from ${this.currentState.status} to ${newState.status}`,
       };
     }
 
@@ -256,7 +257,7 @@ class TaskStateMachine {
       from: this.currentState.status,
       to: newState.status,
       timestamp: context.timestamp,
-      context
+      context,
     });
 
     // Change state
@@ -283,12 +284,14 @@ class TaskStateMachine {
 ```
 
 **Advantages:**
+
 - Encapsulates state-specific behavior
 - Easy to add new states
 - Follows Open/Closed principle
 - Clean separation of concerns
 
 **Use Cases:**
+
 - Complex state-specific behavior
 - When states have significant logic
 - When you need to add states frequently
@@ -326,10 +329,7 @@ class TaskStatechart {
     this.currentStates.add(this.config.initial);
   }
 
-  async sendEvent(
-    event: string,
-    context: TransitionContext
-  ): Promise<void> {
+  async sendEvent(event: string, context: TransitionContext): Promise<void> {
     const transitions: Array<{ from: string; to: string }> = [];
 
     // Find transitions for current states
@@ -382,12 +382,14 @@ class TaskStatechart {
 ```
 
 **Advantages:**
+
 - Supports complex state hierarchies
 - Can model concurrent states
 - Reduces state explosion
 - More expressive than flat FSM
 
 **Use Cases:**
+
 - Complex workflows with sub-states
 - Parallel execution tracking
 - When states share common behavior
@@ -419,7 +421,7 @@ class GuardedTransition {
       if (!result) {
         return {
           allowed: false,
-          reason: guard.errorMessage || `Guard ${guard.name} failed`
+          reason: guard.errorMessage || `Guard ${guard.name} failed`,
         };
       }
     }
@@ -435,9 +437,7 @@ class DependenciesSatisfiedGuard implements Guard {
   constructor(private dependencyChecker: DependencyChecker) {}
 
   async evaluate(context: TransitionContext): Promise<boolean> {
-    return this.dependencyChecker.areDependenciesSatisfied(
-      context.taskId
-    );
+    return this.dependencyChecker.areDependenciesSatisfied(context.taskId);
   }
 }
 
@@ -448,9 +448,7 @@ class ResourceAvailableGuard implements Guard {
   constructor(private resourceManager: ResourceManager) {}
 
   async evaluate(context: TransitionContext): Promise<boolean> {
-    return this.resourceManager.areResourcesAvailable(
-      context.taskId
-    );
+    return this.resourceManager.areResourcesAvailable(context.taskId);
   }
 }
 
@@ -509,10 +507,7 @@ class EventSourcedStateMachine {
     let currentState = TaskStatus.PLANNED;
 
     for (const event of this.eventLog) {
-      currentState = await this.applyEventToState(
-        currentState,
-        event
-      );
+      currentState = await this.applyEventToState(currentState, event);
     }
 
     return currentState;
@@ -555,7 +550,7 @@ class DistributedStateMachine {
       if (!this.isValidTransition(currentStatus, newStatus)) {
         return {
           success: false,
-          error: `Invalid transition from ${currentStatus} to ${newStatus}`
+          error: `Invalid transition from ${currentStatus} to ${newStatus}`,
         };
       }
 
@@ -642,23 +637,25 @@ const TASK_TRANSITION_MATRIX: TransitionMatrix = {
     queued: {
       allowed: true,
       guards: ['dependencies_satisfied'],
-      description: 'Queue task when dependencies are met'
+      description: 'Queue task when dependencies are met',
     },
     in_progress: { allowed: false },
-    complete: { allowed: false }
+    complete: { allowed: false },
   },
   in_progress: {
     complete: { allowed: true, description: 'Task completed successfully' },
     failed: { allowed: true, description: 'Task execution failed' },
-    blocked: { allowed: true, guards: ['blocking_condition'], description: 'Task is blocked' }
-  }
+    blocked: {
+      allowed: true,
+      guards: ['blocking_condition'],
+      description: 'Task is blocked',
+    },
+  },
   // ... more transitions
 };
 
 // Generate tests from matrix
-function generateTransitionTests(
-  matrix: TransitionMatrix
-): void {
+function generateTransitionTests(matrix: TransitionMatrix): void {
   for (const [from, transitions] of Object.entries(matrix)) {
     for (const [to, config] of Object.entries(transitions)) {
       test(`Transition ${from} -> ${to}: ${config.allowed ? 'allowed' : 'disallowed'}`, async () => {
@@ -742,11 +739,11 @@ class HierarchicalStateMachine {
     }
   }
 
-  private calculateParentStatus(
-    children: HierarchicalItem[]
-  ): TaskStatus {
+  private calculateParentStatus(children: HierarchicalItem[]): TaskStatus {
     const allComplete = children.every(c => c.status === TaskStatus.COMPLETE);
-    const anyInProgress = children.some(c => c.status === TaskStatus.IN_PROGRESS);
+    const anyInProgress = children.some(
+      c => c.status === TaskStatus.IN_PROGRESS
+    );
     const anyFailed = children.some(c => c.status === TaskStatus.FAILED);
 
     if (anyFailed) return TaskStatus.FAILED;
@@ -760,22 +757,26 @@ class HierarchicalStateMachine {
 ## Key Resources
 
 ### Documentation
+
 - **Statecharts**: https://statecharts.github.io/
 - **XState (JavaScript)**: https://xstate.js.org/docs/
 - **AWS Step Functions**: https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-state-machine-structure.html
 
 ### Libraries and Frameworks
+
 - **XState**: State machines and statecharts for JavaScript/TypeScript
 - **Spring State Machine (Java)**: https://spring.io/projects/spring-statemachine
 - **Transitions (Python)**: https://github.com/pytransitions/transitions
 - **Stateless (C#/.NET)**: https://github.com/dotnet-state-machine/stateless
 
 ### Books and Papers
+
 - "Practical UML Statecharts in C/C++" by Miro Samek
 - "Design Patterns: Elements of Reusable Object-Oriented Software" (Gang of Four)
 - "Statecharts: A Visual Formalism for Complex Systems" by David Harel
 
 ### Blog Posts
+
 - Martin Fowler: "State Machine"
 - Microsoft: "State Machine Pattern"
 - "The Tao of State Machines" (various authors)
@@ -783,6 +784,7 @@ class HierarchicalStateMachine {
 ## Best Practices
 
 ### Design Principles
+
 1. **Keep states simple**: Each state should have a single responsibility
 2. **Explicit transitions**: All transitions should be explicitly defined
 3. **Guard conditions**: Use guards to enforce business rules
@@ -791,6 +793,7 @@ class HierarchicalStateMachine {
 6. **Logging**: Log all state transitions for debugging
 
 ### Implementation Guidelines
+
 1. **Type safety**: Use enums or string literals for states
 2. **Validation**: Always validate transitions before executing
 3. **Error handling**: Comprehensive error handling in actions
@@ -799,6 +802,7 @@ class HierarchicalStateMachine {
 6. **Monitoring**: Track state transitions in production
 
 ### Performance Considerations
+
 1. **Caching**: Cache state machine instances
 2. **Lazy loading**: Load state definitions on demand
 3. **Batch processing**: Batch state updates

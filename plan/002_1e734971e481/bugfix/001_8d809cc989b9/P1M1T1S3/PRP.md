@@ -9,6 +9,7 @@
 **Deliverable**: A new `isEnvironmentError()` type guard function that follows the established pattern for type guards, using the `value is Type` type predicate syntax, and integrates seamlessly with the existing error handling infrastructure.
 
 **Success Definition**: All 6 type guard tests in `tests/unit/utils/errors-environment.test.ts` (lines 362-423) pass, validating:
+
 - Returns `true` for `EnvironmentError` instances
 - Returns `false` for other error types and non-error values
 - Enables proper type narrowing in catch blocks
@@ -244,7 +245,7 @@ Task 3: RUN TESTS TO VALIDATE
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // CRITICAL PATTERN - Type Guard Reference Implementation
 // ============================================================================
@@ -344,7 +345,7 @@ export function isValidationError(error: unknown): error is ValidationError {
 export function isEnvironmentError(error: unknown): error is EnvironmentError {
   return error instanceof EnvironmentError;
 }
-```
+````
 
 ### Integration Points
 
@@ -514,12 +515,14 @@ Based on the tests from P1.M1.T1.S1 (lines 362-423), the implementation must ach
 ### Basic Functionality Coverage (3 tests)
 
 1. **Positive Case** (line 363-366):
+
    ```typescript
    const error = new EnvironmentError('Test error');
    expect(isEnvironmentError(error)).toBe(true);
    ```
 
 2. **Negative Case** (line 368-373):
+
    ```typescript
    const plainError = new Error('Test');
    expect(isEnvironmentError(plainError)).toBe(false);
@@ -538,6 +541,7 @@ Based on the tests from P1.M1.T1.S1 (lines 362-423), the implementation must ach
 ### Type Narrowing Coverage (3 tests)
 
 4. **Catch Block Type Narrowing** (line 384-393):
+
    ```typescript
    try {
      throw new EnvironmentError('Environment error');
@@ -550,6 +554,7 @@ Based on the tests from P1.M1.T1.S1 (lines 362-423), the implementation must ach
    ```
 
 5. **Conditional Type Narrowing** (line 395-403):
+
    ```typescript
    const error = new EnvironmentError('Test error');
    if (isEnvironmentError(error)) {
@@ -585,6 +590,7 @@ Based on the tests from P1.M1.T1.S1 (lines 362-423), the implementation must ach
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Reasoning**:
+
 1. ✅ Exact reference pattern available (isSessionError function)
 2. ✅ Comprehensive test suite defines all acceptance criteria (6 tests)
 3. ✅ All dependencies already exist (EnvironmentError class from P1.M1.T1.S2)

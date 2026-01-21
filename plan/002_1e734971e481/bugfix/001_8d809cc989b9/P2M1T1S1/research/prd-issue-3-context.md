@@ -9,12 +9,14 @@ Critical E2E pipeline execution failures where the pipeline returns `success: fa
 ## Specific Test Failures
 
 From `tests/e2e/pipeline.test.ts`:
+
 - `should complete full pipeline workflow successfully` - expects `result.success = true`
 - `should create valid prd_snapshot.md in session directory` - expects file to exist
 - `should create valid tasks.json with complete subtask status` - expects file to exist
 - `should complete execution in under 30 seconds` - expects completion <30s
 
 **Current Behavior**:
+
 - E2E tests show `success: false`
 - Missing `prd_snapshot.md` (ENOENT error)
 - Missing `tasks.json` (ENOENT error)
@@ -23,6 +25,7 @@ From `tests/e2e/pipeline.test.ts`:
 ## Architecture Documentation - Session Initialization Failures
 
 **Key Documentation**:
+
 - `plan/002_1e734971e481/architecture/system_context.md` - Comprehensive system architecture
 - `src/workflows/prp-pipeline.ts` - Main pipeline controller
 - `src/core/session-manager.ts` - Session management logic
@@ -52,6 +55,7 @@ From `tests/e2e/pipeline.test.ts`:
 ## Debugging Requirements
 
 The debugging should identify:
+
 1. **Where session initialization fails** - Add logging to `SessionManager.initialize()`
 2. **Why files aren't created** - Instrument file operations
 3. **Root cause** - Could be permissions, validation, mock misalignment, or timing issues

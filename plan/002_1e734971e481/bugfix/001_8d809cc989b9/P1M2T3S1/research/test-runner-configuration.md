@@ -19,6 +19,7 @@ npm run test:run -- tests/integration/utils/error-handling.test.ts
 ```
 
 **Explanation**:
+
 - `npm run test:run` - Runs Vitest in non-interactive mode
 - `--` - Separator between npm script and arguments
 - `tests/integration/utils/error-handling.test.ts` - Specific test file path
@@ -94,6 +95,7 @@ resolve: {
 ### Key Features
 
 1. **Environment Variable Loading**
+
    ```typescript
    import { config } from 'dotenv';
    config({ path: '.env' });
@@ -105,6 +107,7 @@ resolve: {
    - Critical for preventing accidental API usage
 
 3. **Global Mock Cleanup**
+
    ```typescript
    beforeEach(() => {
      vi.clearAllMocks();
@@ -160,6 +163,7 @@ npm run test:coverage
 ```
 
 **Output includes**:
+
 - Text summary in terminal
 - JSON report for CI/CD
 - HTML report in `coverage/` directory
@@ -176,7 +180,7 @@ npm run test:coverage
   "compilerOptions": {
     "types": ["vitest/globals"],
     "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "NodeNext"
   }
 }
 ```
@@ -207,6 +211,7 @@ npm run test:coverage
 ## Test File Discovery Pattern
 
 Vitest discovers test files matching:
+
 - `**/*.test.ts`
 - `**/*.spec.ts`
 
@@ -215,6 +220,7 @@ In the `tests/` directory and subdirectories.
 ## Gotchas and Warnings
 
 1. **ESM Imports** - Must use `.js` extension even for TypeScript files
+
    ```typescript
    import { isFatalError } from '../../../src/utils/errors.js';
    ```

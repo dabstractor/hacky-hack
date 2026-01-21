@@ -13,6 +13,7 @@
 **Deliverable**: Additional test case in `tests/unit/config/environment.test.ts` under the `describe('configureEnvironment')` block that tests idempotency of the `configureEnvironment()` function.
 
 **Success Definition**:
+
 - Test 1 (existing): AUTH_TOKEN→API_KEY mapping when API_KEY is not set - already exists at lines 26-36
 - Test 2 (existing): Preserving existing API_KEY when AUTH_TOKEN is also set - already exists at lines 38-48
 - Test 3 (NEW): Verify `configureEnvironment()` is idempotent - calling multiple times produces same result
@@ -29,6 +30,7 @@
 **Use Case**: First validation step in Phase 1 Milestone 2 (P1.M2) to verify that environment variable mapping from shell convention (`ANTHROPIC_AUTH_TOKEN`) to SDK expectation (`ANTHROPIC_API_KEY`) works correctly, including idempotency guarantees.
 
 **User Journey**:
+
 1. Pipeline completes P1.M1 (Groundswell Integration & Validation) with success
 2. Pipeline starts P1.M2 (Environment Configuration & API Safety)
 3. Pipeline starts P1.M2.T1 (Validate environment variable mapping)
@@ -39,6 +41,7 @@
 8. If tests fail: Document specific issues for debugging
 
 **Pain Points Addressed**:
+
 - Missing idempotency test could allow bugs where repeated calls to `configureEnvironment()` cause unexpected behavior
 - Without idempotency testing, it's unclear if `configureEnvironment()` is safe to call multiple times
 - Tests need to verify the function doesn't overwrite values on subsequent calls
@@ -66,6 +69,7 @@ Add a new test case to verify `configureEnvironment()` idempotency.
 ### Test Context
 
 **Current State**: The test file `tests/unit/config/environment.test.ts` exists with:
+
 - Test 1: "should map AUTH_TOKEN to API_KEY when API_KEY is not set" (lines 26-36)
 - Test 2: "should preserve existing API_KEY when AUTH_TOKEN is also set" (lines 38-48)
 - Test 3: "should set default BASE_URL when not provided" (lines 50-61)
@@ -123,6 +127,7 @@ it('should be idempotent - calling multiple times produces same result', () => {
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] `configureEnvironment()` function implementation documented
 - [x] AUTH_TOKEN→API_KEY mapping logic understood
 - [x] BASE_URL default behavior understood
@@ -636,6 +641,7 @@ The `configureEnvironment()` function is called at application startup and may b
 ### Why test both API_KEY and BASE_URL?
 
 The `configureEnvironment()` function handles two distinct environment variables:
+
 - `ANTHROPIC_API_KEY` (mapped from `ANTHROPIC_AUTH_TOKEN`)
 - `ANTHROPIC_BASE_URL` (set to default if not provided)
 
@@ -656,6 +662,7 @@ The existing tests cover the core functionality (mapping and preservation), but 
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from source code (environment.ts implementation)
 - [x] Existing test patterns analyzed and documented
 - [x] Vitest environment variable testing patterns documented
@@ -666,6 +673,7 @@ The existing tests cover the core functionality (mapping and preservation), but 
 - [x] Test implementation example provided
 
 **Risk Mitigation**:
+
 - Minimal change (single test case addition)
 - Existing tests provide reference pattern
 - Global cleanup already in place
@@ -673,6 +681,7 @@ The existing tests cover the core functionality (mapping and preservation), but 
 - Clear success criteria
 
 **Known Risks**:
+
 - None - this is a straightforward test addition with comprehensive context
 
 ---

@@ -10,6 +10,7 @@ description: |
 **Deliverable**: Instrumented session initialization code with structured debug logging at each critical file operation using Pino logger with context objects for paths, operation results, and error details.
 
 **Success Definition**:
+
 - Debug logs emitted at each session initialization step (PRD hash generation, session directory creation, file writes)
 - Debug logs emitted for each file operation in session-utils.ts (read, write, validation)
 - All debug logs use structured logging with context objects (paths, sizes, durations)
@@ -25,6 +26,7 @@ description: |
 **Use Case**: Primary scenario is when E2E tests fail with `success: false` and missing files (`tasks.json`, `prd_snapshot.md`). The developer needs to identify exactly which file operation fails (hash computation, directory creation, tasks.json write, prd_snapshot.md write).
 
 **User Journey**:
+
 1. E2E test fails with ENOENT for tasks.json and prd_snapshot.md
 2. Developer enables verbose logging and reruns pipeline
 3. Debug logs show exactly which file operation fails (e.g., "Failed to write tasks.json: EACCES")
@@ -32,6 +34,7 @@ description: |
 5. Developer fixes issue and validates with instrumented tests
 
 **Pain Points Addressed**:
+
 - Silent file operation failures with no error messages
 - No visibility into which step of session initialization fails
 - Cannot distinguish between directory creation, file write, or validation failures
@@ -80,7 +83,7 @@ this.#logger.debug(
   {
     prdPath: this.prdPath,
     operation: 'hashPRD',
-    sessionHash: fullHash.slice(0, 12)
+    sessionHash: fullHash.slice(0, 12),
   },
   '[SessionManager] PRD hash computed'
 );
@@ -102,6 +105,7 @@ this.#logger.debug(
 ### Context Completeness Check
 
 ✓ **Passes "No Prior Knowledge" test** - This PRP provides complete context on:
+
 - Exact files to modify with line numbers
 - Pino logger usage patterns from existing codebase
 - Structured logging conventions with examples
@@ -323,6 +327,7 @@ sessionLogger.debug('Creating session directory');
 ### Data models and structure
 
 No new data models needed - using existing:
+
 - `SessionState` type from session-manager - contains session metadata
 - `SessionFileError` class from session-utils - error with path, operation, code
 - `Backlog` type from models - validated by Zod before write

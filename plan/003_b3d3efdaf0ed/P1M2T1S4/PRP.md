@@ -1,6 +1,6 @@
 # Product Requirement Prompt (PRP): P1.M2.T1.S4 - Verify protected files are never modified
 
-***
+---
 
 ## Goal
 
@@ -10,29 +10,30 @@
 
 **Success Definition**: All tests pass, verifying:
 
-* Git commits exclude all protected files (tasks.json, PRD.md, prd_snapshot.md, delta_prd.md, delta_from.txt, TEST_RESULTS.md, *tasks*.json pattern)
-* Filesystem operations prevent deletion of protected files
-* Filesystem operations prevent movement of protected files
-* Agents cannot modify PRD.md through file operations
-* Smart commits exclude protected files from commits
-* Validation prevents adding protected files to .gitignore
-* Wildcard pattern matching works correctly for *tasks*.json
+- Git commits exclude all protected files (tasks.json, PRD.md, prd_snapshot.md, delta_prd.md, delta_from.txt, TEST_RESULTS.md, _tasks_.json pattern)
+- Filesystem operations prevent deletion of protected files
+- Filesystem operations prevent movement of protected files
+- Agents cannot modify PRD.md through file operations
+- Smart commits exclude protected files from commits
+- Validation prevents adding protected files to .gitignore
+- Wildcard pattern matching works correctly for _tasks_.json
 
 ## Why
 
-* **State Integrity**: Validates that pipeline state files (tasks.json, PRD.md, prd_snapshot.md, delta session files, TEST_RESULTS.md) are never modified, ensuring clean pipeline resumption and state management
-* **Git History Hygiene**: Ensures protected state files are filtered from git commits, preventing history pollution with frequently-changing state files
-* **Agent Constraint Enforcement**: Verifies that agents respect forbidden operation boundaries defined in PRD §5.2
-* **Wildcard Pattern Protection**: Tests that the *tasks*.json pattern correctly prevents accidental modification of any task registry files
-* **Contract Compliance**: Validates that the system correctly implements protected file specifications from system_context.md and PRD.md §5.1
+- **State Integrity**: Validates that pipeline state files (tasks.json, PRD.md, prd_snapshot.md, delta session files, TEST_RESULTS.md) are never modified, ensuring clean pipeline resumption and state management
+- **Git History Hygiene**: Ensures protected state files are filtered from git commits, preventing history pollution with frequently-changing state files
+- **Agent Constraint Enforcement**: Verifies that agents respect forbidden operation boundaries defined in PRD §5.2
+- **Wildcard Pattern Protection**: Tests that the _tasks_.json pattern correctly prevents accidental modification of any task registry files
+- **Contract Compliance**: Validates that the system correctly implements protected file specifications from system_context.md and PRD.md §5.1
 
 **Relationship to P1.M2.T1.S3**: The previous subtask (P1.M2.T1.S3) validates smart commit functionality. This subtask (P1.M2.T1.S4) expands protected file testing beyond git commits to include filesystem operations and agent constraints.
 
 **Critical Gap**: Current implementation only partially protects files through git commit filtering. Missing protections for:
-* delta_prd.md, delta_from.txt, TEST_RESULTS.md in git filter
-* Filesystem-level deletion/movement guards
-* Wildcard pattern *tasks*.json support
-* Agent-level forbidden operation validation
+
+- delta_prd.md, delta_from.txt, TEST_RESULTS.md in git filter
+- Filesystem-level deletion/movement guards
+- Wildcard pattern _tasks_.json support
+- Agent-level forbidden operation validation
 
 ## What
 
@@ -40,14 +41,14 @@ Unit tests that verify protected files are never modified through git operations
 
 ### Success Criteria
 
-* [ ] Git commits filter out all protected files (current list + missing files)
-* [ ] Wildcard pattern *tasks*.json matches and filters task files
-* [ ] Filesystem delete operations throw error for protected files
-* [ ] Filesystem move operations throw error for protected files
-* [ ] Agents cannot modify PRD.md through file write operations
-* [ ] Validation prevents adding protected files to .gitignore
-* [ ] Tests cover all protected files from system_context.md specification
-* [ ] Tests use proper mocking patterns (no real filesystem/git operations)
+- [ ] Git commits filter out all protected files (current list + missing files)
+- [ ] Wildcard pattern _tasks_.json matches and filters task files
+- [ ] Filesystem delete operations throw error for protected files
+- [ ] Filesystem move operations throw error for protected files
+- [ ] Agents cannot modify PRD.md through file write operations
+- [ ] Validation prevents adding protected files to .gitignore
+- [ ] Tests cover all protected files from system_context.md specification
+- [ ] Tests use proper mocking patterns (no real filesystem/git operations)
 
 ## All Needed Context
 
@@ -55,14 +56,14 @@ Unit tests that verify protected files are never modified through git operations
 
 _This PRP passes the "No Prior Knowledge" test:_
 
-* Complete protected files specification from system_context.md and PRD.md §5.1
-* Existing git-commit implementation with exact protected files list
-* Vitest testing framework with mocking patterns from existing tests
-* Mocking patterns for git operations and file operations
-* Test structure patterns from existing unit tests
-* Helper function patterns from test fixtures
-* Clear file paths and line numbers for all referenced code
-* Specific assertion patterns for verifying operations were NOT called
+- Complete protected files specification from system_context.md and PRD.md §5.1
+- Existing git-commit implementation with exact protected files list
+- Vitest testing framework with mocking patterns from existing tests
+- Mocking patterns for git operations and file operations
+- Test structure patterns from existing unit tests
+- Helper function patterns from test fixtures
+- Clear file paths and line numbers for all referenced code
+- Specific assertion patterns for verifying operations were NOT called
 
 ### Documentation & References
 
@@ -355,11 +356,7 @@ The test uses existing models and constants from `src/utils/git-commit.ts`:
 
 ```typescript
 // Existing protected files (from git-commit.ts)
-const PROTECTED_FILES = [
-  'tasks.json',
-  'PRD.md',
-  'prd_snapshot.md',
-] as const;
+const PROTECTED_FILES = ['tasks.json', 'PRD.md', 'prd_snapshot.md'] as const;
 
 // Additional protected files (from system_context.md, NOT in git-commit.ts yet)
 const ADDITIONAL_PROTECTED_FILES = [
@@ -634,7 +631,7 @@ vi.mock('../../../src/tools/git-mcp.js', () => ({
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
   writeFile: vi.fn(),
-  unlink: vi.fn(),  // for delete operations
+  unlink: vi.fn(), // for delete operations
   rename: vi.fn(), // for move operations
 }));
 
@@ -686,8 +683,9 @@ function isProtectedFile(filePath: string): boolean {
     'TEST_RESULTS.md',
   ] as const;
 
-  return PROTECTED_FILES.includes(fileName as any) ||
-         isProtectedByWildcard(filePath);
+  return (
+    PROTECTED_FILES.includes(fileName as any) || isProtectedByWildcard(filePath)
+  );
 }
 
 // PATTERN: Helper function for safe delete (with protection)
@@ -742,11 +740,7 @@ describe('unit/protected-files > protected file enforcement', () => {
   describe('git commit protection', () => {
     it('should filter tasks.json from commits', () => {
       // SETUP
-      const files = [
-        'src/index.ts',
-        'tasks.json',
-        'src/utils.ts',
-      ];
+      const files = ['src/index.ts', 'tasks.json', 'src/utils.ts'];
 
       // EXECUTE
       const result = filterProtectedFiles(files);
@@ -907,16 +901,16 @@ describe('unit/protected-files > protected file enforcement', () => {
   describe('filesystem move protection', () => {
     it('should throw error when moving tasks.json', async () => {
       // EXECUTE & VERIFY
-      await expect(
-        safeMove('tasks.json', 'backup/tasks.json')
-      ).rejects.toThrow('Cannot move protected file: tasks.json');
+      await expect(safeMove('tasks.json', 'backup/tasks.json')).rejects.toThrow(
+        'Cannot move protected file: tasks.json'
+      );
     });
 
     it('should throw error when moving PRD.md', async () => {
       // EXECUTE & VERIFY
-      await expect(
-        safeMove('PRD.md', 'docs/PRD.md')
-      ).rejects.toThrow('Cannot move protected file: PRD.md');
+      await expect(safeMove('PRD.md', 'docs/PRD.md')).rejects.toThrow(
+        'Cannot move protected file: PRD.md'
+      );
     });
 
     it('should throw error when moving prd_snapshot.md', async () => {
@@ -947,9 +941,9 @@ describe('unit/protected-files > protected file enforcement', () => {
       });
 
       // EXECUTE & VERIFY
-      await expect(
-        mockWriteFile('PRD.md', 'new content')
-      ).rejects.toThrow('Cannot modify protected file: PRD.md');
+      await expect(mockWriteFile('PRD.md', 'new content')).rejects.toThrow(
+        'Cannot modify protected file: PRD.md'
+      );
     });
 
     it('should prevent agents from writing to tasks.json', async () => {
@@ -990,11 +984,19 @@ describe('unit/protected-files > protected file enforcement', () => {
       '*tasks*.json',
     ];
 
-    function validateGitignore(content: string): { valid: boolean; error?: string } {
-      const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+    function validateGitignore(content: string): {
+      valid: boolean;
+      error?: string;
+    } {
+      const lines = content
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith('#'));
 
       for (const line of lines) {
-        if (FORBIDDEN_GITIGNORE_PATTERNS.some(pattern => line.includes(pattern))) {
+        if (
+          FORBIDDEN_GITIGNORE_PATTERNS.some(pattern => line.includes(pattern))
+        ) {
           return {
             valid: false,
             error: `Forbidden pattern in .gitignore: ${line}`,
@@ -1065,13 +1067,13 @@ describe('unit/protected-files > protected file enforcement', () => {
         'delta_prd.md',
         'delta_from.txt',
         'TEST_RESULTS.md',
-        'backup-tasks.json',  // wildcard pattern
+        'backup-tasks.json', // wildcard pattern
       ];
       const nonProtectedFiles = [
         'src/index.ts',
         'README.md',
-        'task.json',  // singular, not matched
-        'mytasks.json',  // no word boundary
+        'task.json', // singular, not matched
+        'mytasks.json', // no word boundary
       ];
 
       // EXECUTE & VERIFY
@@ -1218,64 +1220,64 @@ npx vitest run tests/unit/protected-files.test.ts 2>&1 | grep -A 5 "FAIL"
 
 ### Technical Validation
 
-* [ ] All Level 1-4 validations completed successfully
-* [ ] Test file structure follows project patterns
-* [ ] Tests use mocked fs and git operations (unit-level mocking)
-* [ ] Mock cleanup in beforeEach/afterEach
-* [ ] Tests import with .js extensions
-* [ ] All describe blocks have clear, descriptive names
-* [ ] Helper functions follow existing patterns
-* [ ] Tests use SETUP/EXECUTE/VERIFY pattern
+- [ ] All Level 1-4 validations completed successfully
+- [ ] Test file structure follows project patterns
+- [ ] Tests use mocked fs and git operations (unit-level mocking)
+- [ ] Mock cleanup in beforeEach/afterEach
+- [ ] Tests import with .js extensions
+- [ ] All describe blocks have clear, descriptive names
+- [ ] Helper functions follow existing patterns
+- [ ] Tests use SETUP/EXECUTE/VERIFY pattern
 
 ### Feature Validation
 
-* [ ] Git commit filters current PROTECTED_FILES (tasks.json, PRD.md, prd_snapshot.md)
-* [ ] Tests for missing protected files (delta_prd.md, delta_from.txt, TEST_RESULTS.md) - will fail
-* [ ] Wildcard pattern *tasks*.json matching works correctly
-* [ ] Filesystem delete protection throws errors for protected files
-* [ ] Filesystem move protection throws errors for protected files
-* [ ] Agent write protection prevents PRD.md modification
-* [ ] .gitignore validation detects forbidden patterns
-* [ ] Protected file helper functions use basename comparison
-* [ ] All protected files from system_context.md are tested
+- [ ] Git commit filters current PROTECTED_FILES (tasks.json, PRD.md, prd_snapshot.md)
+- [ ] Tests for missing protected files (delta_prd.md, delta_from.txt, TEST_RESULTS.md) - will fail
+- [ ] Wildcard pattern _tasks_.json matching works correctly
+- [ ] Filesystem delete protection throws errors for protected files
+- [ ] Filesystem move protection throws errors for protected files
+- [ ] Agent write protection prevents PRD.md modification
+- [ ] .gitignore validation detects forbidden patterns
+- [ ] Protected file helper functions use basename comparison
+- [ ] All protected files from system_context.md are tested
 
 ### Code Quality Validation
 
-* [ ] Follows existing unit test patterns from git-commit.test.ts
-* [ ] Helper functions use same patterns as existing tests
-* [ ] Test file location matches conventions (tests/unit/)
-* [ ] Tests focus on protected file contract, not implementation details
-* [ ] Tests expose implementation gaps clearly
-* [ ] Mock setup follows patterns from filesystem-mcp.test.ts
+- [ ] Follows existing unit test patterns from git-commit.test.ts
+- [ ] Helper functions use same patterns as existing tests
+- [ ] Test file location matches conventions (tests/unit/)
+- [ ] Tests focus on protected file contract, not implementation details
+- [ ] Tests expose implementation gaps clearly
+- [ ] Mock setup follows patterns from filesystem-mcp.test.ts
 
 ### Documentation & Deployment
 
-* [ ] Test file header with JSDoc comments describing purpose
-* [ ] Test names clearly describe what is being tested
-* [ ] Research documents stored in research/ subdirectory
-* [ ] Tests verify PRD requirements from system_context.md
-* [ ] Test failures documented with explanation of gaps
+- [ ] Test file header with JSDoc comments describing purpose
+- [ ] Test names clearly describe what is being tested
+- [ ] Research documents stored in research/ subdirectory
+- [ ] Tests verify PRD requirements from system_context.md
+- [ ] Test failures documented with explanation of gaps
 
-***
+---
 
 ## Anti-Patterns to Avoid
 
-* ❌ Don't create actual filesystem or git operations in tests - use mocked operations
-* ❌ Don't skip testing missing protected files - these tests expose implementation gaps
-* ❌ Don't skip testing wildcard patterns - *tasks*.json is critical for protection
-* ❌ Don't skip testing delete/move protection - these are required but not implemented
-* ❌ Don't test unit-level git/fs operations - focus on protected file contract
-* ❌ Don't hardcode file paths - use basename() for path-agnostic testing
-* ❌ Don't skip verifying error messages - error messages are critical for debugging
-* ❌ Don't forget to import with .js extensions
-* ❌ Don't skip mock cleanup - causes test pollution
-* ❌ Don't duplicate tests from git-commit.test.ts - focus on new protected files
-* ❌ Don't skip testing all protected files individually - each needs verification
-* ❌ Don't assume current implementation is complete - tests expose gaps
-* ❌ Don't skip testing agent constraints - PRD.md modification must be prevented
-* ❌ Don't skip .gitignore validation - adding plan/ to .gitignore must be detected
+- ❌ Don't create actual filesystem or git operations in tests - use mocked operations
+- ❌ Don't skip testing missing protected files - these tests expose implementation gaps
+- ❌ Don't skip testing wildcard patterns - _tasks_.json is critical for protection
+- ❌ Don't skip testing delete/move protection - these are required but not implemented
+- ❌ Don't test unit-level git/fs operations - focus on protected file contract
+- ❌ Don't hardcode file paths - use basename() for path-agnostic testing
+- ❌ Don't skip verifying error messages - error messages are critical for debugging
+- ❌ Don't forget to import with .js extensions
+- ❌ Don't skip mock cleanup - causes test pollution
+- ❌ Don't duplicate tests from git-commit.test.ts - focus on new protected files
+- ❌ Don't skip testing all protected files individually - each needs verification
+- ❌ Don't assume current implementation is complete - tests expose gaps
+- ❌ Don't skip testing agent constraints - PRD.md modification must be prevented
+- ❌ Don't skip .gitignore validation - adding plan/ to .gitignore must be detected
 
-***
+---
 
 ## Implementation Gaps Exposed by Tests
 
@@ -1284,18 +1286,16 @@ This PRP intentionally includes tests that will FAIL with the current implementa
 ### Gap 1: Missing Protected Files in Git Commit Filter
 
 **Current Implementation**: `src/utils/git-commit.ts` lines 38-42
+
 ```typescript
-const PROTECTED_FILES = [
-  'tasks.json',
-  'PRD.md',
-  'prd_snapshot.md',
-] as const;
+const PROTECTED_FILES = ['tasks.json', 'PRD.md', 'prd_snapshot.md'] as const;
 ```
 
 **Missing Files**:
-* `delta_prd.md` - Delta PRD for incremental sessions
-* `delta_from.txt` - Delta session linkage
-* `TEST_RESULTS.md` - Bug report file
+
+- `delta_prd.md` - Delta PRD for incremental sessions
+- `delta_from.txt` - Delta session linkage
+- `TEST_RESULTS.md` - Bug report file
 
 **Required Fix**: Update `PROTECTED_FILES` constant to include missing files.
 
@@ -1312,9 +1312,10 @@ const PROTECTED_FILES = [
 **Current Implementation**: No protection for delete/move operations
 
 **Missing Guards**:
-* No `safeDelete()` function to prevent deleting protected files
-* No `safeMove()` function to prevent moving protected files
-* No wrapper on `fs.unlink()` or `fs.rename()`
+
+- No `safeDelete()` function to prevent deleting protected files
+- No `safeMove()` function to prevent moving protected files
+- No wrapper on `fs.unlink()` or `fs.rename()`
 
 **Required Fix**: Implement protection wrappers in `src/tools/filesystem-mcp.ts` or new `src/utils/file-guards.ts`.
 
@@ -1323,9 +1324,10 @@ const PROTECTED_FILES = [
 **Current Implementation**: No runtime validation of agent file operations
 
 **Missing Guards**:
-* No check before agents write to PRD.md
-* No check before agents write to protected files
-* Relies only on prompt adherence
+
+- No check before agents write to PRD.md
+- No check before agents write to protected files
+- Relies only on prompt adherence
 
 **Required Fix**: Implement agent boundary validation at tool level.
 
@@ -1334,14 +1336,15 @@ const PROTECTED_FILES = [
 **Current Implementation**: No validation of .gitignore contents
 
 **Missing Validation**:
-* No check for forbidden patterns (plan/, PRD.md, tasks.json)
-* No prevention of adding protected files to .gitignore
+
+- No check for forbidden patterns (plan/, PRD.md, tasks.json)
+- No prevention of adding protected files to .gitignore
 
 **Required Fix**: Implement `.gitignore` validation in session initialization or git operations.
 
 **Note**: These gaps are intentional to be exposed by tests. The tests document what SHOULD be protected, even if the implementation doesn't yet enforce it.
 
-***
+---
 
 **PRP Version:** 1.0
 **Work Item:** P1.M2.T1.S4
@@ -1352,14 +1355,14 @@ const PROTECTED_FILES = [
 
 **Rationale:**
 
-* Complete protected files specification from system_context.md and PRD.md
-* Comprehensive test patterns research from existing test files
-* Mocking patterns clearly documented with examples
-* Clear implementation gaps identified and documented
-* Helper function patterns specified with code examples
-* All contract requirements from PRD covered
-* Extensive research documentation in research/ subdirectory
-* Tests expose implementation gaps intentionally
-* Scope boundaries well-defined to avoid duplication
-* File paths and line numbers provided for all references
-* Test structure follows project patterns exactly
+- Complete protected files specification from system_context.md and PRD.md
+- Comprehensive test patterns research from existing test files
+- Mocking patterns clearly documented with examples
+- Clear implementation gaps identified and documented
+- Helper function patterns specified with code examples
+- All contract requirements from PRD covered
+- Extensive research documentation in research/ subdirectory
+- Tests expose implementation gaps intentionally
+- Scope boundaries well-defined to avoid duplication
+- File paths and line numbers provided for all references
+- Test structure follows project patterns exactly

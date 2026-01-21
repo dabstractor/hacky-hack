@@ -34,8 +34,8 @@ describe('Concurrency Limits', () => {
       createMockTask('task-1', 100),
       createMockTask('task-2', 100),
       createMockTask('task-3', 100),
-      createMockTask('task-4', 100),  // Should wait
-      createMockTask('task-5', 100),  // Should wait
+      createMockTask('task-4', 100), // Should wait
+      createMockTask('task-5', 100), // Should wait
     ];
 
     const queue = new ResearchQueue(sessionManager, 3, false);
@@ -50,7 +50,11 @@ describe('Concurrency Limits', () => {
 
     // Verify concurrency limit
     expect(maxActive.value).toBeLessThanOrEqual(3);
-    expect(startOrder.slice(0, 3).sort()).toEqual(['task-1', 'task-2', 'task-3']);
+    expect(startOrder.slice(0, 3).sort()).toEqual([
+      'task-1',
+      'task-2',
+      'task-3',
+    ]);
   });
 });
 ```
@@ -73,7 +77,8 @@ describe('Controlled Async Mocking', () => {
 
     // Create mock with controlled timing
     let generateCallCount = 0;
-    const mockGenerate = vi.fn()
+    const mockGenerate = vi
+      .fn()
       .mockImplementationOnce(async () => {
         await new Promise(resolve => setTimeout(resolve, 150));
         completionOrder.push('slow-first');
@@ -147,9 +152,18 @@ describe('Dependency Ordering', () => {
     const processedOrder: string[] = [];
 
     // Create tasks with dependencies
-    const task1 = createTestSubtask('P1.M1.T1.S1', 'Independent', 'Planned', []);
-    const task2 = createTestSubtask('P1.M1.T1.S2', 'Depends on S1', 'Planned', ['P1.M1.T1.S1']);
-    const task3 = createTestSubtask('P1.M1.T1.S3', 'Depends on S2', 'Planned', ['P1.M1.T1.S2']);
+    const task1 = createTestSubtask(
+      'P1.M1.T1.S1',
+      'Independent',
+      'Planned',
+      []
+    );
+    const task2 = createTestSubtask('P1.M1.T1.S2', 'Depends on S1', 'Planned', [
+      'P1.M1.T1.S1',
+    ]);
+    const task3 = createTestSubtask('P1.M1.T1.S3', 'Depends on S2', 'Planned', [
+      'P1.M1.T1.S2',
+    ]);
 
     const mockGenerate = vi.fn().mockImplementation(async (task: Subtask) => {
       // Check if dependencies are complete before processing
@@ -164,15 +178,19 @@ describe('Dependency Ordering', () => {
     });
 
     // Enqueue in dependency order
-    await queue.enqueue(task3, backlog);  // Should be blocked
-    await queue.enqueue(task1, backlog);  // Should process first
-    await queue.enqueue(task2, backlog);  // Should process second
+    await queue.enqueue(task3, backlog); // Should be blocked
+    await queue.enqueue(task1, backlog); // Should process first
+    await queue.enqueue(task2, backlog); // Should process second
 
     // Wait for processing
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Verify processing order respects dependencies
-    expect(processedOrder).toEqual(['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3']);
+    expect(processedOrder).toEqual([
+      'P1.M1.T1.S1',
+      'P1.M1.T1.S2',
+      'P1.M1.T1.S3',
+    ]);
   });
 });
 ```
@@ -218,7 +236,8 @@ describe('Fire-and-Forget Error Handling', () => {
     }));
 
     // Mock generator that fails for specific task
-    const mockGenerate = vi.fn()
+    const mockGenerate = vi
+      .fn()
       .mockImplementationOnce(async () => {
         throw new Error('Simulated failure');
       })
@@ -232,7 +251,9 @@ describe('Fire-and-Forget Error Handling', () => {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Verify error was logged
-    expect(loggedErrors.some(e => e.includes('PRP generation failed'))).toBe(true);
+    expect(loggedErrors.some(e => e.includes('PRP generation failed'))).toBe(
+      true
+    );
 
     // Verify subsequent task still processed
     expect(mockGenerate).toHaveBeenCalledTimes(2);
@@ -366,7 +387,11 @@ describe('Queue Processing Order', () => {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Verify FIFO order
-    expect(processedOrder).toEqual(['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3']);
+    expect(processedOrder).toEqual([
+      'P1.M1.T1.S1',
+      'P1.M1.T1.S2',
+      'P1.M1.T1.S3',
+    ]);
   });
 });
 ```
@@ -379,7 +404,7 @@ expect(maxActive.value).toBeLessThanOrEqual(concurrencyLimit);
 expect(queue.getStats().researching).toBeLessThanOrEqual(concurrencyLimit);
 
 // State assertions
-expect(queue.isResearching(taskId)).toBe(true/false);
+expect(queue.isResearching(taskId)).toBe(true / false);
 expect(queue.getPRP(taskId)).toBeDefined();
 expect(queue.getPRP(taskId)).toBeNull();
 
@@ -389,7 +414,9 @@ expect(queue.getStats().researching).toBe(expectedResearching);
 expect(queue.getStats().cached).toBe(expectedCached);
 
 // Error handling assertions
-expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('failed'));
+expect(mockLogger.error).toHaveBeenCalledWith(
+  expect.stringContaining('failed')
+);
 expect(queue.getPRP(failedTaskId)).toBeNull();
 
 // Order assertions

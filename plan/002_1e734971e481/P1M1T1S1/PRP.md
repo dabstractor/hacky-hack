@@ -11,12 +11,14 @@
 **Feature Goal**: Create a validation script that checks if the Groundswell library is properly linked via npm link and can be resolved by TypeScript for import operations.
 
 **Deliverable**: A TypeScript validation module (`src/utils/validate-groundswell-link.ts`) that:
+
 1. Checks npm link status of groundswell package
 2. Validates symlink integrity (if link exists)
 3. Verifies TypeScript can resolve imports from groundswell
 4. Returns structured result for downstream consumption by S2
 
 **Success Definition**:
+
 - Script executes without errors
 - Returns boolean success status indicating whether npm link is properly configured
 - If link is broken or missing, provides actionable error message
@@ -32,6 +34,7 @@
 **Use Case**: Initial validation step in Phase 1 (P1.M1.T1) to ensure Groundswell library integration is functional before proceeding with import tests (S2) and version compatibility checks (S3).
 
 **User Journey**:
+
 1. Pipeline starts Phase 1.Milestone 1.Task 1
 2. Subtask S1 validation script runs automatically
 3. Script checks npm link configuration
@@ -40,6 +43,7 @@
 6. S2 uses the result to determine if import tests can proceed
 
 **Pain Points Addressed**:
+
 - Silent failures when npm link is broken (imports appear to work in tests but fail at runtime)
 - Unclear error messages when groundswell module cannot be resolved
 - Time wasted debugging import issues that stem from misconfigured npm link
@@ -85,6 +89,7 @@ Create a validation module that checks and reports on npm link configuration for
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - ✅ File paths and module locations specified
 - ✅ npm link commands and expected outputs documented
 - ✅ TypeScript configuration details included
@@ -395,7 +400,7 @@ async function checkNpmList(): Promise<{
   version?: string;
   target?: string;
 }> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const npmProcess = spawn('npm', ['list', 'groundswell'], {
       cwd: '/home/dustin/projects/hacky-hack',
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -405,15 +410,15 @@ async function checkNpmList(): Promise<{
     let stdout = '';
     let stderr = '';
 
-    npmProcess.stdout?.on('data', (data) => {
+    npmProcess.stdout?.on('data', data => {
       stdout += data.toString();
     });
 
-    npmProcess.stderr?.on('data', (data) => {
+    npmProcess.stderr?.on('data', data => {
       stderr += data.toString();
     });
 
-    npmProcess.on('close', (code) => {
+    npmProcess.on('close', code => {
       // Parse output to determine link status
       // Empty stdout = not linked
       // Contains "groundswell@x.x.x -> path" = linked
@@ -558,7 +563,9 @@ function generateErrorMessage(
 
   if (!symlink.isSymlink) {
     issues.push('npm link does not exist');
-    issues.push('Run: cd ~/projects/groundswell && npm link && cd - && npm link groundswell');
+    issues.push(
+      'Run: cd ~/projects/groundswell && npm link && cd - && npm link groundswell'
+    );
   } else if (!symlink.isValid) {
     issues.push(`symlink points to wrong location: ${symlink.target}`);
     issues.push('Expected: ~/projects/groundswell');
@@ -778,6 +785,7 @@ rm -f node_modules/groundswell-broken
 ### Why NOT create npm link in this PRP?
 
 This PRP is a **validation** step, not a setup step. The contract definition says "Validate npm link configuration" not "Create npm link configuration." Separating concerns:
+
 - **S1** (this PRP): Validate and report
 - **Decision**: If link is missing, S2 should fail with clear error, not auto-fix
 - **Rationale**: Auto-creating links could mask configuration issues or create unexpected side effects
@@ -785,13 +793,15 @@ This PRP is a **validation** step, not a setup step. The contract definition say
 ### Why check TypeScript resolution if vitest path alias exists?
 
 The vitest path alias (`vitest.config.ts` line 54) works **only for tests**. Production builds (`npm run build`) use `tsconfig.json` which does NOT have the path alias. This means:
+
 - Tests pass (via path alias)
 - Runtime fails (no npm link)
-This PRP detects this discrepancy before it causes production issues.
+  This PRP detects this discrepancy before it causes production issues.
 
 ### Why not add groundswell to package.json?
 
 npm link creates a symlink in `node_modules/` without requiring a `package.json` entry. Adding it would:
+
 1. Require `npm install` after linking (unnecessary step)
 2. Cause confusion about whether to use npm link or npm install
 3. Break the local development workflow

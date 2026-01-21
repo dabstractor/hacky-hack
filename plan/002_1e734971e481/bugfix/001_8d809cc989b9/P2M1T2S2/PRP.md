@@ -7,6 +7,7 @@
 **Deliverable**: Validated tasks.json creation through E2E test execution with file persistence, Zod schema validation passing, and atomic write pattern functioning correctly.
 
 **Success Definition**:
+
 - tasks.json file exists in session directory after E2E test run
 - File contains valid Backlog structure (BacklogSchema validation passes)
 - Atomic write pattern executes successfully (temp file → rename)
@@ -21,6 +22,7 @@
 **Use Case**: Running `npm run test:run -- tests/e2e/pipeline.test.ts` to verify that tasks.json is created correctly during pipeline execution after session initialization is fixed
 
 **User Journey**:
+
 1. Developer completes P2.M1.T2.S1 (session initialization fix)
 2. E2E tests now pass session initialization but fail on tasks.json validation
 3. Root cause analysis reveals tasks.json is not being created properly
@@ -28,6 +30,7 @@
 5. All E2E tests pass with full session state persistence validated
 
 **Pain Points Addressed**:
+
 - ENOENT errors when trying to read tasks.json in tests
 - Unclear why atomic write fails after session initialization succeeds
 - Need to validate file was actually written, not just mocked
@@ -78,6 +81,7 @@ Fix the tasks.json creation failure by ensuring the atomic write pattern in `wri
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact file locations and line numbers for writeTasksJSON function
 2. Complete understanding of atomic write pattern implementation
 3. Dependency on P2.M1.T2.S1 session initialization fix (assumes it will be implemented)
@@ -304,7 +308,7 @@ interface Backlog {
 
 // Phase structure (from models.ts)
 interface Phase {
-  id: string;        // Must match /^P\d+$/
+  id: string; // Must match /^P\d+$/
   type: 'Phase';
   title: string;
   status: Status;
@@ -516,8 +520,8 @@ try {
     // EXTRACT: Validation error details
     const issues = error.errors;
     // FORMAT: Error messages
-    const messages = issues.map(issue =>
-      `${issue.path.join('.')}: ${issue.message}`
+    const messages = issues.map(
+      issue => `${issue.path.join('.')}: ${issue.message}`
     );
     // LOG: Detailed validation failure
     logger.error({ issues, messages }, 'Zod validation failed');
@@ -589,7 +593,7 @@ logger.debug(
 // ============================================================================
 
 // PROBLEM: readFile mock returns fake data
-vi.mocked(readFile).mockImplementation((path) => {
+vi.mocked(readFile).mockImplementation(path => {
   if (String(path).includes('tasks.json')) {
     return Promise.resolve(JSON.stringify(createMockBacklog()));
   }
@@ -597,7 +601,7 @@ vi.mocked(readFile).mockImplementation((path) => {
 });
 
 // SOLUTION: Check if file exists first, then return real content
-vi.mocked(readFile).mockImplementation(async (path) => {
+vi.mocked(readFile).mockImplementation(async path => {
   const pathStr = String(path);
   if (pathStr.includes('tasks.json')) {
     // ✅ Check if file was actually written
@@ -914,6 +918,7 @@ stat -c '%a' /tmp/e2e-pipeline-test-*/plan/*_*/tasks.json
 **One-Pass Implementation Success Likelihood**: HIGH
 
 **Rationale**:
+
 1. Clear dependency on P2.M1.T2.S1 (session initialization fix)
 2. Comprehensive understanding of writeTasksJSON implementation
 3. Multiple potential root causes identified with decision tree
@@ -924,6 +929,7 @@ stat -c '%a' /tmp/e2e-pipeline-test-*/plan/*_*/tasks.json
 8. Debugging strategies are well-defined
 
 **Potential Risks**:
+
 - **Risk 1**: Root cause may be different than expected (Medium)
   - Mitigation: Comprehensive debugging approach with decision tree
 - **Risk 2**: Test mocks may require significant changes (Low)

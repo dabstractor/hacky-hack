@@ -119,11 +119,13 @@ function readPackageJsonTyped(projectPath: string): PackageJson {
  * @param projectPath - Project root directory
  * @returns Installed version string
  */
-function getInstalledVersion(
-  packageName: string,
-  projectPath: string
-): string {
-  const packagePath = path.join(projectPath, 'node_modules', packageName, 'package.json');
+function getInstalledVersion(packageName: string, projectPath: string): string {
+  const packagePath = path.join(
+    projectPath,
+    'node_modules',
+    packageName,
+    'package.json'
+  );
 
   try {
     const pkg = readPackageJsonTyped(path.dirname(packagePath));
@@ -151,6 +153,7 @@ function getInstalledVersion(
 #### Using the `semver` Package (Recommended)
 
 **Installation:**
+
 ```bash
 npm install semver
 ```
@@ -404,11 +407,13 @@ npx semver $(node --version) --range '>=20.0.0'
 #### Method C: Using `check-node-version` Package
 
 **Installation:**
+
 ```bash
 npm install --save-dev check-node-version
 ```
 
 **Usage in package.json:**
+
 ```json
 {
   "scripts": {
@@ -423,6 +428,7 @@ npm install --save-dev check-node-version
 ```
 
 **Programmatic Usage:**
+
 ```typescript
 import checkNodeVersion from 'check-node-version';
 
@@ -436,12 +442,16 @@ async function validateEngines(): Promise<void> {
   });
 
   if (!result.versions.node?.isSatisfied) {
-    console.error(`Node.js ${result.versions.node.version} does not satisfy >=20.0.0`);
+    console.error(
+      `Node.js ${result.versions.node.version} does not satisfy >=20.0.0`
+    );
     process.exit(1);
   }
 
   if (!result.versions.npm?.isSatisfied) {
-    console.error(`npm ${result.versions.npm.version} does not satisfy >=10.0.0`);
+    console.error(
+      `npm ${result.versions.npm.version} does not satisfy >=10.0.0`
+    );
     process.exit(1);
   }
 
@@ -545,6 +555,7 @@ function getTypeScriptCliVersion(): string {
 #### Tool 1: `engines` Field in package.json
 
 **Best Practice:**
+
 ```json
 {
   "name": "my-project",
@@ -557,6 +568,7 @@ function getTypeScriptCliVersion(): string {
 ```
 
 **npm enforcement (optional):**
+
 ```bash
 # Force npm to check engines
 npm config set engine-strict true
@@ -573,6 +585,7 @@ npm install --engine-strict
 ```
 
 **Usage:**
+
 ```bash
 # Automatically switch to required version
 nvm use
@@ -626,7 +639,8 @@ function checkAnthropicSdkConflict(): {
     const groundswellPkg = readPackageJsonTyped(
       path.join(process.cwd(), 'node_modules', 'groundswell')
     );
-    const groundswellSdkVersion = groundswellPkg.dependencies?.['@anthropic-ai/sdk'];
+    const groundswellSdkVersion =
+      groundswellPkg.dependencies?.['@anthropic-ai/sdk'];
 
     // Get project's Anthropic SDK version
     const projectPkg = readPackageJsonTyped(process.cwd());
@@ -645,7 +659,10 @@ function checkAnthropicSdkConflict(): {
 
     // Check if versions are compatible
     const cleanedProjectVersion = projectSdkVersion.replace(/^[\^~]/, '');
-    const cleanedGroundswellVersion = groundswellSdkVersion.replace(/^[\^~]/, '');
+    const cleanedGroundswellVersion = groundswellSdkVersion.replace(
+      /^[\^~]/,
+      ''
+    );
 
     // If versions differ significantly, warn
     if (!semver.satisfies(cleanedProjectVersion, groundswellSdkVersion)) {
@@ -775,10 +792,7 @@ function analyzeLockfileDuplicates(): {
   locations: string[];
 }[] {
   const lockfile = JSON.parse(
-    readFileSync(
-      path.join(process.cwd(), 'package-lock.json'),
-      'utf-8'
-    )
+    readFileSync(path.join(process.cwd(), 'package-lock.json'), 'utf-8')
   );
 
   const packageVersions = new Map<string, Set<string>>();
@@ -843,11 +857,13 @@ npm explain @anthropic-ai/sdk
 #### Tool 2: `npm-check` (Third-party)
 
 **Installation:**
+
 ```bash
 npm install -g npm-check
 ```
 
 **Usage:**
+
 ```bash
 # Check for outdated, incorrect, unused dependencies
 npm-check
@@ -862,11 +878,13 @@ npm-check --skip-unused
 #### Tool 3: `depcheck` (Third-party)
 
 **Installation:**
+
 ```bash
 npm install -g depcheck
 ```
 
 **Usage:**
+
 ```bash
 # Check for unused dependencies
 depcheck
@@ -881,11 +899,13 @@ depcheck --ignore=package1,package2
 #### Tool 4: `madge` (Circular Dependency Detection)
 
 **Installation:**
+
 ```bash
 npm install -g madge
 ```
 
 **Usage:**
+
 ```bash
 # Find circular dependencies
 madge --circular src/
@@ -897,11 +917,13 @@ madge --image deps.svg src/
 #### Tool 5: `npm-why` (Package Explanation)
 
 **Installation:**
+
 ```bash
 npm install -g npm-why
 ```
 
 **Usage:**
+
 ```bash
 # Explain why a package is installed
 npm-why @anthropic-ai/sdk
@@ -910,11 +932,13 @@ npm-why @anthropic-ai/sdk
 #### Tool 6: `dependency-cruiser` (Advanced Analysis)
 
 **Installation:**
+
 ```bash
 npm install -g dependency-cruiser
 ```
 
 **Usage:**
+
 ```bash
 # Detect circular dependencies
 depcruise --include-only '^src' src/
@@ -1008,7 +1032,9 @@ const symbols = {
  * @param report - Compatibility report
  */
 function printCompatibilityReport(report: CompatibilityReport): void {
-  console.log(`\n${colors.bright}=== Version Compatibility Report ===${colors.reset}`);
+  console.log(
+    `\n${colors.bright}=== Version Compatibility Report ===${colors.reset}`
+  );
   console.log(`Generated: ${report.timestamp}\n`);
 
   // Environment
@@ -1019,12 +1045,18 @@ function printCompatibilityReport(report: CompatibilityReport): void {
 
   // Engine checks
   console.log(`${colors.bright}Engine Requirements:${colors.reset}`);
-  const nodeStatus = report.engines.node.status === 'pass' ? symbols.pass : symbols.fail;
-  console.log(`  ${nodeStatus} Node.js: ${report.engines.node.installed} (required: ${report.engines.node.required})`);
+  const nodeStatus =
+    report.engines.node.status === 'pass' ? symbols.pass : symbols.fail;
+  console.log(
+    `  ${nodeStatus} Node.js: ${report.engines.node.installed} (required: ${report.engines.node.required})`
+  );
 
   if (report.engines.npm) {
-    const npmStatus = report.engines.npm.status === 'pass' ? symbols.pass : symbols.fail;
-    console.log(`  ${npmStatus} npm: ${report.engines.npm.installed} (required: ${report.engines.npm.required})`);
+    const npmStatus =
+      report.engines.npm.status === 'pass' ? symbols.pass : symbols.fail;
+    console.log(
+      `  ${npmStatus} npm: ${report.engines.npm.installed} (required: ${report.engines.npm.required})`
+    );
   }
   console.log();
 
@@ -1032,7 +1064,9 @@ function printCompatibilityReport(report: CompatibilityReport): void {
   console.log(`${colors.bright}Package Compatibility:${colors.reset}`);
   for (const pkg of report.packages) {
     const status = pkg.status === 'pass' ? symbols.pass : symbols.fail;
-    console.log(`  ${status} ${pkg.name}: ${pkg.installed} (required: ${pkg.required})`);
+    console.log(
+      `  ${status} ${pkg.name}: ${pkg.installed} (required: ${pkg.required})`
+    );
     if (pkg.status === 'fail') {
       console.log(`      ${colors.red}${pkg.message}${colors.reset}`);
     }
@@ -1043,8 +1077,11 @@ function printCompatibilityReport(report: CompatibilityReport): void {
   if (report.conflicts.length > 0) {
     console.log(`${colors.bright}Dependency Conflicts:${colors.reset}`);
     for (const conflict of report.conflicts) {
-      const severity = conflict.severity === 'error' ? symbols.fail : symbols.warn;
-      console.log(`  ${severity} ${conflict.package}: ${conflict.versions.join(', ')}`);
+      const severity =
+        conflict.severity === 'error' ? symbols.fail : symbols.warn;
+      console.log(
+        `  ${severity} ${conflict.package}: ${conflict.versions.join(', ')}`
+      );
     }
     console.log();
   }
@@ -1059,23 +1096,35 @@ function printCompatibilityReport(report: CompatibilityReport): void {
   }
 
   // Overall status
-  const statusSymbol = report.status === 'pass' ? symbols.pass :
-                       report.status === 'warn' ? symbols.warn : symbols.fail;
-  const statusColor = report.status === 'pass' ? colors.green :
-                      report.status === 'warn' ? colors.yellow : colors.red;
+  const statusSymbol =
+    report.status === 'pass'
+      ? symbols.pass
+      : report.status === 'warn'
+        ? symbols.warn
+        : symbols.fail;
+  const statusColor =
+    report.status === 'pass'
+      ? colors.green
+      : report.status === 'warn'
+        ? colors.yellow
+        : colors.red;
 
-  console.log(`${statusColor}${statusSymbol} Overall Status: ${report.status.toUpperCase()}${colors.reset}\n`);
+  console.log(
+    `${statusColor}${statusSymbol} Overall Status: ${report.status.toUpperCase()}${colors.reset}\n`
+  );
 }
 ```
 
 #### Pattern 3: Table Format (using `cli-table3`)
 
 **Installation:**
+
 ```bash
 npm install cli-table3
 ```
 
 **Usage:**
+
 ```typescript
 import Table from 'cli-table3';
 
@@ -1133,26 +1182,14 @@ function generateMismatchRecommendation(
   const recommendations: string[] = [];
 
   // Recommendation 1: Update package
-  recommendations.push(
-    `Update ${packageName} to version ${required}:`
-  );
-  recommendations.push(
-    `  npm install ${packageName}@${required}`
-  );
+  recommendations.push(`Update ${packageName} to version ${required}:`);
+  recommendations.push(`  npm install ${packageName}@${required}`);
 
   // Recommendation 2: Check package.json
-  recommendations.push(
-    `\nOr update package.json:`
-  );
-  recommendations.push(
-    `  "dependencies": {`
-  );
-  recommendations.push(
-    `    "${packageName}": "${required}"`
-  );
-  recommendations.push(
-    `  }`
-  );
+  recommendations.push(`\nOr update package.json:`);
+  recommendations.push(`  "dependencies": {`);
+  recommendations.push(`    "${packageName}": "${required}"`);
+  recommendations.push(`  }`);
 
   // Recommendation 3: Check if this is a peer dependency
   recommendations.push(
@@ -1210,7 +1247,9 @@ function generateRecommendations(
   }
 
   // Warnings
-  for (const conflict of report.conflicts.filter(c => c.severity === 'warning')) {
+  for (const conflict of report.conflicts.filter(
+    c => c.severity === 'warning'
+  )) {
     recommendations.push({
       severity: 'warning',
       message: `Potential conflict: ${conflict.package} has ${conflict.versions.length} versions`,
@@ -1266,6 +1305,7 @@ function printJsonReport(report: CompatibilityReport): void {
 ```
 
 **Usage:**
+
 ```bash
 # Human-readable output
 npm run validate
@@ -1323,7 +1363,7 @@ function printReport(
 
 ### Example 1: Complete Validation Script
 
-```typescript
+````typescript
 #!/usr/bin/env tsx
 /**
  * Version Compatibility Validation Script
@@ -1591,7 +1631,7 @@ main().catch(error => {
   console.error(`Error: ${error}`);
   process.exit(1);
 });
-```
+````
 
 ---
 
@@ -1624,10 +1664,12 @@ const colors = {
 
 const log = {
   info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
+  success: (msg: string) =>
+    console.log(`${colors.green}✓${colors.reset} ${msg}`),
   error: (msg: string) => console.error(`${colors.red}✗${colors.reset} ${msg}`),
   warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
-  section: (msg: string) => console.log(`\n${colors.bright}${msg}${colors.reset}`),
+  section: (msg: string) =>
+    console.log(`\n${colors.bright}${msg}${colors.reset}`),
 };
 
 // ============================================================================
@@ -1678,7 +1720,9 @@ async function validateVersions(): Promise<void> {
   if (tsValid) {
     log.success(`TypeScript ${tsVersion} satisfies requirement\n`);
   } else {
-    log.error(`TypeScript ${tsVersion || 'not found'} does not satisfy ${tsRequired}\n`);
+    log.error(
+      `TypeScript ${tsVersion || 'not found'} does not satisfy ${tsRequired}\n`
+    );
   }
 
   // 3. Groundswell version
@@ -1695,7 +1739,10 @@ async function validateVersions(): Promise<void> {
       )
     );
     groundswellVersion = groundswellPkg.version;
-    groundswellValid = semver.satisfies(groundswellVersion, groundswellRequired);
+    groundswellValid = semver.satisfies(
+      groundswellVersion,
+      groundswellRequired
+    );
   } catch (error) {
     // Groundswell not found
   }
@@ -1709,7 +1756,9 @@ async function validateVersions(): Promise<void> {
   if (groundswellValid) {
     log.success(`Groundswell ${groundswellVersion} satisfies requirement\n`);
   } else {
-    log.error(`Groundswell ${groundswellVersion} does not satisfy ${groundswellRequired}\n`);
+    log.error(
+      `Groundswell ${groundswellVersion} does not satisfy ${groundswellRequired}\n`
+    );
   }
 
   // Summary
@@ -1720,7 +1769,9 @@ async function validateVersions(): Promise<void> {
   for (const result of results) {
     const status = result.passed ? '✓' : '✗';
     const color = result.passed ? colors.green : colors.red;
-    console.log(`${color}${status}${colors.reset} ${result.name}: ${result.message}`);
+    console.log(
+      `${color}${status}${colors.reset} ${result.name}: ${result.message}`
+    );
   }
 
   console.log();
@@ -1746,16 +1797,16 @@ validateVersions().catch(error => {
 
 ### Summary of Recommended Tools
 
-| Tool | Purpose | Installation | Use Case |
-|------|---------|--------------|----------|
-| **semver** | Version validation | `npm install semver` | Comparing versions, validating ranges |
-| **check-node-version** | Engine validation | `npm install -D check-node-version` | Checking Node.js/npm in scripts |
-| **npm ls** | Dependency tree | Built-in | Inspecting dependency structure |
-| **npm dedupe** | Deduplication | Built-in | Reducing duplicate packages |
-| **depcheck** | Unused dependencies | `npm install -g depcheck` | Finding unused packages |
-| **madge** | Circular dependencies | `npm install -g madge` | Detecting circular imports |
-| **dependency-cruiser** | Advanced analysis | `npm install -g dependency-cruiser` | Complex dependency rules |
-| **cli-table3** | Table output | `npm install cli-table3` | Formatted console tables |
+| Tool                   | Purpose               | Installation                        | Use Case                              |
+| ---------------------- | --------------------- | ----------------------------------- | ------------------------------------- |
+| **semver**             | Version validation    | `npm install semver`                | Comparing versions, validating ranges |
+| **check-node-version** | Engine validation     | `npm install -D check-node-version` | Checking Node.js/npm in scripts       |
+| **npm ls**             | Dependency tree       | Built-in                            | Inspecting dependency structure       |
+| **npm dedupe**         | Deduplication         | Built-in                            | Reducing duplicate packages           |
+| **depcheck**           | Unused dependencies   | `npm install -g depcheck`           | Finding unused packages               |
+| **madge**              | Circular dependencies | `npm install -g madge`              | Detecting circular imports            |
+| **dependency-cruiser** | Advanced analysis     | `npm install -g dependency-cruiser` | Complex dependency rules              |
+| **cli-table3**         | Table output          | `npm install cli-table3`            | Formatted console tables              |
 
 ---
 
@@ -1765,26 +1816,26 @@ validateVersions().catch(error => {
 
 ```typescript
 // 1. Check if version satisfies requirement
-semver.satisfies('1.2.3', '>=1.0.0') // true
-semver.satisfies('0.9.0', '>=1.0.0') // false
+semver.satisfies('1.2.3', '>=1.0.0'); // true
+semver.satisfies('0.9.0', '>=1.0.0'); // false
 
 // 2. Compare two versions
-semver.compare('1.2.3', '1.2.4') // -1 (first is lower)
-semver.compare('1.2.3', '1.2.3') // 0 (equal)
-semver.compare('1.2.4', '1.2.3') // 1 (first is higher)
+semver.compare('1.2.3', '1.2.4'); // -1 (first is lower)
+semver.compare('1.2.3', '1.2.3'); // 0 (equal)
+semver.compare('1.2.4', '1.2.3'); // 1 (first is higher)
 
 // 3. Validate version string
-semver.valid('1.2.3') // '1.2.3'
-semver.valid('invalid') // null
+semver.valid('1.2.3'); // '1.2.3'
+semver.valid('invalid'); // null
 
 // 4. Get Node.js version
-process.version // 'v20.0.0'
-process.version.replace('v', '') // '20.0.0'
+process.version; // 'v20.0.0'
+process.version.replace('v', ''); // '20.0.0'
 
 // 5. Parse package.json
 const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
-pkg.version // '1.0.0'
-pkg.engines?.node // '>=20.0.0'
+pkg.version; // '1.0.0'
+pkg.engines?.node; // '>=20.0.0'
 ```
 
 ### Common CLI Commands
@@ -1961,4 +2012,4 @@ function validateGroundswellV003(): ValidationResult {
 
 ---
 
-*End of Document*
+_End of Document_

@@ -43,14 +43,14 @@ async function atomicWrite(filePath: string, data: string): Promise<void> {
 
 ### Key fs.promises Methods for Atomic Operations
 
-| Method | Atomic? | Description |
-|--------|---------|-------------|
-| `fs.writeFile()` | No | Writes to file directly, can cause corruption |
-| `fs.rename()` | Yes* | Atomic when source/dest on same filesystem |
-| `fs.copyFile()` | No | Not atomic by default |
-| `fs.readFile()` | N/A | Read operation |
+| Method           | Atomic? | Description                                   |
+| ---------------- | ------- | --------------------------------------------- |
+| `fs.writeFile()` | No      | Writes to file directly, can cause corruption |
+| `fs.rename()`    | Yes\*   | Atomic when source/dest on same filesystem    |
+| `fs.copyFile()`  | No      | Not atomic by default                         |
+| `fs.readFile()`  | N/A     | Read operation                                |
 
-*On POSIX systems (Linux, macOS), `fs.rename()` is atomic when both paths are on the same filesystem.
+\*On POSIX systems (Linux, macOS), `fs.rename()` is atomic when both paths are on the same filesystem.
 
 ### Documentation URLs
 
@@ -172,12 +172,12 @@ describe('atomicWrite', () => {
 
 ## Recommended npm Packages
 
-| Package | Description | URL |
-|---------|-------------|-----|
-| **write-file-atomic** | Industry standard from npm team | https://github.com/npm/write-file-atomic |
-| **atomically** | Simple atomic read/write | https://github.com/fabiospampinato/atomically |
-| **write-json-file** | Atomic JSON writes with formatting | https://github.com/sindresorhus/write-json-file |
-| **steno** | Fast async file writer | https://github.com/typicode/steno |
+| Package               | Description                        | URL                                             |
+| --------------------- | ---------------------------------- | ----------------------------------------------- |
+| **write-file-atomic** | Industry standard from npm team    | https://github.com/npm/write-file-atomic        |
+| **atomically**        | Simple atomic read/write           | https://github.com/fabiospampinato/atomically   |
+| **write-json-file**   | Atomic JSON writes with formatting | https://github.com/sindresorhus/write-json-file |
+| **steno**             | Fast async file writer             | https://github.com/typicode/steno               |
 
 ## Sources
 

@@ -9,12 +9,14 @@ This analysis documents the implementation of promise rejection handling improve
 ## Baseline Findings
 
 ### Initial Test Run
+
 - **Date**: 2025-01-16
 - **Command**: `npm run test:run -- tests/integration/`
 - **Result**: No `PromiseRejectionHandledWarning` messages detected in integration tests
 - **Note**: The research phase had identified potential issues, but current codebase state shows no active warnings in integration tests
 
 ### Full Test Suite Discovery
+
 - **Date**: 2025-01-16
 - **Command**: `npm run test:run` (full suite)
 - **Result**: `PromiseRejectionHandledWarning` messages detected in unit/core tests
@@ -23,6 +25,7 @@ This analysis documents the implementation of promise rejection handling improve
 - **Note**: These warnings are "handled asynchronously" meaning they have handlers attached, but the race condition still triggers warnings
 
 ### Test Results Summary
+
 - Integration Tests: 258 passed | 61 failed | 11 skipped
 - Unit Tests: 3116 passed | 27 failed | 56 skipped
 - E2E Tests: 10 passed | 0 failed
@@ -39,6 +42,7 @@ This analysis documents the implementation of promise rejection handling improve
 **Location**: `tests/setup.ts` (lines 122-229)
 
 **Changes**:
+
 - Added module-level `unhandledRejections` array to track rejections
 - Added `unhandledRejectionHandler` function
 - Modified `beforeEach` hook to:
@@ -56,13 +60,15 @@ This analysis documents the implementation of promise rejection handling improve
 **Location**: `tests/integration/core/task-orchestrator-e2e.test.ts` (line 266)
 
 **Before**:
+
 ```typescript
 await sessionManager.loadSession(sessionPath);
 ```
 
 **After**:
+
 ```typescript
-await sessionManager.loadSession(sessionPath).catch((err) => {
+await sessionManager.loadSession(sessionPath).catch(err => {
   console.error('Session load failed in beforeEach:', err);
   throw err;
 });
@@ -75,11 +81,13 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
 **Location**: `tests/integration/prp-pipeline-shutdown.test.ts`
 
 **Changes**:
+
 - Modified `afterEach` hook to be async (line 116)
 - Added `setImmediate` delays at start of cleanup to allow async handlers to complete
 - Added `setImmediate` delays after all `process.emit()` calls (lines 314-318, 394-396, 519-521, 726-728)
 
 **Locations Modified**:
+
 - Line 116-135: afterEach hook
 - Line 309-322: SIGTERM simulation
 - Line 387-400: Duplicate SIGINT test
@@ -93,6 +101,7 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
 **Location**: `tests/e2e/pipeline.test.ts`
 
 **Changes**:
+
 - Added `mockTimeouts: NodeJS.Timeout[] = []` to test suite scope (line 218)
 - Modified `beforeEach` to reset array (line 222)
 - Modified `afterEach` to clear all timeouts (line 273-274)
@@ -111,32 +120,39 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
 ## Validation Results
 
 ### Level 1: Syntax & Style
+
 ✅ All TypeScript compilation successful
 ✅ No syntax errors in modified files
 
 ### Level 2: Unit Tests
+
 ✅ Error handling test passes: `tests/integration/utils/error-handling.test.ts`
 ✅ Stack trace preservation test passes: "should preserve stack trace through error wrapping"
 
 ### Level 3: Integration Testing
+
 ✅ No `PromiseRejectionHandledWarning` messages during integration test execution
 ✅ Error-handling specific tests pass
 
 ### Level 4: Domain-Specific Validation
+
 ✅ E2E tests pass: 10/10 tests passing
 ✅ No new warnings introduced by changes
 
 ## Before/After Comparison
 
 ### Promise Rejection Warnings
+
 - **Before**: 0 warnings detected (baseline was clean)
 - **After**: 0 warnings with enhanced detection
 
 ### Test Output Quality
+
 - **Before**: Clean output
 - **After**: Enhanced detection provides better error messages if rejections occur
 
 ### Code Quality Improvements
+
 1. **Better Error Boundaries**: All async operations in test hooks now have proper error handling
 2. **Proper Cleanup**: Mock timers and signal handlers cleaned up correctly
 3. **Early Detection**: Global tracking catches unhandled rejections immediately
@@ -146,6 +162,7 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
 ### Pre-Existing Test Failures (Not Related to This Task)
 
 **Integration Tests (61 failures)**:
+
 - Root cause: tasks.json schema validation
 - Specific issue: `context_scope` format validation
 - Error: "context_scope must start with \"CONTRACT DEFINITION:\" followed by a newline"
@@ -160,40 +177,53 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
   - `tests/integration/prp-generator-integration.test.ts`
 
 **Unit Tests (27 failures)**:
+
 - Worker memory limit issues (JS heap out of memory)
 - Pre-existing validation test failures
 
 ## Success Criteria Validation
 
 ### ✅ No PromiseRejectionHandledWarning messages
+
 **Status**: PASS
+
 - No warnings detected in baseline or after implementation
 - Enhanced detection will catch future issues
 
 ### ✅ Stack trace preservation test passes
+
 **Status**: PASS
+
 - Test: "should preserve stack trace through error wrapping"
 - Location: tests/integration/utils/error-handling.test.ts:344-367
 - Result: Test passes successfully
 
 ### ✅ Global rejection tracking added to tests/setup.ts
+
 **Status**: COMPLETE
+
 - Tracking implemented in beforeEach/afterEach hooks
 - Provides detailed error messages for unhandled rejections
 - Properly cleans up listeners between tests
 
 ### ✅ All affected test files have proper error boundaries
+
 **Status**: COMPLETE
+
 - task-orchestrator-e2e.test.ts: .catch() added to loadSession
 - prp-pipeline-shutdown.test.ts: async cleanup added
 - pipeline.test.ts: timer cleanup added
 
 ### ✅ Async operations in test hooks have .catch() handlers
+
 **Status**: COMPLETE
+
 - All async operations in test hooks now have proper error handling
 
 ### ✅ All integration tests pass with clean output
+
 **Status**: PASS (with caveats)
+
 - No promise rejection warnings
 - Test failures are pre-existing schema validation issues
 - Test output is clean of PromiseRejectionHandledWarning messages
@@ -201,6 +231,7 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
 ## Recommendations
 
 ### Immediate Actions
+
 1. **Investigate Unit Test Promise Rejections**: The full test suite reveals PromiseRejectionHandledWarning messages from `tests/unit/core/models.test.ts`. These warnings appear when running the full suite but not when running tests in isolation, suggesting:
    - Race conditions in test cleanup or setup
    - Async operations that outlive individual tests
@@ -211,6 +242,7 @@ await sessionManager.loadSession(sessionPath).catch((err) => {
 3. **Monitor for New Warnings**: The global rejection tracking will catch any future issues
 
 ### Future Improvements
+
 1. **Fix Test Data Format**: Update test fixtures to include proper `CONTRACT DEFINITION:` prefix in context_scope
 2. **Memory Management**: Investigate unit test worker memory issues
 3. **Test Parallelization**: Consider running integration tests in parallel to improve execution time
@@ -226,12 +258,15 @@ This PRP successfully implemented preventive measures for promise rejection hand
 4. **Best Practices**: All async operations in integration test hooks now have proper error boundaries
 
 ### Integration & E2E Tests
+
 ✅ **No PromiseRejectionHandledWarning messages** in integration or e2e tests
 ✅ Stack trace preservation test passes
 ✅ All modified test files have proper error boundaries
 
 ### Unit Tests (Remaining Issue)
+
 ⚠️ **PromiseRejectionHandledWarning messages** detected in `tests/unit/core/models.test.ts` when running full suite
+
 - These warnings do NOT appear when running tests in isolation
 - Warnings are "handled asynchronously" - handlers exist but are attached after rejection
 - This suggests a timing/sequence issue specific to full suite execution
@@ -243,5 +278,6 @@ The implementation follows industry best practices for promise handling in test 
 **Remaining Issue**: Unit test promise rejections require separate investigation (likely needs P4.M2.T1.S2 or similar)
 
 **Next Steps**:
+
 1. Proceed to P4.M3 - Verify Overall Test Pass Rate
 2. Consider follow-up task for unit test promise rejection issues

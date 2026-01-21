@@ -23,7 +23,7 @@ export async function writeTasksJSON(
   const validated = BacklogSchema.parse(backlog);
   const content = JSON.stringify(validated, null, 2);
   const tasksPath = resolve(sessionPath, 'tasks.json');
-  await atomicWrite(tasksPath, content);  // Atomic write pattern
+  await atomicWrite(tasksPath, content); // Atomic write pattern
 }
 ```
 
@@ -33,14 +33,14 @@ The `tasks.json` contains the complete task hierarchy:
 
 ```typescript
 interface Backlog {
-  readonly backlog: Phase[];  // Root array of all phases
+  readonly backlog: Phase[]; // Root array of all phases
 }
 
 interface Phase {
   readonly id: string;
   readonly type: 'Phase';
   readonly title: string;
-  readonly status: Status;  // 'Planned' | 'In Progress' | 'Complete' | 'Failed'
+  readonly status: Status; // 'Planned' | 'In Progress' | 'Complete' | 'Failed'
   readonly milestones: Milestone[];
   // ... other readonly properties
 }
@@ -65,7 +65,7 @@ async saveBacklog(backlog: Backlog): Promise<void> {
   if (!this.#currentSession) {
     throw new Error('Cannot save backlog: no session loaded');
   }
-  
+
   await writeTasksJSON(this.#currentSession.metadata.path, backlog);
 }
 ```
@@ -80,6 +80,7 @@ async saveBacklog(backlog: Backlog): Promise<void> {
 ### Call Patterns
 
 The method is called from:
+
 - `PRPPipeline.cleanup()` before shutdown
 - `DeltaAnalysisWorkflow` after task patching
 - `ArchitectAgent` after PRD decomposition
@@ -172,16 +173,17 @@ interface CLIArgs {
 ### How Resume Works
 
 1. **Session Discovery**:
+
    ```typescript
    // File: src/core/session-manager.ts
    async initialize(): Promise<SessionState> {
      // 1. Hash the PRD
      const fullHash = await hashPRD(this.prdPath);
      const sessionHash = fullHash.slice(0, 12);
-     
+
      // 2. Search for existing session with matching hash
      const existingSession = await this.#findSessionByHash(sessionHash);
-     
+
      if (existingSession) {
        // 4. Load existing session
        this.#currentSession = await this.loadSession(existingSession);
@@ -296,7 +298,7 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
   try {
     // Write to temp file first
     await writeFile(tempPath, data, { mode: 0o644 });
-    
+
     // Atomic rename operation
     await rename(tempPath, targetPath);
   } catch (error) {
@@ -332,13 +334,20 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
 
 ```typescript
 // Used by all critical write operations
-export async function writeTasksJSON(sessionPath: string, backlog: Backlog): Promise<void> {
+export async function writeTasksJSON(
+  sessionPath: string,
+  backlog: Backlog
+): Promise<void> {
   const content = JSON.stringify(validated, null, 2);
   const tasksPath = resolve(sessionPath, 'tasks.json');
   await atomicWrite(tasksPath, content);
 }
 
-export async function writePRP(sessionPath: string, taskId: string, prp: PRPDocument): Promise<void> {
+export async function writePRP(
+  sessionPath: string,
+  taskId: string,
+  prp: PRPDocument
+): Promise<void> {
   const content = prpToMarkdown(validated);
   const prpPath = resolve(sessionPath, 'prps', `${taskId}.md`);
   await atomicWrite(prpPath, content);
@@ -368,12 +377,12 @@ export async function writePRP(sessionPath: string, taskId: string, prp: PRPDocu
       this.logger.warn('Duplicate SIGINT received - shutdown already in progress');
       return;
     }
-    
+
     this.logger.info('SIGINT received, initiating graceful shutdown');
     this.shutdownRequested = true;
     this.shutdownReason = 'SIGINT';
   };
-  
+
   process.on('SIGINT', this.#sigintHandler);
   process.on('SIGTERM', this.#sigtermHandler);
 }
@@ -438,6 +447,7 @@ The PRP Pipeline implements a comprehensive state persistence system with the fo
 5. **Graceful Degradation**: System continues even on partial failures
 
 The system successfully addresses the challenges of long-running processes by ensuring that:
+
 - State is never lost on interruption
 - Resume works seamlessly from any point
 - Data integrity is maintained across all operations

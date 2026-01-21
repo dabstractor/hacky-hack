@@ -6,6 +6,7 @@
 ## 1. PRP Cache Implementation
 
 ### Cache Directory Structure
+
 ```
 plan/{session_id}/
 ├── prps/                    # Generated PRP files
@@ -15,20 +16,22 @@ plan/{session_id}/
 ```
 
 ### Cache Metadata Schema (`PRPCacheMetadata`)
+
 **File**: `src/agents/prp-generator.ts` (lines 96-103)
 
 ```typescript
 interface PRPCacheMetadata {
-  readonly taskId: string;              // Task identifier (e.g., "P1.M2.T2.S2")
-  readonly taskHash: string;            // SHA-256 hash of task inputs for change detection
-  readonly createdAt: number;            // Unix timestamp when cache entry was created
-  readonly accessedAt: number;            // Unix timestamp when cache entry was last accessed
-  readonly version: string;              // Cache version (currently "1.0")
-  readonly prp: PRPDocument;            // Complete PRPDocument for quick retrieval
+  readonly taskId: string; // Task identifier (e.g., "P1.M2.T2.S2")
+  readonly taskHash: string; // SHA-256 hash of task inputs for change detection
+  readonly createdAt: number; // Unix timestamp when cache entry was created
+  readonly accessedAt: number; // Unix timestamp when cache entry was last accessed
+  readonly version: string; // Cache version (currently "1.0")
+  readonly prp: PRPDocument; // Complete PRPDocument for quick retrieval
 }
 ```
 
 ### Cache TTL Configuration
+
 **File**: `src/agents/prp-generator.ts` (lines 150-151, 263-272)
 
 ```typescript
@@ -48,6 +51,7 @@ async #isCacheRecent(filePath: string): Promise<boolean> {
 ```
 
 ### Cache Path Generation
+
 **File**: `src/agents/prp-generator.ts` (lines 191-194, 206-209)
 
 ```typescript
@@ -63,6 +67,7 @@ getCacheMetadataPath(taskId: string): string {
 ```
 
 ### Task Hash Computation
+
 **File**: `src/agents/prp-generator.ts` (lines 225-250)
 
 ```typescript
@@ -94,6 +99,7 @@ getCacheMetadataPath(taskId: string): string {
 ## 2. Artifact Schema Definitions
 
 ### Artifact Directory Structure
+
 ```
 plan/{session_id}/artifacts/{subtask_id}/
 ├── validation-results.json  # Validation execution results
@@ -102,22 +108,24 @@ plan/{session_id}/artifacts/{subtask_id}/
 ```
 
 ### validation-results.json Schema
+
 **File**: `src/agents/prp-executor.ts` (lines 38-55)
 
 ```typescript
 interface ValidationGateResult {
-  readonly level: 1 | 2 | 3 | 4;               // Validation level (1-4)
-  readonly description: string;                 // Description of what this level validates
-  readonly success: boolean;                    // Whether the validation passed
-  readonly command: string | null;              // Command that was executed (null if skipped)
-  readonly stdout: string;                     // Standard output from command
-  readonly stderr: string;                     // Standard error from command
-  readonly exitCode: number | null;             // Exit code from process (null if skipped)
-  readonly skipped: boolean;                   // True if this gate was skipped (manual or no command)
+  readonly level: 1 | 2 | 3 | 4; // Validation level (1-4)
+  readonly description: string; // Description of what this level validates
+  readonly success: boolean; // Whether the validation passed
+  readonly command: string | null; // Command that was executed (null if skipped)
+  readonly stdout: string; // Standard output from command
+  readonly stderr: string; // Standard error from command
+  readonly exitCode: number | null; // Exit code from process (null if skipped)
+  readonly skipped: boolean; // True if this gate was skipped (manual or no command)
 }
 ```
 
 **Example JSON structure**:
+
 ```json
 [
   {
@@ -144,6 +152,7 @@ interface ValidationGateResult {
 ```
 
 ### execution-summary.md Format
+
 **File**: `src/agents/prp-runtime.ts` (lines 294-323)
 
 ```markdown
@@ -160,10 +169,10 @@ interface ValidationGateResult {
 - Status: PASSED|FAILED
 - Command: [command executed]
 - Skipped: Yes|No
-[if failed]
+  [if failed]
 - Exit Code: [exit code]
 - Error: [stderr content]
-[endif]
+  [endif]
 
 ## Artifacts
 
@@ -173,6 +182,7 @@ interface ValidationGateResult {
 ```
 
 ### artifacts-list.json Format
+
 **Simple string array of artifact file paths** (from `ExecutionResult.artifacts`):
 
 ```json
@@ -186,6 +196,7 @@ interface ValidationGateResult {
 ## 3. Artifact Collection Logic
 
 ### Artifact Directory Creation
+
 **File**: `src/agents/prp-runtime.ts` (lines 172-175)
 
 ```typescript
@@ -194,6 +205,7 @@ await mkdir(artifactsDir, { recursive: true });
 ```
 
 ### Artifact Writing
+
 **File**: `src/agents/prp-runtime.ts` (lines 245-285)
 
 ```typescript
@@ -216,40 +228,43 @@ async #writeArtifacts(artifactsDir: string, result: ExecutionResult): Promise<vo
 ## 4. Key Integration Points for Testing
 
 ### 1. Cache Verification Test Points
+
 - Cache hit timing verification (<10ms for cached responses)
 - SHA-256 cache key behavior validation
 - Cache configuration verification (enableCache: true for all agents)
 - Cache hit rate logging verification
 
 ### 2. PRP Runtime Test Points
+
 - Artifact directory creation with correct paths
 - Artifact file writing with correct content
 - Execution summary formatting for both success and failure cases
 - Error handling during artifact writing (should not fail execution)
 
 ### 3. Integration Test Points
+
 - Tests the complete flow with real file system operations while mocking agent calls
 - Verify cache metadata structure is correct
 - Verify artifact files are created with correct permissions
 
 ## 5. File Locations Summary
 
-| Component | File Path | Key Lines |
-|-----------|-----------|-----------|
-| PRP Cache Metadata Interface | `/src/agents/prp-generator.ts` | 96-103 |
-| Cache TTL Logic | `/src/agents/prp-generator.ts` | 150-151, 263-272 |
-| Cache Path Methods | `/src/agents/prp-generator.ts` | 191-194, 206-209 |
-| Task Hash Computation | `/src/agents/prp-generator.ts` | 225-250 |
-| Validation Result Interface | `/src/agents/prp-executor.ts` | 38-55 |
-| Execution Result Interface | `/src/agents/prp-executor.ts` | 65-76 |
-| Artifact Writing Logic | `/src/agents/prp-runtime.ts` | 245-285 |
-| Artifact Formatting | `/src/agents/prp-runtime.ts` | 294-323 |
-| PRPDocument Schema | `/src/core/models.ts` | 1295-1305 |
+| Component                    | File Path                      | Key Lines        |
+| ---------------------------- | ------------------------------ | ---------------- |
+| PRP Cache Metadata Interface | `/src/agents/prp-generator.ts` | 96-103           |
+| Cache TTL Logic              | `/src/agents/prp-generator.ts` | 150-151, 263-272 |
+| Cache Path Methods           | `/src/agents/prp-generator.ts` | 191-194, 206-209 |
+| Task Hash Computation        | `/src/agents/prp-generator.ts` | 225-250          |
+| Validation Result Interface  | `/src/agents/prp-executor.ts`  | 38-55            |
+| Execution Result Interface   | `/src/agents/prp-executor.ts`  | 65-76            |
+| Artifact Writing Logic       | `/src/agents/prp-runtime.ts`   | 245-285          |
+| Artifact Formatting          | `/src/agents/prp-runtime.ts`   | 294-323          |
+| PRPDocument Schema           | `/src/core/models.ts`          | 1295-1305        |
 
 ## 6. Key Constants and Configuration
 
-| Constant | Value | Location |
-|----------|-------|----------|
-| CACHE_TTL_MS | 24 * 60 * 60 * 1000 (24 hours) | `/src/agents/prp-generator.ts:151` |
-| File Permissions | 0o644 (read/write for owner, read for others) | Multiple locations |
-| Cache Directory | `.cache` (hidden directory) | `/src/agents/prp-generator.ts:208` |
+| Constant         | Value                                         | Location                           |
+| ---------------- | --------------------------------------------- | ---------------------------------- |
+| CACHE_TTL_MS     | 24 _ 60 _ 60 \* 1000 (24 hours)               | `/src/agents/prp-generator.ts:151` |
+| File Permissions | 0o644 (read/write for owner, read for others) | Multiple locations                 |
+| Cache Directory  | `.cache` (hidden directory)                   | `/src/agents/prp-generator.ts:208` |

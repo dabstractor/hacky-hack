@@ -74,7 +74,9 @@ describe('context extraction', () => {
   it('should extract Phase description for parent context', () => {
     const task = mockBacklog.backlog[0].milestones[0].tasks[0].subtasks[1];
     const prompt = createPRPBlueprintPrompt(task, mockBacklog);
-    expect(prompt.user).toContain('Groundswell agent integration and prompt system');
+    expect(prompt.user).toContain(
+      'Groundswell agent integration and prompt system'
+    );
   });
 
   it('should include dependency context for Subtask with dependencies', () => {
@@ -112,7 +114,11 @@ it('should replace <item_title> and <item_description> placeholders', () => {
 describe('conditional content injection', () => {
   it('should include codebase path when provided', () => {
     const codebasePath = '/home/dustin/projects/hacky-hack';
-    const prompt = createPRPBlueprintPrompt(mockTask, mockBacklog, codebasePath);
+    const prompt = createPRPBlueprintPrompt(
+      mockTask,
+      mockBacklog,
+      codebasePath
+    );
     expect(prompt.user).toContain('Codebase Analysis');
     expect(prompt.user).toContain(codebasePath);
   });
@@ -163,9 +169,16 @@ it('should validate PRPDocument structure', () => {
     context: '## Context\n...',
     implementationSteps: ['Step 1'],
     validationGates: [
-      { level: 1, description: 'Syntax check', command: 'npm run lint', manual: false }
+      {
+        level: 1,
+        description: 'Syntax check',
+        command: 'npm run lint',
+        manual: false,
+      },
     ],
-    successCriteria: [{ description: 'All interfaces added', satisfied: false }],
+    successCriteria: [
+      { description: 'All interfaces added', satisfied: false },
+    ],
     references: ['https://example.com'],
   };
 
@@ -208,7 +221,8 @@ describe('Token Budget Management', () => {
 
 ```typescript
 it('should optimize context for token efficiency', () => {
-  const verbose = 'This is a very verbose description with unnecessary details that consume many tokens.';
+  const verbose =
+    'This is a very verbose description with unnecessary details that consume many tokens.';
   const optimized = optimizeContextForTokens(verbose);
 
   expect(estimateTokens(optimized)).toBeLessThan(estimateTokens(verbose));
@@ -226,7 +240,8 @@ it('should optimize context for token efficiency', () => {
 describe('PRD Delta Analysis', () => {
   it('should detect added requirements', () => {
     const oldPRD = '# PRD\n## Phase 1: Foundation\n- Set up project structure';
-    const newPRD = '# PRD\n## Phase 1: Foundation\n- Set up project structure\n- Add TypeScript configuration';
+    const newPRD =
+      '# PRD\n## Phase 1: Foundation\n- Set up project structure\n- Add TypeScript configuration';
 
     const delta = analyzePRDDelta(oldPRD, newPRD);
     expect(delta.changes[0].type).toBe('added');
@@ -248,8 +263,14 @@ describe('PRD Delta Analysis', () => {
 ```typescript
 it('should identify tasks requiring re-execution', () => {
   const deltaAnalysis = {
-    changes: [{ itemId: 'P1.M2.T3.S1', type: 'modified', description: 'Added validation rules' }],
-    taskIds: ['P1.M2.T3.S1']
+    changes: [
+      {
+        itemId: 'P1.M2.T3.S1',
+        type: 'modified',
+        description: 'Added validation rules',
+      },
+    ],
+    taskIds: ['P1.M2.T3.S1'],
   };
 
   const tasksToReexecute = identifyTasksToReexecute(deltaAnalysis);
@@ -266,14 +287,19 @@ it('should identify tasks requiring re-execution', () => {
 ```typescript
 describe('File Context Loader', () => {
   it('should load architecture documentation', async () => {
-    const architecture = await loadArchitectureDocumentation('/path/to/architecture/');
+    const architecture = await loadArchitectureDocumentation(
+      '/path/to/architecture/'
+    );
     expect(architecture.systemContext).toBeDefined();
     expect(architecture.agentDefinitions).toBeDefined();
   });
 
   it('should handle missing documentation files gracefully', async () => {
-    const architecture = await loadArchitectureDocumentation('/nonexistent/path/');
-    expect(architecture.systemContext).toBe('No system context documentation available');
+    const architecture =
+      await loadArchitectureDocumentation('/nonexistent/path/');
+    expect(architecture.systemContext).toBe(
+      'No system context documentation available'
+    );
   });
 });
 ```
@@ -319,7 +345,10 @@ describe('End-to-End Context Injection', () => {
 **Best Practice**: Create utilities to verify all required context elements are present.
 
 ```typescript
-function verifyContextInjection(prompt: Prompt, expectedContext: ExpectedContext): boolean {
+function verifyContextInjection(
+  prompt: Prompt,
+  expectedContext: ExpectedContext
+): boolean {
   const checks = [
     prompt.user.includes(expectedContext.taskTitle),
     prompt.user.includes(expectedContext.parentContext),
@@ -336,7 +365,7 @@ it('should verify complete context injection', () => {
     taskTitle: mockSubtask.title,
     parentContext: 'Phase 2: Core Agent System',
     dependencies: 'P2.M2.T2.S1',
-    contractDefinition: 'CONTRACT DEFINITION:'
+    contractDefinition: 'CONTRACT DEFINITION:',
   };
 
   expect(verifyContextInjection(prompt, expectedContext)).toBe(true);
@@ -346,27 +375,32 @@ it('should verify complete context injection', () => {
 ## Best Practices Summary
 
 ### 1. Test Data Management
+
 - **Structured Mock Data**: Create hierarchical mock data that matches real scenarios
 - **Test Fixtures**: Share common test data across multiple tests
 - **Edge Cases**: Include empty dependencies, missing descriptions, invalid formats
 
 ### 2. Testing Strategy
+
 - **Granular Testing**: Test each component independently
 - **Integration Testing**: Test the complete flow
 - **Performance Testing**: Monitor context size and token usage
 - **Error Handling**: Test failure scenarios and recovery
 
 ### 3. Validation Best Practices
+
 - **Schema Validation**: Use Zod for runtime validation
 - **Type Safety**: Leverage TypeScript for compile-time checks
 - **Contract Testing**: Validate API contracts and data formats
 
 ### 4. Performance Considerations
+
 - **Token Management**: Implement token counting and budgeting
 - **Context Optimization**: Test context reduction while preserving essential information
 - **Caching**: Test caching mechanisms for frequently accessed context
 
 ### 5. Error Handling
+
 - **Graceful Degradation**: Handle missing data gracefully
 - **Clear Error Messages**: Provide informative error messages
 - **Recovery Mechanisms**: Test automatic recovery from errors
@@ -374,18 +408,21 @@ it('should verify complete context injection', () => {
 ## Implementation Checklist
 
 ### Phase 1: Basic Unit Tests
+
 - [ ] Implement context extraction tests
 - [ ] Add schema validation tests
 - [ ] Create token counting tests
 - [ ] Write prompt construction tests
 
 ### Phase 2: Integration Tests
+
 - [ ] Add end-to-end context flow tests
 - [ ] Implement agent prompt verification
 - [ ] Create delta context merging tests
 - [ ] Add file-based context loading tests
 
 ### Phase 3: Advanced Testing
+
 - [ ] Implement performance benchmarking
 - [ ] Add property-based testing
 - [ ] Create chaos testing for error scenarios
@@ -394,16 +431,19 @@ it('should verify complete context injection', () => {
 ## Recommended Tools and Libraries
 
 ### Testing Frameworks
+
 - **Vitest**: Modern testing framework for Vite projects
 - **Jest**: Popular testing framework with TypeScript support
 - **Testing Library**: For component testing
 
 ### Validation Libraries
+
 - **Zod**: Schema validation and type inference
 - **Yup**: Alternative validation library
 - **Typebox**: TypeScript-first schema validation
 
 ### Utilities
+
 - **fast-check**: Property-based testing
 - **vitest-benchmark**: Performance benchmarking
 - **msw**: Mock Service Worker for API mocking
@@ -413,6 +453,7 @@ it('should verify complete context injection', () => {
 Comprehensive testing of context injection and agent context management requires a multi-layered approach that combines unit, integration, and validation testing. By implementing the patterns outlined in this report, teams can ensure robust context management in their AI agent systems while maintaining type safety and performance.
 
 The key to success is:
+
 1. **Structured testing** with clear separation of concerns
 2. **Comprehensive validation** of all data transformations
 3. **Performance awareness** with token management and optimization

@@ -14,6 +14,7 @@
 **Deliverable**: Test file at `tests/unit/utils/is-fatal-error.test.ts` with 200+ comprehensive failing tests covering all error types, edge cases, and scenarios. All tests must fail initially because the `isFatalError()` function does not exist yet.
 
 **Success Definition**:
+
 - All 200+ tests fail with "isFatalError is not defined" or similar errors
 - Test file follows existing codebase patterns (vitest, TypeScript, SEV pattern)
 - Tests cover all error types: SessionError, EnvironmentError, TaskError, AgentError, ValidationError, standard Error, null/undefined
@@ -31,6 +32,7 @@
 **Use Case**: Developer needs a comprehensive test suite that defines the expected behavior of `isFatalError()` before implementing the function (TDD approach).
 
 **User Journey**:
+
 1. Read this PRP to understand test requirements
 2. Review existing test patterns from referenced files
 3. Write comprehensive failing tests in `tests/unit/utils/is-fatal-error.test.ts`
@@ -39,6 +41,7 @@
 6. Refactor implementation while keeping tests passing (refactor phase)
 
 **Pain Points Addressed**:
+
 - **Missing Test Coverage**: No tests exist for `isFatalError()` behavior
 - **Unclear Specification**: PRD specifies fatal/non-fatal but lacks implementation details
 - **Integration Test Failures**: Integration tests expect `isFatalError` but function doesn't exist
@@ -49,18 +52,21 @@
 ## Why
 
 **Business Value**:
+
 - Enables proper error handling classification across the entire codebase
 - Supports integration testing of error handling behavior
 - Provides regression protection for future error handling changes
 - Documents the expected behavior through executable specifications
 
 **Integration with Existing Features**:
+
 - Builds on error hierarchy in `src/utils/errors.ts` (PipelineError, SessionError, TaskError, AgentError, ValidationError, EnvironmentError)
 - Supports existing type guard functions (`isSessionError`, `isTaskError`, etc.)
 - Aligns with `--continue-on-error` CLI flag behavior
 - Enables error tracking and reporting in ERROR_REPORT.md
 
 **Problems This Solves**:
+
 - **No Test Coverage**: Zero tests exist for `isFatalError()` function behavior
 - **Integration Test Failures**: 6 integration tests fail because function doesn't exist
 - **Unclear Specification**: Architecture doc exists but no executable specification
@@ -87,6 +93,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 ### Test Coverage Requirements (200+ Tests)
 
 #### 1. Fatal Error Tests (Return TRUE) - 50+ tests
+
 - SessionError with PIPELINE_SESSION_LOAD_FAILED code
 - SessionError with PIPELINE_SESSION_SAVE_FAILED code
 - EnvironmentError (any EnvironmentError instance)
@@ -97,6 +104,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 - Variations with/without timestamp
 
 #### 2. Non-Fatal Error Tests (Return FALSE) - 80+ tests
+
 - TaskError (any TaskError instance) - 15+ variations
 - AgentError (any AgentError instance) - 15+ variations
 - ValidationError (non-parse_prd operations) - 20+ variations
@@ -105,6 +113,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 - SessionError with non-fatal codes (if any) - 10+ variations
 
 #### 3. Standard Error Tests (Return FALSE) - 20+ tests
+
 - Standard JavaScript Error object
 - TypeError, ReferenceError, SyntaxError, RangeError, etc.
 - Custom error classes extending Error
@@ -112,6 +121,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 - Error without stack trace
 
 #### 4. Null/Undefined/Invalid Tests (Return FALSE) - 20+ tests
+
 - null value
 - undefined value
 - String values
@@ -122,6 +132,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 - Function values
 
 #### 5. Type Guard Usage Tests - 15+ tests
+
 - Using isPipelineError before isFatalError
 - Type narrowing with isSessionError + isFatalError
 - Type narrowing with isTaskError + isFatalError
@@ -130,6 +141,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 - Type narrowing with isEnvironmentError + isFatalError
 
 #### 6. continueOnError Flag Tests - 15+ tests
+
 - When continueOnError=true, all errors return false
 - SessionError with continueOnError=true
 - EnvironmentError with continueOnError=true
@@ -138,6 +150,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 - AgentError with continueOnError=true
 
 #### 7. Edge Cases and Boundary Conditions - 20+ tests
+
 - Empty string message
 - Very long message
 - Special characters in message
@@ -171,6 +184,7 @@ No user-visible behavior changes. This is a **test-only** subtask that creates a
 **Question**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and line numbers for all referenced files
 - Complete test pattern examples from existing test files
 - Detailed specification of isFatalError behavior from architecture doc
@@ -333,8 +347,8 @@ plan/
 ```typescript
 // CRITICAL: ESM Module Imports
 // All imports MUST use .js extension even for .ts files (ESM module resolution)
-import { isPipelineError } from '../../../src/utils/errors.js';  // CORRECT
-import { isPipelineError } from '../../../src/utils/errors';    // WRONG - will fail at runtime
+import { isPipelineError } from '../../../src/utils/errors.js'; // CORRECT
+import { isPipelineError } from '../../../src/utils/errors'; // WRONG - will fail at runtime
 
 // CRITICAL: Type Guard Return Type
 // Type guards use TypeScript type predicates: `error is XxxError`
@@ -377,11 +391,17 @@ export function isFatalError(
 describe('isFatalError', () => {
   describe('Fatal errors (return true)', () => {
     describe('SessionError', () => {
-      it('should return true for SESSION_LOAD_FAILED', () => { /* ... */ });
-      it('should return true for SESSION_SAVE_FAILED', () => { /* ... */ });
+      it('should return true for SESSION_LOAD_FAILED', () => {
+        /* ... */
+      });
+      it('should return true for SESSION_SAVE_FAILED', () => {
+        /* ... */
+      });
     });
     describe('EnvironmentError', () => {
-      it('should return true for any EnvironmentError', () => { /* ... */ });
+      it('should return true for any EnvironmentError', () => {
+        /* ... */
+      });
     });
     // ...
   });
@@ -392,19 +412,25 @@ describe('isFatalError', () => {
 
 // CRITICAL: Test Naming Convention
 // Use "should" prefix for test descriptions:
-it('should return true for SessionError with LOAD_FAILED code', () => { /* ... */ });
-it('should return false for TaskError instances', () => { /* ... */ });
-it('should handle null values gracefully', () => { /* ... */ });
+it('should return true for SessionError with LOAD_FAILED code', () => {
+  /* ... */
+});
+it('should return false for TaskError instances', () => {
+  /* ... */
+});
+it('should handle null values gracefully', () => {
+  /* ... */
+});
 
 // GOTCHA: Error Code Constants
 // Use ErrorCodes enum, not string literals:
-ErrorCodes.PIPELINE_SESSION_LOAD_FAILED  // CORRECT
-'PIPELINE_SESSION_LOAD_FAILED'           // AVOID
+ErrorCodes.PIPELINE_SESSION_LOAD_FAILED; // CORRECT
+('PIPELINE_SESSION_LOAD_FAILED'); // AVOID
 
 // CRITICAL: Context Property Access
 // error.context might be undefined, use optional chaining:
-error.context?.operation === 'parse_prd'  // CORRECT
-error.context.operation === 'parse_prd'  // MAY THROW if context is undefined
+error.context?.operation === 'parse_prd'; // CORRECT
+error.context.operation === 'parse_prd'; // MAY THROW if context is undefined
 
 // PATTERN: Test File Header Documentation
 // Every test file MUST have comprehensive header comments:
@@ -428,7 +454,7 @@ error.context.operation === 'parse_prd'  // MAY THROW if context is undefined
 it('should return true for SessionError with LOAD_FAILED code', () => {
   // SETUP: Create error instance
   const error = new SessionError('Session load failed', {
-    sessionPath: '/path/to/session'
+    sessionPath: '/path/to/session',
   });
 
   // EXECUTE: Call function under test
@@ -492,6 +518,7 @@ import {
 **Date**: 2026-01-14
 **Message**: "feat: Add comprehensive error recovery with fatal/non-fatal detection and error reports"
 **Changes**:
+
 - Added `#isFatalError()` private method to PRPPipeline (lines 377-417)
 - Added error tracking and reporting functionality
 - This commit is the source of truth for isFatalError logic
@@ -505,6 +532,7 @@ import {
 ### Data Models and Structure
 
 No new data models needed. Tests will use existing error classes:
+
 - `PipelineError` (base class)
 - `SessionError` (extends PipelineError)
 - `EnvironmentError` (extends PipelineError)
@@ -1176,6 +1204,7 @@ wc -l plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/*.md
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Rationale**:
+
 - Comprehensive PRP with exact file paths and line numbers
 - Complete test pattern examples from existing codebase
 - Detailed specification of isFatalError behavior from architecture doc
@@ -1186,6 +1215,7 @@ wc -l plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/*.md
 - All context needed for implementation provided
 
 **Validation**: The completed PRP and test file should enable a developer unfamiliar with the codebase to:
+
 1. Understand the isFatalError expected behavior completely
 2. Write 200+ comprehensive failing tests following TDD methodology
 3. Follow existing codebase patterns and conventions
@@ -1193,6 +1223,7 @@ wc -l plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/*.md
 5. Prepare for green phase (P1.M2.T1.S3 - implement the function)
 
 **Next Steps**:
+
 - **P1.M2.T1.S2 (THIS TASK)**: Write failing tests for isFatalError function
 - **P1.M2.T1.S3**: Implement isFatalError function in errors.ts (green phase)
 - **P1.M2.T2.S1**: Refactor PRPPipeline to import and use isFatalError

@@ -11,12 +11,14 @@
 **Feature Goal**: Verify and enhance the existing z.ai API safeguard in `tests/setup.ts` to ensure robust protection against accidental Anthropic production API usage during testing, with clear and actionable error messages.
 
 **Deliverable**: Enhanced test setup file `tests/setup.ts` with:
+
 1. Verified API validation logic that blocks Anthropic's production API
 2. Clear, actionable error messages guiding developers to fix configuration issues
 3. Warning system for non-z.ai endpoints (except localhost/mock)
 4. Optional: Test file to verify the safeguard functionality itself
 
 **Success Definition**:
+
 - `tests/setup.ts` validation logic is correct and complete
 - Error messages provide clear guidance on how to fix configuration issues
 - Tests pass: `npm test -- tests/unit/setup-verification.test.ts` (if created)
@@ -32,6 +34,7 @@
 **Use Case**: Fourth subtask in Phase 1 Milestone 2 (P1.M2) to ensure robust API endpoint safeguards are in place during testing.
 
 **User Journey**:
+
 1. Pipeline completes P1.M2.T1 (environment variable mapping) with success
 2. Pipeline starts P1.M2.T2.S1 (Enhance test setup API validation)
 3. Research identifies existing API validation in tests/setup.ts
@@ -40,6 +43,7 @@
 6. Safeguard is tested to ensure it works correctly
 
 **Pain Points Addressed**:
+
 - **Risk of API Misconfiguration**: Tests could accidentally hit Anthropic's production API, causing massive usage spikes
 - **Unclear Error Messages**: Developers need clear guidance when configuration is wrong
 - **Missing Validation**: Without proper safeguards, misconfiguration could go undetected until costly API usage occurs
@@ -67,6 +71,7 @@ Review and enhance the existing z.ai API safeguard in `tests/setup.ts`. The curr
 ### Current State Analysis
 
 **Existing Implementation** (lines 36-105 in tests/setup.ts):
+
 - `validateApiEndpoint()` function exists
 - Blocks `https://api.anthropic.com` with clear error message
 - Warns for non-z.ai endpoints (except localhost/mock/test)
@@ -74,40 +79,47 @@ Review and enhance the existing z.ai API safeguard in `tests/setup.ts`. The curr
 - Runs validation in beforeEach hook (line 129)
 
 **Current Error Message** (lines 65-79):
+
 ```typescript
-throw new Error([
-  '\n========================================',
-  'CRITICAL: Tests are configured to use Anthropic API!',
-  '========================================',
-  `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
-  '',
-  'All tests MUST use z.ai API endpoint, never Anthropic official API.',
-  `Expected: ${ZAI_ENDPOINT}`,
-  '',
-  'Fix: Set ANTHROPIC_BASE_URL to z.ai endpoint:',
-  `  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`,
-  '========================================\n',
-].join('\n'));
+throw new Error(
+  [
+    '\n========================================',
+    'CRITICAL: Tests are configured to use Anthropic API!',
+    '========================================',
+    `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
+    '',
+    'All tests MUST use z.ai API endpoint, never Anthropic official API.',
+    `Expected: ${ZAI_ENDPOINT}`,
+    '',
+    'Fix: Set ANTHROPIC_BASE_URL to z.ai endpoint:',
+    `  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`,
+    '========================================\n',
+  ].join('\n')
+);
 ```
 
 **Current Warning Message** (lines 91-103):
+
 ```typescript
-console.warn([
-  '\n========================================',
-  'WARNING: Non-z.ai API endpoint detected',
-  '========================================',
-  `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
-  '',
-  `Recommended: ${ZAI_ENDPOINT}`,
-  '',
-  'Ensure this endpoint is intended for testing.',
-  '========================================\n',
-].join('\n'));
+console.warn(
+  [
+    '\n========================================',
+    'WARNING: Non-z.ai API endpoint detected',
+    '========================================',
+    `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
+    '',
+    `Recommended: ${ZAI_ENDPOINT}`,
+    '',
+    'Ensure this endpoint is intended for testing.',
+    '========================================\n',
+  ].join('\n')
+);
 ```
 
 ### Implementation Status
 
 **CRITICAL FINDING**: The z.ai safeguard is ALREADY IMPLEMENTED and is robust. This task is primarily about:
+
 1. Verification: Confirm the implementation meets requirements
 2. Enhancement: Improve error messages if needed
 3. Testing: Add tests to verify the safeguard works correctly
@@ -116,6 +128,7 @@ console.warn([
 ### Enhancement Opportunities
 
 Based on analysis, the existing implementation is excellent. Potential minor enhancements:
+
 1. Add additional endpoint patterns to block (e.g., http://api.anthropic.com without https)
 2. Add console.error for critical errors (in addition to throwing)
 3. Consider adding environment variable name in error message
@@ -124,33 +137,39 @@ Based on analysis, the existing implementation is excellent. Potential minor enh
 ### Required Changes
 
 **Change 1: Review existing validation logic**
+
 - Verify the validation logic catches all Anthropic API patterns
 - Consider edge cases (trailing slashes, http vs https, etc.)
 
 **Change 2: Enhance error messages (if needed)**
+
 - Ensure error messages include all necessary information
 - Consider adding the environment variable name for clarity
 
 **Change 3: Add console.error for critical errors (optional enhancement)**
+
 ```typescript
 // Before throwing, also log to console for visibility
-console.error([
-  '\n========================================',
-  'CRITICAL: Tests are configured to use Anthropic API!',
-  '========================================',
-  `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
-  '',
-  'All tests MUST use z.ai API endpoint, never Anthropic official API.',
-  `Expected: ${ZAI_ENDPOINT}`,
-  '',
-  'Fix: Set ANTHROPIC_BASE_URL to z.ai endpoint:',
-  `  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`,
-  '========================================\n',
-].join('\n'));
+console.error(
+  [
+    '\n========================================',
+    'CRITICAL: Tests are configured to use Anthropic API!',
+    '========================================',
+    `Current ANTHROPIC_BASE_URL: ${baseUrl}`,
+    '',
+    'All tests MUST use z.ai API endpoint, never Anthropic official API.',
+    `Expected: ${ZAI_ENDPOINT}`,
+    '',
+    'Fix: Set ANTHROPIC_BASE_URL to z.ai endpoint:',
+    `  export ANTHROPIC_BASE_URL="${ZAI_ENDPOINT}"`,
+    '========================================\n',
+  ].join('\n')
+);
 throw new Error(/* ... */);
 ```
 
 **Change 4: Create verification test (optional but recommended)**
+
 - Create `tests/unit/setup-verification.test.ts` to test the safeguard
 - Verify blocking of Anthropic API
 - Verify warning for non-z.ai endpoints
@@ -172,6 +191,7 @@ throw new Error(/* ... */);
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Current test setup implementation analyzed (tests/setup.ts lines 1-151)
 - [x] Validation patterns documented in codebase
 - [x] Error message patterns identified
@@ -877,6 +897,7 @@ This is a NOTE about existing functionality, not a request to implement from scr
 ### What are the actual requirements?
 
 Based on the contract definition:
+
 1. "RESEARCH NOTE" - Acknowledge existing implementation ✓
 2. "If validation exists, enhance error message" - Review and improve error messages
 3. "If missing, implement validation" - NOT NEEDED (validation exists)
@@ -892,6 +913,7 @@ Based on the contract definition:
 ### What is the priority?
 
 The current implementation is already robust. This task should:
+
 1. Focus on minor enhancements (console.error before throw)
 2. Add verification tests (optional but recommended)
 3. Document the expected behavior clearly
@@ -900,6 +922,7 @@ The current implementation is already robust. This task should:
 ### Why add console.error before throwing?
 
 The current implementation only throws an error. Adding console.error ensures:
+
 - The error is visible in test output
 - The error format is consistent with validation scripts
 - Developers see the error even if test runner catches and handles it
@@ -911,6 +934,7 @@ The current implementation only throws an error. Adding console.error ensures:
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from existing implementation
 - [x] Current implementation analyzed and documented
 - [x] Enhancement opportunities identified
@@ -920,6 +944,7 @@ The current implementation only throws an error. Adding console.error ensures:
 - [x] Manual verification approach defined
 
 **Risk Mitigation**:
+
 - Minimal change (optional enhancements only)
 - Existing implementation is already excellent
 - Clear success criteria
@@ -927,6 +952,7 @@ The current implementation only throws an error. Adding console.error ensures:
 - No new dependencies
 
 **Known Risks**:
+
 - None - this is a verification/enhancement task with minimal changes
 
 ---

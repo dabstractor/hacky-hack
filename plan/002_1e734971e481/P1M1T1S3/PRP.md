@@ -11,11 +11,13 @@
 **Feature Goal**: Create a version compatibility validator that reads the installed Groundswell package.json, extracts version information, validates against project requirements, checks dependency alignment, tests basic functionality, and generates a comprehensive compatibility report with actionable upgrade recommendations.
 
 **Deliverable**: Three artifacts:
+
 1. `src/utils/verify-groundswell-version.ts` - Core validation logic with version extraction, comparison, and reporting
 2. `tests/unit/utils/verify-groundswell-version.test.ts` - Comprehensive test suite
 3. Structured `GroundswellCompatibilityReport` output (console + optional JSON file)
 
 **Success Definition**:
+
 - Groundswell version is correctly extracted from node_modules/groundswell/package.json
 - Version compatibility is validated against minimum requirements (v0.0.3 recommended)
 - Node.js and TypeScript compatibility checks pass
@@ -34,6 +36,7 @@
 **Use Case**: Third validation step in Phase 1 (P1.M1.T1) to verify that after npm link is validated (S1) and imports work (S2), the Groundswell version meets requirements and all dependency constraints are satisfied.
 
 **User Journey**:
+
 1. Pipeline completes P1.M1.T1.S1 (npm link validation) with `success: true`
 2. Pipeline completes P1.M1.T1.S2 (import tests) with `overallSuccess: true`
 3. Pipeline starts P1.M1.T1.S3 (version compatibility check)
@@ -46,6 +49,7 @@
 10. If version is incompatible: Report specific version requirements and upgrade instructions
 
 **Pain Points Addressed**:
+
 - Silent version mismatches where imports work but critical features are missing
 - Unclear which specific Groundswell version fixes are needed
 - Dependency conflicts between project and Groundswell's @anthropic-ai/sdk version
@@ -103,6 +107,7 @@ Create a comprehensive version compatibility validator that performs the followi
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Input contract from S2 defined (GroundswellImportTestResults)
 - [x] Groundswell version requirements documented (v0.0.3 recommended, v0.0.1 minimum)
 - [x] Existing validation patterns identified (validate-groundswell-link.ts)
@@ -730,9 +735,7 @@ Task 22: IMPLEMENT integration test
 import fs from 'node:fs';
 import path from 'node:path';
 import { satisfies, gte, lt, valid } from 'semver';
-import type {
-  GroundswellImportTestResults,
-} from './verify-groundswell-link.js';
+import type { GroundswellImportTestResults } from './verify-groundswell-link.js';
 
 // =============================================================================
 // ERROR CODES PATTERN (from validate-groundswell-link.ts)
@@ -768,7 +771,12 @@ function readGroundswellPackageJson(): {
   error?: string;
   errorCode?: keyof typeof VersionErrorCodes;
 } {
-  const packageJsonPath = path.join(process.cwd(), 'node_modules', 'groundswell', 'package.json');
+  const packageJsonPath = path.join(
+    process.cwd(),
+    'node_modules',
+    'groundswell',
+    'package.json'
+  );
 
   try {
     const fileContent = fs.readFileSync(packageJsonPath, 'utf-8');
@@ -851,7 +859,9 @@ function compareVersions(
 // ENGINE COMPATIBILITY PATTERN
 // =============================================================================
 
-function checkNodeCompatibility(groundswellEngines?: unknown): VersionCheckResult {
+function checkNodeCompatibility(
+  groundswellEngines?: unknown
+): VersionCheckResult {
   const nodeRequirement = '>=18';
   const currentNodeVersion = process.version.slice(1); // Remove 'v' prefix
 
@@ -907,17 +917,21 @@ function checkDependencyAlignment(
   const results: DependencyAlignmentResult[] = [];
 
   // Check @anthropic-ai/sdk alignment
-  const groundswellSdkRequirement = groundswellDeps?.['@anthropic-ai/sdk'] || 'not specified';
-  const projectSdkVersion = projectDeps?.['@anthropic-ai/sdk'] || 'not installed (will use Groundswell\'s)';
+  const groundswellSdkRequirement =
+    groundswellDeps?.['@anthropic-ai/sdk'] || 'not specified';
+  const projectSdkVersion =
+    projectDeps?.['@anthropic-ai/sdk'] ||
+    "not installed (will use Groundswell's)";
 
   results.push({
     dependency: '@anthropic-ai/sdk',
     groundswellRequirement: groundswellSdkRequirement,
     projectVersion: projectSdkVersion,
     hasConflict: false, // No conflict expected since project doesn't have direct dependency
-    description: projectSdkVersion === 'not installed (will use Groundswell\'s)'
-      ? 'Project does not directly depend on @anthropic-ai/sdk, will use Groundswell\'s version'
-      : `Project uses ${projectSdkVersion}, Groundswell requires ${groundswellSdkRequirement}`,
+    description:
+      projectSdkVersion === "not installed (will use Groundswell's)"
+        ? "Project does not directly depend on @anthropic-ai/sdk, will use Groundswell's version"
+        : `Project uses ${projectSdkVersion}, Groundswell requires ${groundswellSdkRequirement}`,
   });
 
   return results;
@@ -946,7 +960,8 @@ async function testBasicFunctionality(): Promise<FunctionalityTestResult> {
       result.workflow.success = true;
     } catch (error) {
       result.workflow.success = false;
-      result.workflow.error = error instanceof Error ? error.message : String(error);
+      result.workflow.error =
+        error instanceof Error ? error.message : String(error);
     }
 
     // Test Agent creation
@@ -955,7 +970,8 @@ async function testBasicFunctionality(): Promise<FunctionalityTestResult> {
       result.agent.success = true;
     } catch (error) {
       result.agent.success = false;
-      result.agent.error = error instanceof Error ? error.message : String(error);
+      result.agent.error =
+        error instanceof Error ? error.message : String(error);
     }
 
     // Test Prompt creation
@@ -964,10 +980,12 @@ async function testBasicFunctionality(): Promise<FunctionalityTestResult> {
       result.prompt.success = true;
     } catch (error) {
       result.prompt.success = false;
-      result.prompt.error = error instanceof Error ? error.message : String(error);
+      result.prompt.error =
+        error instanceof Error ? error.message : String(error);
     }
 
-    result.success = result.workflow.success && result.agent.success && result.prompt.success;
+    result.success =
+      result.workflow.success && result.agent.success && result.prompt.success;
   } catch (error) {
     result.success = false;
     const errorMsg = error instanceof Error ? error.message : String(error);
@@ -991,7 +1009,14 @@ function generateReport(checkResults: {
   functionalityTest: FunctionalityTestResult;
   importTestResults?: GroundswellImportTestResults;
 }): GroundswellCompatibilityReport {
-  const { versionCheck, nodeCheck, typescriptCheck, dependencyChecks, functionalityTest, importTestResults } = checkResults;
+  const {
+    versionCheck,
+    nodeCheck,
+    typescriptCheck,
+    dependencyChecks,
+    functionalityTest,
+    importTestResults,
+  } = checkResults;
 
   const allCompatible =
     versionCheck.compatible &&
@@ -1003,7 +1028,9 @@ function generateReport(checkResults: {
   const recommendations: string[] = [];
 
   if (!versionCheck.compatible) {
-    recommendations.push(versionCheck.recommendation || 'Upgrade Groundswell version');
+    recommendations.push(
+      versionCheck.recommendation || 'Upgrade Groundswell version'
+    );
   } else if (versionCheck.recommendation) {
     recommendations.push(versionCheck.recommendation);
   }
@@ -1013,7 +1040,9 @@ function generateReport(checkResults: {
   }
 
   if (!typescriptCheck.compatible) {
-    recommendations.push(typescriptCheck.recommendation || 'Upgrade TypeScript version');
+    recommendations.push(
+      typescriptCheck.recommendation || 'Upgrade TypeScript version'
+    );
   }
 
   if (dependencyChecks.some(d => d.hasConflict)) {
@@ -1021,7 +1050,9 @@ function generateReport(checkResults: {
   }
 
   if (!functionalityTest.success) {
-    recommendations.push('Fix basic functionality issues - check installation and imports');
+    recommendations.push(
+      'Fix basic functionality issues - check installation and imports'
+    );
   }
 
   if (importTestResults && !importTestResults.overallSuccess) {
@@ -1035,7 +1066,8 @@ function generateReport(checkResults: {
       minimumRecommended: '0.0.3',
       minimumSupported: '0.0.1',
       meetsMinimum: true, // Calculated from versionCheck
-      meetsRecommended: versionCheck.actual === '0.0.3' || gte(versionCheck.actual, '0.0.3'),
+      meetsRecommended:
+        versionCheck.actual === '0.0.3' || gte(versionCheck.actual, '0.0.3'),
     },
     engines: {
       node: nodeCheck,
@@ -1043,10 +1075,12 @@ function generateReport(checkResults: {
     },
     dependencies: dependencyChecks,
     functionalityTest,
-    importTestResults: importTestResults ? {
-      overallSuccess: importTestResults.overallSuccess,
-      failingImports: importTestResults.failingImports,
-    } : undefined,
+    importTestResults: importTestResults
+      ? {
+          overallSuccess: importTestResults.overallSuccess,
+          failingImports: importTestResults.failingImports,
+        }
+      : undefined,
     recommendations,
     timestamp: new Date().toISOString(),
   };
@@ -1064,41 +1098,65 @@ function printConsoleReport(report: GroundswellCompatibilityReport): void {
   // Version section
   console.log('\n📦 Groundswell Version:');
   console.log(`  Installed: ${report.groundswellVersion.version}`);
-  console.log(`  Minimum Supported: ${report.groundswellVersion.minimumSupported}`);
+  console.log(
+    `  Minimum Supported: ${report.groundswellVersion.minimumSupported}`
+  );
   console.log(`  Recommended: ${report.groundswellVersion.minimumRecommended}`);
-  console.log(`  Status: ${report.groundswellVersion.meetsRecommended ? '✅' : '⚠️'} ${
-    report.groundswellVersion.meetsRecommended ? 'Meets recommended version' : 'Below recommended version'
-  }`);
+  console.log(
+    `  Status: ${report.groundswellVersion.meetsRecommended ? '✅' : '⚠️'} ${
+      report.groundswellVersion.meetsRecommended
+        ? 'Meets recommended version'
+        : 'Below recommended version'
+    }`
+  );
 
   // Engines section
   console.log('\n⚙️  Engine Compatibility:');
-  console.log(`  Node.js: ${report.engines.node.actual} ${report.engines.node.compatible ? '✅' : '❌'}`);
-  console.log(`  TypeScript: ${report.engines.typescript.actual} ${report.engines.typescript.compatible ? '✅' : '❌'}`);
+  console.log(
+    `  Node.js: ${report.engines.node.actual} ${report.engines.node.compatible ? '✅' : '❌'}`
+  );
+  console.log(
+    `  TypeScript: ${report.engines.typescript.actual} ${report.engines.typescript.compatible ? '✅' : '❌'}`
+  );
 
   // Dependencies section
   console.log('\n📋 Dependencies:');
   for (const dep of report.dependencies) {
-    console.log(`  ${dep.dependency}: ${dep.hasConflict ? '❌' : '✅'} ${dep.description}`);
+    console.log(
+      `  ${dep.dependency}: ${dep.hasConflict ? '❌' : '✅'} ${dep.description}`
+    );
   }
 
   // Functionality test section
   console.log('\n🧪 Basic Functionality Test:');
-  console.log(`  Workflow: ${report.functionalityTest.workflow.success ? '✅' : '❌'}`);
-  console.log(`  Agent: ${report.functionalityTest.agent.success ? '✅' : '❌'}`);
-  console.log(`  Prompt: ${report.functionalityTest.prompt.success ? '✅' : '❌'}`);
+  console.log(
+    `  Workflow: ${report.functionalityTest.workflow.success ? '✅' : '❌'}`
+  );
+  console.log(
+    `  Agent: ${report.functionalityTest.agent.success ? '✅' : '❌'}`
+  );
+  console.log(
+    `  Prompt: ${report.functionalityTest.prompt.success ? '✅' : '❌'}`
+  );
 
   // Import test results section (if available)
   if (report.importTestResults) {
     console.log('\n📥 Import Test Results (S2):');
-    console.log(`  Overall: ${report.importTestResults.overallSuccess ? '✅' : '❌'}`);
+    console.log(
+      `  Overall: ${report.importTestResults.overallSuccess ? '✅' : '❌'}`
+    );
     if (report.importTestResults.failingImports.length > 0) {
-      console.log(`  Failing Imports: ${report.importTestResults.failingImports.join(', ')}`);
+      console.log(
+        `  Failing Imports: ${report.importTestResults.failingImports.join(', ')}`
+      );
     }
   }
 
   // Overall status
   console.log('\n' + '='.repeat(60));
-  console.log(`Overall Status: ${report.overallCompatible ? '✅ COMPATIBLE' : '❌ INCOMPATIBLE'}`);
+  console.log(
+    `Overall Status: ${report.overallCompatible ? '✅ COMPATIBLE' : '❌ INCOMPATIBLE'}`
+  );
   console.log('='.repeat(60));
 
   // Recommendations
@@ -1127,7 +1185,11 @@ export async function verifyGroundswellVersion(
   } = options;
 
   // Step 1: Read Groundswell package.json
-  const { success: readSuccess, packageJson, error: readError } = readGroundswellPackageJson();
+  const {
+    success: readSuccess,
+    packageJson,
+    error: readError,
+  } = readGroundswellPackageJson();
 
   if (!readSuccess || !packageJson) {
     const errorReport: GroundswellCompatibilityReport = {
@@ -1161,12 +1223,15 @@ export async function verifyGroundswellVersion(
         agent: { success: false, error: readError },
         prompt: { success: false, error: readError },
       },
-      importTestResults: importTestResults ? {
-        overallSuccess: importTestResults.overallSuccess,
-        failingImports: importTestResults.failingImports,
-      } : undefined,
+      importTestResults: importTestResults
+        ? {
+            overallSuccess: importTestResults.overallSuccess,
+            failingImports: importTestResults.failingImports,
+          }
+        : undefined,
       recommendations: [
-        readError || 'Ensure Groundswell is installed via npm link or npm install',
+        readError ||
+          'Ensure Groundswell is installed via npm link or npm install',
       ],
       timestamp: new Date().toISOString(),
     };
@@ -1201,7 +1266,12 @@ export async function verifyGroundswellVersion(
   // Step 6: Run basic functionality tests
   const functionalityTest = runFunctionalityTests
     ? await testBasicFunctionality()
-    : { success: true, workflow: { success: true }, agent: { success: true }, prompt: { success: true } };
+    : {
+        success: true,
+        workflow: { success: true },
+        agent: { success: true },
+        prompt: { success: true },
+      };
 
   // Step 7: Generate report
   const report = generateReport({
@@ -1520,6 +1590,7 @@ npm test -- -t "invalid package.json"
 ### Why check version instead of assuming compatibility?
 
 Even though S2 validates that imports work, version compatibility is important because:
+
 1. **Feature Detection**: Different versions have different features (v0.0.3 has Promise.allSettled, isDescendantOf)
 2. **Upgrade Path**: If version is too old, clear upgrade guidance is needed
 3. **Dependency Conflicts**: Version-specific dependency requirements may cause conflicts
@@ -1528,6 +1599,7 @@ Even though S2 validates that imports work, version compatibility is important b
 ### Why use semver for version comparison?
 
 The semver package provides:
+
 1. **Standardized Comparison**: gte(), lt(), satisfies() for semantic versioning
 2. **Validation**: valid() to check if version string is valid semver
 3. **Range Support**: Handles ^, ~, >=, <= operators correctly
@@ -1536,6 +1608,7 @@ The semver package provides:
 ### Why test basic functionality (Workflow, Agent, Prompt)?
 
 Basic functionality tests catch:
+
 1. **Runtime Issues**: Imports may work but instantiation may fail
 2. **Decorator Issues**: Some features require special TypeScript configuration
 3. **Missing Dependencies**: Runtime dependencies may be missing even if types resolve
@@ -1551,6 +1624,7 @@ Basic functionality tests catch:
 ### Why check for v0.0.3 features?
 
 Groundswell v0.0.3 contains critical fixes:
+
 1. **Promise.allSettled**: Better error handling for concurrent tasks
 2. **isDescendantOf**: Public API for hierarchy validation
 3. **ErrorMergeStrategy**: Configurable error handling
@@ -1561,6 +1635,7 @@ These features may be required for downstream functionality (P1.M1.T2, P1.M1.T3)
 ### Why correlate with S2 import test results?
 
 S2 validates that imports work. Correlation helps:
+
 1. **Debugging**: If imports fail but version is compatible, issue is elsewhere
 2. **Confidence**: If imports pass and version is compatible, high confidence everything works
 3. **Troubleshooting**: Clear separation of import issues vs version issues
@@ -1572,6 +1647,7 @@ S2 validates that imports work. Correlation helps:
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from previous PRPs (S1, S2)
 - [x] Comprehensive Groundswell version requirements documented
 - [x] Existing validation patterns analyzed and documented
@@ -1584,6 +1660,7 @@ S2 validates that imports work. Correlation helps:
 - [x] 100% coverage requirement understood
 
 **Risk Mitigation**:
+
 - S1 dependency check prevents wasted time on missing Groundswell
 - S2 integration provides correlation with import success
 - Semver validation handles edge cases in version strings
@@ -1593,6 +1670,7 @@ S2 validates that imports work. Correlation helps:
 - Follows existing patterns for consistency
 
 **Known Risks**:
+
 - Groundswell version discrepancy (npm: 0.0.1, source: 0.0.3) - mitigated by feature detection
 - Basic functionality test may fail due to Groundswell API changes - mitigated by using dynamic imports
 - @anthropic-ai/sdk version conflicts - unlikely since project doesn't have direct dependency

@@ -9,6 +9,7 @@
 **Deliverable**: Integration test file `tests/integration/tasks-json-authority.test.ts` with complete coverage of state management authority, schema validation, atomic writes, and temp file cleanup verification.
 
 **Success Definition**: All tests pass, verifying:
+
 - All task status updates flow through `tasks.json` via SessionManager
 - `tasks.json` is the authoritative source for task execution
 - No other files duplicate task state
@@ -56,7 +57,8 @@ Integration tests that verify `tasks.json` serves as the single source of truth 
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Complete SessionManager implementation details from codebase research
 - Zod schema definitions and validation patterns from models.ts research
 - Atomic write pattern implementation from session-utils.ts research
@@ -219,7 +221,7 @@ tests/
 // From session-manager.ts lines 777-782
 await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
 // State is in #pendingUpdates but NOT written to disk yet!
-await manager.flushUpdates();  // THIS is when write happens
+await manager.flushUpdates(); // THIS is when write happens
 // Without flush, changes are lost on reload
 
 // CRITICAL: Atomic write requires temp file in SAME directory
@@ -227,7 +229,7 @@ await manager.flushUpdates();  // THIS is when write happens
 // If temp file is on different filesystem, rename() fails with EXDEV error
 const tempPath = resolve(dirname(targetPath), `.${basename(targetPath)}...tmp`);
 await writeFile(tempPath, data);
-await rename(tempPath, targetPath);  // Atomic ONLY if same filesystem
+await rename(tempPath, targetPath); // Atomic ONLY if same filesystem
 
 // GOTCHA: All task objects are readonly (immutable)
 // From models.ts - all interfaces have readonly fields
@@ -236,7 +238,7 @@ await rename(tempPath, targetPath);  // Atomic ONLY if same filesystem
 
 // CRITICAL: Zod uses parse() which throws, not safeParse()
 // From session-utils.ts writeTasksJSON/readTasksJSON
-const validated = BacklogSchema.parse(backlog);  // Throws ZodError if invalid
+const validated = BacklogSchema.parse(backlog); // Throws ZodError if invalid
 // Don't need to check result.success - error propagates
 
 // GOTCHA: Temp files start with dot (hidden files)
@@ -246,7 +248,7 @@ const validated = BacklogSchema.parse(backlog);  // Throws ZodError if invalid
 // CRITICAL: File permissions on Unix use octal
 // Files should have 0o644 (rw-r--r--)
 // Directories should have 0o755 (rwxr-xr-x)
-const mode = stats.mode & 0o777;  // Mask to get permission bits
+const mode = stats.mode & 0o777; // Mask to get permission bits
 
 // GOTCHA: Integration tests use REAL filesystem, not mocks
 // From session-structure.test.ts pattern
@@ -491,7 +493,11 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { SessionManager } from '../../../src/core/session-manager.js';
-import { BacklogSchema, type Backlog, type Status } from '../../../src/core/models.js';
+import {
+  BacklogSchema,
+  type Backlog,
+  type Status,
+} from '../../../src/core/models.js';
 
 // PATTERN: Helper function to generate valid PRD
 function generateValidPRD(uniqueSuffix: string): string {
@@ -560,7 +566,8 @@ function createMinimalBacklog(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
                   },
                 ],
               },
@@ -696,11 +703,13 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       };
 
       // EXECUTE & VERIFY: Should throw validation error
-      await expect(manager.saveBacklog(invalidBacklog))
-        .rejects.toThrow();
+      await expect(manager.saveBacklog(invalidBacklog)).rejects.toThrow();
 
       // VERIFY: tasks.json was not created (or unchanged)
-      const tasksPath = join(manager.currentSession!.metadata.path, 'tasks.json');
+      const tasksPath = join(
+        manager.currentSession!.metadata.path,
+        'tasks.json'
+      );
       expect(existsSync(tasksPath)).toBe(false);
     });
   });
@@ -908,6 +917,7 @@ grep -n "VERIFY:" tests/integration/tasks-json-authority.test.ts
 **Confidence Score:** 9/10 for one-pass implementation success
 
 **Rationale:**
+
 - Complete SessionManager implementation details with line numbers
 - Comprehensive Zod schema research with testing patterns
 - Atomic write pattern fully documented with external references

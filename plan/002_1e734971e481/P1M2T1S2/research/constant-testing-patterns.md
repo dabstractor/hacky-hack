@@ -52,7 +52,10 @@ The practice of testing that runtime values match compile-time constants goes by
 
 ```typescript
 // ✅ GOOD: Import and compare
-import { DEFAULT_BASE_URL, MODEL_NAMES } from '../../../src/config/constants.js';
+import {
+  DEFAULT_BASE_URL,
+  MODEL_NAMES,
+} from '../../../src/config/constants.js';
 import { configureEnvironment } from '../../../src/config/environment.js';
 
 describe('constant synchronization', () => {
@@ -79,6 +82,7 @@ describe('constant synchronization', () => {
 ```
 
 **Benefits:**
+
 - Single source of truth (the constant)
 - Test fails if constant changes (forces conscious decision)
 - Self-documenting (shows relationship)
@@ -86,6 +90,7 @@ describe('constant synchronization', () => {
 - Refactor-friendly (IDE can rename/extract)
 
 **When to Use:**
+
 - Testing default values
 - Validating configuration mappings
 - Ensuring environment setup matches constants
@@ -110,11 +115,13 @@ it('should set default BASE_URL', () => {
 ```
 
 **Benefits:**
+
 - Maximum clarity for readers
 - Documentation of expected value
 - Catches both constant changes and logic errors
 
 **When to Use:**
+
 - Public API contracts
 - Security-sensitive values
 - Documentation examples
@@ -126,7 +133,10 @@ it('should set default BASE_URL', () => {
 **Pattern:** Test that objects/arrays match their constant definitions.
 
 ```typescript
-import { MODEL_NAMES, REQUIRED_ENV_VARS } from '../../../src/config/constants.js';
+import {
+  MODEL_NAMES,
+  REQUIRED_ENV_VARS,
+} from '../../../src/config/constants.js';
 
 describe('object constant synchronization', () => {
   it('should have model tier mappings matching MODEL_NAMES constant', () => {
@@ -170,6 +180,7 @@ it('should set default BASE_URL', () => {
 ```
 
 **Why It's Bad:**
+
 - Test passes even if constant changes (false positive)
 - No clear relationship to source constant
 - Hard to refactor
@@ -192,6 +203,7 @@ it('should use custom model from env', () => {
 ```
 
 **Why It's Bad:**
+
 - Defaults can change without test catching it
 - Most common usage path is untested
 - Configuration drift over time
@@ -214,6 +226,7 @@ it('should have correct constant exports', () => {
 ```
 
 **Why It's Bad:**
+
 - Brittle to refactoring
 - Doesn't test actual functionality
 - False failures on valid refactors
@@ -234,6 +247,7 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
 ```
 
 **Rationale:**
+
 - Single source of truth
 - Test fails if constant changes
 - Clear relationship between test and code
@@ -279,6 +293,7 @@ export const MODEL_NAMES = {
 ```
 
 **Benefits:**
+
 - Prevents accidental reassignment
 - Better type inference
 - Catches typos at compile time
@@ -325,6 +340,7 @@ it('should set BASE_URL to match DEFAULT_BASE_URL constant', () => {
 **File:** `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
 
 **Current State (Anti-Pattern):**
+
 ```typescript
 // ❌ CURRENT: Magic strings that can drift
 it('should set default BASE_URL when not provided', () => {
@@ -332,20 +348,24 @@ it('should set default BASE_URL when not provided', () => {
   configureEnvironment();
 
   expect(process.env.ANTHROPIC_BASE_URL).toBe(
-    'https://api.z.ai/api/anthropic'  // ❌ Magic string!
+    'https://api.z.ai/api/anthropic' // ❌ Magic string!
   );
 });
 
 it('should return default model for opus tier', () => {
   delete process.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
-  expect(getModel('opus')).toBe('GLM-4.7');  // ❌ Magic string!
+  expect(getModel('opus')).toBe('GLM-4.7'); // ❌ Magic string!
 });
 ```
 
 **Improved Version (Best Practice):**
+
 ```typescript
 // ✅ IMPROVED: Import constants
-import { DEFAULT_BASE_URL, MODEL_NAMES } from '../../../src/config/constants.js';
+import {
+  DEFAULT_BASE_URL,
+  MODEL_NAMES,
+} from '../../../src/config/constants.js';
 
 it('should set BASE_URL to match DEFAULT_BASE_URL constant', () => {
   delete process.env.ANTHROPIC_BASE_URL;
@@ -543,6 +563,7 @@ test.each([
 **Answer:** YES, absolutely.
 
 **Rationale:**
+
 - Ensures single source of truth
 - Test fails if constant changes (forcing conscious review)
 - Documents relationship between test and code
@@ -550,6 +571,7 @@ test.each([
 - Prevents configuration drift
 
 **Example:**
+
 ```typescript
 import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';
 
@@ -563,6 +585,7 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
 **Answer:** "Constant Synchronization Testing" or "Constant Verification Tests"
 
 **Also known as:**
+
 - Configuration Synchronization Tests
 - Runtime-Compile Time Consistency Tests
 - Environment Constant Alignment Tests
@@ -611,6 +634,7 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
 4. **Established Conventions:** Common patterns from the broader testing community
 
 **Key Files Analyzed:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
 - `/home/dustin/projects/hacky-hack/src/config/constants.ts`
 - `/home/dustin/projects/hacky-hack/src/config/environment.ts`

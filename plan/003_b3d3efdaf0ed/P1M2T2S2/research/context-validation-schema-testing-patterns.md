@@ -46,7 +46,9 @@ Missing Section: This should be numbered 4.`;
 
     const result = ContextScopeSchema.safeParse(invalidScope);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('Missing or incorrect section');
+    expect(result.error?.issues[0].message).toContain(
+      'Missing or incorrect section'
+    );
   });
 
   it('should validate section order is correct', () => {
@@ -58,7 +60,9 @@ Missing Section: This should be numbered 4.`;
 
     const result = ContextScopeSchema.safeParse(invalidOrder);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('Missing or incorrect section');
+    expect(result.error?.issues[0].message).toContain(
+      'Missing or incorrect section'
+    );
   });
 });
 ```
@@ -68,7 +72,14 @@ Missing Section: This should be numbered 4.`;
 ```typescript
 describe('Status Enum Validation', () => {
   it('should accept valid status values', () => {
-    const validStatuses = ['Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete'];
+    const validStatuses = [
+      'Planned',
+      'Researching',
+      'Implementing',
+      'Complete',
+      'Failed',
+      'Obsolete',
+    ];
 
     validStatuses.forEach(status => {
       const result = StatusEnum.safeParse(status);
@@ -123,7 +134,7 @@ describe('PRPDocument Validation', () => {
         'Create SuccessCriterionSchema',
         'Create PRPDocument interface',
         'Create PRPDocumentSchema',
-        'Create ContextScopeSchema'
+        'Create ContextScopeSchema',
       ],
       validationGates: [
         {
@@ -200,7 +211,9 @@ describe('PRPDocument Validation', () => {
 
     const result = PRPDocumentSchema.safeParse(invalidPRP);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toContain('must contain at least 1 element(s)');
+    expect(result.error?.issues[0].message).toContain(
+      'must contain at least 1 element(s)'
+    );
   });
 });
 ```
@@ -284,7 +297,8 @@ describe('Prompt Token Budget', () => {
     const userPrompt = 'x'.repeat(2000);
     const systemPrompt = 'x'.repeat(SYSTEM_PROMPT_TOKENS);
 
-    const usedTokens = estimateTokens(userPrompt) + estimateTokens(systemPrompt);
+    const usedTokens =
+      estimateTokens(userPrompt) + estimateTokens(systemPrompt);
     const remaining = TOTAL_TOKENS - usedTokens;
 
     expect(remaining).toBeGreaterThan(0);
@@ -292,10 +306,13 @@ describe('Prompt Token Budget', () => {
   });
 
   it('should optimize context for token efficiency', () => {
-    const verboseContext = 'This is a very verbose description with unnecessary details that consume many tokens.';
+    const verboseContext =
+      'This is a very verbose description with unnecessary details that consume many tokens.';
     const optimized = optimizeContextForTokens(verboseContext);
 
-    expect(estimateTokens(optimized)).toBeLessThan(estimateTokens(verboseContext));
+    expect(estimateTokens(optimized)).toBeLessThan(
+      estimateTokens(verboseContext)
+    );
     expect(optimized).toContain('necessary details');
   });
 });
@@ -396,10 +413,10 @@ describe('Task Patching Logic', () => {
           type: 'modified',
           description: 'Added validation rules',
           impact: 'Update implementation to include validation',
-        }
+        },
       ],
       patchInstructions: 'Re-execute P1.M2.T3.S1 to apply validation changes',
-      taskIds: ['P1.M2.T3.S1']
+      taskIds: ['P1.M2.T3.S1'],
     };
 
     const tasksToReexecute = identifyTasksToReexecute(deltaAnalysis);
@@ -416,10 +433,10 @@ describe('Task Patching Logic', () => {
           type: 'modified',
           description: 'Updated package.json',
           impact: 'Update dependencies',
-        }
+        },
       ],
       patchInstructions: 'Only re-execute P1.M1.T1.S1',
-      taskIds: ['P1.M1.T1.S1']
+      taskIds: ['P1.M1.T1.S1'],
     };
 
     const reusableTasks = identifyReusableTasks(deltaAnalysis, mockBacklog);
@@ -438,7 +455,8 @@ describe('Task Patching Logic', () => {
 // tests/unit/core/file-context-loader.test.ts
 describe('File Context Loader', () => {
   it('should load architecture documentation', async () => {
-    const architecturePath = '/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/';
+    const architecturePath =
+      '/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/architecture/';
 
     const architecture = await loadArchitectureDocumentation(architecturePath);
 
@@ -453,7 +471,9 @@ describe('File Context Loader', () => {
 
     const architecture = await loadArchitectureDocumentation(nonExistentPath);
 
-    expect(architecture.systemContext).toBe('No system context documentation available');
+    expect(architecture.systemContext).toBe(
+      'No system context documentation available'
+    );
     expect(architecture.agentDefinitions).toEqual([]);
   });
 
@@ -561,15 +581,16 @@ describe('Recursive Schema Validation', () => {
                       status: 'Complete',
                       story_points: 2,
                       dependencies: [],
-                      context_scope: 'CONTRACT DEFINITION: Create core interfaces',
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                      context_scope:
+                        'CONTRACT DEFINITION: Create core interfaces',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     const result = BacklogSchema.safeParse(complexBacklog);
@@ -585,9 +606,9 @@ describe('Recursive Schema Validation', () => {
           title: 'Phase 1',
           status: 'Planned',
           description: '',
-          milestones: [] // Circular reference would be detected by validation
-        }
-      ]
+          milestones: [], // Circular reference would be detected by validation
+        },
+      ],
     };
 
     // This should pass basic validation, but more complex circular reference
@@ -627,6 +648,7 @@ describe('Agent Integration with Validation', () => {
 ## 6. Best Practices for Context Validation Testing
 
 ### Practice 1: Test Data Generation
+
 ```typescript
 // Test data generators
 function createValidContextScope(): string {
@@ -643,6 +665,7 @@ function createInvalidContextScope(): string {
 ```
 
 ### Practice 2: Property-Based Testing
+
 ```typescript
 // Using fast-check for property-based testing
 import fc from 'fast-check';
@@ -650,25 +673,23 @@ import fc from 'fast-check';
 describe('Property-based Context Validation', () => {
   it('should accept any valid context scope format', () => {
     fc.assert(
-      fc.property(
-        fc.string(),
-        (researchNote) => {
-          const context = `CONTRACT DEFINITION:
+      fc.property(fc.string(), researchNote => {
+        const context = `CONTRACT DEFINITION:
 1. RESEARCH NOTE: ${researchNote}
 2. INPUT: Input data
 3. LOGIC: Logic description
 4. OUTPUT: Output specification`;
 
-          const result = ContextScopeSchema.safeParse(context);
-          expect(result.success).toBe(true);
-        }
-      )
+        const result = ContextScopeSchema.safeParse(context);
+        expect(result.success).toBe(true);
+      })
     );
   });
 });
 ```
 
 ### Practice 3: Error Message Testing
+
 ```typescript
 describe('Error Message Quality', () => {
   it('should provide clear error messages for invalid context scope', () => {

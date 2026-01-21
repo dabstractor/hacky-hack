@@ -1,6 +1,7 @@
 # Queue-Based Execution Patterns - Research Findings
 
 ## Overview
+
 Queue-based execution is a fundamental pattern for task orchestration, enabling asynchronous processing, load balancing, and fault tolerance. This document covers patterns, implementations, and best practices for queue-based task execution systems.
 
 ## Core Concepts
@@ -69,16 +70,19 @@ class InMemoryTaskQueue implements TaskQueue {
 ```
 
 **Advantages:**
+
 - Fast performance (in-memory operations)
 - Simple implementation
 - No external dependencies
 
 **Disadvantages:**
+
 - Not durable (data lost on crash)
 - Single-process only
 - Limited scalability
 
 **Use Cases:**
+
 - Development and testing
 - Single-process applications
 - Non-critical tasks
@@ -118,9 +122,7 @@ class DatabaseTaskQueue implements TaskQueue {
   }
 
   async size(): Promise<number> {
-    const result = await this.db.query(
-      'SELECT COUNT(*) FROM task_queue'
-    );
+    const result = await this.db.query('SELECT COUNT(*) FROM task_queue');
     return parseInt(result.rows[0].count);
   }
 
@@ -143,16 +145,19 @@ class DatabaseTaskQueue implements TaskQueue {
 ```
 
 **Advantages:**
+
 - Durable (survives crashes)
 - Supports multiple processes
 - Can query queue state
 
 **Disadvantages:**
+
 - Slower than in-memory
 - Database dependency
 - More complex implementation
 
 **Use Cases:**
+
 - Production systems
 - Critical tasks
 - Multi-process deployments
@@ -166,22 +171,21 @@ class DatabaseTaskQueue implements TaskQueue {
 class MessageBrokerQueue implements TaskQueue {
   private channel: Channel;
 
-  constructor(private connection: Connection, queueName: string) {
+  constructor(
+    private connection: Connection,
+    queueName: string
+  ) {
     this.channel = connection.createChannel();
     this.channel.assertQueue(queueName, { durable: true });
   }
 
   async enqueue(task: Task): Promise<void> {
     const buffer = Buffer.from(JSON.stringify(task));
-    this.channel.sendToQueue(
-      'task_queue',
-      buffer,
-      { persistent: true }
-    );
+    this.channel.sendToQueue('task_queue', buffer, { persistent: true });
   }
 
   async dequeue(): Promise<Task | null> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.channel.get('task_queue', {}, (err, msg) => {
         if (err || !msg) {
           resolve(null);
@@ -205,7 +209,7 @@ class MessageBrokerQueue implements TaskQueue {
   }
 
   async peek(): Promise<Task | null> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.channel.get('task_queue', { noAck: true }, (err, msg) => {
         if (err || !msg) {
           resolve(null);
@@ -221,17 +225,20 @@ class MessageBrokerQueue implements TaskQueue {
 ```
 
 **Advantages:**
+
 - Highly scalable
 - Built-in features (redelivery, dead letter)
 - Supports distributed systems
 - Production-ready
 
 **Disadvantages:**
+
 - External dependency
 - More complex setup
 - Network latency
 
 **Use Cases:**
+
 - Distributed systems
 - High-scale applications
 - Complex routing requirements
@@ -323,7 +330,7 @@ class WorkerPool {
     return this.workers.map(w => ({
       id: w.id,
       running: w.isRunning(),
-      processed: w.getProcessedCount()
+      processed: w.getProcessedCount(),
     }));
   }
 }
@@ -374,7 +381,10 @@ class DynamicWorkerPool {
 
       if (queueSize > this.scaleUpThreshold && workerCount < this.maxWorkers) {
         await this.scaleUp();
-      } else if (queueSize < this.scaleDownThreshold && workerCount > this.minWorkers) {
+      } else if (
+        queueSize < this.scaleDownThreshold &&
+        workerCount > this.minWorkers
+      ) {
         await this.scaleDown();
       }
     }, 5000); // Check every 5 seconds
@@ -503,7 +513,7 @@ class RetryAwareWorker extends QueueWorker {
       task,
       error: error.message,
       failedAt: new Date(),
-      retryCount: this.maxRetries
+      retryCount: this.maxRetries,
     });
   }
 }
@@ -524,7 +534,7 @@ class DeadLetterQueue {
         item.error,
         item.failedAt,
         item.retryCount,
-        JSON.stringify(item.task)
+        JSON.stringify(item.task),
       ]
     );
   }
@@ -553,15 +563,14 @@ class DeadLetterQueue {
       task: JSON.parse(row.data),
       error: row.error,
       failedAt: row.failed_at,
-      retryCount: row.retry_count
+      retryCount: row.retry_count,
     };
   }
 
   private async delete(itemId: string): Promise<void> {
-    await this.db.query(
-      'DELETE FROM dead_letter_queue WHERE id = $1',
-      [itemId]
-    );
+    await this.db.query('DELETE FROM dead_letter_queue WHERE id = $1', [
+      itemId,
+    ]);
   }
 }
 ```
@@ -635,7 +644,7 @@ class QueueMonitor {
       processingRate: 0,
       averageProcessingTime: 0,
       errorRate: 0,
-      workerUtilization: 0
+      workerUtilization: 0,
     };
   }
 
@@ -679,23 +688,27 @@ class QueueMonitor {
 ## Key Resources
 
 ### Message Brokers
+
 - **RabbitMQ**: https://www.rabbitmq.com/ - Feature-rich message broker
 - **Apache Kafka**: https://kafka.apache.org/ - Distributed streaming platform
 - **Redis Queue**: https://redis.io/docs/manual/patterns/distributed-queues/ - Redis-based queues
 - **AWS SQS**: https://aws.amazon.com/sqs/ - Cloud message queue service
 
 ### Libraries and Frameworks
+
 - **Bull (Node.js)**: https://github.com/OptimalBits/bull - Redis-based queue
 - **Celery (Python)**: https://docs.celeryproject.org/ - Distributed task queue
 - **Sidekiq (Ruby)**: https://sidekiq.org/ - Background jobs for Ruby
 - **RabbitMQ Java Client**: https://www.rabbitmq.com/java-client.html
 
 ### Documentation
+
 - **RabbitMQ Best Practices**: https://www.rabbitmq.com/best-practices.html
 - **Kafka Documentation**: https://kafka.apache.org/documentation/
 - **Redis Queue Patterns**: https://redis.io/docs/manual/patterns/
 
 ### Books and Papers
+
 - "Enterprise Integration Patterns" by Gregor Hohpe
 - "Designing Data-Intensive Applications" by Martin Kleppmann
 - "Queueing Theory" academic papers
@@ -703,6 +716,7 @@ class QueueMonitor {
 ## Best Practices
 
 ### Design Principles
+
 1. **Idempotency**: Tasks should be idempotent (safe to retry)
 2. **At-least-once delivery**: Prefer over at-most-once
 3. **Graceful shutdown**: Allow workers to finish current tasks
@@ -711,6 +725,7 @@ class QueueMonitor {
 6. **Circuit breakers**: Stop processing when system is unhealthy
 
 ### Implementation Guidelines
+
 1. **Connection pooling**: Reuse connections to message broker
 2. **Prefetch count**: Limit messages per worker
 3. **Acknowledgment**: Always acknowledge processed messages
@@ -719,6 +734,7 @@ class QueueMonitor {
 6. **Resource limits**: Set memory and CPU limits
 
 ### Performance Considerations
+
 1. **Batch processing**: Process multiple tasks together
 2. **Async I/O**: Use async/await for I/O operations
 3. **Connection reuse**: Reuse database and broker connections

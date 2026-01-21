@@ -7,6 +7,7 @@
 **Deliverable**: Integration test file `tests/integration/core/session-structure.test.ts` with comprehensive coverage of session creation, directory layout, and atomic write validation.
 
 **Success Definition**:
+
 - All 4 validation requirements from CONTRACT DEFINITION are tested and passing
 - Test file runs successfully with `npm test` and achieves 100% code coverage for tested paths
 - Test uses real filesystem operations in temp directories (not mocks) for true integration validation
@@ -17,12 +18,14 @@
 **Business Value**: Validates the foundational session management system that tracks all PRD pipeline state. Incorrect session structure would break task tracking, delta detection, and resume capabilities across the entire system.
 
 **Integration Points**:
+
 - Validates `SessionManager.initialize()` from `src/core/session-manager.ts` (lines 210-472)
 - Validates `createSessionDirectory()` from `src/core/session-utils.ts` (lines 285-371)
 - Validates `atomicWrite()` internal function from `src/core/session-utils.ts` (lines 99-180)
 - Validates hash computation from `hashPRD()` in `src/core/session-utils.ts` (lines 229-255)
 
 **Problems Solved**:
+
 - Ensures session directories are created with correct `{sequence}_{hash}` naming pattern
 - Verifies PRD hash computation uses SHA-256 with exactly 12-character slice
 - Confirms all required subdirectories (architecture/, prps/, artifacts/) are created
@@ -33,6 +36,7 @@
 **User-Visible Behavior**: Test validates session creation internals - no direct user-visible behavior, but ensures the pipeline correctly creates and manages session directories.
 
 **Success Criteria**:
+
 - [ ] Test verifies session directory name matches `/^(\d{3})_([a-f0-9]{12})$/` regex pattern
 - [ ] Test verifies PRD hash is SHA-256 with first 12 characters used in session ID
 - [ ] Test verifies all required subdirectories exist: `architecture/`, `prps/`, `artifacts/`
@@ -412,8 +416,8 @@ it('should use atomic write pattern (temp file + rename)', async () => {
     const writeFileCalls = writeFileSpy.mock.calls;
 
     // FIND: Temp file write call (contains .tmp suffix)
-    const tempFileCall = writeFileCalls.find(call =>
-      call[0] && String(call[0]).includes('.tmp')
+    const tempFileCall = writeFileCalls.find(
+      call => call[0] && String(call[0]).includes('.tmp')
     );
     expect(tempFileCall).toBeDefined();
 
@@ -422,11 +426,10 @@ it('should use atomic write pattern (temp file + rename)', async () => {
     const renameCalls = renameSpy.mock.calls;
 
     // VERIFY: At least one rename from temp to target
-    const atomicRename = renameCalls.find(call =>
-      call[0] && String(call[0]).includes('.tmp')
+    const atomicRename = renameCalls.find(
+      call => call[0] && String(call[0]).includes('.tmp')
     );
     expect(atomicRename).toBeDefined();
-
   } finally {
     // CLEANUP: Always restore spies
     writeFileSpy.mockRestore();

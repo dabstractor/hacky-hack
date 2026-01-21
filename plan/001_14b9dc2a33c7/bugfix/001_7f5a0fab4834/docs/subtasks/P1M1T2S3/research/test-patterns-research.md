@@ -7,6 +7,7 @@ This research documents test patterns used in the hacky-hack codebase for verifi
 ## 1. Test File Structure
 
 ### Organized Test File Layout
+
 **Test file path:** `tests/unit/utils/groundswell-verifier.test.ts`
 
 ```typescript
@@ -35,6 +36,7 @@ describe('verifyGroundswellExists', () => {
 ## 2. Mock Data Patterns
 
 ### Mock Setup with vi.mock()
+
 **Test file path:** `tests/unit/utils/groundswell-verifier.test.ts` (lines 25-37)
 
 ```typescript
@@ -54,6 +56,7 @@ import { existsSync } from 'node:fs';
 ```
 
 ### Helper Functions for Complex Mocks
+
 **Test file path:** `tests/unit/utils/groundswell-linker.test.ts` (lines 71-106)
 
 ```typescript
@@ -95,6 +98,7 @@ function createMockChild(
 ## 3. Assertion Patterns
 
 ### Boolean Result Verification
+
 **Test file path:** `groundswell-verifier.test.ts` (lines 61-71)
 
 ```typescript
@@ -112,6 +116,7 @@ it('should return exists: false when directory not found', () => {
 ```
 
 ### Count and Array Verification
+
 **Test file path:** `groundswell-verifier.test.ts` (lines 193-208)
 
 ```typescript
@@ -130,6 +135,7 @@ it('should return missing both package.json and entry point when both missing', 
 ```
 
 ### Object Structure Validation
+
 **Test file path:** `groundswell-verifier.test.ts` (lines 258-274)
 
 ```typescript
@@ -153,6 +159,7 @@ it('should return complete GroundswellVerifyResult object', () => {
 ## 4. Test Organization
 
 ### Nested Describe Blocks by Feature
+
 ```typescript
 describe('verifyGroundswellExists', () => {
   beforeEach(() => {
@@ -176,11 +183,13 @@ describe('verifyGroundswellExists', () => {
 ```
 
 ### Test Naming Convention
+
 - "should return [result] when [condition]"
 - "should handle [edge case] with [expected behavior]"
 - "should [validate functionality] for [specific input]"
 
 ### Setup/Execute/Verify Pattern
+
 ```typescript
 it('should build adjacency list from subtasks', () => {
   // SETUP

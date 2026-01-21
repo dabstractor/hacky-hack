@@ -19,6 +19,7 @@ This document provides comprehensive research on the Coder Agent implementation,
 **Location**: `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts` (lines 254-263)
 
 **Implementation**:
+
 ```typescript
 export function createCoderAgent(): Agent {
   const baseConfig = createBaseConfig('coder');
@@ -34,16 +35,16 @@ export function createCoderAgent(): Agent {
 
 ### 1.2 Exact Configuration Values
 
-| Property | Value | Source |
-|----------|-------|--------|
-| **name** | `CoderAgent` | Derived from persona |
-| **model** | `GLM-4.7` | `getModel('sonnet')` → resolved model |
-| **system** | `PRP_BUILDER_PROMPT` | From prompts.ts (line 614-685) |
-| **enableCache** | `true` | Default for all personas |
-| **enableReflection** | `true` | Default for all personas |
-| **maxTokens** | `4096` | PERSONA_TOKEN_LIMITS.coder |
-| **env.ANTHROPIC_API_KEY** | `process.env.ANTHROPIC_API_KEY` | Environment variable |
-| **env.ANTHROPIC_BASE_URL** | `process.env.ANTHROPIC_BASE_URL` | Environment variable |
+| Property                   | Value                            | Source                                |
+| -------------------------- | -------------------------------- | ------------------------------------- |
+| **name**                   | `CoderAgent`                     | Derived from persona                  |
+| **model**                  | `GLM-4.7`                        | `getModel('sonnet')` → resolved model |
+| **system**                 | `PRP_BUILDER_PROMPT`             | From prompts.ts (line 614-685)        |
+| **enableCache**            | `true`                           | Default for all personas              |
+| **enableReflection**       | `true`                           | Default for all personas              |
+| **maxTokens**              | `4096`                           | PERSONA_TOKEN_LIMITS.coder            |
+| **env.ANTHROPIC_API_KEY**  | `process.env.ANTHROPIC_API_KEY`  | Environment variable                  |
+| **env.ANTHROPIC_BASE_URL** | `process.env.ANTHROPIC_BASE_URL` | Environment variable                  |
 
 ### 1.3 MCP Tools Integration
 
@@ -62,6 +63,7 @@ The Coder Agent receives **all 3 MCP tools** via the `MCP_TOOLS` constant:
    - Tools: Git status, diff, commit operations
 
 **Code Reference** (agent-factory.ts:56-68):
+
 ```typescript
 const BASH_MCP = new BashMCP();
 const FILESYSTEM_MCP = new FilesystemMCP();
@@ -79,7 +81,7 @@ const MCP_TOOLS: MCPServer[] = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP];
 
 ### 2.1 Complete Prompt Structure
 
-```markdown
+````markdown
 # Execute BASE PRP
 
 ## PRP File: (path provided below)
@@ -147,6 +149,7 @@ Strictly output your results in this JSON format:
    "message": "Detailed explanation of the issue"
 }
 ```
+````
 
 <PRP-README>
 $PRP_README
@@ -199,6 +202,7 @@ export interface ValidationGate {
 From the PRP Template (PROMPTS.md lines 465-594):
 
 #### **Level 1: Syntax & Style (Immediate Feedback)**
+
 - **Purpose**: Linting, formatting, type checking
 - **Example Commands**:
   ```bash
@@ -210,6 +214,7 @@ From the PRP Template (PROMPTS.md lines 465-594):
 - **When**: Run after each file creation
 
 #### **Level 2: Unit Tests (Component Validation)**
+
 - **Purpose**: Component-level testing
 - **Example Commands**:
   ```bash
@@ -220,6 +225,7 @@ From the PRP Template (PROMPTS.md lines 465-594):
 - **When**: After each component is created
 
 #### **Level 3: Integration Testing (System Validation)**
+
 - **Purpose**: End-to-end system validation
 - **Example Commands**:
   ```bash
@@ -231,6 +237,7 @@ From the PRP Template (PROMPTS.md lines 465-594):
 - **When**: After all components complete
 
 #### **Level 4: Creative & Domain-Specific Validation**
+
 - **Purpose**: Manual/creative validation
 - **Characteristics**:
   - Often `manual: true` (command is null)
@@ -275,6 +282,7 @@ The Coder Agent employs a **fix-and-retry strategy** for validation failures:
 ### 4.2 Fix Attempt Prompt
 
 When validation fails, the agent receives:
+
 ```json
 {
   "result": "issue",
@@ -332,6 +340,7 @@ When validation fails, the agent receives:
 ### 5.1 Unit Tests
 
 #### **`tests/unit/agents/agent-factory.test.ts`**
+
 - ✅ Tests `createCoderAgent()` function
 - ✅ Verifies agent name: `CoderAgent`
 - ✅ Validates no MCP registration conflicts
@@ -342,6 +351,7 @@ When validation fails, the agent receives:
 - ❌ **Gap**: Does not test agent.prompt() behavior
 
 #### **`tests/unit/agents/prp-executor.test.ts`**
+
 - ✅ Comprehensive PRPExecutor class testing
 - ✅ Constructor validation
 - ✅ Happy path execution
@@ -360,41 +370,46 @@ When validation fails, the agent receives:
 ### 5.2 Integration Tests
 
 #### **`tests/integration/prp-executor-integration.test.ts`**
+
 - Status: File exists (coverage not analyzed in this research)
 - Likely tests real PRP execution end-to-end
 
 #### **`tests/integration/agents.test.ts`**
+
 - Status: File exists
 - May include Coder Agent integration tests
 
 #### **`tests/integration/architect-agent.test.ts`**
+
 - ✅ Architect Agent integration tests exist
 - ❌ **Gap**: No dedicated `coder-agent-integration.test.ts`
 
 ### 5.3 Test Gaps Identified
 
-| Area | Status | Gap Description |
-|------|--------|-----------------|
-| **Prompt Content Validation** | ❌ Missing | No tests verify PRP_BUILDER_PROMPT has required sections |
-| **Prompt Instructions** | ❌ Missing | No tests validate 4-level validation mentioned in prompt |
-| **Real Agent Execution** | ⚠️ Partial | prp-executor.test.ts mocks the agent |
-| **MCP Tool Integration** | ⚠️ Partial | Tests mock BashMCP but don't test real commands |
-| **Validation Gate Execution** | ✅ Covered | prp-executor.test.ts covers this well |
-| **Fix-and-Retry Logic** | ✅ Covered | Tested with 2 retry limit |
-| **Error Message Format** | ✅ Covered | Tests verify JSON parsing |
-| **Manual Gate Skipping** | ✅ Covered | Tests verify level 4 manual gates skipped |
-| **Subagent Usage** | ❌ Missing | No tests for subagent spawning during implementation |
-| **PRP File Reading** | ⚠️ Partial | Not explicitly tested in unit tests |
-| **Success Criteria Verification** | ❌ Missing | No tests for Final Validation Checklist |
-| **Anti-Patterns Avoidance** | ❌ Missing | No tests verify anti-patterns from PRP |
+| Area                              | Status     | Gap Description                                          |
+| --------------------------------- | ---------- | -------------------------------------------------------- |
+| **Prompt Content Validation**     | ❌ Missing | No tests verify PRP_BUILDER_PROMPT has required sections |
+| **Prompt Instructions**           | ❌ Missing | No tests validate 4-level validation mentioned in prompt |
+| **Real Agent Execution**          | ⚠️ Partial | prp-executor.test.ts mocks the agent                     |
+| **MCP Tool Integration**          | ⚠️ Partial | Tests mock BashMCP but don't test real commands          |
+| **Validation Gate Execution**     | ✅ Covered | prp-executor.test.ts covers this well                    |
+| **Fix-and-Retry Logic**           | ✅ Covered | Tested with 2 retry limit                                |
+| **Error Message Format**          | ✅ Covered | Tests verify JSON parsing                                |
+| **Manual Gate Skipping**          | ✅ Covered | Tests verify level 4 manual gates skipped                |
+| **Subagent Usage**                | ❌ Missing | No tests for subagent spawning during implementation     |
+| **PRP File Reading**              | ⚠️ Partial | Not explicitly tested in unit tests                      |
+| **Success Criteria Verification** | ❌ Missing | No tests for Final Validation Checklist                  |
+| **Anti-Patterns Avoidance**       | ❌ Missing | No tests verify anti-patterns from PRP                   |
 
 ### 5.4 E2E Test Coverage
 
 #### **`tests/e2e/pipeline.test.ts`**
+
 - Status: Exists
 - May include full pipeline with Coder Agent
 
 #### **`tests/e2e/delta.test.ts`**
+
 - Status: Exists
 - Tests delta workflow (may include coder)
 
@@ -457,15 +472,17 @@ When validation fails, the agent receives:
 ### 6.3 Success Criteria
 
 From PRPDocument:
+
 ```typescript
 readonly successCriteria: SuccessCriterion[];  // Checked in Final Validation
 ```
 
 Each criterion:
+
 ```typescript
 interface SuccessCriterion {
   readonly description: string;
-  readonly satisfied: boolean;  // Updated during execution
+  readonly satisfied: boolean; // Updated during execution
 }
 ```
 
@@ -519,13 +536,13 @@ interface SuccessCriterion {
 
 ### 8.1 Direct Dependencies
 
-| Module | Purpose | Usage |
-|--------|---------|-------|
-| `groundswell` | Agent framework | `createAgent()`, `Agent` type |
-| `src/tools/bash-mcp` | Command execution | Validation gates |
-| `src/tools/filesystem-mcp` | File operations | Implementation |
-| `src/tools/git-mcp` | Version control | Git operations |
-| `src/core/models` | Type definitions | PRPDocument, ValidationGate |
+| Module                     | Purpose           | Usage                         |
+| -------------------------- | ----------------- | ----------------------------- |
+| `groundswell`              | Agent framework   | `createAgent()`, `Agent` type |
+| `src/tools/bash-mcp`       | Command execution | Validation gates              |
+| `src/tools/filesystem-mcp` | File operations   | Implementation                |
+| `src/tools/git-mcp`        | Version control   | Git operations                |
+| `src/core/models`          | Type definitions  | PRPDocument, ValidationGate   |
 
 ### 8.2 Data Flow
 
@@ -553,15 +570,15 @@ ExecutionResult
 
 ## 9. Configuration File References
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `src/agents/agent-factory.ts` | 254-263 | `createCoderAgent()` |
-| `src/agents/prompts.ts` | 605-685 | `PRP_BUILDER_PROMPT` |
-| `src/core/models.ts` | 966-1073 | `ValidationGate` interface |
-| `src/core/models.ts` | 1148-1305 | `PRPDocument` interface |
-| `PROMPTS.md` | 641-714 | PRP_EXECUTE_PROMPT source |
-| `tests/unit/agents/agent-factory.test.ts` | 211-215 | Coder agent creation test |
-| `tests/unit/agents/prp-executor.test.ts` | 1-610 | PRPExecutor tests |
+| File                                      | Lines     | Purpose                    |
+| ----------------------------------------- | --------- | -------------------------- |
+| `src/agents/agent-factory.ts`             | 254-263   | `createCoderAgent()`       |
+| `src/agents/prompts.ts`                   | 605-685   | `PRP_BUILDER_PROMPT`       |
+| `src/core/models.ts`                      | 966-1073  | `ValidationGate` interface |
+| `src/core/models.ts`                      | 1148-1305 | `PRPDocument` interface    |
+| `PROMPTS.md`                              | 641-714   | PRP_EXECUTE_PROMPT source  |
+| `tests/unit/agents/agent-factory.test.ts` | 211-215   | Coder agent creation test  |
+| `tests/unit/agents/prp-executor.test.ts`  | 1-610     | PRPExecutor tests          |
 
 ---
 
@@ -639,16 +656,15 @@ const prp: PRPDocument = {
     'Implement logout endpoint',
     'Add JWT middleware',
   ],
-  validationGates: [/* see Appendix A */],
+  validationGates: [
+    /* see Appendix A */
+  ],
   successCriteria: [
     { description: 'Login endpoint returns valid JWT', satisfied: false },
     { description: 'Logout invalidates session', satisfied: false },
     { description: 'Unit tests cover all auth flows', satisfied: false },
   ],
-  references: [
-    'https://jwt.io/introduction',
-    'src/api/existing-endpoints.ts',
-  ],
+  references: ['https://jwt.io/introduction', 'src/api/existing-endpoints.ts'],
 };
 ```
 

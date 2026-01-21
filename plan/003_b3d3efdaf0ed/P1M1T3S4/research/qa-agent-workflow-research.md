@@ -7,6 +7,7 @@ This document captures research findings about the QA Agent, BugHuntWorkflow, an
 ## BugHuntWorkflow Implementation
 
 ### Location
+
 `src/workflows/bug-hunt-workflow.ts` (369 lines)
 
 ### Architecture
@@ -50,17 +51,20 @@ async generateReport(): Promise<TestResults> {
 ```
 
 ### Public State Fields
+
 - `prdContent: string` - Original PRD content
 - `completedTasks: Task[]` - List of completed tasks to test
 - `testResults: TestResults | null` - Generated test results
 
 ### Constructor Validation
+
 - Throws if `prdContent` is empty or not a string
 - Throws if `completedTasks` is not an array
 
 ## FixCycleWorkflow Implementation
 
 ### Location
+
 `src/workflows/fix-cycle-workflow.ts` (469 lines)
 
 ### Architecture
@@ -87,10 +91,12 @@ The FixCycleWorkflow orchestrates iterative bug fixing through a loop:
    - Minor and cosmetic bugs are acceptable
 
 ### Loop Termination
+
 - Loops until: no critical/major bugs remain OR max iterations (3) reached
 - Max iterations hardcoded: `maxIterations: number = 3`
 
 ### Public State Fields
+
 - `testResults: TestResults` - Initial test results from BugHuntWorkflow
 - `prdContent: string` - Original PRD content
 - `taskOrchestrator: TaskOrchestrator` - For executing fix tasks
@@ -102,6 +108,7 @@ The FixCycleWorkflow orchestrates iterative bug fixing through a loop:
 ### Fix Task Structure
 
 Fix tasks are created as Subtask objects:
+
 ```typescript
 {
   id: `PFIX.M1.T${String(index + 1).padStart(3, '0')}.S1`,
@@ -117,9 +124,11 @@ Fix tasks are created as Subtask objects:
 ## QA Agent Configuration
 
 ### Location
+
 `src/agents/agent-factory.ts` (lines 276-295)
 
 ### Configuration
+
 ```typescript
 export function createQAAgent(): Agent {
   const baseConfig = createBaseConfig('qa');
@@ -134,6 +143,7 @@ export function createQAAgent(): Agent {
 ```
 
 ### Token Limit
+
 ```typescript
 const PERSONA_TOKEN_LIMITS = {
   qa: 4096,
@@ -141,6 +151,7 @@ const PERSONA_TOKEN_LIMITS = {
 ```
 
 ### MCP Tools
+
 - BASH_MCP
 - FILESYSTEM_MCP
 - GIT_MCP
@@ -148,17 +159,20 @@ const PERSONA_TOKEN_LIMITS = {
 ## BUG_HUNT_PROMPT Structure
 
 ### Location
+
 `src/agents/prompts.ts` (lines 868-994)
 
 ### Three Phases of Testing
 
 #### Phase 1: PRD Scope Analysis
+
 1. Read and deeply understand the original PRD requirements
 2. Map each requirement to what should have been implemented
 3. Identify the expected user journeys and workflows
 4. Note any edge cases or corner cases implied by the requirements
 
 #### Phase 2: Creative End-to-End Testing
+
 1. **Happy Path Testing**: Does the primary use case work as specified?
 2. **Edge Case Testing**: Boundaries, empty inputs, max values, unicode, special chars
 3. **Workflow Testing**: Complete user journeys
@@ -169,6 +183,7 @@ const PERSONA_TOKEN_LIMITS = {
 8. **Regression Testing**: Did fixing break other things?
 
 #### Phase 3: Adversarial Testing
+
 1. **Unexpected Inputs**: Undefined scenarios, malformed data
 2. **Missing Features**: PRD requirements not implemented
 3. **Incomplete Features**: Partial implementations
@@ -176,9 +191,11 @@ const PERSONA_TOKEN_LIMITS = {
 5. **User Experience Issues**: Usability, intuitiveness
 
 #### Phase 4: Documentation as Bug Report
+
 Writes structured bug report to `./$BUG_RESULTS_FILE`
 
 ### Bug Severity Levels
+
 - **critical**: Blocks core functionality
 - **major**: Significantly impacts user experience or functionality
 - **minor**: Small improvements
@@ -187,17 +204,20 @@ Writes structured bug report to `./$BUG_RESULTS_FILE`
 ## Bug Hunt Prompt Generator
 
 ### Location
+
 `src/agents/prompts/bug-hunt-prompt.ts`
 
 ### Function Signature
+
 ```typescript
 export function createBugHuntPrompt(
   prd: string,
   completedTasks: Task[]
-): Prompt<TestResults>
+): Prompt<TestResults>;
 ```
 
 ### Implementation
+
 - Constructs user prompt with PRD, completed tasks list, and BUG_HUNT_PROMPT
 - Returns Groundswell Prompt with:
   - `user`: PRD content + completed tasks + BUG_HUNT_PROMPT
@@ -208,6 +228,7 @@ export function createBugHuntPrompt(
 ## Data Models
 
 ### TestResults Schema
+
 Location: `src/core/models.ts` (lines 1862-1867)
 
 ```typescript
@@ -220,6 +241,7 @@ export const TestResultsSchema: z.ZodType<TestResults> = z.object({
 ```
 
 ### Bug Schema
+
 Location: `src/core/models.ts` (lines 1755-1762)
 
 ```typescript
@@ -236,22 +258,27 @@ export const BugSchema: z.ZodType<Bug> = z.object({
 ## Existing Integration Test Patterns
 
 ### BugHuntWorkflow Integration Test
+
 Location: `tests/integration/bug-hunt-workflow-integration.test.ts`
 
 **Key patterns:**
+
 - Mocks `createQAAgent` and `createBugHuntPrompt` via `vi.mock()`
 - Factory functions for test data (`createTestTask`, `createTestBug`, `createTestResults`)
 - Tests full workflow execution, error handling, and observability
 
 ### FixCycleWorkflow Integration Test
+
 Location: `tests/integration/fix-cycle-workflow-integration.test.ts`
 
 **Key patterns:**
+
 - Mocks `BugHuntWorkflow` to avoid external dependencies
 - Tests fix cycle loop behavior, task extraction, and completion logic
 - Tests error handling and graceful failure scenarios
 
 ### Mock Setup Pattern
+
 ```typescript
 // Mock at top level
 vi.mock('../../src/agents/agent-factory.js', () => ({
@@ -268,6 +295,7 @@ const mockCreateQAAgent = createQAAgent as any;
 ## Test Data Factories
 
 ### createTestTask
+
 ```typescript
 const createTestTask = (
   id: string,
@@ -284,6 +312,7 @@ const createTestTask = (
 ```
 
 ### createTestBug
+
 ```typescript
 const createTestBug = (
   id: string,
@@ -303,6 +332,7 @@ const createTestBug = (
 ```
 
 ### createTestResults
+
 ```typescript
 const createTestResults = (
   hasBugs: boolean,

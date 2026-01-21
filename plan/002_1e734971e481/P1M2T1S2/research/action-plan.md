@@ -19,6 +19,7 @@ This document provides specific, actionable steps to improve constant synchroniz
 #### 1. `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
 
 **Issues Found:**
+
 - Uses magic strings for `DEFAULT_BASE_URL`
 - Uses magic strings for model names
 - Tests default values without importing constants
@@ -37,9 +38,7 @@ This document provides specific, actionable steps to improve constant synchroniz
 
 ```typescript
 // ❌ Line 83-85: Magic string
-expect(process.env.ANTHROPIC_BASE_URL).toBe(
-  'https://api.z.ai/api/anthropic'
-);
+expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 
 // ❌ Line 108: Magic string
 expect(getModel('opus')).toBe('GLM-4.7');
@@ -57,7 +56,10 @@ expect(getModel('haiku')).toBe('GLM-4.5-Air');
 
 ```typescript
 // Add to imports at top of file
-import { DEFAULT_BASE_URL, MODEL_NAMES } from '../../../src/config/constants.js';
+import {
+  DEFAULT_BASE_URL,
+  MODEL_NAMES,
+} from '../../../src/config/constants.js';
 ```
 
 2. **Update tests (line 75-86):**
@@ -67,9 +69,7 @@ import { DEFAULT_BASE_URL, MODEL_NAMES } from '../../../src/config/constants.js'
 it('should set default BASE_URL when not provided', () => {
   delete process.env.ANTHROPIC_BASE_URL;
   configureEnvironment();
-  expect(process.env.ANTHROPIC_BASE_URL).toBe(
-    'https://api.z.ai/api/anthropic'
-  );
+  expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 });
 
 // AFTER:
@@ -153,7 +153,10 @@ it('should preserve custom BASE_URL when already set', () => {
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { configureEnvironment, getModel } from '../../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+} from '../../../src/config/environment.js';
 import {
   DEFAULT_BASE_URL,
   MODEL_NAMES,
@@ -176,7 +179,9 @@ describe('config: constant synchronization', () => {
 
       // VERIFY: Runtime value matches compile-time constant
       expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
-      expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+      expect(process.env.ANTHROPIC_BASE_URL).toBe(
+        'https://api.z.ai/api/anthropic'
+      );
     });
 
     it('should preserve custom BASE_URL when provided', () => {
@@ -311,6 +316,7 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 ## Implementation Checklist
 
 ### Phase 1: Fix Existing Tests
+
 - [ ] Add constant imports to `environment.test.ts`
 - [ ] Replace magic string for `DEFAULT_BASE_URL`
 - [ ] Replace magic strings for model names (opus, sonnet, haiku)
@@ -318,6 +324,7 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 - [ ] Run tests to verify changes work correctly
 
 ### Phase 2: Add New Test Suite
+
 - [ ] Create `constant-synchronization.test.ts`
 - [ ] Add BASE_URL synchronization tests
 - [ ] Add MODEL_NAMES synchronization tests
@@ -326,12 +333,14 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 - [ ] Run new test suite to verify it passes
 
 ### Phase 3: Documentation
+
 - [ ] Create/update `tests/unit/config/README.md`
 - [ ] Document constant synchronization pattern
 - [ ] Add examples of good vs bad patterns
 - [ ] Update team testing guidelines
 
 ### Phase 4: Verification
+
 - [ ] Run full test suite: `npm test`
 - [ ] Check for any new test failures
 - [ ] Verify test coverage hasn't decreased
@@ -429,5 +438,6 @@ grep -r "toEqual({" tests/ | grep -v "node_modules" | grep -v ".snap"
 **Last Updated:** 2026-01-15
 **Status:** Ready for Implementation
 **Related:**
+
 - `constant-testing-patterns.md` - Research findings
 - `code-examples.md` - Code examples and patterns

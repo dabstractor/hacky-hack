@@ -14,6 +14,7 @@
 **Deliverable**: Test file at `tests/unit/utils/errors-environment.test.ts` containing 50+ failing tests that will pass once EnvironmentError is implemented in the next subtask (P1.M1.T1.S2).
 
 **Success Definition**:
+
 - All tests fail with clear error messages (EnvironmentError is not defined)
 - Tests follow exact patterns from existing `errors.test.ts`
 - Tests cover all constructor variations, prototype chain, type guards, and serialization
@@ -29,6 +30,7 @@
 **Use Case**: Developer needs comprehensive test suite to guide EnvironmentError implementation and validate correctness once complete.
 
 **User Journey**:
+
 1. Developer reviews PRP to understand test requirements
 2. Developer runs tests to see Red Phase (all failing)
 3. Developer implements EnvironmentError class in errors.ts
@@ -36,6 +38,7 @@
 5. Integration tests at `tests/integration/utils/error-handling.test.ts` also pass
 
 **Pain Points Addressed**:
+
 - No ambiguity about what EnvironmentError should do
 - Clear acceptance criteria via test assertions
 - Type safety ensured through TypeScript compilation
@@ -463,7 +466,9 @@ describe('EnvironmentError class', () => {
     // PATTERN: Use type assertion to access cause property
     const errorWithCause = error as unknown as { cause?: Error };
     expect(errorWithCause.cause).toBe(cause);
-    expect(errorWithCause.cause?.message).toBe('Original error from environment validation');
+    expect(errorWithCause.cause?.message).toBe(
+      'Original error from environment validation'
+    );
   });
 
   // GOTCHA: Test with all three parameters
@@ -962,6 +967,7 @@ grep -c "it(" tests/unit/utils/errors-environment.test.ts
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Confidence Reasoning**:
+
 1. ✅ Complete research documentation with code examples
 2. ✅ Existing error class patterns provide exact template
 3. ✅ Test patterns fully documented in errors.test.ts
@@ -982,6 +988,7 @@ grep -c "it(" tests/unit/utils/errors-environment.test.ts
 **Status:** Ready for RED Phase Implementation
 
 **Related Documents:**
+
 - Research: `P1M1T1S1/research/typescript-error-handling.md`
 - Research: `P1M1T1S1/research/tdd-error-testing-patterns.md`
 - Research: `P1M1T1S1/research/authoritative-sources.md`
@@ -989,6 +996,7 @@ grep -c "it(" tests/unit/utils/errors-environment.test.ts
 - Task Definition: `plan/002_1e734971e481/bugfix/001_8d809cc989b9/tasks.json`
 
 **Next Steps After This PRP:**
+
 1. Execute implementation tasks in order
 2. Run validation commands after each task
 3. Confirm all tests fail (RED phase complete)

@@ -5,6 +5,7 @@
 ### Key Patterns for Replacing Private Methods with Imported Utilities
 
 #### When to Extract
+
 - **Pure Functions**: Methods that don't rely on `this` context or class state
 - **Reusable Logic**: Operations used across multiple classes
 - **Complex Logic**: Algorithms or validation that benefit from isolated testing
@@ -13,6 +14,7 @@
 #### Common Pitfalls
 
 **Pitfall 1: Loss of Instance Context**
+
 ```typescript
 // ❌ Problem: Losing access to instance properties
 class MyClass {
@@ -31,6 +33,7 @@ export function importedFunction(data: string, config: Config) {
 ```
 
 **Pitfall 2: Breaking Type Narrowing**
+
 ```typescript
 // ✅ Solution: Use type guards in utility functions
 export function processValue(value: string | number): string {
@@ -42,6 +45,7 @@ export function processValue(value: string | number): string {
 ```
 
 **Pitfall 3: Overlooking Parameter Dependencies**
+
 ```typescript
 // ✅ Solution: Explicitly pass all parameters
 export function handleError(
@@ -64,6 +68,7 @@ export function handleError(
 #### Type Guard Integration
 
 Type guards in utility functions preserve type narrowing:
+
 ```typescript
 export function isNetworkError(error: Error): error is NetworkError {
   return 'statusCode' in error;

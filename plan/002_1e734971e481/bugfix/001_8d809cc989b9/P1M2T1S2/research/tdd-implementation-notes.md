@@ -52,6 +52,7 @@ Write comprehensive failing tests that define the expected behavior of `isFatalE
 **Status**: ✅ COMPLETE (This subtask - P1.M2.T1.S2)
 
 **Deliverables**:
+
 - ✅ PRP.md created with comprehensive test requirements
 - ✅ Research documentation completed (4 files)
 - ⏳ Test file to be created: `tests/unit/utils/is-fatal-error.test.ts`
@@ -59,16 +60,16 @@ Write comprehensive failing tests that define the expected behavior of `isFatalE
 
 ### Test Requirements
 
-| Category | Test Count | Expected Result |
-|----------|------------|-----------------|
-| Fatal Errors | 50 | All return `true` |
-| Non-Fatal Errors | 80 | All return `false` |
-| Standard Error Types | 20 | All return `false` |
-| Null/Undefined/Invalid | 20 | All return `false` |
-| Type Guard Integration | 15 | Varies by test |
-| continueOnError Flag | 15 | All return `false` when `true` |
-| Edge Cases | 20 | Varies by test |
-| **TOTAL** | **220** | - |
+| Category               | Test Count | Expected Result                |
+| ---------------------- | ---------- | ------------------------------ |
+| Fatal Errors           | 50         | All return `true`              |
+| Non-Fatal Errors       | 80         | All return `false`             |
+| Standard Error Types   | 20         | All return `false`             |
+| Null/Undefined/Invalid | 20         | All return `false`             |
+| Type Guard Integration | 15         | Varies by test                 |
+| continueOnError Flag   | 15         | All return `false` when `true` |
+| Edge Cases             | 20         | Varies by test                 |
+| **TOTAL**              | **220**    | -                              |
 
 ### RED Phase Checklist
 
@@ -131,6 +132,7 @@ FAIL Tests failed
 ```
 
 **Key Indicators of Successful RED Phase**:
+
 - ✅ All 220 tests fail
 - ✅ Error message: "ReferenceError: isFatalError is not defined" or similar
 - ✅ No syntax errors
@@ -150,6 +152,7 @@ Implement the `isFatalError()` function with minimum code to make all tests pass
 **Status**: ⏳ PENDING (Next subtask - P1.M2.T1.S3)
 
 **Deliverables**:
+
 - ⏳ `isFatalError()` function implementation in `src/utils/errors.ts`
 - ⏳ Export statement in `src/utils/errors.ts`
 - ⏳ All 220 tests pass
@@ -157,6 +160,7 @@ Implement the `isFatalError()` function with minimum code to make all tests pass
 ### Implementation Strategy
 
 1. **Start with minimal implementation**:
+
    ```typescript
    export function isFatalError(
      error: unknown,
@@ -223,6 +227,7 @@ $ npm run test:run -- tests/unit/utils/is-fatal-error.test.ts
 ```
 
 **Key Indicators of Successful GREEN Phase**:
+
 - ✅ All 220 tests pass
 - ✅ 100% code coverage achieved
 - ✅ No console errors or warnings
@@ -276,6 +281,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 ### Refactoring Principles
 
 **DO**:
+
 - ✅ Make small, incremental changes
 - ✅ Run tests after each change
 - ✅ Keep all tests passing
@@ -283,6 +289,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 - ✅ Add documentation
 
 **DON'T**:
+
 - ❌ Make large changes at once
 - ❌ Skip running tests
 - ❌ Change test expectations
@@ -298,6 +305,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 **Rationale**: Tests define the expected behavior and serve as executable specification.
 
 **Applied**:
+
 - ✅ 220 test cases written before any implementation
 - ✅ Tests cover all edge cases and scenarios
 - ✅ Tests serve as documentation of expected behavior
@@ -307,6 +315,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 **Rationale**: Small tests are easier to understand, maintain, and debug.
 
 **Applied**:
+
 - ✅ Each test validates one specific behavior
 - ✅ SEV pattern ensures clear structure
 - ✅ Descriptive test names indicate exact scenario
@@ -316,6 +325,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 **Rationale**: Clear test names serve as documentation and make failures easier to understand.
 
 **Applied**:
+
 - ✅ "should" prefix indicates expected behavior
 - ✅ Specific error types and conditions in name
 - ✅ Numbered variations when testing similar scenarios
@@ -325,6 +335,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 **Rationale**: Tests should validate one behavior, making failures easy to diagnose.
 
 **Applied**:
+
 - ✅ Each test has single assertion (or related assertions)
 - ✅ Tests are independent and isolated
 - ✅ No side effects between tests
@@ -334,6 +345,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 **Rationale**: Comprehensive test coverage prevents regressions and documents behavior.
 
 **Applied**:
+
 - ✅ Null/undefined/invalid inputs tested
 - ✅ Special characters and unicode tested
 - ✅ Circular references tested
@@ -344,6 +356,7 @@ Improve the `isFatalError()` implementation while keeping all tests passing.
 **Rationale**: Fixtures reduce duplication and make tests more maintainable.
 
 **Applied**:
+
 - ✅ Consistent error construction patterns
 - ✅ Reusable context objects
 - ✅ Helper functions for complex test data
@@ -423,7 +436,7 @@ beforeEach(() => {
   error = new SessionError('Test');
 });
 it('should return true', () => {
-  error.code = 'LOAD_FAILED';  // Modifies shared state
+  error.code = 'LOAD_FAILED'; // Modifies shared state
   expect(isFatalError(error)).toBe(true);
 });
 
@@ -441,11 +454,13 @@ it('should return true for LOAD_FAILED code', () => {
 ### RED Phase Verification
 
 **Command**:
+
 ```bash
 npm run test:run -- tests/unit/utils/is-fatal-error.test.ts
 ```
 
 **Expected Output**:
+
 - All 220 tests fail
 - Error: "isFatalError is not defined"
 - No syntax errors
@@ -454,11 +469,13 @@ npm run test:run -- tests/unit/utils/is-fatal-error.test.ts
 ### GREEN Phase Verification
 
 **Command**:
+
 ```bash
 npm run test:run -- tests/unit/utils/is-fatal-error.test.ts
 ```
 
 **Expected Output**:
+
 - All 220 tests pass
 - 100% code coverage
 - No console errors
@@ -466,11 +483,13 @@ npm run test:run -- tests/unit/utils/is-fatal-error.test.ts
 ### Integration Verification
 
 **Command**:
+
 ```bash
 npm run test:run -- tests/integration/utils/error-handling.test.ts
 ```
 
 **Expected Output**:
+
 - Integration tests that previously failed now pass
 - `isFatalError` function is accessible from errors.ts
 - Fatal/non-fatal detection works as expected
@@ -481,22 +500,22 @@ npm run test:run -- tests/integration/utils/error-handling.test.ts
 
 ### Current Phase: RED (Write Failing Tests)
 
-| Task | Status | Completion Date |
-|------|--------|-----------------|
-| PRP creation | ✅ Complete | 2026-01-16 |
-| Research documentation | ✅ Complete | 2026-01-16 |
-| Test file creation | ⏳ Pending | - |
-| Test implementation | ⏳ Pending | - |
-| RED phase verification | ⏳ Pending | - |
+| Task                   | Status      | Completion Date |
+| ---------------------- | ----------- | --------------- |
+| PRP creation           | ✅ Complete | 2026-01-16      |
+| Research documentation | ✅ Complete | 2026-01-16      |
+| Test file creation     | ⏳ Pending  | -               |
+| Test implementation    | ⏳ Pending  | -               |
+| RED phase verification | ⏳ Pending  | -               |
 
 ### Upcoming Phases
 
-| Phase | Task | Status | Planned Subtask |
-|-------|------|--------|-----------------|
-| GREEN | Implement isFatalError function | ⏳ Pending | P1.M2.T1.S3 |
-| GREEN | Verify all tests pass | ⏳ Pending | P1.M2.T1.S3 |
-| REFACTOR | Optimize implementation | ⏳ Pending | After P1.M2.T1.S3 |
-| REFACTOR | Add documentation | ⏳ Pending | After P1.M2.T1.S3 |
+| Phase    | Task                            | Status     | Planned Subtask   |
+| -------- | ------------------------------- | ---------- | ----------------- |
+| GREEN    | Implement isFatalError function | ⏳ Pending | P1.M2.T1.S3       |
+| GREEN    | Verify all tests pass           | ⏳ Pending | P1.M2.T1.S3       |
+| REFACTOR | Optimize implementation         | ⏳ Pending | After P1.M2.T1.S3 |
+| REFACTOR | Add documentation               | ⏳ Pending | After P1.M2.T1.S3 |
 
 ---
 

@@ -79,10 +79,30 @@ const createMockPRPDocument = (taskId: string) => ({
   context: 'Test context',
   implementationSteps: ['Step 1', 'Step 2', 'Step 3'],
   validationGates: [
-    { level: 1, description: 'Syntax & Style validation', command: 'npm test', manual: false },
-    { level: 2, description: 'Unit Tests', command: 'npm run lint', manual: false },
-    { level: 3, description: 'Integration Testing', command: null, manual: true },
-    { level: 4, description: 'Manual validation', command: 'npm run build', manual: true },
+    {
+      level: 1,
+      description: 'Syntax & Style validation',
+      command: 'npm test',
+      manual: false,
+    },
+    {
+      level: 2,
+      description: 'Unit Tests',
+      command: 'npm run lint',
+      manual: false,
+    },
+    {
+      level: 3,
+      description: 'Integration Testing',
+      command: null,
+      manual: true,
+    },
+    {
+      level: 4,
+      description: 'Manual validation',
+      command: 'npm run build',
+      manual: true,
+    },
   ],
   successCriteria: [
     { description: 'Test criterion 1', satisfied: false },
@@ -344,9 +364,12 @@ describe('integration/researcher-agent', () => {
       // SETUP: Import real agent-factory and MCP tool classes
       const { createResearcherAgent } =
         await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
-      const { BashMCP } = await import('/home/dustin/projects/hacky-hack/src/tools/bash-mcp.js');
-      const { FilesystemMCP } = await import('/home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.js');
-      const { GitMCP } = await import('/home/dustin/projects/hacky-hack/src/tools/git-mcp.js');
+      const { BashMCP } =
+        await import('/home/dustin/projects/hacky-hack/src/tools/bash-mcp.js');
+      const { FilesystemMCP } =
+        await import('/home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.js');
+      const { GitMCP } =
+        await import('/home/dustin/projects/hacky-hack/src/tools/git-mcp.js');
 
       // SETUP: Configure mock agent return value
       const mockAgent = {
@@ -361,7 +384,8 @@ describe('integration/researcher-agent', () => {
 
       // VERIFY: createAgent called with MCP tools
       // The actual tools are instances of BashMCP, FilesystemMCP, GitMCP
-      const mcpCall = (gs.createAgent as ReturnType<typeof vi.fn>).mock.calls[0];
+      const mcpCall = (gs.createAgent as ReturnType<typeof vi.fn>).mock
+        .calls[0];
       const mcps = mcpCall[0].mcps;
 
       expect(mcps).toHaveLength(3);

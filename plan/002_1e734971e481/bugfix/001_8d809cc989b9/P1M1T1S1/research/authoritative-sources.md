@@ -9,12 +9,15 @@ This document compiles authoritative online documentation sources for implementi
 **URL:** https://www.typescriptlang.org/docs/handbook/2/classes.html
 
 **Relevance for EnvironmentError:**
+
 - Provides official guidance on extending built-in classes like `Error`
 - Essential for understanding proper prototype chain maintenance
 - Critical for ensuring `instanceof` checks work correctly with custom errors
 
 **Key Insights:**
+
 1. **Proper Error Extension Pattern:**
+
    ```typescript
    class CustomError extends Error {
      constructor(message: string) {
@@ -37,6 +40,7 @@ This document compiles authoritative online documentation sources for implementi
    - Use `tsconfig.json` target setting to determine requirements
 
 **Specific Sections to Reference:**
+
 - Section: "Extending Classes" - Understanding inheritance mechanics
 - Section: "Constructor Functions" - Proper `super()` usage
 - Section: "Static Members" - For error code constants
@@ -46,11 +50,13 @@ This document compiles authoritative online documentation sources for implementi
 **URL:** https://basarat.gitbook.io/typescript/type-system/exceptions
 
 **Relevance:**
+
 - Community-standard patterns for custom error hierarchies
 - Practical examples of error type guards
 - Error serialization best practices
 
 **Key Patterns:**
+
 ```typescript
 // Type guard for custom errors
 function isEnvironmentError(error: unknown): error is EnvironmentError {
@@ -76,6 +82,7 @@ try {
 **URL:** https://vitest.dev/guide/
 
 **Relevance for EnvironmentError:**
+
 - Official testing framework for the project
 - Provides patterns for testing error conditions
 - Essential for TDD implementation of error classes
@@ -83,6 +90,7 @@ try {
 **Key Insights:**
 
 1. **Testing Error Throwing:**
+
    ```typescript
    import { describe, it, expect } from 'vitest';
 
@@ -96,6 +104,7 @@ try {
    ```
 
 2. **Testing Error Properties:**
+
    ```typescript
    it('should include environment name in error', () => {
      const error = new EnvironmentError('API_KEY', 'production');
@@ -106,6 +115,7 @@ try {
    ```
 
 3. **Testing Error Messages:**
+
    ```typescript
    it('should format error message correctly', () => {
      const error = new EnvironmentError('DATABASE_URL', 'staging');
@@ -124,6 +134,7 @@ try {
    ```
 
 **Specific Sections to Reference:**
+
 - Section: "Assertions" - `toThrow()`, `toThrowError()` methods
 - Section: "Test Context" - Using `describe` blocks for error scenarios
 - Section: "TypeScript" - Type-safe testing patterns
@@ -133,6 +144,7 @@ try {
 **URL:** https://vitest.dev/api/
 
 **Relevant Methods:**
+
 - `expect().toThrow()` - Tests that function throws error
 - `expect().toThrowError()` - Tests error message matching
 - `expect().instanceOf()` - Tests prototype chain
@@ -146,6 +158,7 @@ try {
 **URL:** https://martinfowler.com/bliki/TestDrivenDevelopment.html
 
 **Relevance for EnvironmentError:**
+
 - Industry-standard TDD methodology
 - Red-Green-Refactor cycle for error handling
 - Guidelines for testing edge cases and error conditions
@@ -153,6 +166,7 @@ try {
 **Key Insights:**
 
 1. **Red-Green-Refactor for Error Handling:**
+
    ```
    RED: Write failing test for missing environment variable
    GREEN: Implement minimal EnvironmentError class
@@ -160,6 +174,7 @@ try {
    ```
 
 2. **Test Error Conditions First:**
+
    ```typescript
    // Write this test FIRST (it will fail)
    it('should throw with correct error code for missing variable', () => {
@@ -198,11 +213,13 @@ try {
 **URL:** https://blog.testdouble.com/posts/2021-05-11-testing-error-cases/
 
 **Relevance:**
+
 - Practical patterns for testing error scenarios
 - Strategies for mocking error conditions
 - Testing error propagation
 
 **Key Patterns:**
+
 - Test error messages contain useful debugging info
 - Test error codes are machine-readable
 - Test error objects maintain proper prototype chain
@@ -217,6 +234,7 @@ try {
 **URL:** https://getpino.io/#/
 
 **Relevance for EnvironmentError:**
+
 - Official logger for the project
 - Handles error object serialization automatically
 - Critical for production error monitoring
@@ -224,6 +242,7 @@ try {
 **Key Insights:**
 
 1. **Automatic Error Serialization:**
+
    ```typescript
    import pino from 'pino';
    const logger = pino();
@@ -238,11 +257,12 @@ try {
    ```
 
 2. **Custom Error Serializers:**
+
    ```typescript
    const logger = pino({
      serializers: {
        err: pino.stdErrSerializers.err,
-       environmentError: (error) => ({
+       environmentError: error => ({
          type: 'EnvironmentError',
          code: error.code,
          environment: error.environment,
@@ -255,12 +275,16 @@ try {
    ```
 
 3. **Error Context Binding:**
+
    ```typescript
-   logger.info({
-     err: new EnvironmentError('DATABASE_URL', 'staging'),
-     environment: 'staging',
-     service: 'api-gateway',
-   }, 'Environment validation failed');
+   logger.info(
+     {
+       err: new EnvironmentError('DATABASE_URL', 'staging'),
+       environment: 'staging',
+       service: 'api-gateway',
+     },
+     'Environment validation failed'
+   );
    ```
 
 4. **Child Loggers for Error Context:**
@@ -270,6 +294,7 @@ try {
    ```
 
 **Specific Sections to Reference:**
+
 - Section: "Serializers" - Custom error serialization
 - Section: "Error Handling" - How Pino handles Error objects
 - Section: "Log Levels" - Appropriate levels for different error types
@@ -280,11 +305,13 @@ try {
 **URL:** https://github.com/pinojs/pino
 
 **Relevant Documentation:**
+
 - `/docs/api.md` - Full API reference
 - `/docs/ecosystem.md` - Integration with error tracking tools
 - `/docs/transports.md` - Logging destinations for errors
 
 **Key Patterns:**
+
 ```typescript
 // Error tracking integration
 const pino = require('pino');
@@ -297,11 +324,14 @@ const transport = pino.transport({
 const logger = pino(transport);
 
 // Log EnvironmentError with full context
-logger.error({
-  err: new EnvironmentError('REDIS_URL', 'production'),
-  environment: 'production',
-  severity: 'critical',
-}, 'Required environment variable missing');
+logger.error(
+  {
+    err: new EnvironmentError('REDIS_URL', 'production'),
+    environment: 'production',
+    severity: 'critical',
+  },
+  'Required environment variable missing'
+);
 ```
 
 ---
@@ -313,6 +343,7 @@ logger.error({
 **URL:** https://nodejs.org/api/errors.html
 
 **Relevance for EnvironmentError:**
+
 - Official Node.js error patterns
 - Standard error code conventions
 - Error creation best practices
@@ -320,6 +351,7 @@ logger.error({
 **Key Insights:**
 
 1. **Error Code Format:**
+
    ```typescript
    // Node.js uses uppercase, underscore-separated codes
    const ERROR_CODES = {
@@ -330,6 +362,7 @@ logger.error({
    ```
 
 2. **Standard Error Properties:**
+
    ```typescript
    class EnvironmentError extends Error {
      constructor(
@@ -337,7 +370,9 @@ logger.error({
        public environment: string,
        message?: string
      ) {
-       super(message || `Environment variable ${variable} not set in ${environment}`);
+       super(
+         message || `Environment variable ${variable} not set in ${environment}`
+       );
 
        // Standard Node.js error properties
        this.name = 'EnvironmentError';
@@ -365,6 +400,7 @@ logger.error({
    ```
 
 **Specific Sections to Reference:**
+
 - Section: "Class: Error" - Base error class behavior
 - Section: "Error Codes" - Standard error code conventions
 - Section: "System Errors" - Node.js error patterns
@@ -375,17 +411,19 @@ logger.error({
 **URL:** https://datatracker.ietf.org/doc/html/rfc7807
 
 **Relevance:**
+
 - Industry standard for error response format
 - Defines error type and code conventions
 - Useful for API error responses
 
 **Key Patterns:**
+
 ```typescript
 interface ProblemDetails {
-  type: string;      // URI reference to error type
-  title: string;     // Short human-readable title
-  status: number;    // HTTP status code
-  detail: string;    // Detailed explanation
+  type: string; // URI reference to error type
+  title: string; // Short human-readable title
+  status: number; // HTTP status code
+  detail: string; // Detailed explanation
   instance?: string; // URI to specific occurrence
 }
 
@@ -408,11 +446,13 @@ class EnvironmentError extends Error {
 **URL:** https://cloud.google.com/apis/design/errors
 
 **Relevance:**
+
 - Industry-standard error code patterns
 - Error message conventions
 - Error metadata structure
 
 **Key Patterns:**
+
 ```typescript
 // Google-style error codes
 const ErrorCodes = {
@@ -455,6 +495,7 @@ class EnvironmentError extends Error {
 Based on these authoritative sources, ensure the `EnvironmentError` class:
 
 ### TypeScript Best Practices
+
 - [ ] Extends `Error` class properly
 - [ ] Calls `super(message)` in constructor
 - [ ] Sets `this.name` to 'EnvironmentError'
@@ -463,6 +504,7 @@ Based on these authoritative sources, ensure the `EnvironmentError` class:
 - [ ] Has readonly properties for immutability
 
 ### Error Code Standards
+
 - [ ] Uses uppercase, underscore-separated codes (e.g., `ERR_ENV_VAR_NOT_SET`)
 - [ ] Follows Node.js error code conventions
 - [ ] Includes machine-readable `code` property
@@ -470,6 +512,7 @@ Based on these authoritative sources, ensure the `EnvironmentError` class:
 - [ ] Defines code constants in enum/object
 
 ### Error Properties
+
 - [ ] `variable: string` - Name of missing environment variable
 - [ ] `environment: string` - Environment name (production/development/etc)
 - [ ] `code: string` - Machine-readable error code
@@ -478,6 +521,7 @@ Based on these authoritative sources, ensure the `EnvironmentError` class:
 - [ ] `remediation?: string` - How to fix the error
 
 ### Testing Requirements (Vitest)
+
 - [ ] Test constructor with valid inputs
 - [ ] Test error message format
 - [ ] Test `instanceof EnvironmentError` checks
@@ -489,6 +533,7 @@ Based on these authoritative sources, ensure the `EnvironmentError` class:
 - [ ] Test prototype chain maintenance
 
 ### Logging Integration (Pino)
+
 - [ ] Automatic error serialization works
 - [ ] Custom serializer for EnvironmentError properties
 - [ ] Log level appropriate for severity
@@ -497,6 +542,7 @@ Based on these authoritative sources, ensure the `EnvironmentError` class:
 - [ ] Structured logging format
 
 ### Error Recovery
+
 - [ ] Catchable with try/catch
 - [ ] Type-safe error checking possible
 - [ ] Error information sufficient for debugging
@@ -541,12 +587,11 @@ export class EnvironmentError extends Error {
    */
   readonly timestamp: string;
 
-  constructor(
-    variable: string,
-    environment: string,
-    message?: string
-  ) {
-    super(message || `Environment variable '${variable}' is required in ${environment} environment`);
+  constructor(variable: string, environment: string, message?: string) {
+    super(
+      message ||
+        `Environment variable '${variable}' is required in ${environment} environment`
+    );
 
     this.name = 'EnvironmentError';
     this.code = 'ERR_ENV_VAR_NOT_SET';
@@ -597,18 +642,22 @@ export const ENV_ERROR_CODES = {
 ## Additional Resources
 
 ### TypeScript Error Handling
+
 - TypeScript Compiler Options: https://www.typescriptlang.org/tsconfig#useDefineForClassFields
 - TS2559 Error Extension: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
 
 ### Testing Resources
+
 - Vitest GitHub: https://github.com/vitest-dev/vitest
 - Testing Library: https://testing-library.com/docs/
 
 ### Logging Resources
+
 - Pino Benchmarks: https://getpino.io/#/docs/benchmarks
 - Pino Extreme: https://github.com/pinojs/pino/blob/master/docs/benchmarks.md
 
 ### Error Tracking
+
 - Sentry TypeScript: https://docs.sentry.io/platforms/javascript/guides/typescript/
 - Error Monitoring Best Practices: https://martinfowler.com/articles/monitoring.html
 
@@ -622,6 +671,7 @@ export const ENV_ERROR_CODES = {
 **Bug Report:** 001_8d809cc989b9
 
 **Next Steps:**
+
 1. Review these sources before implementing EnvironmentError
 2. Create test cases based on Vitest patterns
 3. Configure Pino serializers for EnvironmentError

@@ -14,14 +14,14 @@
 
 ## Test Statistics
 
-| Metric | Count | Notes |
-|--------|-------|-------|
-| Total Test Files | 90 | 72 passed, 17 failed |
-| Total Tests | 3577 | Note: PRP expected 1688 - test suite has grown |
-| Passed | 3385 | 94.62% pass rate |
-| Failed | 88 | 2.46% failure rate |
-| Skipped | 67 | 1.87% skip rate |
-| Errors | 11 | Worker OOM errors |
+| Metric           | Count | Notes                                          |
+| ---------------- | ----- | ---------------------------------------------- |
+| Total Test Files | 90    | 72 passed, 17 failed                           |
+| Total Tests      | 3577  | Note: PRP expected 1688 - test suite has grown |
+| Passed           | 3385  | 94.62% pass rate                               |
+| Failed           | 88    | 2.46% failure rate                             |
+| Skipped          | 67    | 1.87% skip rate                                |
+| Errors           | 11    | Worker OOM errors                              |
 
 ## Memory Error Check
 
@@ -44,6 +44,7 @@ Serialized Error: { code: 'ERR_WORKER_OUT_OF_MEMORY' }
 **Root Cause**: Vitest worker threads are hitting the default memory limit. The `vitest.config.ts` file is missing worker memory limit configuration.
 
 **Suggested Fix** (from memory-error-detector.ts):
+
 ```
 Add memory limits to vitest.config.ts: test.workspaceConfig = { maxOldSpaceSize: 4096 }
 ```
@@ -66,6 +67,7 @@ Combined: ETIMEDOUT
 ```
 
 **However**, there are multiple test failures due to unhandled promise rejections:
+
 1. `tests/unit/utils/validate-groundswell-link.test.ts` - 1 test failed (LinkValidationError)
 2. `tests/unit/core/task-orchestrator.test.ts` - 2 tests failed (Timeout waiting for dependencies)
 3. `tests/unit/utils/retry.test.ts` - 7 tests failed (various retry errors)
@@ -87,6 +89,7 @@ These appear to be **test design issues** where tests intentionally throw errors
 ### Important Note on Test Count
 
 The PRP document references **1688 tests** based on historical data (TEST_RESULTS.md). The current test suite has **3577 tests** - more than double. This indicates:
+
 - New tests have been added since the baseline was established
 - The baseline comparison is no longer directly applicable
 - A new baseline should be established after memory issues are resolved
@@ -98,6 +101,7 @@ The PRP document references **1688 tests** based on historical data (TEST_RESULT
 **Reason**: Memory errors detected during test execution make the results untrustworthy.
 
 Per the PRP specification:
+
 > "Memory errors = fatal (cannot trust test results)"
 > "Action: If memoryErrors === true, do NOT trust test counts"
 
@@ -124,14 +128,15 @@ All three requirements are blocked by the worker OOM errors.
 
 ## Comparison to Baseline (Pre-Memory Fix)
 
-| Metric | Baseline | Current | Delta |
-|--------|----------|---------|-------|
-| Pass Rate | 94.37% | 94.62% | +0.25% |
-| Total Tests | 1688 | 3577 | +1889 |
-| Passing | 1593 | 3385 | +1792 |
-| Failing | 95 | 88 | -7 |
+| Metric      | Baseline | Current | Delta  |
+| ----------- | -------- | ------- | ------ |
+| Pass Rate   | 94.37%   | 94.62%  | +0.25% |
+| Total Tests | 1688     | 3577    | +1889  |
+| Passing     | 1593     | 3385    | +1792  |
+| Failing     | 95       | 88      | -7     |
 
 **Note**: These comparisons are **unreliable** due to:
+
 1. Memory errors during execution
 2. Test suite has grown significantly (new tests added)
 3. Worker failures may have affected test results
@@ -142,6 +147,7 @@ All three requirements are blocked by the worker OOM errors.
 
 1. **Fix Memory Configuration** (highest priority)
    - Add worker memory limits to `vitest.config.ts`:
+
    ```typescript
    poolOptions: {
      threads: {
@@ -149,7 +155,9 @@ All three requirements are blocked by the worker OOM errors.
      },
    },
    ```
+
    - Or use workspace config:
+
    ```typescript
    workspaceConfig: {
      maxOldSpaceSize: 4096,
@@ -204,6 +212,7 @@ This validation task (P4.M3.T1.S1) cannot complete its primary objective (valida
 3. Accurate pass rate validation requires clean execution
 
 **Next Steps**:
+
 1. Address worker memory limits in vitest.config.ts (separate task)
 2. Re-run this validation (P4.M3.T1.S1) after memory fix
 3. Establish new baseline with current test suite size

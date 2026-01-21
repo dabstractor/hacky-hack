@@ -51,12 +51,12 @@ tests/
 
 ### 1.2 File Naming Conventions
 
-| Pattern | Description | Examples |
-|---------|-------------|----------|
-| `{component}.test.ts` | Standard integration tests | `agents.test.ts`, `tools.test.ts` |
-| `{component}-integration.test.ts` | Explicit integration marker | `prp-executor-integration.test.ts`, `prp-generator-integration.test.ts` |
-| `agent-{persona}.test.ts` | Persona-specific tests | `architect-agent.test.ts` |
-| `{category}/{component}-integration.test.ts` | Category-subgrouped | `agents/architect-agent-integration.test.ts` |
+| Pattern                                      | Description                 | Examples                                                                |
+| -------------------------------------------- | --------------------------- | ----------------------------------------------------------------------- |
+| `{component}.test.ts`                        | Standard integration tests  | `agents.test.ts`, `tools.test.ts`                                       |
+| `{component}-integration.test.ts`            | Explicit integration marker | `prp-executor-integration.test.ts`, `prp-generator-integration.test.ts` |
+| `agent-{persona}.test.ts`                    | Persona-specific tests      | `architect-agent.test.ts`                                               |
+| `{category}/{component}-integration.test.ts` | Category-subgrouped         | `agents/architect-agent-integration.test.ts`                            |
 
 ### 1.3 Header Documentation Pattern
 
@@ -121,6 +121,7 @@ async function loadGroundswell() {
 ```
 
 **Key Points:**
+
 - Use `vi.importActual()` to preserve non-mocked exports (MCPHandler, types)
 - Mock `createAgent` and `createPrompt`, NOT the agent factory
 - Dynamic imports ensure mocks are applied before loading
@@ -225,15 +226,23 @@ describe('integration/architect-agent', () => {
   describe('architect output validation', () => {
     it('should generate valid backlog matching BacklogSchema', async () => {
       // SETUP: Read PRD and create agent
-      vi.stubEnv('ANTHROPIC_AUTH_TOKEN', process.env.ANTHROPIC_API_KEY || 'test-key');
-      vi.stubEnv('ANTHROPIC_BASE_URL', process.env.ANTHROPIC_BASE_URL || 'https://api.z.ai/api/anthropic');
+      vi.stubEnv(
+        'ANTHROPIC_AUTH_TOKEN',
+        process.env.ANTHROPIC_API_KEY || 'test-key'
+      );
+      vi.stubEnv(
+        'ANTHROPIC_BASE_URL',
+        process.env.ANTHROPIC_BASE_URL || 'https://api.z.ai/api/anthropic'
+      );
 
       const prdContent = await readFile(PRD_PATH, 'utf-8');
       const architect = createArchitectAgent();
       const prompt = createArchitectPrompt(prdContent);
 
       // MOCK: Return fixture data for fast, deterministic testing
-      const mockBacklog: Backlog = { /* ... */ };
+      const mockBacklog: Backlog = {
+        /* ... */
+      };
       vi.spyOn(architect, 'prompt').mockResolvedValue(mockBacklog);
 
       // EXECUTE: Call agent
@@ -365,9 +374,12 @@ afterEach(() => {
 ```typescript
 it('should validate output against BacklogSchema', async () => {
   // SETUP: Import and create mock agent
-  const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
-  const { createArchitectAgent } = await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
-  const { createArchitectPrompt } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts/architect-prompt.js');
+  const { BacklogSchema } =
+    await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+  const { createArchitectAgent } =
+    await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
+  const { createArchitectPrompt } =
+    await import('/home/dustin/projects/hacky-hack/src/agents/prompts/architect-prompt.js');
 
   // SETUP: Create mock agent with controlled response
   const mockBacklog = createMockBacklog();
@@ -394,7 +406,8 @@ it('should validate output against BacklogSchema', async () => {
 ```typescript
 it('should validate all ID formats', async () => {
   // SETUP: Import and create mock agent
-  const { BacklogSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+  const { BacklogSchema } =
+    await import('/home/dustin/projects/hacky-hack/src/core/models.js');
 
   // ...setup code...
 
@@ -435,7 +448,8 @@ it('should validate all ID formats', async () => {
 ```typescript
 it('should contain Research-Driven Architecture section', async () => {
   // SETUP: Import TASK_BREAKDOWN_PROMPT
-  const { TASK_BREAKDOWN_PROMPT } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
+  const { TASK_BREAKDOWN_PROMPT } =
+    await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
 
   // VERIFY: Contains key phrases from Research-Driven Architecture section
   expect(TASK_BREAKDOWN_PROMPT).toContain('RESEARCH-DRIVEN ARCHITECTURE');
@@ -450,8 +464,10 @@ it('should contain Research-Driven Architecture section', async () => {
 ```typescript
 it('should create architect agent with GLM-4.7 model', async () => {
   // SETUP: Import real agent-factory after mocks are applied
-  const { createArchitectAgent } = await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
-  const { TASK_BREAKDOWN_PROMPT } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
+  const { createArchitectAgent } =
+    await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
+  const { TASK_BREAKDOWN_PROMPT } =
+    await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
 
   // SETUP: Configure mock agent return value
   const mockAgent = {
@@ -1028,9 +1044,13 @@ it(
 ### 9.2 Conditional Timeouts
 
 ```typescript
-it('should handle validation gate failure with real BashMCP', async () => {
-  // test code...
-}, { timeout: 10000 }); // Standard timeout for Bash operations
+it(
+  'should handle validation gate failure with real BashMCP',
+  async () => {
+    // test code...
+  },
+  { timeout: 10000 }
+); // Standard timeout for Bash operations
 ```
 
 ---
@@ -1078,10 +1098,14 @@ const PRD_PATH = resolve(process.cwd(), 'PRD.md');
 const USE_REAL_LLM = process.env.USE_REAL_LLM === 'true';
 
 // PATTERN: Test 1 - Verify setup and agent creation
-describe('setup', () => { /* ... */ });
+describe('setup', () => {
+  /* ... */
+});
 
 // PATTERN: Test 2 - Validate architect output structure
-describe('architect output validation', () => { /* ... */ });
+describe('architect output validation', () => {
+  /* ... */
+});
 
 // PATTERN: Test 3 - Validate hierarchy structure
 // PATTERN: Test 4 - Validate story_points
@@ -1138,8 +1162,14 @@ const USE_REAL_LLM = process.env.USE_REAL_LLM === 'true'; // Flag for real vs mo
 describe('architect output validation', () => {
   it('should generate valid backlog matching BacklogSchema', async () => {
     // SETUP: Read PRD and create agent
-    vi.stubEnv('ANTHROPIC_AUTH_TOKEN', process.env.ANTHROPIC_API_KEY || 'test-key');
-    vi.stubEnv('ANTHROPIC_BASE_URL', process.env.ANTHROPIC_BASE_URL || 'https://api.z.ai/api/anthropic');
+    vi.stubEnv(
+      'ANTHROPIC_AUTH_TOKEN',
+      process.env.ANTHROPIC_API_KEY || 'test-key'
+    );
+    vi.stubEnv(
+      'ANTHROPIC_BASE_URL',
+      process.env.ANTHROPIC_BASE_URL || 'https://api.z.ai/api/anthropic'
+    );
 
     const prdContent = await readFile(PRD_PATH, 'utf-8');
     const architect = createArchitectAgent();
@@ -1155,7 +1185,9 @@ describe('architect output validation', () => {
       expect(validation.success).toBe(true);
     } else {
       // MOCK: Return fixture data for fast, deterministic testing
-      const mockBacklog: Backlog = { /* ... */ };
+      const mockBacklog: Backlog = {
+        /* ... */
+      };
       vi.spyOn(architect, 'prompt').mockResolvedValue(mockBacklog);
 
       // EXECUTE: Call agent
@@ -1197,7 +1229,12 @@ it('should log sample output for inspection', async () => {
 
       if (firstPhase.milestones.length > 0) {
         const firstMilestone = firstPhase.milestones[0];
-        console.log('  First Milestone:', firstMilestone.id, '-', firstMilestone.title);
+        console.log(
+          '  First Milestone:',
+          firstMilestone.id,
+          '-',
+          firstMilestone.title
+        );
 
         if (firstMilestone.tasks.length > 0) {
           const firstTask = firstMilestone.tasks[0];
@@ -1224,13 +1261,13 @@ it('should log sample output for inspection', async () => {
 
 ## 14. Summary Table: Mock Strategies
 
-| Test Type | Mock Strategy | Real Components |
-|-----------|--------------|-----------------|
+| Test Type                 | Mock Strategy                                 | Real Components                    |
+| ------------------------- | --------------------------------------------- | ---------------------------------- |
 | Agent Factory Integration | Mock Groundswell `createAgent`/`createPrompt` | Agent factory functions, MCP tools |
-| Agent Output Validation | Mock `agent.prompt()` | Agent creation, prompt generation |
-| PRP Executor | Mock `createCoderAgent`, agent.prompt() | Real BashMCP |
-| MCP Tools | Mock `node:child_process`, `node:fs` | Tool execution logic |
-| File I/O | Targeted mocking by path pattern | Test file operations |
+| Agent Output Validation   | Mock `agent.prompt()`                         | Agent creation, prompt generation  |
+| PRP Executor              | Mock `createCoderAgent`, agent.prompt()       | Real BashMCP                       |
+| MCP Tools                 | Mock `node:child_process`, `node:fs`          | Tool execution logic               |
+| File I/O                  | Targeted mocking by path pattern              | Test file operations               |
 
 ---
 
@@ -1255,7 +1292,15 @@ Based on the patterns analyzed, here's a template for the Researcher Agent integ
  * @see {@link ../../PROMPTS.md} - PRP_BLUEPRINT_SYSTEM_PROMPT definition
  */
 
-import { afterEach, describe, expect, it, vi, beforeAll, beforeEach } from 'vitest';
+import {
+  afterEach,
+  describe,
+  expect,
+  it,
+  vi,
+  beforeAll,
+  beforeEach,
+} from 'vitest';
 
 // =============================================================================
 // MOCK SETUP: Groundswell (NOT agent-factory)
@@ -1276,7 +1321,9 @@ async function loadGroundswell() {
 // =============================================================================
 // TEST FIXTURE: Mock PRPDocument Data
 // =============================================================================
-const createMockPRPDocument = () => ({ /* ... */ });
+const createMockPRPDocument = () => ({
+  /* ... */
+});
 
 // =============================================================================
 // TEST SUITE: Researcher Agent Integration
@@ -1300,8 +1347,10 @@ describe('integration/agents/researcher-agent-integration', () => {
   describe('createResearcherAgent configuration', () => {
     it('should create researcher agent with correct model', async () => {
       // SETUP
-      const { createResearcherAgent } = await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
-      const { PRP_BLUEPRINT_PROMPT } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
+      const { createResearcherAgent } =
+        await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
+      const { PRP_BLUEPRINT_PROMPT } =
+        await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
 
       const mockAgent = {
         id: 'test-agent-id',
@@ -1330,7 +1379,8 @@ describe('integration/agents/researcher-agent-integration', () => {
   describe('PRP_BLUEPRINT_PROMPT validation', () => {
     it('should contain required sections', async () => {
       // SETUP
-      const { PRP_BLUEPRINT_PROMPT } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
+      const { PRP_BLUEPRINT_PROMPT } =
+        await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
 
       // VERIFY
       expect(PRP_BLUEPRINT_PROMPT).toContain('PRP CREATION MISSION');
@@ -1342,9 +1392,12 @@ describe('integration/agents/researcher-agent-integration', () => {
   describe('agent output validation', () => {
     it('should validate output against PRPDocumentSchema', async () => {
       // SETUP
-      const { PRPDocumentSchema } = await import('/home/dustin/projects/hacky-hack/src/core/models.js');
-      const { createResearcherAgent } = await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
-      const { createPRPBlueprintPrompt } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts/prp-blueprint-prompt.js');
+      const { PRPDocumentSchema } =
+        await import('/home/dustin/projects/hacky-hack/src/core/models.js');
+      const { createResearcherAgent } =
+        await import('/home/dustin/projects/hacky-hack/src/agents/agent-factory.js');
+      const { createPRPBlueprintPrompt } =
+        await import('/home/dustin/projects/hacky-hack/src/agents/prompts/prp-blueprint-prompt.js');
 
       const mockPRPDocument = createMockPRPDocument();
       const mockAgent = {
@@ -1372,6 +1425,7 @@ describe('integration/agents/researcher-agent-integration', () => {
 ## 16. Key Takeaways
 
 ### Do's:
+
 1. **Mock Groundswell, NOT agent-factory** - This allows testing real factory functions
 2. **Use dynamic imports** - Ensures mocks are applied before loading
 3. **Follow SETUP/EXECUTE/VERIFY pattern** - Consistent test structure
@@ -1381,6 +1435,7 @@ describe('integration/agents/researcher-agent-integration', () => {
 7. **Document patterns** - Use @remarks, @see, and inline comments
 
 ### Don'ts:
+
 1. **Don't mock agent-factory directly** - Use Groundswell mocks instead
 2. **Don't forget to unstub environments** - Prevents cross-test pollution
 3. **Don't use hardcoded timeouts** - Use { timeout: N } for slow tests

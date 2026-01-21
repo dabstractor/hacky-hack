@@ -19,6 +19,7 @@
 ### TypeScript Handbook - Type Guards
 
 **Official Documentation:**
+
 - **URL:** https://www.typescriptlang.org/docs/handbook/2/narrowing.html
 - **Section:** Using Type Predicates
 - **Description:** TypeScript's official documentation on type narrowing and type guards
@@ -39,6 +40,7 @@ if (isFish(pet)) {
 ```
 
 **Related Resources:**
+
 - **Type Narrowing:** https://www.typescriptlang.org/docs/handbook/2/narrowing.html
 - **Type Assertions:** https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-assertions
 - **Utility Types:** https://www.typescriptlang.org/docs/handbook/utility-types.html
@@ -117,7 +119,9 @@ function isAuthenticationError(error: unknown): error is AuthenticationError {
 }
 
 // Composed Type Guard
-function isKnownError(error: unknown): error is AppError | ValidationError | NetworkError | AuthenticationError {
+function isKnownError(
+  error: unknown
+): error is AppError | ValidationError | NetworkError | AuthenticationError {
   return (
     error instanceof AppError ||
     error instanceof ValidationError ||
@@ -132,7 +136,10 @@ function isKnownError(error: unknown): error is AppError | ValidationError | Net
 ```typescript
 function handleError(error: unknown): void {
   if (isValidationError(error)) {
-    console.error(`Validation failed on field "${error.field}":`, error.message);
+    console.error(
+      `Validation failed on field "${error.field}":`,
+      error.message
+    );
     console.error('Invalid value:', error.value);
     return;
   }
@@ -234,14 +241,21 @@ class DatabaseError extends Error {
 
 // Specialized errors
 class ConnectionError extends DatabaseError {
-  constructor(message: string, public host: string) {
+  constructor(
+    message: string,
+    public host: string
+  ) {
     super(message);
     this.name = 'ConnectionError';
   }
 }
 
 class QueryError extends DatabaseError {
-  constructor(message: string, query: string, public sqlCode?: string) {
+  constructor(
+    message: string,
+    query: string,
+    public sqlCode?: string
+  ) {
     super(message, query);
     this.name = 'QueryError';
     this.sqlCode = sqlCode;
@@ -320,7 +334,7 @@ function errorHandler(
     return res.status(400).json({
       error: 'Validation Error',
       field: err.field,
-      message: err.message
+      message: err.message,
     });
   }
 
@@ -328,30 +342,31 @@ function errorHandler(
     return res.status(err.statusCode || 500).json({
       error: 'Network Error',
       endpoint: err.endpoint,
-      message: err.message
+      message: err.message,
     });
   }
 
   if (isAuthenticationError(err)) {
     return res.status(401).json({
       error: 'Authentication Error',
-      message: err.message
+      message: err.message,
     });
   }
 
   if (err instanceof Error) {
     return res.status(500).json({
       error: 'Internal Server Error',
-      message: process.env.NODE_ENV === 'production'
-        ? 'An error occurred'
-        : err.message
+      message:
+        process.env.NODE_ENV === 'production'
+          ? 'An error occurred'
+          : err.message,
     });
   }
 
   // Unknown error
   res.status(500).json({
     error: 'Internal Server Error',
-    message: 'An unknown error occurred'
+    message: 'An unknown error occurred',
   });
 }
 ```
@@ -370,7 +385,9 @@ function isErrorWithMessage(error: unknown): error is { message: string } {
 }
 
 // More comprehensive check
-function isErrorLike(error: unknown): error is Error & { message: string; stack?: string } {
+function isErrorLike(
+  error: unknown
+): error is Error & { message: string; stack?: string } {
   return (
     typeof error === 'object' &&
     error !== null &&
@@ -394,7 +411,9 @@ function isSuccess<T>(result: Result<T>): result is { success: true; data: T } {
 }
 
 // Type guard for error
-function isError<E>(result: Result<unknown, E>): result is { success: false; error: E } {
+function isError<E>(
+  result: Result<unknown, E>
+): result is { success: false; error: E } {
   return result.success === false;
 }
 
@@ -424,7 +443,7 @@ async function safeAsyncOperation<T>(
     }
     return {
       success: false,
-      error: new Error(String(error))
+      error: new Error(String(error)),
     };
   }
 }
@@ -452,7 +471,9 @@ Based on common patterns from libraries like `io-ts` and `zod`:
 
 ```typescript
 // Generic type guard creator
-function createTypeGuard<T>(predicate: (value: unknown) => boolean): (value: unknown) => value is T {
+function createTypeGuard<T>(
+  predicate: (value: unknown) => boolean
+): (value: unknown) => value is T {
   return predicate as (value: unknown) => value is T;
 }
 
@@ -474,30 +495,39 @@ const isError = createTypeGuard<Error>((value): value is Error => {
 
 ```typescript
 // Error types with discriminators
-type ApiError = {
-  type: 'network_error';
-  message: string;
-  statusCode: number;
-} | {
-  type: 'validation_error';
-  message: string;
-  field: string;
-} | {
-  type: 'auth_error';
-  message: string;
-  code: string;
-};
+type ApiError =
+  | {
+      type: 'network_error';
+      message: string;
+      statusCode: number;
+    }
+  | {
+      type: 'validation_error';
+      message: string;
+      field: string;
+    }
+  | {
+      type: 'auth_error';
+      message: string;
+      code: string;
+    };
 
 // Type guards using discriminators
-function isNetworkError(error: ApiError): error is Extract<ApiError, { type: 'network_error' }> {
+function isNetworkError(
+  error: ApiError
+): error is Extract<ApiError, { type: 'network_error' }> {
   return error.type === 'network_error';
 }
 
-function isValidationError(error: ApiError): error is Extract<ApiError, { type: 'validation_error' }> {
+function isValidationError(
+  error: ApiError
+): error is Extract<ApiError, { type: 'validation_error' }> {
   return error.type === 'validation_error';
 }
 
-function isAuthError(error: ApiError): error is Extract<ApiError, { type: 'auth_error' }> {
+function isAuthError(
+  error: ApiError
+): error is Extract<ApiError, { type: 'auth_error' }> {
   return error.type === 'auth_error';
 }
 
@@ -539,7 +569,10 @@ function not<T>(
 
 // Usage
 const isStringOrNumber = or(isString, isNumber);
-const isStringWithLength = and(isString, (value): value is string => value.length > 0);
+const isStringWithLength = and(
+  isString,
+  (value): value is string => value.length > 0
+);
 ```
 
 ### Pattern 4: Error Type Guard with Metadata
@@ -568,15 +601,12 @@ function isMetadataError(error: unknown): error is MetadataError {
 class EnhancedError extends Error implements MetadataError {
   metadata: ErrorMetadata;
 
-  constructor(
-    message: string,
-    metadata: Partial<ErrorMetadata> = {}
-  ) {
+  constructor(message: string, metadata: Partial<ErrorMetadata> = {}) {
     super(message);
     this.name = 'EnhancedError';
     this.metadata = {
       timestamp: Date.now(),
-      ...metadata
+      ...metadata,
     };
     Object.setPrototypeOf(this, EnhancedError.prototype);
   }
@@ -590,6 +620,7 @@ class EnhancedError extends Error implements MetadataError {
 ### 1. Always Use Type Predicates
 
 **DO:**
+
 ```typescript
 function isError(error: unknown): error is Error {
   return error instanceof Error;
@@ -597,6 +628,7 @@ function isError(error: unknown): error is Error {
 ```
 
 **DON'T:**
+
 ```typescript
 function isError(error: unknown): boolean {
   return error instanceof Error;
@@ -606,6 +638,7 @@ function isError(error: unknown): boolean {
 ### 2. Maintain Prototype Chain
 
 **DO:**
+
 ```typescript
 class CustomError extends Error {
   constructor(message: string) {
@@ -617,6 +650,7 @@ class CustomError extends Error {
 ```
 
 **DON'T:**
+
 ```typescript
 class CustomError extends Error {
   constructor(message: string) {
@@ -629,6 +663,7 @@ class CustomError extends Error {
 ### 3. Use Specific Type Guards
 
 **DO:**
+
 ```typescript
 function isNetworkError(error: unknown): error is NetworkError {
   return error instanceof NetworkError;
@@ -636,6 +671,7 @@ function isNetworkError(error: unknown): error is NetworkError {
 ```
 
 **DON'T:**
+
 ```typescript
 function isError(error: unknown): error is Error {
   return error instanceof Error;
@@ -646,6 +682,7 @@ function isError(error: unknown): error is Error {
 ### 4. Handle Unknown Errors
 
 **DO:**
+
 ```typescript
 try {
   // ... code
@@ -663,6 +700,7 @@ try {
 ### 5. Create Reusable Type Guards
 
 **DO:**
+
 ```typescript
 // In a separate file: typeGuards.ts
 export function isAppError(error: unknown): error is AppError {
@@ -675,6 +713,7 @@ export function isValidationError(error: unknown): error is ValidationError {
 ```
 
 **Usage:**
+
 ```typescript
 import { isValidationError, isAppError } from './typeGuards';
 
@@ -688,14 +727,20 @@ function handleError(error: unknown) {
 ### 6. Use Type Guards in Array Methods
 
 **DO:**
+
 ```typescript
-const errors: unknown[] = [/* ... */];
+const errors: unknown[] = [
+  /* ... */
+];
 const appErrors = errors.filter(isAppError);
 ```
 
 **DON'T:**
+
 ```typescript
-const errors: unknown[] = [/* ... */];
+const errors: unknown[] = [
+  /* ... */
+];
 const appErrors = errors.filter((e): e is AppError => e instanceof AppError);
 ```
 
@@ -710,7 +755,9 @@ function isErrorWithCode(error: unknown): error is Error & { code: string } {
   );
 }
 
-function isErrorWithStatus(error: unknown): error is Error & { status: number } {
+function isErrorWithStatus(
+  error: unknown
+): error is Error & { status: number } {
   return (
     error instanceof Error &&
     'status' in error &&
@@ -726,6 +773,7 @@ function isErrorWithStatus(error: unknown): error is Error & { status: number } 
 ### Pitfall 1: Forgetting Object.setPrototypeOf
 
 **Problem:**
+
 ```typescript
 class CustomError extends Error {
   constructor(message: string) {
@@ -738,6 +786,7 @@ console.log(new CustomError('test') instanceof CustomError); // Might be false i
 ```
 
 **Solution:**
+
 ```typescript
 class CustomError extends Error {
   constructor(message: string) {
@@ -751,6 +800,7 @@ class CustomError extends Error {
 ### Pitfall 2: Not Handling Cross-Realm Errors
 
 **Problem:**
+
 ```typescript
 // iframe or worker context
 const error = new Error('test');
@@ -758,16 +808,15 @@ error instanceof Error; // Might be false if from different realm
 ```
 
 **Solution:**
+
 ```typescript
 function isError(error: unknown): error is Error {
   return (
     error instanceof Error ||
-    (
-      typeof error === 'object' &&
+    (typeof error === 'object' &&
       error !== null &&
       'message' in error &&
-      'stack' in error
-    )
+      'stack' in error)
   );
 }
 ```
@@ -775,15 +824,19 @@ function isError(error: unknown): error is Error {
 ### Pitfall 3: Type Guard Returns Wrong Type
 
 **Problem:**
+
 ```typescript
-function isNumber(value: unknown): value is string { // Wrong type!
+function isNumber(value: unknown): value is string {
+  // Wrong type!
   return typeof value === 'number';
 }
 ```
 
 **Solution:**
+
 ```typescript
-function isNumber(value: unknown): value is number { // Correct type
+function isNumber(value: unknown): value is number {
+  // Correct type
   return typeof value === 'number';
 }
 ```
@@ -791,6 +844,7 @@ function isNumber(value: unknown): value is number { // Correct type
 ### Pitfall 4: Not Narrowing in Else Branch
 
 **Problem:**
+
 ```typescript
 function processValue(value: string | number) {
   if (typeof value === 'string') {
@@ -801,6 +855,7 @@ function processValue(value: string | number) {
 ```
 
 **Solution:**
+
 ```typescript
 function processValue(value: string | number) {
   if (typeof value === 'string') {
@@ -815,14 +870,18 @@ function processValue(value: string | number) {
 ### Pitfall 5: Type Guard Side Effects
 
 **Problem:**
+
 ```typescript
-function isValidationErrorWithLogging(error: unknown): error is ValidationError {
+function isValidationErrorWithLogging(
+  error: unknown
+): error is ValidationError {
   console.log('Checking error:', error); // Side effect
   return error instanceof ValidationError;
 }
 ```
 
 **Solution:**
+
 ```typescript
 // Keep type guards pure
 function isValidationError(error: unknown): error is ValidationError {
@@ -839,8 +898,11 @@ function logAndCheckError(error: unknown): error is ValidationError {
 ### Pitfall 6: Overly Complex Type Guards
 
 **Problem:**
+
 ```typescript
-function isComplexError(error: unknown): error is CustomError & { extra: string } {
+function isComplexError(
+  error: unknown
+): error is CustomError & { extra: string } {
   return (
     error instanceof CustomError &&
     'extra' in error &&
@@ -852,22 +914,27 @@ function isComplexError(error: unknown): error is CustomError & { extra: string 
 ```
 
 **Solution:**
+
 ```typescript
 // Break down into simpler guards
 function isCustomError(error: unknown): error is CustomError {
   return error instanceof CustomError;
 }
 
-function hasExtraProperty(error: unknown): error is CustomError & { extra: string } {
+function hasExtraProperty(
+  error: unknown
+): error is CustomError & { extra: string } {
   return (
-    isCustomError(error) &&
-    'extra' in error &&
-    typeof error.extra === 'string'
+    isCustomError(error) && 'extra' in error && typeof error.extra === 'string'
   );
 }
 
 // Then combine
-if (hasExtraProperty(error) && error.extra.length > 0 && error.extra !== 'invalid') {
+if (
+  hasExtraProperty(error) &&
+  error.extra.length > 0 &&
+  error.extra !== 'invalid'
+) {
   // ...
 }
 ```
@@ -877,15 +944,18 @@ if (hasExtraProperty(error) && error.extra.length > 0 && error.extra !== 'invali
 ## Additional Resources
 
 ### Official TypeScript Documentation
+
 - **Type Narrowing:** https://www.typescriptlang.org/docs/handbook/2/narrowing.html
 - **Type Predicates:** https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
 - **Everyday Types:** https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
 
 ### Recommended Reading
+
 - **TypeScript Deep Dive - Type Guards:** https://basarat.gitbook.io/typescript/type-system/typeguard
 - **Effectivestyle - TypeScript Error Handling:** (Various community resources)
 
 ### Community Examples
+
 - Search GitHub for "instanceof Error" in TypeScript repositories
 - Search for "type guard" in popular TypeScript projects
 - Review error handling patterns in Express.js, NestJS, and other frameworks
@@ -903,6 +973,7 @@ TypeScript type guards for error handling provide:
 5. **Type Narrowing:** Automatic type narrowing in conditional blocks
 
 **Key Takeaways:**
+
 - Always use type predicates (`value is Type`) for type guards
 - Maintain prototype chain when extending Error
 - Handle unknown errors gracefully

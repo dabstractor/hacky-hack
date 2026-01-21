@@ -45,6 +45,7 @@ Every test file MUST have comprehensive header documentation:
 ```
 
 **Example from errors.test.ts:**
+
 ```typescript
 /**
  * Unit tests for Error hierarchy
@@ -135,6 +136,7 @@ describe('Feature name', () => {
 ```
 
 **Example from errors.test.ts:**
+
 ```typescript
 describe('Error hierarchy', () => {
   describe('ErrorCodes constant', () => {
@@ -175,6 +177,7 @@ it('should return true for SessionError with LOAD_FAILED code', () => {
 ```
 
 **Benefits of SEV Pattern:**
+
 1. Clear separation of concerns
 2. Easy to identify test components
 3. Simplifies debugging
@@ -191,6 +194,7 @@ it('should return true for SessionError with LOAD_FAILED code', () => {
 - Use specific feature/function names for root describe (e.g., "isFatalError")
 
 **Examples:**
+
 - `describe('isFatalError', () => { ... })` - Root describe
 - `describe('Fatal errors (return true)', () => { ... })` - Category
 - `describe('SessionError', () => { ... })` - Subcategory
@@ -203,6 +207,7 @@ it('should return true for SessionError with LOAD_FAILED code', () => {
 - Use present tense
 
 **Examples:**
+
 - `it('should return true for SessionError with LOAD_FAILED code', () => { ... })`
 - `it('should return false for TaskError instances', () => { ... })`
 - `it('should handle null values gracefully', () => { ... })`
@@ -261,8 +266,12 @@ expect(result).toMatchObject({ status: 'success' });
 
 ```typescript
 // Throwing errors
-expect(() => { throw error; }).toThrow(ErrorType);
-expect(() => { operation(); }).not.toThrow();
+expect(() => {
+  throw error;
+}).toThrow(ErrorType);
+expect(() => {
+  operation();
+}).not.toThrow();
 
 // Error properties
 expect(error.name).toBe('SessionError');
@@ -514,11 +523,13 @@ it('should use mocked module', () => {
 ### Mock Factories
 
 ```typescript
-function createMockError(options: {
-  message?: string;
-  code?: string;
-  context?: Record<string, unknown>;
-} = {}) {
+function createMockError(
+  options: {
+    message?: string;
+    code?: string;
+    context?: Record<string, unknown>;
+  } = {}
+) {
   const {
     message = 'Test error',
     code = ErrorCodes.PIPELINE_SESSION_LOAD_FAILED,
@@ -745,6 +756,7 @@ npm run test:coverage -- tests/unit/utils/is-fatal-error.test.ts
 ### Next Steps
 
 Use these patterns to implement the comprehensive test suite for `isFatalError()`:
+
 1. Follow the file structure pattern
 2. Use nested describe blocks for organization
 3. Apply SEV pattern to all tests

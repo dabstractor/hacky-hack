@@ -42,6 +42,7 @@ describe('environment configuration', () => {
 ```
 
 **Problems:**
+
 - If constant changes, test still passes (false positive)
 - No clear relationship to source code
 - Hard to refactor
@@ -74,6 +75,7 @@ describe('environment configuration', () => {
 ```
 
 **Benefits:**
+
 - Test fails if constant changes (catches drift)
 - Clear relationship to source code
 - Refactor-friendly
@@ -512,9 +514,12 @@ test.each([
   [MODEL_TIERS.OPUS, MODEL_NAMES.OPUS],
   [MODEL_TIERS.SONNET, MODEL_NAMES.SONNET],
   [MODEL_TIERS.HAIKU, MODEL_NAMES.HAIKU],
-])('getModelForTier(%s) should return matching constant', (tier, expectedModel) => {
-  expect(getModelForTier(tier)).toBe(expectedModel);
-});
+])(
+  'getModelForTier(%s) should return matching constant',
+  (tier, expectedModel) => {
+    expect(getModelForTier(tier)).toBe(expectedModel);
+  }
+);
 ```
 
 ---
@@ -583,7 +588,7 @@ export const STATUS = {
   FAILED: 'failed',
 } as const;
 
-export type Status = typeof STATUS[keyof typeof STATUS];
+export type Status = (typeof STATUS)[keyof typeof STATUS];
 
 // tests/status.test.ts
 import { STATUS } from '../src/constants/status.js';

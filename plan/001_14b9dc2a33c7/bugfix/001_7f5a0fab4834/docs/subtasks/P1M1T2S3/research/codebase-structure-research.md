@@ -26,13 +26,13 @@ src/
 
 ## 2. Utility Modules Reference
 
-| File | Purpose | Key Exports |
-|------|---------|-------------|
-| **errors.ts** | Custom error handling | `ErrorCodes`, `PipelineError`, type guards |
-| **groundswell-linker.ts** | Groundswell dependency management | Link and verify functions, result interfaces |
-| **groundswell-verifier.ts** | Groundswell package verification | `verifyGroundswellExists`, result interfaces |
-| **typecheck-runner.ts** | TypeScript compilation runner | `runTypecheck`, `parseTscOutput`, `TypecheckResult` |
-| **typescript-error-analyzer.ts** | TypeScript error analysis | `analyzeTypeScriptErrors`, `ErrorAnalysisResult` |
+| File                             | Purpose                           | Key Exports                                         |
+| -------------------------------- | --------------------------------- | --------------------------------------------------- |
+| **errors.ts**                    | Custom error handling             | `ErrorCodes`, `PipelineError`, type guards          |
+| **groundswell-linker.ts**        | Groundswell dependency management | Link and verify functions, result interfaces        |
+| **groundswell-verifier.ts**      | Groundswell package verification  | `verifyGroundswellExists`, result interfaces        |
+| **typecheck-runner.ts**          | TypeScript compilation runner     | `runTypecheck`, `parseTscOutput`, `TypecheckResult` |
+| **typescript-error-analyzer.ts** | TypeScript error analysis         | `analyzeTypeScriptErrors`, `ErrorAnalysisResult`    |
 
 ## 3. Test Structure
 
@@ -74,12 +74,15 @@ From `package.json`:
 ## 5. File Placement for P1.M1.T2.S3
 
 **New file to create:**
+
 - `src/utils/module-resolution-verifier.ts` - Main implementation
 
 **New test file to create:**
+
 - `tests/unit/utils/module-resolution-verifier.test.ts` - Unit tests
 
 **Files to reference (existing):**
+
 - `src/utils/typescript-error-analyzer.ts` - Input interface (ErrorAnalysisResult)
 - `src/utils/groundswell-verifier.ts` - Verification result pattern reference
 - `tests/unit/utils/groundswell-verifier.test.ts` - Test pattern reference

@@ -5,6 +5,7 @@
 ## Type Definitions
 
 ### Status Type (Lines 55-61)
+
 ```typescript
 type Status =
   | 'Planned'
@@ -16,11 +17,12 @@ type Status =
 ```
 
 ### Subtask Interface (Lines 149-211)
+
 ```typescript
 interface Subtask {
-  readonly id: string;           // Format: P{phase}.M{milestone}.T{task}.S{subtask}
+  readonly id: string; // Format: P{phase}.M{milestone}.T{task}.S{subtask}
   readonly type: 'Subtask';
-  readonly title: string;        // min 1, max 200 chars
+  readonly title: string; // min 1, max 200 chars
   readonly status: Status;
   readonly story_points: number; // Integer, min 1, max 21 (Fibonacci)
   readonly dependencies: string[];
@@ -29,11 +31,12 @@ interface Subtask {
 ```
 
 ### Task Interface (Lines 286-322)
+
 ```typescript
 interface Task {
-  readonly id: string;           // Format: P{phase}.M{milestone}.T{task}
+  readonly id: string; // Format: P{phase}.M{milestone}.T{task}
   readonly type: 'Task';
-  readonly title: string;        // min 1, max 200 chars
+  readonly title: string; // min 1, max 200 chars
   readonly status: Status;
   readonly description: string;
   readonly subtasks: Subtask[];
@@ -41,11 +44,12 @@ interface Task {
 ```
 
 ### Milestone Interface (Lines 381-416)
+
 ```typescript
 interface Milestone {
-  readonly id: string;           // Format: P{phase}.M{milestone}
+  readonly id: string; // Format: P{phase}.M{milestone}
   readonly type: 'Milestone';
-  readonly title: string;        // min 1, max 200 chars
+  readonly title: string; // min 1, max 200 chars
   readonly status: Status;
   readonly description: string;
   readonly tasks: Task[];
@@ -53,11 +57,12 @@ interface Milestone {
 ```
 
 ### Phase Interface (Lines 478-513)
+
 ```typescript
 interface Phase {
-  readonly id: string;           // Format: P{phase}
+  readonly id: string; // Format: P{phase}
   readonly type: 'Phase';
-  readonly title: string;        // min 1, max 200 chars
+  readonly title: string; // min 1, max 200 chars
   readonly status: Status;
   readonly description: string;
   readonly milestones: Milestone[];
@@ -67,6 +72,7 @@ interface Phase {
 ## Zod Validation Schemas
 
 ### StatusEnum (Lines 78-85)
+
 ```typescript
 StatusEnum = z.enum([
   'Planned',
@@ -75,26 +81,29 @@ StatusEnum = z.enum([
   'Complete',
   'Failed',
   'Obsolete',
-])
+]);
 ```
 
 ### SubtaskSchema (Lines 236-253)
+
 ```typescript
 SubtaskSchema: z.ZodType<Subtask> = z.object({
   id: z.string().regex(/^P\d+\.M\d+\.T\d+\.S\d+$/, 'Invalid subtask ID format'),
   type: z.literal('Subtask'),
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
   status: StatusEnum,
-  story_points: z.number()
+  story_points: z
+    .number()
     .int('Story points must be an integer')
     .min(1, 'Story points must be at least 1')
     .max(21, 'Story points cannot exceed 21'),
   dependencies: z.array(z.string()).min(0),
   context_scope: z.string().min(1, 'Context scope is required'),
-})
+});
 ```
 
 ### TaskSchema (Lines 346-358)
+
 ```typescript
 TaskSchema: z.ZodType<Task> = z.object({
   id: z.string().regex(/^P\d+\.M\d+\.T\d+$/, 'Invalid task ID format'),
@@ -103,10 +112,11 @@ TaskSchema: z.ZodType<Task> = z.object({
   status: StatusEnum,
   description: z.string().min(1, 'Description is required'),
   subtasks: z.array(SubtaskSchema),
-})
+});
 ```
 
 ### MilestoneSchema (Lines 440-454)
+
 ```typescript
 MilestoneSchema: z.ZodType<Milestone> = z.lazy(() =>
   z.object({
@@ -117,10 +127,11 @@ MilestoneSchema: z.ZodType<Milestone> = z.lazy(() =>
     description: z.string().min(1, 'Description is required'),
     tasks: z.array(z.lazy(() => TaskSchema)),
   })
-)
+);
 ```
 
 ### PhaseSchema (Lines 537-546)
+
 ```typescript
 PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
   z.object({
@@ -131,17 +142,17 @@ PhaseSchema: z.ZodType<Phase> = z.lazy(() =>
     description: z.string().min(1, 'Description is required'),
     milestones: z.array(z.lazy(() => MilestoneSchema)),
   })
-)
+);
 ```
 
 ## ID Format Patterns
 
-| Level | Pattern | Example |
-|-------|---------|---------|
-| Phase | `^P\d+$` | `P1`, `P2` |
-| Milestone | `^P\d+\.M\d+$` | `P1.M1`, `P1.M2` |
-| Task | `^P\d+\.M\d+\.T\d+$` | `P1.M1.T1`, `P1.M2.T3` |
-| Subtask | `^P\d+\.M\d+\.T\d+\.S\d+$` | `P1.M1.T1.S1`, `P1.M2.T3.S5` |
+| Level     | Pattern                    | Example                      |
+| --------- | -------------------------- | ---------------------------- |
+| Phase     | `^P\d+$`                   | `P1`, `P2`                   |
+| Milestone | `^P\d+\.M\d+$`             | `P1.M1`, `P1.M2`             |
+| Task      | `^P\d+\.M\d+\.T\d+$`       | `P1.M1.T1`, `P1.M2.T3`       |
+| Subtask   | `^P\d+\.M\d+\.T\d+\.S\d+$` | `P1.M1.T1.S1`, `P1.M2.T3.S5` |
 
 ## Story Points Validation
 

@@ -17,6 +17,7 @@ The existing test suite for BASE_URL configuration has a **critical synchronizat
 ### Existing Tests (Lines 75-99)
 
 **Test 1: "should set default BASE_URL when not provided"** (lines 75-86)
+
 ```typescript
 it('should set default BASE_URL when not provided', () => {
   // SETUP: No BASE_URL set
@@ -27,12 +28,13 @@ it('should set default BASE_URL when not provided', () => {
 
   // VERIFY: Default z.ai endpoint
   expect(process.env.ANTHROPIC_BASE_URL).toBe(
-    'https://api.z.ai/api/anthropic'  // ❌ HARDCODED STRING
+    'https://api.z.ai/api/anthropic' // ❌ HARDCODED STRING
   );
 });
 ```
 
 **Test 2: "should preserve custom BASE_URL when already set"** (lines 88-99)
+
 ```typescript
 it('should preserve custom BASE_URL when already set', () => {
   // SETUP: Custom BASE_URL
@@ -49,10 +51,11 @@ it('should preserve custom BASE_URL when already set', () => {
 ```
 
 **Test 3: Idempotency check from P1.M2.T1.S1** (lines 50-73)
+
 ```typescript
 it('should be idempotent - calling multiple times produces same result', () => {
   // ... setup code ...
-  expect(firstResult.baseUrl).toBe('https://api.z.ai/api/anthropic');  // ❌ HARDCODED
+  expect(firstResult.baseUrl).toBe('https://api.z.ai/api/anthropic'); // ❌ HARDCODED
 });
 ```
 
@@ -67,6 +70,7 @@ The contract definition for P1.M2.T1.S2 states:
 > **Test 3**: Verify default matches constant `DEFAULT_BASE_URL` from constants.ts
 
 However, the current implementation:
+
 - ❌ Does **not** import `DEFAULT_BASE_URL` from `constants.ts`
 - ❌ Uses hardcoded string `'https://api.z.ai/api/anthropic'` in three locations
 - ❌ Creates a **false sense of security** - test passes even if constant changes
@@ -74,11 +78,13 @@ However, the current implementation:
 ### Source of Truth
 
 **File**: `/home/dustin/projects/hacky-hack/src/config/constants.ts` (Line 22)
+
 ```typescript
 export const DEFAULT_BASE_URL = 'https://api.z.ai/api/anthropic' as const;
 ```
 
 **File**: `/home/dustin/projects/hacky-hack/src/config/environment.ts` (Line 63)
+
 ```typescript
 process.env.ANTHROPIC_BASE_URL = DEFAULT_BASE_URL;
 ```
@@ -92,6 +98,7 @@ The implementation correctly uses the constant, but the test does not validate t
 ### What Happens If Someone Changes `DEFAULT_BASE_URL`?
 
 **Scenario**: Developer changes `constants.ts`:
+
 ```typescript
 // Before
 export const DEFAULT_BASE_URL = 'https://api.z.ai/api/anthropic' as const;
@@ -101,11 +108,13 @@ export const DEFAULT_BASE_URL = 'https://api.z.ai/v2/anthropic' as const;
 ```
 
 **Current Test Behavior**:
+
 - ✅ Test **still passes** (hardcoded string unchanged)
 - ❌ Code now uses **different URL** than test expects
 - ❌ Test provides **false coverage** - thinks it's validating the constant
 
 **Desired Test Behavior**:
+
 - ✅ Test **fails** (detects constant changed)
 - ✅ Forces developer to **update test consciously**
 - ✅ Maintains **test-to-code synchronization**
@@ -166,6 +175,7 @@ it('should set default BASE_URL from constants.ts', () => {
 ### 1. Import the Constant
 
 **Add to imports** (Line 11-17):
+
 ```typescript
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -174,12 +184,13 @@ import {
   validateEnvironment,
   EnvironmentValidationError,
 } from '../../../src/config/environment.js';
-import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';  // ✅ ADD THIS
+import { DEFAULT_BASE_URL } from '../../../src/config/constants.js'; // ✅ ADD THIS
 ```
 
 ### 2. Update Test 1 - Default BASE_URL Verification
 
 **Replace hardcoded string** (Lines 75-86):
+
 ```typescript
 it('should set default BASE_URL from constants.ts', () => {
   // SETUP: No BASE_URL set
@@ -190,13 +201,14 @@ it('should set default BASE_URL from constants.ts', () => {
 
   // VERIFY: Default matches source-of-truth constant
   expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
-  expect(DEFAULT_BASE_URL).toBe('https://api.z.ai/api/anthropic');  // Document expected value
+  expect(DEFAULT_BASE_URL).toBe('https://api.z.ai/api/anthropic'); // Document expected value
 });
 ```
 
 ### 3. Update Test 3 - Idempotency Check
 
 **Replace hardcoded string** (Lines 72, 83):
+
 ```typescript
 it('should be idempotent - calling multiple times produces same result', () => {
   // SETUP: Set AUTH_TOKEN, clear API_KEY and BASE_URL
@@ -220,18 +232,19 @@ it('should be idempotent - calling multiple times produces same result', () => {
   // VERIFY: Results should be identical
   expect(firstResult).toEqual(secondResult);
   expect(firstResult.apiKey).toBe('test-token-456');
-  expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL);  // ✅ USE CONSTANT
+  expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL); // ✅ USE CONSTANT
 });
 ```
 
 ### 4. Add Explicit Constant Value Test
 
 **New test for constant documentation**:
+
 ```typescript
 it('should document expected DEFAULT_BASE_URL value', () => {
   // VERIFY: Constant has expected value (defensive documentation)
   expect(DEFAULT_BASE_URL).toBe('https://api.z.ai/api/anthropic');
-  expect(DEFAULT_BASE_URL).not.toBe('https://api.anthropic.com');  // Safety check
+  expect(DEFAULT_BASE_URL).not.toBe('https://api.anthropic.com'); // Safety check
 });
 ```
 
@@ -257,7 +270,7 @@ import {
   validateEnvironment,
   EnvironmentValidationError,
 } from '../../../src/config/environment.js';
-import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';  // ✅ IMPORT CONSTANT
+import { DEFAULT_BASE_URL } from '../../../src/config/constants.js'; // ✅ IMPORT CONSTANT
 
 describe('config/environment', () => {
   // CLEANUP: Always restore environment after each test
@@ -312,7 +325,7 @@ describe('config/environment', () => {
       // VERIFY: Results should be identical
       expect(firstResult).toEqual(secondResult);
       expect(firstResult.apiKey).toBe('test-token-456');
-      expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL);  // ✅ USE CONSTANT
+      expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL); // ✅ USE CONSTANT
     });
 
     it('should set default BASE_URL from constants.ts', () => {
@@ -329,7 +342,7 @@ describe('config/environment', () => {
     it('should document expected DEFAULT_BASE_URL value', () => {
       // VERIFY: Constant has expected value (defensive documentation)
       expect(DEFAULT_BASE_URL).toBe('https://api.z.ai/api/anthropic');
-      expect(DEFAULT_BASE_URL).not.toBe('https://api.anthropic.com');  // Safety check
+      expect(DEFAULT_BASE_URL).not.toBe('https://api.anthropic.com'); // Safety check
     });
 
     it('should preserve custom BASE_URL when already set', () => {
@@ -355,21 +368,25 @@ describe('config/environment', () => {
 ## Benefits of This Approach
 
 ### 1. **Synchronization Guarantees**
+
 - ✅ Test fails if `DEFAULT_BASE_URL` constant changes
 - ✅ Forces conscious decision when updating the constant
 - ✅ Prevents silent drift between test and implementation
 
 ### 2. **Single Source of Truth**
+
 - ✅ Both code and test reference same constant
 - ✅ Changes propagate through import relationship
 - ✅ Reduces duplication from 3 locations to 1
 
 ### 3. **Defensive Documentation**
+
 - ✅ Explicit test documents expected constant value
 - ✅ Safety check prevents accidental use of production API
 - ✅ Self-documenting test intent
 
 ### 4. **Maintainability**
+
 - ✅ Future changes require only updating `constants.ts`
 - ✅ Test suite automatically validates the change
 - ✅ Reduces cognitive load for developers

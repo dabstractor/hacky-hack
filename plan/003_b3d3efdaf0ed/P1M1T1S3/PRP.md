@@ -7,6 +7,7 @@
 **Deliverable**: Integration test file `tests/integration/core/delta-session.test.ts` with complete validation of the delta session workflow from PRD modification through task patching.
 
 **Success Definition**:
+
 - All 4 CONTRACT requirements are tested and passing
 - Test file runs successfully with `npx vitest run tests/integration/core/delta-session.test.ts`
 - Tests validate: (a) delta session directory is created with new hash, (b) `parent_session.txt` contains parent session path, (c) delta PRD is generated focusing only on changes, (d) TaskPatcher correctly marks tasks as new/modified/obsolete
@@ -17,6 +18,7 @@
 **Business Value**: Delta sessions are the core mechanism for incremental development in the PRP Pipeline. They enable selective re-execution of tasks when PRDs change while preserving completed work. Incorrect delta session creation would break the entire incremental development workflow.
 
 **Integration Points**:
+
 - Validates `createDeltaSession()` from `src/core/session-manager.ts` (lines 540-617) for delta session creation
 - Validates `patchBacklog()` from `src/core/task-patcher.ts` (lines 64-110) for task state marking
 - Validates `diffPRDs()` from `src/core/prd-differ.ts` for PRD difference computation
@@ -24,6 +26,7 @@
 - Uses test fixtures from `tests/fixtures/simple-prd.ts` and `tests/fixtures/simple-prd-v2.ts`
 
 **Problems Solved**:
+
 - Ensures delta sessions are created with correct directory structure and naming
 - Confirms parent-child linkage is properly established and persisted
 - Verifies PRD differences are correctly computed and summarized
@@ -35,6 +38,7 @@
 **User-Visible Behavior**: No direct user-visible behavior - this is infrastructure validation for the delta session system that enables incremental PRD development.
 
 **Success Criteria**:
+
 - [ ] Test verifies delta session directory is created with new hash (different from parent)
 - [ ] Test verifies `parent_session.txt` file exists and contains parent session ID
 - [ ] Test verifies delta PRD (diffSummary) is generated and contains change information
@@ -283,7 +287,11 @@ import { mkdtempSync } from 'node:fs';
 // Import SessionManager and types
 import { SessionManager } from '../../../src/core/session-manager.js';
 import { patchBacklog } from '../../../src/core/task-patcher.js';
-import type { DeltaSession, Backlog, DeltaAnalysis } from '../../../src/core/models.js';
+import type {
+  DeltaSession,
+  Backlog,
+  DeltaAnalysis,
+} from '../../../src/core/models.js';
 
 // Import test fixtures
 import { mockSimplePRD } from '../../fixtures/simple-prd.js';
@@ -449,7 +457,9 @@ describe('Delta Session Creation and Linkage', () => {
   }
 
   // Helper function to create mock DeltaAnalysis
-  function createMockDeltaAnalysis(overrides?: Partial<DeltaAnalysis>): DeltaAnalysis {
+  function createMockDeltaAnalysis(
+    overrides?: Partial<DeltaAnalysis>
+  ): DeltaAnalysis {
     return {
       hasDelta: true,
       changes: [
@@ -516,7 +526,10 @@ it('should create parent_session.txt with parent session ID', async () => {
   const deltaSession = await manager.createDeltaSession(prdPath);
 
   // VERIFY: parent_session.txt file exists
-  const parentSessionPath = join(deltaSession.metadata.path, 'parent_session.txt');
+  const parentSessionPath = join(
+    deltaSession.metadata.path,
+    'parent_session.txt'
+  );
   expect(existsSync(parentSessionPath)).toBe(true);
 
   // VERIFY: parent_session.txt contains parent session ID
@@ -640,7 +653,10 @@ it('should create delta session and patch tasks end-to-end', async () => {
   expect(deltaSession.diffSummary).toBeDefined();
 
   // VERIFY: Parent linkage file
-  const parentSessionPath = join(deltaSession.metadata.path, 'parent_session.txt');
+  const parentSessionPath = join(
+    deltaSession.metadata.path,
+    'parent_session.txt'
+  );
   expect(existsSync(parentSessionPath)).toBe(true);
   expect(readFileSync(parentSessionPath, 'utf-8').trim()).toBe(parentSessionId);
 });

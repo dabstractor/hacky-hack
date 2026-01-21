@@ -11,6 +11,7 @@
 **Feature Goal**: Create comprehensive unit tests for task status transitions to validate the Status enum, required field constraints, and documented workflow progression through the PRP Pipeline lifecycle.
 
 **Deliverable**: Extended test file at `tests/unit/core/models.test.ts` with:
+
 1. Complete Status enum validation (all 6 values)
 2. Invalid status rejection test
 3. Required field validation test (missing status fails)
@@ -18,6 +19,7 @@
 5. Special status validation for 'Obsolete' state
 
 **Success Definition**:
+
 - All 6 status values validated via StatusEnum
 - Invalid status ('Invalid') correctly rejected by Zod validation
 - Required field behavior confirmed (missing status fails validation)
@@ -35,12 +37,14 @@
 **Use Case**: Implementing features that depend on task status transitions and needing assurance that the documented workflow (Planned → Researching → Implementing → Complete/Failed) is correctly validated.
 
 **User Journey**:
+
 1. Developer modifies status-related logic or adds new status-based features
 2. Developer runs status transition tests to verify correct behavior
 3. Tests pass if status values and transitions work as documented
 4. Tests fail with clear error messages if status constraints violated
 
 **Pain Points Addressed**:
+
 - **Unclear status workflow**: Tests document the expected progression through statuses
 - **Silent validation failures**: Runtime tests catch status value errors
 - **Missing status handling**: Required field tests prevent undefined status bugs
@@ -69,6 +73,7 @@ Extend the existing `tests/unit/core/models.test.ts` file to add comprehensive t
 ### Current State Analysis
 
 **Existing Test File**: `tests/unit/core/models.test.ts` (2020+ lines)
+
 - Contains basic StatusEnum tests (lines 46-90)
 - Already tests valid status values, invalid rejection, and .options property
 - Missing: Required field test for missing status
@@ -76,6 +81,7 @@ Extend the existing `tests/unit/core/models.test.ts` file to add comprehensive t
 - Missing: Comprehensive enum validation edge cases
 
 **Status Type Definition** (from `src/core/models.ts` lines 55-61):
+
 ```typescript
 export type Status =
   | 'Planned'
@@ -87,6 +93,7 @@ export type Status =
 ```
 
 **Documented Workflow** (from TaskOrchestrator):
+
 - Planned → Researching → Implementing → Complete (success path)
 - Planned → Researching → Implementing → Failed (error path)
 - Obsolete (set by delta analysis from any state)
@@ -111,6 +118,7 @@ The `system_context.md` documentation lists 7 status values including 'Ready', b
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Status type definition analyzed (6 values, not 7 as docs say)
 - [x] StatusEnum Zod schema documented
 - [x] Existing test patterns identified and extracted
@@ -448,8 +456,8 @@ describe('StatusEnum', () => {
 
     // VERIFY: Error should mention missing status field
     if (!result.success) {
-      const statusError = result.error.issues.find(
-        issue => issue.path.includes('status')
+      const statusError = result.error.issues.find(issue =>
+        issue.path.includes('status')
       );
       expect(statusError).toBeDefined();
       expect(statusError?.path).toEqual(['status']);
@@ -486,10 +494,10 @@ describe('Status transition workflow', () => {
   it('should validate normal workflow progression: Planned → Researching → Implementing → Complete', () => {
     // SETUP: Define the workflow progression
     const workflowProgression = [
-      'Planned',      // Initial state
-      'Researching',  // PRP generation in progress
+      'Planned', // Initial state
+      'Researching', // PRP generation in progress
       'Implementing', // PRP execution in progress
-      'Complete',     // Successfully completed
+      'Complete', // Successfully completed
     ] as const;
 
     // EXECUTE & VERIFY: Each status in workflow is valid
@@ -509,10 +517,10 @@ describe('Status transition workflow', () => {
   it('should validate error workflow progression: Planned → Researching → Implementing → Failed', () => {
     // SETUP: Define error workflow progression
     const errorProgression = [
-      'Planned',      // Initial state
-      'Researching',  // PRP generation in progress
+      'Planned', // Initial state
+      'Researching', // PRP generation in progress
       'Implementing', // PRP execution in progress
-      'Failed',       // Failed with error
+      'Failed', // Failed with error
     ] as const;
 
     // EXECUTE & VERIFY: Each status in error workflow is valid
@@ -881,6 +889,7 @@ The `system_context.md` documentation lists 7 values including 'Ready', but the 
 ### Why test workflow if code doesn't enforce it?
 
 The tests serve as **executable documentation** of expected behavior. While the code doesn't currently enforce transition rules, having tests that document the expected workflow provides:
+
 1. Clear specification of intended behavior
 2. Foundation for future validation implementation
 3. Regression prevention if validation is added
@@ -905,6 +914,7 @@ Zod enum validation is case-sensitive and type-strict. Edge case tests ensure th
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from research agents (4 parallel research tasks)
 - [x] Existing test patterns analyzed and documented
 - [x] Status type fully documented (6 values, not 7)
@@ -916,6 +926,7 @@ Zod enum validation is case-sensitive and type-strict. Edge case tests ensure th
 - [x] Previous PRP context integrated
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking structure)
 - Tests only (no production code changes)
 - Can be implemented independently
@@ -923,6 +934,7 @@ Zod enum validation is case-sensitive and type-strict. Edge case tests ensure th
 - Most tests already exist (only 2 new tests needed)
 
 **Known Risks**:
+
 - **Documentation mismatch**: system_context.md says 7 values, implementation has 6
   - Mitigation: Clearly documented in PRP with correct values
 - **No transition enforcement**: Tests document expectations, code doesn't enforce

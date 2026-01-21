@@ -11,6 +11,7 @@
 This research document investigates Node.js `fs/promises.readdir` with the `withFileTypes: true` option, directory vs file filtering patterns, temporary directory testing best practices with `mkdtempSync`, session directory naming validation using regex, and sorting patterns for directory listings.
 
 **Key Findings:**
+
 - `fs/promises.readdir` with `withFileTypes: true` returns `Dirent[]` objects with built-in type checking
 - Current implementation in `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` uses best practices
 - Session directories follow `{sequence}_{hash}` format (e.g., `001_14b9dc2a33c7`)
@@ -24,6 +25,7 @@ This research document investigates Node.js `fs/promises.readdir` with the `with
 ### 1.1 Basic Usage and Return Values
 
 **API Signature:**
+
 ```typescript
 import { readdir } from 'node:fs/promises';
 
@@ -34,15 +36,17 @@ async function readdir(
     withFileTypes?: boolean;
     recursive?: boolean;
   }
-): Promise<string[] | Dirent[]>
+): Promise<string[] | Dirent[]>;
 ```
 
 **When `withFileTypes: true` is set:**
+
 - Returns `Promise<Dirent[]>` instead of `Promise<string[]>`
 - Each `Dirent` object contains metadata about the file system entry
 - Avoids additional `fs.stat()` calls for type checking
 
 **Example:**
+
 ```typescript
 import { readdir } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
@@ -51,9 +55,9 @@ import type { Dirent } from 'node:fs';
 const entries: Dirent[] = await readdir('./plan', { withFileTypes: true });
 
 for (const entry of entries) {
-  console.log(entry.name);              // Directory/file name
-  console.log(entry.isDirectory());     // true if directory
-  console.log(entry.isFile());          // true if regular file
+  console.log(entry.name); // Directory/file name
+  console.log(entry.isDirectory()); // true if directory
+  console.log(entry.isFile()); // true if regular file
   console.log(entry.isSymbolicLink()); // true if symlink
 }
 ```
@@ -64,6 +68,7 @@ for (const entry of entries) {
 **URL:** https://nodejs.org/api/fs.html#class-fsdirent
 
 **Available Methods:**
+
 ```typescript
 class Dirent {
   readonly name: string;
@@ -78,6 +83,7 @@ class Dirent {
 ```
 
 **Performance Benefits:**
+
 - **Single syscall** for both name and type information
 - **No additional `fs.stat()` calls** needed (2-10x faster)
 - **Type-safe** with TypeScript
@@ -89,6 +95,7 @@ class Dirent {
 ### 2.1 Filtering with Dirent (Recommended)
 
 **Pattern from current implementation:**
+
 ```typescript
 // Source: /home/dustin/projects/hacky-hack/src/core/session-manager.ts:776-791
 import { readdir } from 'node:fs/promises';
@@ -120,6 +127,7 @@ async function scanSessionDirectories(planDir: string): Promise<string[]> {
 ### 2.2 Filtering with Array Methods
 
 **Filter directories only:**
+
 ```typescript
 const entries = await readdir(planDir, { withFileTypes: true });
 
@@ -131,15 +139,15 @@ const directories = entries
 ```
 
 **Filter files only:**
+
 ```typescript
-const files = entries
-  .filter(entry => entry.isFile())
-  .map(entry => entry.name);
+const files = entries.filter(entry => entry.isFile()).map(entry => entry.name);
 
 // Returns: ['tasks.json', 'prd_snapshot.md']
 ```
 
 **Separate directories and files:**
+
 ```typescript
 const directories: string[] = [];
 const files: string[] = [];
@@ -156,6 +164,7 @@ for (const entry of entries) {
 ### 2.3 Type Guard Functions
 
 **Best practice for type-safe filtering:**
+
 ```typescript
 import type { Dirent } from 'node:fs';
 
@@ -180,6 +189,7 @@ const files = entries.filter(isFile);
 ### 3.1 Basic mkdtempSync Usage
 
 **API Signature:**
+
 ```typescript
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -196,6 +206,7 @@ rmSync(tempDir, { recursive: true, force: true });
 ### 3.2 Testing Pattern with Setup/Teardown
 
 **Vitest Example:**
+
 ```typescript
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
@@ -241,6 +252,7 @@ describe('Session Directory Tests', () => {
 ### 3.3 Temp Directory Naming Patterns
 
 **Common patterns:**
+
 ```typescript
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -259,6 +271,7 @@ const temp3 = mkdtempSync(join(tmpdir(), 'session-manager-test-'));
 ```
 
 **Best practices:**
+
 1. **Use descriptive prefixes** for easier debugging
 2. **Always cleanup** in `afterEach()` or `afterAll()`
 3. **Use `recursive: true, force: true`** for `rmSync()` to handle non-empty directories
@@ -273,6 +286,7 @@ const temp3 = mkdtempSync(join(tmpdir(), 'session-manager-test-'));
 **Source:** `/home/dustin/projects/hacky-hack/src/core/session-manager.ts:53-63`
 
 **Pattern Definition:**
+
 ```typescript
 /**
  * Compiled regex for session directory matching
@@ -290,6 +304,7 @@ const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 ### 4.2 Regex Pattern Breakdown
 
 **Components:**
+
 ```typescript
 /^(\d{3})_([a-f0-9]{12})$/
  │ │    │  │         │
@@ -301,6 +316,7 @@ const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 ```
 
 **Pattern Explanation:**
+
 - `^` - Start of string anchor (prevents partial matches)
 - `(\d{3})` - Capture group 1: Exactly 3 digits (0-9)
 - `_` - Literal underscore separator
@@ -310,6 +326,7 @@ const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 ### 4.3 Validation Functions
 
 **Type guard for session directory:**
+
 ```typescript
 const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 
@@ -322,13 +339,14 @@ function isSessionDirectory(name: string): boolean {
 
 // Usage
 isSessionDirectory('001_14b9dc2a33c7'); // true
-isSessionDirectory('002_25e8db4b4d8');  // true
-isSessionDirectory('1_abc');            // false
-isSessionDirectory('001_abcdef');       // false (hash too short)
+isSessionDirectory('002_25e8db4b4d8'); // true
+isSessionDirectory('1_abc'); // false
+isSessionDirectory('001_abcdef'); // false (hash too short)
 isSessionDirectory('001_14b9dc2a33c7_extra'); // false (extra characters)
 ```
 
 **Parser for session directory components:**
+
 ```typescript
 interface SessionDirInfo {
   name: string;
@@ -358,6 +376,7 @@ parseSessionDirectoryName('invalid');
 ### 4.4 Integration with Directory Scanning
 
 **Complete scanning and validation:**
+
 ```typescript
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -406,6 +425,7 @@ async function scanSessionDirectories(planDir: string) {
 ### 5.1 Sorting Parsed Session Directories
 
 **After parsing, sort by sequence:**
+
 ```typescript
 const sessions = await scanSessionDirectories(planDir);
 
@@ -423,6 +443,7 @@ sessions.sort((a, b) => a.sequence - b.sequence);
 ### 5.2 Sorting Directory Names Directly
 
 **When you only have directory names:**
+
 ```typescript
 const entries = await readdir(planDir, { withFileTypes: true });
 const sessionNames = entries
@@ -443,6 +464,7 @@ sessionNames.sort((a, b) => {
 ### 5.3 Sorting with LocaleCompare
 
 **Alternative for string-based sorting:**
+
 ```typescript
 sessionNames.sort((a, b) => a.localeCompare(b));
 
@@ -451,6 +473,7 @@ sessionNames.sort((a, b) => a.localeCompare(b));
 ```
 
 **Why this works:**
+
 - Zero-padded sequences sort correctly as strings
 - `'001' < '002' < '010' < '100'` (correct order)
 - Without padding: `'1' < '10' < '2'` (incorrect order)
@@ -458,6 +481,7 @@ sessionNames.sort((a, b) => a.localeCompare(b));
 ### 5.4 Descending Order Sorting
 
 **Sort from highest to lowest:**
+
 ```typescript
 // Method 1: Reverse comparison
 sessions.sort((a, b) => b.sequence - a.sequence);
@@ -470,6 +494,7 @@ sessions.reverse();
 ### 5.5 Finding Latest Session
 
 **Current implementation from session-manager.ts:**
+
 ```typescript
 // Source: /home/dustin/projects/hacky-hack/src/core/session-manager.ts:883-888
 
@@ -484,8 +509,11 @@ async #getNextSequence(): Promise<number> {
 ```
 
 **Alternative using sort:**
+
 ```typescript
-async function getLatestSession(sessions: SessionDirInfo[]): SessionDirInfo | null {
+async function getLatestSession(
+  sessions: SessionDirInfo[]
+): SessionDirInfo | null {
   if (sessions.length === 0) return null;
 
   // Sort by sequence descending
@@ -501,6 +529,7 @@ async function getLatestSession(sessions: SessionDirInfo[]): SessionDirInfo | nu
 ### 6.1 Testing Directory Scanning
 
 **Complete test example:**
+
 ```typescript
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, mkdirSync } from 'node:fs';
@@ -530,7 +559,8 @@ describe('Session Directory Scanning', () => {
 
     // Test: Scan directories
     const entries = await readdir(tempDir, { withFileTypes: true });
-    const sessions: Array<{name: string; sequence: number; hash: string}> = [];
+    const sessions: Array<{ name: string; sequence: number; hash: string }> =
+      [];
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
@@ -550,7 +580,7 @@ describe('Session Directory Scanning', () => {
     expect(sessions.map(s => s.name)).toEqual([
       '001_abc123def456',
       '002_def789ghi012',
-      '003_ghi012jkl345'
+      '003_ghi012jkl345',
     ]);
     expect(sessions.map(s => s.sequence)).toEqual([1, 2, 3]);
   });
@@ -563,7 +593,7 @@ describe('Session Directory Scanning', () => {
 
     // Test: Scan and sort
     const entries = await readdir(tempDir, { withFileTypes: true });
-    const sessions: Array<{name: string; sequence: number}> = [];
+    const sessions: Array<{ name: string; sequence: number }> = [];
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
@@ -866,14 +896,18 @@ export async function scanSessionDirectories(
 /**
  * Sorts sessions by sequence number ascending
  */
-export function sortSessionsBySequence(sessions: SessionDirInfo[]): SessionDirInfo[] {
+export function sortSessionsBySequence(
+  sessions: SessionDirInfo[]
+): SessionDirInfo[] {
   return sessions.sort((a, b) => a.sequence - b.sequence);
 }
 
 /**
  * Finds session with highest sequence number
  */
-export function findLatestSession(sessions: SessionDirInfo[]): SessionDirInfo | null {
+export function findLatestSession(
+  sessions: SessionDirInfo[]
+): SessionDirInfo | null {
   if (sessions.length === 0) return null;
   return sessions.reduce((latest, current) =>
     current.sequence > latest.sequence ? current : latest
@@ -946,7 +980,7 @@ export function createTestSessionDir(
  */
 export function createTestSessions(
   baseDir: string,
-  sessions: Array<{sequence: number; hash: string}>
+  sessions: Array<{ sequence: number; hash: string }>
 ): string[] {
   return sessions.map(({ sequence, hash }) =>
     createTestSessionDir(baseDir, sequence, hash)

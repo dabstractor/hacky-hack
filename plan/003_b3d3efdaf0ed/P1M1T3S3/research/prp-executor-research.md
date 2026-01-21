@@ -11,6 +11,7 @@
 The PRP Executor is a comprehensive execution engine that orchestrates the Coder Agent to implement PRPs (Product Requirement Prompts) with a 4-level progressive validation system and fix-and-retry logic. This research documents the complete implementation, validation flow, retry mechanisms, and existing test patterns to inform comprehensive integration test development.
 
 **Key Findings**:
+
 - PRP executor implements 4-level progressive validation with sequential execution
 - Fix-and-retry logic supports max 2 attempts with exponential backoff (2^n, capped at 30s)
 - BashMCP provides safe command execution with timeout protection (2min default for validation)
@@ -36,6 +37,7 @@ The PRP Executor is a comprehensive execution engine that orchestrates the Coder
 ## 1. PRP Executor Implementation
 
 ### File Location
+
 - **Path**: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts`
 - **Lines**: 501 total
 - **Key Classes**: `PRPExecutor`, `PRPExecutionError`, `ValidationError`
@@ -55,6 +57,7 @@ constructor(sessionPath: string) {
 ```
 
 **Key Points**:
+
 - Session path is required (validated in constructor)
 - Creates Coder Agent via `createCoderAgent()` factory
 - Instantiates BashMCP for validation command execution
@@ -71,10 +74,7 @@ async execute(prp: PRPDocument, prpPath: string): Promise<ExecutionResult>
 #### Step 1: Inject PRP Path into Prompt (Lines 242-246)
 
 ```typescript
-const injectedPrompt = PRP_BUILDER_PROMPT.replace(
-  /\$PRP_FILE_PATH/g,
-  prpPath
-);
+const injectedPrompt = PRP_BUILDER_PROMPT.replace(/\$PRP_FILE_PATH/g, prpPath);
 ```
 
 - Replaces `$PRP_FILE_PATH` placeholder in PRP_BUILDER_PROMPT
@@ -90,6 +90,7 @@ const coderResponse = await retryAgentPrompt(
 ```
 
 **Retry Configuration** (from retry.ts):
+
 - Max attempts: 3 (1 initial + 2 retries)
 - Base delay: 1000ms
 - Max delay: 30000ms
@@ -103,7 +104,8 @@ const coderResult = this.#parseCoderResult(coderResponse as string);
 ```
 
 **Parser Logic** (Lines 471-485):
-```typescript
+
+````typescript
 #parseCoderResult(response: string): { result: string; message: string } {
   try {
     // Extract JSON from response (may be wrapped in markdown code blocks)
@@ -118,11 +120,12 @@ const coderResult = this.#parseCoderResult(coderResponse as string);
     };
   }
 }
-```
+````
 
 **Handles**:
+
 - Raw JSON responses
-- Markdown code block wrapped JSON (```json ... ```)
+- Markdown code block wrapped JSON (`json ... `)
 - Invalid JSON (returns error result)
 
 #### Step 4: Run Validation Gates with Fix-and-Retry (Lines 271-299)
@@ -154,6 +157,7 @@ while (fixAttempts <= maxFixAttempts) {
 ```
 
 **Fix-and-Retry Configuration**:
+
 - Max fix attempts: 2
 - Base delay: 2000ms
 - Exponential backoff: 2^(attempt-1)
@@ -169,9 +173,7 @@ return {
   success: allPassed,
   validationResults,
   artifacts: [], // TODO: Extract artifacts from Coder Agent output
-  error: allPassed
-    ? undefined
-    : 'Validation failed after all fix attempts',
+  error: allPassed ? undefined : 'Validation failed after all fix attempts',
   fixAttempts,
 };
 ```
@@ -188,9 +190,7 @@ async #runValidationGates(prp: PRPDocument): Promise<ValidationGateResult[]>
 
 ```typescript
 // Sort gates by level to ensure sequential execution
-const sortedGates = [...prp.validationGates].sort(
-  (a, b) => a.level - b.level
-);
+const sortedGates = [...prp.validationGates].sort((a, b) => a.level - b.level);
 
 for (const gate of sortedGates) {
   // Skip manual gates or gates with no command
@@ -246,6 +246,7 @@ for (const gate of sortedGates) {
 ```
 
 **Key Behaviors**:
+
 - Gates executed in sequential order (Level 1 → 2 → 3 → 4)
 - Manual gates skipped automatically (count as passed)
 - Gates with null command skipped
@@ -316,6 +317,7 @@ await retryAgentPrompt(
 ```
 
 **Key Points**:
+
 - Provides specific error details from failed gates
 - Includes command, exit code, stdout, stderr
 - Tracks attempt number (1 or 2)
@@ -338,6 +340,7 @@ export interface ValidationGate {
 ```
 
 **Level Purposes**:
+
 - **Level 1**: Syntax & Style (linting, formatting, type checking)
 - **Level 2**: Unit Tests (component-level validation)
 - **Level 3**: Integration Testing (system-level validation)
@@ -402,6 +405,7 @@ const delay = Math.min(2000 * Math.pow(2, fixAttempts - 1), 30000);
 ```
 
 **Delay Progression**:
+
 - Attempt 1: 2000ms (2 seconds)
 - Attempt 2: 4000ms (4 seconds)
 - Attempt 3+: 30000ms (capped at 30 seconds)
@@ -444,6 +448,7 @@ export async function retryAgentPrompt<T>(
 ```
 
 **AGENT_RETRY_CONFIG** (lines 597-605):
+
 ```typescript
 const AGENT_RETRY_CONFIG = {
   maxAttempts: 3,
@@ -455,6 +460,7 @@ const AGENT_RETRY_CONFIG = {
 ```
 
 **Two-Level Retry**:
+
 1. **Agent Prompt Retry**: Handles transient LLM failures (network, timeout)
 2. **Fix-and-Retry**: Handles validation failures (implementation bugs)
 
@@ -463,6 +469,7 @@ const AGENT_RETRY_CONFIG = {
 ## 4. BashMCP Integration
 
 ### File Location
+
 - **Path**: `/home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts`
 - **Lines**: 307 total
 - **Key Class**: `BashMCP`
@@ -542,6 +549,7 @@ const commandArgs = args.slice(1);
 ```
 
 **⚠️ NOTE**: Current implementation uses simple space splitting (line 150)
+
 - Production systems should use proper shell parsing
 - Vulnerable to commands with quoted arguments
 
@@ -566,6 +574,7 @@ try {
 ```
 
 **Safety**:
+
 - `shell: false` prevents shell injection
 - Uses argument array (not shell string)
 - Handles spawn errors synchronously
@@ -588,6 +597,7 @@ const timeoutId = setTimeout(() => {
 ```
 
 **Timeout Strategy**:
+
 1. Send SIGTERM after timeout
 2. Wait 2 seconds grace period
 3. Send SIGKILL if process still running
@@ -613,6 +623,7 @@ if (child.stderr) {
 ```
 
 **Features**:
+
 - Captures stdout and stderr separately
 - Stops capture after kill (prevents data races)
 - Converts Buffer to string
@@ -622,13 +633,14 @@ if (child.stderr) {
 ## 5. PRP Execute Prompt Structure
 
 ### File Location
+
 - **Path**: `/home/dustin/projects/hacky-hack/PROMPTS.md`
 - **Lines**: 641-714
 - **Prompt Name**: `PRP_EXECUTE_PROMPT` (referenced as `PRP_BUILDER_PROMPT` in code)
 
 ### Prompt Structure
 
-```markdown
+````markdown
 # Execute BASE PRP
 
 ## PRP File: (path provided below)
@@ -696,6 +708,7 @@ Strictly output your results in this JSON format:
    "message": "Detailed explanation of the issue"
 }
 ```
+````
 
 <PRP-README>
 $PRP_README
@@ -713,13 +726,11 @@ $PRP_README
 ### Placeholder Replacement
 
 ```typescript
-const injectedPrompt = PRP_BUILDER_PROMPT.replace(
-  /\$PRP_FILE_PATH/g,
-  prpPath
-);
+const injectedPrompt = PRP_BUILDER_PROMPT.replace(/\$PRP_FILE_PATH/g, prpPath);
 ```
 
 **Placeholders**:
+
 - `$PRP_FILE_PATH`: Replaced with actual PRP file path
 - `$PRP_README`: Additional PRP README content
 
@@ -969,6 +980,7 @@ function createMockChild(
 ```
 
 **Key Features**:
+
 - Simulates async data emission with setTimeout
 - Emits 'data' events for stdout/stderr
 - Emits 'close' event with exit code
@@ -1017,11 +1029,7 @@ export function createCoderAgent(): Agent {
     model: getModel('DEFAULT_SONNET_MODEL'), // GLM-4.7
     maxTokens: 4096,
     cacheControl: true,
-    tools: [
-      new BashMCP(),
-      new FilesystemMCP(),
-      new GitMCP(),
-    ],
+    tools: [new BashMCP(), new FilesystemMCP(), new GitMCP()],
   });
 }
 ```
@@ -1030,11 +1038,12 @@ export function createCoderAgent(): Agent {
 
 **From system_context.md (lines 67-72)**:
 
-| Agent | Role | Model | Max Tokens | Cache |
-|-------|------|-------|------------|-------|
-| **Coder** | PRP → Implementation | GLM-4.7 | 4096 | ✅ |
+| Agent     | Role                 | Model   | Max Tokens | Cache |
+| --------- | -------------------- | ------- | ---------- | ----- |
+| **Coder** | PRP → Implementation | GLM-4.7 | 4096       | ✅    |
 
 **Tools Available**:
+
 - **BashMCP**: Shell command execution
 - **FilesystemMCP**: File I/O, glob, grep
 - **GitMCP**: Git operations
@@ -1042,6 +1051,7 @@ export function createCoderAgent(): Agent {
 ### Agent Prompt Pattern
 
 From PROMPTS.md:
+
 - Load PRP file first (critical step)
 - Use Read tool to read PRP
 - Absorb context, patterns, requirements
@@ -1082,6 +1092,7 @@ export interface ValidationGate {
 ```
 
 **Validation Level Types** (from lines 1006-1010):
+
 - **1**: Syntax & Style (linting, formatting, type checking)
 - **2**: Unit Tests (component-level validation)
 - **3**: Integration Testing (system-level validation)
@@ -1100,6 +1111,7 @@ export interface ExecutionResult {
 ```
 
 **Fields**:
+
 - **success**: Whether all validation gates passed
 - **validationResults**: Array of gate execution results
 - **artifacts**: File paths created/modified (TODO: not implemented)
@@ -1111,6 +1123,7 @@ export interface ExecutionResult {
 ## 9. Retry Utility Implementation
 
 ### File Location
+
 - **Path**: `/home/dustin/projects/hacky-hack/src/utils/retry.ts`
 - **Lines**: 706 total
 
@@ -1156,6 +1169,7 @@ export function isTransientError(error: unknown): boolean {
 ```
 
 **Transient Error Codes** (Lines 68-78):
+
 - `ECONNRESET`: Connection reset by peer
 - `ECONNREFUSED`: Connection refused
 - `ETIMEDOUT`: Connection timeout
@@ -1167,17 +1181,20 @@ export function isTransientError(error: unknown): boolean {
 - `ECONNABORTED`: Connection aborted
 
 **Retryable HTTP Status Codes** (Lines 88-95):
+
 - 408: Request Timeout
 - 429: Too Many Requests
 - 500+: Server errors (may be temporary)
 
 **Transient Patterns** (Lines 103-114):
+
 - 'timeout', 'network error', 'temporarily unavailable'
 - 'service unavailable', 'connection reset'
 - 'connection refused', 'rate limit'
 - 'too many requests', 'econnreset', 'etimedout'
 
 **Permanent Patterns** (Lines 123-131):
+
 - 'validation failed', 'invalid input'
 - 'unauthorized', 'forbidden', 'not found'
 - 'authentication failed', 'parse error'
@@ -1258,6 +1275,7 @@ function calculateDelay(
 ```
 
 **Example** (baseDelay=1000, backoffFactor=2, jitterFactor=0.1):
+
 - Attempt 0: 1000ms to 1100ms
 - Attempt 1: 2000ms to 2200ms
 - Attempt 2: 4000ms to 4400ms
@@ -1278,6 +1296,7 @@ export async function retryAgentPrompt<T>(
 ```
 
 **AGENT_RETRY_CONFIG**:
+
 ```typescript
 const AGENT_RETRY_CONFIG = {
   maxAttempts: 3,
@@ -1297,6 +1316,7 @@ const AGENT_RETRY_CONFIG = {
 **Critical**: Gates execute in sequential order, stopping on first failure
 
 **Test Pattern** (from prp-executor.test.ts lines 397-428):
+
 ```typescript
 // Track execution order
 const executionOrder: number[] = [];
@@ -1321,6 +1341,7 @@ expect(executionOrder).toEqual([1, 2, 3]);
 **Critical**: Execution stops at first failing gate
 
 **Test Pattern** (from prp-executor.test.ts lines 430-491):
+
 ```typescript
 // Level 2 fails, Level 3 should not execute
 mockExecuteBash.mockImplementation(({ command }: any) => {
@@ -1346,6 +1367,7 @@ expect(nonSkippedResults).toHaveLength(2); // Only Level 1 and Level 2
 **Critical**: BashMCP must simulate state changes across validation runs
 
 **Test Pattern** (from prp-executor.test.ts lines 257-278):
+
 ```typescript
 // Mock bashMCP.execute_bash to implement a state machine
 let callCount = 0;
@@ -1375,12 +1397,15 @@ mockExecuteBash.mockImplementation(async () => {
 **Critical**: Must simulate async event emission
 
 **Test Pattern** (from tools.test.ts lines 98-133):
+
 ```typescript
-function createMockChild(options: {
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-} = {}) {
+function createMockChild(
+  options: {
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  } = {}
+) {
   const { exitCode = 0, stdout = 'test output', stderr = '' } = options;
 
   return {
@@ -1412,6 +1437,7 @@ function createMockChild(options: {
 ```
 
 **Key Points**:
+
 - Use setTimeout for async emission
 - Emit 'data' events for stdout/stderr
 - Emit 'close' event with exit code
@@ -1422,6 +1448,7 @@ function createMockChild(options: {
 **Critical**: Must use real timers for timeout testing
 
 **Test Pattern** (from tools.test.ts lines 238-281):
+
 ```typescript
 it('should handle timeout correctly with SIGTERM then SIGKILL', async () => {
   vi.useRealTimers(); // Use real timers for timeout testing
@@ -1474,6 +1501,7 @@ it('should handle timeout correctly with SIGTERM then SIGKILL', async () => {
 **Critical**: Mocks must be at top level before imports
 
 **Test Pattern** (from tools.test.ts lines 26-40):
+
 ```typescript
 // =============================================================================
 // MOCK PATTERN: Module-level mocking with hoisting
@@ -1506,6 +1534,7 @@ import { promises as fs, existsSync, realpathSync } from 'node:fs';
 **Critical**: Must handle both raw JSON and markdown-wrapped JSON
 
 **Test Pattern** (from prp-executor.test.ts lines 347-377):
+
 ```typescript
 it('should handle JSON wrapped in markdown code blocks', async () => {
   // SETUP
@@ -1547,6 +1576,7 @@ it('should handle JSON wrapped in markdown code blocks', async () => {
 ### 1. Artifacts Extraction (Line 307)
 
 **Current Implementation**:
+
 ```typescript
 artifacts: [], // TODO: Extract artifacts from Coder Agent output
 ```
@@ -1558,6 +1588,7 @@ artifacts: [], // TODO: Extract artifacts from Coder Agent output
 ### 2. Command Parsing (Line 150)
 
 **Current Implementation**:
+
 ```typescript
 // Simple split on spaces - for production, use proper shell parsing
 const args = command.split(' ');
@@ -1570,6 +1601,7 @@ const args = command.split(' ');
 ### 3. Validation Results Artifacts
 
 **Expected Artifacts** (from system_context.md):
+
 - `$SESSION_DIR/artifacts/P1M1T1S1/validation-results.json`
 - `$SESSION_DIR/artifacts/P1M1T1S1/execution-summary.md`
 - `$SESSION_DIR/artifacts/P1M1T1S1/artifacts-list.json`
@@ -1619,6 +1651,7 @@ const args = command.split(' ');
 ### Critical Line Numbers
 
 **prp-executor.ts**:
+
 - Line 194-202: Constructor
 - Line 238-322: Main execute() method
 - Line 242-246: PRP path injection
@@ -1631,6 +1664,7 @@ const args = command.split(' ');
 - Line 471-485: #parseCoderResult() method
 
 **bash-mcp.ts**:
+
 - Line 131-241: executeBashCommand() function
 - Line 150: Command parsing (simple split)
 - Line 158-171: Spawn execution with error handling
@@ -1639,6 +1673,7 @@ const args = command.split(' ');
 - Line 299-301: execute_bash() direct method
 
 **retry.ts**:
+
 - Line 324-362: isTransientError() function
 - Line 389-411: isPermanentError() function
 - Line 476-530: retry() main function
@@ -1646,10 +1681,12 @@ const args = command.split(' ');
 - Line 629-637: retryAgentPrompt() wrapper
 
 **models.ts**:
+
 - Line 1000-1030: ValidationGate interface
 - Line 1196+: PRPDocument interface
 
 **PROMPTS.md**:
+
 - Lines 641-714: PRP_EXECUTE_PROMPT
 
 ---
@@ -1661,12 +1698,14 @@ The PRP executor implements a robust execution engine with comprehensive validat
 **Existing test coverage is comprehensive**, with both unit and integration test patterns well-established. The primary gap is artifact collection, which is marked as TODO and not yet implemented.
 
 **For comprehensive integration testing**, follow the existing patterns:
+
 - Use state machines for fix-and-retry scenarios
 - Mock ChildProcess with async event emission
 - Use real timers for timeout tests
 - Implement module-level mocking with hoisting
 
 **Key implementation details to test**:
+
 - Sequential gate execution with stop-on-fail
 - Exponential backoff with jitter
 - Two-level retry system (agent + fix)

@@ -11,11 +11,13 @@ Delta sessions enable incremental development by tracking PRD changes and automa
 **File**: `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 
 #### createDeltaSession() Method
+
 - **Lines**: 540-617
 - **Signature**: `async createDeltaSession(newPRDPath: string): Promise<DeltaSession>`
 - **Purpose**: Creates a linked delta session when PRD is modified
 
 **Method Call Sequence**:
+
 1. Validates current session is loaded (throws Error if not)
 2. Validates new PRD file exists (throws SessionFileError if not)
 3. Hashes the new PRD using `hashPRD()`
@@ -29,18 +31,21 @@ Delta sessions enable incremental development by tracking PRD changes and automa
 11. Returns the deltaSession object
 
 **Side Effects**:
+
 - Updates `#currentSession` reference to point to new delta session
 - Creates new session directory with `parent_session.txt` file
 - Writes PRD snapshot to new session directory
 - Increments session sequence number
 
 **Error Handling**:
+
 - Throws `Error` if no current session is loaded
 - Throws `SessionFileError` if new PRD does not exist
 
 ### 2. Parent Session Linkage
 
-#### __readParentSession() (Private Static Method)
+#### \_\_readParentSession() (Private Static Method)
+
 - **Lines**: 950-961
 - **Signature**: `static async __readParentSession(sessionPath: string): Promise<string | null>`
 - **Purpose**: Reads parent session ID from `parent_session.txt`
@@ -48,6 +53,7 @@ Delta sessions enable incremental development by tracking PRD changes and automa
 - **Error Handling**: Silent catch - returns null if file read fails
 
 #### loadSession() Parent Reading
+
 - **Lines**: 497-505
 - **Functionality**:
   - Calls `readFile()` on `parent_session.txt` path
@@ -55,7 +61,9 @@ Delta sessions enable incremental development by tracking PRD changes and automa
   - Silent catch - no parent session is treated as optional
 
 #### parent_session.txt Writing
+
 - **Lines**: 578-582 in createDeltaSession()
+
 ```typescript
 await writeFile(
   resolve(sessionPath, 'parent_session.txt'),
@@ -65,6 +73,7 @@ await writeFile(
 ```
 
 **Parent Session File Format**:
+
 - **File Name**: `parent_session.txt`
 - **Content**: Single line containing parent session ID (e.g., "001_14b9dc2a33c7")
 - **Location**: `{session_dir}/parent_session.txt`
@@ -86,6 +95,7 @@ Delta sessions include all standard session files plus additional delta-specific
 ```
 
 **Session Naming Pattern**:
+
 - Pattern: `^(\d{3})_([a-f0-9]{12})$`
 - Sequence: Zero-padded to 3 digits (e.g., "001", "002")
 - Hash: First 12 characters of SHA-256 hash
@@ -98,6 +108,7 @@ Delta sessions include all standard session files plus additional delta-specific
 **Purpose**: Uses QA agent with specialized prompt for semantic PRD comparison
 
 **Returns**: Structured `DeltaAnalysis` with:
+
 - `changes`: Array of RequirementChange objects
 - `patchInstructions`: Instructions for task patching
 
@@ -108,6 +119,7 @@ Delta sessions include all standard session files plus additional delta-specific
 **Function**: `diffPRDs(oldPRD: string, newPRD: string): DiffSummary`
 
 **Features**:
+
 - Section-aware diffing using markdown headers
 - 5% word change threshold or 3+ sections affected for significance
 - Impact levels:
@@ -116,6 +128,7 @@ Delta sessions include all standard session files plus additional delta-specific
   - **low**: <50 words changed
 
 **Diffing Process**:
+
 1. Section Parsing (lines 179-253): Extracts markdown sections by headers
 2. Content Comparison (lines 355-399): Uses fast-diff with markdown normalization
 3. Change Detection (lines 468-538): Categorizes and filters changes
@@ -126,8 +139,8 @@ Delta sessions include all standard session files plus additional delta-specific
 
 ```typescript
 export interface DeltaSession extends SessionState {
-  readonly oldPRD: string;        // Original PRD content from parent session
-  readonly newPRD: string;        // Modified PRD that triggered delta creation
+  readonly oldPRD: string; // Original PRD content from parent session
+  readonly newPRD: string; // Modified PRD that triggered delta creation
 }
 ```
 
@@ -137,11 +150,13 @@ export interface DeltaSession extends SessionState {
 **Signature**: `hasSessionChanged(): boolean`
 
 **Functionality**:
+
 - Synchronously compares cached PRD hash (`#prdHash`) with current session hash
 - Returns true if PRD has been modified since session load
 - Used to detect when delta session creation is needed
 
 **Hash Caching** (lines 224-233 in initialize()):
+
 ```typescript
 const fullHash = await hashPRD(this.prdPath);
 const sessionHash = fullHash.slice(0, 12);
@@ -161,22 +176,26 @@ this.#prdHash = sessionHash;
 ## Key Implementation Details
 
 ### SHA-256 Hashing
+
 - Full hash: 64-character hex string
 - Session hash: First 12 characters only
 - Algorithm: `createHash('sha256').update(content).digest('hex').slice(0, 12)`
 
 ### Sequence Number Management
+
 - Starts at 1 for initial session
 - Increments by 1 for each delta session
 - Zero-padded to 3 digits
 - Determined by scanning existing session directories
 
 ### Atomic Operations
+
 - File writes use proper permissions (0o644 for files, 0o755 for directories)
 - Directory creation uses `mkdirSync` with recursive option
 - Parent session reference written before session state is updated
 
 ### Error Handling
+
 - `Error('Cannot create delta session: no current session loaded')`
 - `SessionFileError` for non-existent PRD files
 - Graceful handling of file read/write failures
@@ -184,11 +203,14 @@ this.#prdHash = sessionHash;
 ## Existing Tests
 
 ### E2E Tests
+
 **File**: `/home/dustin/projects/hacky-hack/tests/e2e/delta.test.ts`
+
 - Tests delta workflow with PRD v1 → v2 transitions
 - Validates task patching and session preservation
 
 ### Unit Tests
+
 - `DeltaAnalysisWorkflow` unit tests
 - `SessionManager` delta method tests
 - `diffPRDs` function tests

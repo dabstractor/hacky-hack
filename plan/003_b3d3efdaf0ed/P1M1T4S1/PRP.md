@@ -7,6 +7,7 @@
 **Feature Goal**: Verify the main execution loop of PRPPipeline correctly processes tasks from the backlog through integration tests that validate session initialization, task processing loop, individual failure handling, progress metrics updates, and pipeline status transitions.
 
 **Deliverable**: Integration test file `tests/integration/pipeline-main-loop.test.ts` with comprehensive test cases covering:
+
 - Pipeline initialization from PRD hash (session discovery/creation)
 - Main execution loop processes tasks until queue empty
 - Individual task failures don't stop pipeline (tracked and continued)
@@ -15,6 +16,7 @@
 - Mock session state, task outcomes, and orchestrator behavior
 
 **Success Definition**: All tests pass, verifying:
+
 - PRPPipeline initializes session from PRD hash correctly
 - Main execution loop processes all tasks until queue is empty
 - Individual task failures are tracked but don't stop pipeline execution
@@ -52,7 +54,8 @@ Integration tests that verify the main execution loop of PRPPipeline processes t
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Exact file paths and patterns from existing pipeline and orchestrator tests
 - PRPPipeline implementation details (main loop, progress tracking, status transitions)
 - Mock setup patterns for TaskOrchestrator and SessionManager
@@ -210,6 +213,7 @@ tests/
 ```
 
 **New File**: `tests/integration/pipeline-main-loop.test.ts`
+
 - Tests PRPPipeline main execution loop (executeBacklog)
 - Tests session initialization from PRD hash
 - Tests task processing until queue empty
@@ -345,11 +349,17 @@ Use existing types from `src/core/models.ts`:
 
 ```typescript
 // Import existing types for use in tests
-import type { SessionState, Backlog, PipelineResult } from '../../src/core/models.js';
+import type {
+  SessionState,
+  Backlog,
+  PipelineResult,
+} from '../../src/core/models.js';
 import type { PRPPipeline } from '../../src/workflows/prp-pipeline.js';
 
 // Mock fixture for SessionState
-const createMockSessionState = (overrides?: Partial<SessionState>): SessionState => ({
+const createMockSessionState = (
+  overrides?: Partial<SessionState>
+): SessionState => ({
   metadata: {
     id: '001_test123',
     hash: 'test123',
@@ -520,7 +530,15 @@ Task 11: VERIFY all tests follow project patterns
 
 ```typescript
 // PATTERN: Top-level module mocking
-import { afterEach, beforeEach, describe, expect, it, vi, beforeAll } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  beforeAll,
+} from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -561,7 +579,9 @@ vi.mock('../../src/agents/prp-runtime.js', () => ({
 }));
 
 // PATTERN: Factory functions for consistent mocks
-function createMockSessionState(overrides?: Partial<SessionState>): SessionState {
+function createMockSessionState(
+  overrides?: Partial<SessionState>
+): SessionState {
   return {
     metadata: {
       id: '001_test123',
@@ -609,7 +629,8 @@ describe('integration/pipeline-main-loop', () => {
 
   beforeAll(async () => {
     // Dynamic imports after mocks are applied
-    const orchestratorModule = await import('../../src/core/task-orchestrator.js');
+    const orchestratorModule =
+      await import('../../src/core/task-orchestrator.js');
     TaskOrchestrator = orchestratorModule.TaskOrchestrator;
 
     const sessionModule = await import('../../src/core/session-manager.js');
@@ -771,13 +792,17 @@ it('should transition through expected status states', async () => {
   vi.mocked(SessionManager).mockImplementation(() => mockSessionManager);
   vi.mocked(TaskOrchestrator).mockImplementation(() => mockOrchestrator);
 
-  vi.spyOn(originalPipeline.prototype, 'initializeSession').mockImplementation(async function() {
-    (this as any).currentPhase = 'session_initialized';
-  });
+  vi.spyOn(originalPipeline.prototype, 'initializeSession').mockImplementation(
+    async function () {
+      (this as any).currentPhase = 'session_initialized';
+    }
+  );
 
-  vi.spyOn(originalPipeline.prototype, 'decomposePRD').mockImplementation(async function() {
-    (this as any).currentPhase = 'prd_decomposed';
-  });
+  vi.spyOn(originalPipeline.prototype, 'decomposePRD').mockImplementation(
+    async function () {
+      (this as any).currentPhase = 'prd_decomposed';
+    }
+  );
 
   // EXECUTE: Run full pipeline
   pipelineInstance = new PRPPipeline(prdPath);

@@ -294,7 +294,8 @@ describe('gitTool schema', () => {
   it('should have path property defined', () => {
     expect(gitStatusTool.input_schema.properties.path).toEqual({
       type: 'string',
-      description: 'Path to git repository (optional, defaults to current directory)',
+      description:
+        'Path to git repository (optional, defaults to current directory)',
     });
   });
 });
@@ -352,16 +353,19 @@ describe('FilesystemMCP tool schemas', () => {
 ### 5.1 Three Testing Levels
 
 **Level 1: Unit Tests**
+
 - Test individual tool executors in isolation
 - Mock all external dependencies
 - Focus on business logic
 
 **Level 2: Integration Tests**
+
 - Test MCPHandler registration and tool execution
 - Verify tool schemas and execution flow
 - Test agent-MCP integration
 
 **Level 3: End-to-End Tests**
+
 - Test tools with real dependencies
 - Use temporary directories and fixtures
 - Verify actual behavior
@@ -615,6 +619,7 @@ function parseToolResult(toolResult: any): Record<string, unknown> {
 ### 8.1 Testing Implementation Details
 
 **Bad Practice:**
+
 ```typescript
 // ❌ BAD - Tests internal implementation
 it('should call spawn with specific arguments', () => {
@@ -624,6 +629,7 @@ it('should call spawn with specific arguments', () => {
 ```
 
 **Good Practice:**
+
 ```typescript
 // ✅ GOOD - Tests behavior and outcomes
 it('should execute command and return output', async () => {
@@ -636,6 +642,7 @@ it('should execute command and return output', async () => {
 ### 8.2 Not Cleaning Up Mocks
 
 **Bad Practice:**
+
 ```typescript
 // ❌ BAD - Mocks persist between tests
 describe('tests', () => {
@@ -651,6 +658,7 @@ describe('tests', () => {
 ```
 
 **Good Practice:**
+
 ```typescript
 // ✅ GOOD - Clean up after each test
 describe('tests', () => {
@@ -667,6 +675,7 @@ describe('tests', () => {
 ### 8.3 Ignoring Async Error Paths
 
 **Bad Practice:**
+
 ```typescript
 // ❌ BAD - Only tests happy path
 it('should read file', async () => {
@@ -677,6 +686,7 @@ it('should read file', async () => {
 ```
 
 **Good Practice:**
+
 ```typescript
 // ✅ GOOD - Tests both success and error paths
 describe('readFile', () => {
@@ -724,11 +734,13 @@ describe('readFile', () => {
 ### 9.4 Existing Implementations in Codebase
 
 **Source Files:**
+
 - `/home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts` - Bash command execution
 - `/home/dustin/projects/hacky-hack/src/tools/git-mcp.ts` - Git operations
 - `/home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.ts` - File system operations
 
 **Test Files:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/bash-mcp.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/git-mcp.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/filesystem-mcp.test.ts`
@@ -737,6 +749,7 @@ describe('readFile', () => {
 ### 9.5 Best Practices Summary
 
 **DO:**
+
 1. Test tool schemas thoroughly
 2. Mock external dependencies
 3. Test all error code paths
@@ -749,6 +762,7 @@ describe('readFile', () => {
 10. Test security constraints
 
 **DON'T:**
+
 1. Don't test implementation details
 2. Don't leave mocks uncleared
 3. Don't ignore error paths

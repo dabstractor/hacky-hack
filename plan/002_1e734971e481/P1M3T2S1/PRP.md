@@ -11,12 +11,14 @@
 **Feature Goal**: Create comprehensive unit tests for SessionState serialization to validate that session state structures can be properly serialized to JSON and persisted atomically using the temp file + rename pattern.
 
 **Deliverable**: New test file at `tests/unit/core/session-state-serialization.test.ts` with:
+
 1. Test for valid SessionState JSON serialization (JSON.stringify succeeds)
 2. Test for SessionState deserialization (JSON.parse preserves all fields)
 3. Test for atomic write pattern (temp file + rename)
 4. Test for invalid state (missing required fields) fails validation
 
 **Success Definition**:
+
 - SessionState object serializes to valid JSON
 - Deserialized JSON preserves all SessionState fields correctly
 - Atomic write pattern (temp file + rename) works correctly
@@ -33,6 +35,7 @@
 **Use Case**: Implementing session persistence features and needing assurance that SessionState structures serialize correctly to JSON and can be written atomically.
 
 **User Journey**:
+
 1. SessionManager creates SessionState object in memory
 2. SessionState needs to be persisted to disk
 3. Components serialized separately (taskRegistry to tasks.json, etc.)
@@ -40,6 +43,7 @@
 5. Tests verify serialization and persistence work correctly
 
 **Pain Points Addressed**:
+
 - **Silent serialization errors**: Tests catch JSON serialization issues early
 - **Data corruption on crash**: Atomic write pattern tests prevent partial writes
 - **Missing field validation**: Tests ensure all required fields are present
@@ -69,6 +73,7 @@ Create a new test file at `tests/unit/core/session-state-serialization.test.ts` 
 ### Current State Analysis
 
 **SessionState Interface** (from `src/core/models.ts` lines 860-905):
+
 ```typescript
 export interface SessionState {
   readonly metadata: SessionMetadata;
@@ -78,19 +83,20 @@ export interface SessionState {
 }
 
 interface SessionMetadata {
-  readonly id: string;              // Format: {sequence}_{hash}
-  readonly hash: string;            // First 12 chars of SHA-256 PRD hash
-  readonly path: string;            // Filesystem path to session directory
-  readonly createdAt: Date;         // Timestamp when session was created
-  readonly parentSession: string | null;  // Parent session ID for delta sessions
+  readonly id: string; // Format: {sequence}_{hash}
+  readonly hash: string; // First 12 chars of SHA-256 PRD hash
+  readonly path: string; // Filesystem path to session directory
+  readonly createdAt: Date; // Timestamp when session was created
+  readonly parentSession: string | null; // Parent session ID for delta sessions
 }
 
 interface Backlog {
-  readonly backlog: Phase[];  // Task hierarchy
+  readonly backlog: Phase[]; // Task hierarchy
 }
 ```
 
 **Key Insight**: SessionState is NOT serialized as a whole. Components are stored separately:
+
 - `taskRegistry` → `tasks.json` (validated with `BacklogSchema`)
 - `prdSnapshot` → `prd_snapshot.md` (raw markdown)
 - `metadata` → parsed from directory name and filesystem stats
@@ -116,6 +122,7 @@ interface Backlog {
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] SessionState interface fully analyzed (4 fields with types)
 - [x] SessionMetadata structure documented (5 fields)
 - [x] Backlog structure documented (wraps Phase array)
@@ -471,7 +478,13 @@ Task 14: RUN typecheck and verify compilation
 // PATTERN: Factory Functions for Test Data
 // =============================================================================
 
-import { SessionState, SessionMetadata, Backlog, Phase, Status } from '$lib/core/models.js';
+import {
+  SessionState,
+  SessionMetadata,
+  Backlog,
+  Phase,
+  Status,
+} from '$lib/core/models.js';
 
 function createTestSessionMetadata(
   overrides: Partial<SessionMetadata> = {}
@@ -939,7 +952,7 @@ time npm test -- tests/unit/core/session-state-serialization.test.ts
 - **Don't forget mode 0o644** - File permissions should be set correctly
 - **Don't hardcode temp file names** - Must use unique random names
 - **Don't test across filesystems** - Temp and target must be on same filesystem
-- **Don't ignore test data factories** - Use createTest* functions for maintainability
+- **Don't ignore test data factories** - Use createTest\* functions for maintainability
 - **Don't skip error path testing** - Error paths are critical for atomic writes
 - **Don't assume Zod validation** - No schema exists, validate through serialization
 - **Don't forget 100% coverage** - All code paths must be tested
@@ -951,6 +964,7 @@ time npm test -- tests/unit/core/session-state-serialization.test.ts
 ### Why create a new test file instead of extending existing tests?
 
 The existing `models.test.ts` focuses on Zod schema validation for model types, but SessionState has no Zod schema. Creating a dedicated `session-state-serialization.test.ts` file:
+
 1. Separates serialization testing from schema validation testing
 2. Makes the tests easier to find and maintain
 3. Follows the pattern of having focused test files (e.g., session-utils.test.ts for file operations)
@@ -959,6 +973,7 @@ The existing `models.test.ts` focuses on Zod schema validation for model types, 
 ### Why test serialization if SessionState is not serialized as a whole?
 
 While SessionState components are stored separately in the real implementation (taskRegistry to tasks.json, etc.), testing the complete SessionState serialization:
+
 1. Validates that all fields are JSON-serializable
 2. Catches issues with nested structures (Backlog, etc.)
 3. Ensures Date fields serialize correctly
@@ -968,6 +983,7 @@ While SessionState components are stored separately in the real implementation (
 ### Why use factory functions for test data?
 
 Factory functions provide:
+
 1. **Consistency**: All tests use the same base structure
 2. **Flexibility**: Partial overrides allow customization
 3. **Maintainability**: Changes to SessionState structure require updating only the factory
@@ -976,6 +992,7 @@ Factory functions provide:
 ### What about the Date field becoming a string after deserialization?
 
 This is expected JSON behavior:
+
 - `Date` objects serialize to ISO strings in JSON
 - After `JSON.parse()`, the field is a `string`, not a `Date`
 - Tests should verify the ISO string format is correct
@@ -986,6 +1003,7 @@ This test documents the current behavior and provides guidance for future implem
 ### Why no Zod schema for SessionState?
 
 Based on codebase analysis:
+
 - SessionState is an in-memory representation
 - Components are validated and stored separately
 - `BacklogSchema` validates `taskRegistry`
@@ -1001,6 +1019,7 @@ Tests validate structure through serialization rather than schema validation.
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from research agents (6 parallel research tasks)
 - [x] SessionState interface fully analyzed and documented
 - [x] Existing test patterns identified and extracted
@@ -1011,6 +1030,7 @@ Tests validate structure through serialization rather than schema validation.
 - [x] Research documents stored in research/ subdirectory
 
 **Risk Mitigation**:
+
 - New test file (low risk of breaking existing tests)
 - Tests only (no production code changes)
 - Can be implemented independently
@@ -1019,6 +1039,7 @@ Tests validate structure through serialization rather than schema validation.
 - Follows established patterns from session-utils.test.ts
 
 **Known Risks**:
+
 - **No Zod schema**: Tests must validate through serialization only
   - Mitigation: Tests document current behavior and validate JSON roundtrip
 - **Date handling**: Dates become strings after JSON.parse()

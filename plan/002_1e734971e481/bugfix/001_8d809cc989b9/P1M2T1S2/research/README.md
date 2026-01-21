@@ -19,6 +19,7 @@ This directory contains comprehensive research and documentation for implementin
 **Purpose**: Analyzes existing test patterns and conventions in the codebase.
 
 **Contents**:
+
 - Test file structure patterns
 - Import patterns (ESM with .js extension)
 - SEV (Setup-Execute-Verify) pattern
@@ -33,6 +34,7 @@ This directory contains comprehensive research and documentation for implementin
 **When to use**: Reference this when writing the test file to ensure consistency with existing codebase patterns.
 
 **Key insights**:
+
 - All imports must use `.js` extension (ESM module resolution)
 - Follow SEV pattern for all tests
 - Use "should" prefix for test descriptions
@@ -45,6 +47,7 @@ This directory contains comprehensive research and documentation for implementin
 **Purpose**: Complete specification of isFatalError function behavior.
 
 **Contents**:
+
 - Function signature
 - Decision tree (ASCII art)
 - Fatal error conditions (return TRUE)
@@ -56,6 +59,7 @@ This directory contains comprehensive research and documentation for implementin
 **When to use**: Reference this when writing test assertions to ensure correct expected behavior.
 
 **Key insights**:
+
 - Fatal: SessionError (LOAD_FAILED/SAVE_FAILED), EnvironmentError, parse_prd ValidationError
 - Non-fatal: TaskError, AgentError, other ValidationError, standard errors
 - continueOnError flag overrides all other logic when true
@@ -68,6 +72,7 @@ This directory contains comprehensive research and documentation for implementin
 **Purpose**: Complete catalog of all 220 test cases to implement.
 
 **Contents**:
+
 - 50 fatal error test cases with code examples
 - 80 non-fatal error test cases with code examples
 - 20 standard error test cases with code examples
@@ -79,6 +84,7 @@ This directory contains comprehensive research and documentation for implementin
 **When to use**: Use this as the implementation checklist when writing the test file.
 
 **Key insights**:
+
 - Each test case includes complete code example
 - Tests are organized by category for systematic implementation
 - Total of 220 test cases for comprehensive coverage
@@ -90,6 +96,7 @@ This directory contains comprehensive research and documentation for implementin
 **Purpose**: Documents TDD methodology and implementation notes.
 
 **Contents**:
+
 - TDD Red-Green-Refactor cycle overview
 - RED phase checklist and verification
 - GREEN phase strategy and checklist
@@ -102,6 +109,7 @@ This directory contains comprehensive research and documentation for implementin
 **When to use**: Reference this throughout the TDD cycle to stay on track.
 
 **Key insights**:
+
 - Current phase: RED (write failing tests)
 - All tests must fail initially (isFatalError doesn't exist)
 - Run tests frequently during implementation
@@ -114,6 +122,7 @@ This directory contains comprehensive research and documentation for implementin
 ### Step 1: Read the PRP
 
 Start with the main PRP document:
+
 ```bash
 plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/PRP.md
 ```
@@ -123,6 +132,7 @@ This provides the complete context, requirements, and implementation blueprint.
 ### Step 2: Review Test Patterns
 
 Read the test patterns analysis:
+
 ```bash
 plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/test-patterns-analysis.md
 ```
@@ -132,6 +142,7 @@ This shows how to structure tests following existing codebase conventions.
 ### Step 3: Understand Expected Behavior
 
 Read the behavior specification:
+
 ```bash
 plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/isfatalError-behavior-spec.md
 ```
@@ -141,6 +152,7 @@ This defines exactly what isFatalError should do.
 ### Step 4: Implement Test Cases
 
 Use the test case catalog as your checklist:
+
 ```bash
 plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/test-case-catalog.md
 ```
@@ -150,6 +162,7 @@ This provides all 220 test cases with complete code examples.
 ### Step 5: Follow TDD Methodology
 
 Reference the TDD implementation notes:
+
 ```bash
 plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S2/research/tdd-implementation-notes.md
 ```
@@ -263,6 +276,7 @@ A: Yes, this is the TDD "red" phase. Writing all tests first ensures you have a 
 **Q: What if a test passes in the red phase?**
 
 A: If a test passes when it should fail, something is wrong. Check that:
+
 1. The `isFatalError` function doesn't exist yet
 2. The test is calling `isFatalError` correctly
 3. The test expectations are correct
@@ -284,6 +298,7 @@ A: The red phase is primarily writing test code, which is straightforward with t
 **Problem**: Test passes when it should fail.
 
 **Solution**:
+
 1. Verify `isFatalError` function doesn't exist
 2. Check import path is correct (use `.js` extension)
 3. Verify test is calling `isFatalError` function
@@ -294,6 +309,7 @@ A: The red phase is primarily writing test code, which is straightforward with t
 **Problem**: Import fails with module not found error.
 
 **Solution**:
+
 1. Use `.js` extension in import path (ESM requirement)
 2. Verify path is correct relative to test file location
 3. Check that errors.ts exports the needed classes/functions
@@ -303,6 +319,7 @@ A: The red phase is primarily writing test code, which is straightforward with t
 **Problem**: TypeScript syntax errors in test file.
 
 **Solution**:
+
 1. Run `npm run typecheck` to see all syntax errors
 2. Verify correct import syntax
 3. Check for missing type annotations

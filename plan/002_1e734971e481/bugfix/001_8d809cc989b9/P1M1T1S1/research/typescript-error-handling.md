@@ -51,8 +51,8 @@ class CustomError extends Error {
 // Usage
 const error = new CustomError('Something went wrong');
 console.log(error instanceof CustomError); // true
-console.log(error instanceof Error);        // true
-console.log(error.name);                    // 'CustomError'
+console.log(error instanceof Error); // true
+console.log(error.name); // 'CustomError'
 ```
 
 ### 1.2 Pattern with Additional Properties
@@ -78,9 +78,13 @@ class ValidationError extends Error {
 }
 
 // Usage
-const error = new ValidationError('email', 'Invalid format', 'VALIDATION_ERROR');
+const error = new ValidationError(
+  'email',
+  'Invalid format',
+  'VALIDATION_ERROR'
+);
 console.log(error.field); // 'email'
-console.log(error.code);  // 'VALIDATION_ERROR'
+console.log(error.code); // 'VALIDATION_ERROR'
 ```
 
 ### 1.3 Abstract Base Class Pattern
@@ -124,7 +128,7 @@ class DatabaseError extends AppError {
 // Usage - cannot instantiate abstract class directly
 // new AppError('message'); // Compile error
 const dbError = new DatabaseError('Connection failed', { host: 'localhost' });
-console.log(dbError.code);      // 'DATABASE_ERROR'
+console.log(dbError.code); // 'DATABASE_ERROR'
 console.log(dbError.timestamp); // Date object
 ```
 
@@ -138,7 +142,11 @@ class WrappedError extends Error {
   readonly originalError: unknown;
   readonly context?: Record<string, unknown>;
 
-  constructor(message: string, originalError: unknown, context?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    originalError: unknown,
+    context?: Record<string, unknown>
+  ) {
     super(message);
 
     Object.setPrototypeOf(this, WrappedError.prototype);
@@ -168,11 +176,9 @@ class WrappedError extends Error {
 try {
   JSON.parse('{invalid json}');
 } catch (error) {
-  const wrapped = new WrappedError(
-    'Failed to parse configuration',
-    error,
-    { file: 'config.json' }
-  );
+  const wrapped = new WrappedError('Failed to parse configuration', error, {
+    file: 'config.json',
+  });
   console.log(wrapped.getOriginalMessage()); // "Unexpected token..."
 }
 ```
@@ -199,7 +205,7 @@ class BrokenError extends Error {
 
 const broken = new BrokenError('test');
 console.log(broken instanceof BrokenError); // May be false in some environments
-console.log(broken instanceof Error);        // May be false in some environments
+console.log(broken instanceof Error); // May be false in some environments
 ```
 
 ### 2.2 The Solution: Object.setPrototypeOf()
@@ -220,7 +226,7 @@ class CorrectError extends Error {
 
 const correct = new CorrectError('test');
 console.log(correct instanceof CorrectError); // Always true
-console.log(correct instanceof Error);        // Always true
+console.log(correct instanceof Error); // Always true
 ```
 
 ### 2.3 Why This Is Needed
@@ -328,7 +334,7 @@ try {
   } catch (parseError) {
     // Chain the error with a cause
     throw new Error('Failed to parse configuration', {
-      cause: parseError
+      cause: parseError,
     });
   }
 } catch (configError) {
@@ -367,10 +373,7 @@ For environments that may not support ES2022, use a backwards-compatible pattern
 class CompatibleError extends Error {
   cause?: Error;
 
-  constructor(
-    message: string,
-    options?: { cause?: Error }
-  ) {
+  constructor(message: string, options?: { cause?: Error }) {
     super(message);
 
     Object.setPrototypeOf(this, CompatibleError.prototype);
@@ -397,7 +400,7 @@ try {
   throw new Error('Original error');
 } catch (originalError) {
   const chained = new CompatibleError('Wrapped error', {
-    cause: originalError as Error
+    cause: originalError as Error,
   });
   console.log(chained.cause?.message); // 'Original error'
 }
@@ -502,6 +505,7 @@ throw new PaymentError('Insufficient funds', 'PAYMENT_INSUFFICIENT_FUNDS');
 ```
 
 **Problems:**
+
 - No type safety
 - Easy to make typos
 - No autocomplete
@@ -519,7 +523,7 @@ const ErrorCodes = {
   PAYMENT_INVALID_CVV: 'PAYMENT_INVALID_CVV',
 } as const;
 
-type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 class PaymentError extends Error {
   readonly code: ErrorCode;
@@ -591,7 +595,7 @@ const ErrorCodes = {
   VALIDATION_FORMAT_ERROR: 'VALIDATION_FORMAT_ERROR',
 } as const;
 
-type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 /**
  * Base error class with typed code
@@ -626,11 +630,10 @@ class DatabaseError extends AppError {
 }
 
 // Usage
-throw new DatabaseError(
-  'Connection timeout',
-  ErrorCodes.DB_TIMEOUT,
-  { host: 'localhost', port: 5432 }
-);
+throw new DatabaseError('Connection timeout', ErrorCodes.DB_TIMEOUT, {
+  host: 'localhost',
+  port: 5432,
+});
 ```
 
 ### 4.5 Current Project Error Code Pattern
@@ -658,7 +661,8 @@ export const ErrorCodes = {
   PIPELINE_VALIDATION_INVALID_INPUT: 'PIPELINE_VALIDATION_INVALID_INPUT',
   PIPELINE_VALIDATION_MISSING_FIELD: 'PIPELINE_VALIDATION_MISSING_FIELD',
   PIPELINE_VALIDATION_SCHEMA_FAILED: 'PIPELINE_VALIDATION_SCHEMA_FAILED',
-  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY: 'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
+  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY:
+    'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
 
   // Resource errors
   PIPELINE_RESOURCE_LIMIT_EXCEEDED: 'PIPELINE_RESOURCE_LIMIT_EXCEEDED',
@@ -678,7 +682,10 @@ export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
  * Basic type guard for custom error
  */
 class ValidationError extends Error {
-  constructor(public field: string, message: string) {
+  constructor(
+    public field: string,
+    message: string
+  ) {
     super(message);
     Object.setPrototypeOf(this, ValidationError.prototype);
     this.name = 'ValidationError';
@@ -698,8 +705,8 @@ try {
 } catch (error) {
   if (isValidationError(error)) {
     // error is narrowed to ValidationError
-    console.log(error.field);    // Type-safe access
-    console.log(error.message);  // Type-safe access
+    console.log(error.field); // Type-safe access
+    console.log(error.message); // Type-safe access
   }
 }
 ```
@@ -738,7 +745,9 @@ type AppError =
   | { type: 'validation'; message: string; field: string }
   | { type: 'database'; message: string; query: string };
 
-function isNetworkError(error: AppError): error is Extract<AppError, { type: 'network' }> {
+function isNetworkError(
+  error: AppError
+): error is Extract<AppError, { type: 'network' }> {
   return error.type === 'network';
 }
 
@@ -757,7 +766,9 @@ function handleAppError(error: AppError) {
  */
 function isSessionError(
   error: unknown
-): error is PipelineError & { code: 'PIPELINE_SESSION_LOAD_FAILED' | 'PIPELINE_SESSION_SAVE_FAILED' } {
+): error is PipelineError & {
+  code: 'PIPELINE_SESSION_LOAD_FAILED' | 'PIPELINE_SESSION_SAVE_FAILED';
+} {
   return isPipelineError(error) && error.code.startsWith('PIPELINE_SESSION_');
 }
 
@@ -794,7 +805,10 @@ function isError<T extends Error>(
 
 // Usage
 class DatabaseError extends Error {
-  constructor(public query: string, message: string) {
+  constructor(
+    public query: string,
+    message: string
+  ) {
     super(message);
     Object.setPrototypeOf(this, DatabaseError.prototype);
   }
@@ -948,11 +962,7 @@ class ChainedError extends Error {
   readonly code: string;
   readonly cause?: Error;
 
-  constructor(
-    message: string,
-    code: string,
-    cause?: Error
-  ) {
+  constructor(message: string, code: string, cause?: Error) {
     super(message);
     Object.setPrototypeOf(this, ChainedError.prototype);
     this.name = 'ChainedError';
@@ -1116,12 +1126,23 @@ class SanitizedError extends Error {
 
     // Sensitive key patterns (lowercase for case-insensitive matching)
     const sensitiveKeys = [
-      'password', 'passwd', 'pwd',
-      'apikey', 'api_key', 'apisecret', 'api_secret',
-      'token', 'accesstoken', 'refreshtoken', 'authtoken',
-      'secret', 'privatekey',
-      'email', 'emailaddress',
-      'phonenumber', 'ssn',
+      'password',
+      'passwd',
+      'pwd',
+      'apikey',
+      'api_key',
+      'apisecret',
+      'api_secret',
+      'token',
+      'accesstoken',
+      'refreshtoken',
+      'authtoken',
+      'secret',
+      'privatekey',
+      'email',
+      'emailaddress',
+      'phonenumber',
+      'ssn',
       'authorization',
     ];
 
@@ -1149,16 +1170,12 @@ class SanitizedError extends Error {
 }
 
 // Usage
-const error = new SanitizedError(
-  'Authentication failed',
-  'AUTH_FAILED',
-  {
-    email: 'user@example.com',
-    password: 'secret123',
-    username: 'john_doe',
-    api_key: 'sk-1234567890',
-  }
-);
+const error = new SanitizedError('Authentication failed', 'AUTH_FAILED', {
+  email: 'user@example.com',
+  password: 'secret123',
+  username: 'john_doe',
+  api_key: 'sk-1234567890',
+});
 
 console.log(error.toJSON());
 // Output:
@@ -1199,12 +1216,24 @@ class DeepSanitizedError extends Error {
 
   private isSensitiveKey(key: string): boolean {
     const sensitivePatterns = [
-      'password', 'passwd', 'pwd',
-      'apikey', 'api_key', 'apisecret', 'api_secret',
-      'token', 'accesstoken', 'refreshtoken', 'authtoken', 'bearertoken',
-      'secret', 'privatekey',
-      'email', 'emailaddress',
-      'phonenumber', 'ssn',
+      'password',
+      'passwd',
+      'pwd',
+      'apikey',
+      'api_key',
+      'apisecret',
+      'api_secret',
+      'token',
+      'accesstoken',
+      'refreshtoken',
+      'authtoken',
+      'bearertoken',
+      'secret',
+      'privatekey',
+      'email',
+      'emailaddress',
+      'phonenumber',
+      'ssn',
       'authorization',
     ];
 
@@ -1467,10 +1496,7 @@ class CircularSafeError extends Error {
     this.context = context;
   }
 
-  private serializeSafe(
-    value: unknown,
-    seen = new WeakSet<object>()
-  ): unknown {
+  private serializeSafe(value: unknown, seen = new WeakSet<object>()): unknown {
     // Handle primitives and null
     if (value === null || typeof value !== 'object') {
       return value;
@@ -1519,11 +1545,9 @@ class CircularSafeError extends Error {
 const circular: any = { userId: 123 };
 circular.self = circular;
 
-const error = new CircularSafeError(
-  'Operation failed',
-  'OP_FAILED',
-  { user: circular }
-);
+const error = new CircularSafeError('Operation failed', 'OP_FAILED', {
+  user: circular,
+});
 
 console.log(JSON.stringify(error.toJSON()));
 // No error! Outputs: {"name":"CircularSafeError","code":"OP_FAILED",...}
@@ -1596,11 +1620,7 @@ class ReplacerError extends Error {
 const circular: any = { data: 'test' };
 circular.self = circular;
 
-const error = new ReplacerError(
-  'Failed',
-  'FAIL',
-  { circular }
-);
+const error = new ReplacerError('Failed', 'FAIL', { circular });
 
 console.log(error.toJSON());
 // Handles circular reference gracefully
@@ -1630,18 +1650,20 @@ class SafeError extends Error {
 
   private isSensitiveKey(key: string): boolean {
     const sensitivePatterns = [
-      'password', 'token', 'secret', 'apikey',
-      'email', 'authorization', 'privatekey',
+      'password',
+      'token',
+      'secret',
+      'apikey',
+      'email',
+      'authorization',
+      'privatekey',
     ];
     return sensitivePatterns.some(pattern =>
       key.toLowerCase().includes(pattern)
     );
   }
 
-  private sanitizeSafe(
-    value: unknown,
-    seen = new WeakSet<object>()
-  ): unknown {
+  private sanitizeSafe(value: unknown, seen = new WeakSet<object>()): unknown {
     // Handle primitives and null
     if (value === null || typeof value !== 'object') {
       return value;
@@ -1700,21 +1722,17 @@ class SafeError extends Error {
 // Usage with complex context
 const circular: any = {
   email: 'user@example.com',
-  password: 'secret123'
+  password: 'secret123',
 };
 circular.self = circular;
 
-const error = new SafeError(
-  'Complex error',
-  'COMPLEX_ERROR',
-  {
-    user: circular,
-    metadata: {
-      api_key: 'sk-123',
-      count: 42,
-    },
-  }
-);
+const error = new SafeError('Complex error', 'COMPLEX_ERROR', {
+  user: circular,
+  metadata: {
+    api_key: 'sk-123',
+    count: 42,
+  },
+});
 
 console.log(JSON.stringify(error.toJSON(), null, 2));
 // Output handles both circular references and PII redaction
@@ -1743,6 +1761,7 @@ This is a simple but effective approach. For more robust handling, consider impl
 ### 9.1 Forgetting Object.setPrototypeOf()
 
 **Pitfall:**
+
 ```typescript
 class BrokenError extends Error {
   constructor(message: string) {
@@ -1756,6 +1775,7 @@ console.log(error instanceof BrokenError); // May be false!
 ```
 
 **Solution:**
+
 ```typescript
 class CorrectError extends Error {
   constructor(message: string) {
@@ -1768,6 +1788,7 @@ class CorrectError extends Error {
 ### 9.2 Not Setting the Error Name
 
 **Pitfall:**
+
 ```typescript
 class NamelessError extends Error {
   constructor(message: string) {
@@ -1782,6 +1803,7 @@ console.log(error.name); // 'Error' instead of 'NamelessError'
 ```
 
 **Solution:**
+
 ```typescript
 class NamedError extends Error {
   constructor(message: string) {
@@ -1795,6 +1817,7 @@ class NamedError extends Error {
 ### 9.3 Not Capturing Stack Trace Properly
 
 **Pitfall:**
+
 ```typescript
 class StackError extends Error {
   constructor(message: string) {
@@ -1808,6 +1831,7 @@ class StackError extends Error {
 ```
 
 **Solution:**
+
 ```typescript
 class ProperStackError extends Error {
   constructor(message: string) {
@@ -1825,6 +1849,7 @@ class ProperStackError extends Error {
 ### 9.4 Using instanceof with Unknown Errors
 
 **Pitfall:**
+
 ```typescript
 try {
   // some operation
@@ -1837,6 +1862,7 @@ try {
 ```
 
 **Solution:**
+
 ```typescript
 // Use type guard function
 function isMyCustomError(error: unknown): error is MyCustomError {
@@ -1855,6 +1881,7 @@ try {
 ### 9.5 Not Handling Non-Error Objects in Catch Blocks
 
 **Pitfall:**
+
 ```typescript
 try {
   throw 'string error'; // or throw null, throw 123, etc.
@@ -1864,6 +1891,7 @@ try {
 ```
 
 **Solution:**
+
 ```typescript
 try {
   throw 'string error';
@@ -1880,16 +1908,20 @@ try {
 ### 9.6 Leaking Sensitive Data in Error Messages
 
 **Pitfall:**
+
 ```typescript
 try {
   await authenticateUser(username, password);
 } catch (error) {
-  throw new Error(`Authentication failed for ${username} with password ${password}`);
+  throw new Error(
+    `Authentication failed for ${username} with password ${password}`
+  );
   // Leaks credentials in logs!
 }
 ```
 
 **Solution:**
+
 ```typescript
 try {
   await authenticateUser(username, password);
@@ -1905,12 +1937,17 @@ try {
 ### 9.7 Not Implementing toJSON() for Structured Logging
 
 **Pitfall:**
+
 ```typescript
 class LogError extends Error {
   readonly code: string;
   readonly context?: Record<string, unknown>;
 
-  constructor(message: string, code: string, context?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    code: string,
+    context?: Record<string, unknown>
+  ) {
     super(message);
     this.code = code;
     this.context = context;
@@ -1922,12 +1959,17 @@ logger.info(error); // May not include all properties
 ```
 
 **Solution:**
+
 ```typescript
 class LoggableError extends Error {
   readonly code: string;
   readonly context?: Record<string, unknown>;
 
-  constructor(message: string, code: string, context?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    code: string,
+    context?: Record<string, unknown>
+  ) {
     super(message);
     this.code = code;
     this.context = context;
@@ -1950,6 +1992,7 @@ logger.info(error.toJSON()); // All properties included
 ### 9.8 Circular References in Context Objects
 
 **Pitfall:**
+
 ```typescript
 const context: any = { taskId: '123' };
 context.self = context;
@@ -1962,6 +2005,7 @@ JSON.stringify(error); // Throws!
 ```
 
 **Solution:**
+
 ```typescript
 const context: any = { taskId: '123' };
 context.self = context;
@@ -2020,12 +2064,23 @@ abstract class AppError extends Error {
 
   // Sensitive key patterns for redaction
   private static readonly SENSITIVE_KEYS = [
-    'password', 'passwd', 'pwd',
-    'apikey', 'api_key', 'apisecret', 'api_secret',
-    'token', 'accesstoken', 'refreshtoken', 'authtoken',
-    'secret', 'privatekey',
-    'email', 'emailaddress',
-    'phonenumber', 'ssn',
+    'password',
+    'passwd',
+    'pwd',
+    'apikey',
+    'api_key',
+    'apisecret',
+    'api_secret',
+    'token',
+    'accesstoken',
+    'refreshtoken',
+    'authtoken',
+    'secret',
+    'privatekey',
+    'email',
+    'emailaddress',
+    'phonenumber',
+    'ssn',
     'authorization',
   ];
 
@@ -2084,9 +2139,7 @@ abstract class AppError extends Error {
 
     for (const [key, value] of Object.entries(context)) {
       // Check if key is sensitive (case-insensitive)
-      if (AppError.SENSITIVE_KEYS.some(sk =>
-        key.toLowerCase().includes(sk)
-      )) {
+      if (AppError.SENSITIVE_KEYS.some(sk => key.toLowerCase().includes(sk))) {
         sanitized[key] = '[REDACTED]';
         continue;
       }
@@ -2269,6 +2322,7 @@ function errorHandler(error: unknown, request: any) {
 ### 10.2 Error Handling Best Practices Checklist
 
 **When Creating Error Classes:**
+
 - ✅ Always call `Object.setPrototypeOf(this, ClassName.prototype)`
 - ✅ Set `this.name` to the class name
 - ✅ Call `Error.captureStackTrace()` if available
@@ -2280,6 +2334,7 @@ function errorHandler(error: unknown, request: any) {
 - ✅ Support error chaining with `cause` property
 
 **When Throwing Errors:**
+
 - ✅ Use specific error types, not generic Error
 - ✅ Include helpful context (without PII)
 - ✅ Chain errors using the `cause` property
@@ -2287,6 +2342,7 @@ function errorHandler(error: unknown, request: any) {
 - ✅ Include requestId/userId for tracing
 
 **When Catching Errors:**
+
 - ✅ Use type guard functions for type narrowing
 - ✅ Check `instanceof` before accessing properties
 - ✅ Handle non-error objects in catch blocks

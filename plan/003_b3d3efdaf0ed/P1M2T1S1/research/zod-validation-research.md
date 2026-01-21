@@ -191,7 +191,7 @@ try {
 test.each([1, 2, 3, 5, 8, 13, 21])('should accept %d story points', points => {
   const result = SubtaskSchema.safeParse({
     ...validSubtask,
-    story_points: points
+    story_points: points,
   });
   expect(result.success).toBe(true);
 });
@@ -221,7 +221,7 @@ it('should reject string numbers', () => {
 it('should validate nested structure', () => {
   const result = NestedSchema.safeParse({
     id: 'P1',
-    subtasks: [{ id: 'S1', title: '' }] // Invalid: empty title
+    subtasks: [{ id: 'S1', title: '' }], // Invalid: empty title
   });
   expect(result.success).toBe(false);
 });
@@ -260,10 +260,12 @@ it('should validate well-formed tasks.json', () => {
 ```typescript
 it('should reject invalid status', () => {
   const invalidBacklog = {
-    backlog: [{
-      ...validPhase,
-      status: 'InvalidStatus' as any
-    }]
+    backlog: [
+      {
+        ...validPhase,
+        status: 'InvalidStatus' as any,
+      },
+    ],
   };
   const result = BacklogSchema.safeParse(invalidBacklog);
   expect(result.success).toBe(false);
@@ -279,12 +281,14 @@ it('should reject invalid status', () => {
 it('should reject invalid subtask ID format', () => {
   const invalidSubtask = {
     ...validSubtask,
-    id: 'INVALID_ID'
+    id: 'INVALID_ID',
   };
   const result = SubtaskSchema.safeParse(invalidSubtask);
   expect(result.success).toBe(false);
   if (!result.success) {
-    expect(result.error.issues[0].message).toContain('Invalid subtask ID format');
+    expect(result.error.issues[0].message).toContain(
+      'Invalid subtask ID format'
+    );
   }
 });
 ```
@@ -360,18 +364,14 @@ const MilestoneSchema: z.ZodType<Milestone> = z.lazy(() =>
 
 ```typescript
 // Strict regex patterns for each hierarchy level
-id: z.string().regex(/^P\d+\.M\d+\.T\d+\.S\d+$/, 'Invalid subtask ID format')
+id: z.string().regex(/^P\d+\.M\d+\.T\d+\.S\d+$/, 'Invalid subtask ID format');
 ```
 
 ### Story Points Validation
 
 ```typescript
-story_points: z
-  .number()
-  .int()
-  .min(1)
-  .max(21)
-  // Note: Custom Fibonacci validation would need refine()
+story_points: z.number().int().min(1).max(21);
+// Note: Custom Fibonacci validation would need refine()
 ```
 
 ## 10. External Research References

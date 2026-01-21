@@ -275,10 +275,18 @@ export abstract class PipelineError extends Error {
 }
 
 // 5. Concrete error classes
-export class SessionError extends PipelineError { /* ... */ }
-export class TaskError extends PipelineError { /* ... */ }
-export class AgentError extends PipelineError { /* ... */ }
-export class ValidationError extends PipelineError { /* ... */ }
+export class SessionError extends PipelineError {
+  /* ... */
+}
+export class TaskError extends PipelineError {
+  /* ... */
+}
+export class AgentError extends PipelineError {
+  /* ... */
+}
+export class ValidationError extends PipelineError {
+  /* ... */
+}
 
 // ADD ENVIRONMENT ERROR HERE (after ValidationError, before type guards)
 export class EnvironmentError extends PipelineError {
@@ -290,8 +298,12 @@ export class EnvironmentError extends PipelineError {
 }
 
 // 6. Type guard functions
-export function isSessionError(error: unknown): error is SessionError { /* ... */ }
-export function isTaskError(error: unknown): error is TaskError { /* ... */ }
+export function isSessionError(error: unknown): error is SessionError {
+  /* ... */
+}
+export function isTaskError(error: unknown): error is TaskError {
+  /* ... */
+}
 // ... other type guards
 
 // NOTE: isEnvironmentError will be implemented in P1.M1.T1.S3
@@ -469,30 +481,35 @@ npx tsc --noEmit
 Based on the failing tests from P1.M1.T1.S1, the implementation must achieve:
 
 ### Constructor Coverage (4 tests)
+
 - Create with message only
 - Create with context
 - Create with cause
 - Create with all parameters (message, context, cause)
 
 ### Property Coverage (4 tests)
+
 - error.code === ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT
 - error.name === "EnvironmentError"
 - error.timestamp is Date object
 - error.stack is string containing "EnvironmentError"
 
 ### Prototype Chain Coverage (2 tests)
+
 - instanceof EnvironmentError === true
 - instanceof PipelineError === true
 - instanceof Error === true
 - Object.getPrototypeOf(error) === EnvironmentError.prototype
 
 ### Serialization Coverage (6 tests)
+
 - toJSON() returns plain object
 - JSON contains name, code, message, timestamp
 - timestamp is ISO 8601 format
 - JSON.stringify() compatible
 
 ### Context Sanitization Coverage (12 tests)
+
 - Redacts apiKey, token, password, secret, authorization, email
 - Case-insensitive redaction
 - Preserves non-sensitive fields
@@ -501,12 +518,14 @@ Based on the failing tests from P1.M1.T1.S1, the implementation must achieve:
 - Handles non-serializable objects
 
 ### Type Guard Coverage (6 tests)
+
 - isEnvironmentError(new EnvironmentError()) === true
 - isEnvironmentError(new Error()) === false
 - Handles null, undefined, primitives
 - Type narrowing in conditional blocks
 
 ### Edge Cases Coverage (15 tests)
+
 - Empty message
 - null/undefined context
 - undefined cause
@@ -516,6 +535,7 @@ Based on the failing tests from P1.M1.T1.S1, the implementation must achieve:
 - Readonly property enforcement
 
 ### Integration Scenarios Coverage (9 tests)
+
 - Try-catch error throwing
 - Type guard in catch block
 - Error chaining with cause
@@ -531,6 +551,7 @@ Based on the failing tests from P1.M1.T1.S1, the implementation must achieve:
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Reasoning**:
+
 1. ✅ Exact reference pattern available (SessionError class)
 2. ✅ Comprehensive test suite defines all acceptance criteria
 3. ✅ All dependencies already exist (PipelineError, ErrorCodes, interfaces)

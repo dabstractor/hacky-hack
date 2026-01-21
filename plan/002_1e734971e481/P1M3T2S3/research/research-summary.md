@@ -7,6 +7,7 @@ Comprehensive research conducted to understand Delta Analysis structures for tes
 ## Critical Discrepancy Found
 
 ### Work Item Description (CONTRACT DEFINITION)
+
 ```
 DeltaAnalysis interface defines:
   - oldHash, newHash
@@ -20,25 +21,29 @@ Change interface:
 ```
 
 ### Actual Codebase Implementation
+
 ```typescript
 // File: src/core/models.ts, lines 1543-1577
 export interface DeltaAnalysis {
-  readonly changes: RequirementChange[];      // NOT Change[]
-  readonly patchInstructions: string;          // NEW field
-  readonly taskIds: string[];                  // NOT addedTasks/modifiedTasks/removedTasks
+  readonly changes: RequirementChange[]; // NOT Change[]
+  readonly patchInstructions: string; // NEW field
+  readonly taskIds: string[]; // NOT addedTasks/modifiedTasks/removedTasks
 }
 
 // File: src/core/models.ts, lines 1442-1482
-export interface RequirementChange {            // NOT Change
-  readonly itemId: string;                      // NOT section
+export interface RequirementChange {
+  // NOT Change
+  readonly itemId: string; // NOT section
   readonly type: 'added' | 'modified' | 'removed';
-  readonly description: string;                 // NOT oldContent/newContent
-  readonly impact: string;                      // NEW field
+  readonly description: string; // NOT oldContent/newContent
+  readonly impact: string; // NEW field
 }
 ```
 
 ### Resolution Strategy
+
 The PRP must test the **actual codebase structures**, not the theoretical structures described in the work item. The actual structures are:
+
 - `DeltaAnalysis` with `RequirementChange[]`, `patchInstructions`, `taskIds`
 - `RequirementChange` with `itemId`, `type`, `description`, `impact`
 
@@ -66,6 +71,7 @@ export interface DeltaAnalysis {
 ```
 
 **Zod Schema**: Lines 1599-1603
+
 ```typescript
 export const DeltaAnalysisSchema: z.ZodType<DeltaAnalysis> = z.object({
   changes: z.array(RequirementChangeSchema),
@@ -104,10 +110,15 @@ export interface RequirementChange {
 ```
 
 **Zod Schema**: Lines 1489-1497
+
 ```typescript
 export const RequirementChangeSchema: z.ZodType<RequirementChange> = z.object({
   itemId: z.string().min(1, 'Item ID is required'),
-  type: z.union([z.literal('added'), z.literal('modified'), z.literal('removed')]),
+  type: z.union([
+    z.literal('added'),
+    z.literal('modified'),
+    z.literal('removed'),
+  ]),
   description: z.string().min(1, 'Description is required'),
   impact: z.string().min(1, 'Impact is required'),
 });
@@ -118,12 +129,14 @@ export const RequirementChangeSchema: z.ZodType<RequirementChange> = z.object({
 **Location**: `/home/dustin/projects/hacky-hack/src/workflows/delta-analysis-workflow.ts`
 
 **Key Components**:
+
 - Extends Groundswell `Workflow` class
 - Constructor: `new DeltaAnalysisWorkflow(oldPRD, newPRD, completedTasks)`
 - Main method: `async run(): Promise<DeltaAnalysis>`
 - Single step: `analyzeDelta()` that orchestrates AI analysis
 
 **Workflow Process**:
+
 1. Creates QA agent via `createQAAgent()`
 2. Constructs prompt using `createDeltaAnalysisPrompt()`
 3. Executes with `retryAgentPrompt()` for reliability
@@ -136,6 +149,7 @@ export const RequirementChangeSchema: z.ZodType<RequirementChange> = z.object({
 **Main Function**: `patchBacklog(backlog: Backlog, delta: DeltaAnalysis): Backlog`
 
 **Change Type Handling**:
+
 ```typescript
 case 'added':
   // Currently unimplemented - logs warning
@@ -160,6 +174,7 @@ case 'removed':
 **Location**: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts` (lines 206-230)
 
 **Method Signature**:
+
 ```typescript
 public async setStatus(
   itemId: string,
@@ -169,6 +184,7 @@ public async setStatus(
 ```
 
 **Valid Status Values**:
+
 ```typescript
 type Status =
   | 'Planned'
@@ -180,6 +196,7 @@ type Status =
 ```
 
 **Implementation Notes**:
+
 - Logs status transition with metadata
 - Persists via `sessionManager.updateItemStatus()`
 - Reloads backlog after update
@@ -198,6 +215,7 @@ type Status =
 **File**: `/home/dustin/projects/hacky-hack/tests/unit/core/session-state-serialization.test.ts`
 
 **Key Patterns**:
+
 - Factory functions for test data (`createTestSessionState()`, `createTestSessionMetadata()`)
 - SETUP/EXECUTE/VERIFY comment structure
 - Vitest globals enabled (no imports needed)
@@ -205,6 +223,7 @@ type Status =
 - JSDoc comments for test suites
 
 **Test Categories**:
+
 - JSON serialization/deserialization
 - Date field handling (ISO strings)
 - Complex nested structures
@@ -216,23 +235,27 @@ type Status =
 Based on actual codebase structures, the tests should validate:
 
 ### Test 1: Create DeltaAnalysis with sample changes
+
 - Create `DeltaAnalysis` with `RequirementChange[]` array
 - Test all three change types: 'added', 'modified', 'removed'
 - Verify `patchInstructions` field
 - Verify `taskIds` array
 
 ### Test 2: Test change type validation
+
 - Verify `RequirementChange.type` accepts: 'added', 'modified', 'removed'
 - Verify invalid types are rejected by Zod schema
 - Test literal union validation
 
 ### Test 3: Test task patching simulation
+
 - Simulate adding new task (currently unimplemented, can test the warning)
 - Simulate modifying existing task (status → 'Planned')
 - Simulate marking obsolete (status → 'Obsolete')
 - Use `updateItemStatus()` utility
 
 ### Test 4: Verify delta session linking
+
 - Test `delta_from.txt` content format
 - Verify parent session reference pattern
 
@@ -246,26 +269,28 @@ Based on actual codebase structures, the tests should validate:
 
 ## 10. File Locations Summary
 
-| Component | File Path | Key Lines |
-|-----------|-----------|-----------|
-| DeltaAnalysis | src/core/models.ts | 1543-1577 |
-| RequirementChange | src/core/models.ts | 1442-1482 |
-| DeltaAnalysisSchema | src/core/models.ts | 1599-1603 |
-| RequirementChangeSchema | src/core/models.ts | 1489-1497 |
-| DeltaAnalysisWorkflow | src/workflows/delta-analysis-workflow.ts | 39-185 |
-| TaskPatcher | src/core/task-patcher.ts | Full file |
-| TaskOrchestrator.setStatus | src/core/task-orchestrator.ts | 206-230 |
-| Existing tests | tests/unit/core/session-state-serialization.test.ts | Full file |
+| Component                  | File Path                                           | Key Lines |
+| -------------------------- | --------------------------------------------------- | --------- |
+| DeltaAnalysis              | src/core/models.ts                                  | 1543-1577 |
+| RequirementChange          | src/core/models.ts                                  | 1442-1482 |
+| DeltaAnalysisSchema        | src/core/models.ts                                  | 1599-1603 |
+| RequirementChangeSchema    | src/core/models.ts                                  | 1489-1497 |
+| DeltaAnalysisWorkflow      | src/workflows/delta-analysis-workflow.ts            | 39-185    |
+| TaskPatcher                | src/core/task-patcher.ts                            | Full file |
+| TaskOrchestrator.setStatus | src/core/task-orchestrator.ts                       | 206-230   |
+| Existing tests             | tests/unit/core/session-state-serialization.test.ts | Full file |
 
 ## 11. Dependencies on Previous Work (P1.M3.T2.S2)
 
 P1.M3.T2.S2 validated:
+
 - PRPDocument structure validation
 - ValidationGate literal union (1 | 2 | 3 | 4)
 - ContextSection YAML patterns
 - ImplementationTask YAML patterns
 
 This work item (P1.M3.T2.S3) builds on:
+
 - Test patterns from session-state-serialization.test.ts
 - Understanding of literal union validation (similar to RequirementChange.type)
 - YAML pattern validation concepts

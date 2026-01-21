@@ -25,7 +25,7 @@ This document provides a complete specification of the `isFatalError()` function
 export function isFatalError(
   error: unknown,
   continueOnError: boolean = false
-): boolean
+): boolean;
 ```
 
 ---
@@ -81,47 +81,52 @@ An error is considered **fatal ONLY** when **ALL** of the following conditions a
 ### 1. SessionError with Specific Error Codes
 
 **Conditions:**
+
 - Error is `instanceof SessionError`
 - Error code is `PIPELINE_SESSION_LOAD_FAILED` OR `PIPELINE_SESSION_SAVE_FAILED`
 
 **Examples:**
+
 ```typescript
 // Fatal: Session load failure
 new SessionError('Failed to load session', {
-  sessionPath: '/path/to/session'
-})
+  sessionPath: '/path/to/session',
+});
 
 // Fatal: Session save failure
 new SessionError('Failed to save session', {
-  sessionPath: '/path/to/session'
-})
+  sessionPath: '/path/to/session',
+});
 ```
 
 **Error Codes:**
+
 - `ErrorCodes.PIPELINE_SESSION_LOAD_FAILED` = `'PIPELINE_SESSION_LOAD_FAILED'`
 - `ErrorCodes.PIPELINE_SESSION_SAVE_FAILED` = `'PIPELINE_SESSION_SAVE_FAILED'`
 
 ### 2. EnvironmentError (Any Instance)
 
 **Conditions:**
+
 - Error is `instanceof EnvironmentError`
 - Any error code (EnvironmentError instances are always fatal)
 
 **Examples:**
+
 ```typescript
 // Fatal: Missing environment variable
 new EnvironmentError('Missing API_KEY', {
-  variable: 'API_KEY'
-})
+  variable: 'API_KEY',
+});
 
 // Fatal: Invalid configuration
 new EnvironmentError('Invalid config file', {
   variable: 'CONFIG_FILE',
-  value: '/invalid/path'
-})
+  value: '/invalid/path',
+});
 
 // Fatal: Environment not set up
-new EnvironmentError('Environment not initialized')
+new EnvironmentError('Environment not initialized');
 ```
 
 **Rationale:** Environment errors prevent the pipeline from executing properly and cannot be recovered from.
@@ -129,24 +134,26 @@ new EnvironmentError('Environment not initialized')
 ### 3. ValidationError with parse_prd Operation
 
 **Conditions:**
+
 - Error is `instanceof ValidationError`
 - Error code is `PIPELINE_VALIDATION_INVALID_INPUT`
 - Error context has `operation` property equal to `'parse_prd'`
 
 **Examples:**
+
 ```typescript
 // Fatal: PRD parsing validation error
 new ValidationError('Invalid PRD format', {
   operation: 'parse_prd',
-  invalidInput: 'malformed-prd'
-})
+  invalidInput: 'malformed-prd',
+});
 
 // Fatal: PRD validation failed
 new ValidationError('PRD schema validation failed', {
   code: ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT,
   operation: 'parse_prd',
-  errors: ['Missing required field']
-})
+  errors: ['Missing required field'],
+});
 ```
 
 **Rationale:** PRD parsing errors are fundamental - if the PRD cannot be parsed, the entire pipeline cannot proceed.
@@ -162,10 +169,11 @@ An error is considered **non-fatal** when **ANY** of the following conditions is
 **Condition:** `continueOnError === true`
 
 **Examples:**
+
 ```typescript
 // Non-fatal due to flag override
 const error = new SessionError('Session load failed');
-isFatalError(error, true)  // Returns: false (overrides fatal behavior)
+isFatalError(error, true); // Returns: false (overrides fatal behavior)
 ```
 
 **Rationale:** CLI flag `--continue-on-error` allows users to override fatal error detection and attempt to continue despite any errors.
@@ -173,17 +181,19 @@ isFatalError(error, true)  // Returns: false (overrides fatal behavior)
 ### 2. Null/Undefined/Non-Object Errors
 
 **Conditions:**
+
 - Error is `null`
 - Error is `undefined`
 - Error is a primitive type (string, number, boolean, etc.)
 
 **Examples:**
+
 ```typescript
-isFatalError(null)              // Returns: false
-isFatalError(undefined)         // Returns: false
-isFatalError('string error')    // Returns: false
-isFatalError(123)               // Returns: false
-isFatalError(true)              // Returns: false
+isFatalError(null); // Returns: false
+isFatalError(undefined); // Returns: false
+isFatalError('string error'); // Returns: false
+isFatalError(123); // Returns: false
+isFatalError(true); // Returns: false
 ```
 
 **Rationale:** Unknown or invalid error types default to non-fatal for resilience.
@@ -193,17 +203,18 @@ isFatalError(true)              // Returns: false
 **Condition:** Error is `instanceof TaskError`
 
 **Examples:**
+
 ```typescript
 // Non-fatal: Task execution failed
 new TaskError('Task execution failed', {
-  taskId: 'P1.M1.T1'
-})
+  taskId: 'P1.M1.T1',
+});
 
 // Non-fatal: Task validation failed
 new TaskError('Task validation failed', {
   taskId: 'P1.M1.T1.S1',
-  errors: ['Invalid scope']
-})
+  errors: ['Invalid scope'],
+});
 ```
 
 **Rationale:** Individual task failures should not halt the entire pipeline. Other tasks may still succeed.
@@ -213,17 +224,18 @@ new TaskError('Task validation failed', {
 **Condition:** Error is `instanceof AgentError`
 
 **Examples:**
+
 ```typescript
 // Non-fatal: LLM call failed
 new AgentError('LLM call failed', {
-  taskId: 'P1.M1.T1'
-})
+  taskId: 'P1.M1.T1',
+});
 
 // Non-fatal: Agent timeout
 new AgentError('Agent timeout', {
   taskId: 'P1.M1.T1',
-  timeout: 30000
-})
+  timeout: 30000,
+});
 ```
 
 **Rationale:** Agent errors (LLM failures, timeouts, etc.) are transient and can be retried.
@@ -231,24 +243,26 @@ new AgentError('Agent timeout', {
 ### 5. ValidationError (Non-parse_prd Operations)
 
 **Conditions:**
+
 - Error is `instanceof ValidationError`
 - Error context `operation` is NOT `'parse_prd'`
 - OR error context has no `operation` property
 
 **Examples:**
+
 ```typescript
 // Non-fatal: Scope validation error
 new ValidationError('Invalid scope format', {
-  operation: 'resolve_scope'
-})
+  operation: 'resolve_scope',
+});
 
 // Non-fatal: Validation error without operation
-new ValidationError('Validation failed')
+new ValidationError('Validation failed');
 
 // Non-fatal: PRD validation (not parsing)
 new ValidationError('PRD validation failed', {
-  operation: 'validate_prd'
-})
+  operation: 'validate_prd',
+});
 ```
 
 **Rationale:** Validation errors for specific operations are recoverable - the error can be fixed and retried.
@@ -260,11 +274,12 @@ new ValidationError('PRD validation failed', {
 **Note:** In the current implementation, all `SessionError` instances default to `PIPELINE_SESSION_LOAD_FAILED` code, so this case may not occur in practice. However, the logic allows for non-fatal SessionError codes if they were to be added.
 
 **Examples:**
+
 ```typescript
 // Hypothetical: Session not found (if code existed)
 new SessionError('Session not found', {
-  code: 'PIPELINE_SESSION_NOT_FOUND'  // Would be non-fatal
-})
+  code: 'PIPELINE_SESSION_NOT_FOUND', // Would be non-fatal
+});
 ```
 
 ### 7. Standard Error (Not PipelineError)
@@ -272,24 +287,25 @@ new SessionError('Session not found', {
 **Condition:** Error is a standard JavaScript `Error` or built-in error type, but not a `PipelineError` instance.
 
 **Examples:**
+
 ```typescript
 // Non-fatal: Standard Error
-new Error('Something went wrong')
+new Error('Something went wrong');
 
 // Non-fatal: TypeError
-new TypeError('Property is not a function')
+new TypeError('Property is not a function');
 
 // Non-fatal: ReferenceError
-new ReferenceError('Variable is not defined')
+new ReferenceError('Variable is not defined');
 
 // Non-fatal: SyntaxError
-new SyntaxError('Unexpected token')
+new SyntaxError('Unexpected token');
 
 // Non-fatal: RangeError
-new RangeError('Invalid array length')
+new RangeError('Invalid array length');
 
 // Non-fatal: URIError
-new URIError('Malformed URI')
+new URIError('Malformed URI');
 ```
 
 **Rationale:** Standard errors are not part of the pipeline error hierarchy and default to non-fatal for resilience.
@@ -318,14 +334,14 @@ isEnvironmentError(error: unknown): error is EnvironmentError
 
 ```typescript
 // Session error codes
-ErrorCodes.PIPELINE_SESSION_LOAD_FAILED  // Fatal
-ErrorCodes.PIPELINE_SESSION_SAVE_FAILED  // Fatal
-ErrorCodes.PIPELINE_SESSION_NOT_FOUND    // Non-fatal (if used)
+ErrorCodes.PIPELINE_SESSION_LOAD_FAILED; // Fatal
+ErrorCodes.PIPELINE_SESSION_SAVE_FAILED; // Fatal
+ErrorCodes.PIPELINE_SESSION_NOT_FOUND; // Non-fatal (if used)
 
 // Validation error codes
-ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT  // Fatal when operation='parse_prd'
-ErrorCodes.PIPELINE_VALIDATION_MISSING_FIELD  // Non-fatal
-ErrorCodes.PIPELINE_VALIDATION_SCHEMA_FAILED  // Non-fatal
+ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT; // Fatal when operation='parse_prd'
+ErrorCodes.PIPELINE_VALIDATION_MISSING_FIELD; // Non-fatal
+ErrorCodes.PIPELINE_VALIDATION_SCHEMA_FAILED; // Non-fatal
 ```
 
 ---
@@ -355,7 +371,7 @@ if (error.context.operation === 'parse_prd') {
 ```typescript
 export function isFatalError(
   error: unknown,
-  continueOnError: boolean = false  // Default: false (normal mode)
+  continueOnError: boolean = false // Default: false (normal mode)
 ): boolean {
   // Implementation...
 }
@@ -380,7 +396,7 @@ if (isSessionError(error)) {
 
 ```typescript
 const context: Record<string, unknown> = { name: 'test' };
-context.self = context;  // Circular reference
+context.self = context; // Circular reference
 const error = new SessionError('Circular context', context);
 // Should not throw when evaluating isFatalError(error)
 ```
@@ -408,12 +424,14 @@ const error = new ValidationError('No operation', {});
 **Source:** `src/cli/index.ts` and `src/workflows/prp-pipeline.ts`
 
 **Behavior:**
+
 - When `--continue-on-error` flag is set, `continueOnError` parameter is `true`
 - All errors become non-fatal (return `false`)
 - Pipeline attempts to continue despite any errors
 - Errors are still tracked and reported in ERROR_REPORT.md
 
 **Usage Example:**
+
 ```bash
 # Normal mode (default): Fatal errors halt execution
 npm run pipeline -- --prd-path ./PRD.md
@@ -427,6 +445,7 @@ npm run pipeline -- --prd-path ./PRD.md --continue-on-error
 **Source:** `src/workflows/prp-pipeline.ts` (lines 377-417, `#trackFailure` method)
 
 **Behavior:**
+
 - All fatal and non-fatal errors are tracked
 - Fatal errors halt pipeline immediately
 - Non-fatal errors are logged and tracked but don't halt execution
@@ -438,57 +457,57 @@ npm run pipeline -- --prd-path ./PRD.md --continue-on-error
 
 ### Fatal Error Scenarios (50+ tests)
 
-| Category | Test Count | Key Variations |
-|----------|------------|----------------|
-| SessionError (LOAD_FAILED) | 15 | Different messages, contexts, with/without cause |
-| SessionError (SAVE_FAILED) | 15 | Different messages, contexts, with/without cause |
-| EnvironmentError | 20 | Different context properties, messages, codes |
-| ValidationError (parse_prd) | 20 | Different contexts, with/without cause |
+| Category                    | Test Count | Key Variations                                   |
+| --------------------------- | ---------- | ------------------------------------------------ |
+| SessionError (LOAD_FAILED)  | 15         | Different messages, contexts, with/without cause |
+| SessionError (SAVE_FAILED)  | 15         | Different messages, contexts, with/without cause |
+| EnvironmentError            | 20         | Different context properties, messages, codes    |
+| ValidationError (parse_prd) | 20         | Different contexts, with/without cause           |
 
 ### Non-Fatal Error Scenarios (80+ tests)
 
-| Category | Test Count | Key Variations |
-|----------|------------|----------------|
-| TaskError | 15 | Different taskIds, error codes, contexts |
-| AgentError | 15 | Different taskIds, error codes, timeouts |
-| ValidationError (non-parse_prd) | 20 | Different operations, no operation, different codes |
-| SessionError (non-fatal codes) | 10 | If any non-fatal codes exist |
-| Other PipelineError | 10 | Base PipelineError instances |
-| Standard Error types | 10 | Error, TypeError, ReferenceError, etc. |
+| Category                        | Test Count | Key Variations                                      |
+| ------------------------------- | ---------- | --------------------------------------------------- |
+| TaskError                       | 15         | Different taskIds, error codes, contexts            |
+| AgentError                      | 15         | Different taskIds, error codes, timeouts            |
+| ValidationError (non-parse_prd) | 20         | Different operations, no operation, different codes |
+| SessionError (non-fatal codes)  | 10         | If any non-fatal codes exist                        |
+| Other PipelineError             | 10         | Base PipelineError instances                        |
+| Standard Error types            | 10         | Error, TypeError, ReferenceError, etc.              |
 
 ### Null/Undefined/Invalid Scenarios (20+ tests)
 
-| Category | Test Count | Key Variations |
-|----------|------------|----------------|
-| Null/Undefined | 4 | null, undefined, explicit values |
-| Primitive types | 8 | String, number, boolean, bigint, symbol |
-| Object/Array | 8 | Empty object, object with props, arrays, functions |
+| Category        | Test Count | Key Variations                                     |
+| --------------- | ---------- | -------------------------------------------------- |
+| Null/Undefined  | 4          | null, undefined, explicit values                   |
+| Primitive types | 8          | String, number, boolean, bigint, symbol            |
+| Object/Array    | 8          | Empty object, object with props, arrays, functions |
 
 ### Type Guard Integration (15+ tests)
 
-| Category | Test Count | Key Variations |
-|----------|------------|----------------|
-| isPipelineError | 3 | Before isFatalError, combined checks |
-| isSessionError | 3 | Type narrowing with isFatalError |
-| isTaskError | 3 | Type narrowing with isFatalError |
-| isAgentError | 3 | Type narrowing with isFatalError |
-| isValidationError | 3 | Type narrowing with isFatalError |
+| Category          | Test Count | Key Variations                       |
+| ----------------- | ---------- | ------------------------------------ |
+| isPipelineError   | 3          | Before isFatalError, combined checks |
+| isSessionError    | 3          | Type narrowing with isFatalError     |
+| isTaskError       | 3          | Type narrowing with isFatalError     |
+| isAgentError      | 3          | Type narrowing with isFatalError     |
+| isValidationError | 3          | Type narrowing with isFatalError     |
 
 ### continueOnError Flag (15+ tests)
 
-| Category | Test Count | Key Variations |
-|----------|------------|----------------|
-| Flag=true (all error types) | 8 | SessionError, EnvironmentError, etc. with flag=true |
-| Flag=false (explicit) | 7 | Normal behavior when flag=false explicitly |
+| Category                    | Test Count | Key Variations                                      |
+| --------------------------- | ---------- | --------------------------------------------------- |
+| Flag=true (all error types) | 8          | SessionError, EnvironmentError, etc. with flag=true |
+| Flag=false (explicit)       | 7          | Normal behavior when flag=false explicitly          |
 
 ### Edge Cases (20+ tests)
 
-| Category | Test Count | Key Variations |
-|----------|------------|----------------|
-| Message edge cases | 5 | Empty, very long, special chars, unicode |
-| Context edge cases | 5 | Missing, empty, null values, circular refs |
-| Error properties | 5 | No message, no stack, modified prototype |
-| Nested errors | 5 | Cause chains, wrapped errors |
+| Category           | Test Count | Key Variations                             |
+| ------------------ | ---------- | ------------------------------------------ |
+| Message edge cases | 5          | Empty, very long, special chars, unicode   |
+| Context edge cases | 5          | Missing, empty, null values, circular refs |
+| Error properties   | 5          | No message, no stack, modified prototype   |
+| Nested errors      | 5          | Cause chains, wrapped errors               |
 
 ---
 

@@ -8,17 +8,18 @@ This research document summarizes findings about PRPDocument structure and relat
 
 ```typescript
 export interface PRPDocument {
-  readonly taskId: string;              // Format: P1.M2.T2.S2
-  readonly objective: string;           // Feature Goal from PRP
-  readonly context: string;             // Complete "All Needed Context" as markdown
+  readonly taskId: string; // Format: P1.M2.T2.S2
+  readonly objective: string; // Feature Goal from PRP
+  readonly context: string; // Complete "All Needed Context" as markdown
   readonly implementationSteps: string[]; // Array of implementation task descriptions
-  readonly validationGates: ValidationGate[];  // Array of 4 validation gates
+  readonly validationGates: ValidationGate[]; // Array of 4 validation gates
   readonly successCriteria: SuccessCriterion[]; // Array of success criteria
-  readonly references: string[];        // Array of reference URLs and file paths
+  readonly references: string[]; // Array of reference URLs and file paths
 }
 ```
 
 **Key Fields**:
+
 - `taskId`: Work item ID in format P{phase}.M{milestone}.T{task}.S{subtask}
 - `objective`: The Feature Goal from the Goal section
 - `context`: Complete context section as markdown string
@@ -31,14 +32,15 @@ export interface PRPDocument {
 
 ```typescript
 export interface ValidationGate {
-  readonly level: 1 | 2 | 3 | 4;        // Progressive validation levels
-  readonly description: string;          // Human-readable description
-  readonly command: string | null;       // Bash command (null for manual)
-  readonly manual: boolean;              // Whether manual validation required
+  readonly level: 1 | 2 | 3 | 4; // Progressive validation levels
+  readonly description: string; // Human-readable description
+  readonly command: string | null; // Bash command (null for manual)
+  readonly manual: boolean; // Whether manual validation required
 }
 ```
 
 **4 Levels of Validation**:
+
 1. **Level 1**: Syntax & Style (linting, formatting, type checking)
 2. **Level 2**: Unit Tests (component-level validation)
 3. **Level 3**: Integration Testing (system-level validation)
@@ -48,8 +50,8 @@ export interface ValidationGate {
 
 ```typescript
 export interface SuccessCriterion {
-  readonly description: string;          // Criterion description
-  readonly satisfied: boolean;           // Whether met
+  readonly description: string; // Criterion description
+  readonly satisfied: boolean; // Whether met
 }
 ```
 
@@ -174,16 +176,20 @@ describe('PRPDocumentSchema', () => {
     objective: 'Add PRP document interfaces',
     context: '# All Needed Context\n\n...',
     implementationSteps: ['Create ValidationGate interface'],
-    validationGates: [{
-      level: 1,
-      description: 'Syntax & Style',
-      command: 'npm run validate',
-      manual: false,
-    }],
-    successCriteria: [{
-      description: 'All interfaces added',
-      satisfied: false,
-    }],
+    validationGates: [
+      {
+        level: 1,
+        description: 'Syntax & Style',
+        command: 'npm run validate',
+        manual: false,
+      },
+    ],
+    successCriteria: [
+      {
+        description: 'All interfaces added',
+        satisfied: false,
+      },
+    ],
     references: ['https://github.com/anthropics/claude-code'],
   };
 

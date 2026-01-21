@@ -32,6 +32,7 @@ Testing module imports is crucial for ensuring that a library's exports can be s
 - **npm linked packages** during development
 
 **Key Goals:**
+
 1. Verify that all exported symbols are accessible
 2. Validate that decorators are properly transformed
 3. Ensure type definitions are correct
@@ -267,7 +268,11 @@ describe('Decorator metadata', () => {
       testProperty: string;
     }
 
-    const metadata = Reflect.getMetadata('design:type', TestClass.prototype, 'testProperty');
+    const metadata = Reflect.getMetadata(
+      'design:type',
+      TestClass.prototype,
+      'testProperty'
+    );
     expect(metadata).toBe(String);
   });
 });
@@ -357,7 +362,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
   return {
-    ...actual as any,
+    ...(actual as any),
     createAgent: vi.fn(),
   };
 });
@@ -514,9 +519,7 @@ describe('Dynamic imports', () => {
   });
 
   it('should handle dynamic import errors', async () => {
-    await expect(
-      import('nonexistent-package')
-    ).rejects.toThrow();
+    await expect(import('nonexistent-package')).rejects.toThrow();
   });
 });
 ```
@@ -972,9 +975,7 @@ describe('Groundswell import validation suite', () => {
 
   describe('Error handling', () => {
     it('should throw on invalid imports', async () => {
-      await expect(
-        import('groundswell/nonexistent')
-      ).rejects.toThrow();
+      await expect(import('groundswell/nonexistent')).rejects.toThrow();
     });
 
     it('should provide helpful error messages', async () => {
@@ -1038,7 +1039,7 @@ describe('Groundswell mocking examples', () => {
     vi.mock('groundswell', async () => {
       const actual = await vi.importActual('groundswell');
       return {
-        ...actual as any,
+        ...(actual as any),
         createAgent: vi.fn(() => ({ id: 'partial-mock' })),
       };
     });
@@ -1092,7 +1093,8 @@ describe('Groundswell mocking examples', () => {
 
     it('should mock implementation temporarily', async () => {
       const groundswell = await import('groundswell');
-      const spy = vi.spyOn(groundswell, 'createAgent')
+      const spy = vi
+        .spyOn(groundswell, 'createAgent')
         .mockReturnValue({ id: 'temp-mock' } as any);
 
       const agent = groundswell.createAgent({ name: 'test' });
@@ -1183,7 +1185,8 @@ export default defineConfig({
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
       '#': new URL('./src/agents', import.meta.url).pathname,
-      groundswell: new URL('../groundswell/dist/index.js', import.meta.url).pathname,
+      groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
+        .pathname,
     },
     extensions: ['.ts', '.js', '.tsx'],
   },

@@ -22,6 +22,7 @@ This document provides a comprehensive guide to testing module imports with Vite
 ### 1. Testing Module Imports
 
 **Dynamic Imports (Recommended for Runtime Testing):**
+
 ```typescript
 it('should import successfully', async () => {
   const module = await import('groundswell');
@@ -30,6 +31,7 @@ it('should import successfully', async () => {
 ```
 
 **Static Imports (For Compile-Time Validation):**
+
 ```typescript
 import { createAgent } from 'groundswell';
 
@@ -43,6 +45,7 @@ it('should import at compile-time', () => {
 **Required Configuration:**
 
 **vitest.config.ts:**
+
 ```typescript
 esbuild: {
   target: 'esnext',
@@ -56,6 +59,7 @@ esbuild: {
 ```
 
 **tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -66,6 +70,7 @@ esbuild: {
 ```
 
 **Testing Decorators:**
+
 ```typescript
 it('should apply decorators correctly', async () => {
   const { MyDecorator } = await import('groundswell');
@@ -80,6 +85,7 @@ it('should apply decorators correctly', async () => {
 ### 3. Mocking Module Imports
 
 **Full Module Mocking:**
+
 ```typescript
 vi.mock('groundswell', () => ({
   createAgent: vi.fn(),
@@ -87,6 +93,7 @@ vi.mock('groundswell', () => ({
 ```
 
 **Partial Mocking:**
+
 ```typescript
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
@@ -98,6 +105,7 @@ vi.mock('groundswell', async () => {
 ```
 
 **Type-Safe Mocking:**
+
 ```typescript
 import { createAgent } from 'groundswell';
 
@@ -112,6 +120,7 @@ vi.mocked(createAgent).mockReturnValue({ id: 'mock' } as any);
 ### 4. ESM-Specific Considerations
 
 **File Extension Requirements:**
+
 ```typescript
 // ✅ Correct for ESM
 import { foo } from './local.js';
@@ -123,6 +132,7 @@ import { bar } from 'groundswell/tools';
 ```
 
 **package.json Exports:**
+
 ```json
 {
   "type": "module",
@@ -164,6 +174,7 @@ import { bar } from 'groundswell/tools';
 ### Current Project Configuration
 
 The hacky-hack project uses:
+
 - **Vitest 1.6.1**
 - **TypeScript 5.2.0** with NodeNext module resolution
 - **ESM-only** (`"type": "module"`)
@@ -227,6 +238,7 @@ Before testing imports, ensure:
 ## Documentation Links
 
 The full research document includes:
+
 - **Official documentation URLs** for Vitest and TypeScript
 - **Code examples** for all testing patterns
 - **Best practices** for import testing

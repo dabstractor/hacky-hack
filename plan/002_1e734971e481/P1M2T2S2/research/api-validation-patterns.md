@@ -6,6 +6,7 @@
 ---
 
 ## Table of Contents
+
 1. [Node.js CLI Script Best Practices](#nodejs-cli-script-best-practices)
 2. [Exit Code Conventions](#exit-code-conventions)
 3. [Colored Console Output Standards](#colored-console-output-standards)
@@ -20,7 +21,7 @@
 
 ### Script Entry Points
 
-```typescript
+````typescript
 #!/usr/bin/env tsx
 /**
  * Script description
@@ -30,9 +31,10 @@
  * npx tsx path/to/script.ts
  * ```
  */
-```
+````
 
 **Key Points**:
+
 - Use shebang `#!/usr/bin/env tsx` for direct execution
 - Add JSDoc comments with usage examples
 - Define clear exit codes for different scenarios
@@ -58,6 +60,7 @@ process.on('SIGINT', () => {
 ```
 
 **References**:
+
 - [Node.js Process Documentation](https://nodejs.org/api/process.html)
 - [Exit Codes in Node.js](https://nodejs.dev/en/learn/#exit-codes-in-nodejs)
 
@@ -67,14 +70,14 @@ process.on('SIGINT', () => {
 
 ### Standard Exit Codes
 
-| Exit Code | Meaning | Usage |
-|-----------|---------|-------|
-| 0 | Success | All validations passed |
-| 1 | General Error | Validation failures, API errors |
-| 2 | Misuse of Shell Commands | Invalid arguments |
-| 127 | Command Not Found | Missing dependencies |
-| 130 | SIGINT (Ctrl+C) | User interrupted |
-| >128 | Signal Exit | 128 + signal number |
+| Exit Code | Meaning                  | Usage                           |
+| --------- | ------------------------ | ------------------------------- |
+| 0         | Success                  | All validations passed          |
+| 1         | General Error            | Validation failures, API errors |
+| 2         | Misuse of Shell Commands | Invalid arguments               |
+| 127       | Command Not Found        | Missing dependencies            |
+| 130       | SIGINT (Ctrl+C)          | User interrupted                |
+| >128      | Signal Exit              | 128 + signal number             |
 
 ### Implementation Pattern
 
@@ -90,6 +93,7 @@ process.exit(130);
 ```
 
 **References**:
+
 - [Node.js Exit Codes](https://nodejs.dev/en/learn/#exit-codes-in-nodejs)
 - [Standard Exit Codes](https://www.shellhacks.com/linux-exit-codes/)
 
@@ -134,6 +138,7 @@ console.log(`${colors.blue}ℹ${colors.reset} Info message`);
 ```
 
 **References**:
+
 - [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
 - [Node.js Console Colors](https://nodejs.dev/en/learn/#how-to-read-environment-variables-from-nodejs)
 
@@ -196,7 +201,10 @@ await main();
 ### Environment Configuration
 
 ```typescript
-import { configureEnvironment, validateEnvironment } from './config/environment.js';
+import {
+  configureEnvironment,
+  validateEnvironment,
+} from './config/environment.js';
 
 // Configure before using environment variables
 configureEnvironment();
@@ -213,6 +221,7 @@ try {
 ```
 
 **Requirements**:
+
 - Node.js 18+ for top-level await
 - Use `.js` extension in imports for ESM
 - Handle environment errors gracefully
@@ -257,11 +266,13 @@ const response = await fetchWithTimeout(
 ```
 
 **Key Points**:
+
 - Always clear timeout in success and error cases
 - Check for `AbortError` to detect timeouts
 - Set appropriate timeouts for different operations
 
 **References**:
+
 - [Fetch API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
 - [AbortController Documentation](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
 
@@ -316,6 +327,7 @@ console.log(data.id); // Type-safe access
 ```
 
 **Benefits**:
+
 - Runtime type checking
 - Compile-time type narrowing
 - Clear error messages for invalid data
@@ -335,6 +347,7 @@ This research confirms that the existing implementation in `/src/scripts/validat
 7. ✅ Fetch with timeout using AbortController
 
 **Missing Feature**:
+
 - ❌ Warning for non-z.ai endpoints (needs implementation)
 
 The pattern for the missing warning is well-established in `tests/setup.ts` (lines 82-104) and should be added to maintain consistency across the codebase.

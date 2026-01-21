@@ -18,51 +18,51 @@ This document provides comprehensive research findings on Groundswell workflow t
 
 Located in `/home/dustin/projects/groundswell/src/__tests__/unit/`:
 
-| Test File | Focus Area | Key Testing Patterns |
-|-----------|------------|---------------------|
-| `workflow.test.ts` | Core workflow functionality | Name validation, status management, observer patterns, error handling |
-| `decorators.test.ts` | `@Step`, `@ObservedState` decorators | Decorator execution, event emission, state snapshots |
-| `agent.test.ts` | Agent and MCP handler | Agent creation, tool registration, MCP server management |
-| `context.test.ts` | AgentExecutionContext | Context propagation, async boundaries, event capture |
-| `observable.test.ts` | Observable class | Subscriber error handling, logger injection, backward compatibility |
-| `logger.test.ts` | WorkflowLogger | Child logger creation, parent-child log hierarchy |
-| `workflow-detachChild.test.ts` | Child detachment | Parent-child relationship management, event emission |
-| `workflow-emitEvent-childDetached.test.ts` | Event propagation | onTreeChanged callback ordering, tree update events |
-| `cache.test.ts` | LLM caching | Cache hits/misses, metrics |
-| `cache-key.test.ts` | Cache key generation | Deterministic key generation |
-| `prompt.test.ts` | Prompt validation | Zod schema validation |
-| `reflection.test.ts` | Reflection system | Error recovery, retry logic |
-| `tree-debugger.test.ts` | Tree visualization | ASCII tree generation, statistics |
-| `tree-debugger-incremental.test.ts` | Incremental tree updates | Performance optimization |
-| `introspection-tools.test.ts` | Introspection tools | Hierarchy navigation |
-| `workflow-error-utils.test.ts` | Error utilities | Error formatting, context extraction |
-| `workflow-isDescendantOf.test.ts` | Hierarchy queries | Descendant detection |
+| Test File                                  | Focus Area                           | Key Testing Patterns                                                  |
+| ------------------------------------------ | ------------------------------------ | --------------------------------------------------------------------- |
+| `workflow.test.ts`                         | Core workflow functionality          | Name validation, status management, observer patterns, error handling |
+| `decorators.test.ts`                       | `@Step`, `@ObservedState` decorators | Decorator execution, event emission, state snapshots                  |
+| `agent.test.ts`                            | Agent and MCP handler                | Agent creation, tool registration, MCP server management              |
+| `context.test.ts`                          | AgentExecutionContext                | Context propagation, async boundaries, event capture                  |
+| `observable.test.ts`                       | Observable class                     | Subscriber error handling, logger injection, backward compatibility   |
+| `logger.test.ts`                           | WorkflowLogger                       | Child logger creation, parent-child log hierarchy                     |
+| `workflow-detachChild.test.ts`             | Child detachment                     | Parent-child relationship management, event emission                  |
+| `workflow-emitEvent-childDetached.test.ts` | Event propagation                    | onTreeChanged callback ordering, tree update events                   |
+| `cache.test.ts`                            | LLM caching                          | Cache hits/misses, metrics                                            |
+| `cache-key.test.ts`                        | Cache key generation                 | Deterministic key generation                                          |
+| `prompt.test.ts`                           | Prompt validation                    | Zod schema validation                                                 |
+| `reflection.test.ts`                       | Reflection system                    | Error recovery, retry logic                                           |
+| `tree-debugger.test.ts`                    | Tree visualization                   | ASCII tree generation, statistics                                     |
+| `tree-debugger-incremental.test.ts`        | Incremental tree updates             | Performance optimization                                              |
+| `introspection-tools.test.ts`              | Introspection tools                  | Hierarchy navigation                                                  |
+| `workflow-error-utils.test.ts`             | Error utilities                      | Error formatting, context extraction                                  |
+| `workflow-isDescendantOf.test.ts`          | Hierarchy queries                    | Descendant detection                                                  |
 
 ### 1.2 Integration Test Files
 
 Located in `/home/dustin/projects/groundswell/src/__tests__/integration/`:
 
-| Test File | Focus Area |
-|-----------|------------|
-| `agent-workflow.test.ts` | Agent-workflow integration, context establishment, step events |
-| `tree-mirroring.test.ts` | Tree structure consistency |
-| `workflow-reparenting.test.ts` | Detach-then-attach patterns |
-| `bidirectional-consistency.test.ts` | Parent-child bidirectional references |
-| `observer-logging.test.ts` | Observer error handling, logging integration |
+| Test File                           | Focus Area                                                     |
+| ----------------------------------- | -------------------------------------------------------------- |
+| `agent-workflow.test.ts`            | Agent-workflow integration, context establishment, step events |
+| `tree-mirroring.test.ts`            | Tree structure consistency                                     |
+| `workflow-reparenting.test.ts`      | Detach-then-attach patterns                                    |
+| `bidirectional-consistency.test.ts` | Parent-child bidirectional references                          |
+| `observer-logging.test.ts`          | Observer error handling, logging integration                   |
 
 ### 1.3 Adversarial Test Files
 
 Located in `/home/dustin/projects/groundswell/src/__tests__/adversarial/`:
 
-| Test File | Focus Area |
-|-----------|------------|
-| `circular-reference.test.ts` | Circular parent-child relationships |
-| `deep-hierarchy-stress.test.ts` | Deep nesting performance |
-| `concurrent-task-failures.test.ts` | Parallel execution error handling |
-| `error-merge-strategy.test.ts` | Multiple error aggregation |
-| `prd-compliance.test.ts` | PRD requirements validation |
-| `edge-case.test.ts` | Boundary conditions |
-| `deep-analysis.test.ts` | Complex scenario analysis |
+| Test File                          | Focus Area                          |
+| ---------------------------------- | ----------------------------------- |
+| `circular-reference.test.ts`       | Circular parent-child relationships |
+| `deep-hierarchy-stress.test.ts`    | Deep nesting performance            |
+| `concurrent-task-failures.test.ts` | Parallel execution error handling   |
+| `error-merge-strategy.test.ts`     | Multiple error aggregation          |
+| `prd-compliance.test.ts`           | PRD requirements validation         |
+| `edge-case.test.ts`                | Boundary conditions                 |
+| `deep-analysis.test.ts`            | Complex scenario analysis           |
 
 ---
 
@@ -101,15 +101,15 @@ it('should emit treeUpdated event when status changes', () => {
 
   const observer: WorkflowObserver = {
     onLog: () => {},
-    onEvent: (event) => events.push(event),
+    onEvent: event => events.push(event),
     onStateUpdated: () => {},
-    onTreeChanged: (root) => treeChangedCalls.push(root),
+    onTreeChanged: root => treeChangedCalls.push(root),
   };
 
   wf.addObserver(observer);
   wf.setStatus('running');
 
-  const treeUpdatedEvent = events.find((e) => e.type === 'treeUpdated');
+  const treeUpdatedEvent = events.find(e => e.type === 'treeUpdated');
   expect(treeUpdatedEvent).toBeDefined();
   expect(treeChangedCalls).toHaveLength(1);
 });
@@ -152,15 +152,15 @@ it('should emit stepStart and stepEnd events', async () => {
 
   wf.addObserver({
     onLog: () => {},
-    onEvent: (e) => events.push(e),
+    onEvent: e => events.push(e),
     onStateUpdated: () => {},
     onTreeChanged: () => {},
   });
 
   await wf.run();
 
-  const startEvent = events.find((e) => e.type === 'stepStart');
-  const endEvent = events.find((e) => e.type === 'stepEnd');
+  const startEvent = events.find(e => e.type === 'stepStart');
+  const endEvent = events.find(e => e.type === 'stepEnd');
 
   expect(startEvent).toBeDefined();
   expect(endEvent).toBeDefined();
@@ -240,7 +240,7 @@ it('should emit childAttached event', () => {
 
   const observer: WorkflowObserver = {
     onLog: () => {},
-    onEvent: (event) => events.push(event),
+    onEvent: event => events.push(event),
     onStateUpdated: () => {},
     onTreeChanged: () => {},
   };
@@ -248,9 +248,11 @@ it('should emit childAttached event', () => {
   parent.addObserver(observer);
   const child = new SimpleWorkflow('Child', parent);
 
-  const attachEvent = events.find((e) => e.type === 'childAttached');
+  const attachEvent = events.find(e => e.type === 'childAttached');
   expect(attachEvent).toBeDefined();
-  expect(attachEvent?.type === 'childAttached' && attachEvent.parentId).toBe(parent.id);
+  expect(attachEvent?.type === 'childAttached' && attachEvent.parentId).toBe(
+    parent.id
+  );
 });
 ```
 
@@ -329,14 +331,14 @@ it('should capture @ObservedState fields in workflow error state', async () => {
   const events: WorkflowEvent[] = [];
   const observer: WorkflowObserver = {
     onLog: () => {},
-    onEvent: (event) => events.push(event),
+    onEvent: event => events.push(event),
     onStateUpdated: () => {},
     onTreeChanged: () => {},
   };
 
   const workflow = new StatefulWorkflowClass(
     { name: 'StatefulErrorTest' },
-    async (ctx) => {
+    async ctx => {
       (workflow as any).stepCount = 5;
       (workflow as any).apiKey = 'updated-key';
       (workflow as any).internalCounter = 99;
@@ -350,7 +352,7 @@ it('should capture @ObservedState fields in workflow error state', async () => {
   workflow.addObserver(observer);
   await expect(workflow.run()).rejects.toThrow('Error after state update');
 
-  const errorEvents = events.filter((e) => e.type === 'error');
+  const errorEvents = events.filter(e => e.type === 'error');
   const errorEvent = errorEvents[0];
 
   // Verify public field value is captured
@@ -377,7 +379,7 @@ it('should establish context in @Step decorated methods', async () => {
 
   const observer: WorkflowObserver = {
     onLog: () => {},
-    onEvent: (event) => events.push(event),
+    onEvent: event => events.push(event),
     onStateUpdated: () => {},
     onTreeChanged: () => {},
   };
@@ -386,8 +388,8 @@ it('should establish context in @Step decorated methods', async () => {
   await workflow.run();
 
   // Should have step start/end events
-  const stepStarts = events.filter((e) => e.type === 'stepStart');
-  const stepEnds = events.filter((e) => e.type === 'stepEnd');
+  const stepStarts = events.filter(e => e.type === 'stepStart');
+  const stepEnds = events.filter(e => e.type === 'stepEnd');
 
   expect(stepStarts).toHaveLength(2);
   expect(stepEnds).toHaveLength(2);
@@ -398,10 +400,14 @@ it('should establish context in @Step decorated methods', async () => {
 
 ```typescript
 // Type-safe event payload access
-const detachEvent = events.find((e) => e.type === 'childDetached');
+const detachEvent = events.find(e => e.type === 'childDetached');
 expect(detachEvent).toBeDefined();
-expect(detachEvent?.type === 'childDetached' && detachEvent.parentId).toBe(parent.id);
-expect(detachEvent?.type === 'childDetached' && detachEvent.childId).toBe(child.id);
+expect(detachEvent?.type === 'childDetached' && detachEvent.parentId).toBe(
+  parent.id
+);
+expect(detachEvent?.type === 'childDetached' && detachEvent.childId).toBe(
+  child.id
+);
 ```
 
 **Pattern 3: Event ordering verification**
@@ -453,8 +459,8 @@ const events: WorkflowEvent[] = [];
 const logs: LogEntry[] = [];
 
 const observer: WorkflowObserver = {
-  onLog: (entry) => logs.push(entry),
-  onEvent: (event) => events.push(event),
+  onLog: entry => logs.push(entry),
+  onEvent: event => events.push(event),
   onStateUpdated: () => {},
   onTreeChanged: () => {},
 };
@@ -562,7 +568,7 @@ console.log(`  stack: ${capturedError?.stack?.split('\n')[0]}...`);
 console.log('\nState snapshot at time of error:');
 console.log(JSON.stringify(capturedError?.state, null, 2));
 console.log('\nLogs at time of error:');
-capturedError?.logs.forEach((log) => {
+capturedError?.logs.forEach(log => {
   console.log(`  [${log.level}] ${log.message}`);
 });
 ```
@@ -643,7 +649,10 @@ class ResilientParentWorkflow extends Workflow {
   failedChildren: number = 0;
 
   @Task()
-  async spawnChild(config: { name: string; shouldFail: boolean }): Promise<FailableChildWorkflow> {
+  async spawnChild(config: {
+    name: string;
+    shouldFail: boolean;
+  }): Promise<FailableChildWorkflow> {
     return new FailableChildWorkflow(config.name, config.shouldFail, this);
   }
 
@@ -825,21 +834,24 @@ it('should support subscribe/unsubscribe cycle', () => {
 it('should support functional workflow pattern with step()', async () => {
   const events: WorkflowEvent[] = [];
 
-  const workflow = new Workflow<string>({ name: 'FunctionalWorkflow' }, async (ctx) => {
-    await ctx.step('step-a', async () => {
-      return 'a';
-    });
+  const workflow = new Workflow<string>(
+    { name: 'FunctionalWorkflow' },
+    async ctx => {
+      await ctx.step('step-a', async () => {
+        return 'a';
+      });
 
-    await ctx.step('step-b', async () => {
-      return 'b';
-    });
+      await ctx.step('step-b', async () => {
+        return 'b';
+      });
 
-    return 'completed';
-  });
+      return 'completed';
+    }
+  );
 
   const observer: WorkflowObserver = {
     onLog: () => {},
-    onEvent: (event) => events.push(event),
+    onEvent: event => events.push(event),
     onStateUpdated: () => {},
     onTreeChanged: () => {},
   };
@@ -853,8 +865,8 @@ it('should support functional workflow pattern with step()', async () => {
     duration: expect.any(Number),
   });
 
-  const stepStarts = events.filter((e) => e.type === 'stepStart');
-  const stepEnds = events.filter((e) => e.type === 'stepEnd');
+  const stepStarts = events.filter(e => e.type === 'stepStart');
+  const stepEnds = events.filter(e => e.type === 'stepEnd');
 
   expect(stepStarts).toHaveLength(2);
   expect(stepEnds).toHaveLength(2);
@@ -921,7 +933,7 @@ const createMockContext = (name: string): AgentExecutionContext => ({
 
 ```typescript
 async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 ```
 
@@ -938,7 +950,9 @@ it('should emit childDetached event with correct payload', () => {
   // Arrange
   const parent = new SimpleWorkflow('Parent');
   const events: WorkflowEvent[] = [];
-  const observer = { /* ... */ };
+  const observer = {
+    /* ... */
+  };
 
   parent.addObserver(observer);
   const child = new SimpleWorkflow('Child', parent);
@@ -948,9 +962,11 @@ it('should emit childDetached event with correct payload', () => {
   parent.detachChild(child);
 
   // Assert
-  const detachEvent = events.find((e) => e.type === 'childDetached');
+  const detachEvent = events.find(e => e.type === 'childDetached');
   expect(detachEvent).toBeDefined();
-  expect(detachEvent?.type === 'childDetached' && detachEvent.parentId).toBe(parent.id);
+  expect(detachEvent?.type === 'childDetached' && detachEvent.parentId).toBe(
+    parent.id
+  );
 });
 ```
 
@@ -960,7 +976,9 @@ Using TypeScript type guards for discriminated unions:
 
 ```typescript
 // Type narrowing before accessing payload
-expect(detachEvent?.type === 'childDetached' && detachEvent.parentId).toBe(parent.id);
+expect(detachEvent?.type === 'childDetached' && detachEvent.parentId).toBe(
+  parent.id
+);
 ```
 
 ### 11.3 Event Isolation
@@ -988,6 +1006,7 @@ consoleErrorSpy.mockRestore();
 All test files located at: `/home/dustin/projects/groundswell/src/__tests__/`
 
 **Unit Tests:**
+
 - `/home/dustin/projects/groundswell/src/__tests__/unit/workflow.test.ts`
 - `/home/dustin/projects/groundswell/src/__tests__/unit/decorators.test.ts`
 - `/home/dustin/projects/groundswell/src/__tests__/unit/agent.test.ts`
@@ -998,10 +1017,12 @@ All test files located at: `/home/dustin/projects/groundswell/src/__tests__/`
 - `/home/dustin/projects/groundswell/src/__tests__/unit/workflow-emitEvent-childDetached.test.ts`
 
 **Integration Tests:**
+
 - `/home/dustin/projects/groundswell/src/__tests__/integration/agent-workflow.test.ts`
 - `/home/dustin/projects/groundswell/src/__tests__/integration/observer-logging.test.ts`
 
 **Example Files:**
+
 - `/home/dustin/projects/groundswell/examples/examples/01-basic-workflow.ts`
 - `/home/dustin/projects/groundswell/examples/examples/02-decorator-options.ts`
 - `/home/dustin/projects/groundswell/examples/examples/05-error-handling.ts`
@@ -1050,6 +1071,7 @@ When testing Groundswell workflows, verify:
 **Note:** Web search was unavailable during research due to API limits. All findings are from the Groundswell source code at `/home/dustin/projects/groundswell`.
 
 **Recommended next steps for online research:**
+
 1. Search GitHub for "Groundswell workflow testing examples"
 2. Look for npm package documentation
 3. Check for GitHub issues or discussions about testing patterns

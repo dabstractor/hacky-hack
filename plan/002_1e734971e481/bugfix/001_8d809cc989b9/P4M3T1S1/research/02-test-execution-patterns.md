@@ -29,6 +29,7 @@ This research document identifies existing test execution utilities, validation 
 **Purpose**: Execute the complete test suite (1688 tests) with memory monitoring and result parsing.
 
 **Key Features**:
+
 - Spawn-based test execution via `npm run test:run` (no test file argument)
 - Stdout/stderr capture with complete output accumulation
 - Timeout handling with SIGTERM/SIGKILL escalation (5 min + 10s)
@@ -38,31 +39,35 @@ This research document identifies existing test execution utilities, validation 
 - Structured result with completion flag and memory error details
 
 **Function Signature**:
+
 ```typescript
 export async function runFullTestSuite(
   singleTestResult: SingleTestResult,
   projectRoot?: string
-): Promise<FullTestSuiteResult>
+): Promise<FullTestSuiteResult>;
 ```
 
 **Result Type**:
+
 ```typescript
 export interface FullTestSuiteResult {
-  readonly completed: boolean;           // Whether suite completed
-  readonly memoryErrors: boolean;        // Memory error detected
-  readonly testResults: {                // Parsed test counts
+  readonly completed: boolean; // Whether suite completed
+  readonly memoryErrors: boolean; // Memory error detected
+  readonly testResults: {
+    // Parsed test counts
     pass: number;
     fail: number;
     total: number;
   } | null;
-  readonly output: string;               // Combined stdout/stderr
-  readonly exitCode: number | null;      // Process exit code
+  readonly output: string; // Combined stdout/stderr
+  readonly exitCode: number | null; // Process exit code
   readonly memoryError: MemoryErrorDetectionResult | null;
-  readonly error?: string;               // Error message if failed
+  readonly error?: string; // Error message if failed
 }
 ```
 
 **Usage Pattern**:
+
 ```typescript
 import { runSingleTestFile } from './utils/single-test-runner.js';
 import { runFullTestSuite } from './utils/full-test-suite-runner.js';
@@ -80,13 +85,16 @@ const result = await runFullTestSuite(s1Result);
 
 if (result.completed && !result.memoryErrors) {
   console.log('✓ Full suite completed without memory issues');
-  console.log(`Results: ${result.testResults.pass} passed, ${result.testResults.fail} failed`);
+  console.log(
+    `Results: ${result.testResults.pass} passed, ${result.testResults.fail} failed`
+  );
 } else if (result.memoryErrors) {
   console.error('Memory error:', result.memoryError?.errorType);
 }
 ```
 
 **Test File**: `/home/dustin/projects/hacky-hack/tests/unit/utils/full-test-suite-runner.test.ts`
+
 - **1422 lines** of comprehensive unit tests
 - Tests validate: npm spawn execution, output capture, memory error detection, test result parsing, exit code validation, timeout handling, spawn error handling, input condition validation
 
@@ -99,6 +107,7 @@ if (result.completed && !result.memoryErrors) {
 **Purpose**: Execute a single test file with memory monitoring for quick verification.
 
 **Key Features**:
+
 - Spawn-based test execution via `npm run test:run -- <test-file>`
 - Default test file: `tests/unit/utils/resource-monitor.test.ts` (564 tests)
 - Timeout handling with SIGTERM/SIGKILL escalation (30s + 5s)
@@ -106,26 +115,29 @@ if (result.completed && !result.memoryErrors) {
 - Structured result with success flag and memory error details
 
 **Function Signature**:
+
 ```typescript
 export async function runSingleTestFile(
   testFile?: string,
   projectRoot?: string
-): Promise<SingleTestResult>
+): Promise<SingleTestResult>;
 ```
 
 **Result Type**:
+
 ```typescript
 export interface SingleTestResult {
-  readonly success: boolean;             // Command succeeded
-  readonly hasMemoryError: boolean;      // Memory error detected
-  readonly output: string;               // Combined stdout/stderr
-  readonly exitCode: number | null;      // Process exit code
+  readonly success: boolean; // Command succeeded
+  readonly hasMemoryError: boolean; // Memory error detected
+  readonly output: string; // Combined stdout/stderr
+  readonly exitCode: number | null; // Process exit code
   readonly memoryError: MemoryErrorDetectionResult | null;
-  readonly error?: string;               // Error message if failed
+  readonly error?: string; // Error message if failed
 }
 ```
 
 **Test File**: `/home/dustin/projects/hacky-hack/tests/unit/utils/single-test-runner.test.ts`
+
 - **1063 lines** of comprehensive unit tests
 - Tests validate: spawn execution, output capture, memory error detection, exit code handling, timeout handling, spawn error handling
 
@@ -140,35 +152,38 @@ export interface SingleTestResult {
 **Pattern**: Both test runners use Node.js `spawn()` to execute tests programmatically.
 
 **Implementation Pattern**:
+
 ```typescript
 import { spawn } from 'node:child_process';
 
 child = spawn('npm', ['run', 'test:run', '--', testFile], {
   cwd: root,
-  stdio: ['ignore', 'pipe', 'pipe'],  // stdin ignored, stdout/stderr captured
-  shell: false,                        // Security: no shell injection
+  stdio: ['ignore', 'pipe', 'pipe'], // stdin ignored, stdout/stderr captured
+  shell: false, // Security: no shell injection
 });
 ```
 
 **Key Design Decisions**:
+
 1. **Shell: false** - Prevents shell injection vulnerabilities
 2. **Argument arrays** - Commands passed as arrays (not concatenated strings)
 3. **Pipe stdio** - Captures stdout/stderr for parsing
 4. **Timeout with escalation** - SIGTERM then SIGKILL if process hangs
 
 **Output Accumulation Pattern**:
+
 ```typescript
 let stdout = '';
 let stderr = '';
 let killed = false;
 
 child.stdout?.on('data', (data: Buffer) => {
-  if (killed) return;  // CRITICAL: Ignore data after kill
+  if (killed) return; // CRITICAL: Ignore data after kill
   stdout += data.toString();
 });
 
 child.stderr?.on('data', (data: Buffer) => {
-  if (killed) return;  // CRITICAL: Ignore data after kill
+  if (killed) return; // CRITICAL: Ignore data after kill
   stderr += data.toString();
 });
 ```
@@ -180,6 +195,7 @@ child.stderr?.on('data', (data: Buffer) => {
 ### 2.2 Timeout Handling Pattern
 
 **Single Test Timeout**: 30 seconds + 5 second escalation
+
 ```typescript
 const DEFAULT_TIMEOUT = 30_000;
 const SIGKILL_TIMEOUT = 5_000;
@@ -197,9 +213,10 @@ const timeoutId = setTimeout(() => {
 ```
 
 **Full Suite Timeout**: 5 minutes + 10 second escalation
+
 ```typescript
-const DEFAULT_TIMEOUT = 5 * 60 * 1000;  // 5 minutes
-const SIGKILL_TIMEOUT = 10 * 1000;      // 10 seconds
+const DEFAULT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const SIGKILL_TIMEOUT = 10 * 1000; // 10 seconds
 ```
 
 **Rationale**: Full suite has 1688 tests and typically takes 3-5 minutes to complete.
@@ -217,29 +234,33 @@ const SIGKILL_TIMEOUT = 10 * 1000;      // 10 seconds
 **Functions**:
 
 1. **`detectMemoryErrorInTestOutput()`** - Detects memory errors
+
 ```typescript
 export function detectMemoryErrorInTestOutput(
   output: string,
   exitCode: number | null = null
-): MemoryErrorDetectionResult
+): MemoryErrorDetectionResult;
 ```
 
 2. **`parseVitestTestCounts()`** - Parses test pass/fail counts
+
 ```typescript
 export function parseVitestTestCounts(
   output: string
-): { fail: number; pass: number; total: number } | null
+): { fail: number; pass: number; total: number } | null;
 ```
 
 3. **`validateTestResults()`** - CI/CD validation wrapper
+
 ```typescript
 export function validateTestResults(
   output: string,
   exitCode: number | null = null
-): TestValidationResult
+): TestValidationResult;
 ```
 
 **Memory Error Patterns**:
+
 - Fatal errors: `FATAL ERROR.*heap out of memory`, `CALL_AND_RETRY_LAST.*heap`
 - Worker errors: `Worker terminated.*memory`, `ERR_WORKER_OUT_OF_MEMORY`
 - System OOM: `JavaScript heap out of memory`, `SIGKILL.*Out of memory`
@@ -254,29 +275,32 @@ export function validateTestResults(
 **Purpose**: Analyze test suite pass rates against baseline metrics (94.37% from 1593/1688).
 
 **Function**:
+
 ```typescript
 export function analyzePassRate(
   testResult: TestSuiteResult | null | undefined
-): PassRateAnalysis
+): PassRateAnalysis;
 ```
 
 **Analysis Result**:
+
 ```typescript
 export interface PassRateAnalysis {
-  readonly passRate: number;              // Current pass rate (0-100)
-  readonly baselinePassRate: number;      // 94.37 (from 1593/1688)
-  readonly targetPassRate: number;        // 100.00
-  readonly improved: boolean;             // Meets or exceeds baseline
-  readonly delta: number;                 // Difference from baseline
+  readonly passRate: number; // Current pass rate (0-100)
+  readonly baselinePassRate: number; // 94.37 (from 1593/1688)
+  readonly targetPassRate: number; // 100.00
+  readonly improved: boolean; // Meets or exceeds baseline
+  readonly delta: number; // Difference from baseline
   readonly passedCount: number;
   readonly failedCount: number;
   readonly totalCount: number;
-  readonly failingTests: readonly string[];  // Extracted from output
-  readonly allFailuresAcceptable: boolean;   // True if no failures or known issues
+  readonly failingTests: readonly string[]; // Extracted from output
+  readonly allFailuresAcceptable: boolean; // True if no failures or known issues
 }
 ```
 
 **Key Features**:
+
 - Zero-division protection (returns 0 if total is 0)
 - Baseline comparison (94.37% from 1593/1688)
 - Delta calculation (can be negative for degraded)
@@ -285,6 +309,7 @@ export interface PassRateAnalysis {
 - Failure classification (acceptable/unacceptable)
 
 **Baseline Calculation**:
+
 ```typescript
 // From TEST_RESULTS.md: 1593 passing / 1688 total = 94.3720...%
 const BASELINE_PASS_RATE = Math.round((1593 / 1688) * 10000) / 100; // 94.37
@@ -294,6 +319,7 @@ const TARGET_PASS_RATE = 100.0;
 ```
 
 **Usage Example**:
+
 ```typescript
 const analysis = analyzePassRate(testResult);
 
@@ -316,6 +342,7 @@ if (analysis.improved) {
 **File**: `/home/dustin/projects/hacky-hack/package.json`
 
 **Available Test Scripts**:
+
 ```json
 {
   "test": "vitest",
@@ -327,12 +354,14 @@ if (analysis.improved) {
 ```
 
 **Test Script Details**:
+
 - `npm test` - Run tests in watch mode (interactive)
 - `npm run test:run` - Run tests once (CI mode) ← **Used by test runners**
 - `npm run test:coverage` - Run tests with coverage report
 - `npm run test:bail` - Run tests and bail on first failure
 
 **Validation Script**:
+
 ```json
 {
   "validate": "npm run validate:groundswell && npm run lint && npm run format:check && npm run typecheck"
@@ -346,6 +375,7 @@ if (analysis.improved) {
 **File**: `/home/dustin/projects/hacky-hack/vitest.config.ts`
 
 **Configuration**:
+
 ```typescript
 export default defineConfig({
   test: {
@@ -371,6 +401,7 @@ export default defineConfig({
 ```
 
 **Key Settings**:
+
 - **100% coverage thresholds** - Enforces complete code coverage
 - **v8 provider** - Fast coverage instrumentation
 - **Node environment** - Tests run in Node.js context
@@ -399,6 +430,7 @@ The repository has no `.github/workflows/` directory at the project root level. 
 **Pattern**: Standalone Node.js script with colored output and exit codes.
 
 **Key Pattern**:
+
 ```typescript
 function main(): void {
   const results = {
@@ -422,6 +454,7 @@ function main(): void {
 ```
 
 **Applicable Pattern for P4.M3.T1.S1**:
+
 - Run validations sequentially
 - Collect results in object
 - Check all passed with `Object.values(results).every(r => r)`
@@ -439,6 +472,7 @@ function main(): void {
 **Status**: Researching
 
 **Context from tasks.json**:
+
 ```json
 {
   "id": "P4.M3.T1.S1",
@@ -449,6 +483,7 @@ function main(): void {
 ```
 
 **Baseline Statistics** (from TEST_RESULTS.md):
+
 - Total: 1688 tests
 - Passing: 1593 tests
 - Failing: 95 tests
@@ -463,12 +498,14 @@ function main(): void {
 **File**: `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/bugfix/001_8d809cc989b9/TEST_RESULTS.md`
 
 **Original Test Statistics** (from PRD):
+
 - Total: 3,303 tests
 - Pass rate: 93.2%
 - Passing: 3,081 tests
 - Failing: 118 tests
 
 **Current Baseline** (from TEST_RESULTS.md):
+
 - Total: 1688 tests
 - Pass rate: 94.37%
 - Passing: 1593 tests
@@ -516,7 +553,9 @@ async function executeFullTestSuiteAndValidate() {
   }
 
   if (fullResult.memoryErrors) {
-    console.error(`✗ Memory errors detected: ${fullResult.memoryError?.errorType}`);
+    console.error(
+      `✗ Memory errors detected: ${fullResult.memoryError?.errorType}`
+    );
     process.exit(1);
   }
 
@@ -586,11 +625,13 @@ Based on task context, validate:
 ## 9. External Research (Web Search Limitations)
 
 **Note**: Web search tools reached monthly usage limits during research. Could not fetch external documentation on:
+
 - Vitest programmatic API
 - Running Vitest from Node.js scripts
 - Best practices for test result validation
 
 **Recommended External Resources** (to be reviewed when search limits reset):
+
 1. [Vitest Guide - Programmatic API](https://vitest.dev/guide/)
 2. [Vitest GitHub Repository](https://github.com/vitest-dev/vitest)
 3. Search terms: "Vitest programmatic API Node.js", "run Vitest tests programmatically"
@@ -602,6 +643,7 @@ Based on task context, validate:
 ### 10.1 Summary
 
 **Existing Infrastructure**:
+
 - ✅ Full test suite runner (`runFullTestSuite()`)
 - ✅ Single test runner (`runSingleTestFile()`)
 - ✅ Pass rate analyzer (`analyzePassRate()`)
@@ -610,11 +652,13 @@ Based on task context, validate:
 - ✅ Validation script pattern (`validate-groundswell.ts`)
 
 **Missing Infrastructure**:
+
 - ❌ GitHub Actions workflows
 - ❌ CI/CD automation
 - ❌ Automated test reporting
 
 **Recommended Implementation**:
+
 1. Create standalone Node.js script for P4.M3.T1.S1
 2. Use existing test runner utilities
 3. Use pass-rate-analyzer for validation
@@ -637,22 +681,26 @@ Based on task context, validate:
 ## Appendix A: File Reference
 
 ### Test Runner Files
+
 - `/home/dustin/projects/hacky-hack/src/utils/full-test-suite-runner.ts` (413 lines)
 - `/home/dustin/projects/hacky-hack/src/utils/single-test-runner.ts` (351 lines)
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/full-test-suite-runner.test.ts` (1422 lines)
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/single-test-runner.test.ts` (1063 lines)
 
 ### Validation Files
+
 - `/home/dustin/projects/hacky-hack/src/utils/memory-error-detector.ts` (427 lines)
 - `/home/dustin/projects/hacky-hack/src/utils/pass-rate-analyzer.ts` (504 lines)
 - `/home/dustin/projects/hacky-hack/src/scripts/validate-groundswell.ts` (279 lines)
 - `/home/dustin/projects/hacky-hack/src/scripts/validate-api.ts` (555 lines)
 
 ### Configuration Files
+
 - `/home/dustin/projects/hacky-hack/package.json` (91 lines)
 - `/home/dustin/projects/hacky-hack/vitest.config.ts` (60 lines)
 
 ### Task Files
+
 - `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/bugfix/001_8d809cc989b9/tasks.json` (514 lines)
 - `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/bugfix/001_8d809cc989b9/TEST_RESULTS.md`
 
@@ -661,6 +709,7 @@ Based on task context, validate:
 ## Appendix B: Code Patterns Reference
 
 ### Spawn-Based Test Execution Pattern
+
 ```typescript
 import { spawn } from 'node:child_process';
 
@@ -677,13 +726,14 @@ child.stdout?.on('data', (data: Buffer) => {
   stdout += data.toString();
 });
 
-child.on('close', (exitCode) => {
+child.on('close', exitCode => {
   const combined = stdout + stderr;
   // Process output...
 });
 ```
 
 ### Validation Script Pattern
+
 ```typescript
 function main(): void {
   const results = {
@@ -705,6 +755,7 @@ function main(): void {
 ```
 
 ### Pass Rate Analysis Pattern
+
 ```typescript
 const analysis = analyzePassRate(testResult);
 

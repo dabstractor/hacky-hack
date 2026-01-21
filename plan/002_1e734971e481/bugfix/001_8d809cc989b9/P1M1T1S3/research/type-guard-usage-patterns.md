@@ -40,6 +40,7 @@ export function isValidationError(error: unknown): error is ValidationError {
 ### 1. `/home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts`
 
 **Import Statement:**
+
 ```typescript
 import {
   isPipelineError,
@@ -52,6 +53,7 @@ import {
 ```
 
 **Usage Pattern 1 - Error Classification in Catch Blocks (Lines 392-413):**
+
 ```typescript
 if (isPipelineError(error)) {
   // FATAL: Session errors that prevent pipeline execution
@@ -78,6 +80,7 @@ if (isPipelineError(error)) {
 ```
 
 **Usage Pattern 2 - Error Categorization (Lines 1424-1435):**
+
 ```typescript
 for (const failure of failures) {
   if (isTaskError(failure.error)) {
@@ -97,6 +100,7 @@ for (const failure of failures) {
 ### 2. `/home/dustin/projects/hacky-hack/src/utils/retry.ts`
 
 **Import Statement:**
+
 ```typescript
 import {
   isAgentError,
@@ -108,6 +112,7 @@ import {
 ```
 
 **Usage Pattern 1 - Transient Error Detection (Lines 334-346):**
+
 ```typescript
 if (isPipelineError(err)) {
   const errorCode = err.code;
@@ -125,6 +130,7 @@ if (isValidationError(err)) {
 ```
 
 **Usage Pattern 2 - Permanent Error Detection (Lines 398-399):**
+
 ```typescript
 // Check ValidationError from P5.M4.T1.S1
 if (isValidationError(err)) {
@@ -135,6 +141,7 @@ if (isValidationError(err)) {
 ### 3. `/home/dustin/projects/hacky-hack/tests/unit/utils/errors.test.ts`
 
 **Import Statement:**
+
 ```typescript
 import {
   isPipelineError,
@@ -147,6 +154,7 @@ import {
 ```
 
 **Usage Pattern 1 - Type Narrowing Tests (Lines 898-944):**
+
 ```typescript
 it('should narrow type with isSessionError', () => {
   const error = new SessionError('Test error');
@@ -198,6 +206,7 @@ it('should narrow type with isPipelineError', () => {
 ```
 
 **Usage Pattern 2 - Switch-Style Error Handling (Lines 946-969):**
+
 ```typescript
 it('should support switch-style error handling', () => {
   const errors: unknown[] = [
@@ -230,6 +239,7 @@ it('should support switch-style error handling', () => {
 ### 4. `/home/dustin/projects/hacky-hack/tests/unit/utils/retry.test.ts`
 
 **Import Statement:**
+
 ```typescript
 import {
   isValidationError,
@@ -238,6 +248,7 @@ import {
 ```
 
 **Usage Pattern - Type Guard Verification (Lines 307-313):**
+
 ```typescript
 it('should return true for ValidationError via type guard', () => {
   const error = new ValidationError('Schema validation failed', {
@@ -353,6 +364,7 @@ if (isAgentError(error)) {
 ### With Error Handling
 
 Type guards are primarily used in:
+
 - Catch blocks for error classification
 - Retry logic for determining retryability
 - Error reporting and statistics
@@ -361,18 +373,19 @@ Type guards are primarily used in:
 ### With Type System
 
 Type guards enable:
+
 - Safe access to error type-specific properties (e.g., `error.code`, `error.context`)
 - Type-specific method calls (e.g., `error.isLoadError()`)
 - Compile-time type checking in conditional blocks
 
 ## Summary Table
 
-| File | Type Guards Used | Purpose |
-|------|------------------|---------|
-| `src/workflows/prp-pipeline.ts` | All 5 guards | Error classification, categorization, fatal error detection |
-| `src/utils/retry.ts` | `isPipelineError`, `isAgentError`, `isValidationError` | Transient/permanent error detection |
-| `tests/unit/utils/errors.test.ts` | All 5 guards | Type narrowing tests, switch-style handling |
-| `tests/unit/utils/retry.test.ts` | `isValidationError` | Type guard verification |
+| File                              | Type Guards Used                                       | Purpose                                                     |
+| --------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| `src/workflows/prp-pipeline.ts`   | All 5 guards                                           | Error classification, categorization, fatal error detection |
+| `src/utils/retry.ts`              | `isPipelineError`, `isAgentError`, `isValidationError` | Transient/permanent error detection                         |
+| `tests/unit/utils/errors.test.ts` | All 5 guards                                           | Type narrowing tests, switch-style handling                 |
+| `tests/unit/utils/retry.test.ts`  | `isValidationError`                                    | Type guard verification                                     |
 
 ## Recommendations
 

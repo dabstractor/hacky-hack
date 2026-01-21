@@ -9,6 +9,7 @@
 **Deliverable**: Integration test file `tests/integration/core/research-queue.test.ts` with test cases for concurrent PRP generation, error handling, dependency ordering, and cache behavior.
 
 **Success Definition**: All tests pass, verifying:
+
 - ResearchQueue processes up to 3 tasks concurrently (respecting maxSize)
 - Queue respects dependency ordering (no research for blocked tasks via TaskOrchestrator)
 - Errors are logged but don't block queue processing (fire-and-forget pattern)
@@ -45,6 +46,7 @@ Integration tests that verify ResearchQueue correctly manages concurrent PRP gen
 ### Context Completeness Check
 
 ✓ This PRP provides everything needed to implement the integration tests:
+
 - Exact file paths and patterns to follow from existing integration tests
 - ResearchQueue and PRPGenerator implementation details
 - Mock patterns for controlling timing and simulating errors
@@ -151,6 +153,7 @@ tests/
 ```
 
 **New File**: `tests/integration/core/research-queue.test.ts`
+
 - Tests concurrent PRP generation with realistic timing
 - Tests fire-and-forget error handling
 - Tests cache deduplication behavior
@@ -226,7 +229,13 @@ const createTestSubtask = (
   dependencies: string[] = [],
   context_scope: string = 'Test scope'
 ): Subtask => ({
-  id, type: 'Subtask', title, status, story_points: 2, dependencies, context_scope
+  id,
+  type: 'Subtask',
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope,
 });
 
 const createTestPRPDocument = (taskId: string): PRPDocument => ({
@@ -235,9 +244,19 @@ const createTestPRPDocument = (taskId: string): PRPDocument => ({
   context: '## Context\n\nTest context content.',
   implementationSteps: [`Step 1 for ${taskId}`, `Step 2 for ${taskId}`],
   validationGates: [
-    { level: 1, description: 'Syntax check', command: 'npm run lint', manual: false },
+    {
+      level: 1,
+      description: 'Syntax check',
+      command: 'npm run lint',
+      manual: false,
+    },
     { level: 2, description: 'Unit tests', command: 'npm test', manual: false },
-    { level: 3, description: 'Integration tests', command: 'npm run test:integration', manual: false },
+    {
+      level: 3,
+      description: 'Integration tests',
+      command: 'npm run test:integration',
+      manual: false,
+    },
     { level: 4, description: 'Manual validation', command: null, manual: true },
   ],
   successCriteria: [
@@ -467,8 +486,11 @@ it('should process up to maxSize tasks concurrently', async () => {
 
   // VERIFY: Concurrency limit was never exceeded
   expect(tracker.getState().max).toBeLessThanOrEqual(3);
-  expect(tracker.getState().startOrder.slice(0, 3).sort())
-    .toEqual(['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3']);
+  expect(tracker.getState().startOrder.slice(0, 3).sort()).toEqual([
+    'P1.M1.T1.S1',
+    'P1.M1.T1.S2',
+    'P1.M1.T1.S3',
+  ]);
 });
 
 // CRITICAL: Fire-and-forget error handling test pattern
@@ -492,7 +514,9 @@ it('should log errors but continue processing queue', async () => {
   await queue.enqueue(task3, backlog);
 
   // Wait for task1 to fail
-  await expect(queue.waitForPRP('P1.M1.T1.S1')).rejects.toThrow('Task 1 failed');
+  await expect(queue.waitForPRP('P1.M1.T1.S1')).rejects.toThrow(
+    'Task 1 failed'
+  );
 
   // VERIFY: Error was logged
   expect(mockLogger.error).toHaveBeenCalledWith(
@@ -539,12 +563,14 @@ it('should not process tasks with incomplete dependencies', async () => {
   const orchestrator = new TaskOrchestrator(mockSessionManager);
 
   const task1 = createTestSubtask('P1.M1.T1.S1', 'Dependency', 'Complete', []);
-  const task2 = createTestSubtask('P1.M1.T1.S2', 'Dependent', 'Planned', ['P1.M1.T1.S1']);
+  const task2 = createTestSubtask('P1.M1.T1.S2', 'Dependent', 'Planned', [
+    'P1.M1.T1.S1',
+  ]);
 
   const backlog = createTestBacklog([{ backlog: [task1, task2] }]);
 
   // Mock canExecute to block task2
-  vi.spyOn(orchestrator, 'canExecute').mockImplementation((task) => {
+  vi.spyOn(orchestrator, 'canExecute').mockImplementation(task => {
     return task.id === 'P1.M1.T1.S1'; // Only task1 can execute
   });
 
@@ -552,7 +578,9 @@ it('should not process tasks with incomplete dependencies', async () => {
   // (orchestrator checks canExecute before enqueuing to researchQueue)
 
   // VERIFY: Task2 not enqueued due to dependency
-  expect(orchestrator.researchQueue.getStats().researching).toBeLessThanOrEqual(1);
+  expect(orchestrator.researchQueue.getStats().researching).toBeLessThanOrEqual(
+    1
+  );
 });
 ```
 

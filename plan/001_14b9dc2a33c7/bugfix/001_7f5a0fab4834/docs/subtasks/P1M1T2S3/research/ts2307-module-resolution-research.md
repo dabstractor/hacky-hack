@@ -9,6 +9,7 @@ This research documents TypeScript TS2307 "Cannot find module" errors, module re
 ### Primary Error Categories
 
 **Module Resolution Failures (TS2307):**
+
 - Missing `node_modules` dependencies
 - Incorrect import paths (relative or absolute)
 - Missing type declarations for third-party libraries
@@ -17,6 +18,7 @@ This research documents TypeScript TS2307 "Cannot find module" errors, module re
 - `package.json` `types`/`typings` field misconfiguration
 
 **Related Error Codes:**
+
 ```
 TS2307 - Cannot find module
 TS2304 - Cannot find name
@@ -29,28 +31,33 @@ TS6053 - File not found
 ### Error Format Pattern
 
 TypeScript compiler output follows a consistent format:
+
 ```
 file_path(line,column): error TSXXXX: error_message
 ```
 
 **Example:**
+
 ```
 src/index.ts(10,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
 ```
 
 **Regex Pattern:**
+
 ```javascript
-/^(.+?)\((\d+),(\d+)\): error (TS\d+): (.+)$/
+/^(.+?)\((\d+),(\d+)\): error (TS\d+): (.+)$/;
 ```
 
 ### Module Name Extraction
 
 For TS2307 errors, extract module names using:
+
 ```javascript
-/Cannot find module ['"]([^'"]+)['"]/
+/Cannot find module ['"]([^'"]+)['"]/;
 ```
 
 **Examples extracted:**
+
 - `'express'` → External package
 - `'./utils/helper'` → Relative path
 - `'@scope/package'` → Scoped package
@@ -63,10 +70,13 @@ For TS2307 errors, extract module names using:
 
 ```typescript
 // Execute tsc --noEmit --pretty false
-export async function runTypecheck(options?: TypecheckOptions): Promise<TypecheckResult>
+export async function runTypecheck(
+  options?: TypecheckOptions
+): Promise<TypecheckResult>;
 ```
 
 **Key Features:**
+
 - Uses `npx tsc --noEmit --pretty false` for machine-parsable output
 - Captures stderr (all errors go to stderr, not stdout)
 - Implements timeout handling with SIGTERM/SIGKILL escalation
@@ -78,10 +88,13 @@ export async function runTypecheck(options?: TypecheckOptions): Promise<Typechec
 **Implementation:** `src/utils/typescript-error-analyzer.ts`
 
 ```typescript
-export function analyzeTypeScriptErrors(result: TypecheckResult): ErrorAnalysisResult
+export function analyzeTypeScriptErrors(
+  result: TypecheckResult
+): ErrorAnalysisResult;
 ```
 
 **Categories:**
+
 - `module-not-found`: TS2307, TS2304, TS2305, TS2306, TS2688, TS6053
 - `type-mismatch`: TS2322, TS2345, TS2741
 - `other`: All remaining error codes
@@ -137,13 +150,13 @@ ls -la node_modules/<package-name>
 
 ### Common Pitfalls and Solutions
 
-| Issue | Symptom | Solution |
-|-------|---------|----------|
-| Module resolution | `TS2307: Cannot find module` | Use `preserveSymlinks: true` |
-| Type declarations | Types not found | Ensure `types` field points to `.d.ts` |
-| Build output | Changes not reflected | Build package before linking |
-| Dual package hazard | Type mismatches | Align module types (ESM/CJS) |
-| IDE recognition | VSCode red squiggles | Restart TypeScript server |
+| Issue               | Symptom                      | Solution                               |
+| ------------------- | ---------------------------- | -------------------------------------- |
+| Module resolution   | `TS2307: Cannot find module` | Use `preserveSymlinks: true`           |
+| Type declarations   | Types not found              | Ensure `types` field points to `.d.ts` |
+| Build output        | Changes not reflected        | Build package before linking           |
+| Dual package hazard | Type mismatches              | Align module types (ESM/CJS)           |
+| IDE recognition     | VSCode red squiggles         | Restart TypeScript server              |
 
 ## 4. File Sampling Strategies
 
@@ -164,15 +177,18 @@ const moduleGroups = errors.reduce((groups, error) => {
 ### Sampling Approaches
 
 **1. High-Impact File Sampling:**
+
 - Focus on files with most errors
 - Prioritize entry points (`index.ts`, `main.ts`, `app.ts`)
 - Check shared utility modules
 
 **2. Module-Based Sampling:**
+
 - Group by directory/module
 - Sample representative files from each module
 
 **3. Path-Based Sampling:**
+
 ```typescript
 const criticalPaths = [
   'src/index.ts',
@@ -180,7 +196,7 @@ const criticalPaths = [
   'src/main.ts',
   'api/',
   'controllers/',
-  'services/'
+  'services/',
 ];
 ```
 
@@ -189,18 +205,21 @@ const criticalPaths = [
 ### Official Documentation
 
 **TypeScript:**
+
 - [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html)
 - [TypeScript Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
 - [TypeScript Compiler Options](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
 - [tsconfig.json Reference](https://www.typescriptlang.org/tsconfig)
 
 **npm:**
+
 - [npm link Documentation](https://docs.npmjs.com/cli/v10/commands/npm-link)
 - [npm Package Configuration](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
 
 ### Community Resources
 
 **GitHub Issues:**
+
 - [Symlink resolution issues](https://github.com/microsoft/TypeScript/issues/33079)
 - [Project references with npm link](https://github.com/microsoft/TypeScript/issues/37378)
 - [preserveSymlinks not working](https://github.com/microsoft/TypeScript/issues/32684)
@@ -208,6 +227,7 @@ const criticalPaths = [
 ## 6. Best Practices Summary
 
 **DO:**
+
 - Always use `--pretty false` for machine-parsable output
 - Read from stderr, not stdout
 - Build TypeScript packages before linking
@@ -218,6 +238,7 @@ const criticalPaths = [
 - Extract module names from TS2307 errors specifically
 
 **DON'T:**
+
 - Don't use ANSI color codes in parsing
 - Don't skip building before linking
 - Don't ignore case sensitivity on Linux

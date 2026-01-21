@@ -67,17 +67,20 @@ CONTRACT DEFINITION:
 ## Section Content Patterns
 
 ### 1. RESEARCH NOTE Section
+
 - References specific documentation files (e.g., `groundswell_analysis.md`, `environment_setup.md`)
 - Includes version information and technical specifications
 - Cites specific sections of research documents
 - Provides background context for the implementation
 
 ### 2. INPUT Section
+
 - Always references dependencies by ID (e.g., "from S1", "from S2")
 - Specifies what data/interfaces are available
 - Notes when input is "None" for standalone tasks
 
 ### 3. LOGIC Section
+
 - Very specific implementation steps
 - Includes file paths and naming conventions
 - Mentions mocking strategies for isolation
@@ -85,6 +88,7 @@ CONTRACT DEFINITION:
 - Mentions TypeScript compilation requirements
 
 ### 4. OUTPUT Section
+
 - Specifies exact file paths and interfaces
 - Indicates success criteria (pass/fail status)
 - Notes what should be documented or returned
@@ -93,6 +97,7 @@ CONTRACT DEFINITION:
 ## Validation Requirements
 
 The context_scope must:
+
 1. Start with "CONTRACT DEFINITION:"
 2. Have exactly 4 numbered sections (1-4)
 3. Each section must have a header (RESEARCH NOTE, INPUT, LOGIC, OUTPUT)

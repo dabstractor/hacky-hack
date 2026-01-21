@@ -13,6 +13,7 @@
 **Deliverable**: `tests/integration/groundswell/agent-prompt.test.ts` - A comprehensive test file covering Agent creation with AgentConfig, Prompt creation with Zod schemas, response validation methods, immutability testing, and mock implementation confirming prompt execution flow works without real API calls.
 
 **Success Definition**:
+
 - Test 1: Create basic Agent with createAgent(), verify agent.getMcpHandler() exists and returns MCPHandler instance
 - Test 2: Create Prompt with Zod schema (z.object({ result: z.string() })), verify validateResponse() works with valid/invalid data
 - Test 3: Test Prompt.withData() immutability (original prompt unchanged, new prompt has merged data)
@@ -33,6 +34,7 @@
 **Use Case**: Fifth validation step in Phase 1 (P1.M1.T2) to verify that after npm link is validated (S1), imports work (S2), version is compatible (S3), and Workflow lifecycle works (S2), the Groundswell Agent and Prompt classes work correctly for AI-powered operations.
 
 **User Journey**:
+
 1. Pipeline completes P1.M1.T1 (npm link, imports, version compatibility) with success
 2. Pipeline completes P1.M1.T2.S1 (Workflow lifecycle tests) with success
 3. Pipeline starts P1.M1.T2.S2 (Agent and Prompt tests)
@@ -45,6 +47,7 @@
 10. If tests fail: Document specific issues for debugging
 
 **Pain Points Addressed**:
+
 - Uncertainty whether Groundswell Agent and Prompt classes work correctly
 - Lack of test coverage for Agent configuration options
 - Risk of accidental LLM API calls during testing
@@ -79,6 +82,7 @@
 Create a comprehensive test suite covering 6 main test categories:
 
 ### Test 1: Basic Agent Creation with AgentConfig
+
 - Create Agent using createAgent() factory with AgentConfig options
 - Test configuration options: name, system, model, maxTokens, temperature, enableCache, enableReflection
 - Verify:
@@ -88,6 +92,7 @@ Create a comprehensive test suite covering 6 main test categories:
   - Agent configuration is applied correctly
 
 ### Test 2: Prompt Creation with Zod Schema
+
 - Create Prompt using createPrompt() factory with PromptConfig
 - Use Zod schema for responseFormat: z.object({ result: z.string() })
 - Test various Zod types: z.string(), z.number(), z.array(), z.enum(), z.optional()
@@ -98,6 +103,7 @@ Create a comprehensive test suite covering 6 main test categories:
   - Prompt.responseFormat is the Zod schema
 
 ### Test 3: Prompt.validateResponse() Method
+
 - Create Prompt with Zod schema
 - Test validateResponse() with valid data
 - Test validateResponse() with invalid data (missing field, wrong type)
@@ -107,6 +113,7 @@ Create a comprehensive test suite covering 6 main test categories:
   - Error messages are descriptive
 
 ### Test 4: Prompt.safeValidateResponse() Method
+
 - Create Prompt with Zod schema
 - Test safeValidateResponse() with valid data
 - Test safeValidateResponse() with invalid data
@@ -116,6 +123,7 @@ Create a comprehensive test suite covering 6 main test categories:
   - Type narrowing works correctly
 
 ### Test 5: Prompt.withData() Immutability
+
 - Create Prompt with initial data
 - Call withData() to create new prompt with additional data
 - Verify:
@@ -125,6 +133,7 @@ Create a comprehensive test suite covering 6 main test categories:
   - Both prompts are frozen (immutable)
 
 ### Test 6: Mock Anthropic API Client
+
 - Mock @anthropic-ai/sdk at module level
 - Create Agent and Prompt
 - Call agent.prompt() with mock setup
@@ -135,6 +144,7 @@ Create a comprehensive test suite covering 6 main test categories:
   - Response is returned correctly from mock
 
 ### Test 7: Prompt.buildUserMessage() with Data
+
 - Create Prompt with data field
 - Call buildUserMessage()
 - Verify:
@@ -163,6 +173,7 @@ Create a comprehensive test suite covering 6 main test categories:
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Groundswell Agent API documented (createAgent(), getMcpHandler(), prompt())
 - [x] Groundswell Prompt API documented (createPrompt(), validateResponse(), safeValidateResponse(), withData(), buildUserMessage())
 - [x] AgentConfig interface documented (name, system, tools, mcps, skills, hooks, env, enableReflection, enableCache, model, maxTokens, temperature)
@@ -325,7 +336,7 @@ hacky-hack/
 // This is required by the z.ai API endpoint enforcement
 vi.mock('@anthropic-ai/sdk', () => ({
   Anthropic: vi.fn(() => ({
-    messages: { create: vi.fn() }
+    messages: { create: vi.fn() },
   })),
 }));
 
@@ -858,8 +869,9 @@ describe('Agent and Prompt: validateResponse()', () => {
     });
 
     // EXECUTE & VERIFY: Error message is descriptive
-    expect(() => prompt.validateResponse({ email: 'invalid' }))
-      .toThrow(/email/);
+    expect(() => prompt.validateResponse({ email: 'invalid' })).toThrow(
+      /email/
+    );
   });
 });
 
@@ -1037,15 +1049,14 @@ describe('Agent and Prompt: Mock Anthropic API', () => {
     vi.clearAllMocks();
 
     // Setup mock implementation
-    mockMessagesCreate = vi.fn()
-      .mockResolvedValue({
-        id: 'msg_001',
-        type: 'message',
-        role: 'assistant',
-        content: [{ type: 'text', text: '{"result": "success"}' }],
-        stop_reason: 'end_turn',
-        usage: { input_tokens: 10, output_tokens: 20 },
-      });
+    mockMessagesCreate = vi.fn().mockResolvedValue({
+      id: 'msg_001',
+      type: 'message',
+      role: 'assistant',
+      content: [{ type: 'text', text: '{"result": "success"}' }],
+      stop_reason: 'end_turn',
+      usage: { input_tokens: 10, output_tokens: 20 },
+    });
   });
 
   it('should execute agent.prompt() without real API call', async () => {
@@ -1468,6 +1479,7 @@ npm test -- -t "buildUserMessage"
 ### Why test Agent and Prompt separately?
 
 These are two core Groundswell classes that work together but serve different purposes:
+
 - **Agent**: Manages LLM execution, configuration, and MCP tool integration
 - **Prompt**: Defines type-safe prompts with Zod validation
 
@@ -1496,6 +1508,7 @@ The buildUserMessage() method formats data as XML tags (<key>...</key>) for inje
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from previous PRPs (S1, S2, S3, P1.M1.T2.S1)
 - [x] Comprehensive Groundswell Agent API documented
 - [x] Comprehensive Groundswell Prompt API documented
@@ -1508,6 +1521,7 @@ The buildUserMessage() method formats data as XML tags (<key>...</key>) for inje
 - [x] 100% coverage requirement understood
 
 **Risk Mitigation**:
+
 - S1/S3 dependency checks prevent wasted time on missing/incompatible Groundswell
 - Mock pattern prevents accidental API calls
 - Comprehensive test coverage catches edge cases
@@ -1515,6 +1529,7 @@ The buildUserMessage() method formats data as XML tags (<key>...</key>) for inje
 - Follows existing codebase patterns for consistency
 
 **Known Risks**:
+
 - Groundswell version discrepancy (npm: 0.0.1, source: 0.0.3) - mitigated by version checks
 - Agent/Prompt APIs are stable across versions
 - Zod validation patterns are well-established in codebase

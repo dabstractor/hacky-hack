@@ -24,21 +24,21 @@ export function createArchitectAgent(): Agent {
 
 ### Configuration Values
 
-| Property | Value | Source |
-|----------|-------|--------|
-| `name` | `'ArchitectAgent'` | Line 155 (derived from persona) |
-| `system` | `TASK_BREAKDOWN_PROMPT` | Line 199 (from PROMPTS.md) |
-| `model` | `'GLM-4.7'` | Line 152 (getModel('sonnet')) |
-| `maxTokens` | `8192` | Line 119 (PERSONA_TOKEN_LIMITS.architect) |
-| `enableCache` | `true` | Line 166 |
-| `enableReflection` | `true` | Line 167 |
-| `mcps` | `[BashMCP, FilesystemMCP, GitMCP]` | Line 68 |
+| Property           | Value                              | Source                                    |
+| ------------------ | ---------------------------------- | ----------------------------------------- |
+| `name`             | `'ArchitectAgent'`                 | Line 155 (derived from persona)           |
+| `system`           | `TASK_BREAKDOWN_PROMPT`            | Line 199 (from PROMPTS.md)                |
+| `model`            | `'GLM-4.7'`                        | Line 152 (getModel('sonnet'))             |
+| `maxTokens`        | `8192`                             | Line 119 (PERSONA_TOKEN_LIMITS.architect) |
+| `enableCache`      | `true`                             | Line 166                                  |
+| `enableReflection` | `true`                             | Line 167                                  |
+| `mcps`             | `[BashMCP, FilesystemMCP, GitMCP]` | Line 68                                   |
 
 ### Persona Token Limits
 
 ```typescript
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,    // Larger for complex decomposition
+  architect: 8192, // Larger for complex decomposition
   researcher: 4096,
   coder: 4096,
   qa: 4096,
@@ -116,6 +116,7 @@ Backlog
 ### Key Validation Rules
 
 #### Phase Schema
+
 ```typescript
 {
   id: string,        // Regex: /^P\d+$/
@@ -128,6 +129,7 @@ Backlog
 ```
 
 #### Subtask Schema
+
 ```typescript
 {
   id: string,        // Regex: /^P\d+\.M\d+\.T\d+\.S\d+$/
@@ -153,6 +155,7 @@ CONTRACT DEFINITION:
 ```
 
 Validation rules (from `ContextScopeSchema`):
+
 - Must start with "CONTRACT DEFINITION:\n"
 - Must have all 4 numbered sections in exact order
 - Section headers must match exactly (case-sensitive)
@@ -279,6 +282,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
 ### Context Scope Format
 
 The `context_scope` must have the numbered sections in exact order:
+
 - "1. RESEARCH NOTE:"
 - "2. INPUT:"
 - "3. LOGIC:"
@@ -289,6 +293,7 @@ The regex patterns require the number, period, and space.
 ### MCP Server Registration
 
 MCP servers are singletons registered at module load time:
+
 ```typescript
 const BASH_MCP = new BashMCP();
 const FILESYSTEM_MCP = new FilesystemMCP();

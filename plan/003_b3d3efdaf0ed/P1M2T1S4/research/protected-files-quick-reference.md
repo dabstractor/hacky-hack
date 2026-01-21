@@ -34,11 +34,13 @@ project-root/
 ## Current Implementation Status
 
 ### Implemented
+
 - ✅ Git commit filter for `tasks.json`, `PRD.md`, `prd_snapshot.md`
 - ✅ Agent prompt constraints
 - ✅ Nested execution guard
 
 ### Missing
+
 - ❌ Git commit filter for `delta_prd.md`, `delta_from.txt`, `TEST_RESULTS.md`
 - ❌ Wildcard pattern `*tasks*.json` support
 - ❌ Filesystem-level deletion/movement guards
@@ -47,10 +49,12 @@ project-root/
 ## Test Requirements
 
 ### Existing Tests
+
 - ✅ `tests/unit/utils/git-commit.test.ts` (filterProtectedFiles)
 - ✅ `tests/integration/smart-commit.test.ts` (commit workflow)
 
 ### Needed Tests
+
 - ❌ Protected file deletion prevention
 - ❌ Protected file movement prevention
 - ❌ Wildcard pattern matching (`*tasks*.json`)

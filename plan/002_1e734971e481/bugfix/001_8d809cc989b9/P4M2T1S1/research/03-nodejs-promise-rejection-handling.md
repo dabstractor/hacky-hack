@@ -3,6 +3,7 @@
 ## What Is PromiseRejectionHandledWarning?
 
 `PromiseRejectionHandledWarning` is a warning issued by Node.js when:
+
 1. A Promise rejection occurs without an attached handler
 2. A rejection handler is attached **after** the rejection has happened
 
@@ -54,8 +55,9 @@ fetch('/api/data')
 
 ```typescript
 // ✅ GOOD - Immediate handler
-const promise = Promise.reject(new Error('Test'))
-  .catch(err => console.log('Handled:', err.message));
+const promise = Promise.reject(new Error('Test')).catch(err =>
+  console.log('Handled:', err.message)
+);
 
 // ❌ BAD - Delayed handler
 const promise = Promise.reject(new Error('Test'));
@@ -96,7 +98,7 @@ afterEach(() => {
   if (unhandledRejections.length > 0) {
     throw new Error(
       `Test had ${unhandledRejections.length} unhandled rejection(s): ` +
-      unhandledRejections.map(String).join(', ')
+        unhandledRejections.map(String).join(', ')
     );
   }
 });
@@ -187,7 +189,7 @@ processData().catch(err => {
 vi.mock('./module', () => ({
   doSomething: vi.fn(() => {
     setTimeout(() => asyncOperation(), 100);
-  })
+  }),
 }));
 
 // ✅ GOOD - Clean up timers
@@ -205,7 +207,7 @@ vi.mock('./module', () => ({
   doSomething: vi.fn(() => {
     const id = setTimeout(() => asyncOperation(), 100);
     mockTimeouts.push(id);
-  })
+  }),
 }));
 ```
 

@@ -32,21 +32,21 @@ export default defineConfig({
 ## Type Testing with Vitest
 
 ### expectTypeOf() - Type System Assertions
+
 ```typescript
 import { expectTypeOf } from 'vitest';
 
 describe('Type definitions', () => {
   it('should have correct Subtask type structure', () => {
-    expectTypeOf<Subtask>()
-      .toMatchTypeOf<{
-        readonly id: string;
-        readonly type: 'Subtask';
-        readonly title: string;
-        readonly status: Status;
-        readonly story_points: number;
-        readonly dependencies: string[];
-        readonly context_scope: string;
-      }>();
+    expectTypeOf<Subtask>().toMatchTypeOf<{
+      readonly id: string;
+      readonly type: 'Subtask';
+      readonly title: string;
+      readonly status: Status;
+      readonly story_points: number;
+      readonly dependencies: string[];
+      readonly context_scope: string;
+    }>();
   });
 
   it('should have correct type discriminator', () => {
@@ -66,6 +66,7 @@ describe('Type definitions', () => {
 ### TypeScript Compilation Verification
 
 **Approach 1: Using typecheck-runner utility**
+
 ```typescript
 import { runTypecheck } from '../../../src/utils/typecheck-runner.js';
 
@@ -82,6 +83,7 @@ describe('TypeScript compilation verification', () => {
 ```
 
 **Approach 2: Using npm run typecheck**
+
 ```typescript
 import { execSync } from 'node:child_process';
 
@@ -147,6 +149,7 @@ describe('Type narrowing with discriminated unions', () => {
 ```
 
 ## Sources
+
 - https://vitest.dev/api/expect-typeof.html
 - https://vitest.dev/api/assert.html
 - https://www.typescriptlang.org/docs/handbook/compiler-options.html

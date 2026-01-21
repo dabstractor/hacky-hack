@@ -48,6 +48,7 @@ vi.mock('groundswell', async () => {
 ```
 
 **Key Points**:
+
 - Mock at top level before imports (hoisting required)
 - Use `vi.importActual()` to preserve real implementations
 - Return spread actual with mocked functions
@@ -324,6 +325,7 @@ expect(prompt.data).toEqual({ key: 'value' });
 ### Current Implementation Gap
 
 The codebase references "subagent spawning" in prompts but doesn't implement it:
+
 - No batch tools system
 - Single cached agent instance
 - Manual agent creation only
@@ -331,6 +333,7 @@ The codebase references "subagent spawning" in prompts but doesn't implement it:
 ### Testing Approach
 
 Since subagent spawning is not implemented:
+
 1. Mock the single agent.prompt() call
 2. Test that prompt CONTAINS instructions to spawn subagents
 3. Verify prompt structure without testing actual spawning

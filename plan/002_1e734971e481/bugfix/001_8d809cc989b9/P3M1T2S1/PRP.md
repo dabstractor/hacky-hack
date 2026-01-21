@@ -7,6 +7,7 @@
 **Deliverable**: Modified test file at `/home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts` where all 21 tests now assert on `mockLogger` method calls (info, warn, error, debug) instead of `console.log` spy expectations.
 
 **Success Definition**:
+
 - All 21 previously failing tests now pass
 - No `vi.spyOn(console, 'log')` calls remain in the file
 - All test assertions use `mockLogger.info/warn/error/debug` with structured data matching
@@ -20,6 +21,7 @@
 **Use Case**: Developer has completed test analysis (P3.M1.T1.S1) which identified that tests expect `console.log` output but implementation uses Pino structured logging. The mock setup is already correct; only test assertions need updating.
 
 **User Journey**:
+
 1. Developer reads P3.M1.T1.S1 analysis (root cause identified)
 2. Developer reviews this PRP for exact implementation patterns
 3. Developer updates each of the 21 failing tests
@@ -27,6 +29,7 @@
 5. Developer commits changes with reference to this PRP
 
 **Pain Points Addressed**:
+
 - **Uncertainty about correct assertion format**: PRP provides exact patterns to follow
 - **Risk of breaking working mock setup**: PRP explicitly preserves existing mock structure
 - **Need to understand all 21 test variations**: PRP provides categorized examples
@@ -58,6 +61,7 @@ Update 21 failing Task Orchestrator unit tests to assert on the mocked Pino logg
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact file location and line numbers for all 21 failing tests
 2. Complete assertion patterns to use for each test category
 3. Mock setup that must be preserved (already correct)
@@ -382,7 +386,9 @@ Task 15: CLEANUP research notes
 // BEFORE (failing):
 const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 await orchestrator.executePhase(phase);
-expect(consoleSpy).toHaveBeenCalledWith('[TaskOrchestrator] Executing Phase: P1 - Phase 1');
+expect(consoleSpy).toHaveBeenCalledWith(
+  '[TaskOrchestrator] Executing Phase: P1 - Phase 1'
+);
 consoleSpy.mockRestore();
 
 // AFTER (passing):
@@ -401,8 +407,12 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 // 2. this.#logger.info({ phaseId: 'P1', title: 'Phase 1' }, 'Executing Phase')
 
 // BEFORE:
-expect(consoleSpy).toHaveBeenCalledWith('[TaskOrchestrator] Setting status to Implementing: P1');
-expect(consoleSpy).toHaveBeenCalledWith('[TaskOrchestrator] Executing Phase: P1 - Phase 1');
+expect(consoleSpy).toHaveBeenCalledWith(
+  '[TaskOrchestrator] Setting status to Implementing: P1'
+);
+expect(consoleSpy).toHaveBeenCalledWith(
+  '[TaskOrchestrator] Executing Phase: P1 - Phase 1'
+);
 
 // AFTER (Option A - Check both calls):
 expect(mockLogger.info).toHaveBeenNthCalledWith(
@@ -427,7 +437,9 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 // ============================================================================
 
 // BEFORE:
-expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('PRPRuntime execution failed'));
+expect(consoleSpy).toHaveBeenCalledWith(
+  expect.stringContaining('PRPRuntime execution failed')
+);
 
 // AFTER:
 expect(mockLogger.error).toHaveBeenCalledWith(
@@ -443,7 +455,9 @@ expect(mockLogger.error).toHaveBeenCalledWith(
 // ============================================================================
 
 // BEFORE:
-expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('session path'));
+expect(consoleSpy).toHaveBeenCalledWith(
+  expect.stringContaining('session path')
+);
 
 // AFTER:
 expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -470,7 +484,7 @@ expect(mockLogger.info).not.toHaveBeenCalled();
 // Use when exact object match is too brittle
 expect(mockLogger.info).toHaveBeenCalledWith(
   expect.objectContaining({
-    taskId: 'P1.M1.T1',  // Only check critical fields
+    taskId: 'P1.M1.T1', // Only check critical fields
   }),
   'Task status changed'
 );
@@ -481,8 +495,8 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 
 // Use when data object is complex or variable
 expect(mockLogger.info).toHaveBeenCalledWith(
-  expect.anything(),  // Skip data object entirely
-  'Processing'  // Just check the message
+  expect.anything(), // Skip data object entirely
+  'Processing' // Just check the message
 );
 
 // ============================================================================
@@ -490,10 +504,10 @@ expect(mockLogger.info).toHaveBeenCalledWith(
 // ============================================================================
 
 // Different tests use different log levels:
-mockLogger.info   // Normal operations (execute*, process*, status)
-mockLogger.error  // Failures (PRPRuntime execution failed)
-mockLogger.warn   // Non-critical issues (session path not available)
-mockLogger.debug  // Diagnostic info (may not be tested)
+mockLogger.info; // Normal operations (execute*, process*, status)
+mockLogger.error; // Failures (PRPRuntime execution failed)
+mockLogger.warn; // Non-critical issues (session path not available)
+mockLogger.debug; // Diagnostic info (may not be tested)
 
 // Ensure you use the RIGHT mockLogger method!
 
@@ -677,6 +691,7 @@ npm run test:run -- tests/unit/core/task-orchestrator.test.ts 2>&1 | grep -E "Te
 **One-Pass Implementation Success Likelihood**: EXTREMELY HIGH
 
 **Rationale**:
+
 1. Clear task boundaries - update test assertions only, no implementation changes
 2. All 21 failing tests identified with exact line numbers from P3.M1.T1.S1
 3. Mock setup is already correct and well-documented
@@ -689,6 +704,7 @@ npm run test:run -- tests/unit/core/task-orchestrator.test.ts 2>&1 | grep -E "Te
 10. Straightforward search-and-replace pattern with careful verification
 
 **Potential Risks**:
+
 - **Risk 1**: Some tests may have unique assertion patterns not covered in examples (Very Low - research covers all variations)
 - **Risk 2**: Implementation may have more log calls than expected (Low - use flexible matching with `expect.objectContaining()`)
 - **Risk 3**: Mock state leakage between tests if cleanup incomplete (Low - existing beforeEach should handle)

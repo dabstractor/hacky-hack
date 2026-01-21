@@ -7,6 +7,7 @@ Simple-git is a lightweight, promise-based JavaScript wrapper for the Git comman
 ## Main Documentation Resources
 
 **Primary Documentation Source:**
+
 - [simple-git on npm](https://www.npmjs.com/package/simple-git)
 - [simple-git GitHub Repository](https://github.com/steveukx/git-js/tree/main/simple-git)
 
@@ -15,6 +16,7 @@ Simple-git is a lightweight, promise-based JavaScript wrapper for the Git comman
 ## 1. Git Status Operations
 
 ### Basic Usage
+
 ```javascript
 const simpleGit = require('simple-git');
 
@@ -22,14 +24,16 @@ const git = simpleGit();
 
 // Get current status
 const status = await git.status();
-console.log(status.files);        // Array of files with their status
-console.log(status.staged);       // Staged files
-console.log(status.modified);     // Modified files
-console.log(status.not_added);    // Untracked files
+console.log(status.files); // Array of files with their status
+console.log(status.staged); // Staged files
+console.log(status.modified); // Modified files
+console.log(status.not_added); // Untracked files
 ```
 
 ### Status Response Structure
+
 The status operation returns an object with:
+
 - `files`: Array of file objects with properties like:
   - `path`: File path
   - `index`: Status in staging area
@@ -41,6 +45,7 @@ The status operation returns an object with:
 - `ahead`, `behind`: Count of commits ahead/behind
 
 ### Example Status Check
+
 ```javascript
 const status = await git.status();
 if (status.isClean()) {
@@ -55,6 +60,7 @@ if (status.isClean()) {
 ## 2. Git Add Operations
 
 ### Basic Add Operations
+
 ```javascript
 // Add all files
 await git.add('.');
@@ -70,6 +76,7 @@ await git.add('src/**/*.js');
 ```
 
 ### Advanced Add Options
+
 ```javascript
 // Add with options
 await git.add(['file.js'], { '--all': true });
@@ -80,6 +87,7 @@ await git.add(['file.js'], { '--all': true });
 ## 3. Git Commit Operations
 
 ### Basic Commit
+
 ```javascript
 // Simple commit
 await git.commit('Initial commit');
@@ -87,19 +95,17 @@ await git.commit('Initial commit');
 // Commit with options
 await git.commit({
   '--message': 'Fix bug in authentication',
-  '--author': 'John Doe <john@example.com>'
+  '--author': 'John Doe <john@example.com>',
 });
 
 // Multiple commits
-await git.commit([
-  'Add new feature',
-  'Fix test cases',
-  'Update documentation'
-]);
+await git.commit(['Add new feature', 'Fix test cases', 'Update documentation']);
 ```
 
 ### Commit Response
+
 The commit operation returns an object with:
+
 - `author`: Commit author
 - `branch`: Branch name
 - `commit`: Commit hash
@@ -111,6 +117,7 @@ The commit operation returns an object with:
 ## 4. Working with Commits and Commit Hashes
 
 ### Getting Commit Information
+
 ```javascript
 // Get latest commit
 const latestCommit = await git.log(['-1']);
@@ -129,6 +136,7 @@ const diff = await git.diff('abc123', 'def456');
 ```
 
 ### Commit Hash Operations
+
 ```javascript
 // Get current HEAD hash
 const headHash = await git.revparse(['HEAD']);
@@ -141,6 +149,7 @@ const exists = await git.revparse(['--verify', 'abc123']);
 ```
 
 ### Branch Operations
+
 ```javascript
 // Create branch
 await git.checkoutLocalBranch('feature-branch');
@@ -150,8 +159,8 @@ await git.checkout('main');
 
 // Get branch info
 const branches = await git.branch();
-console.log(branches.current);  // Current branch name
-console.log(branches.all);     // All branches
+console.log(branches.current); // Current branch name
+console.log(branches.all); // All branches
 ```
 
 ---
@@ -159,6 +168,7 @@ console.log(branches.all);     // All branches
 ## 5. Error Handling Patterns
 
 ### Basic Error Handling
+
 ```javascript
 try {
   await git.status();
@@ -168,11 +178,13 @@ try {
 ```
 
 ### Common Error Types
+
 - **GitError**: General Git operation errors
 - **GitConstructError**: Repository not found or invalid
 - **GitCommandError**: Command execution failures
 
 ### Retry Pattern
+
 ```javascript
 const retryGitOperation = async (operation, maxRetries = 3) => {
   let lastError;
@@ -196,6 +208,7 @@ const status = await retryGitOperation(() => git.status());
 ```
 
 ### Validation Before Operations
+
 ```javascript
 const canCommit = async () => {
   const status = await git.status();
@@ -212,6 +225,7 @@ if (await canCommit()) {
 ## 6. Testing Patterns with Simple-Git
 
 ### Unit Testing Strategy
+
 ```javascript
 const simpleGit = require('simple-git');
 const mock = require('mock-require');
@@ -223,13 +237,13 @@ describe('Git operations', () => {
     gitSpy = {
       status: jest.fn().mockResolvedValue({
         isClean: jest.fn().mockReturnValue(true),
-        files: []
+        files: [],
       }),
       add: jest.fn().mockResolvedValue({}),
       commit: jest.fn().mockResolvedValue({
         commit: 'abc123',
-        author: 'Test User'
-      })
+        author: 'Test User',
+      }),
     };
 
     mock('simple-git', () => gitSpy);
@@ -248,6 +262,7 @@ describe('Git operations', () => {
 ```
 
 ### Integration Testing Setup
+
 ```javascript
 const path = require('path');
 const fs = require('fs').promises;
@@ -292,6 +307,7 @@ describe('Git integration tests', () => {
 ## 7. Integration Testing Examples
 
 ### Repository State Testing
+
 ```javascript
 describe('Repository state management', () => {
   let git;
@@ -322,6 +338,7 @@ describe('Repository state management', () => {
 ```
 
 ### Branch Testing
+
 ```javascript
 describe('Branch operations', () => {
   let git;
@@ -368,6 +385,7 @@ describe('Branch operations', () => {
 3. **sinon**: For general purpose mocking
 
 ### Mock Implementation Example
+
 ```javascript
 const simpleGit = require('simple-git');
 const { GitError } = require('simple-git/dist/cjs/errors');
@@ -381,7 +399,7 @@ const createGitMock = (options = {}) => {
     checkout: jest.fn(),
     branch: jest.fn(),
     raw: jest.fn(),
-    revparse: jest.fn()
+    revparse: jest.fn(),
   };
 
   // Configure default responses
@@ -389,13 +407,13 @@ const createGitMock = (options = {}) => {
     isClean: jest.fn().mockReturnValue(options.isClean ?? true),
     files: options.files ?? [],
     modified: options.modified ?? [],
-    staged: options.staged ?? []
+    staged: options.staged ?? [],
   });
 
   mock.commit.mockResolvedValue({
     commit: 'abc123def456',
     author: 'Test Author',
-    summary: options.commitMessage ?? 'Test commit'
+    summary: options.commitMessage ?? 'Test commit',
   });
 
   if (options.throwError) {
@@ -407,6 +425,7 @@ const createGitMock = (options = {}) => {
 ```
 
 ### Mock Usage in Tests
+
 ```javascript
 describe('Git service', () => {
   let gitService;
@@ -416,7 +435,7 @@ describe('Git service', () => {
     gitMock = createGitMock({
       isClean: false,
       modified: ['src/app.js'],
-      commitMessage: 'Feature implementation'
+      commitMessage: 'Feature implementation',
     });
 
     mock('simple-git', () => gitMock);
@@ -425,7 +444,7 @@ describe('Git service', () => {
 
   test('should handle clean repository', async () => {
     gitMock.status.mockResolvedValue({
-      isClean: jest.fn().mockReturnValue(true)
+      isClean: jest.fn().mockReturnValue(true),
     });
 
     const canCommit = await gitService.canCommit();
@@ -435,14 +454,15 @@ describe('Git service', () => {
   test('should handle git errors gracefully', async () => {
     gitMock.status.mockRejectedValue(new GitError('Repository not found'));
 
-    await expect(gitService.getStatus())
-      .rejects
-      .toThrow('Repository not found');
+    await expect(gitService.getStatus()).rejects.toThrow(
+      'Repository not found'
+    );
   });
 });
 ```
 
 ### Mock Configuration Patterns
+
 ```javascript
 // Configuration for different test scenarios
 const mockScenarios = {
@@ -451,35 +471,39 @@ const mockScenarios = {
       isClean: () => true,
       files: [],
       modified: [],
-      staged: []
-    }
+      staged: [],
+    },
   },
 
   dirtyRepo: {
     status: {
       isClean: () => false,
       modified: ['src/app.js', 'src/utils.js'],
-      staged: ['README.md']
-    }
+      staged: ['README.md'],
+    },
   },
 
   gitError: {
-    status: jest.fn().mockRejectedValue(new GitError('Permission denied'))
-  }
+    status: jest.fn().mockRejectedValue(new GitError('Permission denied')),
+  },
 };
 
 // Usage in test
-describe.each(Object.entries(mockScenarios))('Git scenarios', (name, scenario) => {
-  test(`should handle ${name}`, async () => {
-    gitMock.status.mockResolvedValue(scenario.status);
+describe.each(Object.entries(mockScenarios))(
+  'Git scenarios',
+  (name, scenario) => {
+    test(`should handle ${name}`, async () => {
+      gitMock.status.mockResolvedValue(scenario.status);
 
-    const result = await gitService.handleScenario(name);
-    expect(result).toMatchSnapshot();
-  });
-});
+      const result = await gitService.handleScenario(name);
+      expect(result).toMatchSnapshot();
+    });
+  }
+);
 ```
 
 ### Async Testing Patterns
+
 ```javascript
 describe('Async git operations', () => {
   test('should retry on conflict', async () => {

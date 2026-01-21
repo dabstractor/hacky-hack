@@ -7,6 +7,7 @@
 **Naming Convention**: `*.test.ts` (e.g., `models.test.ts`, `task-utils.test.ts`)
 
 **Organization**:
+
 - **describe blocks**: Group related tests by feature/schema/component
   - Top-level: `describe('core/models Zod Schemas', () => ...)`
   - Nested: `describe('StatusEnum', () => ...)`, `describe('SubtaskSchema', () => ...)`
@@ -16,6 +17,7 @@
 ## Test Patterns
 
 ### Happy Path Tests
+
 ```typescript
 it('should parse valid subtask', () => {
   // SETUP: Valid subtask data
@@ -33,6 +35,7 @@ it('should parse valid subtask', () => {
 ```
 
 ### Error Case Tests
+
 ```typescript
 it('should reject subtask with invalid id format', () => {
   const invalid = { ...validSubtask, id: 'invalid-id' };
@@ -42,6 +45,7 @@ it('should reject subtask with invalid id format', () => {
 ```
 
 ### Edge Case Tests
+
 ```typescript
 it('should reject subtask with story_points exceeding maximum', () => {
   const invalid = { ...validSubtask, story_points: 22 };
@@ -51,6 +55,7 @@ it('should reject subtask with story_points exceeding maximum', () => {
 ```
 
 ### Complex Nesting Tests
+
 ```typescript
 it('should validate 4-level deep hierarchy', () => {
   const deepBacklog: Backlog = {
@@ -71,14 +76,14 @@ it('should validate 4-level deep hierarchy', () => {
                     id: 'P1.M1.T1.S1',
                     type: 'Subtask',
                     // ...
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   };
 
   const result = BacklogSchema.safeParse(deepBacklog);
@@ -89,12 +94,14 @@ it('should validate 4-level deep hierarchy', () => {
 ## Assertion Patterns
 
 ### Zod Schema Validation
+
 - **Success**: `expect(result.success).toBe(true)`
 - **Failure**: `expect(result.success).toBe(false)`
 - **Data equality**: `expect(result.data).toEqual(expectedData)`
 - **Enum checking**: `expect(StatusEnum.options).toEqual(['Planned', 'Researching', ...])`
 
 ### Type Discriminator Tests
+
 ```typescript
 it('should reject subtask with wrong type literal', () => {
   const invalid = { ...validSubtask, type: 'Task' };
@@ -104,6 +111,7 @@ it('should reject subtask with wrong type literal', () => {
 ```
 
 ### Error Testing
+
 ```typescript
 await expect(queue.waitForPRP('P1.M1.T1.S999')).rejects.toThrow(
   'No PRP available for task P1.M1.T1.S999'
@@ -112,22 +120,24 @@ await expect(queue.waitForPRP('P1.M1.T1.S999')).rejects.toThrow(
 
 ## Key Test Files
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| tests/unit/core/models.test.ts | 2020 | Zod schema tests for task hierarchy |
-| tests/unit/core/task-utils.test.ts | 32058 | Utility function testing |
-| tests/unit/core/dependency-validator.test.ts | 18335 | Dependency graph validation |
-| tests/unit/core/session-utils.test.ts | 24526 | File system operation testing |
-| tests/setup.ts | - | Global test setup with API validation |
+| File                                         | Lines | Purpose                               |
+| -------------------------------------------- | ----- | ------------------------------------- |
+| tests/unit/core/models.test.ts               | 2020  | Zod schema tests for task hierarchy   |
+| tests/unit/core/task-utils.test.ts           | 32058 | Utility function testing              |
+| tests/unit/core/dependency-validator.test.ts | 18335 | Dependency graph validation           |
+| tests/unit/core/session-utils.test.ts        | 24526 | File system operation testing         |
+| tests/setup.ts                               | -     | Global test setup with API validation |
 
 ## Test Setup
 
 ### Global Setup File: tests/setup.ts
+
 - API endpoint validation (only z.ai allowed)
 - Mock cleanup with `vi.clearAllMocks()`
 - Environment variable cleanup with `vi.unstubAllEnvs()`
 
 ### Vitest Configuration: vitest.config.ts
+
 - 100% coverage threshold enforced
 - ESM modules support
 - Node.js environment
@@ -135,6 +145,7 @@ await expect(queue.waitForPRP('P1.M1.T1.S999')).rejects.toThrow(
 ## Mocking Patterns
 
 ### Module Mocking
+
 ```typescript
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
@@ -143,6 +154,7 @@ vi.mock('node:fs/promises', () => ({
 ```
 
 ### Function Mocking
+
 ```typescript
 vi.mock('../../../src/utils/logger.js', () => ({
   getLogger: vi.fn(() => ({

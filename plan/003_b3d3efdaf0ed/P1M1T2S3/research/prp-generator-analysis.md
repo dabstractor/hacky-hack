@@ -1,36 +1,41 @@
 # PRPGenerator Implementation Analysis
 
 ## Overview
+
 **File**: `src/agents/prp-generator.ts`
 **Purpose**: Generates PRP (Product Requirement Prompt) documents for tasks/subtasks
 
 ## Complete API
 
 ### Constructor
+
 ```typescript
 constructor(sessionManager: SessionManager, noCache: boolean = false)
 ```
+
 - Throws Error if no active session
 - `noCache` flag bypasses cache for testing
 
 ### Public Methods
 
-| Method | Signature | Purpose |
-|--------|-----------|---------|
-| `generate` | `async generate(task: Task \| Subtask, backlog: Backlog): Promise<PRPDocument>` | Generate PRP for task |
-| `getCachePath` | `getCachePath(taskId: string): string` | Get file path for cached PRP |
-| `getCacheMetadataPath` | `getCacheMetadataPath(taskId: string): string` | Get cache metadata path |
+| Method                 | Signature                                                                       | Purpose                      |
+| ---------------------- | ------------------------------------------------------------------------------- | ---------------------------- |
+| `generate`             | `async generate(task: Task \| Subtask, backlog: Backlog): Promise<PRPDocument>` | Generate PRP for task        |
+| `getCachePath`         | `getCachePath(taskId: string): string`                                          | Get file path for cached PRP |
+| `getCacheMetadataPath` | `getCacheMetadataPath(taskId: string): string`                                  | Get cache metadata path      |
 
 ## PRP Generation Flow
 
 ### Input/Output
 
 **Input**:
+
 - `task`: Task or Subtask from backlog
 - `backlog`: Full task hierarchy for context
 - Session state from SessionManager
 
 **Output** (PRPDocument):
+
 ```typescript
 {
   taskId: string;                    // e.g., "P1.M2.T2.S2"
@@ -55,6 +60,7 @@ constructor(sessionManager: SessionManager, noCache: boolean = false)
 ## Async Behavior & Timing
 
 ### Retry Configuration
+
 - **Max retries**: 3 attempts
 - **Base delay**: 1000ms (1 second)
 - **Max delay**: 30000ms (30 seconds)
@@ -62,11 +68,14 @@ constructor(sessionManager: SessionManager, noCache: boolean = false)
 - **Jitter**: 10% variance (prevents thundering herd)
 
 ### Cache TTL
+
 - **Duration**: 24 hours (86400000 ms)
 - **Location**: `{sessionPath}/prps/.cache/`
 
 ### Hash Computation (Lines 225-250)
+
 Hash includes only fields affecting PRP output:
+
 - Task title
 - Task description/context
 - Excludes: status, dependencies, story_points
@@ -84,6 +93,7 @@ Hash includes only fields affecting PRP output:
    - Includes: taskId, filePath, original error
 
 ### Error Recovery
+
 - Transient errors: Retry with exponential backoff
 - Permanent errors (validation): Fail immediately
 - File errors: Preserve original error context
@@ -92,10 +102,10 @@ Hash includes only fields affecting PRP output:
 
 ```typescript
 // External
-import type { Agent } from 'groundswell';      // LLM agent interface
-import { createHash } from 'node:crypto';       // SHA-256 hashing
-import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';  // File ops
-import { join, dirname } from 'node:path';     // Path manipulation
+import type { Agent } from 'groundswell'; // LLM agent interface
+import { createHash } from 'node:crypto'; // SHA-256 hashing
+import { mkdir, writeFile, readFile, stat } from 'node:fs/promises'; // File ops
+import { join, dirname } from 'node:path'; // Path manipulation
 
 // Internal
 import { createResearcherAgent } from './agent-factory.js';
@@ -116,14 +126,15 @@ session/
 ```
 
 ### Cache Metadata Interface
+
 ```typescript
 interface PRPCacheMetadata {
   readonly taskId: string;
-  readonly taskHash: string;           // SHA-256 of task inputs
-  readonly createdAt: number;          // Timestamp
-  readonly accessedAt: number;          // Updated on access
-  readonly version: string;            // Schema version
-  readonly prp: PRPDocument;           // Full PRP data
+  readonly taskHash: string; // SHA-256 of task inputs
+  readonly createdAt: number; // Timestamp
+  readonly accessedAt: number; // Updated on access
+  readonly version: string; // Schema version
+  readonly prp: PRPDocument; // Full PRP data
 }
 ```
 
@@ -132,6 +143,7 @@ interface PRPCacheMetadata {
 ### Mockable Components
 
 1. **SessionManager**
+
    ```typescript
    mockSessionManager = {
      currentSession: {
@@ -139,10 +151,10 @@ interface PRPCacheMetadata {
        sessionPath: '/tmp/test-session',
        prdSnapshot: '# Test PRD',
        taskRegistry: mockBacklog,
-       currentItemId: null
+       currentItemId: null,
      },
      updateItemStatus: vi.fn(),
-     flushUpdates: vi.fn()
+     flushUpdates: vi.fn(),
    };
    ```
 
@@ -173,6 +185,7 @@ interface PRPCacheMetadata {
 ## Integration with ResearchQueue
 
 ResearchQueue uses PRPGenerator for:
+
 - Background PRP generation
 - Cache checking (via PRPGenerator's hash-based cache)
 - Error handling (propagates errors to queue)

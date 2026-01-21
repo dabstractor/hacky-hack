@@ -8,15 +8,16 @@
 
 ## Goal
 
-**Feature Goal**: Create a comprehensive test suite that validates Groundswell MCP tool registration functionality including MCPHandler.registerServer() for registering inprocess MCP servers, MCPHandler.registerToolExecutor() for registering custom tool executors, MCPHandler.getTools() returning tools in Anthropic format with server__tool naming, MCPHandler.hasTool() correctly identifying registered tools, custom tool executor invocation via executeTool(), and integration with Agent.getMcpHandler() for accessing MCPHandler from Agent instances.
+**Feature Goal**: Create a comprehensive test suite that validates Groundswell MCP tool registration functionality including MCPHandler.registerServer() for registering inprocess MCP servers, MCPHandler.registerToolExecutor() for registering custom tool executors, MCPHandler.getTools() returning tools in Anthropic format with server\_\_tool naming, MCPHandler.hasTool() correctly identifying registered tools, custom tool executor invocation via executeTool(), and integration with Agent.getMcpHandler() for accessing MCPHandler from Agent instances.
 
-**Deliverable**: `tests/integration/groundswell/mcp.test.ts` - A comprehensive test file covering MCP server registration with inprocess transport, custom tool executor registration and invocation, getTools() Anthropic format validation with server__tool naming pattern, hasTool() tool identification testing, and Agent.getMcpHandler() integration for custom tool registration.
+**Deliverable**: `tests/integration/groundswell/mcp.test.ts` - A comprehensive test file covering MCP server registration with inprocess transport, custom tool executor registration and invocation, getTools() Anthropic format validation with server\_\_tool naming pattern, hasTool() tool identification testing, and Agent.getMcpHandler() integration for custom tool registration.
 
 **Success Definition**:
+
 - Test 1: Create Agent with inprocess MCP server in AgentConfig, verify registerServer() called, server registered in MCPHandler
 - Test 2: Register custom tool executor via agent.getMcpHandler().registerToolExecutor('test', 'tool', executor), verify executor called when tool invoked via executeTool()
-- Test 3: Test getTools() returns tools in Anthropic format with server__tool naming, verify tool schema structure (name, description, input_schema)
-- Test 4: Verify hasTool() correctly identifies registered tools with full names (server__tool pattern), returns false for non-existent tools
+- Test 3: Test getTools() returns tools in Anthropic format with server\_\_tool naming, verify tool schema structure (name, description, input_schema)
+- Test 4: Verify hasTool() correctly identifies registered tools with full names (server\_\_tool pattern), returns false for non-existent tools
 - Test 5: Test custom tool executor invocation with async/await, verify executor receives input parameters, returns result correctly
 - All tests use async/await for executor calls
 - All tests follow existing MCP test patterns from tests/tools/
@@ -32,6 +33,7 @@
 **Use Case**: Sixth validation step in Phase 1 (P1.M1.T2) to verify that after npm link is validated (S1), imports work (S2), version is compatible (S3), Workflow lifecycle works (S1), and Agent/Prompt creation works (S2), the Groundswell MCP tool registration works correctly for extensible tool integration.
 
 **User Journey**:
+
 1. Pipeline completes P1.M1.T1 (npm link, imports, version compatibility) with success
 2. Pipeline completes P1.M1.T2.S1 (Workflow lifecycle tests) with success
 3. Pipeline completes P1.M1.T2.S2 (Agent and Prompt tests) with success
@@ -46,10 +48,11 @@
 12. If tests fail: Document specific issues for debugging
 
 **Pain Points Addressed**:
+
 - Uncertainty whether Groundswell MCP tool registration works correctly
 - Lack of test coverage for custom tool executor registration
 - Missing validation of Anthropic tool format compliance
-- Unclear tool naming pattern (server__tool) behavior
+- Unclear tool naming pattern (server\_\_tool) behavior
 - Missing verification of MCPHandler integration with Agent
 - Unclear how to register custom tools via getMcpHandler()
 - Missing validation of getTools() format
@@ -61,7 +64,7 @@
 - **Foundation for MCP Integration**: MCP tool registration is critical for extending Groundswell Agents with custom tools
 - **Critical Pattern Validation**: MCPHandler.registerServer() and registerToolExecutor() are core patterns for tool extension
 - **Format Compliance**: getTools() must return Anthropic-compatible format for API integration
-- **Tool Naming Validation**: server__tool naming pattern prevents conflicts and enables proper routing
+- **Tool Naming Validation**: server\_\_tool naming pattern prevents conflicts and enables proper routing
 - **Problems Solved**:
   - Validates that Agent.getMcpHandler() returns MCPHandler instance for custom registration
   - Confirms registerServer() works with inprocess transport
@@ -78,6 +81,7 @@
 Create a comprehensive test suite covering 5 main test categories:
 
 ### Test 1: MCP Server Registration via AgentConfig
+
 - Create Agent using createAgent() with AgentConfig containing mcps array
 - Use inprocess transport with MCPServer interface: { name, transport: 'inprocess', tools[] }
 - Define tool schema with name, description, input_schema (JSON Schema format)
@@ -88,6 +92,7 @@ Create a comprehensive test suite covering 5 main test categories:
   - Tools are accessible via getTools()
 
 ### Test 2: Custom Tool Executor Registration
+
 - Create Agent with AgentConfig
 - Access MCPHandler via agent.getMcpHandler()
 - Register custom tool executor using registerToolExecutor(serverName, toolName, executor)
@@ -98,19 +103,21 @@ Create a comprehensive test suite covering 5 main test categories:
   - Tool appears in getTools() output
 
 ### Test 3: getTools() Anthropic Format Validation
+
 - Register inprocess MCP server with tools
 - Call getTools() on MCPHandler
 - Verify:
   - Returns array of Tool objects
   - Each tool has name, description, input_schema properties
-  - Tool names follow server__tool pattern
+  - Tool names follow server\_\_tool pattern
   - input_schema has type: 'object', properties object, required array
   - Schema matches Anthropic API specification
 
 ### Test 4: hasTool() Tool Identification
+
 - Register multiple tools from different servers
 - Test hasTool() with various tool names:
-  - Full tool name (server__tool) - should return true
+  - Full tool name (server\_\_tool) - should return true
   - Partial tool name (tool only) - should return false
   - Non-existent tool - should return false
 - Verify:
@@ -119,8 +126,9 @@ Create a comprehensive test suite covering 5 main test categories:
   - Tool naming pattern is enforced
 
 ### Test 5: Custom Tool Executor Invocation
+
 - Register custom tool executor
-- Call executeTool('server__tool', input) to invoke executor
+- Call executeTool('server\_\_tool', input) to invoke executor
 - Verify:
   - Executor receives input parameters
   - Executor return value is returned correctly
@@ -129,6 +137,7 @@ Create a comprehensive test suite covering 5 main test categories:
   - Errors are handled correctly
 
 ### Test 6: Integration with Agent.getMcpHandler()
+
 - Create Agent with and without MCP servers in config
 - Access MCPHandler via getMcpHandler()
 - Verify:
@@ -141,7 +150,7 @@ Create a comprehensive test suite covering 5 main test categories:
 
 - [ ] Test 1: MCP server registration with inprocess transport works
 - [ ] Test 2: Custom tool executor registration works
-- [ ] Test 3: getTools() returns Anthropic format with server__tool naming
+- [ ] Test 3: getTools() returns Anthropic format with server\_\_tool naming
 - [ ] Test 4: hasTool() correctly identifies registered tools
 - [ ] Test 5: Custom tool executor invocation works with async/await
 - [ ] Test 6: Agent.getMcpHandler() integration works
@@ -157,12 +166,13 @@ Create a comprehensive test suite covering 5 main test categories:
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] Groundswell MCPHandler API documented (registerServer, registerToolExecutor, getTools, hasTool, executeTool)
 - [x] MCPServer interface documented (name, transport, tools, command, args)
 - [x] Tool interface documented (name, description, input_schema)
 - [x] ToolExecutor type documented
 - [x] Agent.getMcpHandler() access pattern documented
-- [x] Tool naming pattern (server__tool) documented
+- [x] Tool naming pattern (server\_\_tool) documented
 - [x] Anthropic tool format specification documented
 - [x] Test patterns from existing codebase analyzed
 - [x] MCP test file examples from tests/tools/
@@ -354,8 +364,8 @@ interface MCPServer {
   name: string;
   transport: 'stdio' | 'inprocess';
   tools?: Tool[];
-  command?: string;  // Only for stdio transport
-  args?: string[];   // Only for stdio transport
+  command?: string; // Only for stdio transport
+  args?: string[]; // Only for stdio transport
 }
 
 // CRITICAL: Tool naming uses server__tool pattern
@@ -383,9 +393,11 @@ interface Tool {
 // Pattern: registerToolExecutor(serverName, toolName, executor)
 
 agent.getMcpHandler().registerToolExecutor(
-  'myserver',     // Server name (no prefix)
-  'mytool',       // Tool name (no prefix)
-  async (input) => { /* executor */ }
+  'myserver', // Server name (no prefix)
+  'mytool', // Tool name (no prefix)
+  async input => {
+    /* executor */
+  }
 );
 
 // But executeTool() and hasTool() use full name:
@@ -431,7 +443,7 @@ interface ToolResult {
 
 vi.mock('@anthropic-ai/sdk', () => ({
   Anthropic: vi.fn(() => ({
-    messages: { create: vi.fn() }
+    messages: { create: vi.fn() },
   })),
 }));
 
@@ -462,11 +474,9 @@ const executor = async (input: unknown) => {
   return { result: 'value' };
 };
 
-agent.getMcpHandler().registerToolExecutor(
-  'server',
-  'tool',
-  executor as ToolExecutor
-);
+agent
+  .getMcpHandler()
+  .registerToolExecutor('server', 'tool', executor as ToolExecutor);
 ```
 
 ---
@@ -763,9 +773,7 @@ describe('MCP Registration: Server registration via AgentConfig', () => {
     const testServer: MCPServer = {
       name: 'test-server',
       transport: 'inprocess',
-      tools: [
-        createMockTool('test_tool', 'A test tool'),
-      ],
+      tools: [createMockTool('test_tool', 'A test tool')],
     };
 
     // EXECUTE: Create Agent with MCPServer config
@@ -916,11 +924,13 @@ describe('MCP Registration: getTools() Anthropic format', () => {
   it('should return tools in Anthropic format', async () => {
     // SETUP: Create Agent with MCPServer
     const agent = gs.createAgent({
-      mcps: [{
-        name: 'test',
-        transport: 'inprocess',
-        tools: [createMockTool('test_tool', 'Test tool description')],
-      }],
+      mcps: [
+        {
+          name: 'test',
+          transport: 'inprocess',
+          tools: [createMockTool('test_tool', 'Test tool description')],
+        },
+      ],
     }) as Agent;
 
     // EXECUTE: Get tools from MCPHandler
@@ -974,11 +984,13 @@ describe('MCP Registration: getTools() Anthropic format', () => {
   it('should include required array in input_schema', async () => {
     // SETUP: Create Agent with tool that has required fields
     const agent = gs.createAgent({
-      mcps: [{
-        name: 'test',
-        transport: 'inprocess',
-        tools: [createMockTool('req_tool', 'Tool with required fields')],
-      }],
+      mcps: [
+        {
+          name: 'test',
+          transport: 'inprocess',
+          tools: [createMockTool('req_tool', 'Tool with required fields')],
+        },
+      ],
     }) as Agent;
 
     // EXECUTE: Get tools
@@ -1010,11 +1022,13 @@ describe('MCP Registration: hasTool() tool identification', () => {
   it('should identify registered tools with full name', async () => {
     // SETUP: Create Agent with MCPServer
     const agent = gs.createAgent({
-      mcps: [{
-        name: 'myserver',
-        transport: 'inprocess',
-        tools: [createMockTool('mytool', 'My tool')],
-      }],
+      mcps: [
+        {
+          name: 'myserver',
+          transport: 'inprocess',
+          tools: [createMockTool('mytool', 'My tool')],
+        },
+      ],
     }) as Agent;
 
     // EXECUTE & VERIFY: Full name is recognized
@@ -1024,11 +1038,13 @@ describe('MCP Registration: hasTool() tool identification', () => {
   it('should return false for partial tool name', async () => {
     // SETUP: Create Agent with MCPServer
     const agent = gs.createAgent({
-      mcps: [{
-        name: 'myserver',
-        transport: 'inprocess',
-        tools: [createMockTool('mytool', 'My tool')],
-      }],
+      mcps: [
+        {
+          name: 'myserver',
+          transport: 'inprocess',
+          tools: [createMockTool('mytool', 'My tool')],
+        },
+      ],
     }) as Agent;
 
     // EXECUTE & VERIFY: Partial name is not recognized
@@ -1048,11 +1064,13 @@ describe('MCP Registration: hasTool() tool identification', () => {
   it('should be case-sensitive', async () => {
     // SETUP: Create Agent with MCPServer
     const agent = gs.createAgent({
-      mcps: [{
-        name: 'TestServer',
-        transport: 'inprocess',
-        tools: [createMockTool('MyTool', 'Case sensitive tool')],
-      }],
+      mcps: [
+        {
+          name: 'TestServer',
+          transport: 'inprocess',
+          tools: [createMockTool('MyTool', 'Case sensitive tool')],
+        },
+      ],
     }) as Agent;
 
     // EXECUTE & VERIFY: Case must match exactly
@@ -1248,18 +1266,20 @@ describe('MCP Registration: Agent.getMcpHandler() integration', () => {
     handler.registerServer({
       name: 'calc',
       transport: 'inprocess',
-      tools: [{
-        name: 'add',
-        description: 'Add two numbers',
-        input_schema: {
-          type: 'object',
-          properties: {
-            a: { type: 'number' },
-            b: { type: 'number' },
+      tools: [
+        {
+          name: 'add',
+          description: 'Add two numbers',
+          input_schema: {
+            type: 'object',
+            properties: {
+              a: { type: 'number' },
+              b: { type: 'number' },
+            },
+            required: ['a', 'b'],
           },
-          required: ['a', 'b'],
         },
-      }],
+      ],
     });
 
     const executor = (async (input: unknown) => {
@@ -1447,13 +1467,13 @@ npm test -- -t "getMcpHandler"
 - [ ] No formatting issues: `npx prettier --check "tests/integration/groundswell/mcp.test.ts"`
 - [ ] @anthropic-ai/sdk mock prevents actual API calls
 - [ ] MCP registration works correctly
-- [ ] Tool naming pattern (server__tool) is enforced
+- [ ] Tool naming pattern (server\_\_tool) is enforced
 
 ### Feature Validation
 
 - [ ] Test 1: MCP server registration with inprocess transport works
 - [ ] Test 2: Custom tool executor registration works
-- [ ] Test 3: getTools() returns Anthropic format with server__tool naming
+- [ ] Test 3: getTools() returns Anthropic format with server\_\_tool naming
 - [ ] Test 4: hasTool() correctly identifies registered tools
 - [ ] Test 5: Custom tool executor invocation works with async/await
 - [ ] Test 6: Agent.getMcpHandler() integration works
@@ -1490,10 +1510,10 @@ npm test -- -t "getMcpHandler"
 - ❌ **Don't forget vi.clearAllMocks()** - Prevents test pollution
 - ❌ **Don't use sync functions for executors** - Must be async functions
 - ❌ **Don't forget type assertion for ToolExecutor** - Use as ToolExecutor
-- ❌ **Don't test with partial tool names** - hasTool() requires full server__tool name
+- ❌ **Don't test with partial tool names** - hasTool() requires full server\_\_tool name
 - ❌ **Don't forget .js extensions** - ESM requires .js in relative imports
 - ❌ **Don't use sync expectations for async operations** - Use await
-- ❌ **Don't assume tool naming** - Always use server__tool pattern
+- ❌ **Don't assume tool naming** - Always use server\_\_tool pattern
 - ❌ **Don't test registerServer() after Agent creation** - Design limitation
 - ❌ **Don't forget to parse ToolResult content** - Content is JSON string
 - ❌ **Don't ignore input_schema structure** - Must match JSON Schema
@@ -1508,9 +1528,10 @@ npm test -- -t "getMcpHandler"
 ### Why test MCP tool registration separately?
 
 MCP tool registration is a distinct feature from Agent/Prompt creation:
+
 - **MCPHandler**: Manages server connections and tool execution
 - **Registration Pattern**: registerServer() and registerToolExecutor() are unique to MCP
-- **Tool Naming**: server__tool pattern is specific to MCP integration
+- **Tool Naming**: server\_\_tool pattern is specific to MCP integration
 - **Anthropic Format**: Tools must match specific API format
 
 Testing MCP registration separately ensures each component works correctly before testing their integration with Agent operations.
@@ -1518,6 +1539,7 @@ Testing MCP registration separately ensures each component works correctly befor
 ### Why use inprocess transport for testing?
 
 The inprocess transport is ideal for testing because:
+
 - No external process spawning required
 - Simpler to mock and control
 - Faster test execution
@@ -1527,6 +1549,7 @@ The inprocess transport is ideal for testing because:
 ### Why test both getTools() and hasTool()?
 
 These methods serve different purposes:
+
 - **getTools()**: Returns all tools for Agent configuration
 - **hasTool()**: Checks if specific tool exists for routing
 - Testing both ensures complete MCPHandler functionality
@@ -1534,6 +1557,7 @@ These methods serve different purposes:
 ### Why validate Anthropic format compliance?
 
 Anthropic format compliance is critical because:
+
 - Tools are passed to Anthropic API
 - Format mismatch causes API errors
 - Schema structure affects tool invocation
@@ -1542,6 +1566,7 @@ Anthropic format compliance is critical because:
 ### Why test executor invocation with async/await?
 
 Executor functions are inherently async because:
+
 - Tool operations may involve I/O
 - External API calls are async
 - File operations are async
@@ -1554,6 +1579,7 @@ Executor functions are inherently async because:
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from previous PRPs (S1, S2, S3, P1.M1.T2.S1, P1.M1.T2.S2)
 - [x] Comprehensive Groundswell MCPHandler API documented
 - [x] MCPServer and Tool interfaces documented
@@ -1561,11 +1587,12 @@ Executor functions are inherently async because:
 - [x] External research from Groundswell source completed
 - [x] All file paths and patterns specified
 - [x] Mock patterns for @anthropic-ai/sdk identified
-- [x] Tool naming pattern (server__tool) documented
+- [x] Tool naming pattern (server\_\_tool) documented
 - [x] Anthropic format specification documented
 - [x] 100% coverage requirement understood
 
 **Risk Mitigation**:
+
 - S1/S2/S3 dependency checks prevent wasted time on missing/incompatible Groundswell
 - Mock pattern prevents accidental API calls
 - Comprehensive test coverage catches edge cases
@@ -1573,6 +1600,7 @@ Executor functions are inherently async because:
 - Follows existing codebase patterns for consistency
 
 **Known Risks**:
+
 - Groundswell version discrepancy (npm: 0.0.1, source: 0.0.3) - mitigated by version checks
 - MCPHandler APIs are stable across versions
 - Tool naming pattern is well-established in codebase

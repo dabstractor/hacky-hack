@@ -33,17 +33,20 @@ function calculateDelay(
 ### Problem Analysis
 
 **The Jitter Formula:**
+
 ```
 jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2
 ```
 
 **Component Analysis:**
+
 - `Math.random()` returns a value in [0, 1)
 - `Math.random() - 0.5` returns a value in [-0.5, 0.5)
 - `(Math.random() - 0.5) * 2` returns a value in [-1, 1)
 - Multiplying by `exponentialDelay * jitterFactor` scales this bidirectional range
 
 **Result:** Jitter can be:
+
 - **Negative**: When random < 0.5 (reduces delay below exponentialDelay)
 - **Zero**: Approaches zero when random ≈ 0.5 (makes delay equal to exponentialDelay)
 - **Positive**: When random > 0.5 (increases delay above exponentialDelay)
@@ -55,6 +58,7 @@ The line `const delay = Math.max(0, Math.floor(exponentialDelay + jitter))` only
 ### Why This Fails the Test
 
 The test `'should add jitter to delay'` expects:
+
 - With baseDelay=1000 and jitterFactor=0.2
 - First delay should be > 800 AND < 1200 (1000 +/- 200)
 - But current implementation can produce delays less than 1000 (when jitter is negative)

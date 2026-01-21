@@ -51,6 +51,7 @@ The codebase tests the following type guard functions:
 Each type guard follows a consistent three-phase test structure:
 
 #### Phase 1: Positive Case Test
+
 ```typescript
 describe('isSessionError', () => {
   it('should return true for SessionError instances', () => {
@@ -63,6 +64,7 @@ describe('isSessionError', () => {
 **Pattern**: Create instance of the specific error type, assert type guard returns `true`.
 
 #### Phase 2: Negative Case Tests
+
 ```typescript
 it('should return false for other error types', () => {
   const taskError = new TaskError('Test');
@@ -80,6 +82,7 @@ it('should return false for other error types', () => {
 **Pattern**: Test against all other error types in the hierarchy to ensure specificity.
 
 #### Phase 3: Non-Error Type Tests
+
 ```typescript
 it('should return false for non-errors', () => {
   expect(isSessionError(null)).toBe(false);
@@ -109,6 +112,7 @@ describe('Type narrowing with type guards', () => {
 ```
 
 **Key Assertions**:
+
 - Access to subclass-specific properties (e.g., `error.isLoadError()`)
 - Access to error codes specific to the narrowed type
 - Verification that TypeScript allows these accesses without type errors
@@ -177,12 +181,14 @@ it('should support try-catch with type guard', () => {
 ## Assertions Made to Verify Type Guard Functionality
 
 ### 1. Boolean Return Value
+
 ```typescript
 expect(isSessionError(error)).toBe(true);
 expect(isSessionError(taskError)).toBe(false);
 ```
 
 ### 2. Type-Specific Property Access
+
 ```typescript
 if (isSessionError(error)) {
   expect(error.code).toBe(ErrorCodes.PIPELINE_SESSION_LOAD_FAILED);
@@ -191,6 +197,7 @@ if (isSessionError(error)) {
 ```
 
 ### 3. Instanceof Compatibility
+
 ```typescript
 expect(error instanceof SessionError).toBe(true);
 expect(error instanceof PipelineError).toBe(true);
@@ -198,11 +205,13 @@ expect(error instanceof Error).toBe(true);
 ```
 
 ### 4. Error Code Verification
+
 ```typescript
 expect(error.code).toBe(ErrorCodes.PIPELINE_SESSION_LOAD_FAILED);
 ```
 
 ### 5. Context Object Access
+
 ```typescript
 expect(error.context?.taskId).toBe('P1.M1.T1');
 expect(error.context?.attempt).toBe(3);
@@ -211,6 +220,7 @@ expect(error.context?.attempt).toBe(3);
 ## Type Narrowing Testing/Verification
 
 ### 1. Property Access After Narrowing
+
 ```typescript
 if (isAgentError(error)) {
   // Type is narrowed to AgentError
@@ -219,6 +229,7 @@ if (isAgentError(error)) {
 ```
 
 ### 2. Method Access After Narrowing
+
 ```typescript
 if (isSessionError(error)) {
   // Type is narrowed to SessionError
@@ -227,6 +238,7 @@ if (isSessionError(error)) {
 ```
 
 ### 3. Base Class Property Access
+
 ```typescript
 if (isPipelineError(error)) {
   // Type is narrowed to PipelineError
@@ -237,6 +249,7 @@ if (isPipelineError(error)) {
 ```
 
 ### 4. Conditional Branching
+
 ```typescript
 if (isTaskError(error)) {
   if (error.code === ErrorCodes.PIPELINE_AGENT_TIMEOUT) {
@@ -252,12 +265,14 @@ if (isTaskError(error)) {
 ## Edge Cases Covered
 
 ### 1. Null and Undefined
+
 ```typescript
 expect(isSessionError(null)).toBe(false);
 expect(isSessionError(undefined)).toBe(false);
 ```
 
 ### 2. Primitive Types
+
 ```typescript
 expect(isSessionError('string')).toBe(false);
 expect(isSessionError(123)).toBe(false);
@@ -265,18 +280,21 @@ expect(isSessionError(true)).toBe(false);
 ```
 
 ### 3. Object and Array Types
+
 ```typescript
 expect(isSessionError({})).toBe(false);
 expect(isSessionError([])).toBe(false);
 ```
 
 ### 4. Plain Error Objects
+
 ```typescript
 const plainError = new Error('Test');
 expect(isSessionError(plainError)).toBe(false);
 ```
 
 ### 5. Cross-Type Discrimination
+
 ```typescript
 const taskError = new TaskError('Test');
 const agentError = new AgentError('Test');
@@ -288,6 +306,7 @@ expect(isSessionError(validationError)).toBe(false);
 ```
 
 ### 6. Empty and Special Cases (EnvironmentError)
+
 ```typescript
 it('should handle empty message', () => {
   const error = new EnvironmentError('');
@@ -306,6 +325,7 @@ it('should handle null context', () => {
 ```
 
 ### 7. Special Characters and Unicode
+
 ```typescript
 it('should handle special characters in message', () => {
   const specialMessage = 'Error: API_KEY is missing! @#$%^&*()';
@@ -321,6 +341,7 @@ it('should handle unicode characters in message', () => {
 ```
 
 ### 8. Complex Context Objects
+
 ```typescript
 it('should handle context with nested objects', () => {
   const context: PipelineErrorContext = {
@@ -339,6 +360,7 @@ it('should handle context with nested objects', () => {
 ```
 
 ### 9. Circular References
+
 ```typescript
 it('should handle circular references gracefully', () => {
   const circular: Record<string, unknown> = { name: 'test' };
@@ -353,6 +375,7 @@ it('should handle circular references gracefully', () => {
 ```
 
 ### 10. Non-Serializable Objects
+
 ```typescript
 it('should handle non-serializable objects', () => {
   const fn = () => 'function';
@@ -369,6 +392,7 @@ it('should handle non-serializable objects', () => {
 The EnvironmentError test file adds additional edge cases specific to environment validation:
 
 ### 1. Array Values in Context
+
 ```typescript
 it('should handle context with array values', () => {
   const context: PipelineErrorContext = {
@@ -381,6 +405,7 @@ it('should handle context with array values', () => {
 ```
 
 ### 2. Boolean and Numeric Context Values
+
 ```typescript
 it('should handle context with boolean values', () => {
   const context: PipelineErrorContext = {
@@ -405,6 +430,7 @@ it('should handle context with numeric values', () => {
 ```
 
 ### 3. Very Long Messages
+
 ```typescript
 it('should handle very long messages', () => {
   const longMessage = 'Environment error '.repeat(100);
@@ -416,6 +442,7 @@ it('should handle very long messages', () => {
 ## Integration Scenarios Tested
 
 ### 1. Typical Error Throwing
+
 ```typescript
 it('should support typical error throwing pattern', () => {
   expect(() => {
@@ -428,6 +455,7 @@ it('should support typical error throwing pattern', () => {
 ```
 
 ### 2. Error Chaining with Cause
+
 ```typescript
 it('should support error chaining with cause', () => {
   const originalError = new Error('Network timeout');
@@ -444,6 +472,7 @@ it('should support error chaining with cause', () => {
 ```
 
 ### 3. Structured Logging
+
 ```typescript
 it('should support structured logging scenario', () => {
   const error = new ValidationError('Invalid input', {
@@ -465,6 +494,7 @@ it('should support structured logging scenario', () => {
 ## Test Organization Patterns
 
 ### 1. Descriptive Suite Names
+
 ```typescript
 describe('Type guard functions', () => {
   describe('isSessionError', () => {
@@ -477,6 +507,7 @@ describe('Type guard functions', () => {
 ```
 
 ### 2. Clear Test Names
+
 - "should return true for X instances"
 - "should return false for other error types"
 - "should return false for non-errors"
@@ -484,7 +515,9 @@ describe('Type guard functions', () => {
 - "should support try-catch with type guard"
 
 ### 3. Consistent Test Structure
+
 Each type guard test suite follows the same structure:
+
 1. Positive case (returns true for correct type)
 2. Negative cases (returns false for other types)
 3. Edge cases (null, undefined, primitives)
@@ -494,13 +527,17 @@ Each type guard test suite follows the same structure:
 ## Key Takeaways for Implementing New Type Guards
 
 ### 1. Follow the Three-Phase Pattern
+
 Always test:
+
 - Positive case (should return true)
 - Negative cases (should return false for other error types)
 - Edge cases (null, undefined, primitives)
 
 ### 2. Verify Type Narrowing
+
 Always include tests that demonstrate type narrowing works:
+
 ```typescript
 if (isNewError(error)) {
   expect(error.specificProperty).toBeDefined();
@@ -508,14 +545,18 @@ if (isNewError(error)) {
 ```
 
 ### 3. Test Integration Scenarios
+
 Include real-world usage patterns:
+
 - Try-catch blocks
 - Switch-style error handling
 - Error chaining
 - Structured logging
 
 ### 4. Cover Edge Cases
+
 Test:
+
 - Null/undefined
 - Primitive types
 - Empty strings/special characters
@@ -524,6 +565,7 @@ Test:
 - Complex nested objects
 
 ### 5. Use Descriptive Test Names
+
 Follow the pattern: "should [expected behavior] [condition]"
 
 ## Example Template for New Type Guard Tests

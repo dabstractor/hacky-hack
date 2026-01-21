@@ -26,6 +26,7 @@ expect(consoleSpy).toHaveBeenCalledWith(
 ```
 
 **Expected patterns:**
+
 - `'[TaskOrchestrator] Executing Phase: {id} - {title}'`
 - `'[TaskOrchestrator] Executing Milestone: {id} - {title}'`
 - `'[TaskOrchestrator] Executing Task: {id} - {title}'`
@@ -58,6 +59,7 @@ async executePhase(phase: Phase): Promise<void> {
 ```
 
 **Actual patterns:**
+
 - Structured logging with objects: `{ phaseId, title }` + message
 - Uses Pino logger with levels: info, warn, error, debug
 - Context is included via getLogger('TaskOrchestrator')
@@ -154,6 +156,7 @@ async executePhase(phase: Phase): Promise<void> {
 ```
 
 **Test should expect:**
+
 ```typescript
 expect(mockLogger.info).toHaveBeenCalledWith(
   { phaseId: 'P1' },
@@ -182,6 +185,7 @@ async executeMilestone(milestone: Milestone): Promise<void> {
 ```
 
 **Test should expect:**
+
 ```typescript
 expect(mockLogger.info).toHaveBeenCalledWith(
   { milestoneId: 'P1.M1' },
@@ -229,6 +233,7 @@ async executeTask(task: Task): Promise<void> {
 ### executeSubtask (lines 584-750)
 
 Key logging points:
+
 ```typescript
 // Line 585-588
 this.#logger.info(
@@ -417,6 +422,7 @@ expect(mockLogger.info).toHaveBeenNthCalledWith(
 **The implementation is correct.** The TaskOrchestrator properly uses Pino structured logging as designed. The tests need to be updated to match the implementation's logging pattern.
 
 **Fix scope:**
+
 - Update 21 test assertions to use mockLogger instead of console.log
 - Match structured data objects instead of formatted strings
 - Verify correct log levels (info, warn, error, debug)

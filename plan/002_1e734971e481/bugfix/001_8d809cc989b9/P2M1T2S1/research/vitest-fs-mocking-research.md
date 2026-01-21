@@ -54,6 +54,7 @@ const mockMkdir = vi.mocked(mkdir);
 ```
 
 **Key Points:**
+
 - `vi.mock()` is hoisted to top of file automatically
 - Use `async importOriginal` to preserve other module exports
 - `vi.mocked()` provides type-safe access to mocked functions
@@ -74,6 +75,7 @@ vi.mock('node:fs/promises', async importOriginal => {
 ```
 
 **Use Cases:**
+
 - Mock `readFile` but preserve real `mkdir`, `writeFile`, etc.
 - Reduces mock surface area
 - Maintains realistic behavior for unmocked operations
@@ -103,6 +105,7 @@ const mockReadFile = createMockReadFile({
 ```
 
 **Benefits:**
+
 - Centralized mock data management
 - Reusable across multiple test files
 - Easy to extend with error scenarios
@@ -124,9 +127,7 @@ const text: string = await readFile('/path/to/file', { encoding: 'utf-8' });
 const text2: string = await readFile('/path/to/file', 'utf-8');
 
 // Type signature
-export function readFile(
-  path: PathLike | FileHandle
-): Promise<Buffer>;
+export function readFile(path: PathLike | FileHandle): Promise<Buffer>;
 
 export function readFile(
   path: PathLike | FileHandle,
@@ -215,9 +216,7 @@ it('should read file as Buffer', async () => {
 
 // Test 2: Mock returns string (with encoding)
 it('should read file as string with encoding', async () => {
-  mockReadFile.mockResolvedValue(
-    'text data' as unknown as Buffer
-  );
+  mockReadFile.mockResolvedValue('text data' as unknown as Buffer);
 
   const result = await readFile('/path/to/file', 'utf-8');
   expect(typeof result).toBe('string');
@@ -347,7 +346,7 @@ describe('tests', () => {
 
 ```typescript
 // ❌ WRONG - Exact path match only
-mockReadFile.mockImplementation((path) => {
+mockReadFile.mockImplementation(path => {
   if (path === '/exact/path') {
     return Promise.resolve('data');
   }
@@ -361,7 +360,7 @@ mockReadFile.mockImplementation((path) => {
 
 ```typescript
 // ✅ CORRECT - Flexible path handling
-mockReadFile.mockImplementation((path) => {
+mockReadFile.mockImplementation(path => {
   const pathStr = String(path);
   if (pathStr.includes('file.txt')) {
     return Promise.resolve('data');
@@ -408,6 +407,7 @@ describe('E2E tests', () => {
 ```
 
 **Benefits:**
+
 - Tests interact with real file system
 - Catches path resolution issues
 - Validates actual file I/O behavior
@@ -527,7 +527,7 @@ mockReadFile.mockResolvedValue(Buffer.from('file content'));
 const emptyBuffer = Buffer.alloc(1024);
 
 // Buffer filled with specific value
-const filledBuffer = Buffer.alloc(1024, 0xFF);
+const filledBuffer = Buffer.alloc(1024, 0xff);
 
 // Usage in mocks
 mockReadFile.mockResolvedValue(Buffer.alloc(4096)); // Empty 4KB file
@@ -548,7 +548,7 @@ const jpegHeader = Buffer.from([0xff, 0xd8, 0xff]);
 const pdfHeader = Buffer.from('%PDF-1.4\n');
 
 // Usage
-mockReadFile.mockImplementation((path) => {
+mockReadFile.mockImplementation(path => {
   if (String(path).endsWith('.png')) {
     return Promise.resolve(pngHeader);
   }
@@ -573,7 +573,7 @@ function createMockFile(content: string | Buffer, mimeType?: string): Buffer {
     case 'image/png':
       return Buffer.concat([
         Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-        Buffer.from(content)
+        Buffer.from(content),
       ]);
     case 'application/json':
       return Buffer.from(JSON.stringify(JSON.parse(content)), 'utf-8');
@@ -583,7 +583,9 @@ function createMockFile(content: string | Buffer, mimeType?: string): Buffer {
 }
 
 // Usage
-mockReadFile.mockResolvedValue(createMockFile('{"key":"value"}', 'application/json'));
+mockReadFile.mockResolvedValue(
+  createMockFile('{"key":"value"}', 'application/json')
+);
 ```
 
 ---
@@ -654,23 +656,20 @@ vi.mocked(readFile).mockImplementation(mockReadFile);
 **Pattern:** Respect encoding parameter in mock
 
 ```typescript
-mockReadFile.mockImplementation(
-  (path: string | Buffer, options?: any) => {
-    const content = 'file content';
+mockReadFile.mockImplementation((path: string | Buffer, options?: any) => {
+  const content = 'file content';
 
-    // Check if encoding is specified (returns string)
-    const hasEncoding =
-      options?.encoding || typeof options === 'string';
+  // Check if encoding is specified (returns string)
+  const hasEncoding = options?.encoding || typeof options === 'string';
 
-    if (hasEncoding) {
-      // Return type should be string
-      return Promise.resolve(content) as Promise<Buffer>;
-    }
-
-    // Return type should be Buffer
-    return Promise.resolve(Buffer.from(content));
+  if (hasEncoding) {
+    // Return type should be string
+    return Promise.resolve(content) as Promise<Buffer>;
   }
-);
+
+  // Return type should be Buffer
+  return Promise.resolve(Buffer.from(content));
+});
 ```
 
 ### 6.4 Zod Schema Validation with Mocks
@@ -726,12 +725,14 @@ it('should use in-memory file system', () => {
 ```
 
 **Benefits:**
+
 - Real file system operations in memory
 - No mocking required
 - Supports most fs operations
 - Fast and isolated
 
 **Drawbacks:**
+
 - Additional dependency
 - May not support all edge cases
 - Different from real FS behavior
@@ -765,12 +766,14 @@ describe('Real file system tests', () => {
 ```
 
 **Benefits:**
+
 - No mock complexity
 - Tests real file I/O
 - Catches real FS issues
 - Simple and straightforward
 
 **Drawbacks:**
+
 - Slower than mocks
 - Requires cleanup
 - May have permissions issues on CI
@@ -783,9 +786,7 @@ describe('Real file system tests', () => {
 import * as fs from 'node:fs/promises';
 
 it('should spy on readFile', async () => {
-  const spy = vi
-    .spyOn(fs, 'readFile')
-    .mockResolvedValue(Buffer.from('mocked'));
+  const spy = vi.spyOn(fs, 'readFile').mockResolvedValue(Buffer.from('mocked'));
 
   await myFunction();
 
@@ -797,12 +798,14 @@ it('should spy on readFile', async () => {
 ```
 
 **Benefits:**
+
 - Preserve real implementation
 - Only mock what's needed
 - Easy to restore
 - Good for isolated tests
 
 **Drawbacks:**
+
 - Requires manual restoration
 - Less control than full mock
 - May interfere with other tests
@@ -884,7 +887,9 @@ describe('FileProcessor with Buffer mocks', () => {
       mockReadFile.mockRejectedValue(error);
 
       // EXECUTE & VERIFY
-      await expect(processFile('/nonexistent')).rejects.toThrow('File not found');
+      await expect(processFile('/nonexistent')).rejects.toThrow(
+        'File not found'
+      );
       expect(mockReadFile).toHaveBeenCalledWith('/nonexistent');
     });
 
@@ -895,7 +900,9 @@ describe('FileProcessor with Buffer mocks', () => {
       mockReadFile.mockRejectedValue(error);
 
       // EXECUTE & VERIFY
-      await expect(processFile('/restricted')).rejects.toThrow('Permission denied');
+      await expect(processFile('/restricted')).rejects.toThrow(
+        'Permission denied'
+      );
     });
   });
 
@@ -959,7 +966,9 @@ export function createMockFileSystem(
       const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content);
       return Promise.resolve(buffer);
     }
-    const error = new Error(`ENOENT: no such file: ${pathStr}`) as NodeJS.ErrnoException;
+    const error = new Error(
+      `ENOENT: no such file: ${pathStr}`
+    ) as NodeJS.ErrnoException;
     error.code = 'ENOENT';
     return Promise.reject(error);
   });
@@ -1081,6 +1090,7 @@ describe('E2E: Batch file processing', () => {
 - **Test Context:** https://vitest.dev/api/context.html
 
 **Key Documentation Sections to Review:**
+
 1. Module mocking with `vi.mock()`
 2. Partial mocking with `vi.importActual()`
 3. Type-safe mocking with `vi.mocked()`
@@ -1123,6 +1133,7 @@ describe('E2E: Batch file processing', () => {
 - GitHub: Search for `vi.mocked(readFile)` in repositories
 
 **Search Queries for Future Research:**
+
 1. "vitest mock fs/promises readFile return type"
 2. "vitest buffer vs string file mocking"
 3. "typescript vitest fs promises type safety"

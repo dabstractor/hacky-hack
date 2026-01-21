@@ -30,6 +30,7 @@ This research document explores comprehensive patterns for testing agent tool ac
 ### Testing Patterns from Codebase
 
 #### Pattern 1: Top-Level Module Mocking
+
 ```typescript
 // Must be at top level for hoisting (vi.mock requires hoisting)
 vi.mock('groundswell', async () => {
@@ -43,6 +44,7 @@ vi.mock('groundswell', async () => {
 ```
 
 #### Pattern 2: Agent Factory Testing
+
 ```typescript
 // Import after mocking
 import { createAgent, createPrompt } from 'groundswell';
@@ -53,6 +55,7 @@ vi.mocked(createPrompt).mockReturnValue(mockPrompt as never);
 ```
 
 #### Pattern 3: Environment Variable Stubs
+
 ```typescript
 // Stub environment variables for each test
 vi.stubEnv('ANTHROPIC_API_KEY', 'test-token');
@@ -66,10 +69,12 @@ vi.stubEnv('ANTHROPIC_BASE_URL', 'https://api.z.ai/api/anthropic');
 ### Direct Method Testing Patterns
 
 #### 1. Basic Agent.tool() Mocking
+
 ```typescript
 test('agent.tool() executes correctly', () => {
   // Mock the tool method directly
-  const mockTool = vi.fn()
+  const mockTool = vi
+    .fn()
     .mockResolvedValue({ success: true, data: 'mocked result' });
 
   // Replace the method on the agent instance
@@ -84,6 +89,7 @@ test('agent.tool() executes correctly', () => {
 ```
 
 #### 2. Spy-based Testing
+
 ```typescript
 test('tool method with spy verification', () => {
   const spy = vi.spyOn(agent, 'tool');
@@ -97,6 +103,7 @@ test('tool method with spy verification', () => {
 ```
 
 #### 3. Async/Await Pattern
+
 ```typescript
 test('async tool method testing', async () => {
   const mockTool = vi.fn();
@@ -110,12 +117,13 @@ test('async tool method testing', async () => {
 ```
 
 #### 4. Parameter Validation Testing
+
 ```typescript
 test('tool method validates parameters', () => {
   const mockTool = vi.fn();
   agent.tool = mockTool;
 
-  mockTool.mockImplementation((params) => {
+  mockTool.mockImplementation(params => {
     if (!params.input) {
       throw new Error('Missing input parameter');
     }
@@ -137,6 +145,7 @@ test('tool method validates parameters', () => {
 ### Mock Module Patterns
 
 #### 1. Mock Module with Implementation
+
 ```typescript
 // test/agent.test.js
 vi.mock('./agent', async () => {
@@ -145,13 +154,14 @@ vi.mock('./agent', async () => {
     ...actual,
     agent: {
       ...actual.agent,
-      tool: vi.fn().mockResolvedValue({ success: true })
-    }
+      tool: vi.fn().mockResolvedValue({ success: true }),
+    },
   };
 });
 ```
 
 #### 2. Factory Function for Mock Agents
+
 ```typescript
 // Factory function for creating mock agents
 const createMockAgent = () => ({
@@ -165,13 +175,14 @@ mockAgent.tool.mockResolvedValue({ data: 'test result' });
 ```
 
 #### 3. Conditional Mocking
+
 ```typescript
 test('conditional tool mocking based on input', () => {
   const mockTool = vi.fn();
   agent.tool = mockTool;
 
   // Different responses based on input
-  mockTool.mockImplementation((params) => {
+  mockTool.mockImplementation(params => {
     if (params.action === 'create') {
       return Promise.resolve({ id: 'new-123', created: true });
     } else if (params.action === 'update') {
@@ -190,12 +201,13 @@ test('conditional tool mocking based on input', () => {
 ### Mock Data Patterns
 
 #### 1. Test Fixtures
+
 ```typescript
 // Reusable test fixtures
 const mockToolResults = {
   success: { success: true, data: 'operation completed' },
   error: { success: false, error: 'Operation failed' },
-  validation: { valid: true, score: 95 }
+  validation: { valid: true, score: 95 },
 };
 
 // Usage
@@ -203,6 +215,7 @@ agent.tool.mockResolvedValue(mockToolResults.success);
 ```
 
 #### 2. Dynamic Mock Responses
+
 ```typescript
 test('dynamic mock responses', () => {
   const mockTool = vi.fn();
@@ -214,7 +227,7 @@ test('dynamic mock responses', () => {
     return Promise.resolve({
       callNumber: callCount,
       timestamp: Date.now(),
-      data: `Response ${callCount}`
+      data: `Response ${callCount}`,
     });
   });
 
@@ -234,6 +247,7 @@ test('dynamic mock responses', () => {
 ### MCP Server Registration Testing
 
 #### 1. Server Registration Verification
+
 ```typescript
 test('should create Agent with inprocess MCP server', async () => {
   // Setup MCP server
@@ -260,6 +274,7 @@ test('should create Agent with inprocess MCP server', async () => {
 ```
 
 #### 2. Tool Executor Registration
+
 ```typescript
 test('should register custom tool executor via getMcpHandler()', async () => {
   const agent = gs.createAgent() as Agent;
@@ -284,6 +299,7 @@ test('should register custom tool executor via getMcpHandler()', async () => {
 ### Tool Execution Patterns
 
 #### 1. Tool Invocation Testing
+
 ```typescript
 test('should invoke executor with input parameters', async () => {
   const agent = gs.createAgent() as Agent;
@@ -317,6 +333,7 @@ test('should invoke executor with input parameters', async () => {
 ```
 
 #### 2. Async Tool Execution
+
 ```typescript
 test('should handle async executor operations', async () => {
   const agent = gs.createAgent() as Agent;
@@ -343,6 +360,7 @@ test('should handle async executor operations', async () => {
 ```
 
 #### 3. Error Handling in Tools
+
 ```typescript
 test('should handle executor errors gracefully', async () => {
   const agent = gs.createAgent() as Agent;
@@ -373,6 +391,7 @@ test('should handle executor errors gracefully', async () => {
 ### End-to-End Workflow Testing
 
 #### 1. Complete Agent Tool Workflow
+
 ```typescript
 test('complete agent tool workflow', async () => {
   // Setup
@@ -380,7 +399,8 @@ test('complete agent tool workflow', async () => {
   const prompt = createArchitectPrompt(prdContent);
 
   // Mock tool responses
-  agent.tool = vi.fn()
+  agent.tool = vi
+    .fn()
     .mockResolvedValueOnce({ success: true, phase: 'created' })
     .mockResolvedValueOnce({ success: true, milestone: 'created' })
     .mockResolvedValueOnce({ success: true, task: 'created' });
@@ -396,16 +416,19 @@ test('complete agent tool workflow', async () => {
 ```
 
 #### 2. Multi-Tool Communication Pattern
+
 ```typescript
 test('multi-tool communication pattern', async () => {
   const mockTools = {
     create: vi.fn().mockResolvedValue({ id: '123', created: true }),
     validate: vi.fn().mockResolvedValue({ valid: true, score: 95 }),
-    deploy: vi.fn().mockResolvedValue({ deployed: true, url: 'https://app.com' })
+    deploy: vi
+      .fn()
+      .mockResolvedValue({ deployed: true, url: 'https://app.com' }),
   };
 
   // Setup agent with multiple tools
-  agent.tool = vi.fn().mockImplementation((params) => {
+  agent.tool = vi.fn().mockImplementation(params => {
     if (params.action === 'create') return mockTools.create(params);
     if (params.action === 'validate') return mockTools.validate(params);
     if (params.action === 'deploy') return mockTools.deploy(params);
@@ -416,11 +439,11 @@ test('multi-tool communication pattern', async () => {
   const createResult = await agent.tool({ action: 'create', data: testData });
   const validateResult = await agent.tool({
     action: 'validate',
-    id: createResult.id
+    id: createResult.id,
   });
   const deployResult = await agent.tool({
     action: 'deploy',
-    id: createResult.id
+    id: createResult.id,
   });
 
   // Verify workflow
@@ -433,11 +456,12 @@ test('multi-tool communication pattern', async () => {
 ### State Management Testing
 
 #### 1. Tool State Persistence
+
 ```typescript
 test('tool state persistence across calls', () => {
   const toolState = new Map();
 
-  agent.tool = vi.fn().mockImplementation((params) => {
+  agent.tool = vi.fn().mockImplementation(params => {
     if (params.action === 'set') {
       toolState.set(params.key, params.value);
       return Promise.resolve({ success: true });
@@ -452,7 +476,8 @@ test('tool state persistence across calls', () => {
   });
 
   // Set state
-  return agent.tool({ action: 'set', key: 'user', value: 'test' })
+  return agent
+    .tool({ action: 'set', key: 'user', value: 'test' })
     .then(() => agent.tool({ action: 'get', key: 'user' }))
     .then(result => {
       expect(result.value).toBe('test');
@@ -489,6 +514,7 @@ test('tool state persistence across calls', () => {
 ### Anti-Patterns to Avoid
 
 1. **Don't Mock Implementation Details**
+
    ```typescript
    // ❌ Bad - Testing internal implementation
    vi.mock(agent.internalMethod);
@@ -498,6 +524,7 @@ test('tool state persistence across calls', () => {
    ```
 
 2. **Don't Over-Mock**
+
    ```typescript
    // ❌ Bad - Too many mocks
    agent.tool = vi.fn().mockResolvedValue('result');
@@ -509,6 +536,7 @@ test('tool state persistence across calls', () => {
    ```
 
 3. **Don't Skip Cleanup**
+
    ```typescript
    // ❌ Bad - No cleanup
    test('test', () => {
@@ -546,7 +574,7 @@ describe('Agent Tool Integration Tests', () => {
     agent = createArchitectAgent();
 
     // Setup tool mocks
-    agent.tool = vi.fn().mockImplementation((params) => {
+    agent.tool = vi.fn().mockImplementation(params => {
       switch (params.action) {
         case 'read':
           return mockTools.read(params);
@@ -571,13 +599,13 @@ describe('Agent Tool Integration Tests', () => {
       mockTools.read.mockResolvedValue({
         success: true,
         content: 'File content',
-        path: '/test/file.txt'
+        path: '/test/file.txt',
       });
 
       // Execute
       const result = await agent.tool({
         action: 'read',
-        path: '/test/file.txt'
+        path: '/test/file.txt',
       });
 
       // Verify
@@ -585,7 +613,7 @@ describe('Agent Tool Integration Tests', () => {
       expect(result.content).toBe('File content');
       expect(mockTools.read).toHaveBeenCalledWith({
         action: 'read',
-        path: '/test/file.txt'
+        path: '/test/file.txt',
       });
     });
 
@@ -594,14 +622,14 @@ describe('Agent Tool Integration Tests', () => {
       mockTools.write.mockResolvedValue({
         success: true,
         path: '/test/output.txt',
-        written: 100
+        written: 100,
       });
 
       // Execute
       const result = await agent.tool({
         action: 'write',
         path: '/test/output.txt',
-        content: 'Test content'
+        content: 'Test content',
       });
 
       // Verify
@@ -616,25 +644,25 @@ describe('Agent Tool Integration Tests', () => {
       mockTools.read.mockResolvedValue({
         success: true,
         content: 'const x = 1;',
-        path: '/test.js'
+        path: '/test.js',
       });
 
       // Setup validation
       mockTools.validate.mockResolvedValue({
         success: true,
         valid: true,
-        issues: []
+        issues: [],
       });
 
       // Execute workflow
       const readResult = await agent.tool({
         action: 'read',
-        path: '/test.js'
+        path: '/test.js',
       });
 
       const validateResult = await agent.tool({
         action: 'validate',
-        content: readResult.content
+        content: readResult.content,
       });
 
       // Verify workflow
@@ -649,13 +677,13 @@ describe('Agent Tool Integration Tests', () => {
       // Setup error
       mockTools.read.mockResolvedValue({
         success: false,
-        error: 'File not found'
+        error: 'File not found',
       });
 
       // Execute
       const result = await agent.tool({
         action: 'read',
-        path: '/nonexistent.txt'
+        path: '/nonexistent.txt',
       });
 
       // Verify error handling
@@ -668,13 +696,13 @@ describe('Agent Tool Integration Tests', () => {
       mockTools.validate.mockResolvedValue({
         success: true,
         valid: false,
-        issues: ['Syntax error on line 1']
+        issues: ['Syntax error on line 1'],
       });
 
       // Execute
       const result = await agent.tool({
         action: 'validate',
-        content: 'invalid syntax here'
+        content: 'invalid syntax here',
       });
 
       // Verify failure
@@ -731,8 +759,8 @@ describe('MCP Tool Integration Tests', () => {
             input_schema: {
               type: 'object',
               properties: { path: { type: 'string' } },
-              required: ['path']
-            }
+              required: ['path'],
+            },
           },
           {
             name: 'write',
@@ -741,19 +769,21 @@ describe('MCP Tool Integration Tests', () => {
               type: 'object',
               properties: {
                 path: { type: 'string' },
-                content: { type: 'string' }
+                content: { type: 'string' },
               },
-              required: ['path', 'content']
-            }
-          }
-        ]
+              required: ['path', 'content'],
+            },
+          },
+        ],
       });
 
       // Register executors
-      mcpHandler.registerToolExecutor('file-server', 'read',
-        async (input) => ({ content: 'file content' }));
-      mcpHandler.registerToolExecutor('file-server', 'write',
-        async (input) => ({ written: true }));
+      mcpHandler.registerToolExecutor('file-server', 'read', async input => ({
+        content: 'file content',
+      }));
+      mcpHandler.registerToolExecutor('file-server', 'write', async input => ({
+        written: true,
+      }));
 
       // Verify tools are registered
       expect(mcpHandler.hasTool('file-server__read')).toBe(true);
@@ -768,27 +798,30 @@ describe('MCP Tool Integration Tests', () => {
       mcpHandler.registerServer({
         name: 'test',
         transport: 'inprocess',
-        tools: [{
-          name: 'calculate',
-          description: 'Calculate sum',
-          input_schema: {
-            type: 'object',
-            properties: {
-              a: { type: 'number' },
-              b: { type: 'number' }
+        tools: [
+          {
+            name: 'calculate',
+            description: 'Calculate sum',
+            input_schema: {
+              type: 'object',
+              properties: {
+                a: { type: 'number' },
+                b: { type: 'number' },
+              },
+              required: ['a', 'b'],
             },
-            required: ['a', 'b']
-          }
-        }]
+          },
+        ],
       });
 
-      mcpHandler.registerToolExecutor('test', 'calculate',
-        async (input) => ({ result: (input as any).a + (input as any).b }));
+      mcpHandler.registerToolExecutor('test', 'calculate', async input => ({
+        result: (input as any).a + (input as any).b,
+      }));
 
       // Execute tool
       const result = await mcpHandler.executeTool('test__calculate', {
         a: 5,
-        b: 3
+        b: 3,
       });
 
       // Verify result
@@ -800,15 +833,18 @@ describe('MCP Tool Integration Tests', () => {
       mcpHandler.registerServer({
         name: 'error-server',
         transport: 'inprocess',
-        tools: [{
-          name: 'fail',
-          description: 'Always fails',
-          input_schema: { type: 'object', properties: {} }
-        }]
+        tools: [
+          {
+            name: 'fail',
+            description: 'Always fails',
+            input_schema: { type: 'object', properties: {} },
+          },
+        ],
       });
 
-      mcpHandler.registerToolExecutor('error-server', 'fail',
-        async () => { throw new Error('Tool failed'); });
+      mcpHandler.registerToolExecutor('error-server', 'fail', async () => {
+        throw new Error('Tool failed');
+      });
 
       // Execute error tool
       const result = await mcpHandler.executeTool('error-server__fail', {});
@@ -825,21 +861,25 @@ describe('MCP Tool Integration Tests', () => {
       mcpHandler.registerServer({
         name: 'server1',
         transport: 'inprocess',
-        tools: [{
-          name: 'tool1',
-          description: 'First tool',
-          input_schema: { type: 'object', properties: {} }
-        }]
+        tools: [
+          {
+            name: 'tool1',
+            description: 'First tool',
+            input_schema: { type: 'object', properties: {} },
+          },
+        ],
       });
 
       mcpHandler.registerServer({
         name: 'server2',
         transport: 'inprocess',
-        tools: [{
-          name: 'tool2',
-          description: 'Second tool',
-          input_schema: { type: 'object', properties: {} }
-        }]
+        tools: [
+          {
+            name: 'tool2',
+            description: 'Second tool',
+            input_schema: { type: 'object', properties: {} },
+          },
+        ],
       });
 
       // Get all tools
@@ -847,8 +887,10 @@ describe('MCP Tool Integration Tests', () => {
 
       // Verify all tools are listed
       expect(tools).toHaveLength(2);
-      expect(tools.map((t: any) => t.name))
-        .toEqual(['server1__tool1', 'server2__tool2']);
+      expect(tools.map((t: any) => t.name)).toEqual([
+        'server1__tool1',
+        'server2__tool2',
+      ]);
     });
   });
 });
@@ -889,16 +931,18 @@ tests/
 ### Mock Management Best Practices
 
 1. **Use Mock Factories**
+
    ```typescript
    // Create reusable mock factories
    const createMockAgent = (overrides = {}) => ({
      prompt: vi.fn(),
      tool: vi.fn(),
-     ...overrides
+     ...overrides,
    });
    ```
 
 2. **Centralize Mock Setup**
+
    ```typescript
    // test-setup.ts
    export const setupAgentMocks = () => {
@@ -921,6 +965,7 @@ tests/
 ### Performance Considerations
 
 1. **Lazy Load Mocks**
+
    ```typescript
    // Only import when needed
    let gs: typeof import('groundswell');
@@ -931,6 +976,7 @@ tests/
    ```
 
 2. **Use Deterministic Timers**
+
    ```typescript
    // Control async operations
    vi.useFakeTimers();
@@ -967,4 +1013,4 @@ The patterns and examples provided in this document can be adapted to various ag
 
 ---
 
-*This research document was created based on codebase analysis and testing best practices. Patterns should be adapted to specific project requirements and testing frameworks.*
+_This research document was created based on codebase analysis and testing best practices. Patterns should be adapted to specific project requirements and testing frameworks._

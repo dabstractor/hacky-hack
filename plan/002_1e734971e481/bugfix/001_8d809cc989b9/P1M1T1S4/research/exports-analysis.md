@@ -20,10 +20,12 @@ The `src/core/index.ts` file serves as the public API entry point for the core m
 ### Import Patterns in Codebase
 
 Current imports throughout the codebase use direct paths:
+
 - `import { ValidationError } from '../utils/errors.js';` (direct import)
 - Tests import directly: `import { EnvironmentError } from '../../../src/utils/errors.js';`
 
 After this change, developers can choose either:
+
 - Direct import: `import { EnvironmentError } from '../utils/errors.js';`
 - Core index import: `import { EnvironmentError } from './core/index.js';`
 
@@ -34,6 +36,7 @@ The research indicates that `SessionError`, `TaskError`, `AgentError`, and `Vali
 ### EnvironmentError Context
 
 From git history and PRD analysis:
+
 - EnvironmentError was implemented in P1.M1.T1.S3
 - It's used for environment configuration validation
 - It follows the same pattern as other PipelineError subclasses

@@ -11,6 +11,7 @@
 **Feature Goal**: Update project documentation with comprehensive API configuration guidance, including required variables, default values, override mechanisms, safeguards, and clear warnings about z.ai API usage requirements.
 
 **Deliverable**: Updated documentation at `/home/dustin/projects/hacky-hack/README.md` (extending existing Configuration section) with:
+
 1. Complete environment variables table (required, optional, model overrides)
 2. Default values and AUTH_TOKEN → API_KEY mapping explanation
 3. Override mechanisms for testing
@@ -20,6 +21,7 @@
 7. Troubleshooting section for common issues
 
 **Success Definition**:
+
 - README.md Configuration section contains all required environment variables
 - Documentation explains the AUTH_TOKEN → API_KEY mapping
 - Safeguards are documented with their purpose
@@ -35,6 +37,7 @@
 **Use Case**: Developer has cloned the repository and needs to configure API access to run the pipeline
 
 **User Journey**:
+
 1. Developer clones the repository
 2. Runs `npm install`
 3. Attempts to run pipeline but gets authentication error
@@ -43,6 +46,7 @@
 6. Pipeline runs successfully
 
 **Pain Points Addressed**:
+
 - **Confusion about variable naming**: Why use ANTHROPIC_AUTH_TOKEN vs ANTHROPIC_API_KEY?
 - **Unclear defaults**: What is the default BASE_URL? Can I skip setting it?
 - **Missing safeguard context**: Why do tests fail with "Anthropic API detected"?
@@ -69,6 +73,7 @@
 ## What
 
 Update the Configuration section of README.md (lines 203-233) to include comprehensive API configuration documentation. The current section has basic environment variables but lacks:
+
 - Explanation of the AUTH_TOKEN → API_KEY mapping
 - Documentation of API safeguards
 - z.ai-specific setup guidance
@@ -78,7 +83,8 @@ Update the Configuration section of README.md (lines 203-233) to include compreh
 ### Current State Analysis
 
 **Current README.md Configuration Section** (lines 203-233):
-```markdown
+
+````markdown
 ## Configuration
 
 ### Environment Variables
@@ -103,7 +109,9 @@ export ANTHROPIC_AUTH_TOKEN="your-api-key-here"
 # Or use .env file
 echo "ANTHROPIC_API_KEY=your-api-key-here" > .env
 ```
-```
+````
+
+````
 
 **Missing Content**:
 1. ❌ No explanation of WHY AUTH_TOKEN maps to API_KEY
@@ -266,7 +274,7 @@ echo "ANTHROPIC_API_KEY=your-api-key-here" > .env
     Code examples for .env files
     Troubleshooting with symptoms/solutions
     Visual indicators (⚠️ for warnings)
-```
+````
 
 ---
 
@@ -320,48 +328,73 @@ hacky-hack/
 
 ```markdown
 # CRITICAL: The AUTH_TOKEN → API_KEY mapping is non-obvious
+
 # Shell environment uses ANTHROPIC_AUTH_TOKEN (convention)
+
 # Anthropic SDK expects ANTHROPIC_API_KEY (requirement)
+
 # The mapping happens in configureEnvironment() from environment.ts
 
 # GOTCHA: The mapping is idempotent
+
 # If ANTHROPIC_API_KEY is already set, AUTH_TOKEN won't override it
+
 # This allows explicit API_KEY setting to take precedence
 
 # CRITICAL: z.ai vs Anthropic API distinction
+
 # Anthropic: https://api.anthropic.com (BLOCKED - causes massive usage spikes)
-# z.ai:      https://api.z.ai/api/anthropic (REQUIRED - compatible proxy)
+
+# z.ai: https://api.z.ai/api/anthropic (REQUIRED - compatible proxy)
 
 # GOTCHA: Default BASE_URL is set to z.ai
+
 # If ANTHROPIC_BASE_URL is not set, configureEnvironment() sets it to z.ai endpoint
+
 # This is intentional - z.ai is the default for this project
 
 # CRITICAL: API safeguards prevent Anthropic API usage
+
 # Two safeguards exist:
+
 # 1. Test setup safeguard (tests/setup.ts) - Runs on test load and beforeEach
+
 # 2. Validation script safeguard (src/scripts/validate-api.ts) - From P1.M2.T2.S2
+
 # Both block api.anthropic.com and warn for non-z.ai endpoints
 
 # GOTCHA: Model tier naming is different from model names
+
 # Tiers: opus, sonnet, haiku (abstractions)
+
 # Models: GLM-4.7, GLM-4.5-Air (actual model identifiers)
+
 # Default tier→model mapping is in MODEL_NAMES constant
 
 # CRITICAL: The .env file should be gitignored
+
 # API keys must never be committed to version control
+
 # Create .env.example as a template instead
 
 # GOTCHA: README.md doesn't use emojis (unlike user-guide.md)
+
 # User guide uses ✅ ❌ for visual indicators
+
 # README uses plain markdown with tables and code blocks
+
 # Follow the README style when updating
 
 # CRITICAL: ConfigureEnvironment must be called before accessing API_KEY
+
 # Import order matters: configureEnvironment() first, then use API_KEY
+
 # This is why the safeguard runs at the top of test setup
 
 # GOTCHA: Validation script exits with code 1 on Anthropic API detection
+
 # This is intentional for CI/CD integration
+
 # Exit code 0 = success, 1 = failure (Anthropic API detected)
 ```
 
@@ -454,48 +487,60 @@ Task 9: LINK to .env.example in Setup section
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # =============================================================================
+
 # PATTERN: README Configuration Section Structure
+
 # =============================================================================
 
 ## Configuration
 
 ### Environment Variables
+
 [Table of all variables with Required/Default/Description]
 
 ### Setup
+
 [Quick start setup commands]
 
 ### How It Works
+
 [Explanation of AUTH_TOKEN → API_KEY mapping]
 
 ### API Safeguards
+
 [Documentation of safeguards and their purpose]
 
 ### z.ai Configuration
+
 [z.ai-specific setup and model explanation]
 
 ### Troubleshooting
+
 [Common issues and solutions]
 
 # =============================================================================
+
 # PATTERN: Environment Variables Table
-# =============================================================================
-
-| Variable                    | Required | Default                          | Description                                                    |
-| --------------------------- | -------- | -------------------------------- | -------------------------------------------------------------- |
-| `ANTHROPIC_AUTH_TOKEN`      | Yes*     | -                                | API authentication token (mapped to ANTHROPIC_API_KEY)         |
-| `ANTHROPIC_API_KEY`         | Yes*     | -                                | API key (mapped from ANTHROPIC_AUTH_TOKEN if not set)          |
-| `ANTHROPIC_BASE_URL`        | No       | `https://api.z.ai/api/anthropic` | API endpoint (z.ai required, not Anthropic)                    |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No  | `GLM-4.7`                    | Model for Architect agent (highest quality)                   |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No  | `GLM-4.7`                    | Model for Researcher/Coder agents (balanced)                   |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No  | `GLM-4.5-Air`                | Model for simple operations (fastest)                          |
-
-*Note: Either `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY` is required.*
 
 # =============================================================================
+
+| Variable                         | Required | Default                          | Description                                            |
+| -------------------------------- | -------- | -------------------------------- | ------------------------------------------------------ |
+| `ANTHROPIC_AUTH_TOKEN`           | Yes\*    | -                                | API authentication token (mapped to ANTHROPIC_API_KEY) |
+| `ANTHROPIC_API_KEY`              | Yes\*    | -                                | API key (mapped from ANTHROPIC_AUTH_TOKEN if not set)  |
+| `ANTHROPIC_BASE_URL`             | No       | `https://api.z.ai/api/anthropic` | API endpoint (z.ai required, not Anthropic)            |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `GLM-4.7`                        | Model for Architect agent (highest quality)            |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `GLM-4.7`                        | Model for Researcher/Coder agents (balanced)           |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `GLM-4.5-Air`                    | Model for simple operations (fastest)                  |
+
+_Note: Either `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY` is required._
+
+# =============================================================================
+
 # PATTERN: How It Works Section
+
 # =============================================================================
 
 ### How It Works
@@ -504,11 +549,13 @@ The PRP Pipeline uses **z.ai** as a compatible proxy for the Anthropic API. This
 requires special environment variable configuration:
 
 **Variable Mapping:**
+
 - Shell environment convention: `ANTHROPIC_AUTH_TOKEN`
 - SDK expectation: `ANTHROPIC_API_KEY`
 - The pipeline automatically maps `AUTH_TOKEN` → `API_KEY` on startup
 
 **Configuration Flow:**
+
 ```typescript
 // 1. configureEnvironment() is called on startup
 configureEnvironment();
@@ -523,14 +570,18 @@ if (!process.env.ANTHROPIC_BASE_URL) {
   process.env.ANTHROPIC_BASE_URL = 'https://api.z.ai/api/anthropic';
 }
 ```
+````
 
 **Idempotency:**
+
 - Multiple calls to `configureEnvironment()` are safe
 - If `API_KEY` is already set, `AUTH_TOKEN` won't override it
 - Explicit `API_KEY` values take precedence
 
 # =============================================================================
+
 # PATTERN: API Safeguards Section
+
 # =============================================================================
 
 ### API Safeguards
@@ -539,18 +590,21 @@ The pipeline includes safeguards to prevent accidental usage of Anthropic's
 official API, which could result in massive unexpected charges.
 
 **Test Setup Safeguard** (`tests/setup.ts`):
+
 - Blocks: `api.anthropic.com` (all variants)
 - Allows: `localhost`, `127.0.0.1`, `mock`, `test` endpoints
 - Warns: Non-z.ai endpoints with console warning
 - Runs: On test file load and before each test
 
 **Validation Script Safeguard** (`src/scripts/validate-api.ts`):
+
 - Checks: `ANTHROPIC_BASE_URL` before any API calls
 - Exits: With code 1 if Anthropic API detected
 - Tests: z.ai endpoint with `/v1/messages`
 - Validates: Response structure (id, type, role, content)
 
 **What Gets Blocked:**
+
 ```
 ❌ https://api.anthropic.com
 ❌ http://api.anthropic.com
@@ -558,6 +612,7 @@ official API, which could result in massive unexpected charges.
 ```
 
 **What's Allowed:**
+
 ```
 ✅ https://api.z.ai/api/anthropic (recommended)
 ✅ http://localhost:3000 (local testing)
@@ -566,7 +621,9 @@ official API, which could result in massive unexpected charges.
 ```
 
 # =============================================================================
+
 # PATTERN: z.ai Configuration Section
+
 # =============================================================================
 
 ### z.ai Configuration
@@ -574,19 +631,21 @@ official API, which could result in massive unexpected charges.
 The PRP Pipeline uses **z.ai** as the API endpoint, not Anthropic's official API.
 
 **Why z.ai?**
+
 - Compatible with Anthropic API v1 specification
 - Cost control and usage monitoring
 - Prevents unexpected production API charges
 
 **Model Tiers:**
 
-| Tier    | Model        | Use Case                              |
-| ------- | ------------ | ------------------------------------- |
-| Opus    | GLM-4.7      | Architect agent (complex reasoning)   |
-| Sonnet  | GLM-4.7      | Researcher/Coder agents (default)     |
-| Haiku   | GLM-4.5-Air  | Simple operations (fastest)           |
+| Tier   | Model       | Use Case                            |
+| ------ | ----------- | ----------------------------------- |
+| Opus   | GLM-4.7     | Architect agent (complex reasoning) |
+| Sonnet | GLM-4.7     | Researcher/Coder agents (default)   |
+| Haiku  | GLM-4.5-Air | Simple operations (fastest)         |
 
 **Example .env File:**
+
 ```bash
 # .env - API Configuration for PRP Pipeline
 
@@ -606,7 +665,9 @@ ANTHROPIC_AUTH_TOKEN=your-zai-api-token-here
 ```
 
 # =============================================================================
+
 # PATTERN: Troubleshooting Section
+
 # =============================================================================
 
 ### Troubleshooting
@@ -656,63 +717,92 @@ export API_TIMEOUT_MS=120000
 ```
 
 # =============================================================================
+
 # PATTERN: .env.example File
+
 # =============================================================================
 
 # .env.example - Template for PRP Pipeline configuration
+
 # Copy this file to .env and fill in your values
+
 #
+
 # Usage:
-#   cp .env.example .env
-#   # Edit .env with your API credentials
+
+# cp .env.example .env
+
+# # Edit .env with your API credentials
 
 # =============================================================================
+
 # API AUTHENTICATION
+
 # =============================================================================
 
 # Your API authentication token
+
 # This will be automatically mapped to ANTHROPIC_API_KEY
+
 ANTHROPIC_AUTH_TOKEN=your-api-token-here
 
 # Or set ANTHROPIC_API_KEY directly (AUTH_TOKEN takes precedence if both set)
+
 # ANTHROPIC_API_KEY=your-api-key-here
 
 # =============================================================================
+
 # API ENDPOINT
+
 # =============================================================================
 
 # API endpoint (defaults to z.ai proxy)
+
 # WARNING: Do NOT use https://api.anthropic.com (blocked by safeguards)
+
 ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
 
 # =============================================================================
+
 # MODEL CONFIGURATION
+
 # =============================================================================
 
 # Model for Architect agent (highest quality, complex reasoning)
+
 # ANTHROPIC_DEFAULT_OPUS_MODEL=GLM-4.7
 
 # Model for Researcher/Coder agents (balanced, default)
+
 # ANTHROPIC_DEFAULT_SONNET_MODEL=GLM-4.7
 
 # Model for simple operations (fastest)
+
 # ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.5-Air
 
 # =============================================================================
+
 # ADVANCED CONFIGURATION
+
 # =============================================================================
 
 # Request timeout in milliseconds (default: 60000)
+
 # API_TIMEOUT_MS=300000
 
 # =============================================================================
+
 # SECURITY NOTES
+
 # =============================================================================
 
 # NEVER commit this file to version control with actual API keys
+
 # .env is listed in .gitignore
+
 # Only commit .env.example as a template
-```
+
+````
 
 # =============================================================================
 # GOTCHA: README.md Style Conventions
@@ -731,7 +821,7 @@ ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
 # - ❌ ✅ emojis (save for user guide)
 # - Overly complex formatting
 # - Excessive nesting
-```
+````
 
 ---
 
@@ -854,7 +944,7 @@ fi
 
 ### Level 4: Documentation Quality Validation
 
-```bash
+````bash
 # Verify documentation follows existing patterns
 # Check H2/H3 hierarchy
 grep "^##" README.md | head -20
@@ -879,7 +969,7 @@ grep -o '\[.*\](.*)' README.md | head -10
 # Manual validation: Read the updated section
 # Command: less +203 README.md
 # Expected: Section flows logically, all questions answered
-```
+````
 
 ---
 
@@ -950,6 +1040,7 @@ grep -o '\[.*\](.*)' README.md | head -10
 ### Why expand README.md instead of creating a new file?
 
 README.md is the first file developers see. Having comprehensive configuration documentation there:
+
 - Reduces friction (no need to navigate to docs/)
 - Keeps documentation close to setup instructions
 - Follows common open-source conventions
@@ -958,12 +1049,14 @@ README.md is the first file developers see. Having comprehensive configuration d
 ### Why document safeguards explicitly?
 
 Developers may encounter safeguard errors and need to understand:
+
 - Why the error occurred
 - What the safeguard protects against
 - How to resolve the issue
 - Whether the safeguard is a bug or feature
 
 Explicit documentation prevents:
+
 - "Why is Anthropic API blocked?"
 - "Is this a bug?"
 - "How do I bypass this safeguard?"
@@ -971,6 +1064,7 @@ Explicit documentation prevents:
 ### Why create .env.example?
 
 Even though it's optional, .env.example:
+
 - Provides a ready-to-use template
 - Documents all variables in one place
 - Shows expected format and values
@@ -980,11 +1074,13 @@ Even though it's optional, .env.example:
 ### Why include troubleshooting?
 
 Documentation that doesn't anticipate common issues:
+
 - Leaves developers stuck
 - Increases support burden
 - Creates negative developer experience
 
 Troubleshooting section:
+
 - Addresses common configuration errors
 - Provides actionable solutions
 - Reduces trial and error
@@ -996,6 +1092,7 @@ Troubleshooting section:
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from existing documentation
 - [x] Current README structure analyzed
 - [x] Environment configuration implementation understood
@@ -1006,12 +1103,14 @@ Troubleshooting section:
 - [x] Clear success criteria defined
 
 **Risk Mitigation**:
+
 - Documentation-only task (no code changes)
 - Low risk of breaking existing functionality
 - Easy to verify and iterate
 - Can be reviewed independently
 
 **Known Risks**:
+
 - None - this is a documentation task with clear scope
 
 ---

@@ -25,8 +25,9 @@ Based on PRD requirements, the guard should be implemented in:
 // Should be in src/index.ts before any pipeline operations
 if (process.env.PRP_PIPELINE_RUNNING) {
   const isBugFixMode = process.env.SKIP_BUG_FINDING === 'true';
-  const isBugFixPath = process.cwd().includes('/bugfix/') ||
-                       (process.env.PLAN_DIR?.includes('bugfix'));
+  const isBugFixPath =
+    process.cwd().includes('/bugfix/') ||
+    process.env.PLAN_DIR?.includes('bugfix');
 
   if (!isBugFixMode || !isBugFixPath) {
     logger.error('Nested pipeline execution detected', {
@@ -44,6 +45,7 @@ process.env.PRP_PIPELINE_RUNNING = process.pid.toString();
 ### Current State
 
 **NOT FOUND** in codebase:
+
 - No references to `PRP_PIPELINE_RUNNING` in `src/` directory
 - No references to `SKIP_BUG_FINDING` in `src/` directory
 - No guard logic in `src/index.ts` or `src/cli/index.ts`
@@ -71,6 +73,7 @@ The guard should be added early in the execution flow to fail fast before any ex
 ### SKIP_BUG_FINDING Environment Variable
 
 From PRD analysis:
+
 - **Purpose**: Identifies bug fix mode and allows legitimate recursion
 - **Value**: `true` when in bug fix cycle
 - **Combined Condition**: Only allows nested execution if BOTH conditions are true:
@@ -81,12 +84,13 @@ From PRD analysis:
 
 ```typescript
 // Check if path contains 'bugfix'
-const isBugFixPath = process.cwd().includes('/bugfix/') ||
-                     (process.env.PLAN_DIR?.includes('bugfix'));
+const isBugFixPath =
+  process.cwd().includes('/bugfix/') ||
+  process.env.PLAN_DIR?.includes('bugfix');
 
 // Or more robust check
-const isBugFixPath = /bugfix/i.test(process.cwd()) ||
-                     /bugfix/i.test(process.env.PLAN_DIR || '');
+const isBugFixPath =
+  /bugfix/i.test(process.cwd()) || /bugfix/i.test(process.env.PLAN_DIR || '');
 ```
 
 ---
@@ -96,6 +100,7 @@ const isBugFixPath = /bugfix/i.test(process.cwd()) ||
 ### PLAN_DIR and SESSION_DIR in Guard Logic
 
 From system_context.md, the debug logging should show:
+
 - `PLAN_DIR`: Resolved path (would be passed as CLI argument)
 - `SESSION_DIR`: Dynamic path based on session hash
 - `SKIP_BUG_FINDING`: Boolean flag value
@@ -109,7 +114,7 @@ logger.debug('[Nested Guard] Environment Check', {
   currentPath: process.cwd(),
   isBugFixPath: process.cwd().includes('/bugfix/'),
   planDir: planDir,
-  sessionPath: sessionPath
+  sessionPath: sessionPath,
 });
 ```
 
@@ -122,6 +127,7 @@ logger.debug('[Nested Guard] Environment Check', {
 **Location**: `src/config/environment.ts`
 
 Currently handles:
+
 - `ANTHROPIC_AUTH_TOKEN` → `ANTHROPIC_API_KEY` mapping
 - `ANTHROPIC_BASE_URL` configuration
 - Model tier selection
@@ -141,6 +147,7 @@ The nested execution guard needs to be added to this configuration system. This 
 ### PRD.md Lines 111-112, 284-285, 314-327
 
 Specifies:
+
 - Must implement nested execution guard via `PRP_PIPELINE_RUNNING`
 - Must validate session paths in bug fix mode (must contain "bugfix")
 - Guard logic steps
@@ -150,6 +157,7 @@ Specifies:
 ### delta_prd.md Lines 178-206, 345-347, 401-404
 
 Provides:
+
 - Requirement specification
 - Implementation logic with code examples
 - Environment variable definitions
@@ -158,6 +166,7 @@ Provides:
 ### system_context.md Lines 383-396
 
 Details:
+
 - Nested execution guard logic
 - Session creation guards
 - Debug logging specifications
@@ -165,6 +174,7 @@ Details:
 ### external_deps.md Lines 812-814
 
 Lists:
+
 - `PRP_PIPELINE_RUNNING=<PID>` - Nested execution guard
 - `SKIP_BUG_FINDING=true` - Skip bug hunt / bug fix mode
 
@@ -209,8 +219,8 @@ function validateNestedExecutionGuard(
   const currentPid = process.pid.toString();
   const isBugFixMode = process.env.SKIP_BUG_FINDING === 'true';
   const currentPath = process.cwd();
-  const isBugFixPath = currentPath.includes('/bugfix/') ||
-                       (options.planDir?.includes('bugfix'));
+  const isBugFixPath =
+    currentPath.includes('/bugfix/') || options.planDir?.includes('bugfix');
 
   // Debug logging
   options.logger.debug('[Nested Guard] Environment Check', {
@@ -219,7 +229,7 @@ function validateNestedExecutionGuard(
     currentPath,
     isBugFixPath,
     planDir: options.planDir,
-    sessionDir: options.sessionDir
+    sessionDir: options.sessionDir,
   });
 
   // Check for existing pipeline
@@ -227,8 +237,8 @@ function validateNestedExecutionGuard(
     if (!isBugFixMode || !isBugFixPath) {
       throw new Error(
         `Pipeline already running (PID: ${process.env.PRP_PIPELINE_RUNNING}). ` +
-        `Nested execution is only allowed in bug fix mode ` +
-        `(SKIP_BUG_FINDING=true) with a bugfix path.`
+          `Nested execution is only allowed in bug fix mode ` +
+          `(SKIP_BUG_FINDING=true) with a bugfix path.`
       );
     }
   }

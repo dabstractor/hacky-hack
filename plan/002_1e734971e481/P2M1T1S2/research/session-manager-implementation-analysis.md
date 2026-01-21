@@ -7,10 +7,12 @@ The SessionManager.loadSession() method is a critical component of the PRP Pipel
 ## 1. loadSession() Method Implementation
 
 ### Location
+
 - File: `/home/dustin/projects/hacky-hack/src/core/session-manager.ts`
 - Lines: 349-389
 
 ### Method Signature
+
 ```typescript
 async loadSession(sessionPath: string): Promise<SessionState>
 ```
@@ -98,6 +100,7 @@ export const BacklogSchema: z.ZodType<Backlog> = z.object({
 ```
 
 This schema validation ensures:
+
 - The JSON has a `backlog` property
 - The backlog is an array of Phase objects
 - Each Phase conforms to the PhaseSchema (recursive validation)
@@ -106,6 +109,7 @@ This schema validation ensures:
 ### Error Handling Patterns
 
 The validation throws a `SessionFileError` with:
+
 - The file path (`tasks.json`)
 - Operation description (`read tasks.json`)
 - The original error for debugging
@@ -253,6 +257,7 @@ if (existingSession) {
 ### With Task Orchestrator
 
 The loaded session provides the Task Orchestrator with:
+
 - Complete task hierarchy for execution planning
 - PRD snapshot for context
 - Current execution position (currentItemId)
@@ -261,16 +266,19 @@ The loaded session provides the Task Orchestrator with:
 ## 6. Key Design Patterns
 
 ### 1. Immutability Pattern
+
 - All SessionState properties are readonly
 - No direct mutation of loaded state
 - Updates create new objects through immutable patterns
 
 ### 2. Atomic Read Pattern
+
 - Files are read with UTF-8 validation
 - JSON parsing includes schema validation
 - Errors are wrapped in consistent error types
 
 ### 3. Optional Feature Pattern
+
 - Parent session files are optional
 - Missing files don't cause errors
 - Graceful degradation for missing metadata
@@ -278,6 +286,7 @@ The loaded session provides the Task Orchestrator with:
 ## 7. Error Handling and Resilience
 
 ### Error Types Handled
+
 - `ENOENT` (file not found)
 - `EACCES` (permission denied)
 - Invalid JSON parsing
@@ -285,6 +294,7 @@ The loaded session provides the Task Orchestrator with:
 - UTF-8 encoding errors
 
 ### Resilience Features
+
 - Optional parent session loading
 - Graceful handling of missing files
 - Atomic write pattern for consistency

@@ -11,6 +11,7 @@
 **Feature Goal**: Refactor PRPPipeline class to use the public `isFatalError()` utility function from `errors.ts` instead of its private `#isFatalError()` method, eliminating code duplication and providing a single source of truth for fatal error detection logic.
 
 **Deliverable**: PRPPipeline class with:
+
 - Private `#isFatalError()` method removed
 - Public `isFatalError` imported from `../utils/errors`
 - All `this.#isFatalError()` calls replaced with `isFatalError(this.#continueOnError)`
@@ -18,6 +19,7 @@
 - All existing tests still passing
 
 **Success Definition**:
+
 - PRPPipeline no longer defines its own `#isFatalError()` method
 - All 6 usages of `this.#isFatalError()` are replaced with imported `isFatalError()`
 - The `this.#continueOnError` flag is correctly passed to all `isFatalError()` calls
@@ -30,17 +32,20 @@
 ## Why
 
 **Business value and user impact**:
+
 - **Reduces code duplication**: Eliminates 42 lines of duplicate logic (lines 356-417 in prp-pipeline.ts)
 - **Single source of truth**: Fatal error detection logic is maintained in one place (`errors.ts`)
 - **Improved maintainability**: Changes to fatal error logic only need to be made in `errors.ts`
 - **Consistent error handling**: Ensures all parts of the codebase use the same fatal error detection logic
 
 **Integration with existing features**:
+
 - Builds on P1.M2.T1.S3 which implemented `isFatalError()` in `errors.ts`
 - Maintains backward compatibility with existing PRPPipeline behavior
 - No changes to public API or external interfaces
 
 **Problems this solves**:
+
 - **Code duplication**: PRPPipeline has a private `#isFatalError()` method that duplicates the public utility
 - **Maintenance burden**: Two separate implementations must be kept in sync
 - **Inconsistency risk**: Future changes could lead to divergent behavior
@@ -52,6 +57,7 @@
 ### User-Visible Behavior
 
 **No changes to user-visible behavior**. This is an internal refactoring that:
+
 - Preserves all existing error handling behavior
 - Maintains the same fatal/non-fatal error classification
 - Does not change any public APIs or interfaces
@@ -62,6 +68,7 @@
 1. **Remove private method**: Delete the `#isFatalError()` method definition (lines 356-417) from PRPPipeline class
 
 2. **Add import**: Add `isFatalError` to the existing import from `../utils/errors`:
+
    ```typescript
    import {
      isPipelineError,
@@ -69,7 +76,7 @@
      isTaskError,
      isAgentError,
      isValidationError,
-     isFatalError,  // ADD THIS
+     isFatalError, // ADD THIS
      ErrorCodes,
    } from '../utils/errors.js';
    ```
@@ -99,6 +106,7 @@
 ### Context Completeness Check
 
 _**No Prior Knowledge Test**_: If someone knew nothing about this codebase, would they have everything needed to implement this successfully? **YES** - This PRP provides:
+
 - Exact file locations and line numbers
 - Complete current and target code snippets
 - All import statements and their locations
@@ -690,6 +698,7 @@ npm test -- error-handling.test.ts
 **8/10** for one-pass implementation success likelihood
 
 **Reasoning**:
+
 - ✅ Clear, specific file locations and line numbers provided
 - ✅ Complete before/after code snippets
 - ✅ All test commands verified and documented

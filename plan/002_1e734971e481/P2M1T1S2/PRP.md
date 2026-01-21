@@ -13,6 +13,7 @@
 **Deliverable**: Extended integration test file at `tests/integration/core/session-manager.test.ts` with full coverage of existing session loading scenarios using real filesystem operations in temp directories.
 
 **Success Definition**:
+
 - Existing session correctly loaded from tasks.json with Zod validation
 - Complete Phase→Milestone→Task→Subtask hierarchy parsed and restored
 - PRD snapshot loaded from prd_snapshot.md with identical content
@@ -31,6 +32,7 @@
 **Use Case**: Validating that SessionManager.loadSession() correctly restores session state from disk for existing PRDs, which is critical for resume capability and the PRP pipeline's ability to continue work across multiple runs.
 
 **User Journey**:
+
 1. Developer has existing session directory with tasks.json
 2. SessionManager.initialize() is called with matching PRD
 3. SHA-256 hash computed from PRD content
@@ -44,6 +46,7 @@
 11. Integration tests verify all steps completed correctly
 
 **Pain Points Addressed**:
+
 - **Unit test coverage gaps**: Existing unit tests mock filesystem, hiding real-world integration issues
 - **JSON parsing bugs**: Zod validation may fail with real JSON files that have encoding or structure issues
 - **Hierarchy parsing errors**: Complex nested structures may not parse correctly
@@ -78,6 +81,7 @@ Extend the integration test file at `tests/integration/core/session-manager.test
 ### Current State Analysis
 
 **SessionManager.loadSession() Method** (from `/src/core/session-manager.ts` lines 349-389):
+
 ```typescript
 async loadSession(sessionPath: string): Promise<SessionState> {
   // 1. Read tasks.json with Zod validation
@@ -124,6 +128,7 @@ async loadSession(sessionPath: string): Promise<SessionState> {
 ```
 
 **readTasksJSON() Utility** (from `/src/core/session-utils.ts` lines 312-325):
+
 ```typescript
 export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
   try {
@@ -142,6 +147,7 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
 ```
 
 **Existing Unit Tests** (from `/tests/unit/core/session-manager.test.ts`):
+
 - Use `vi.mock()` for all filesystem operations
 - Test tasks.json reading, PRD snapshot loading, metadata parsing
 - Test parent session loading, complete hierarchy restoration
@@ -151,6 +157,7 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
 - **MISSING**: Parent session file with real filesystem operations
 
 **Integration Test from P2.M1.T1.S1**:
+
 - Creates new sessions with initialize()
 - Tests session directory creation
 - Tests PRD snapshot copying
@@ -178,6 +185,7 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] SessionManager.loadSession() method fully analyzed (lines 349-389)
 - [x] readTasksJSON() implementation documented (session-utils.ts lines 312-325)
 - [x] BacklogSchema Zod validation documented (models.ts)
@@ -675,7 +683,8 @@ function createMinimalTasksJson(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: None\n4. OUTPUT: None',
                   },
                 ],
               },
@@ -728,7 +737,10 @@ describe('SessionManager.loadSession()', () => {
     prdPath = join(tempDir, 'PRD.md');
 
     // Create initial PRD file
-    writeFileSync(prdPath, '# Test PRD\n\nThis is a test PRD for session loading.');
+    writeFileSync(
+      prdPath,
+      '# Test PRD\n\nThis is a test PRD for session loading.'
+    );
   });
 
   afterEach(() => {
@@ -813,7 +825,8 @@ describe('SessionManager.loadSession()', () => {
 
   it('should load PRD snapshot with identical content', async () => {
     // SETUP: Create PRD with specific content
-    const prdContent = '# Test PRD\n\nSpecific content for snapshot verification.';
+    const prdContent =
+      '# Test PRD\n\nSpecific content for snapshot verification.';
     writeFileSync(prdPath, prdContent);
 
     const manager1 = new SessionManager(prdPath, planDir);
@@ -1254,6 +1267,7 @@ node /tmp/test-invalid.js
 ### Why extend existing integration test file instead of creating new one?
 
 P2.M1.T1.S1 creates `tests/integration/core/session-manager.test.ts` for new session creation tests. Extending this file with existing session loading tests:
+
 1. Keeps all SessionManager integration tests in one place
 2. Shares beforeEach/afterEach setup code
 3. Mirrors the unit test file structure (one file for all SessionManager tests)
@@ -1263,6 +1277,7 @@ P2.M1.T1.S1 creates `tests/integration/core/session-manager.test.ts` for new ses
 ### Why test loadSession() indirectly via initialize()?
 
 The `loadSession()` method is private (not exported) and is called internally by `initialize()`. Testing it indirectly:
+
 1. Tests the actual usage pattern (initialize() calls loadSession())
 2. Doesn't require making private methods public for testing
 3. Validates the integration between initialize() and loadSession()
@@ -1271,6 +1286,7 @@ The `loadSession()` method is private (not exported) and is called internally by
 ### Why create minimal fixture helpers?
 
 The full tasks.json from the codebase has 100+ items and is complex. Creating minimal fixtures:
+
 1. Reduces test execution time (smaller JSON to parse)
 2. Simplifies test assertions (fewer items to verify)
 3. Makes tests more readable (clear what's being tested)
@@ -1280,6 +1296,7 @@ The full tasks.json from the codebase has 100+ items and is complex. Creating mi
 ### Why test both valid and invalid JSON scenarios?
 
 Testing both scenarios ensures:
+
 1. Valid JSON is parsed correctly (happy path)
 2. Invalid JSON throws proper errors (error handling)
 3. Zod validation enforces schema constraints
@@ -1289,6 +1306,7 @@ Testing both scenarios ensures:
 ### What about parent session testing?
 
 Delta sessions use parent_session.txt to link to the previous session. Testing this:
+
 1. Validates optional file handling
 2. Ensures parent links are preserved across sessions
 3. Confirms delta session creation works correctly
@@ -1301,6 +1319,7 @@ Delta sessions use parent_session.txt to link to the previous session. Testing t
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from parallel research agents (5 research tasks)
 - [x] SessionManager.loadSession() fully analyzed with line numbers
 - [x] readTasksJSON() implementation documented with Zod validation
@@ -1316,6 +1335,7 @@ Delta sessions use parent_session.txt to link to the previous session. Testing t
 - [x] Integration vs unit test distinction clear
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking existing tests)
 - Integration tests only (no production code changes)
 - Temp directory isolation (no side effects on plan/)
@@ -1324,6 +1344,7 @@ Delta sessions use parent_session.txt to link to the previous session. Testing t
 - Follows established integration test patterns from P2.M1.T1.S1
 
 **Known Risks**:
+
 - **Temp directory cleanup**: If rmSync() fails, temp files may accumulate
   - Mitigation: Use `force: true` option to ignore ENOENT
 - **Zod validation complexity**: Schema validation may fail with subtle errors

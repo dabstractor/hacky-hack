@@ -28,6 +28,7 @@ tests/
 ## Key Differences: Unit vs Integration Tests
 
 ### Unit Tests
+
 - **Location**: `tests/unit/`
 - **Characteristics**:
   - Pure unit testing with extensive mocks
@@ -39,6 +40,7 @@ tests/
   - Uses `vi.mock()` extensively
 
 ### Integration Tests
+
 - **Location**: `tests/integration/`
 - **Characteristics**:
   - Real filesystem operations (temp directories)
@@ -107,6 +109,7 @@ describe('Component Integration Tests', () => {
 **File**: `tests/integration/core/task-orchestrator-runtime.test.ts`
 
 Tests ResearchQueue with:
+
 - Concurrency limit of 3 (default)
 - Background PRP generation
 - Queue statistics tracking
@@ -167,7 +170,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 
   // Promise rejection tracking
-  process.on('unhandledRejection', (reason) => {
+  process.on('unhandledRejection', reason => {
     console.error('Unhandled Rejection:', reason);
   });
 
@@ -192,7 +195,7 @@ export default defineConfig({
       provider: 'v8',
       thresholds: {
         global: {
-          statements: 100,  // Requires 100% coverage
+          statements: 100, // Requires 100% coverage
           branches: 100,
           functions: 100,
           lines: 100,
@@ -217,7 +220,16 @@ it('should complete workflow successfully for new session', async () => {
   };
 
   // EXECUTE: Run actual pipeline
-  const pipeline = new PRPPipeline(prdPath, undefined, undefined, false, false, undefined, undefined, planDir);
+  const pipeline = new PRPPipeline(
+    prdPath,
+    undefined,
+    undefined,
+    false,
+    false,
+    undefined,
+    undefined,
+    planDir
+  );
   const result = await pipeline.run();
 
   // VERIFY: Check all aspects of the result
@@ -235,6 +247,7 @@ it('should complete workflow successfully for new session', async () => {
 **File**: `tests/integration/core/delta-session.test.ts`
 
 Tests:
+
 - Complete delta session workflow
 - Real file system operations
 - Session linkage

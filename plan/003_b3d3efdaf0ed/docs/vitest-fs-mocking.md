@@ -21,7 +21,11 @@ vi.mock('node:fs/promises', () => {
 });
 
 // Import after mock setup
-import { writeFile as mockWriteFile, rename as mockRename, unlink as mockUnlink } from 'node:fs/promises';
+import {
+  writeFile as mockWriteFile,
+  rename as mockRename,
+  unlink as mockUnlink,
+} from 'node:fs/promises';
 ```
 
 ### Type-safe Mock Access with vi.mocked()
@@ -214,8 +218,9 @@ test('should clean up temp file on write failure', async () => {
   // Simulate write failure
   mockWriteFile.mockRejectedValue(new Error('Disk full'));
 
-  await expect(atomicWrite('/path/to/file.txt', 'content'))
-    .rejects.toThrow('Disk full');
+  await expect(atomicWrite('/path/to/file.txt', 'content')).rejects.toThrow(
+    'Disk full'
+  );
 
   // Verify unlink was called to clean up temp file
   expect(mockUnlink).toHaveBeenCalledTimes(1);
@@ -239,8 +244,9 @@ test('should reject when rename fails', async () => {
   mockWriteFile.mockResolvedValue();
   mockRename.mockRejectedValue(new Error('Permission denied'));
 
-  await expect(atomicWrite('/path/to/file.txt', 'content'))
-    .rejects.toThrow('Permission denied');
+  await expect(atomicWrite('/path/to/file.txt', 'content')).rejects.toThrow(
+    'Permission denied'
+  );
 
   // Verify temp file was cleaned up
   const mockUnlink = vi.mocked(unlink);
@@ -258,8 +264,7 @@ test('should preserve error state when operations fail', async () => {
 
   mockWriteFile.mockRejectedValueOnce(originalError);
 
-  const error = await atomicWrite('/path/to/file.txt', 'content')
-    .catch(e => e);
+  const error = await atomicWrite('/path/to/file.txt', 'content').catch(e => e);
 
   expect(error).toBe(originalError);
   expect(error.message).toBe('Network error');
@@ -355,8 +360,9 @@ describe('atomicWrite', () => {
 
     mockWriteFile.mockRejectedValue(new Error('Write failed'));
 
-    await expect(atomicWrite('/test/file.txt', 'content'))
-      .rejects.toThrow('Write failed');
+    await expect(atomicWrite('/test/file.txt', 'content')).rejects.toThrow(
+      'Write failed'
+    );
 
     expect(mockUnlink).toHaveBeenCalled();
   });
@@ -368,6 +374,7 @@ describe('atomicWrite', () => {
 #### 1. Mock Setup Order
 
 **Mistake**:
+
 ```typescript
 // ❌ Import before mocking
 import { writeFile } from 'node:fs/promises';
@@ -375,6 +382,7 @@ vi.mock('node:fs/promises');
 ```
 
 **Solution**:
+
 ```typescript
 // ✅ Mock before importing
 vi.mock('node:fs/promises');
@@ -384,12 +392,14 @@ import { writeFile } from 'node:fs/promises';
 #### 2. Not Using vi.mocked()
 
 **Mistake**:
+
 ```typescript
 // ❌ No type safety
 writeFile.mockResolvedValue();
 ```
 
 **Solution**:
+
 ```typescript
 // ✅ Type-safe
 const mockWriteFile = vi.mocked(writeFile);
@@ -399,6 +409,7 @@ mockWriteFile.mockResolvedValue();
 #### 3. Not Cleaning Up Mocks
 
 **Mistake**:
+
 ```typescript
 // ❌ Mocks persist between tests
 test('test 1', () => {
@@ -411,6 +422,7 @@ test('test 2', () => {
 ```
 
 **Solution**:
+
 ```typescript
 // ✅ Clean up after each test
 beforeEach(() => {
@@ -421,12 +433,14 @@ beforeEach(() => {
 #### 4. Incorrect Path Matching
 
 **Mistake**:
+
 ```typescript
 // ❌ Too specific path match
 expect(writeFile).toHaveBeenCalledWith('/test/file.tmp.12345678', content);
 ```
 
 **Solution**:
+
 ```typescript
 // ✅ Use flexible pattern matching
 expect(writeFile).toHaveBeenCalledWith(

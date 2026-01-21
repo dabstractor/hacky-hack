@@ -97,6 +97,7 @@ export default defineConfig({
 ```
 
 **Key Points:**
+
 - Environment: Node.js
 - Test files: `tests/**/*.{test,spec}.ts`
 - Coverage: v8 provider with 100% thresholds
@@ -107,22 +108,23 @@ export default defineConfig({
 
 Vitest supports multiple built-in reporters:
 
-| Reporter | Description | Use Case |
-|----------|-------------|----------|
-| `default` | Standard CLI output | Interactive terminal usage |
-| `json` | JSON structured output | Programmatic parsing, CI/CD |
-| `json` (with outputFile) | JSON to file | Post-processing, archival |
-| `html` | HTML report | Visual inspection, debugging |
-| `junit` | JUnit XML format | CI/CD integration |
-| `tap` | TAP format | TAP consumers |
-| `verbose` | Detailed output | Debugging |
-| `dot` | Minimal output | Quick feedback |
-| `basic` | Simple summary | Clean CI output |
-| Custom | User-defined reporters | Specialized requirements |
+| Reporter                 | Description            | Use Case                     |
+| ------------------------ | ---------------------- | ---------------------------- |
+| `default`                | Standard CLI output    | Interactive terminal usage   |
+| `json`                   | JSON structured output | Programmatic parsing, CI/CD  |
+| `json` (with outputFile) | JSON to file           | Post-processing, archival    |
+| `html`                   | HTML report            | Visual inspection, debugging |
+| `junit`                  | JUnit XML format       | CI/CD integration            |
+| `tap`                    | TAP format             | TAP consumers                |
+| `verbose`                | Detailed output        | Debugging                    |
+| `dot`                    | Minimal output         | Quick feedback               |
+| `basic`                  | Simple summary         | Clean CI output              |
+| Custom                   | User-defined reporters | Specialized requirements     |
 
 ### 2.3 Enabling JSON Reporter
 
 **Command Line:**
+
 ```bash
 # JSON to stdout
 npx vitest run --reporter=json
@@ -135,20 +137,19 @@ npx vitest run --reporter=default --reporter=json --outputFile=test-results.json
 ```
 
 **In vitest.config.ts:**
+
 ```typescript
 export default defineConfig({
   test: {
-    reporters: [
-      'default',
-      ['json', { outputFile: './test-results.json' }]
-    ]
-  }
+    reporters: ['default', ['json', { outputFile: './test-results.json' }]],
+  },
 });
 ```
 
 ### 2.4 CLI Output Format (Default)
 
 **Standard Vitest CLI Output:**
+
 ```
 RUN  v1.6.1 /path/to/project
 
@@ -163,6 +164,7 @@ Test Files  10 passed (15)
 ```
 
 **Key Patterns:**
+
 - File results: `✓` or `❯` followed by filename, test count, and duration
 - Summary: `Test Files`, `Tests`, `Start at`, `Duration`
 - Failed tests: `❯` indicates failing files with `| X failed` notation
@@ -265,14 +267,14 @@ interface JsonAssertionResult {
 
 **Vitest Task State to JSON Status:**
 
-| Task State | JSON Status | Description |
-|------------|-------------|-------------|
-| `'pass'` | `'passed'` | Test passed successfully |
-| `'fail'` | `'failed'` | Test failed |
-| `'run'` | `'skipped'` | Test currently running (rare in final output) |
-| `'skip'` | `'skipped'` | Test skipped |
-| `'todo'` | `'skipped'` | Test marked as todo |
-| `'only'` | `'skipped'` | Test marked as only (incomplete run) |
+| Task State | JSON Status | Description                                   |
+| ---------- | ----------- | --------------------------------------------- |
+| `'pass'`   | `'passed'`  | Test passed successfully                      |
+| `'fail'`   | `'failed'`  | Test failed                                   |
+| `'run'`    | `'skipped'` | Test currently running (rare in final output) |
+| `'skip'`   | `'skipped'` | Test skipped                                  |
+| `'todo'`   | `'skipped'` | Test marked as todo                           |
+| `'only'`   | `'skipped'` | Test marked as only (incomplete run)          |
 
 ### 3.3 Example JSON Output
 
@@ -376,7 +378,8 @@ export function parseVitestTestCounts(
 
 ```typescript
 // Primary pattern: "Tests       58 failed | 1593 passed (1688)"
-const vitestPattern = /Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/;
+const vitestPattern =
+  /Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/;
 
 // Alternative pattern: "58 | 1593"
 const altPattern = /(\d+)\s*\|\s*(\d+)/;
@@ -524,14 +527,14 @@ function extractFailingTestsFromCLI(output: string): string[] {
 
 ### 5.1 Standard Vitest Exit Codes
 
-| Exit Code | Signal | Description | Is OOM |
-|-----------|--------|-------------|--------|
-| 0 | SUCCESS | All tests passed | No |
-| 1 | FAILURE | Some tests failed or general error | No (possibly) |
-| 124 | TIMEOUT | Process timed out (timeout command) | No |
-| 130 | SIGINT | Interrupted (Ctrl+C) | No |
-| 134 | SIGABRT | V8 OOM abort | **Yes** |
-| 137 | SIGKILL | System OOM killer | **Yes** |
+| Exit Code | Signal  | Description                         | Is OOM        |
+| --------- | ------- | ----------------------------------- | ------------- |
+| 0         | SUCCESS | All tests passed                    | No            |
+| 1         | FAILURE | Some tests failed or general error  | No (possibly) |
+| 124       | TIMEOUT | Process timed out (timeout command) | No            |
+| 130       | SIGINT  | Interrupted (Ctrl+C)                | No            |
+| 134       | SIGABRT | V8 OOM abort                        | **Yes**       |
+| 137       | SIGKILL | System OOM killer                   | **Yes**       |
 
 ### 5.2 Exit Code Detection
 
@@ -579,20 +582,33 @@ export function handleExitCode(exitCode: number): {
   description: string;
   isOom: boolean;
 } {
-  const codes: Record<number, { signal: string; description: string; isOom: boolean }> = {
+  const codes: Record<
+    number,
+    { signal: string; description: string; isOom: boolean }
+  > = {
     0: { signal: 'SUCCESS', description: 'All tests passed', isOom: false },
-    1: { signal: 'FAILURE', description: 'Some tests failed or general error', isOom: false },
+    1: {
+      signal: 'FAILURE',
+      description: 'Some tests failed or general error',
+      isOom: false,
+    },
     124: { signal: 'TIMEOUT', description: 'Process timed out', isOom: false },
-    130: { signal: 'SIGINT', description: 'Interrupted (Ctrl+C)', isOom: false },
+    130: {
+      signal: 'SIGINT',
+      description: 'Interrupted (Ctrl+C)',
+      isOom: false,
+    },
     134: { signal: 'SIGABRT', description: 'V8 OOM abort', isOom: true },
     137: { signal: 'SIGKILL', description: 'OOM killer', isOom: true },
   };
 
-  return codes[exitCode] || {
-    signal: `EXIT_${exitCode}`,
-    description: 'Unknown exit code',
-    isOom: false,
-  };
+  return (
+    codes[exitCode] || {
+      signal: `EXIT_${exitCode}`,
+      description: 'Unknown exit code',
+      isOom: false,
+    }
+  );
 }
 ```
 
@@ -607,6 +623,7 @@ export function handleExitCode(exitCode: number): {
 **Purpose:** Runs the complete test suite (1688 tests) with memory monitoring and result parsing.
 
 **Key Features:**
+
 - Spawn `npm run test:run` without specific test file argument
 - Stdout/stderr capture with complete output accumulation
 - Timeout handling (5 minutes) with SIGTERM/SIGKILL escalation
@@ -616,14 +633,16 @@ export function handleExitCode(exitCode: number): {
 - Structured result with completion flag and memory error details
 
 **Function Signature:**
+
 ```typescript
 export async function runFullTestSuite(
   singleTestResult: SingleTestResult,
   projectRoot?: string
-): Promise<FullTestSuiteResult>
+): Promise<FullTestSuiteResult>;
 ```
 
 **Result Type:**
+
 ```typescript
 export interface FullTestSuiteResult {
   readonly completed: boolean;
@@ -637,6 +656,7 @@ export interface FullTestSuiteResult {
 ```
 
 **Usage Example:**
+
 ```typescript
 import { runSingleTestFile } from './utils/single-test-runner.js';
 import { runFullTestSuite } from './utils/full-test-suite-runner.js';
@@ -654,7 +674,9 @@ const result = await runFullTestSuite(s1Result);
 
 if (result.completed && !result.memoryErrors) {
   console.log('✓ Full suite completed without memory issues');
-  console.log(`Results: ${result.testResults.pass} passed, ${result.testResults.fail} failed`);
+  console.log(
+    `Results: ${result.testResults.pass} passed, ${result.testResults.fail} failed`
+  );
 } else if (result.memoryErrors) {
   console.error('Memory error:', result.memoryError?.errorType);
 } else {
@@ -669,6 +691,7 @@ if (result.completed && !result.memoryErrors) {
 **Purpose:** Comprehensive detection of Node.js memory errors in test output.
 
 **Key Features:**
+
 - Multi-pattern detection for various Node.js OOM error formats
 - Structured error reporting with suggestions
 - Exit code analysis for worker-based test runners
@@ -676,29 +699,31 @@ if (result.completed && !result.memoryErrors) {
 - CI/CD validation support
 
 **Public API:**
+
 ```typescript
 // Detect memory errors in output
 export function detectMemoryErrorInTestOutput(
   output: string,
   exitCode: number | null = null
-): MemoryErrorDetectionResult
+): MemoryErrorDetectionResult;
 
 // Parse test counts from Vitest output
 export function parseVitestTestCounts(
   output: string
-): { fail: number; pass: number; total: number } | null
+): { fail: number; pass: number; total: number } | null;
 
 // Check if exit code indicates OOM
-export function isWorkerExitCodeOOM(exitCode: number | null): boolean
+export function isWorkerExitCodeOOM(exitCode: number | null): boolean;
 
 // Validate test results for CI/CD
 export function validateTestResults(
   output: string,
   exitCode: number | null = null
-): TestValidationResult
+): TestValidationResult;
 ```
 
 **Memory Error Patterns:**
+
 ```typescript
 const OOM_PATTERNS = {
   /** Fatal V8 heap errors */
@@ -731,6 +756,7 @@ const OOM_PATTERNS = {
 **Purpose:** Analyze test suite pass rates against baseline metrics (94.37% from 1593/1688).
 
 **Key Features:**
+
 - Pass rate calculation with zero-division protection
 - Baseline comparison (94.37% from 1593/1688)
 - Delta calculation (can be negative for degraded)
@@ -740,13 +766,15 @@ const OOM_PATTERNS = {
 - Structured result with all metrics
 
 **Public API:**
+
 ```typescript
 export function analyzePassRate(
   testResult: TestSuiteResult | null | undefined
-): PassRateAnalysis
+): PassRateAnalysis;
 ```
 
 **Result Type:**
+
 ```typescript
 export interface PassRateAnalysis {
   readonly passRate: number;
@@ -763,6 +791,7 @@ export interface PassRateAnalysis {
 ```
 
 **Usage Example:**
+
 ```typescript
 const analysis = analyzePassRate(testResult);
 
@@ -786,6 +815,7 @@ if (analysis.improved) {
 **Purpose:** Run a single test file with memory monitoring to verify NODE_OPTIONS memory limits work correctly.
 
 **Key Features:**
+
 - Spawn `npm run test:run -- <test-file>` with specific test file
 - Stdout/stderr capture with complete output accumulation
 - Timeout handling (30 seconds) with SIGTERM/SIGKILL escalation
@@ -793,20 +823,23 @@ if (analysis.improved) {
 - Structured result with completion flag and memory error details
 
 **Function Signature:**
+
 ```typescript
 export async function runSingleTestFile(
   testFile?: string,
   projectRoot?: string
-): Promise<SingleTestResult>
+): Promise<SingleTestResult>;
 ```
 
 ### 6.5 Test Files
 
 **Unit Tests:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/full-test-suite-runner.test.ts` - Comprehensive tests for full suite runner
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/single-test-runner.test.ts` - Tests for single test runner
 
 **Documentation:**
+
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-output-parsing-guide.md` - Comprehensive parsing guide (815 lines)
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-parsing-quick-reference.md` - Quick reference templates (490 lines)
 
@@ -819,6 +852,7 @@ export async function runSingleTestFile(
 **Note:** Web search services reached monthly usage limit during research. Below are known references that should be verified.
 
 **Vitest Documentation:**
+
 - Main Site: https://vitest.dev
 - Reporters Guide: https://vitest.dev/guide/reporters.html
 - Configuration API: https://vitest.dev/config/
@@ -826,6 +860,7 @@ export async function runSingleTestFile(
 - JSON Reporter: https://vitest.dev/guide/reporters.html#json-reporter
 
 **Key Topics to Verify:**
+
 1. JSON reporter output structure (may have changed in newer versions)
 2. Custom reporter API for programmatic test execution
 3. Exit code behavior in different scenarios
@@ -835,18 +870,21 @@ export async function runSingleTestFile(
 ### 7.2 Source Code References (Local)
 
 **Vitest Implementation:**
+
 - **Vitest Config:** `/home/dustin/projects/hacky-hack/vitest.config.ts`
 - **JSON Reporter Implementation:** `/home/dustin/projects/hacky-hack/node_modules/vitest/dist/vendor/index.-xs08BYx.js`
 - **Task Type Definitions:** `/home/dustin/projects/hacky-hack/node_modules/@vitest/runner/dist/tasks-K5XERDtv.d.ts`
 - **TypeScript Types:** `/home/dustin/projects/hacky-hack/node_modules/vitest/dist/reporters.d.ts`
 
 **Project Utilities:**
+
 - **Memory Error Detector:** `/home/dustin/projects/hacky-hack/src/utils/memory-error-detector.ts`
 - **Test Suite Runner:** `/home/dustin/projects/hacky-hack/src/utils/full-test-suite-runner.ts`
 - **Pass Rate Analyzer:** `/home/dustin/projects/hacky-hack/src/utils/pass-rate-analyzer.ts`
 - **Single Test Runner:** `/home/dustin/projects/hacky-hack/src/utils/single-test-runner.ts`
 
 **Research Documents:**
+
 - **Output Parsing Guide:** `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-output-parsing-guide.md`
 - **Quick Reference:** `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-parsing-quick-reference.md`
 
@@ -863,6 +901,7 @@ Based on the research findings, here's the recommended approach for creating a P
 **Why:** The codebase already has comprehensive, well-tested utilities for running tests and parsing results.
 
 **Implementation:**
+
 ```typescript
 import { runFullTestSuite } from './utils/full-test-suite-runner.js';
 import { runSingleTestFile } from './utils/single-test-runner.js';
@@ -883,7 +922,9 @@ if (!suiteResult.completed) {
 }
 
 if (suiteResult.memoryErrors) {
-  throw new Error(`Memory error detected: ${suiteResult.memoryError.errorType}`);
+  throw new Error(
+    `Memory error detected: ${suiteResult.memoryError.errorType}`
+  );
 }
 
 // Step 3: Analyze pass rate
@@ -917,6 +958,7 @@ console.log(`  Delta: ${analysis.delta > 0 ? '+' : ''}${analysis.delta}%`);
 **Why:** More reliable parsing, better error details, easier to extract failing test names.
 
 **Implementation:**
+
 ```typescript
 import { spawn } from 'node:child_process';
 import { writeFile, readFile } from 'node:fs/promises';
@@ -949,12 +991,22 @@ export async function runTestSuiteWithJson(
 }> {
   const outputFile = join(projectRoot, 'test-results.json');
 
-  return new Promise((resolve) => {
-    const child = spawn('npm', ['run', 'test:run', '--', '--reporter=json', `--outputFile=${outputFile}`], {
-      cwd: projectRoot,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      shell: false,
-    });
+  return new Promise(resolve => {
+    const child = spawn(
+      'npm',
+      [
+        'run',
+        'test:run',
+        '--',
+        '--reporter=json',
+        `--outputFile=${outputFile}`,
+      ],
+      {
+        cwd: projectRoot,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        shell: false,
+      }
+    );
 
     let stdout = '';
     let stderr = '';
@@ -967,14 +1019,15 @@ export async function runTestSuiteWithJson(
       stderr += data.toString();
     });
 
-    child.on('close', async (exitCode) => {
+    child.on('close', async exitCode => {
       const combinedOutput = stdout + stderr;
 
       try {
         const jsonContent = await readFile(outputFile, 'utf-8');
         const results: JsonTestResults = JSON.parse(jsonContent);
 
-        const hasMemoryError = /heap out of memory|worker terminated.*memory/i.test(combinedOutput);
+        const hasMemoryError =
+          /heap out of memory|worker terminated.*memory/i.test(combinedOutput);
 
         resolve({
           exitCode,
@@ -993,7 +1046,7 @@ export async function runTestSuiteWithJson(
       }
     });
 
-    child.on('error', (error) => {
+    child.on('error', error => {
       resolve({
         exitCode: null,
         results: null,
@@ -1010,6 +1063,7 @@ export async function runTestSuiteWithJson(
 **Why:** Real-time result streaming, custom format, no file I/O overhead.
 
 **Implementation:**
+
 ```typescript
 // custom-vitest-reporter.ts
 import type { Reporter } from 'vitest';
@@ -1101,6 +1155,7 @@ export class PrpVitestReporter implements Reporter {
 ### 8.2 Configuration Recommendations
 
 **Update vitest.config.ts:**
+
 ```typescript
 import { defineConfig } from 'vitest/config';
 
@@ -1129,6 +1184,7 @@ export default defineConfig({
 ```
 
 **Update package.json scripts:**
+
 ```json
 {
   "scripts": {
@@ -1184,6 +1240,7 @@ export default defineConfig({
 ### 9.2 File Paths Reference
 
 **Implementation Files:**
+
 - `/home/dustin/projects/hacky-hack/vitest.config.ts` - Vitest configuration
 - `/home/dustin/projects/hacky-hack/package.json` - NPM scripts
 - `/home/dustin/projects/hacky-hack/src/utils/full-test-suite-runner.ts` - Full suite runner
@@ -1192,10 +1249,12 @@ export default defineConfig({
 - `/home/dustin/projects/hacky-hack/src/utils/pass-rate-analyzer.ts` - Pass rate analysis
 
 **Test Files:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/full-test-suite-runner.test.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/utils/single-test-runner.test.ts`
 
 **Documentation:**
+
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-output-parsing-guide.md`
 - `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/docs/vitest-parsing-quick-reference.md`
 

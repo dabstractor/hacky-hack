@@ -8,14 +8,14 @@
 export default defineConfig({
   test: {
     environment: 'node',
-    globals: true,                      // Use global describe/it/expect
+    globals: true, // Use global describe/it/expect
     include: ['tests/**/*.{test,spec}.ts'],
     setupFiles: ['./tests/setup.ts'],
     coverage: {
       provider: 'v8',
       thresholds: {
         global: {
-          statements: 100,              // 100% coverage required!
+          statements: 100, // 100% coverage required!
           branches: 100,
           functions: 100,
           lines: 100,
@@ -34,7 +34,9 @@ Consistent pattern used throughout the codebase:
 describe('Feature being tested', () => {
   it('should do something specific', async () => {
     // SETUP: Prepare test data and mocks
-    const backlog = createTestBacklog([/* ... */]);
+    const backlog = createTestBacklog([
+      /* ... */
+    ]);
     mockWriteFile.mockResolvedValue(undefined);
 
     // EXECUTE: Call the function under test
@@ -106,8 +108,9 @@ describe('writeTasksJSON', () => {
     mockWriteFile.mockRejectedValue(writeError);
 
     // EXECUTE & VERIFY
-    await expect(writeTasksJSON('/test/session', backlog))
-      .rejects.toThrow(SessionFileError);
+    await expect(writeTasksJSON('/test/session', backlog)).rejects.toThrow(
+      SessionFileError
+    );
 
     // Temp file cleanup should be attempted
     expect(mockUnlink).toHaveBeenCalled();
@@ -162,8 +165,9 @@ describe('Error handling', () => {
     (error as NodeJS.ErrnoException).code = 'ENOENT';
     mockReadFile.mockRejectedValue(error);
 
-    await expect(readTasksJSON('/test/session'))
-      .rejects.toThrow(SessionFileError);
+    await expect(readTasksJSON('/test/session')).rejects.toThrow(
+      SessionFileError
+    );
   });
 
   it('should handle EACCES permission errors', async () => {
@@ -171,8 +175,9 @@ describe('Error handling', () => {
     (error as NodeJS.ErrnoException).code = 'EACCES';
     mockReadFile.mockRejectedValue(error);
 
-    await expect(readTasksJSON('/test/session'))
-      .rejects.toThrow(SessionFileError);
+    await expect(readTasksJSON('/test/session')).rejects.toThrow(
+      SessionFileError
+    );
   });
 });
 ```

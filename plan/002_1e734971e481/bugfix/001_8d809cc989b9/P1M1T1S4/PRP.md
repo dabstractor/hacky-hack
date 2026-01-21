@@ -13,6 +13,7 @@
 **Deliverable**: Modified `src/core/index.ts` with `EnvironmentError` and `isEnvironmentError` added to exports.
 
 **Success Definition**:
+
 - `EnvironmentError` class is exported from `src/core/index.ts`
 - `isEnvironmentError` type guard function is exported from `src/core/index.ts`
 - Export follows the existing pattern used for other error-related exports
@@ -27,12 +28,14 @@
 **Use Case**: A developer needs to import `EnvironmentError` from the core module for use in environment validation logic throughout the codebase, maintaining consistency with how other error classes are imported.
 
 **User Journey**:
+
 1. Developer adds environment validation logic
 2. Developer imports error classes from `@core/index` (the established pattern)
 3. Developer expects `EnvironmentError` to be available alongside `SessionFileError`
 4. Developer uses `EnvironmentError` with consistent API patterns
 
 **Pain Points Addressed**:
+
 - Inconsistent API - `EnvironmentError` would be the only error class not exported from core index
 - Developer confusion - needing to remember a special import path for just this one error class
 - Breaking established patterns - all other utilities are exported through the core index
@@ -62,6 +65,7 @@ Add `EnvironmentError` and `isEnvironmentError` to the exports in `src/core/inde
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully? **YES** - This PRP provides:
+
 - The exact file to modify with full current content
 - The exact pattern to follow for exports
 - The exact line numbers and placement
@@ -207,7 +211,7 @@ export {
   writePRP,
   snapshotPRD,
   loadSnapshot,
-  SessionFileError,  // <-- Error export pattern precedent
+  SessionFileError, // <-- Error export pattern precedent
 } from './session-utils.js';
 
 // NEW CODE TO ADD (insert after line 25):
@@ -446,6 +450,7 @@ console.log('Has SessionFileError:', 'SessionFileError' in core);
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Rationale**:
+
 - This is a simple, well-defined additive change
 - The pattern to follow is clear (SessionFileError export)
 - The exact line numbers and syntax are specified
@@ -454,6 +459,7 @@ console.log('Has SessionFileError:', 'SessionFileError' in core);
 - No ambiguity or decision points during implementation
 
 **Validation**: A developer unfamiliar with the codebase can implement this successfully using only this PRP because:
+
 1. The exact file to modify is specified with full current content
 2. The exact pattern to follow is shown with line numbers
 3. The complete "before" and "after" states are documented

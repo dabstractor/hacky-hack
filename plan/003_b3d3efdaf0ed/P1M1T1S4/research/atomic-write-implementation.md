@@ -90,11 +90,13 @@ async function atomicWrite(targetPath: string, data: string): Promise<void> {
 ## 1. Temp File Generation
 
 ### Random Bytes Pattern
+
 - Uses `randomBytes(8).toString('hex')` from Node.js crypto module
 - Generates 8 random bytes = 16 hexadecimal characters
 - Example hex output: `a1b2c3d4e5f67890`
 
 ### Path Construction
+
 ```typescript
 const tempPath = resolve(
   dirname(targetPath),
@@ -103,11 +105,13 @@ const tempPath = resolve(
 ```
 
 ### Actual Temp Filename Format
+
 - Pattern: `.<original-filename>.<random-hex>.tmp`
 - Example target: `/sessions/123/tasks.json`
 - Example temp file: `/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp`
 
 ### Complete Example
+
 ```typescript
 // Given targetPath: '/home/user/sessions/001/session.md'
 // Generated tempPath: '/home/user/sessions/001/.session.md.a1b2c3d4e5f67890.tmp'
@@ -116,11 +120,13 @@ const tempPath = resolve(
 ## 2. Write Step
 
 ### File Write Operation
+
 - Uses `writeFile(tempPath, data, { mode: 0o644 })`
 - File permissions set to 0o644 (owner read/write, group/others read-only)
 - Synchronous write operation that creates file with specified content
 
 ### Timing Measurement
+
 ```typescript
 const writeStart = performance.now();
 await writeFile(tempPath, data, { mode: 0o644 });
@@ -128,6 +134,7 @@ const writeDuration = performance.now() - writeStart;
 ```
 
 ### Debug Log Fields Emitted
+
 ```typescript
 {
   tempPath,        // Path to temporary file
@@ -140,11 +147,13 @@ const writeDuration = performance.now() - writeStart;
 ## 3. Rename Step
 
 ### Atomic Rename Operation
+
 - Uses `rename(tempPath, targetPath)` from Node.js fs/promises
 - Performs atomic rename operation (filesystem-level move)
 - If rename fails, original file remains intact
 
 ### Timing Measurement
+
 ```typescript
 const renameStart = performance.now();
 await rename(tempPath, targetPath);
@@ -152,6 +161,7 @@ const renameDuration = performance.now() - renameStart;
 ```
 
 ### Debug Log Fields Emitted
+
 ```typescript
 {
   tempPath,         // Source temp file path
@@ -164,6 +174,7 @@ const renameDuration = performance.now() - renameStart;
 ## 4. Error Handling
 
 ### Temp File Cleanup on Error
+
 ```typescript
 // Clean up temp file on error
 try {
@@ -181,6 +192,7 @@ try {
 ```
 
 ### Try-Catch Pattern
+
 - Nested try-catch structure:
   1. Outer try-catch for main write/rename operations
   2. Inner try-catch for cleanup operation
@@ -188,6 +200,7 @@ try {
 - Cleanup errors are logged as warnings but don't re-throw
 
 ### Error Propagation
+
 - Custom `SessionFileError` is thrown with:
   - File path: `targetPath`
   - Operation type: 'atomic write'
@@ -196,6 +209,7 @@ try {
 ## 5. Log Output Examples
 
 ### Starting atomic write
+
 ```typescript
 logger.debug(
   {
@@ -207,9 +221,11 @@ logger.debug(
   'Starting atomic write'
 );
 ```
+
 **Example log:** `Starting atomic write { targetPath: '/sessions/123/tasks.json', tempPath: '/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp', size: 2048, operation: 'atomicWrite' }`
 
 ### Temp file written
+
 ```typescript
 logger.debug(
   {
@@ -221,9 +237,11 @@ logger.debug(
   'Temp file written'
 );
 ```
+
 **Example log:** `Temp file written { tempPath: '/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp', size: 2048, duration: 1.234, operation: 'writeFile' }`
 
 ### Temp file renamed to target
+
 ```typescript
 logger.debug(
   {
@@ -235,9 +253,11 @@ logger.debug(
   'Temp file renamed to target'
 );
 ```
+
 **Example log:** `Temp file renamed to target { tempPath: '/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp', targetPath: '/sessions/123/tasks.json', duration: 0.567, operation: 'rename' }`
 
 ### Atomic write completed successfully
+
 ```typescript
 logger.debug(
   {
@@ -248,9 +268,11 @@ logger.debug(
   'Atomic write completed successfully'
 );
 ```
+
 **Example log:** `Atomic write completed successfully { targetPath: '/sessions/123/tasks.json', size: 2048, totalDuration: 1.801 }`
 
 ### Atomic write failed
+
 ```typescript
 logger.error(
   {
@@ -263,15 +285,19 @@ logger.error(
   'Atomic write failed'
 );
 ```
+
 **Example log:** `Atomic write failed { targetPath: '/sessions/123/tasks.json', tempPath: '/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp', errorCode: 'EACCES', errorMessage: 'Permission denied', operation: 'atomicWrite' }`
 
 ### Temp file cleaned up
+
 ```typescript
 logger.debug({ tempPath, operation: 'cleanup' }, 'Temp file cleaned up');
 ```
+
 **Example log:** `Temp file cleaned up { tempPath: '/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp', operation: 'cleanup' }`
 
 ### Failed to clean up temp file
+
 ```typescript
 logger.warn(
   {
@@ -281,6 +307,7 @@ logger.warn(
   'Failed to clean up temp file'
 );
 ```
+
 **Example log:** `Failed to clean up temp file { tempPath: '/sessions/123/.tasks.json.a1b2c3d4e5f67890.tmp', cleanupErrorCode: 'ENOENT' }`
 
 ## Error Handling Flow Diagram

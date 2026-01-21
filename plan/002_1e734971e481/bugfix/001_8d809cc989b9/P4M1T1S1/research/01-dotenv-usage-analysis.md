@@ -13,6 +13,7 @@ This document analyzes the current dotenv usage in the hacky-hack codebase to un
 **Line 23**: `const result = dotenv.config();`
 
 **Context**:
+
 ```typescript
 // Lines 20-30
 try {
@@ -33,6 +34,7 @@ try {
 ```
 
 **Issue**: The `dotenv.config()` call has no options passed, so it uses defaults:
+
 - `quiet: false` (default in v17.x) - Shows loading messages
 - Messages appear as: `[dotenv@17.2.3] injecting env (0) from .env -- tip: ...`
 
@@ -44,10 +46,12 @@ try {
 
 ```markdown
 # Current implementation (verbose)
+
 import dotenv from 'dotenv';
 dotenv.config(); // Loads .env file
 
 # Recommended fix (quiet mode)
+
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true }); // Suppresses loading messages
 ```
@@ -61,6 +65,7 @@ This documentation already identifies the issue and the fix.
 **Line 19**: `setupFiles: ['./tests/setup.ts']`
 
 The test setup file is configured as a global setup file in Vitest, which means:
+
 - It runs once before all test files
 - The `dotenv.config()` call is executed at test startup
 - Every test run triggers the dotenv loading message
@@ -70,6 +75,7 @@ The test setup file is configured as a global setup file in Vitest, which means:
 **Installed Version**: `dotenv@17.2.3`
 
 **Critical Change in v17.0.0**:
+
 - Default `quiet` changed from `true` to `false`
 - This means runtime log messages now show by default
 - Previous versions (v16.x) had `quiet: true` by default
@@ -77,6 +83,7 @@ The test setup file is configured as a global setup file in Vitest, which means:
 ## Message Frequency
 
 Based on test output analysis:
+
 - Messages appear **20+ times** during a full test run
 - Each message format: `[dotenv@17.2.3] injecting env (0) from .env -- tip: ...`
 - The tip message rotates through various dotenvx promotional messages
@@ -84,6 +91,7 @@ Based on test output analysis:
 ## Related Environment Files
 
 The project has these environment-related files:
+
 - `/home/dustin/projects/hacky-hack/.env` - Main environment file
 - `/home/dustin/projects/hacky-hack/.env.example` - Example environment file
 - `/home/dustin/projects/hacky-hack/.envrc` - Environment configuration file
@@ -91,14 +99,17 @@ The project has these environment-related files:
 ## Key Finding
 
 **Single Point of Fix**: Only one file needs modification:
+
 - `/home/dustin/projects/hacky-hack/tests/setup.ts` line 23
 
 Change from:
+
 ```typescript
 const result = dotenv.config();
 ```
 
 To:
+
 ```typescript
 const result = dotenv.config({ quiet: true });
 ```

@@ -1,6 +1,7 @@
 # Testing Patterns for Orchestrator Components - Research Findings
 
 ## Overview
+
 Testing orchestrator components requires specialized patterns due to their asynchronous, stateful, and often distributed nature. This document covers comprehensive testing strategies and patterns for task orchestration systems.
 
 ## Testing Pyramid for Orchestrators
@@ -31,10 +32,7 @@ describe('TaskExecutor', () => {
     mockDependencyChecker = createMockDependencyChecker();
     mockStateManager = createMockStateManager();
 
-    executor = new TaskExecutor(
-      mockDependencyChecker,
-      mockStateManager
-    );
+    executor = new TaskExecutor(mockDependencyChecker, mockStateManager);
   });
 
   describe('executeTask', () => {
@@ -48,8 +46,9 @@ describe('TaskExecutor', () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(mockDependencyChecker.areDependenciesSatisfied)
-        .toHaveBeenCalledWith('T1');
+      expect(
+        mockDependencyChecker.areDependenciesSatisfied
+      ).toHaveBeenCalledWith('T1');
     });
 
     it('should not execute task when dependencies are not satisfied', async () => {
@@ -81,7 +80,7 @@ describe('TaskStateMachine', () => {
       [TaskStatus.QUEUED, TaskStatus.IN_PROGRESS],
       [TaskStatus.IN_PROGRESS, TaskStatus.COMPLETE],
       [TaskStatus.IN_PROGRESS, TaskStatus.FAILED],
-      [TaskStatus.BLOCKED, TaskStatus.IN_PROGRESS]
+      [TaskStatus.BLOCKED, TaskStatus.IN_PROGRESS],
     ];
 
     test.each(validTransitions)(
@@ -102,7 +101,7 @@ describe('TaskStateMachine', () => {
     const invalidTransitions: Array<[TaskStatus, TaskStatus]> = [
       [TaskStatus.COMPLETE, TaskStatus.IN_PROGRESS],
       [TaskStatus.FAILED, TaskStatus.COMPLETE],
-      [TaskStatus.PLANNED, TaskStatus.COMPLETE]
+      [TaskStatus.PLANNED, TaskStatus.COMPLETE],
     ];
 
     test.each(invalidTransitions)(
@@ -127,10 +126,7 @@ describe('TaskStateMachine', () => {
       // Mock guard to fail
       mockGuardSatisfied.mockResolvedValue(false);
 
-      const result = await machine.transition(
-        TaskStatus.IN_PROGRESS,
-        context
-      );
+      const result = await machine.transition(TaskStatus.IN_PROGRESS, context);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Guard condition failed');
@@ -151,7 +147,7 @@ describe('DependencyResolver', () => {
         { id: 'A', dependencies: [] },
         { id: 'B', dependencies: ['A'] },
         { id: 'C', dependencies: ['A', 'B'] },
-        { id: 'D', dependencies: ['C'] }
+        { id: 'D', dependencies: ['C'] },
       ];
 
       const resolver = new DependencyResolver();
@@ -165,14 +161,12 @@ describe('DependencyResolver', () => {
       const tasks = [
         { id: 'A', dependencies: ['B'] },
         { id: 'B', dependencies: ['C'] },
-        { id: 'C', dependencies: ['A'] } // Cycle!
+        { id: 'C', dependencies: ['A'] }, // Cycle!
       ];
 
       const resolver = new DependencyResolver();
 
-      expect(() => resolver.topologicalSort(tasks)).toThrow(
-        /cycle detected/i
-      );
+      expect(() => resolver.topologicalSort(tasks)).toThrow(/cycle detected/i);
     });
   });
 
@@ -187,7 +181,7 @@ describe('DependencyResolver', () => {
         { id: 'A', dependencies: [] },
         { id: 'B', dependencies: ['A'] },
         { id: 'C', dependencies: ['A'] },
-        { id: 'D', dependencies: ['B', 'C'] }
+        { id: 'D', dependencies: ['B', 'C'] },
       ];
 
       const resolver = new DependencyResolver();
@@ -222,7 +216,7 @@ describe('Orchestrator E2E Tests', () => {
     orchestrator = new TaskOrchestrator({
       database: testDatabase,
       messageBus: messageBus,
-      executor: new RealTaskExecutor()
+      executor: new RealTaskExecutor(),
     });
 
     await orchestrator.initialize();
@@ -244,12 +238,12 @@ describe('Orchestrator E2E Tests', () => {
               tasks: [
                 { id: 'T1', dependencies: [] },
                 { id: 'T2', dependencies: ['T1'] },
-                { id: 'T3', dependencies: ['T1'] }
-              ]
-            }
-          ]
-        }
-      ]
+                { id: 'T3', dependencies: ['T1'] },
+              ],
+            },
+          ],
+        },
+      ],
     });
 
     // Act
@@ -268,8 +262,8 @@ describe('Orchestrator E2E Tests', () => {
       tasks: [
         { id: 'T1', dependencies: [] },
         { id: 'T2', dependencies: ['T1'], shouldFail: true },
-        { id: 'T3', dependencies: ['T2'] }
-      ]
+        { id: 'T3', dependencies: ['T2'] },
+      ],
     });
 
     // Act
@@ -313,7 +307,7 @@ describe('SessionManager Database Integration', () => {
       // Arrange
       const session = createTestSession({
         id: 'S1',
-        status: SessionStatus.IN_PROGRESS
+        status: SessionStatus.IN_PROGRESS,
       });
 
       // Act
@@ -333,7 +327,7 @@ describe('SessionManager Database Integration', () => {
       // Act - concurrent updates
       const [result1, result2] = await Promise.allSettled([
         sessionManager.updateStatus('S1', SessionStatus.COMPLETE),
-        sessionManager.updateStatus('S1', SessionStatus.FAILED)
+        sessionManager.updateStatus('S1', SessionStatus.FAILED),
       ]);
 
       // Assert - one should succeed, one should fail
@@ -362,7 +356,7 @@ describe('Event-Driven Orchestrator', () => {
     orchestrator = new EventDrivenOrchestrator(messageBus);
 
     // Subscribe to all events
-    await messageBus.subscribe('*', (event) => {
+    await messageBus.subscribe('*', event => {
       receivedEvents.push(event);
     });
 
@@ -389,7 +383,7 @@ describe('Event-Driven Orchestrator', () => {
     expect(statusEvents).toHaveLength(1);
     expect(statusEvents[0].data).toMatchObject({
       taskId: 'T1',
-      newStatus: TaskStatus.IN_PROGRESS
+      newStatus: TaskStatus.IN_PROGRESS,
     });
   });
 
@@ -397,7 +391,7 @@ describe('Event-Driven Orchestrator', () => {
     // Act
     await Promise.all([
       orchestrator.updateTaskStatus('T1', TaskStatus.IN_PROGRESS),
-      orchestrator.updateTaskStatus('T1', TaskStatus.COMPLETE)
+      orchestrator.updateTaskStatus('T1', TaskStatus.COMPLETE),
     ]);
 
     // Assert
@@ -420,7 +414,7 @@ describe('Orchestrator Load Tests', () => {
 
   beforeAll(async () => {
     orchestrator = await createOrchestrator({
-      maxConcurrency: 100
+      maxConcurrency: 100,
     });
   });
 
@@ -450,11 +444,9 @@ describe('Orchestrator Load Tests', () => {
       createTestTask({ id: `T${i}` })
     );
 
-    const throughput = await measureThroughput(
-      orchestrator,
-      tasks,
-      { duration: 10000 }
-    );
+    const throughput = await measureThroughput(orchestrator, tasks, {
+      duration: 10000,
+    });
 
     expect(throughput.tasksPerSecond).toBeGreaterThan(100);
   });
@@ -469,7 +461,7 @@ Test orchestrator behavior under extreme conditions.
 describe('Orchestrator Stress Tests', () => {
   it('should handle memory pressure', async () => {
     const orchestrator = await createOrchestrator({
-      maxMemoryMB: 100
+      maxMemoryMB: 100,
     });
 
     // Create large number of in-memory tasks
@@ -536,7 +528,7 @@ describe('Orchestrator Contract Tests', () => {
         taskId: expect.any(String),
         status: expect.any(String),
         startTime: expect.any(Date),
-        endTime: expect.any(Date)
+        endTime: expect.any(Date),
       });
     });
   });
@@ -548,7 +540,7 @@ describe('Orchestrator Contract Tests', () => {
 
       await orchestrator.publishEvent({
         type: 'TASK_STARTED',
-        data: { taskId: 'T1' }
+        data: { taskId: 'T1' },
       });
 
       const published = await messageBus.getLastPublishedEvent();
@@ -557,7 +549,7 @@ describe('Orchestrator Contract Tests', () => {
         id: expect.any(String),
         type: 'TASK_STARTED',
         timestamp: expect.any(Date),
-        data: { taskId: 'T1' }
+        data: { taskId: 'T1' },
       });
     });
   });
@@ -574,7 +566,7 @@ class TestTaskBuilder {
     id: 'test-task',
     status: TaskStatus.PLANNED,
     dependencies: [],
-    priority: 0
+    priority: 0,
   };
 
   withId(id: string): TestTaskBuilder {
@@ -626,14 +618,14 @@ class TestFactory {
         id: `P${i}`,
         milestones: config.milestonesPerPhase || 1,
         tasksPerMilestone: config.tasksPerMilestone || 1,
-        subtasksPerTask: config.subtasksPerTask || 0
+        subtasksPerTask: config.subtasksPerTask || 0,
       })
     );
 
     return {
       id: 'test-workflow',
       phases,
-      status: WorkflowStatus.PLANNED
+      status: WorkflowStatus.PLANNED,
     };
   }
 
@@ -648,18 +640,12 @@ class TestFactory {
 
 ```typescript
 class OrchestratorAssertions {
-  static assertTaskStatus(
-    taskId: string,
-    expectedStatus: TaskStatus
-  ): void {
+  static assertTaskStatus(taskId: string, expectedStatus: TaskStatus): void {
     const actualStatus = getTaskStatus(taskId);
     expect(actualStatus).toBe(expectedStatus);
   }
 
-  static assertDependencyOrder(
-    tasks: Task[],
-    sorted: string[]
-  ): void {
+  static assertDependencyOrder(tasks: Task[], sorted: string[]): void {
     for (const task of tasks) {
       const taskIndex = sorted.indexOf(task.id);
       for (const dep of task.dependencies) {
@@ -694,7 +680,7 @@ class TestDatabaseManager {
   private static async create(): Promise<TestDatabase> {
     const db = await createTestDatabase({
       name: `test_${randomUUID()}`,
-      migrationsPath: './migrations'
+      migrationsPath: './migrations',
     });
 
     await db.migrate();
@@ -719,22 +705,26 @@ class TestDatabaseManager {
 ## Key Resources
 
 ### Testing Frameworks
+
 - **Jest**: https://jestjs.io/ - JavaScript testing framework
 - **pytest**: https://docs.pytest.org/ - Python testing framework
 - **JUnit**: https://junit.org/ - Java testing framework
 - **Testcontainers**: https://www.testcontainers.org/ - Docker-based test containers
 
 ### Mocking Libraries
+
 - **mockk (Kotlin)**: https://mockk.io/
 - **sinon.js (JavaScript)**: https://sinonjs.org/
 - **unittest.mock (Python)**: https://docs.python.org/3/library/unittest.mock.html
 
 ### Integration Testing Tools
+
 - **Docker Compose**: Multi-container test environments
 - **LocalStack**: Local AWS cloud testing
 - **Testcontainers**: Docker-based integration tests
 
 ### Best Practice Guides
+
 - Martin Fowler: "UnitTest"
 - Google Testing Blog: "Testing on the Toilet"
 - Microsoft: "Unit Testing Best Practices"
@@ -742,6 +732,7 @@ class TestDatabaseManager {
 ## Testing Checklist
 
 ### Unit Tests
+
 - [ ] Test all public methods
 - [ ] Test edge cases and error conditions
 - [ ] Test state transitions
@@ -750,6 +741,7 @@ class TestDatabaseManager {
 - [ ] Achieve >80% code coverage
 
 ### Integration Tests
+
 - [ ] Test with real database
 - [ ] Test with real message bus
 - [ ] Test concurrent operations
@@ -758,6 +750,7 @@ class TestDatabaseManager {
 - [ ] Test event propagation
 
 ### Performance Tests
+
 - [ ] Load testing (normal load)
 - [ ] Stress testing (extreme load)
 - [ ] Endurance testing (long-running)
@@ -765,6 +758,7 @@ class TestDatabaseManager {
 - [ ] Measure throughput and latency
 
 ### Contract Tests
+
 - [ ] Verify API contracts
 - [ ] Verify event schemas
 - [ ] Verify interface compliance

@@ -9,6 +9,7 @@
 **Deliverable**: Unit test file `tests/unit/core/task-dependencies.test.ts` with comprehensive test coverage for `canExecute()`, `getBlockingDependencies()`, and dependency graph construction.
 
 **Success Definition**: All tests pass, verifying:
+
 - `canExecute()` returns `true` only when all dependencies are Complete
 - `getBlockingDependencies()` returns only incomplete dependencies
 - Dependency graph is correctly constructed from subtask dependency arrays
@@ -42,6 +43,7 @@ Unit tests that verify the dependency resolution logic in TaskOrchestrator works
 ### Context Completeness Check
 
 ✓ This PRP provides everything needed to implement the dependency resolution tests:
+
 - Exact file paths and patterns to follow
 - Factory functions for test data creation
 - Mock patterns for SessionManager and external dependencies
@@ -136,10 +138,10 @@ tests/
 ```typescript
 // CRITICAL: Vitest mock patterns - must use vi.hoisted() for mock variables
 const { mockLogger } = vi.hoisted(() => ({
-  mockLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() }
+  mockLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 vi.mock('../../../src/utils/logger.js', () => ({
-  getLogger: vi.fn(() => mockLogger)
+  getLogger: vi.fn(() => mockLogger),
 }));
 
 // CRITICAL: Mock getDependencies to control test scenarios
@@ -151,16 +153,17 @@ vi.mock('../../../src/utils/task-utils.js', () => ({
 
 // GOTCHA: TaskOrchestrator constructor throws if no active session
 // Always provide mockSessionManager with currentSession set
-const createMockSessionManager = (taskRegistry: Backlog): SessionManager => ({
-  currentSession: {
-    metadata: { id: '001_14b9dc2a33c7', hash: '14b9dc2a33c7', /* ... */ },
-    prdSnapshot: '# Test PRD',
-    taskRegistry,
-    currentItemId: null
-  },
-  updateItemStatus: vi.fn().mockResolvedValue(taskRegistry),
-  flushUpdates: vi.fn().mockResolvedValue(undefined)
-} as unknown as SessionManager);
+const createMockSessionManager = (taskRegistry: Backlog): SessionManager =>
+  ({
+    currentSession: {
+      metadata: { id: '001_14b9dc2a33c7', hash: '14b9dc2a33c7' /* ... */ },
+      prdSnapshot: '# Test PRD',
+      taskRegistry,
+      currentItemId: null,
+    },
+    updateItemStatus: vi.fn().mockResolvedValue(taskRegistry),
+    flushUpdates: vi.fn().mockResolvedValue(undefined),
+  }) as unknown as SessionManager;
 
 // CRITICAL: Status comparison uses strict equality (===)
 // Use exact string values from Status type: 'Complete', 'Planned', etc.
@@ -190,11 +193,19 @@ const createTestSubtask = (
   dependencies: string[] = [],
   context_scope: string = 'Test scope'
 ): Subtask => ({
-  id, type: 'Subtask', title, status, story_points: 2, dependencies, context_scope
+  id,
+  type: 'Subtask',
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope,
 });
 
 const createTestBacklog = (phases: Phase[]): Backlog => ({ backlog: phases });
-const createMockSessionManager = (taskRegistry: Backlog): SessionManager => { /* ... */ };
+const createMockSessionManager = (taskRegistry: Backlog): SessionManager => {
+  /* ... */
+};
 ```
 
 ### Implementation Tasks (ordered by dependencies)
@@ -274,11 +285,11 @@ Task 7: VERIFY all tests follow project patterns
 ```typescript
 // PATTERN: Mock setup with hoisted variables (REQUIRED)
 const { mockLogger } = vi.hoisted(() => ({
-  mockLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() }
+  mockLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
 vi.mock('../../../src/utils/logger.js', () => ({
-  getLogger: vi.fn(() => mockLogger)
+  getLogger: vi.fn(() => mockLogger),
 }));
 
 // PATTERN: Mock getDependencies with controllable return value
@@ -286,7 +297,7 @@ let mockGetDependencies: ReturnType<typeof vi.fn>;
 vi.mock('../../../src/utils/task-utils.js', () => ({
   findItem: vi.fn(),
   isSubtask: vi.fn(),
-  getDependencies: vi.fn(() => [])
+  getDependencies: vi.fn(() => []),
 }));
 
 import { getDependencies } from '../../../src/utils/task-utils.js';
@@ -295,7 +306,9 @@ mockGetDependencies = getDependencies as any;
 // PATTERN: Test structure with SETUP/EXECUTE/VERIFY comments
 it('should return true when all dependencies are Complete', () => {
   // SETUP: Create subtask and mock dependencies
-  const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', ['P1.M1.T1.S2']);
+  const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', [
+    'P1.M1.T1.S2',
+  ]);
   const dep1 = createTestSubtask('P1.M1.T1.S2', 'Dependency 1', 'Complete');
   mockGetDependencies.mockReturnValue([dep1]);
 
@@ -307,10 +320,18 @@ it('should return true when all dependencies are Complete', () => {
 });
 
 // CRITICAL: Parameterized test for all non-Complete statuses
-const nonCompleteStatuses: Status[] = ['Planned', 'Researching', 'Implementing', 'Failed', 'Obsolete'];
+const nonCompleteStatuses: Status[] = [
+  'Planned',
+  'Researching',
+  'Implementing',
+  'Failed',
+  'Obsolete',
+];
 nonCompleteStatuses.forEach(status => {
   it(`should return false when dependency has status '${status}'`, () => {
-    const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', ['P1.M1.T1.S2']);
+    const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned', [
+      'P1.M1.T1.S2',
+    ]);
     const dep1 = createTestSubtask('P1.M1.T1.S2', 'Dependency 1', status);
     mockGetDependencies.mockReturnValue([dep1]);
 

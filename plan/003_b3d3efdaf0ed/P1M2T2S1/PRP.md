@@ -1,12 +1,13 @@
 # Product Requirement Prompt (PRP): P1.M2.T2.S1 - Verify MCP tool integration (Bash, Filesystem, Git)
 
-***
+---
 
 ## Goal
 
 **Feature Goal**: Create integration tests that verify all three MCP servers (BashMCP, FilesystemMCP, GitMCP) are properly registered with each agent and accessible via agent.tool() calls.
 
 **Deliverable**: Integration test file `tests/integration/mcp-tools.test.ts` with comprehensive verification of:
+
 - All three MCP servers are registered with each agent type
 - Tools are accessible via agent's MCP handler
 - BashMCP uses spawn() for safe command execution (no shell injection)
@@ -14,6 +15,7 @@
 - GitMCP uses simple-git library correctly
 
 **Success Definition**: All tests pass, verifying:
+
 - Architect, Researcher, Coder, and QA agents each have BashMCP, FilesystemMCP, and GitMCP registered
 - All tools from each MCP server are accessible via `agent.getMcpHandler().getTools()`
 - Tool naming follows `server__tool` pattern (e.g., `bash__execute_bash`, `filesystem__file_read`, `git__git_status`)
@@ -23,15 +25,16 @@
 
 ## Why
 
-* **Agent Capability Verification**: Validates that agents have the required tools to perform their work (bash commands, file operations, git operations) as specified in PRD §5.2
-* **Integration Contract Compliance**: Ensures the MCP tool integration specified in system_context.md is correctly implemented across all agent types
-* **Tool Access Safety**: Verifies that tools are registered safely using spawn() (no shell injection), path validation, and proper library usage
-* **Test Infrastructure**: Provides integration test patterns for future MCP tool additions and agent testing
-* **Quality Assurance**: Catches regressions in agent-MCP integration early, preventing tool access failures during pipeline execution
+- **Agent Capability Verification**: Validates that agents have the required tools to perform their work (bash commands, file operations, git operations) as specified in PRD §5.2
+- **Integration Contract Compliance**: Ensures the MCP tool integration specified in system_context.md is correctly implemented across all agent types
+- **Tool Access Safety**: Verifies that tools are registered safely using spawn() (no shell injection), path validation, and proper library usage
+- **Test Infrastructure**: Provides integration test patterns for future MCP tool additions and agent testing
+- **Quality Assurance**: Catches regressions in agent-MCP integration early, preventing tool access failures during pipeline execution
 
 **Relationship to P1.M2.T1.S4**: The previous subtask (P1.M2.T1.S4) validates protected file enforcement. This subtask (P1.M2.T2.S1) validates the tool infrastructure that agents use to perform file operations, ensuring agents have the correct tools to interact with the codebase.
 
 **Critical Gap**: Current implementation has unit tests for individual MCP tools (tests/integration/tools.test.ts) and agent factory tests, but lacks integration tests verifying:
+
 - Agent-MCP integration across all agent types
 - Tool accessibility through agent's MCP handler
 - Proper tool registration and naming conventions
@@ -43,16 +46,16 @@ Integration tests that verify MCP tool integration with agents, ensuring all age
 
 ### Success Criteria
 
-* [ ] All four agent types (Architect, Researcher, Coder, QA) have BashMCP, FilesystemMCP, and GitMCP registered
-* [ ] Each MCP server's tools are accessible via `agent.getMcpHandler().getTools()`
-* [ ] Tool names follow `server__tool` naming convention
-* [ ] BashMCP tool (execute_bash) is registered and accessible
-* [ ] FilesystemMCP tools (file_read, file_write, glob_files, grep_search) are registered and accessible
-* [ ] GitMCP tools (git_status, git_diff, git_add, git_commit) are registered and accessible
-* [ ] Tools can be executed through agent's MCP handler with proper result parsing
-* [ ] Mock agent tool invocations work correctly for testing
-* [ ] All system operations are mocked (no real file/git/bash operations during tests)
-* [ ] Tests follow existing integration test patterns from the codebase
+- [ ] All four agent types (Architect, Researcher, Coder, QA) have BashMCP, FilesystemMCP, and GitMCP registered
+- [ ] Each MCP server's tools are accessible via `agent.getMcpHandler().getTools()`
+- [ ] Tool names follow `server__tool` naming convention
+- [ ] BashMCP tool (execute_bash) is registered and accessible
+- [ ] FilesystemMCP tools (file_read, file_write, glob_files, grep_search) are registered and accessible
+- [ ] GitMCP tools (git_status, git_diff, git_add, git_commit) are registered and accessible
+- [ ] Tools can be executed through agent's MCP handler with proper result parsing
+- [ ] Mock agent tool invocations work correctly for testing
+- [ ] All system operations are mocked (no real file/git/bash operations during tests)
+- [ ] Tests follow existing integration test patterns from the codebase
 
 ## All Needed Context
 
@@ -60,15 +63,15 @@ Integration tests that verify MCP tool integration with agents, ensuring all age
 
 _This PRP passes the "No Prior Knowledge" test:_
 
-* Complete MCP server specifications from system_context.md and external_deps.md
-* MCP tool implementations with exact file paths and patterns
-* Agent factory code showing MCP_TOOLS registration
-* Existing integration test patterns from tests/integration/tools.test.ts and tests/integration/groundswell/mcp.test.ts
-* Mocking patterns for child_process, node:fs, and simple-git
-* Tool executor registration patterns
-* Helper functions for creating mock agents and parsing tool results
-* Groundswell MCPHandler API patterns (registerServer, registerToolExecutor, getTools, executeTool)
-* Clear test structure patterns with SETUP/EXECUTE/VERIFY comments
+- Complete MCP server specifications from system_context.md and external_deps.md
+- MCP tool implementations with exact file paths and patterns
+- Agent factory code showing MCP_TOOLS registration
+- Existing integration test patterns from tests/integration/tools.test.ts and tests/integration/groundswell/mcp.test.ts
+- Mocking patterns for child_process, node:fs, and simple-git
+- Tool executor registration patterns
+- Helper functions for creating mock agents and parsing tool results
+- Groundswell MCPHandler API patterns (registerServer, registerToolExecutor, getTools, executeTool)
+- Clear test structure patterns with SETUP/EXECUTE/VERIFY comments
 
 ### Documentation & References
 
@@ -250,9 +253,9 @@ const MCP_TOOLS: MCPServer[] = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP];
 
 // CRITICAL: Tool naming follows server__tool pattern
 // From Groundswell MCPHandler
-'bash__execute_bash'
-'filesystem__file_read'
-'git__git_status'
+('bash__execute_bash');
+('filesystem__file_read');
+('git__git_status');
 // GOTCHA: Double underscore separator, not single underscore
 
 // CRITICAL: BashMCP uses spawn() not exec()
@@ -260,7 +263,7 @@ const MCP_TOOLS: MCPServer[] = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP];
 child = spawn(executable, commandArgs, {
   cwd: workingDir,
   stdio: ['ignore', 'pipe', 'pipe'],
-  shell: false,  // CRITICAL: No shell interpretation
+  shell: false, // CRITICAL: No shell interpretation
 });
 // GOTCHA: shell: false prevents shell injection vulnerabilities
 
@@ -268,7 +271,7 @@ child = spawn(executable, commandArgs, {
 // From src/tools/filesystem-mcp.ts lines 296-326
 async function readFile(input: FileReadInput): Promise<FileReadResult> {
   try {
-    const safePath = resolve(path);  // Path sanitization
+    const safePath = resolve(path); // Path sanitization
     const content = await fs.readFile(safePath, { encoding });
     return { success: true, content };
   } catch (error) {
@@ -333,10 +336,10 @@ vi.stubEnv('ANTHROPIC_BASE_URL', 'https://api.z.ai/api/anthropic');
 // GOTCHA: Must stub environment variables before creating agents
 
 // CRITICAL: MCPHandler API patterns
-agent.getMcpHandler()           // Get MCP handler instance
-handler.getTools()              // Get array of Tool objects
-handler.hasTool(name)           // Check if tool is registered
-handler.executeTool(name, input) // Execute tool by name
+agent.getMcpHandler(); // Get MCP handler instance
+handler.getTools(); // Get array of Tool objects
+handler.hasTool(name); // Check if tool is registered
+handler.executeTool(name, input); // Execute tool by name
 // GOTCHA: Tools are accessed through agent's MCP handler
 
 // CRITICAL: Tool schema structure
@@ -1375,65 +1378,65 @@ grep -n "VERIFY:" tests/integration/mcp-tools.test.ts
 
 ### Technical Validation
 
-* [ ] All Level 1-4 validations completed successfully
-* [ ] Test file structure follows project patterns
-* [ ] Tests use mocked dependencies (no real operations)
-* [ ] Mock cleanup in beforeEach/afterEach
-* [ ] Tests import with .js extensions
-* [ ] All describe blocks have clear, descriptive names
-* [ ] Helper functions follow existing patterns
-* [ ] Tests use SETUP/EXECUTE/VERIFY pattern
+- [ ] All Level 1-4 validations completed successfully
+- [ ] Test file structure follows project patterns
+- [ ] Tests use mocked dependencies (no real operations)
+- [ ] Mock cleanup in beforeEach/afterEach
+- [ ] Tests import with .js extensions
+- [ ] All describe blocks have clear, descriptive names
+- [ ] Helper functions follow existing patterns
+- [ ] Tests use SETUP/EXECUTE/VERIFY pattern
 
 ### Feature Validation
 
-* [ ] All four agent types have BashMCP, FilesystemMCP, and GitMCP registered
-* [ ] All tools are accessible via agent.getMcpHandler().getTools()
-* [ ] Tool naming follows server__tool pattern
-* [ ] BashMCP tool (execute_bash) is registered and accessible
-* [ ] FilesystemMCP tools (file_read, file_write, glob_files, grep_search) are registered
-* [ ] GitMCP tools (git_status, git_diff, git_add, git_commit) are registered
-* [ ] BashMCP uses spawn() with shell: false
-* [ ] FilesystemMCP validates paths
-* [ ] GitMCP uses simple-git library
-* [ ] Mock agent tool invocations work correctly
+- [ ] All four agent types have BashMCP, FilesystemMCP, and GitMCP registered
+- [ ] All tools are accessible via agent.getMcpHandler().getTools()
+- [ ] Tool naming follows server\_\_tool pattern
+- [ ] BashMCP tool (execute_bash) is registered and accessible
+- [ ] FilesystemMCP tools (file_read, file_write, glob_files, grep_search) are registered
+- [ ] GitMCP tools (git_status, git_diff, git_add, git_commit) are registered
+- [ ] BashMCP uses spawn() with shell: false
+- [ ] FilesystemMCP validates paths
+- [ ] GitMCP uses simple-git library
+- [ ] Mock agent tool invocations work correctly
 
 ### Code Quality Validation
 
-* [ ] Follows existing integration test patterns from tools.test.ts
-* [ ] Helper functions use same patterns as existing tests
-* [ ] Test file location matches conventions (tests/integration/)
-* [ ] Tests focus on integration patterns, not individual tool functionality
-* [ ] Mock setup follows patterns from groundswell/mcp.test.ts
-* [ ] Tests verify MCP handler integration correctly
+- [ ] Follows existing integration test patterns from tools.test.ts
+- [ ] Helper functions use same patterns as existing tests
+- [ ] Test file location matches conventions (tests/integration/)
+- [ ] Tests focus on integration patterns, not individual tool functionality
+- [ ] Mock setup follows patterns from groundswell/mcp.test.ts
+- [ ] Tests verify MCP handler integration correctly
 
 ### Documentation & Deployment
 
-* [ ] Test file header with JSDoc comments describing purpose
-* [ ] Test names clearly describe what is being tested
-* [ ] Research documents stored in research/ subdirectory
-* [ ] Tests verify PRD requirements from system_context.md
-* [ ] Tests document MCP tool integration patterns
+- [ ] Test file header with JSDoc comments describing purpose
+- [ ] Test names clearly describe what is being tested
+- [ ] Research documents stored in research/ subdirectory
+- [ ] Tests verify PRD requirements from system_context.md
+- [ ] Tests document MCP tool integration patterns
 
-***
+---
 
 ## Anti-Patterns to Avoid
 
-* ❌ Don't test individual tool executor functionality (already tested in tools.test.ts)
-* ❌ Don't skip testing all four agent types (each should be verified)
-* ❌ Don't skip testing tool naming conventions (server__tool pattern)
-* ❌ Don't use real file/git/bash operations in integration tests
-* ❌ Don't skip testing MCP handler accessibility (getMcpHandler())
-* ❌ Don't forget to mock Anthropic SDK (prevents API calls)
-* ❌ Don't skip testing spawn() usage for BashMCP (shell: false verification)
-* ❌ Don't skip testing simple-git library usage for GitMCP
-* ❌ Don't skip testing path validation for FilesystemMCP
-* ❌ Don't duplicate tests from tools.test.ts (focus on agent-MCP integration)
-* ❌ Don't skip mock cleanup in afterEach
-* ❌ Don't forget to stub environment variables
-* ❌ Don't skip verifying all tools from each MCP server
-* ❌ Don't test implementation details (test integration contracts)
+- ❌ Don't test individual tool executor functionality (already tested in tools.test.ts)
+- ❌ Don't skip testing all four agent types (each should be verified)
+- ❌ Don't skip testing tool naming conventions (server\_\_tool pattern)
+- ❌ Don't use real file/git/bash operations in integration tests
+- ❌ Don't skip testing MCP handler accessibility (getMcpHandler())
+- ❌ Don't forget to mock Anthropic SDK (prevents API calls)
+- ❌ Don't skip testing spawn() usage for BashMCP (shell: false verification)
+- ❌ Don't skip testing simple-git library usage for GitMCP
+- ❌ Don't skip testing path validation for FilesystemMCP
+- ❌ Don't duplicate tests from tools.test.ts (focus on agent-MCP integration)
+- ❌ Don't skip mock cleanup in afterEach
+- ❌ Don't forget to stub environment variables
+- ❌ Don't skip verifying all tools from each MCP server
+- ❌ Don't test implementation details (test integration contracts)
 
-***
+---
 
 **PRP Version:** 1.0
 **Work Item:** P1.M2.T2.S1
@@ -1444,13 +1447,13 @@ grep -n "VERIFY:" tests/integration/mcp-tools.test.ts
 
 **Rationale:**
 
-* Complete MCP tool specifications from system_context.md and external_deps.md
-* Comprehensive integration test patterns from existing test files
-* Mocking patterns clearly documented with examples
-* Clear implementation tasks with proper dependencies
-* All contract requirements from PRD covered
-* Extensive research documentation in research/ subdirectory
-* Tests verify integration contracts without duplicating existing tests
-* File paths and line numbers provided for all references
-* Test structure follows project patterns exactly
-* Helper functions and patterns specified with code examples
+- Complete MCP tool specifications from system_context.md and external_deps.md
+- Comprehensive integration test patterns from existing test files
+- Mocking patterns clearly documented with examples
+- Clear implementation tasks with proper dependencies
+- All contract requirements from PRD covered
+- Extensive research documentation in research/ subdirectory
+- Tests verify integration contracts without duplicating existing tests
+- File paths and line numbers provided for all references
+- Test structure follows project patterns exactly
+- Helper functions and patterns specified with code examples

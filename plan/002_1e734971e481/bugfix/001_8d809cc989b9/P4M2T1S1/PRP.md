@@ -7,6 +7,7 @@
 **Deliverable**: Analysis document identifying all sources of unhandled promise rejections, plus code fixes adding proper `.catch()` handlers and error boundaries to affected test files.
 
 **Success Definition**:
+
 - Integration tests run with zero `PromiseRejectionHandledWarning` messages
 - Stack trace preservation test passes ("should preserve stack trace through error wrapping")
 - All integration tests pass with clean output
@@ -20,6 +21,7 @@
 **Use Case**: During test execution, `PromiseRejectionHandledWarning` messages appear, indicating that promise rejections are being handled asynchronously. The developer needs to identify which tests or setup code causes unhandled rejections and add proper handlers.
 
 **User Journey**:
+
 1. Developer reads this PRP to understand the investigation approach
 2. Developer runs integration tests with rejection tracking enabled
 3. Developer identifies which tests/operations cause unhandled rejections
@@ -28,6 +30,7 @@
 6. Developer confirms all warnings are eliminated
 
 **Pain Points Addressed**:
+
 - **Noisy test output**: PromiseRejectionHandledWarning messages clutter test results
 - **Masked failures**: Real issues may be hidden among warnings
 - **Test reliability**: Async handlers may not complete before test ends
@@ -64,6 +67,7 @@ Investigate and fix all sources of unhandled promise rejections in integration t
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Exact test files and line numbers to investigate
 2. Specific promise handling patterns causing issues
 3. Complete code examples showing problematic vs. correct patterns
@@ -446,9 +450,9 @@ afterEach(() => {
 
   // NEW: Fail test if there were unhandled rejections
   if (unhandledRejections.length > 0) {
-    const errorMessages = unhandledRejections.map(r =>
-      r instanceof Error ? r.message : String(r)
-    ).join('; ');
+    const errorMessages = unhandledRejections
+      .map(r => (r instanceof Error ? r.message : String(r)))
+      .join('; ');
     throw new Error(
       `Test had ${unhandledRejections.length} unhandled rejection(s): ${errorMessages}`
     );
@@ -592,7 +596,7 @@ const failures = results.filter(r => r.status === 'rejected');
 if (failures.length > 0) {
   console.error(
     `${failures.length} promises rejected during flush:`,
-    failures.map(f => f.status === 'rejected' ? f.reason : 'unknown')
+    failures.map(f => (f.status === 'rejected' ? f.reason : 'unknown'))
   );
 }
 // Then assert based on whether failures are expected
@@ -812,6 +816,7 @@ time npm run test:run -- tests/integration/
 **One-Pass Implementation Success Likelihood**: VERY HIGH
 
 **Rationale**:
+
 1. Clear investigation approach with specific files and line numbers
 2. Well-documented patterns for promise rejection handling
 3. Existing test (promise-handling-validator.test.ts) provides proven pattern
@@ -824,6 +829,7 @@ time npm run test:run -- tests/integration/
 10. Industry best practices support the approach
 
 **Potential Risks**:
+
 - **Risk 1**: Stack trace preservation test may have deeper issues (Low - likely fixed by proper error boundaries)
 - **Risk 2**: Some warnings may come from production code, not tests (Low - investigation will identify sources)
 - **Risk 3**: Adding global tracking may break tests that expect unhandled rejections (Very Low - rare pattern, can be addressed if found)

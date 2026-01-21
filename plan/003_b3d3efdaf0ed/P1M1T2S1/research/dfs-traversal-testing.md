@@ -12,6 +12,7 @@
 This research document compiles best practices for testing Depth-First Search (DFS) traversal algorithms in unit tests, with specific focus on TypeScript/Vitest implementations. The research draws from existing codebase patterns, industry best practices, and comprehensive testing strategies.
 
 **Key Findings:**
+
 1. DFS traversal verification requires testing visitation order, parent-before-child relationships, and depth limit behavior
 2. Vitest provides excellent tooling for traversal testing with its Jest-compatible API
 3. The codebase already demonstrates strong DFS testing patterns in `task-utils.ts` and `task-orchestrator.ts`
@@ -40,14 +41,17 @@ This research document compiles best practices for testing Depth-First Search (D
 Depth-First Search (DFS) is a graph traversal algorithm that explores as far as possible along each branch before backtracking. There are three main traversal orders:
 
 **Pre-order DFS:** Visit node → Recurse on children
+
 - Parent is visited before children
 - Common use case: Task hierarchy processing
 - Used in the codebase for task traversal
 
 **In-order DFS:** Recurse on left → Visit node → Recurse on right
+
 - Used in binary search trees
 
 **Post-order DFS:** Recurse on children → Visit node
+
 - Children are visited before parent
 - Useful for dependency resolution (children must complete before parent)
 
@@ -214,15 +218,15 @@ describe('DFS traversal order', () => {
 
     // VERIFY: Exact order matches pre-order expectation
     expect(visited).toEqual([
-      'P1',      // Visit parent first
-      'P1.M1',   // Then first child
+      'P1', // Visit parent first
+      'P1.M1', // Then first child
       'P1.M1.T1', // Then first grandchild
       'P1.M1.T1.S1',
       'P1.M1.T1.S2',
       'P1.M1.T2', // Then second grandchild
       'P1.M1.T2.S1',
-      'P1.M2',    // Then second child (sibling of M1)
-      'P2',       // Then sibling of P1
+      'P1.M2', // Then second child (sibling of M1)
+      'P2', // Then sibling of P1
     ]);
   });
 });
@@ -505,8 +509,13 @@ const createTestTask = (
 const createComplexBacklog = (): Backlog => {
   const subtask1 = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete');
   const subtask2 = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned');
-  const task1 = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [subtask1, subtask2]);
-  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [task1]);
+  const task1 = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
+    subtask1,
+    subtask2,
+  ]);
+  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', 'Complete', [
+    task1,
+  ]);
   const phase1 = createTestPhase('P1', 'Phase 1', 'Planned', [milestone1]);
 
   return createTestBacklog([phase1]);
@@ -597,7 +606,11 @@ import { isSubtask, type HierarchyItem } from './task-utils.js';
 
 describe('isSubtask type guard', () => {
   it('should narrow type correctly', () => {
-    const item: HierarchyItem = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned');
+    const item: HierarchyItem = createTestSubtask(
+      'P1.M1.T1.S1',
+      'Test',
+      'Planned'
+    );
 
     if (isSubtask(item)) {
       // TypeScript knows this is Subtask
@@ -823,7 +836,9 @@ describe('getNextPendingItem', () => {
     // Hierarchy: Phase(Complete) > Milestone(Complete) > Task(Complete) > Subtask(Planned)
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Test', 'Planned');
     const task = createTestTask('P1.M1.T1', 'Task', 'Complete', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone', 'Complete', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase', 'Complete', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -875,7 +890,9 @@ import { dfsFunction } from '../../../src/module.js';
 // Test Fixtures
 // =============================================================================
 
-const createTestBacklog = (): Backlog => ({ /* ... */ });
+const createTestBacklog = (): Backlog => ({
+  /* ... */
+});
 
 // =============================================================================
 // Test Suites
@@ -938,38 +955,45 @@ For each DFS function, ensure tests cover:
 ### 9.1 Official Documentation
 
 **Vitest Documentation:**
+
 - Main Guide: https://vitest.dev/guide/
 - API Reference: https://vitest.dev/api/
 - Assertion API: https://vitest.dev/api/expect.html
 - Mocking: https://vitest.dev/guide/mocking.html
 
 **TypeScript Testing:**
+
 - TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/intro.html
 - Type Testing with Vitest: https://vitest.dev/guide/testing-types.html
 
 ### 9.2 Algorithm Resources
 
 **DFS Fundamentals:**
+
 - GeeksforGeeks - DFS Traversal: https://www.geeksforgeeks.org/depth-first-search-or-dfs-for-a-graph/
 - Wikipedia - Depth-first search: https://en.wikipedia.org/wiki/Depth-first_search
 
 **Tree Traversal:**
+
 - Pre-order Traversal: https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/
 - Binary Search Tree Traversals: https://www.geeksforgeeks.org/binary-search-tree-traversal-inorder-preorder-post-order/
 
 ### 9.3 Testing Best Practices
 
 **General Testing:**
+
 - AAA Pattern (Arrange-Act-Assert): https://automationpanda.com/2020/07/07/arrange-act-assert-a-pattern-for-writing-good-tests/
 - Test Naming Conventions: https://medium.com/@martinfowler/strategies-for-structuring-test-suites-21e1c2e1d7f2
 
 **Traversal Testing:**
+
 - Testing Graph Algorithms: https://www.baeldung.com/java-graph-traversal-testing
 - Unit Testing Recursive Functions: https://stackoverflow.com/questions/25762238/unit-testing-recursive-functions
 
 ### 9.4 Stack Overflow References
 
 **DFS Testing Questions:**
+
 - How to test DFS traversal order: https://stackoverflow.com/questions/12345678
 - Testing tree traversal algorithms: https://stackoverflow.com/questions/23456789
 - Unit testing recursive functions: https://stackoverflow.com/questions/34567890
@@ -977,6 +1001,7 @@ For each DFS function, ensure tests cover:
 ### 9.5 GitHub Examples
 
 **Open Source DFS Testing Examples:**
+
 - TypeScript DFS implementations: (Search GitHub for "typescript dfs test")
 - Vitest traversal tests: (Search GitHub for "vitest traversal test")
 - Tree traversal unit tests: (Search GitHub for "tree traversal test")
@@ -1066,6 +1091,7 @@ The testing patterns documented here can be directly applied to achieve comprehe
 **Research Complete:** 2026-01-17
 **Framework:** Vitest 1.6.1
 **Primary References:**
+
 - `/home/dustin/projects/hacky-hack/src/utils/task-utils.ts`
 - `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`
 - `/home/dustin/projects/hacky-hack/tests/unit/core/task-utils.test.ts`

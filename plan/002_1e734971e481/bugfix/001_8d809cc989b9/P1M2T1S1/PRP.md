@@ -12,6 +12,7 @@
 **Feature Goal**: Document the existing `#isFatalError()` private method implementation in `PRPPipeline` to enable extraction to a public utility function.
 
 **Deliverable**: Comprehensive architecture documentation stored at `plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/isFatalError-existing-implementation.md` containing:
+
 - Complete source code analysis
 - Logic flow decision tree
 - Fatal/non-fatal error classification rules
@@ -19,6 +20,7 @@
 - Migration path for extraction
 
 **Success Definition**:
+
 - Architecture documentation is complete and accurate
 - Implementation logic is fully documented with decision tree
 - All dependencies are identified and catalogued
@@ -34,6 +36,7 @@
 **Use Case**: Developer needs to understand the existing `#isFatalError()` implementation to extract it as a public utility function from `src/utils/errors.ts`
 
 **User Journey**:
+
 1. Read architecture documentation to understand existing implementation
 2. Review fatal vs non-fatal classification rules
 3. Identify all dependencies and type guards used
@@ -42,6 +45,7 @@
 6. Update PRPPipeline to use imported utility function
 
 **Pain Points Addressed**:
+
 - Private method is inaccessible outside PRPPipeline class
 - Logic is coupled to `#continueOnError` instance flag and `this.logger`
 - Integration tests expect `isFatalError` to be exported from errors.ts
@@ -52,17 +56,20 @@
 ## Why
 
 **Business Value**:
+
 - Enables consistent error classification across the entire codebase
 - Supports integration testing of error handling behavior
 - Provides reusable utility for future error handling features
 
 **Integration with Existing Features**:
+
 - Integrates with existing error hierarchy in `src/utils/errors.ts`
 - Supports existing type guard functions (`isSessionError`, `isTaskError`, etc.)
 - Aligns with `--continue-on-error` CLI flag behavior
 - Enables error tracking and reporting in ERROR_REPORT.md
 
 **Problems This Solves**:
+
 - **Missing Export**: Integration tests fail with "isFatalError is not a function"
 - **Code Duplication**: Fatal/non-fatal logic needed in multiple contexts
 - **Documentation Gap**: No centralized definition of fatal vs non-fatal errors
@@ -105,6 +112,7 @@ No user-visible behavior changes. This is a **research-only** subtask that produ
 **Question**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file path and line numbers
 - Complete source code with comments
 - Dependency locations and imports
@@ -242,6 +250,7 @@ if (error == null) return false;
 **Date**: 2026-01-14
 **Message**: "feat: Add comprehensive error recovery with fatal/non-fatal detection and error reports"
 **Changes**:
+
 - Added `#isFatalError()` private method to PRPPipeline
 - Added `#trackFailure()` method for error tracking
 - Added error report generation (ERROR_REPORT.md)
@@ -518,6 +527,7 @@ cat plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S1/PRP.md
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Rationale**:
+
 - Source code is available and well-documented
 - All dependencies are identified with file paths
 - Decision tree provides clear logic visualization
@@ -525,6 +535,7 @@ cat plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S1/PRP.md
 - Architecture documentation enables immediate extraction implementation
 
 **Validation**: The completed architecture documentation and PRP should enable a developer unfamiliar with the codebase to:
+
 1. Understand the `#isFatalError()` implementation completely
 2. Identify all dependencies and integration points
 3. Extract the logic to a pure function without class dependencies
@@ -532,6 +543,7 @@ cat plan/002_1e734971e481/bugfix/001_8d809cc989b9/P1M2T1S1/PRP.md
 5. Update PRPPipeline to use the imported utility
 
 **Next Steps**:
+
 - P1.M2.T1.S2: Write failing tests for `isFatalError` function
 - P1.M2.T1.S3: Implement `isFatalError` function in errors.ts
 - P1.M2.T2.S1: Refactor PRPPipeline to import and use `isFatalError`

@@ -1,6 +1,7 @@
 # Task Prioritization and Blocking Patterns - Research Findings
 
 ## Overview
+
 Effective task prioritization and blocking mechanisms are crucial for orchestrator efficiency and correctness. This document covers patterns, algorithms, and implementations for managing task priorities and handling blocking scenarios.
 
 ## Core Concepts
@@ -21,7 +22,7 @@ enum PriorityLevel {
   HIGH = 'high',
   MEDIUM = 'medium',
   LOW = 'low',
-  BACKGROUND = 'background'
+  BACKGROUND = 'background',
 }
 
 interface PrioritizedTask {
@@ -46,8 +47,8 @@ class StaticPriorityScheduler {
   private priorityQueue: PriorityQueue<PrioritizedTask>;
 
   constructor() {
-    this.priorityQueue = new PriorityQueue((a, b) =>
-      b.priority.value - a.priority.value
+    this.priorityQueue = new PriorityQueue(
+      (a, b) => b.priority.value - a.priority.value
     );
   }
 
@@ -66,16 +67,19 @@ class StaticPriorityScheduler {
 ```
 
 **Advantages:**
+
 - Simple implementation
 - Predictable behavior
 - Fast execution
 
 **Disadvantages:**
+
 - Can lead to starvation of low-priority tasks
 - Doesn't adapt to changing conditions
 - May not meet deadlines
 
 **Use Cases:**
+
 - When priorities are well-defined and stable
 - When starvation is acceptable
 - Simple scheduling scenarios
@@ -119,8 +123,12 @@ class AgingScheduler {
 
   private calculateAgedPriority(task: PrioritizedTask): number {
     const basePriority = this.basePriorities.get(task.id)!;
-    const ageInSeconds = (Date.now() - task.priority.createdAt.getTime()) / 1000;
-    const ageBoost = Math.min(ageInSeconds * this.agingFactor, this.maxAgeBoost);
+    const ageInSeconds =
+      (Date.now() - task.priority.createdAt.getTime()) / 1000;
+    const ageBoost = Math.min(
+      ageInSeconds * this.agingFactor,
+      this.maxAgeBoost
+    );
 
     return basePriority + ageBoost;
   }
@@ -128,16 +136,19 @@ class AgingScheduler {
 ```
 
 **Advantages:**
+
 - Prevents starvation
 - Fair to all tasks
 - Adapts to wait time
 
 **Disadvantages:**
+
 - More complex implementation
 - Requires tracking age
 - May delay critical tasks
 
 **Use Cases:**
+
 - When starvation is unacceptable
 - When fairness is important
 - Mixed workload scenarios
@@ -152,8 +163,9 @@ class ShortestJobFirstScheduler {
 
   schedule(task: PrioritizedTask): void {
     this.tasks.push(task);
-    this.tasks.sort((a, b) =>
-      (a.estimatedDuration || Infinity) - (b.estimatedDuration || Infinity)
+    this.tasks.sort(
+      (a, b) =>
+        (a.estimatedDuration || Infinity) - (b.estimatedDuration || Infinity)
     );
   }
 
@@ -164,15 +176,18 @@ class ShortestJobFirstScheduler {
 ```
 
 **Advantages:**
+
 - Minimizes average waiting time
 - Good for throughput
 
 **Disadvantages:**
+
 - Requires accurate duration estimates
 - Long jobs may starve
 - Not suitable for real-time systems
 
 **Use Cases:**
+
 - When duration estimates are reliable
 - Batch processing systems
 - Throughput-oriented scenarios
@@ -210,16 +225,19 @@ class EarliestDeadlineFirstScheduler {
 ```
 
 **Advantages:**
+
 - Optimizes for meeting deadlines
 - Good for real-time systems
 - Predictable behavior
 
 **Disadvantages:**
+
 - Requires deadlines
 - May starve tasks without deadlines
 - Can be unstable with overload
 
 **Use Cases:**
+
 - Real-time systems
 - Time-sensitive workflows
 - SLA-driven processing
@@ -236,9 +254,9 @@ class MultiLevelFeedbackScheduler {
 
   constructor(levels: number) {
     for (let i = 0; i < levels; i++) {
-      this.queues.push(new PriorityQueue((a, b) =>
-        b.priority.value - a.priority.value
-      ));
+      this.queues.push(
+        new PriorityQueue((a, b) => b.priority.value - a.priority.value)
+      );
       this.quantum.push(Math.pow(2, i) * 100); // Exponential quanta
     }
   }
@@ -273,16 +291,19 @@ class MultiLevelFeedbackScheduler {
 ```
 
 **Advantages:**
+
 - Adaptive to task behavior
 - Balances response time and throughput
 - No starvation with aging
 
 **Disadvantages:**
+
 - Complex implementation
 - Requires tuning
 - Hard to predict behavior
 
 **Use Cases:**
+
 - Mixed workloads
 - When task behavior varies
 - General-purpose scheduling
@@ -342,10 +363,14 @@ class ResourceBlocker {
   private taskResources: Map<string, string[]> = new Map(); // taskId -> resources
   private waitingTasks: Map<string, Set<string>> = new Map(); // resource -> waiting taskIds
 
-  async acquireResources(taskId: string, resources: string[]): Promise<boolean> {
-    const availableResources = resources.filter(resource =>
-      !this.resourceAllocations.has(resource) ||
-      this.resourceAllocations.get(resource)!.length === 0
+  async acquireResources(
+    taskId: string,
+    resources: string[]
+  ): Promise<boolean> {
+    const availableResources = resources.filter(
+      resource =>
+        !this.resourceAllocations.has(resource) ||
+        this.resourceAllocations.get(resource)!.length === 0
     );
 
     if (availableResources.length === resources.length) {
@@ -400,9 +425,10 @@ class ResourceBlocker {
   }
 
   private canAcquireAll(resources: string[]): boolean {
-    return resources.every(resource =>
-      !this.resourceAllocations.has(resource) ||
-      this.resourceAllocations.get(resource)!.length === 0
+    return resources.every(
+      resource =>
+        !this.resourceAllocations.has(resource) ||
+        this.resourceAllocations.get(resource)!.length === 0
     );
   }
 
@@ -506,7 +532,9 @@ class PriorityInheritanceManager {
     this.taskPriorities.set(taskId, newPriority);
 
     // Notify scheduler of priority change
-    console.log(`Boosted task ${taskId} priority from ${oldPriority} to ${newPriority}`);
+    console.log(
+      `Boosted task ${taskId} priority from ${oldPriority} to ${newPriority}`
+    );
   }
 
   private restorePriority(taskId: string): void {
@@ -599,21 +627,25 @@ class CompositeScheduler {
 ## Key Resources
 
 ### Academic Papers
+
 - "A Scheduler for Linux" (Con Kolivas, 2004) - Completely Fair Scheduler
 - "Analysis of Priority Inheritance Protocols" (Sha et al., 1990)
 - "Scheduling Algorithms for Multiprogramming in a Hard-Real-Time Environment" (Liu and Layland, 1973)
 
 ### Books
+
 - "Operating System Concepts" by Silberschatz, Galvin, and Gagne
 - "Real-Time Systems" by Jane W. S. Liu
 - "Computer Architecture: A Quantitative Approach" by Hennessy and Patterson
 
 ### Documentation
+
 - **Linux Completely Fair Scheduler**: https://www.kernel.org/doc/html/latest/scheduler/sched-design-CFS.html
 - **Windows Thread Scheduling**: https://docs.microsoft.com/en-us/windows/win32/procthread/scheduling-priorities
 - **Real-Time Linux**: https://rt.wiki.kernel.org/
 
 ### Open Source Projects
+
 - **Linux Kernel Scheduler**: https://github.com/torvalds/linux/tree/master/kernel/sched
 - **Celery Priority Queue**: https://docs.celeryproject.org/en/stable/userguide/optimizing.html#priority-queues
 - **Bull Priority Queue**: https://github.com/OptimalBits/bull#priority-queues
@@ -621,6 +653,7 @@ class CompositeScheduler {
 ## Best Practices
 
 ### Design Principles
+
 1. **Clarity**: Prioritization logic should be clear and understandable
 2. **Consistency**: Apply rules consistently across all tasks
 3. **Fairness**: Prevent starvation of low-priority tasks
@@ -628,6 +661,7 @@ class CompositeScheduler {
 5. **Observability**: Log scheduling decisions
 
 ### Implementation Guidelines
+
 1. **Use multiple strategies**: Combine different algorithms for different task types
 2. **Monitor metrics**: Track scheduling effectiveness
 3. **Test thoroughly**: Test with various workloads
@@ -636,6 +670,7 @@ class CompositeScheduler {
 6. **Handle edge cases**: Tasks without priorities, deadlines, etc.
 
 ### Performance Considerations
+
 1. **O(1) operations**: Use efficient data structures
 2. **Batch processing**: Process multiple tasks together
 3. **Caching**: Cache scheduling decisions

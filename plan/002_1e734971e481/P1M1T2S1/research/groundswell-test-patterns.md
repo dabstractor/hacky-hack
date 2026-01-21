@@ -17,6 +17,7 @@ This document consolidates test patterns for Groundswell Workflow lifecycle test
 ### Pattern: Extending Workflow Base Class
 
 **Implementation Pattern:**
+
 ```typescript
 import { Workflow, Step } from 'groundswell';
 
@@ -51,6 +52,7 @@ export class MyWorkflow extends Workflow {
 ```
 
 **Test Pattern:**
+
 ```typescript
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MyWorkflow } from './my-workflow.js';
@@ -89,7 +91,9 @@ describe('MyWorkflow', () => {
 
     it('should set status to failed on error', async () => {
       const workflow = new MyWorkflow('test', []);
-      vi.spyOn(workflow, 'processStep').mockRejectedValue(new Error('Test error'));
+      vi.spyOn(workflow, 'processStep').mockRejectedValue(
+        new Error('Test error')
+      );
       const setStatusSpy = vi.spyOn(workflow, 'setStatus');
 
       try {
@@ -107,6 +111,7 @@ describe('MyWorkflow', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Test constructor validation with edge cases (empty, whitespace, wrong types)
 2. Test status transitions through lifecycle (idle → running → completed/failed)
 3. Use spies to verify method call order and status changes
@@ -119,6 +124,7 @@ describe('MyWorkflow', () => {
 ### Pattern: @Step Decorator Usage
 
 **Implementation:**
+
 ```typescript
 class MyWorkflow extends Workflow {
   @Step({ trackTiming: true })
@@ -130,6 +136,7 @@ class MyWorkflow extends Workflow {
 ```
 
 **Test Pattern for Event Emission:**
+
 ```typescript
 describe('processItem', () => {
   it('should execute step and return results', async () => {
@@ -157,7 +164,7 @@ describe('processItem', () => {
     expect(emitEventSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'stepStart',
-        step: 'processItem'
+        step: 'processItem',
       })
     );
   });
@@ -172,7 +179,7 @@ describe('processItem', () => {
       expect.objectContaining({
         type: 'stepEnd',
         step: 'processItem',
-        duration: expect.any(Number)
+        duration: expect.any(Number),
       })
     );
   });
@@ -192,6 +199,7 @@ describe('processItem', () => {
 ```
 
 **Testing Event Observer Pattern:**
+
 ```typescript
 describe('Event propagation', () => {
   it('should notify observers of step events', async () => {
@@ -200,7 +208,7 @@ describe('Event propagation', () => {
       onEvent: vi.fn(),
       onLog: vi.fn(),
       onStateUpdated: vi.fn(),
-      onTreeChanged: vi.fn()
+      onTreeChanged: vi.fn(),
     };
 
     workflow.addObserver(observer);
@@ -208,12 +216,12 @@ describe('Event propagation', () => {
 
     expect(observer.onEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'stepStart'
+        type: 'stepStart',
       })
     );
     expect(observer.onEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'stepEnd'
+        type: 'stepEnd',
       })
     );
   });
@@ -221,6 +229,7 @@ describe('Event propagation', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Verify step execution returns expected results
 2. Test event emission (stepStart, stepEnd, error)
 3. Verify timing information is included when trackTiming is true
@@ -234,6 +243,7 @@ describe('Event propagation', () => {
 ### Pattern: @Task Decorator for Child Workflows
 
 **Implementation:**
+
 ```typescript
 class ParentWorkflow extends Workflow {
   @Task()
@@ -245,13 +255,14 @@ class ParentWorkflow extends Workflow {
   async spawnMultipleChildren(): Promise<ChildWorkflow[]> {
     return [
       new ChildWorkflow('child1', this),
-      new ChildWorkflow('child2', this)
+      new ChildWorkflow('child2', this),
     ];
   }
 }
 ```
 
 **Test Pattern:**
+
 ```typescript
 describe('Parent-child relationships', () => {
   it('should attach child workflow automatically', async () => {
@@ -295,7 +306,7 @@ describe('Parent-child relationships', () => {
       onEvent: vi.fn(),
       onLog: vi.fn(),
       onStateUpdated: vi.fn(),
-      onTreeChanged: vi.fn()
+      onTreeChanged: vi.fn(),
     };
 
     parent.addObserver(observer);
@@ -309,6 +320,7 @@ describe('Parent-child relationships', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Verify automatic child attachment (child.parent, parent.children)
 2. Test concurrent child execution
 3. Verify task lifecycle events (taskStart, taskEnd)
@@ -322,6 +334,7 @@ describe('Parent-child relationships', () => {
 ### Pattern: @ObservedState Decorator
 
 **Implementation:**
+
 ```typescript
 class MyWorkflow extends Workflow {
   @ObservedState()
@@ -336,6 +349,7 @@ class MyWorkflow extends Workflow {
 ```
 
 **Test Pattern for Observed State:**
+
 ```typescript
 describe('Observed state', () => {
   it('should initialize with default values', () => {
@@ -356,6 +370,7 @@ describe('Observed state', () => {
 ```
 
 **Test Pattern for snapshotState():**
+
 ```typescript
 describe('State snapshots', () => {
   it('should capture state snapshot', () => {
@@ -367,7 +382,7 @@ describe('State snapshots', () => {
 
     expect(workflow.node.stateSnapshot).toEqual({
       progress: 75,
-      processedItems: ['item1', 'item2']
+      processedItems: ['item1', 'item2'],
     });
   });
 
@@ -377,7 +392,7 @@ describe('State snapshots', () => {
       onEvent: vi.fn(),
       onLog: vi.fn(),
       onStateUpdated: vi.fn(),
-      onTreeChanged: vi.fn()
+      onTreeChanged: vi.fn(),
     };
 
     workflow.addObserver(observer);
@@ -408,7 +423,7 @@ describe('State snapshots', () => {
 
     expect(stepEndCall?.[0]).toHaveProperty('stateSnapshot');
     expect(stepEndCall?.[0].stateSnapshot).toEqual({
-      value: 42
+      value: 42,
     });
   });
 
@@ -426,7 +441,7 @@ describe('State snapshots', () => {
 
     expect(workflow.node.stateSnapshot).toEqual({
       publicData: 'visible',
-      apiKey: '***'  // Redacted
+      apiKey: '***', // Redacted
     });
   });
 
@@ -443,7 +458,7 @@ describe('State snapshots', () => {
     workflow.snapshotState();
 
     expect(workflow.node.stateSnapshot).toEqual({
-      visibleData: 'visible'
+      visibleData: 'visible',
       // internalState is not included
     });
     expect(workflow.node.stateSnapshot).not.toHaveProperty('internalState');
@@ -452,6 +467,7 @@ describe('State snapshots', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Verify state initialization and updates
 2. Test manual snapshot capture via snapshotState()
 3. Test observer notification on state updates
@@ -466,6 +482,7 @@ describe('State snapshots', () => {
 ### Pattern: Mock Anthropic SDK
 
 **Implementation in Test File:**
+
 ```typescript
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -480,6 +497,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
 ```
 
 **Complete Example with Agent Factory Mock:**
+
 ```typescript
 // Mock agent factory
 vi.mock('../../../src/agents/agent-factory.js', () => ({
@@ -512,7 +530,7 @@ describe('MyWorkflow with mocked agents', () => {
     const workflow = new MyWorkflow('test', []);
     const mockAgent = {
       prompt: vi.fn().mockResolvedValue({
-        result: 'success'
+        result: 'success',
       }),
     };
     mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -528,6 +546,7 @@ describe('MyWorkflow with mocked agents', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Mock @anthropic-ai/sdk at the top of test file
 2. Mock agent factories and prompt factories
 3. Setup and clear mocks in beforeEach
@@ -541,6 +560,7 @@ describe('MyWorkflow with mocked agents', () => {
 ### Pattern: run() Method Structure
 
 **Implementation:**
+
 ```typescript
 class MyWorkflow extends Workflow {
   @Step({ trackTiming: true })
@@ -569,6 +589,7 @@ class MyWorkflow extends Workflow {
 ```
 
 **Test Pattern:**
+
 ```typescript
 describe('run method', () => {
   it('should execute all steps in order', async () => {
@@ -635,6 +656,7 @@ describe('run method', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Verify step execution order
 2. Test status transitions (running -> completed/failed)
 3. Verify result return value
@@ -649,6 +671,7 @@ describe('run method', () => {
 ### Pattern: Parent-Child Management
 
 **Test Pattern for attachChild():**
+
 ```typescript
 describe('attachChild', () => {
   it('should attach child workflow', () => {
@@ -697,6 +720,7 @@ describe('attachChild', () => {
 ```
 
 **Test Pattern for detachChild():**
+
 ```typescript
 describe('detachChild', () => {
   it('should detach child workflow', () => {
@@ -733,7 +757,7 @@ describe('detachChild', () => {
       onEvent: vi.fn(),
       onLog: vi.fn(),
       onStateUpdated: vi.fn(),
-      onTreeChanged: vi.fn()
+      onTreeChanged: vi.fn(),
     };
 
     parent1.addObserver(observer);
@@ -752,6 +776,7 @@ describe('detachChild', () => {
 ```
 
 **Test Pattern for setStatus():**
+
 ```typescript
 describe('setStatus', () => {
   it('should update workflow status', () => {
@@ -774,7 +799,7 @@ describe('setStatus', () => {
     expect(emitEventSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'statusChange',
-        status: 'running'
+        status: 'running',
       })
     );
   });
@@ -788,7 +813,13 @@ describe('setStatus', () => {
 
   it('should accept valid status values', () => {
     const workflow = new Workflow('Test');
-    const validStatuses = ['idle', 'running', 'completed', 'failed', 'cancelled'];
+    const validStatuses = [
+      'idle',
+      'running',
+      'completed',
+      'failed',
+      'cancelled',
+    ];
 
     validStatuses.forEach(status => {
       workflow.setStatus(status as any);
@@ -799,6 +830,7 @@ describe('setStatus', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Verify child attachment (parent-child links)
 2. Test validation (no circular references, no duplicate parents)
 3. Test detachment and reparenting
@@ -813,6 +845,7 @@ describe('setStatus', () => {
 ### Pattern: Hierarchy Validation
 
 **Test Pattern:**
+
 ```typescript
 describe('isDescendantOf', () => {
   it('should return true for direct child', () => {
@@ -884,6 +917,7 @@ describe('isDescendantOf', () => {
 ```
 
 **Key Test Considerations:**
+
 1. Test direct parent-child relationships
 2. Test multi-level hierarchies (grandparent, great-grandparent)
 3. Test unrelated workflows
@@ -933,7 +967,7 @@ describe('MyWorkflow - Complete Lifecycle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCreateAgent.mockReturnValue({
-      prompt: vi.fn().mockResolvedValue({ result: 'success' })
+      prompt: vi.fn().mockResolvedValue({ result: 'success' }),
     });
     mockCreatePrompt.mockReturnValue({ user: 'test prompt' });
   });
@@ -961,7 +995,7 @@ describe('MyWorkflow - Complete Lifecycle', () => {
       expect(emitEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'stepStart',
-          step: 'processStep'
+          step: 'processStep',
         })
       );
 
@@ -969,7 +1003,7 @@ describe('MyWorkflow - Complete Lifecycle', () => {
         expect.objectContaining({
           type: 'stepEnd',
           step: 'processStep',
-          duration: expect.any(Number)
+          duration: expect.any(Number),
         })
       );
     });
@@ -985,7 +1019,7 @@ describe('MyWorkflow - Complete Lifecycle', () => {
 
       expect(workflow.node.stateSnapshot).toEqual({
         progress: 50,
-        processedItems: ['item1']
+        processedItems: ['item1'],
       });
     });
 
@@ -995,7 +1029,7 @@ describe('MyWorkflow - Complete Lifecycle', () => {
         onEvent: vi.fn(),
         onLog: vi.fn(),
         onStateUpdated: vi.fn(),
-        onTreeChanged: vi.fn()
+        onTreeChanged: vi.fn(),
       };
 
       workflow.addObserver(observer);
@@ -1062,15 +1096,17 @@ describe('MyWorkflow - Complete Lifecycle', () => {
 ### 10.1 Mock Patterns
 
 **Anthropic SDK Mock:**
+
 ```typescript
 vi.mock('@anthropic-ai/sdk', () => ({
   Anthropic: vi.fn(() => ({
-    messages: { create: vi.fn() }
+    messages: { create: vi.fn() },
   })),
 }));
 ```
 
 **Agent Factory Mock:**
+
 ```typescript
 vi.mock('./agent-factory.js', () => ({
   createAgent: vi.fn(),
@@ -1078,13 +1114,14 @@ vi.mock('./agent-factory.js', () => ({
 
 const mockCreateAgent = createAgent as any;
 mockCreateAgent.mockReturnValue({
-  prompt: vi.fn().mockResolvedValue({ result: 'success' })
+  prompt: vi.fn().mockResolvedValue({ result: 'success' }),
 });
 ```
 
 ### 10.2 Event Emission Testing
 
 **Verify Event Structure:**
+
 ```typescript
 const emitEventSpy = vi.spyOn(workflow, 'emitEvent');
 await workflow.step();
@@ -1093,14 +1130,20 @@ expect(emitEventSpy).toHaveBeenCalledWith(
   expect.objectContaining({
     type: 'stepStart',
     step: 'stepName',
-    duration: expect.any(Number)
+    duration: expect.any(Number),
   })
 );
 ```
 
 **Test Observer Notification:**
+
 ```typescript
-const observer = { onEvent: vi.fn(), onLog: vi.fn(), onStateUpdated: vi.fn(), onTreeChanged: vi.fn() };
+const observer = {
+  onEvent: vi.fn(),
+  onLog: vi.fn(),
+  onStateUpdated: vi.fn(),
+  onTreeChanged: vi.fn(),
+};
 workflow.addObserver(observer);
 await workflow.step();
 
@@ -1110,12 +1153,14 @@ expect(observer.onEvent).toHaveBeenCalled();
 ### 10.3 State Snapshot Testing
 
 **Manual Snapshot:**
+
 ```typescript
 workflow.snapshotState();
 expect(workflow.node.stateSnapshot).toEqual({ key: 'value' });
 ```
 
 **Automatic Snapshot with @Step:**
+
 ```typescript
 @Step({ snapshotState: true })
 async step() { this.value = 42; }
@@ -1131,6 +1176,7 @@ expect(stepEndCall?.[0].stateSnapshot).toEqual({ value: 42 });
 ### 10.4 Parent-Child Relationship Testing
 
 **Attachment:**
+
 ```typescript
 parent.attachChild(child);
 expect(child.parent).toBe(parent);
@@ -1138,12 +1184,14 @@ expect(parent.children).toContain(child);
 ```
 
 **Descendant Check:**
+
 ```typescript
 expect(child.isDescendantOf(parent)).toBe(true);
 expect(child.isDescendantOf(grandparent)).toBe(true);
 ```
 
 **Reparenting:**
+
 ```typescript
 parent1.detachChild(child);
 parent2.attachChild(child);
@@ -1223,6 +1271,7 @@ expect(child.parent).toBe(parent2);
 This research document provides comprehensive test patterns for Groundswell Workflow lifecycle testing. The patterns are derived from existing test suites in the codebase and Groundswell library architecture documentation.
 
 **Key Takeaways:**
+
 1. Use consistent mock patterns for Anthropic SDK and agent factories
 2. Test decorator behavior via their effects (events, timing, snapshots)
 3. Verify lifecycle status transitions (idle → running → completed/failed)
@@ -1232,6 +1281,7 @@ This research document provides comprehensive test patterns for Groundswell Work
 7. Handle edge cases: circular references, reparenting, redacted state
 
 **Sources:**
+
 - Existing test files: `/home/dustin/projects/hacky-hack/tests/unit/workflows/*.test.ts`
 - Workflow implementations: `/home/dustin/projects/hacky-hack/src/workflows/*.ts`
 - Groundswell analysis: `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/architecture/groundswell_analysis.md`

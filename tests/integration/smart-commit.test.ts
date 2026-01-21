@@ -287,7 +287,9 @@ describe('integration/smart-commit > smart commit functionality', () => {
       const { PRPRuntime } = await import('../../src/agents/prp-runtime.js');
       const MockPRPRuntime = PRPRuntime as any;
       MockPRPRuntime.mockImplementation(() => ({
-        executeSubtask: vi.fn().mockRejectedValue(new Error('Execution failed')),
+        executeSubtask: vi
+          .fn()
+          .mockRejectedValue(new Error('Execution failed')),
       }));
 
       // Create new orchestrator with throwing PRPRuntime
@@ -380,12 +382,7 @@ describe('integration/smart-commit > smart commit functionality', () => {
   describe('protected files filtering', () => {
     it('should filter out tasks.json from file list', () => {
       // SETUP: Files with protected and non-protected
-      const files = [
-        'src/index.ts',
-        'tasks.json',
-        'src/utils.ts',
-        'README.md',
-      ];
+      const files = ['src/index.ts', 'tasks.json', 'src/utils.ts', 'README.md'];
 
       // EXECUTE: Filter protected files
       const filtered = filterProtectedFiles(files);

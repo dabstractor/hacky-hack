@@ -9,11 +9,13 @@ This document provides a comprehensive analysis of the testing patterns in this 
 ## 1. Testing Framework Identification
 
 **Framework: Vitest** (v1.6.1)
+
 - Modern, fast testing framework designed for Vite projects
 - Excellent TypeScript support and built-in mocking capabilities
 - 100% coverage requirements for all metrics
 
 **Key Vitest Features Used:**
+
 - `vi.stubEnv()` for environment variable mocking
 - `vi.unstubAllEnvs()` for cleanup
 - `vi.fn()` for function mocking
@@ -28,11 +30,13 @@ This document provides a comprehensive analysis of the testing patterns in this 
 ### Primary Pattern: `vi.stubEnv()` with Global Cleanup
 
 **Basic Usage:**
+
 ```typescript
 vi.stubEnv('VARIABLE_NAME', 'value');
 ```
 
 **Complete Pattern with Cleanup:**
+
 ```typescript
 describe('Environment-dependent feature', () => {
   afterEach(() => {
@@ -62,6 +66,7 @@ expect(process.env.ANTHROPIC_API_KEY).toBe('test-token-123');
 ### Cleanup Pattern
 
 **Global Setup (tests/setup.ts):**
+
 ```typescript
 afterEach(() => {
   // CLEANUP: Restore all environment variable stubs
@@ -70,6 +75,7 @@ afterEach(() => {
 ```
 
 **Test-level Cleanup:**
+
 ```typescript
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -81,11 +87,13 @@ afterEach(() => {
 ## 3. Test Structure Conventions
 
 ### File Naming
+
 - Test files follow the pattern: `[filename].test.ts`
 - Located in `tests/unit/` for unit tests
 - Integration tests in `tests/integration/`
 
 ### Test Organization
+
 ```typescript
 describe('Module/Component Name', () => {
   describe('Specific feature', () => {
@@ -101,11 +109,13 @@ describe('Module/Component Name', () => {
 ### Clear Sections Pattern
 
 Tests are well-structured with clear sections:
+
 - **SETUP**: Preparation step
 - **EXECUTE**: Action being tested
 - **VERIFY**: Assertions
 
 Example from `tests/unit/is-fatal-error.test.ts`:
+
 ```typescript
 it('should return true for SessionError with LOAD_FAILED code', () => {
   // SETUP: Create SessionError instance
@@ -126,6 +136,7 @@ it('should return true for SessionError with LOAD_FAILED code', () => {
 ## 4. Assertion Patterns
 
 ### Standard Expectations
+
 ```typescript
 expect(value).toBe(expected);
 expect(value).toEqual(expected);
@@ -134,6 +145,7 @@ expect(object).toHaveProperty('key', 'value');
 ```
 
 ### Error Testing Patterns
+
 ```typescript
 // Should throw
 expect(() => function()).toThrow(ExpectedError);
@@ -146,6 +158,7 @@ expect(error).toBeInstanceOf(ErrorType);
 ```
 
 ### Async Testing
+
 ```typescript
 // Promise resolution
 await expect(promise).resolves.toBe(expected);
@@ -159,14 +172,16 @@ await expect(promise).rejects.toThrow(expected);
 ## 5. Mock Helper Functions and Patterns
 
 ### Function Mocking
+
 ```typescript
 // Create mock function
 const mockFunction = vi.fn();
 mockFunction.mockReturnValue('value');
-mockFunction.mockImplementation((arg) => `processed-${arg}`);
+mockFunction.mockImplementation(arg => `processed-${arg}`);
 ```
 
 ### Mock Module Imports
+
 ```typescript
 vi.mock('../../src/agents/agent-factory.js', () => ({
   createArchitectAgent: vi.fn(),
@@ -176,6 +191,7 @@ vi.mock('../../src/agents/agent-factory.js', () => ({
 ```
 
 ### Complex Mock Objects
+
 ```typescript
 const mockSessionManager = {
   currentSession: null,
@@ -213,6 +229,7 @@ describe('Logger utility', () => {
 ```
 
 ### Sensitive Data Redaction
+
 ```typescript
 // Test redaction configuration
 it('should redact apiKey field', () => {
@@ -261,6 +278,7 @@ describe('isFatalError', () => {
 ```
 
 ### Environment Validation Testing
+
 ```typescript
 describe('validateEnvironment', () => {
   it('should throw when API_KEY is missing', () => {
@@ -292,6 +310,7 @@ describe('validateEnvironment', () => {
 ## 8. Test Setup and Global Patterns
 
 ### Global Setup (tests/setup.ts)
+
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks(); // Clear mock call histories
@@ -325,6 +344,7 @@ describe('vi.unstubAllEnvs() verification', () => {
 ### Gotchas to Avoid:
 
 1. **Always Clean Up Environment Variables:**
+
    ```typescript
    afterEach(() => {
      vi.unstubAllEnvs();
@@ -332,6 +352,7 @@ describe('vi.unstubAllEnvs() verification', () => {
    ```
 
 2. **Use Clear Sections in Tests:**
+
    ```typescript
    // SETUP
    vi.stubEnv('VARIABLE', 'value');
@@ -344,9 +365,10 @@ describe('vi.unstubAllEnvs() verification', () => {
    ```
 
 3. **Mock Dependencies Properly:**
+
    ```typescript
    vi.mock('module-name', () => ({
-     exportedFunction: vi.fn().mockResolvedValue('mock-result')
+     exportedFunction: vi.fn().mockResolvedValue('mock-result'),
    }));
    ```
 
@@ -395,9 +417,7 @@ describe('Nested Execution Guard', () => {
       delete process.env.PRP_PIPELINE_RUNNING;
 
       // EXECUTE: Validate guard
-      expect(() =>
-        validateNestedExecutionGuard({ logger })
-      ).not.toThrow();
+      expect(() => validateNestedExecutionGuard({ logger })).not.toThrow();
 
       // VERIFY: PRP_PIPELINE_RUNNING is set to current PID
       expect(process.env.PRP_PIPELINE_RUNNING).toBe(process.pid.toString());
@@ -408,9 +428,9 @@ describe('Nested Execution Guard', () => {
       vi.stubEnv('PRP_PIPELINE_RUNNING', '99999');
 
       // EXECUTE & VERIFY: Should throw
-      expect(() =>
-        validateNestedExecutionGuard({ logger })
-      ).toThrow('Pipeline already running');
+      expect(() => validateNestedExecutionGuard({ logger })).toThrow(
+        'Pipeline already running'
+      );
     });
   });
 

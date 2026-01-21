@@ -7,6 +7,7 @@ This document captures integration test patterns used in the codebase for testin
 ## Test File Locations
 
 ### Integration Test Directory Structure
+
 ```
 tests/
 ├── integration/
@@ -25,6 +26,7 @@ tests/
 ## Mock Setup Patterns
 
 ### Pattern 1: Agent Factory Mock
+
 Used for testing workflows that create agents.
 
 ```typescript
@@ -49,6 +51,7 @@ beforeEach(() => {
 ```
 
 ### Pattern 2: Prompt Function Mock
+
 Used for testing prompt generation logic.
 
 ```typescript
@@ -73,6 +76,7 @@ beforeEach(() => {
 ```
 
 ### Pattern 3: Groundswell Mock
+
 Used for testing agent factory functions directly.
 
 ```typescript
@@ -107,6 +111,7 @@ describe('tests', () => {
 ## Test Data Factory Patterns
 
 ### Test Task Factory
+
 ```typescript
 const createTestTask = (
   id: string,
@@ -124,6 +129,7 @@ const createTestTask = (
 ```
 
 ### Test Bug Factory
+
 ```typescript
 const createTestBug = (
   id: string,
@@ -143,6 +149,7 @@ const createTestBug = (
 ```
 
 ### Test Results Factory
+
 ```typescript
 const createTestResults = (
   hasBugs: boolean,
@@ -160,6 +167,7 @@ const createTestResults = (
 ## Test Structure Patterns
 
 ### Pattern 1: Full Workflow Execution Test
+
 ```typescript
 describe('full run() workflow execution', () => {
   it('should complete workflow successfully with no bugs found', async () => {
@@ -200,6 +208,7 @@ describe('full run() workflow execution', () => {
 ```
 
 ### Pattern 2: Phase Execution Order Test
+
 ```typescript
 it('should execute all phases in correct order', async () => {
   // SETUP
@@ -233,6 +242,7 @@ it('should execute all phases in correct order', async () => {
 ```
 
 ### Pattern 3: Error Handling Test
+
 ```typescript
 it('should handle QA agent errors gracefully', async () => {
   // SETUP
@@ -255,6 +265,7 @@ it('should handle QA agent errors gracefully', async () => {
 ```
 
 ### Pattern 4: State Machine Test (Multi-call Scenarios)
+
 ```typescript
 it('should retry on validation failure up to 2 times', async () => {
   // SETUP
@@ -270,17 +281,28 @@ it('should retry on validation failure up to 2 times', async () => {
   };
 
   // BashMCP state machine: fail Level 2 twice, then pass
-  vi.spyOn(BashMCP.prototype, 'execute_bash')
-    .mockImplementation(async ({ command }: any) => {
+  vi.spyOn(BashMCP.prototype, 'execute_bash').mockImplementation(
+    async ({ command }: any) => {
       validationRunCount++;
       if (validationRunCount === 2) {
-        return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
+        return {
+          success: false,
+          stdout: '',
+          stderr: 'Test failed',
+          exitCode: 1,
+        };
       }
       if (validationRunCount === 5) {
-        return { success: false, stdout: '', stderr: 'Test failed', exitCode: 1 };
+        return {
+          success: false,
+          stdout: '',
+          stderr: 'Test failed',
+          exitCode: 1,
+        };
       }
       return { success: true, stdout: '', stderr: '', exitCode: 0 };
-    });
+    }
+  );
 
   const executor = new PRPExecutor(process.cwd());
 
@@ -297,6 +319,7 @@ it('should retry on validation failure up to 2 times', async () => {
 ## Test Organization
 
 ### Describe Block Structure
+
 ```typescript
 describe('QA Agent Integration Tests', () => {
   beforeEach(() => {
@@ -328,6 +351,7 @@ describe('QA Agent Integration Tests', () => {
 ## Verification Patterns
 
 ### Factory Function Verification
+
 ```typescript
 it('should call createQAAgent with correct configuration', () => {
   const { createQAAgent } = require('../../src/agents/agent-factory.js');
@@ -347,6 +371,7 @@ it('should call createQAAgent with correct configuration', () => {
 ```
 
 ### Mock Invocation Verification
+
 ```typescript
 // Verify function was called with specific arguments
 expect(mockCreateBugHuntPrompt).toHaveBeenCalledWith(
@@ -363,6 +388,7 @@ expect(completedTasksArg).toHaveLength(2);
 ```
 
 ### Array/Collection Verification
+
 ```typescript
 // Count bugs by severity
 expect(results.bugs.filter(b => b.severity === 'critical')).toHaveLength(1);
@@ -378,18 +404,18 @@ expect(completedTasksArg[1].id).toBe('P1.M1.T3');
 Location: `tests/setup.ts`
 
 ### API Endpoint Validation
+
 ```typescript
 beforeAll(() => {
   const baseUrl = process.env.ANTHROPIC_BASE_URL ?? '';
   if (baseUrl === 'https://api.anthropic.com') {
-    throw new Error(
-      'Tests must use z.ai API endpoint, not api.anthropic.com'
-    );
+    throw new Error('Tests must use z.ai API endpoint, not api.anthropic.com');
   }
 });
 ```
 
 ### Cleanup Hooks
+
 ```typescript
 beforeEach(() => {
   // Clear mocks before each test
@@ -406,6 +432,7 @@ afterEach(() => {
 ## Key Import Patterns
 
 ### ES Module Imports (.js extensions required)
+
 ```typescript
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BugHuntWorkflow } from '../../src/workflows/bug-hunt-workflow.js';
@@ -414,6 +441,7 @@ import { TestResultsSchema } from '../../src/core/models.js';
 ```
 
 ### Type Imports
+
 ```typescript
 import type { Task, TestResults, Bug } from '../../src/core/models.js';
 import type { TaskOrchestrator } from '../../src/core/task-orchestrator.js';

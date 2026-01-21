@@ -11,17 +11,17 @@ Research into Zod validation patterns for custom string format validation, focus
 Simple pattern matching for structured strings:
 
 ```typescript
-const alphanumericSchema = z.string().regex(
-  /^[a-zA-Z0-9]+$/,
-  "Only alphanumeric characters allowed"
-);
+const alphanumericSchema = z
+  .string()
+  .regex(/^[a-zA-Z0-9]+$/, 'Only alphanumeric characters allowed');
 
 // Multiple regex patterns
-const strongPasswordSchema = z.string()
-  .regex(/[A-Z]/, "Must contain uppercase")
-  .regex(/[a-z]/, "Must contain lowercase")
-  .regex(/[0-9]/, "Must contain number")
-  .regex(/[^A-Za-z0-9]/, "Must contain special character");
+const strongPasswordSchema = z
+  .string()
+  .regex(/[A-Z]/, 'Must contain uppercase')
+  .regex(/[a-z]/, 'Must contain lowercase')
+  .regex(/[0-9]/, 'Must contain number')
+  .regex(/[^A-Za-z0-9]/, 'Must contain special character');
 ```
 
 ### 2. .refine() - Custom validation logic
@@ -29,20 +29,20 @@ const strongPasswordSchema = z.string()
 Custom validation with detailed error messages:
 
 ```typescript
-const emailSchema = z.string().refine(
-  (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-  { message: "Invalid email format" }
-);
+const emailSchema = z
+  .string()
+  .refine(val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+    message: 'Invalid email format',
+  });
 
 // Refine with multiple checks
 const usernameSchema = z.string().refine(
-  (val) => {
-    return val.length >= 3 &&
-           val.length <= 20 &&
-           /^[a-zA-Z0-9_-]+$/.test(val);
+  val => {
+    return val.length >= 3 && val.length <= 20 && /^[a-zA-Z0-9_-]+$/.test(val);
   },
   {
-    message: "Username must be 3-20 alphanumeric characters, underscores or hyphens"
+    message:
+      'Username must be 3-20 alphanumeric characters, underscores or hyphens',
   }
 );
 ```
@@ -57,16 +57,16 @@ const passwordSchema = z.string().superRefine((val, ctx) => {
     ctx.addIssue({
       code: z.ZodIssueCode.too_small,
       minimum: 8,
-      type: "string",
+      type: 'string',
       inclusive: true,
-      message: "Password must be at least 8 characters"
+      message: 'Password must be at least 8 characters',
     });
   }
 
   if (!/[A-Z]/.test(val)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Password must contain at least one uppercase letter"
+      message: 'Password must contain at least one uppercase letter',
     });
   }
 });
@@ -106,21 +106,24 @@ const contractSchema = z.string().superRefine((contract, ctx) => {
   if (sections.length < 3) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Contract must have at least 3 sections"
+      message: 'Contract must have at least 3 sections',
     });
   }
 
   // Validate required sections
   const requiredSections = ['Parties', 'Terms', 'Signatures'];
   const foundSections = sections.map(s =>
-    s.split('\n')[0].trim().replace(/^#+\s*/, '')
+    s
+      .split('\n')[0]
+      .trim()
+      .replace(/^#+\s*/, '')
   );
 
   requiredSections.forEach(required => {
     if (!foundSections.some(found => found.includes(required))) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Missing required section: ${required}`
+        message: `Missing required section: ${required}`,
       });
     }
   });

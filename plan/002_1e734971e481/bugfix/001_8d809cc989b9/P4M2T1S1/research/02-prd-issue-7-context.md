@@ -69,6 +69,7 @@ it('should preserve stack trace through error wrapping', async () => {
 ### 1. Promise Rejection Handling Race Condition
 
 `PromiseRejectionHandledWarning` occurs when:
+
 1. A promise rejects without an attached handler
 2. A handler is attached in a subsequent event loop tick
 
@@ -77,6 +78,7 @@ This is a **race condition** - Node.js detects the unhandled rejection and emits
 ### 2. Error Chain Preservation Issues
 
 The error wrapping mechanism may not properly preserve:
+
 - The prototype chain (`Object.setPrototypeOf`)
 - The `cause` property in Error options
 - Stack trace through async boundaries
@@ -84,6 +86,7 @@ The error wrapping mechanism may not properly preserve:
 ### 3. Async Test Lifecycle Issues
 
 Test hooks (beforeEach, afterEach) may have:
+
 - Async operations without proper .catch() handlers
 - Cleanup that runs before async operations complete
 - Mock timers that interact unpredictably with real promises
@@ -95,19 +98,19 @@ From the tasks.json file for P4.M2.T1.S1:
 ```yaml
 CONTRACT DEFINITION:
 1. RESEARCH NOTE: From PRD Issue 7 - PromiseRejectionHandledWarning messages
-   appear during test runs. Some tests fail stack trace preservation checks.
-   Need to identify source of unhandled rejections.
+  appear during test runs. Some tests fail stack trace preservation checks.
+  Need to identify source of unhandled rejections.
 
 2. INPUT: Integration test output showing warnings, test setup files,
-   test teardown code.
+  test teardown code.
 
 3. LOGIC: Run integration tests and capture PromiseRejectionHandledWarning
-   messages. Identify which tests or setup code causes unhandled rejections.
-   Add proper .catch() handlers or try-catch blocks. Ensure all promises
-   are properly handled in test fixtures. Review async/await usage.
+  messages. Identify which tests or setup code causes unhandled rejections.
+  Add proper .catch() handlers or try-catch blocks. Ensure all promises
+  are properly handled in test fixtures. Review async/await usage.
 
 4. OUTPUT: Analysis of promise rejection sources, identified unhandled
-   rejections fixed with proper handlers.
+  rejections fixed with proper handlers.
 ```
 
 ## Success Criteria
@@ -131,6 +134,7 @@ CONTRACT DEFINITION:
 ### Error Hierarchy Dependencies
 
 The error wrapping mechanism depends on:
+
 - Proper `Object.setPrototypeOf()` calls in error constructors
 - Correct `cause` option handling in Error constructors
 - Type guard functions for error instance checking

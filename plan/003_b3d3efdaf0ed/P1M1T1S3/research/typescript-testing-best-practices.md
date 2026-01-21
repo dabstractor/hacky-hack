@@ -71,8 +71,8 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     // Environment setup
-    environment: 'node',  // or 'jsdom' for browser APIs
-    globals: true,        // Use global describe, it, expect
+    environment: 'node', // or 'jsdom' for browser APIs
+    globals: true, // Use global describe, it, expect
 
     // Test file patterns
     include: ['tests/**/*.{test,spec}.ts'],
@@ -83,17 +83,17 @@ export default defineConfig({
 
     // Module resolution
     deps: {
-      interopDefault: true,  // Better CommonJS/ESM interop
+      interopDefault: true, // Better CommonJS/ESM interop
     },
 
     // File system access
     fs: {
-      allow: ['.', '..'],  // Allow access to project files
+      allow: ['.', '..'], // Allow access to project files
     },
 
     // Coverage configuration
     coverage: {
-      provider: 'v8',  // Faster than istanbul
+      provider: 'v8', // Faster than istanbul
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
       exclude: ['**/*.test.ts', '**/*.spec.ts'],
@@ -122,16 +122,16 @@ export default defineConfig({
 export default defineConfig({
   test: {
     // Control parallel execution
-    fileParallelism: true,  // Run test files in parallel
-    maxThreads: 4,          // Limit worker threads
+    fileParallelism: true, // Run test files in parallel
+    maxThreads: 4, // Limit worker threads
     minThreads: 1,
 
     // Test timeout configuration
-    testTimeout: 10000,     // Default test timeout (ms)
-    hookTimeout: 10000,     // Default hook timeout (ms)
+    testTimeout: 10000, // Default test timeout (ms)
+    hookTimeout: 10000, // Default hook timeout (ms)
 
     // Isolation settings
-    isolate: true,          // Isolate tests from each other
+    isolate: true, // Isolate tests from each other
   },
 });
 ```
@@ -235,14 +235,18 @@ declare module 'vitest' {
 
 expect.extend({
   toBeValidSession(received: unknown) {
-    const pass = typeof received === 'object' && received !== null &&
-      'id' in received && 'path' in received;
+    const pass =
+      typeof received === 'object' &&
+      received !== null &&
+      'id' in received &&
+      'path' in received;
 
     return {
       pass,
-      message: () => pass
-        ? `Expected ${received} not to be a valid session`
-        : `Expected ${received} to be a valid session`,
+      message: () =>
+        pass
+          ? `Expected ${received} not to be a valid session`
+          : `Expected ${received} to be a valid session`,
     };
   },
 });
@@ -253,19 +257,15 @@ expect.extend({
 ```typescript
 import type { Status } from '@/core/models';
 
-function testAllStatuses(
-  testFn: (status: Status) => void | Promise<void>
-) {
+function testAllStatuses(testFn: (status: Status) => void | Promise<void>) {
   const statuses: Status[] = ['Planned', 'InProgress', 'Complete', 'Blocked'];
 
-  return Promise.all(
-    statuses.map(status => testFn(status))
-  );
+  return Promise.all(statuses.map(status => testFn(status)));
 }
 
 describe('Status handling', () => {
   it('should handle all status types', async () => {
-    await testAllStatuses(async (status) => {
+    await testAllStatuses(async status => {
       const result = processStatus(status);
       expect(result).toBeDefined();
     });
@@ -402,9 +402,9 @@ describe('Session Concurrency', () => {
     expect(ids.size).toBe(3);
 
     // Verify sequential numbering
-    const sequenceNumbers = sessions.map(s =>
-      parseInt(s.id.split('_')[0], 10)
-    ).sort((a, b) => a - b);
+    const sequenceNumbers = sessions
+      .map(s => parseInt(s.id.split('_')[0], 10))
+      .sort((a, b) => a - b);
 
     expect(sequenceNumbers).toEqual([1, 2, 3]);
   });
@@ -608,7 +608,9 @@ const mockSessionManager = {
 
 // Usage in tests
 const session = await mockSessionManager.createSession('/path/to/prd.md');
-expect(mockSessionManager.createSession).toHaveBeenCalledWith('/path/to/prd.md');
+expect(mockSessionManager.createSession).toHaveBeenCalledWith(
+  '/path/to/prd.md'
+);
 ```
 
 ### 3. Module Mocking
@@ -629,7 +631,7 @@ vi.mock('@/src/agents/agent-factory', () => ({
 }));
 
 // Mock with partial implementation
-vi.mock('node:fs/promises', async (importOriginal) => {
+vi.mock('node:fs/promises', async importOriginal => {
   const actual = await importOriginal<typeof import('node:fs/promises')>();
   return {
     ...actual,
@@ -716,9 +718,11 @@ await sessionManager.createSession(prdPath);
 
 // Verify spy
 expect(createSpy).toHaveBeenCalledWith(prdPath);
-expect(createSpy).toHaveReturnedWith(expect.objectContaining({
-  id: expect.any(String),
-}));
+expect(createSpy).toHaveReturnedWith(
+  expect.objectContaining({
+    id: expect.any(String),
+  })
+);
 
 // Restore original
 createSpy.mockRestore();
@@ -945,7 +949,10 @@ describe('Object Shape Assertions', () => {
 
     expect(session).toHaveProperty('id');
     expect(session).toHaveProperty('path', expect.stringContaining('/tmp/'));
-    expect(session).toHaveProperty('prdHash', expect.stringMatching(/^[a-f0-9]{12}$/));
+    expect(session).toHaveProperty(
+      'prdHash',
+      expect.stringMatching(/^[a-f0-9]{12}$/)
+    );
 
     // Nested properties
     expect(session).toHaveProperty['metadata.createdAt'];
@@ -961,9 +968,11 @@ describe('Array Assertions', () => {
     const sessions = [createMockSession(), createMockSession()];
 
     expect(sessions).toHaveLength(2);
-    expect(sessions).toContainEqual(expect.objectContaining({
-      id: expect.any(String),
-    }));
+    expect(sessions).toContainEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+      })
+    );
 
     // Array item properties
     expect(sessions[0]).toHaveProperty('id');
@@ -995,9 +1004,7 @@ describe('Array Assertions', () => {
 ```typescript
 describe('Async Assertions', () => {
   it('should resolve with expected value', async () => {
-    await expect(
-      sessionManager.createSession(prdPath)
-    ).resolves.toEqual(
+    await expect(sessionManager.createSession(prdPath)).resolves.toEqual(
       expect.objectContaining({
         id: expect.any(String),
         path: expect.stringContaining('/tmp/'),
@@ -1006,9 +1013,9 @@ describe('Async Assertions', () => {
   });
 
   it('should reject with error', async () => {
-    await expect(
-      sessionManager.loadSession('non-existent')
-    ).rejects.toThrow('Session not found');
+    await expect(sessionManager.loadSession('non-existent')).rejects.toThrow(
+      'Session not found'
+    );
 
     await expect(
       sessionManager.loadSession('non-existent')
@@ -1055,7 +1062,10 @@ describe('Error Assertions', () => {
       sessionManager.loadSession('invalid');
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
-      expect(error).toHaveProperty('message', expect.stringContaining('Session'));
+      expect(error).toHaveProperty(
+        'message',
+        expect.stringContaining('Session')
+      );
       expect(error).toHaveProperty('stack', expect.any(String));
     }
   });
@@ -1184,15 +1194,15 @@ describe('Event Emission', () => {
   it('should emit events in sequence', async () => {
     const events: string[] = [];
 
-    sessionManager.on('created', (session) => {
+    sessionManager.on('created', session => {
       events.push(`created:${session.id}`);
     });
 
-    sessionManager.on('updated', (session) => {
+    sessionManager.on('updated', session => {
       events.push(`updated:${session.id}`);
     });
 
-    sessionManager.on('completed', (session) => {
+    sessionManager.on('completed', session => {
       events.push(`completed:${session.id}`);
     });
 
@@ -1201,10 +1211,7 @@ describe('Event Emission', () => {
     await sessionManager.updateSessionStatus(session.id, 'Complete');
 
     // Verify event sequence
-    expect(events).toEqual([
-      `created:${session.id}`,
-      `updated:${session.id}`,
-    ]);
+    expect(events).toEqual([`created:${session.id}`, `updated:${session.id}`]);
   });
 });
 ```
@@ -1216,16 +1223,19 @@ describe.each([
   { status: 'Planned', nextStatus: 'InProgress' },
   { status: 'InProgress', nextStatus: 'Review' },
   { status: 'Review', nextStatus: 'Complete' },
-])('Status transition from $status to $nextStatus', ({ status, nextStatus }) => {
-  it('should allow valid transition', async () => {
-    const session = await sessionManager.createSession(prdPath);
-    await sessionManager.updateSessionStatus(session.id, status);
+])(
+  'Status transition from $status to $nextStatus',
+  ({ status, nextStatus }) => {
+    it('should allow valid transition', async () => {
+      const session = await sessionManager.createSession(prdPath);
+      await sessionManager.updateSessionStatus(session.id, status);
 
-    await expect(
-      sessionManager.updateSessionStatus(session.id, nextStatus)
-    ).resolves.not.toThrow();
-  });
-});
+      await expect(
+        sessionManager.updateSessionStatus(session.id, nextStatus)
+      ).resolves.not.toThrow();
+    });
+  }
+);
 ```
 
 ---
@@ -1237,13 +1247,14 @@ describe.each([
 **Problem:** Mock calls from one test affect another test.
 
 **Solution:**
+
 ```typescript
 beforeEach(() => {
-  vi.clearAllMocks();  // Clear call history
+  vi.clearAllMocks(); // Clear call history
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();  // Restore original implementations
+  vi.restoreAllMocks(); // Restore original implementations
 });
 ```
 
@@ -1252,6 +1263,7 @@ afterEach(() => {
 **Problem:** Tests timeout due to unresolved promises.
 
 **Solution:**
+
 ```typescript
 it('should handle async operations', async () => {
   // Always use async/await
@@ -1259,7 +1271,7 @@ it('should handle async operations', async () => {
   expect(result).toBeDefined();
 
   // Set appropriate timeout
-}, 10000);  // 10 second timeout
+}, 10000); // 10 second timeout
 ```
 
 ### 3. Temp Directory Cleanup
@@ -1267,6 +1279,7 @@ it('should handle async operations', async () => {
 **Problem:** Temp directories not cleaned up on test failure.
 
 **Solution:**
+
 ```typescript
 let tempDir: string;
 
@@ -1287,6 +1300,7 @@ afterEach(() => {
 **Problem:** Module mocks not applied correctly.
 
 **Solution:**
+
 ```typescript
 // Mock at top level, before imports
 vi.mock('@/src/module', () => ({
@@ -1307,6 +1321,7 @@ beforeEach(() => {
 **Problem:** Tests using setTimeout/setInterval are slow or flaky.
 
 **Solution:**
+
 ```typescript
 describe('Timer-based operations', () => {
   beforeEach(() => {
@@ -1333,6 +1348,7 @@ describe('Timer-based operations', () => {
 **Problem:** Unhandled promise rejections cause test failures.
 
 **Solution:**
+
 ```typescript
 let unhandledRejections: unknown[] = [];
 
@@ -1348,9 +1364,7 @@ beforeEach(() => {
 
 afterEach(() => {
   if (unhandledRejections.length > 0) {
-    throw new Error(
-      `${unhandledRejections.length} unhandled rejections`
-    );
+    throw new Error(`${unhandledRejections.length} unhandled rejections`);
   }
 });
 ```
@@ -1360,9 +1374,10 @@ afterEach(() => {
 **Problem:** Environment variables set in one test affect others.
 
 **Solution:**
+
 ```typescript
 afterEach(() => {
-  vi.unstubAllEnvs();  // Restore all environment variables
+  vi.unstubAllEnvs(); // Restore all environment variables
 });
 
 it('should use test environment', () => {
@@ -1377,6 +1392,7 @@ it('should use test environment', () => {
 **Problem:** Tests fail due to time-dependent code.
 
 **Solution:**
+
 ```typescript
 describe('Time-dependent operations', () => {
   beforeEach(() => {
@@ -1384,7 +1400,7 @@ describe('Time-dependent operations', () => {
   });
 
   afterEach(() => {
-  vi.useRealSystemTime();
+    vi.useRealSystemTime();
   });
 
   it('should use fixed time', () => {
@@ -1400,6 +1416,7 @@ describe('Time-dependent operations', () => {
 ### 1. Testing Implementation Details
 
 **❌ Bad:**
+
 ```typescript
 it('should set internal property', () => {
   session['internalProperty'] = 'value';
@@ -1408,6 +1425,7 @@ it('should set internal property', () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should expose computed value', () => {
   const result = session.getComputedValue();
@@ -1418,6 +1436,7 @@ it('should expose computed value', () => {
 ### 2. Over-Mocking
 
 **❌ Bad:**
+
 ```typescript
 vi.mock('fs', () => ({
   readFileSync: vi.fn(),
@@ -1429,6 +1448,7 @@ vi.mock('fs', () => ({
 ```
 
 **✅ Good:**
+
 ```typescript
 // Only mock what you need to control
 vi.mock('fs/promises', () => ({
@@ -1441,13 +1461,15 @@ vi.mock('fs/promises', () => ({
 ### 3. Brittle Tests
 
 **❌ Bad:**
+
 ```typescript
 it('should have exactly 5 sessions', () => {
-  expect(sessions.length).toBe(5);  // Will break when adding tests
+  expect(sessions.length).toBe(5); // Will break when adding tests
 });
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should have at least one session', () => {
   expect(sessions.length).toBeGreaterThanOrEqual(1);
@@ -1457,6 +1479,7 @@ it('should have at least one session', () => {
 ### 4. Testing Multiple Things
 
 **❌ Bad:**
+
 ```typescript
 it('should create session, update status, and add artifacts', async () => {
   const session = await createSession();
@@ -1467,6 +1490,7 @@ it('should create session, update status, and add artifacts', async () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should create session with valid structure', async () => {
   const session = await createSession();
@@ -1484,6 +1508,7 @@ it('should update session status', async () => {
 ### 5. Ignoring Async Errors
 
 **❌ Bad:**
+
 ```typescript
 it('should handle error', async () => {
   await sessionManager.loadSession('invalid');
@@ -1492,11 +1517,12 @@ it('should handle error', async () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should handle error', async () => {
-  await expect(
-    sessionManager.loadSession('invalid')
-  ).rejects.toThrow('Session not found');
+  await expect(sessionManager.loadSession('invalid')).rejects.toThrow(
+    'Session not found'
+  );
 });
 ```
 
@@ -1595,36 +1621,42 @@ describe('SessionManager Integration Tests', () => {
 ## Summary Checklist
 
 ### Test Configuration
+
 - [ ] Configure Vitest with TypeScript support
 - [ ] Set up proper test environment (node/jsdom)
 - [ ] Configure coverage thresholds
 - [ ] Set up global test setup/teardown
 
 ### Test Structure
+
 - [ ] Use describe/test blocks for organization
 - [ ] Follow Arrange-Act-Assert pattern
 - [ ] Keep tests focused and independent
 - [ ] Use descriptive test names
 
 ### Mocking & Fixtures
+
 - [ ] Use factories for test data
 - [ ] Mock only what's necessary
 - [ ] Clear mocks between tests
 - [ ] Use type-safe mocks
 
 ### Assertions
+
 - [ ] Use specific matchers
 - [ ] Test behavior, not implementation
 - [ ] Handle async operations properly
 - [ ] Verify error conditions
 
 ### File System Tests
+
 - [ ] Use temp directories
 - [ ] Clean up after tests
 - [ ] Test atomic operations
 - [ ] Verify file permissions
 
 ### Best Practices
+
 - [ ] Avoid test interdependence
 - [ ] Don't ignore promises
 - [ ] Test edge cases
@@ -1635,19 +1667,23 @@ describe('SessionManager Integration Tests', () => {
 ## Additional Resources
 
 ### Books
+
 - "Test-Driven Development with TypeScript" by James Hickey
 - "Testing JavaScript Applications" by Davis W. Frank
 
 ### Courses
+
 - TestingJavaScript.com (Kent C. Dodds)
 - Frontend Masters: Testing Practices
 
 ### Tools
+
 - Vitest: https://vitest.dev/
 - TypeScript: https://www.typescriptlang.org/
 - memfs: https://github.com/streamich/memfs
 
 ### Blog Posts
+
 - "Vitest vs Jest: A Comprehensive Comparison" (2025)
 - "Advanced Testing Patterns for TypeScript" (2026)
 - "Integration Testing Best Practices" (2026)

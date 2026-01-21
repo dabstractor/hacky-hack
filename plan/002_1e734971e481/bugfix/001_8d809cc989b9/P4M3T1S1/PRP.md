@@ -7,6 +7,7 @@
 **Deliverable**: Test suite execution results showing >98% pass rate with detailed statistics (total tests, passing, failing, skipped, pass percentage) and confirmation that all bug fixes are validated.
 
 **Success Definition**:
+
 - Full test suite (1688+ tests) executes to completion without memory errors
 - Test statistics captured: total count, passing count, failing count, skipped count, pass percentage
 - Pass rate >= 98% (target: <35 failing tests out of 1688)
@@ -22,6 +23,7 @@
 **Use Case**: After implementing all bug fixes across P1-P4, the developer runs the complete test suite to confirm that the fixes have resolved the test failures and the system is fully functional. The results serve as the final validation gate before marking P4.M3 as complete.
 
 **User Journey**:
+
 1. Developer reads this PRP to understand validation approach
 2. Developer executes full test suite using existing utilities
 3. Developer captures and analyzes test statistics
@@ -30,6 +32,7 @@
 6. Developer documents results and marks P4.M3.T1.S1 complete
 
 **Pain Points Addressed**:
+
 - **Manual test execution**: Running 1688+ tests manually is time-consuming and error-prone
 - **Ambiguous pass rate calculations**: Without clear baseline and target, validation is subjective
 - **Hidden regressions**: New test failures may be introduced during bug fixes
@@ -56,7 +59,7 @@ Execute the full test suite using existing utilities (`runFullTestSuite()`), ana
 - [ ] Full test suite executes to completion (timeout: 5 minutes)
 - [ ] No memory errors detected during execution
 - [ ] Test statistics captured: total, passing, failing, skipped counts
-- [ ] Pass rate >= 98% (calculated as passing/total * 100)
+- [ ] Pass rate >= 98% (calculated as passing/total \* 100)
 - [ ] No critical failing tests (tests that block core functionality)
 - [ ] No major failing tests (tests that indicate significant bugs)
 - [ ] No new test failures compared to baseline (1593/1688 = 94.37%)
@@ -70,6 +73,7 @@ Execute the full test suite using existing utilities (`runFullTestSuite()`), ana
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 1. Complete workflow using existing utilities (no new code needed)
 2. Exact commands and functions to execute
 3. Specific validation criteria with pass rate thresholds
@@ -332,8 +336,8 @@ This task uses existing data models from the codebase:
 ```typescript
 // Input: SingleTestResult (from single-test-runner.ts)
 interface SingleTestResult {
-  readonly success: boolean;              // Pre-flight check passed
-  readonly hasMemoryError: boolean;       // No OOM in single test
+  readonly success: boolean; // Pre-flight check passed
+  readonly hasMemoryError: boolean; // No OOM in single test
   readonly output: string;
   readonly exitCode: number | null;
   readonly memoryError: MemoryErrorDetectionResult | null;
@@ -342,9 +346,10 @@ interface SingleTestResult {
 
 // Intermediate: FullTestSuiteResult (from full-test-suite-runner.ts)
 interface FullTestSuiteResult {
-  readonly completed: boolean;            // Suite executed to completion
-  readonly memoryErrors: boolean;         // No OOM in full suite
-  readonly testResults: {                 // Parsed test counts
+  readonly completed: boolean; // Suite executed to completion
+  readonly memoryErrors: boolean; // No OOM in full suite
+  readonly testResults: {
+    // Parsed test counts
     pass: number;
     fail: number;
     total: number;
@@ -364,24 +369,24 @@ interface TestSuiteResult {
     readonly total: number;
   };
   readonly hasMemoryErrors: boolean;
-  readonly hasPromiseRejections: boolean;  // Add: check output for warnings
-  readonly executionTime: number;          // Add: calculate from timestamps
+  readonly hasPromiseRejections: boolean; // Add: check output for warnings
+  readonly executionTime: number; // Add: calculate from timestamps
   readonly output: string;
   readonly exitCode: number;
 }
 
 // Output: PassRateAnalysis (from pass-rate-analyzer.ts)
 interface PassRateAnalysis {
-  readonly passRate: number;              // Current pass rate (0-100)
-  readonly baselinePassRate: number;      // 94.37
-  readonly targetPassRate: number;        // 100.00
-  readonly improved: boolean;             // Meets or exceeds baseline
-  readonly delta: number;                 // Difference from baseline
+  readonly passRate: number; // Current pass rate (0-100)
+  readonly baselinePassRate: number; // 94.37
+  readonly targetPassRate: number; // 100.00
+  readonly improved: boolean; // Meets or exceeds baseline
+  readonly delta: number; // Difference from baseline
   readonly passedCount: number;
   readonly failedCount: number;
   readonly totalCount: number;
-  readonly failingTests: readonly string[];  // Failing test names
-  readonly allFailuresAcceptable: boolean;   // All match known issues
+  readonly failingTests: readonly string[]; // Failing test names
+  readonly allFailuresAcceptable: boolean; // All match known issues
 }
 ```
 
@@ -538,7 +543,9 @@ const testSuiteResult: TestSuiteResult = {
   results: fullResult.testResults!,
   hasMemoryErrors: fullResult.memoryErrors,
   // P4.M2.T1.S1 validation: Check for promise rejection warnings
-  hasPromiseRejections: fullResult.output.includes('PromiseRejectionHandledWarning'),
+  hasPromiseRejections: fullResult.output.includes(
+    'PromiseRejectionHandledWarning'
+  ),
   // Execution time (not provided by fullTestSuiteRunner, estimate or 0)
   executionTime: 0, // or calculate from timestamps if available
   output: fullResult.output,
@@ -591,10 +598,14 @@ if (allPassed) {
 } else {
   console.log('\n✗ Validation failed:');
   if (!checks.passRate) {
-    console.log(`  ✗ Pass rate below target (${analysis.passRate}% < ${TARGET_PASS_RATE}%)`);
+    console.log(
+      `  ✗ Pass rate below target (${analysis.passRate}% < ${TARGET_PASS_RATE}%)`
+    );
   }
   if (!checks.failingCount) {
-    console.log(`  ✗ Too many failing tests (${analysis.failedCount} > ${MAX_FAILING_TESTS})`);
+    console.log(
+      `  ✗ Too many failing tests (${analysis.failedCount} > ${MAX_FAILING_TESTS})`
+    );
   }
   if (!checks.noCritical) {
     console.log('  ✗ Critical issues detected in failing tests');
@@ -603,7 +614,9 @@ if (allPassed) {
     console.log('  ✗ Major issues detected in failing tests');
   }
   if (!checks.noRegressions) {
-    console.log(`  ✗ More failures than baseline (${analysis.failedCount} >= 95)`);
+    console.log(
+      `  ✗ More failures than baseline (${analysis.failedCount} >= 95)`
+    );
   }
 }
 
@@ -611,14 +624,18 @@ if (allPassed) {
 // PATTERN 5: Check for Promise Rejection Warnings (P4.M2.T1.S1)
 // ============================================================================
 
-const hasPromiseRejections = fullResult.output.includes('PromiseRejectionHandledWarning');
+const hasPromiseRejections = fullResult.output.includes(
+  'PromiseRejectionHandledWarning'
+);
 
 if (hasPromiseRejections) {
   // Count occurrences
   const matches = fullResult.output.match(/PromiseRejectionHandledWarning/g);
   const count = matches ? matches.length : 0;
 
-  console.log(`\n⚠ Warning: ${count} PromiseRejectionHandledWarning(s) detected`);
+  console.log(
+    `\n⚠ Warning: ${count} PromiseRejectionHandledWarning(s) detected`
+  );
   console.log('  P4.M2.T1.S1 may not have fully resolved promise rejections');
   console.log('  This may indicate incomplete fix or new issues introduced');
 
@@ -633,7 +650,12 @@ if (hasPromiseRejections) {
     console.log('\n  Warning contexts:');
     warningLines.forEach((context, i) => {
       console.log(`\n  Warning ${i + 1}:`);
-      console.log(context.split('\n').map(l => `    ${l}`).join('\n'));
+      console.log(
+        context
+          .split('\n')
+          .map(l => `    ${l}`)
+          .join('\n')
+      );
     });
   }
 } else {
@@ -711,9 +733,11 @@ ${analysis.failingTests.length === 0 ? 'None' : analysis.failingTests.map(t => `
 
 ## Conclusion
 
-${allPassed
-  ? '✓ Test suite validation PASSED. All P1-P4 bug fixes validated. System fully functional.'
-  : '✗ Test suite validation FAILED. Review failing tests and address issues before marking P4.M3 complete.'}
+${
+  allPassed
+    ? '✓ Test suite validation PASSED. All P1-P4 bug fixes validated. System fully functional.'
+    : '✗ Test suite validation FAILED. Review failing tests and address issues before marking P4.M3 complete.'
+}
 `;
 
 await writeFile(reportPath, report, 'utf-8');
@@ -1084,6 +1108,7 @@ echo "Report saved to: plan/.../P4M3T1S1/research/execution-results.md"
 **One-Pass Implementation Success Likelihood**: EXCELLENT
 
 **Rationale**:
+
 1. **No new code required** - Uses existing, well-tested utilities
 2. **Clear execution path** - Two-stage process (pre-flight → full suite → analyze)
 3. **Specific validation criteria** - >98% pass rate, <=34 failing tests
@@ -1096,6 +1121,7 @@ echo "Report saved to: plan/.../P4M3T1S1/research/execution-results.md"
 10. **Error handling** - All failure scenarios documented with actions
 
 **Potential Risks**:
+
 - **Risk 1**: Full suite timeout on slower hardware (Mitigated: 5-minute timeout in utility)
 - **Risk 2**: Memory errors on resource-constrained systems (Mitigated: NODE_OPTIONS from P2.M1.T1)
 - **Risk 3**: Baseline test count changed (Mitigated: Use parseVitestTestCounts() for accurate counts)

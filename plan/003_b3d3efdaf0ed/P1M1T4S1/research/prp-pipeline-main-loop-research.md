@@ -3,35 +3,36 @@
 ## PRPPipeline Class Structure
 
 ### Location
+
 - **File**: `src/workflows/prp-pipeline.ts`
 - **Lines**: 1848 lines total
 - **Extends**: `Groundswell Workflow`
 
 ### Key Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `sessionManager` | `SessionManager` | Manages session state, persistence, and PRD hash-based identification |
-| `taskOrchestrator` | `TaskOrchestrator` | Handles task execution hierarchy and queue management |
-| `correlationLogger` | `CorrelationLogger` | Structured logging with correlation ID for tracing |
-| `runtime` | `PRPRuntime \| null` | PRPRuntime instance for subtask execution (null until session initialization) |
-| `currentPhase` | `string` | Tracks current pipeline phase |
-| `totalTasks` | `number` | Total tasks in backlog (progress tracking) |
-| `completedTasks` | `number` | Completed tasks count (progress tracking) |
-| `#failedTasks` | `Map<string, TaskFailure>` | Private map tracking failed tasks with error context |
-| `shutdownRequested` | `boolean` | Flag for graceful shutdown handling |
-| `shutdownReason` | `string \| undefined` | Reason for shutdown (SIGINT, SIGTERM, RESOURCE_LIMIT) |
+| Property            | Type                       | Description                                                                   |
+| ------------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| `sessionManager`    | `SessionManager`           | Manages session state, persistence, and PRD hash-based identification         |
+| `taskOrchestrator`  | `TaskOrchestrator`         | Handles task execution hierarchy and queue management                         |
+| `correlationLogger` | `CorrelationLogger`        | Structured logging with correlation ID for tracing                            |
+| `runtime`           | `PRPRuntime \| null`       | PRPRuntime instance for subtask execution (null until session initialization) |
+| `currentPhase`      | `string`                   | Tracks current pipeline phase                                                 |
+| `totalTasks`        | `number`                   | Total tasks in backlog (progress tracking)                                    |
+| `completedTasks`    | `number`                   | Completed tasks count (progress tracking)                                     |
+| `#failedTasks`      | `Map<string, TaskFailure>` | Private map tracking failed tasks with error context                          |
+| `shutdownRequested` | `boolean`                  | Flag for graceful shutdown handling                                           |
+| `shutdownReason`    | `string \| undefined`      | Reason for shutdown (SIGINT, SIGTERM, RESOURCE_LIMIT)                         |
 
 ### Key Methods
 
-| Method | Description | Location |
-|--------|-------------|----------|
-| `run()` | Main entry point that orchestrates all workflow steps | Lines ~180-250 |
-| `initializeSession()` | Session initialization from PRD hash | Lines ~260-320 |
-| `decomposePRD()` | Generate task backlog via Architect agent | Lines ~330-390 |
-| `executeBacklog()` | **Main execution loop processing tasks** | Lines ~768-870 |
-| `runQACycle()` | QA bug hunt and fix cycle | Lines ~880-950 |
-| `cleanup()` | State preservation and resource cleanup | Lines ~960-1020 |
+| Method                | Description                                           | Location        |
+| --------------------- | ----------------------------------------------------- | --------------- |
+| `run()`               | Main entry point that orchestrates all workflow steps | Lines ~180-250  |
+| `initializeSession()` | Session initialization from PRD hash                  | Lines ~260-320  |
+| `decomposePRD()`      | Generate task backlog via Architect agent             | Lines ~330-390  |
+| `executeBacklog()`    | **Main execution loop processing tasks**              | Lines ~768-870  |
+| `runQACycle()`        | QA bug hunt and fix cycle                             | Lines ~880-950  |
+| `cleanup()`           | State preservation and resource cleanup               | Lines ~960-1020 |
 
 ## Main Execution Loop (executeBacklog Method)
 
@@ -42,25 +43,25 @@ The `executeBacklog()` method implements the main task processing loop:
 ```typescript
 // Process items until queue is empty or shutdown requested
 while (await this.taskOrchestrator.processNextItem()) {
-    try {
-        // Process individual item
-        iterations++;
-        this.completedTasks = this.#countCompletedTasks();
+  try {
+    // Process individual item
+    iterations++;
+    this.completedTasks = this.#countCompletedTasks();
 
-        // Check resource limits after each task
-        if (this.#resourceMonitor?.shouldStop()) {
-            this.shutdownRequested = true;
-            break;
-        }
-
-        // Check for shutdown request
-        if (this.shutdownRequested) {
-            break;
-        }
-    } catch (taskError) {
-        // Track failure but continue processing
-        this.#trackFailure(taskId, taskError);
+    // Check resource limits after each task
+    if (this.#resourceMonitor?.shouldStop()) {
+      this.shutdownRequested = true;
+      break;
     }
+
+    // Check for shutdown request
+    if (this.shutdownRequested) {
+      break;
+    }
+  } catch (taskError) {
+    // Track failure but continue processing
+    this.#trackFailure(taskId, taskError);
+  }
 }
 ```
 
@@ -75,6 +76,7 @@ while (await this.taskOrchestrator.processNextItem()) {
 ### Termination Conditions
 
 The loop terminates when:
+
 1. `processNextItem()` returns `false` (queue empty)
 2. `shutdownRequested` is `true` (graceful shutdown)
 3. Resource limit exceeded (`#resourceMonitor.shouldStop()` returns true)
@@ -103,6 +105,7 @@ plan/
 ### Delta Session Handling
 
 If PRD changes are detected, the pipeline:
+
 1. Loads old PRD from session snapshot
 2. Loads new PRD from disk
 3. Extracts completed task IDs
@@ -115,6 +118,7 @@ If PRD changes are detected, the pipeline:
 ### Task Hierarchy
 
 The pipeline processes tasks in this hierarchy:
+
 ```
 Phase → Milestone → Task → Subtask
 ```
@@ -165,6 +169,7 @@ Phase → Milestone → Task → Subtask
 ### Progress Tracker
 
 Uses `progressTracker` utility that provides:
+
 - Real-time progress updates every 5 tasks
 - Progress bar with configurable width
 - Completion percentage and ETA estimation
@@ -180,6 +185,7 @@ Uses `progressTracker` utility that provides:
 ### Resource Monitoring
 
 Monitors:
+
 - **Task Limits**: Stop after `--max-tasks` limit
 - **Duration Limits**: Stop after `--max-duration` milliseconds
 - **File Handles**: Prevents system resource exhaustion
@@ -237,6 +243,7 @@ The `run()` method returns a `PipelineResult` object with:
 ### SessionManager Integration
 
 The pipeline creates a `SessionManager` instance in the constructor and uses it for:
+
 - Session initialization and loading
 - State persistence (via `updateItemStatus`, `flushUpdates`)
 - PRD hash-based session discovery
@@ -245,6 +252,7 @@ The pipeline creates a `SessionManager` instance in the constructor and uses it 
 ### TaskOrchestrator Integration
 
 The pipeline initializes the `TaskOrchestrator` after session initialization and uses it for:
+
 - Building execution queue from scope
 - Processing items via `processNextItem()`
 - Managing task status and dependencies
@@ -253,6 +261,7 @@ The pipeline initializes the `TaskOrchestrator` after session initialization and
 ### PRPRuntime Integration
 
 The `PRPRuntime` is used for subtask execution during the implementation phase:
+
 - Executes PRPs for individual subtasks
 - Returns execution results with validation gates
 - Handles both success and failure cases

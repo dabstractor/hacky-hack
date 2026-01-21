@@ -14,8 +14,11 @@ Based on codebase search, the retry utility is used in:
 The codebase defines three retry configurations:
 
 1. **AGENT_RETRY_CONFIG** (lines 597-605)
+
    ```typescript
-   const AGENT_RETRY_CONFIG: Required<Omit<RetryOptions, 'isRetryable' | 'onRetry'>> = {
+   const AGENT_RETRY_CONFIG: Required<
+     Omit<RetryOptions, 'isRetryable' | 'onRetry'>
+   > = {
      maxAttempts: 3,
      baseDelay: 1000,
      maxDelay: 30000,
@@ -25,8 +28,11 @@ The codebase defines three retry configurations:
    ```
 
 2. **MCP_RETRY_CONFIG** (lines 650-658)
+
    ```typescript
-   const MCP_RETRY_CONFIG: Required<Omit<RetryOptions, 'isRetryable' | 'onRetry'>> = {
+   const MCP_RETRY_CONFIG: Required<
+     Omit<RetryOptions, 'isRetryable' | 'onRetry'>
+   > = {
      maxAttempts: 2,
      baseDelay: 500,
      maxDelay: 5000,
@@ -67,11 +73,12 @@ The test file uses a specific pattern for validating delays:
 4. **Assert** delays fall within expected ranges
 
 Example from line 604-613:
+
 ```typescript
 const originalSetTimeout = global.setTimeout;
 vi.spyOn(global, 'setTimeout').mockImplementation(
   (callback: (...args: unknown[]) => void, ms: number) => {
-    delays.push(ms);  // Capture the delay
+    delays.push(ms); // Capture the delay
     return originalSetTimeout(callback, ms) as unknown as NodeJS.Timeout;
   }
 );
@@ -80,6 +87,7 @@ vi.spyOn(global, 'setTimeout').mockImplementation(
 ### Related Test Files
 
 Other test files that test utilities with similar patterns:
+
 - `tests/unit/utils/errors.test.ts`
 - `tests/unit/utils/logger.test.ts`
 - `tests/unit/utils/build-logger.test.ts`

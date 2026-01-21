@@ -64,7 +64,8 @@ export const ErrorCodes = {
   PIPELINE_VALIDATION_INVALID_INPUT: 'PIPELINE_VALIDATION_INVALID_INPUT',
   PIPELINE_VALIDATION_MISSING_FIELD: 'PIPELINE_VALIDATION_MISSING_FIELD',
   PIPELINE_VALIDATION_SCHEMA_FAILED: 'PIPELINE_VALIDATION_SCHEMA_FAILED',
-  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY: 'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
+  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY:
+    'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
 
   // Resource errors
   PIPELINE_RESOURCE_LIMIT_EXCEEDED: 'PIPELINE_RESOURCE_LIMIT_EXCEEDED',
@@ -128,6 +129,7 @@ export abstract class PipelineError extends Error {
 ```
 
 **Key Patterns to Follow:**
+
 1. ✅ Use `Object.setPrototypeOf(this, new.target.prototype)` for prototype chain
 2. ✅ Use `Error.captureStackTrace()` when available
 3. ✅ Set `this.name = this.constructor.name`
@@ -196,11 +198,26 @@ export class ValidationError extends PipelineError {
 ```typescript
 // Location: src/utils/errors.ts:278-301
 const sensitiveKeys = [
-  'apikey', 'apisecret', 'api_key', 'api_secret',
-  'token', 'accesstoken', 'refreshtoken', 'authtoken',
-  'bearertoken', 'idtoken', 'sessiontoken',
-  'password', 'passwd', 'secret', 'privatekey', 'private',
-  'email', 'emailaddress', 'phonenumber', 'ssn',
+  'apikey',
+  'apisecret',
+  'api_key',
+  'api_secret',
+  'token',
+  'accesstoken',
+  'refreshtoken',
+  'authtoken',
+  'bearertoken',
+  'idtoken',
+  'sessiontoken',
+  'password',
+  'passwd',
+  'secret',
+  'privatekey',
+  'private',
+  'email',
+  'emailaddress',
+  'phonenumber',
+  'ssn',
   'authorization',
 ];
 ```
@@ -274,6 +291,7 @@ export function isValidationError(error: unknown): error is ValidationError {
 ```
 
 **Pattern to Follow:**
+
 ```typescript
 export function isEnvironmentError(error: unknown): error is EnvironmentError {
   return error instanceof EnvironmentError;
@@ -322,6 +340,7 @@ tests/
 ### 5.3 Test Patterns from errors.test.ts
 
 **Import Pattern:**
+
 ```typescript
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -335,6 +354,7 @@ import {
 ```
 
 **Test Structure Pattern:**
+
 ```typescript
 describe('SessionError class', () => {
   it('should create SessionError with message only', () => {
@@ -394,6 +414,7 @@ it('should create EnvironmentError with correct properties', () => {
 ```
 
 **Critical Finding:** Integration tests already expect `EnvironmentError` to exist!
+
 - Test at line 114-124: Creates EnvironmentError instance
 - Test at line 136-139: Expects isFatalError to return true for EnvironmentError
 - Import at line 32: Exports EnvironmentError from errors.ts
@@ -445,6 +466,7 @@ export function isSessionError(error: unknown): error is SessionError { ... }
 ```
 
 **Implications:**
+
 - ✅ ES2022 target supports native Error cause option
 - ✅ Can use modern TypeScript features
 - ✅ Vitest globals available without imports
@@ -456,6 +478,7 @@ export function isSessionError(error: unknown): error is SessionError { ... }
 ### 9.1 Error Code Selection
 
 **Per tasks.json and system_context.md:**
+
 ```typescript
 readonly code = ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT;
 ```
@@ -465,6 +488,7 @@ readonly code = ErrorCodes.PIPELINE_VALIDATION_INVALID_INPUT;
 ### 9.2 Constructor Signature
 
 **Per existing pattern:**
+
 ```typescript
 constructor(
   message: string,
@@ -483,10 +507,10 @@ constructor(
 
 ```typescript
 interface EnvironmentErrorContext {
-  variable?: string;        // Missing/invalid environment variable name
-  environment?: string;     // Environment name (production/development/etc)
-  expectedType?: string;    // Expected type/format
-  actualValue?: string;     // Actual value received
+  variable?: string; // Missing/invalid environment variable name
+  environment?: string; // Environment name (production/development/etc)
+  expectedType?: string; // Expected type/format
+  actualValue?: string; // Actual value received
   [key: string]: unknown;
 }
 ```
@@ -540,6 +564,7 @@ Based on existing `errors.test.ts`, must cover:
 ### 10.3 TDD Red Phase Requirements
 
 **All tests must FAIL initially:**
+
 - EnvironmentError class doesn't exist yet
 - Import will fail: `EnvironmentError is not defined`
 - Tests will fail with compilation/runtime errors
@@ -586,11 +611,13 @@ Existing unit tests: /home/dustin/projects/hacky-hack/tests/unit/utils/errors.te
 ### 12.2 Library Quirks
 
 **Vitest:**
+
 - Uses `describe`, `it`, `expect` from global scope
 - `toThrow()` for error throwing tests
 - `instanceOf()` for instanceof checks
 
 **TypeScript:**
+
 - Target: ES2022
 - Module: NodeNext
 - Strict mode enabled
@@ -682,12 +709,14 @@ Test Files:  1 failed (1)
 ## 16. Implementation Checklist
 
 ### Phase 1: Test File Structure
+
 - [ ] Create file at correct path
 - [ ] Add imports from errors.ts
 - [ ] Add describe block for EnvironmentError
 - [ ] Add beforeEach/afterEach if needed
 
 ### Phase 2: Constructor Tests
+
 - [ ] Test: message only
 - [ ] Test: message + context
 - [ ] Test: message + context + cause
@@ -695,6 +724,7 @@ Test Files:  1 failed (1)
 - [ ] Test: context with environment name
 
 ### Phase 3: Error Properties
+
 - [ ] Test: error code assignment
 - [ ] Test: name property
 - [ ] Test: message property
@@ -702,12 +732,14 @@ Test Files:  1 failed (1)
 - [ ] Test: context property
 
 ### Phase 4: Prototype Chain
+
 - [ ] Test: instanceof EnvironmentError
 - [ ] Test: instanceof PipelineError
 - [ ] Test: instanceof Error
 - [ ] Test: Object.getPrototypeOf chain
 
 ### Phase 5: Serialization
+
 - [ ] Test: toJSON() returns plain object
 - [ ] Test: toJSON() includes name
 - [ ] Test: toJSON() includes code
@@ -716,11 +748,13 @@ Test Files:  1 failed (1)
 - [ ] Test: toJSON() includes context
 
 ### Phase 6: Type Guard
+
 - [ ] Test: isEnvironmentError returns true
 - [ ] Test: isEnvironmentError returns false for other errors
 - [ ] Test: type narrowing in catch block
 
 ### Phase 7: Edge Cases
+
 - [ ] Test: empty message
 - [ ] Test: undefined context
 - [ ] Test: null context

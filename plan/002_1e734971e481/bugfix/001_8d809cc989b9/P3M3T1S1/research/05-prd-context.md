@@ -19,6 +19,7 @@ From `plan/002_1e734971e481/bugfix/001_8d809cc989b9/tasks.json` (lines 406-414):
 ## Phase P3 Context
 
 **Phase P3**: "Major Bug Fixes - Test Alignment"
+
 - Focus: Aligning tests with implementation expectations
 - Status: Researching
 - Milestones:
@@ -29,6 +30,7 @@ From `plan/002_1e734971e481/bugfix/001_8d809cc989b9/tasks.json` (lines 406-414):
 ## Milestone P3.M3 Context
 
 **Milestone P3.M3**: "Fix Retry Utility Jitter Calculation"
+
 - Description: "Fix the retry utility jitter calculation to ensure jitter is always positive."
 - Status: Researching
 - Task: P3.M3.T1 - "Update jitter calculation to be always positive"
@@ -45,15 +47,17 @@ From `plan/002_1e734971e481/bugfix/001_8d809cc989b9/tasks.json` (lines 406-414):
 **Problem**: Test expects jitter to make delay strictly greater than base, but implementation may produce equal values.
 
 **Current Formula**:
+
 ```typescript
-jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2
+jitter = exponentialDelay * jitterFactor * (Math.random() - 0.5) * 2;
 ```
 
 **Issue**: Can produce negative, zero, or positive jitter.
 
 **Recommended Fix**:
+
 ```typescript
-jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random())
+jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random());
 ```
 
 **Alternative (Not Preferred)**: Update test to allow >= instead of >
@@ -63,6 +67,7 @@ jitter = Math.max(1, exponentialDelay * jitterFactor * Math.random())
 ## Success Criteria
 
 From the context_scope:
+
 1. Jitter calculation updated to always be positive
 2. Test 'should add jitter to delay' now passing
 3. Total delay always greater than base delay

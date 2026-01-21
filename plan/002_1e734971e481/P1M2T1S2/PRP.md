@@ -11,11 +11,13 @@
 **Feature Goal**: Fix the **Constant Synchronization Gap** in existing BASE_URL tests by replacing hardcoded magic strings with imports of `DEFAULT_BASE_URL` from `constants.ts`, ensuring tests fail if the constant value changes.
 
 **Deliverable**: Updated test file `tests/unit/config/environment.test.ts` with three modifications:
+
 1. Add import of `DEFAULT_BASE_URL` from constants.ts
 2. Replace hardcoded `'https://api.z.ai/api/anthropic'` strings with `DEFAULT_BASE_URL` constant reference
 3. Ensure all BASE_URL tests verify against the imported constant
 
 **Success Definition**:
+
 - Import statement added: `import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';`
 - Line 72 (idempotency test): `expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL);`
 - Line 84 (default BASE_URL test): `expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);`
@@ -31,6 +33,7 @@
 **Use Case**: Second validation step in Phase 1 Milestone 2 (P1.M2) to ensure default BASE_URL configuration tests use constant synchronization pattern rather than magic strings.
 
 **User Journey**:
+
 1. Pipeline completes P1.M2.T1.S1 (AUTH_TOKEN to API_KEY mapping + idempotency) with success
 2. Pipeline starts P1.M2.T1.S2 (Test default BASE_URL configuration)
 3. Research identifies that existing tests use hardcoded strings instead of constant imports
@@ -39,6 +42,7 @@
 6. If `DEFAULT_BASE_URL` changes in constants.ts, tests will fail (detecting drift)
 
 **Pain Points Addressed**:
+
 - **Magic String Anti-Pattern**: Tests currently hardcode `'https://api.z.ai/api/anthropic'` in 3 locations
 - **False Sense of Security**: Tests pass even if `DEFAULT_BASE_URL` constant changes
 - **Configuration Drift**: No synchronization between test expectations and actual constant values
@@ -67,6 +71,7 @@ Fix the "Constant Synchronization Gap" in existing BASE_URL tests by importing `
 ### Test Context
 
 **Current State**: The test file `tests/unit/config/environment.test.ts` has tests for BASE_URL configuration:
+
 - Line 50-73: Idempotency test (added in P1.M2.T1.S1) - uses hardcoded `'https://api.z.ai/api/anthropic'`
 - Line 75-86: "should set default BASE_URL when not provided" - uses hardcoded `'https://api.z.ai/api/anthropic'`
 - Line 88-99: "should preserve custom BASE_URL when already set" - tests custom URL (not affected)
@@ -74,6 +79,7 @@ Fix the "Constant Synchronization Gap" in existing BASE_URL tests by importing `
 **The Gap**: Tests verify the value is set correctly, but they use hardcoded strings instead of importing and comparing against the `DEFAULT_BASE_URL` constant.
 
 **Risk Scenario**:
+
 1. Developer changes `DEFAULT_BASE_URL` in `src/config/constants.ts` to `'https://new-endpoint.com'`
 2. Tests still pass because they compare against hardcoded `'https://api.z.ai/api/anthropic'`
 3. Application now uses different endpoint than tests expect
@@ -102,9 +108,7 @@ expect(firstResult.baseUrl).toBe(DEFAULT_BASE_URL);
 
 ```typescript
 // BEFORE:
-expect(process.env.ANTHROPIC_BASE_URL).toBe(
-  'https://api.z.ai/api/anthropic'
-);
+expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
 
 // AFTER:
 expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
@@ -126,6 +130,7 @@ expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] `configureEnvironment()` function implementation understood
 - [x] `DEFAULT_BASE_URL` constant location and value identified
 - [x] Existing test patterns analyzed
@@ -281,12 +286,16 @@ import {
   validateEnvironment,
   EnvironmentValidationError,
 } from '../../../src/config/environment.js';
-import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';  // Add this
+import { DEFAULT_BASE_URL } from '../../../src/config/constants.js'; // Add this
 
 // BAD: Creating separate import blocks
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_BASE_URL } from '../../../src/config/constants.js';
-import { configureEnvironment, getModel, validateEnvironment } from '../../../src/config/environment.js';
+import {
+  configureEnvironment,
+  getModel,
+  validateEnvironment,
+} from '../../../src/config/environment.js';
 
 // GOTCHA: Don't change the custom BASE_URL test (lines 88-99)
 // That test verifies custom URLs are preserved - it correctly uses a hardcoded string
@@ -394,7 +403,7 @@ it('should set default BASE_URL when not provided', () => {
 
   // VERIFY: Default z.ai endpoint
   expect(process.env.ANTHROPIC_BASE_URL).toBe(
-    'https://api.z.ai/api/anthropic'  // ❌ MAGIC STRING
+    'https://api.z.ai/api/anthropic' // ❌ MAGIC STRING
   );
 });
 
@@ -418,7 +427,7 @@ it('should set default BASE_URL when not provided', () => {
   configureEnvironment();
 
   // VERIFY: Default z.ai endpoint matches constant
-  expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL);  // ✅ CONSTANT SYNC
+  expect(process.env.ANTHROPIC_BASE_URL).toBe(DEFAULT_BASE_URL); // ✅ CONSTANT SYNC
 });
 
 // BENEFIT: If DEFAULT_BASE_URL changes in constants.ts, this test fails
@@ -714,6 +723,7 @@ npm test -- tests/unit/setup-verification.test.ts
 ### Why is this a separate subtask from S1?
 
 P1.M2.T1.S1 added the idempotency test. P1.M2.T1.S2 fixes the constant synchronization issue. They're separate because:
+
 1. **Different Goals**: S1 verified idempotency, S2 verifies constant synchronization
 2. **Incremental Improvement**: S1 added a new test, S2 improves existing tests
 3. **Parallel Execution**: S1 and S2 were designed to run in parallel (S1 was implementing while S2 was researching)
@@ -721,6 +731,7 @@ P1.M2.T1.S1 added the idempotency test. P1.M2.T1.S2 fixes the constant synchroni
 ### Why use "Constant Synchronization Testing" pattern?
 
 This pattern ensures that tests verify runtime values match compile-time constants:
+
 1. **Detects Drift**: If someone changes the constant, tests fail
 2. **Single Source of Truth**: The constant is the only place the value is defined
 3. **Refactor-Friendly**: Changing the default URL only requires updating the constant
@@ -729,6 +740,7 @@ This pattern ensures that tests verify runtime values match compile-time constan
 ### Is this a bug fix or quality improvement?
 
 It's a **quality improvement**:
+
 - Tests currently pass (no bug)
 - Tests work correctly for the current constant value
 - The issue is that tests don't detect if the constant changes
@@ -745,6 +757,7 @@ S1 focused on adding idempotency testing. The constant synchronization gap exist
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from source code (constants.ts, environment.ts)
 - [x] Existing test patterns analyzed and documented
 - [x] Constant synchronization pattern researched and documented
@@ -755,6 +768,7 @@ S1 focused on adding idempotency testing. The constant synchronization gap exist
 - [x] Anti-patterns documented
 
 **Risk Mitigation**:
+
 - Minimal change (3 modifications: 1 import, 2 assertions)
 - Existing tests provide reference pattern
 - No new dependencies or complex logic
@@ -762,6 +776,7 @@ S1 focused on adding idempotency testing. The constant synchronization gap exist
 - Verification test proves the improvement works
 
 **Known Risks**:
+
 - None - this is a straightforward quality improvement with comprehensive context
 
 ---

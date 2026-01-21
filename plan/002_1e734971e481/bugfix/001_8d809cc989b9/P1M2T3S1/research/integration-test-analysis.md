@@ -9,6 +9,7 @@ npm run test:run -- tests/integration/utils/error-handling.test.ts
 ```
 
 **Output**:
+
 ```
 ✓ tests/integration/utils/error-handling.test.ts  (23 tests) 6ms
 
@@ -27,30 +28,35 @@ Test Files  1 passed (1)
 ### Fatal Error Detection Tests (Lines 130-160)
 
 1. **should identify SessionError as fatal** (Line 131-134)
+
    ```typescript
    const error = new SessionError('Session not found');
    expect(isFatalError(error)).toBe(true);
    ```
 
 2. **should identify EnvironmentError as fatal** (Line 136-139)
+
    ```typescript
    const error = new EnvironmentError('Missing API key');
    expect(isFatalError(error)).toBe(true);
    ```
 
 3. **should identify ValidationError as non-fatal** (Line 141-144)
+
    ```typescript
    const error = new ValidationError('Invalid input');
    expect(isFatalError(error)).toBe(false);
    ```
 
 4. **should identify TaskError as non-fatal by default** (Line 146-149)
+
    ```typescript
    const error = new TaskError('Task execution failed');
    expect(isFatalError(error)).toBe(false);
    ```
 
 5. **should handle standard Error as non-fatal** (Line 151-154)
+
    ```typescript
    const error = new Error('Standard error');
    expect(isFatalError(error)).toBe(false);
@@ -67,6 +73,7 @@ Test Files  1 passed (1)
 **Location**: `/home/dustin/projects/hacky-hack/tests/integration/utils/error-handling.test.ts`
 
 **Import Pattern**:
+
 ```typescript
 import {
   PipelineError,
@@ -115,6 +122,7 @@ import {
 ## Previous Test Failures
 
 According to the work item description, before P1.M2.T2.S1 implementation:
+
 - Tests were failing with "isFatalError is not a function" error
 - This was because isFatalError was a private method in PRPPipeline
 - After extraction and export in P1.M2.T2.S1, tests now pass
@@ -139,6 +147,7 @@ npm run test:run -- tests/integration/utils/error-handling.test.ts
 ```
 
 Alternative commands:
+
 ```bash
 # Run all integration tests
 npm run test:run -- tests/integration/

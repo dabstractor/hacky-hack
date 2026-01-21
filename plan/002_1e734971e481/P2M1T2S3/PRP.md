@@ -14,6 +14,7 @@
 **Deliverable**: Extended integration test file at `tests/integration/core/session-manager.test.ts` with full coverage of session discovery scenarios using real filesystem operations and multiple session fixtures.
 
 **Success Definition**:
+
 - `listSessions()` returns all sessions sorted by sequence ascending
 - `findLatestSession()` returns session with highest sequence number
 - `findSessionByPRD()` returns matching session for exact PRD hash
@@ -34,6 +35,7 @@
 **Use Case**: Validating that SessionManager's static discovery methods correctly scan, filter, and return session metadata for use in CLI tools that need to list and select existing sessions.
 
 **User Journey**:
+
 1. CLI tool calls `SessionManager.listSessions()` to get all available sessions
 2. User selects a session from the list
 3. CLI tool calls `SessionManager.findSessionByPRD()` to verify PRD matches
@@ -41,6 +43,7 @@
 5. Session is loaded and work continues
 
 **Pain Points Addressed**:
+
 - **Unclear sorting behavior**: Does `listSessions()` return sessions in order? (Tests verify: YES, by sequence ascending)
 - **Unclear latest session logic**: Which session is "latest"? (Tests verify: Highest sequence number)
 - **Unclear hash matching**: How exact is PRD hash matching? (Tests verify: First 12 chars of SHA-256)
@@ -71,6 +74,7 @@ Extend the integration test file at `tests/integration/core/session-manager.test
 ### Current State Analysis
 
 **SessionManager.listSessions() Method** (from `/src/core/session-manager.ts` lines 827-891):
+
 ```typescript
 static async listSessions(
   planDir: string = resolve('plan')
@@ -117,6 +121,7 @@ static async listSessions(
 ```
 
 **SessionManager.findLatestSession() Method** (from `/src/core/session-manager.ts` lines 893-924):
+
 ```typescript
 static async findLatestSession(
   planDir: string = resolve('plan')
@@ -133,6 +138,7 @@ static async findLatestSession(
 ```
 
 **SessionManager.findSessionByPRD() Method** (from `/src/core/session-manager.ts` lines 926-998):
+
 ```typescript
 static async findSessionByPRD(
   prdPath: string,
@@ -185,6 +191,7 @@ static async findSessionByPRD(
 ```
 
 **Session Directory Pattern** (from `/src/core/session-manager.ts` line 63):
+
 ```typescript
 const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 // Format: {sequence}_{hash}
@@ -215,12 +222,13 @@ const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] SessionManager.listSessions() implementation documented (lines 827-891)
 - [x] SessionManager.findLatestSession() implementation documented (lines 893-924)
 - [x] SessionManager.findSessionByPRD() implementation documented (lines 926-998)
 - [x] Session directory pattern documented (regex, format, example)
-- [x] __scanSessionDirectories() helper documented (internal scanning logic)
-- [x] __readParentSession() helper documented (parent session loading)
+- [x] \_\_scanSessionDirectories() helper documented (internal scanning logic)
+- [x] \_\_readParentSession() helper documented (parent session loading)
 - [x] Existing integration test patterns analyzed
 - [x] Temp directory testing patterns researched
 - [x] fs.readdir with withFileTypes patterns researched
@@ -696,11 +704,7 @@ function createSessionDirectory(
     JSON.stringify({ backlog: [] }, null, 2),
     'utf-8'
   );
-  writeFileSync(
-    join(sessionPath, 'prd_snapshot.md'),
-    '# Test PRD',
-    'utf-8'
-  );
+  writeFileSync(join(sessionPath, 'prd_snapshot.md'), '# Test PRD', 'utf-8');
 
   // Optional parent session file
   if (hasParent) {
@@ -1111,7 +1115,7 @@ rmSync(tempDir, { recursive: true, force: true });
 - **Don't test session creation** - That's P2.M1.T1.S1
 - **Don't modify SessionManager code** - This is validation only, no implementation changes
 - **Don't hardcode temp directory paths** - Use mkdtempSync() for uniqueness
-- **Don't create invalid session names** - Must match /^\d{3}_[a-f0-9]{12}$/
+- **Don't create invalid session names** - Must match /^\d{3}\_[a-f0-9]{12}$/
 - **Don't test with non-session directories** - Focus on session discovery only
 - **Don't skip empty directory tests** - Edge case is important
 - **Don't forget parent session file tests** - Optional but important feature
@@ -1123,6 +1127,7 @@ rmSync(tempDir, { recursive: true, force: true });
 ### Why test static methods differently from instance methods?
 
 Static methods don't require class instantiation. Tests should call methods directly on the class:
+
 - **Instance method**: `const manager = new SessionManager(); await manager.initialize();`
 - **Static method**: `const sessions = await SessionManager.listSessions();`
 
@@ -1131,6 +1136,7 @@ This PRP tests static methods, so no instantiation is needed in most tests.
 ### Why focus on sorting behavior?
 
 `findLatestSession()` relies on `listSessions()` sorting. If sorting fails, `findLatestSession()` returns wrong session. Tests must verify:
+
 1. `listSessions()` sorts correctly (sequence ascending)
 2. `findLatestSession()` returns last element (highest sequence)
 
@@ -1139,6 +1145,7 @@ This dependency is critical for correct behavior.
 ### Why separate discovery tests from status propagation tests?
 
 P2.M1.T2.S2 tests status updates on a loaded session. This task (P2.M1.T2.S3) tests discovering sessions before loading. Separating them provides:
+
 1. **Clear separation of concerns** - Discovery vs. state management
 2. **Easier debugging** - Discovery failures vs. update failures isolated
 3. **Independent development** - Tests can run in parallel
@@ -1147,6 +1154,7 @@ P2.M1.T2.S2 tests status updates on a loaded session. This task (P2.M1.T2.S3) te
 ### Why test empty directory scenarios?
 
 Empty directories are edge cases that handle gracefully:
+
 - `listSessions()` returns `[]` (not error)
 - `findLatestSession()` returns `null` (not error)
 - `findSessionByPRD()` returns `null` for non-existent hash (not error)
@@ -1160,6 +1168,7 @@ These are important behaviors for CLI tools that need to handle "no sessions" sc
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from parallel research (2 research tasks + code analysis)
 - [x] SessionManager discovery methods fully analyzed with line numbers
 - [x] Session directory pattern documented
@@ -1176,6 +1185,7 @@ These are important behaviors for CLI tools that need to handle "no sessions" sc
 - [x] Decision rationale documented
 
 **Risk Mitigation**:
+
 - Extending existing test file (low risk of breaking existing tests)
 - Integration tests only (no production code changes)
 - Temp directory isolation (no side effects on plan/)
@@ -1184,6 +1194,7 @@ These are important behaviors for CLI tools that need to handle "no sessions" sc
 - Follows established integration test patterns
 
 **Known Risks**:
+
 - **Fixture complexity**: Multiple session directories can be complex to create
   - Mitigation: Use helper functions with consistent naming patterns
 - **Hash computation**: Must match exact implementation (first 12 chars of SHA-256)

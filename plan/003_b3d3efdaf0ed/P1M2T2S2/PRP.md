@@ -1,12 +1,13 @@
 # Product Requirement Prompt (PRP): P1.M2.T2.S2 - Verify context injection for agents
 
-***
+---
 
 ## Goal
 
 **Feature Goal**: Create a unit test file that verifies agents receive properly curated context including previous session notes, architecture documentation, code snippets, and context size management.
 
 **Deliverable**: Unit test file `tests/unit/agent-context-injection.test.ts` with comprehensive verification of:
+
 - Agents receive architecture docs from `$SESSION_DIR/architecture/` in context (if available)
 - Previous session notes are injected for delta sessions
 - Code snippets are included based on task requirements
@@ -14,6 +15,7 @@
 - Context assembly and agent prompt generation functions work correctly
 
 **Success Definition**: All tests pass, verifying:
+
 - `extractParentContext()` correctly traverses task hierarchy and extracts parent descriptions
 - `extractTaskContext()` properly handles both Task and Subtask context extraction
 - `constructUserPrompt()` assembles complete context with all placeholders replaced
@@ -24,15 +26,16 @@
 
 ## Why
 
-* **Agent Capability Verification**: Validates that agents receive the context they need to perform work as specified in PRD §5.2 and system_context.md
-* **Context Injection Contract Compliance**: Ensures the context assembly logic specified in the codebase correctly injects all required context elements
-* **Token Management**: Verifies that context size is properly estimated and managed to prevent LLM token overflow
-* **Test Infrastructure**: Provides unit test patterns for future context injection enhancements
-* **Quality Assurance**: Catches regressions in context assembly early, preventing agents from receiving incomplete or malformed context
+- **Agent Capability Verification**: Validates that agents receive the context they need to perform work as specified in PRD §5.2 and system_context.md
+- **Context Injection Contract Compliance**: Ensures the context assembly logic specified in the codebase correctly injects all required context elements
+- **Token Management**: Verifies that context size is properly estimated and managed to prevent LLM token overflow
+- **Test Infrastructure**: Provides unit test patterns for future context injection enhancements
+- **Quality Assurance**: Catches regressions in context assembly early, preventing agents from receiving incomplete or malformed context
 
 **Relationship to P1.M2.T2.S1**: The previous subtask (P1.M2.T2.S1) validates MCP tool integration. This subtask (P1.M2.T2.S2) validates the context injection system that provides agents with the information they need to perform their work effectively.
 
 **Critical Gap**: Current implementation has context assembly functions in `src/agents/prompts/prp-blueprint-prompt.ts` but lacks comprehensive unit tests verifying:
+
 - Parent context extraction from task hierarchy
 - Dependency context resolution for Subtasks
 - User prompt construction with placeholder replacement
@@ -45,13 +48,13 @@ Unit tests that verify agent context injection mechanisms, ensuring agents recei
 
 ### Success Criteria
 
-* [ ] `extractParentContext()` extracts Phase, Milestone, and Task descriptions from hierarchy
-* [ ] `extractTaskContext()` handles both Task and Subtask with dependency resolution
-* [ ] `constructUserPrompt()` replaces placeholders and includes codebase path when provided
-* [ ] `createPRPBlueprintPrompt()` returns properly configured Groundswell Prompt object
-* [ ] Context size estimation utilities prevent token overflow
-* [ ] Tests follow existing unit test patterns from `tests/unit/agents/prompts/`
-* [ ] All edge cases covered: empty dependencies, missing files, delta sessions, etc.
+- [ ] `extractParentContext()` extracts Phase, Milestone, and Task descriptions from hierarchy
+- [ ] `extractTaskContext()` handles both Task and Subtask with dependency resolution
+- [ ] `constructUserPrompt()` replaces placeholders and includes codebase path when provided
+- [ ] `createPRPBlueprintPrompt()` returns properly configured Groundswell Prompt object
+- [ ] Context size estimation utilities prevent token overflow
+- [ ] Tests follow existing unit test patterns from `tests/unit/agents/prompts/`
+- [ ] All edge cases covered: empty dependencies, missing files, delta sessions, etc.
 
 ## All Needed Context
 
@@ -59,14 +62,14 @@ Unit tests that verify agent context injection mechanisms, ensuring agents recei
 
 _This PRP passes the "No Prior Knowledge" test:_
 
-* Complete context assembly function specifications from `src/agents/prompts/prp-blueprint-prompt.ts`
-* System context contract from `plan/003_b3d3efdaf0ed/docs/system_context.md`
-* Existing unit test patterns from `tests/unit/agents/prompts/prp-blueprint-prompt.test.ts`
-* Session manager and delta session context handling from `src/core/session-manager.ts`
-* PRP generator context flow from `src/agents/prp-generator.ts`
-* Mock data patterns from `tests/fixtures/simple-prd.ts`
-* Vitest configuration and testing setup from `vitest.config.ts`
-* Context validation and schema testing patterns from research documents
+- Complete context assembly function specifications from `src/agents/prompts/prp-blueprint-prompt.ts`
+- System context contract from `plan/003_b3d3efdaf0ed/docs/system_context.md`
+- Existing unit test patterns from `tests/unit/agents/prompts/prp-blueprint-prompt.test.ts`
+- Session manager and delta session context handling from `src/core/session-manager.ts`
+- PRP generator context flow from `src/agents/prp-generator.ts`
+- Mock data patterns from `tests/fixtures/simple-prd.ts`
+- Vitest configuration and testing setup from `vitest.config.ts`
+- Context validation and schema testing patterns from research documents
 
 ### Documentation & References
 
@@ -383,14 +386,14 @@ const mockBacklog: Backlog = {
                   story_points: 1,
                   dependencies: [],
                   context_scope: 'CONTRACT DEFINITION:\n...',
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
 };
 // GOTCHA: Must include all hierarchy levels with correct types
 
@@ -757,7 +760,8 @@ function createMockBacklog(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Interface patterns\n2. INPUT: None\n3. LOGIC: Define interface\n4. OUTPUT: Phase interface',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Interface patterns\n2. INPUT: None\n3. LOGIC: Define interface\n4. OUTPUT: Phase interface',
                   },
                   {
                     id: 'P1.M1.T1.S2',
@@ -766,7 +770,8 @@ function createMockBacklog(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: ['P1.M1.T1.S1'],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Depends on S1\n2. INPUT: Phase interface\n3. LOGIC: Define Task interface\n4. OUTPUT: Task interface',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Depends on S1\n2. INPUT: Phase interface\n3. LOGIC: Define Task interface\n4. OUTPUT: Task interface',
                   },
                 ],
               },
@@ -801,8 +806,12 @@ describe('unit/agent-context-injection > context assembly', () => {
       const result = extractParentContext(subtaskId, mockBacklog);
 
       // VERIFY: Order is Task -> Milestone -> Phase
-      expect(result).toContain('Task: Implement TypeScript interfaces and Zod schemas');
-      expect(result).toContain('Milestone: Define core data models and interfaces');
+      expect(result).toContain(
+        'Task: Implement TypeScript interfaces and Zod schemas'
+      );
+      expect(result).toContain(
+        'Milestone: Define core data models and interfaces'
+      );
       expect(result).toContain('Phase: Project initialization and setup');
     });
 
@@ -845,7 +854,9 @@ describe('unit/agent-context-injection > context assembly', () => {
 
       // VERIFY
       expect(result).toContain('Task: Create Models');
-      expect(result).toContain('Description: Implement TypeScript interfaces and Zod schemas');
+      expect(result).toContain(
+        'Description: Implement TypeScript interfaces and Zod schemas'
+      );
     });
 
     it('should extract Subtask context_scope, dependencies, and title', () => {
@@ -1228,58 +1239,58 @@ grep -n "VERIFY:" tests/unit/agent-context-injection.test.ts
 
 ### Technical Validation
 
-* [ ] All Level 1-4 validations completed successfully
-* [ ] Test file structure follows project patterns
-* [ ] Tests use mock data (no real operations)
-* [ ] Tests import with .js extensions
-* [ ] All describe blocks have clear, descriptive names
-* [ ] Helper functions use existing patterns
-* [ ] Tests use SETUP/EXECUTE/VERIFY pattern
+- [ ] All Level 1-4 validations completed successfully
+- [ ] Test file structure follows project patterns
+- [ ] Tests use mock data (no real operations)
+- [ ] Tests import with .js extensions
+- [ ] All describe blocks have clear, descriptive names
+- [ ] Helper functions use existing patterns
+- [ ] Tests use SETUP/EXECUTE/VERIFY pattern
 
 ### Feature Validation
 
-* [ ] `extractParentContext()` extracts all parent descriptions correctly
-* [ ] `extractTaskContext()` handles Task and Subtask differences
-* [ ] `constructUserPrompt()` replaces all placeholders
-* [ ] `createPRPBlueprintPrompt()` returns proper Groundswell Prompt
-* [ ] Token estimation prevents overflow
-* [ ] Context size validation works correctly
-* [ ] Delta session context is tested
-* [ ] All edge cases are covered
+- [ ] `extractParentContext()` extracts all parent descriptions correctly
+- [ ] `extractTaskContext()` handles Task and Subtask differences
+- [ ] `constructUserPrompt()` replaces all placeholders
+- [ ] `createPRPBlueprintPrompt()` returns proper Groundswell Prompt
+- [ ] Token estimation prevents overflow
+- [ ] Context size validation works correctly
+- [ ] Delta session context is tested
+- [ ] All edge cases are covered
 
 ### Code Quality Validation
 
-* [ ] Follows existing unit test patterns from tests/unit/agents/prompts/
-* [ ] Helper functions match patterns from existing tests
-* [ ] Test file location matches conventions (tests/unit/)
-* [ ] Tests focus on function logic, not external behavior
-* [ ] Mock data matches real backlog structure
+- [ ] Follows existing unit test patterns from tests/unit/agents/prompts/
+- [ ] Helper functions match patterns from existing tests
+- [ ] Test file location matches conventions (tests/unit/)
+- [ ] Tests focus on function logic, not external behavior
+- [ ] Mock data matches real backlog structure
 
 ### Documentation & Deployment
 
-* [ ] Test file header with JSDoc comments describing purpose
-* [ ] Test names clearly describe what is being tested
-* [ ] Research documents stored in research/ subdirectory
-* [ ] Tests verify context injection contract from system_context.md
+- [ ] Test file header with JSDoc comments describing purpose
+- [ ] Test names clearly describe what is being tested
+- [ ] Research documents stored in research/ subdirectory
+- [ ] Tests verify context injection contract from system_context.md
 
-***
+---
 
 ## Anti-Patterns to Avoid
 
-* ❌ Don't test with real LLM calls (use mock data only)
-* ❌ Don't skip testing all four context assembly functions
-* ❌ Don't forget to test both Task and Subtask types (different fields)
-* ❌ Don't skip testing conditional codebase path inclusion
-* ❌ Don't use actual file I/O in unit tests (mock fs operations)
-* ❌ Don't skip testing the reverse order of extractParentContext()
-* ❌ Don't forget that Subtask has context_scope, Task has description
-* ❌ Don't skip testing empty dependencies arrays
-* ❌ Don't test implementation details (test input/output contract)
-* ❌ Don't forget to verify PRP_BLUEPRINT_PROMPT is included
-* ❌ Don't skip testing token estimation edge cases
-* ❌ Don't duplicate tests from prp-blueprint-prompt.test.ts (focus on context injection)
+- ❌ Don't test with real LLM calls (use mock data only)
+- ❌ Don't skip testing all four context assembly functions
+- ❌ Don't forget to test both Task and Subtask types (different fields)
+- ❌ Don't skip testing conditional codebase path inclusion
+- ❌ Don't use actual file I/O in unit tests (mock fs operations)
+- ❌ Don't skip testing the reverse order of extractParentContext()
+- ❌ Don't forget that Subtask has context_scope, Task has description
+- ❌ Don't skip testing empty dependencies arrays
+- ❌ Don't test implementation details (test input/output contract)
+- ❌ Don't forget to verify PRP_BLUEPRINT_PROMPT is included
+- ❌ Don't skip testing token estimation edge cases
+- ❌ Don't duplicate tests from prp-blueprint-prompt.test.ts (focus on context injection)
 
-***
+---
 
 **PRP Version:** 1.0
 **Work Item:** P1.M2.T2.S2
@@ -1290,12 +1301,12 @@ grep -n "VERIFY:" tests/unit/agent-context-injection.test.ts
 
 **Rationale:**
 
-* Complete context assembly function specifications with exact line numbers
-* Comprehensive testing patterns from existing test files
-* Mock data patterns and helper functions specified
-* Clear implementation tasks with proper dependencies
-* All contract requirements from PRD and system_context.md covered
-* Extensive research documentation in research/ subdirectory
-* File paths and code examples provided for all references
-* Test structure follows project patterns exactly
-* Edge cases and error handling patterns specified with examples
+- Complete context assembly function specifications with exact line numbers
+- Comprehensive testing patterns from existing test files
+- Mock data patterns and helper functions specified
+- Clear implementation tasks with proper dependencies
+- All contract requirements from PRD and system_context.md covered
+- Extensive research documentation in research/ subdirectory
+- File paths and code examples provided for all references
+- Test structure follows project patterns exactly
+- Edge cases and error handling patterns specified with examples

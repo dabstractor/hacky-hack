@@ -71,6 +71,7 @@ static async __scanSessionDirectories(
 ```
 
 **Key Benefits:**
+
 - **Type-safe parsing:** Uses regex to extract sequence and hash
 - **Graceful ENOENT handling:** Returns empty array if directory doesn't exist
 - **withFileTypes optimization:** Single syscall for both name and type
@@ -137,6 +138,7 @@ static async listSessions(
 ```
 
 **Key Patterns:**
+
 - **Error isolation:** Wrap each session load in try-catch to continue on failures
 - **Optional parent reference:** Gracefully handle missing parent_session.txt
 - **mtime for createdAt:** Use modification time as proxy for creation time
@@ -190,7 +192,8 @@ describe('SessionManager static methods', () => {
       { name: '002_def789ghi012', isDirectory: () => true } as Dirent,
     ] as Dirent[]);
 
-    const sessions = await SessionManager.__scanSessionDirectories('/fake/path');
+    const sessions =
+      await SessionManager.__scanSessionDirectories('/fake/path');
 
     expect(sessions).toHaveLength(2);
     expect(readdir).toHaveBeenCalledWith('/fake/path', { withFileTypes: true });
@@ -200,7 +203,7 @@ describe('SessionManager static methods', () => {
 
 ### 2.3 Testing Private Static Methods
 
-**Pattern:** Use naming convention (__methodName) to expose test-only static methods.
+**Pattern:** Use naming convention (\_\_methodName) to expose test-only static methods.
 
 ```typescript
 // In implementation
@@ -213,6 +216,7 @@ const sessions = await SessionManager.__scanSessionDirectories(planDir);
 ```
 
 **Benefits:**
+
 - No need for @ts-ignore or type casting
 - Clear intent (double underscore indicates internal/test-only)
 - Full type safety maintained
@@ -231,7 +235,10 @@ describe('SessionManager.findSessionByPRD', () => {
       { name: '001_abc123def456', isDirectory: () => true } as Dirent,
     ] as Dirent[]);
 
-    const session = await SessionManager.findSessionByPRD('/fake/prd.md', '/fake/plan');
+    const session = await SessionManager.findSessionByPRD(
+      '/fake/prd.md',
+      '/fake/plan'
+    );
 
     expect(session).not.toBeNull();
     expect(session?.hash).toBe('abc123def456');
@@ -327,7 +334,7 @@ it('should filter sessions by date range', async () => {
 
   const sessions = await SessionManager.listSessions(tempDir, {
     after: yesterday,
-    before: tomorrow
+    before: tomorrow,
   });
 
   expect(sessions).toHaveLength(1);
@@ -362,7 +369,7 @@ describe('SessionManager timestamp filtering', () => {
     vi.setSystemTime(baseTime);
 
     const sessions = await SessionManager.listSessions(tempDir, {
-      after: new Date('2026-01-15T00:00:00Z')
+      after: new Date('2026-01-15T00:00:00Z'),
     });
 
     expect(sessions).toHaveLength(1);
@@ -661,7 +668,8 @@ function createMinimalBacklog(): Backlog {
                     status: 'Planned',
                     story_points: 1,
                     dependencies: [],
-                    context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test',
+                    context_scope:
+                      'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test',
                   },
                 ],
               },
@@ -1155,18 +1163,22 @@ async function createSessionDirectory(
 ### 8.3 External Resources (Based on Implementation Patterns)
 
 **Vitest Documentation:**
+
 - URL: https://vitest.dev/guide/
 - Topics: Mock patterns, test organization, async testing
 
 **Node.js File System (fs/promises):**
+
 - URL: https://nodejs.org/api/fs.html
 - Topics: readdir, stat, withFileTypes option, async operations
 
 **TypeScript Static Methods:**
+
 - URL: https://www.typescriptlang.org/docs/handbook/2/classes.html
 - Topics: Static members, class-level methods, accessibility
 
 **Testing Patterns:**
+
 - AAA Pattern (Arrange-Act-Assert)
 - Test fixture builders
 - Temp directory management

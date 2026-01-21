@@ -8,6 +8,7 @@ description: |
 **Feature Goal**: Execute instrumented E2E tests with comprehensive debug logging enabled to capture detailed execution traces, then analyze the output to identify the root cause of pipeline failures (success: false, missing files, timeout).
 
 **Deliverable**: A detailed debug analysis document at `plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-analysis.md` containing:
+
 - Full debug log capture from test execution
 - Root cause identification (first failure point, why files not created)
 - Timeline analysis of execution flow
@@ -15,6 +16,7 @@ description: |
 - Recommended fix approach for P2.M1.T2
 
 **Success Definition**:
+
 - E2E tests executed with `--verbose` flag to capture debug logs
 - Debug output captured and saved to analysis document
 - Root cause clearly identified (session init failure, file creation failure, mock misalignment, or other)
@@ -27,6 +29,7 @@ description: |
 **Use Case**: Debugging E2E pipeline test failures where the pipeline returns `success: false` and fails to create required files (`tasks.json`, `prd_snapshot.md`)
 
 **User Journey**:
+
 1. Enable verbose debug logging on E2E test execution
 2. Run instrumented pipeline tests and capture full output
 3. Analyze debug logs to identify where execution fails
@@ -34,6 +37,7 @@ description: |
 5. Hand off analysis to next subtask (P2.M1.T2) for fix implementation
 
 **Pain Points Addressed**:
+
 - Silent failures in E2E pipeline execution
 - Missing files without clear error messages
 - Timeout without understanding what's happening
@@ -65,6 +69,7 @@ Execute E2E pipeline tests with maximum verbosity to capture debug logs from ins
 ### Expected Debug Output to Capture
 
 From instrumented PRPPipeline (P2.M1.T1.S1):
+
 - `[PRPPipeline] Starting PRP Pipeline workflow` - with prdPath, scope, mode
 - `[PRPPipeline] Session initialized` - with sessionPath, hasExistingBacklog
 - `[PRPPipeline] PRD decomposition complete` - with totalPhases, totalTasks
@@ -73,6 +78,7 @@ From instrumented PRPPipeline (P2.M1.T1.S1):
 - `[PRPPipeline] Workflow failed with error` - with errorMessage, errorType, stack (if error)
 
 From instrumented SessionManager (P2.M1.T1.S2):
+
 - `[SessionManager] Starting session initialization` - with prdPath, sessionHash
 - `[SessionManager] Computing PRD hash` - with hash value
 - `[SessionManager] PRD validation result` - with validation status
@@ -83,6 +89,7 @@ From instrumented SessionManager (P2.M1.T1.S2):
 - `[SessionManager] Session initialization complete` - with duration
 
 From session-utils debug logging:
+
 - `[SessionUtils] Atomic write` - with file path, size, timing
 - `[SessionUtils] Directory creation` - with path and mode
 - `[SessionUtils] PRD hash computation` - with hash value
@@ -95,6 +102,7 @@ From session-utils debug logging:
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Validation**: This PRP provides:
+
 - Exact test command to run with debug flags
 - Expected debug log format and what to look for
 - File locations for all relevant components
@@ -259,6 +267,7 @@ plan/002_1e734971e481/bugfix/001_8d809cc989b9/
 This is a research/analysis task - no new data models. We analyze existing execution flow:
 
 **Session Initialization Flow** (from session-manager.ts):
+
 ```typescript
 // SessionManager.initialize() execution order:
 1. computePRDHash() -> SHA-256 hash of PRD content
@@ -270,6 +279,7 @@ This is a research/analysis task - no new data models. We analyze existing execu
 ```
 
 **PRPPipeline Execution Flow** (from prp-pipeline.ts):
+
 ```typescript
 // PRPPipeline.run() execution order:
 1. Setup -> startTime, status='running'
@@ -281,6 +291,7 @@ This is a research/analysis task - no new data models. We analyze existing execu
 ```
 
 **Expected Debug Log Sequence** (what we should see if successful):
+
 ```
 [timestamp] [PRPPipeline] Starting PRP Pipeline workflow
 [timestamp] [SessionManager] Starting session initialization
@@ -387,17 +398,20 @@ cat /tmp/e2e-debug-output.txt | grep -oE "\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}
 
 ```markdown
 # Pattern: Analysis document structure
+
 # Template for e2e-debug-analysis.md
 
 # E2E Pipeline Debug Analysis
 
 ## Executive Summary
+
 - **Test Command**: `npm run test:run -- tests/e2e/pipeline.test.ts --verbose --no-coverage`
 - **Execution Date**: [timestamp]
 - **Test Result**: [PASS/FAIL/TIMEOUT]
 - **Root Cause**: [One-sentence summary]
 
 ## Test Execution Summary
+
 - Duration: [X seconds]
 - Tests Run: [X tests]
 - Tests Passed: [X tests]
@@ -405,11 +419,13 @@ cat /tmp/e2e-debug-output.txt | grep -oE "\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}
 - First Failure: [test name]
 
 ## Debug Log Capture
+
 <details>
 <summary>Full Test Output (click to expand)</summary>
-
 ```
+
 [PASTE RAW TEST OUTPUT HERE]
+
 ```
 </details>
 
@@ -470,25 +486,25 @@ cat /tmp/e2e-debug-output.txt | grep -oE "\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}
 
 ```yaml
 TEST_FRAMEWORK:
-  - command: "npm run test:run -- tests/e2e/pipeline.test.ts --verbose --no-coverage"
-  - expected_duration: "< 30 seconds per test"
-  - expected_output: "Debug logs with [PRPPipeline], [SessionManager], [SessionUtils] prefixes"
+  - command: 'npm run test:run -- tests/e2e/pipeline.test.ts --verbose --no-coverage'
+  - expected_duration: '< 30 seconds per test'
+  - expected_output: 'Debug logs with [PRPPipeline], [SessionManager], [SessionUtils] prefixes'
 
 DEBUG_LOGGING:
-  - source: "src/workflows/prp-pipeline.ts (lines 1611-1716)"
-  - source: "src/core/session-manager.ts (lines 213-469)"
-  - source: "src/core/session-utils.ts (lines 105-531)"
-  - trigger: "--verbose flag enables DEBUG level logs"
+  - source: 'src/workflows/prp-pipeline.ts (lines 1611-1716)'
+  - source: 'src/core/session-manager.ts (lines 213-469)'
+  - source: 'src/core/session-utils.ts (lines 105-531)'
+  - trigger: '--verbose flag enables DEBUG level logs'
 
 OUTPUT_LOCATION:
-  - file: "plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-analysis.md"
-  - format: "Markdown with code blocks and tables"
-  - sections: "Summary, Logs, Timeline, Failure Point, Root Cause, Recommendations"
+  - file: 'plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-analysis.md'
+  - format: 'Markdown with code blocks and tables'
+  - sections: 'Summary, Logs, Timeline, Failure Point, Root Cause, Recommendations'
 
 HANDOFF:
-  - to: "P2.M1.T2 (Fix identified E2E pipeline issues)"
-  - provides: "Root cause diagnosis and recommended fix approach"
-  - enables: "Targeted fix implementation based on analysis"
+  - to: 'P2.M1.T2 (Fix identified E2E pipeline issues)'
+  - provides: 'Root cause diagnosis and recommended fix approach'
+  - enables: 'Targeted fix implementation based on analysis'
 ```
 
 ## Validation Loop
@@ -563,7 +579,7 @@ wc -l plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-analy
 
 ### Level 4: Root Cause Validation (Domain-Specific Validation)
 
-```bash
+````bash
 # Verify root cause is clearly stated
 grep -A 5 "## Root Cause Diagnosis" \
   plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-analysis.md
@@ -584,7 +600,7 @@ grep "```" plan/002_1e734971e481/bugfix/001_8d809cc989b9/architecture/e2e-debug-
 
 # Expected: Multiple code blocks (at least 4) with actual log excerpts
 # If 0-2 code blocks: Analysis is opinion-based, not data-driven
-```
+````
 
 ## Final Validation Checklist
 

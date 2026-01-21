@@ -13,6 +13,7 @@
 ### 1. Vitest Integration Testing Best Practices
 
 **Search Queries:**
+
 ```
 - "Vitest integration testing best practices 2026"
 - "site:vitest.dev integration testing setup configuration"
@@ -42,6 +43,7 @@
    - Topics: Real-world integration test patterns
 
 **Relevant Sections for PRP:**
+
 - **File Organization:** Test directory structure and naming conventions
 - **Mock Setup:** Global setup files and mock cleanup patterns
 - **Coverage Configuration:** Threshold settings and reporter options
@@ -51,6 +53,7 @@
 ### 2. Mocking Patterns for External API Calls
 
 **Search Queries:**
+
 ```
 - "mocking external API calls Vitest testing patterns"
 - "Vitest mock HTTP requests fetch axios"
@@ -80,6 +83,7 @@
    - Topics: Server setup, handler configuration
 
 **Relevant Sections for PRP:**
+
 - **Mock Setup:** Creating mock agents and prompts for Groundswell
 - **API Mocking:** Patterns for mocking LLM API calls (Claude, OpenAI)
 - **Mock Verification:** Asserting mock calls and return values
@@ -89,6 +93,7 @@
 ### 3. Testing LLM Agent Integration
 
 **Search Queries:**
+
 ```
 - "testing LLM agents external API calls Claude OpenAI"
 - "LangChain testing patterns mock LLM calls"
@@ -118,6 +123,7 @@
    - Topics: Unit testing, integration testing, evaluation
 
 **Relevant Sections for PRP:**
+
 - **Agent Config Verification:** Testing agent initialization and configuration
 - **Prompt Testing:** Validating prompt structure and content
 - **Response Validation:** Schema validation for LLM outputs
@@ -127,6 +133,7 @@
 ### 4. Prompt Validation Testing Strategies
 
 **Search Queries:**
+
 ```
 - "prompt validation testing strategies LLM applications"
 - "LLM prompt engineering testing framework"
@@ -156,6 +163,7 @@
    - Topics: Prompt tracing, evaluation metrics, regression testing
 
 **Relevant Sections for PRP:**
+
 - **Prompt Structure Validation:** Testing prompt format and required sections
 - **Template Variable Testing:** Verifying variable substitution
 - **Content Validation:** Checking prompt content requirements
@@ -165,6 +173,7 @@
 ### 5. Zod Schema Validation Testing
 
 **Search Queries:**
+
 ```
 - "Zod schema validation testing patterns TypeScript"
 - "testing Zod schemas Vitest examples"
@@ -194,6 +203,7 @@
    - Topics: Schema validation tools, testing strategies
 
 **Relevant Sections for PRP:**
+
 - **Schema Validation Testing:** Testing Zod schemas with valid/invalid data
 - **Error Message Validation:** Verifying schema error messages
 - **Type Safety Testing:** Ensuring TypeScript types match schemas
@@ -205,6 +215,7 @@
 ### Existing Test Files
 
 **Unit Tests:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/agents/agent-factory.test.ts`
   - Agent configuration testing
   - Environment variable mapping
@@ -221,6 +232,7 @@
   - Required field testing
 
 **Integration Tests:**
+
 - `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts`
   - Groundswell agent mocking
   - Prompt generation integration
@@ -410,6 +422,7 @@ it('PRP_BLUEPRINT_PROMPT should contain template placeholders', () => {
 **Current Status:** Complete with codebase analysis and search query documentation
 
 **Next Steps:**
+
 1. When search becomes available, execute search queries
 2. Update this document with actual URLs and specific sections
 3. Extract relevant code examples from documentation

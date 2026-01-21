@@ -25,6 +25,7 @@
 Groundswell uses a sophisticated MCP (Model Context Protocol) integration pattern that differs from the standard FastMCP approach:
 
 **Key Differences:**
+
 - **Not using FastMCP**: This codebase uses Groundswell's custom MCPHandler implementation
 - **In-process transport**: Uses 'inprocess' transport type for local tool execution
 - **Server-based registration**: Tools are registered through MCPServer interface
@@ -55,6 +56,7 @@ const MCP_TOOLS: MCPServer[] = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP];
 ```
 
 **Benefits:**
+
 - Avoids redundant server registration
 - Reduces memory overhead
 - Ensures consistent tool availability across agents
@@ -119,10 +121,14 @@ interface MCPServer {
 class MCPHandler {
   // Core registration methods
   registerServer(server: MCPServer): void;
-  registerToolExecutor(serverName: string, toolName: string, executor: ToolExecutor): void;
+  registerToolExecutor(
+    serverName: string,
+    toolName: string,
+    executor: ToolExecutor
+  ): void;
 
   // Tool discovery and execution
-  getTools(): Tool[];  // Returns Anthropic format tools
+  getTools(): Tool[]; // Returns Anthropic format tools
   hasTool(toolName: string): boolean;
   executeTool(toolName: string, input: unknown): Promise<ToolResult>;
 
@@ -137,12 +143,12 @@ class MCPHandler {
 
 ```typescript
 // Examples from tests:
-'test-server__test_tool'
-'multi__tool1'
-'server1__tool_a'
-'filesystem__file_read'
-'git__git_status'
-'bash__execute_bash'
+'test-server__test_tool';
+'multi__tool1';
+'server1__tool_a';
+'filesystem__file_read';
+'git__git_status';
+'bash__execute_bash';
 ```
 
 **Enforcement:** Groundswell automatically prefixes tool names with the server name
@@ -239,7 +245,7 @@ export function createArchitectAgent(): Agent {
   const config = {
     ...baseConfig,
     system: TASK_BREAKDOWN_PROMPT,
-    mcps: MCP_TOOLS,  // Inject MCP servers
+    mcps: MCP_TOOLS, // Inject MCP servers
   };
   return createAgent(config);
 }
@@ -262,7 +268,7 @@ export function createArchitectAgent(): Agent {
 
 3. **getTools() Anthropic Format Validation**
    - Tool format compliance
-   - Server__tool naming pattern
+   - Server\_\_tool naming pattern
    - Required array validation
 
 4. **hasTool() Tool Identification**
@@ -392,9 +398,7 @@ async function gitStatus(input: GitStatusInput): Promise<GitStatusResult> {
     return {
       success: true,
       branch: status.current,
-      staged: status.files
-        .filter(f => f.index !== ' ')
-        .map(f => f.path),
+      staged: status.files.filter(f => f.index !== ' ').map(f => f.path),
       modified: status.files
         .filter(f => f.working_dir !== ' ')
         .map(f => f.path),
@@ -411,7 +415,12 @@ async function gitStatus(input: GitStatusInput): Promise<GitStatusResult> {
 export class GitMCP extends MCPHandler {
   public readonly name = 'git';
   public readonly transport = 'inprocess' as const;
-  public readonly tools = [gitStatusTool, gitDiffTool, gitAddTool, gitCommitTool];
+  public readonly tools = [
+    gitStatusTool,
+    gitDiffTool,
+    gitAddTool,
+    gitCommitTool,
+  ];
 
   constructor() {
     super();
@@ -474,6 +483,7 @@ expect(parsed.success).toBe(true);
 ### 8.3 Error Handling Patterns
 
 **Consistent Error Structure:**
+
 ```typescript
 interface Result {
   success: boolean;
@@ -483,6 +493,7 @@ interface Result {
 ```
 
 **Error Handling Best Practices:**
+
 - Always wrap in try-catch blocks
 - Return structured error objects
 - Handle specific error codes (ENOENT, EACCES)
@@ -491,6 +502,7 @@ interface Result {
 ### 8.4 Security Patterns
 
 **Path Validation:**
+
 ```typescript
 const safePath = resolve(path);
 if (!existsSync(safePath)) {
@@ -499,6 +511,7 @@ if (!existsSync(safePath)) {
 ```
 
 **Command Injection Prevention:**
+
 ```typescript
 // Use argument arrays, not shell interpretation
 spawn(executable, commandArgs, { shell: false });

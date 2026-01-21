@@ -77,6 +77,7 @@ This testing practice goes by several names:
 ### Q: Should tests import constants and compare against them?
 
 **YES** - This is the recommended approach. Benefits:
+
 - Single source of truth
 - Test fails if constant changes
 - Clear relationship to code
@@ -89,6 +90,7 @@ This testing practice goes by several names:
 ### Q: Are there anti-patterns to avoid?
 
 **YES** - Three critical anti-patterns:
+
 1. Magic strings without constants
 2. Not testing default values
 3. Testing implementation details
@@ -100,6 +102,7 @@ This testing practice goes by several names:
 ### File: `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
 
 **Problems:**
+
 - Uses magic strings for `DEFAULT_BASE_URL` (line 83-85)
 - Uses magic strings for model names (lines 108, 116, 124)
 - Tests defaults without importing constants
@@ -138,12 +141,15 @@ expect(runtimeValue).toBe('hardcoded-value');
 ## Files to Update
 
 ### Priority 1
+
 - `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
 
 ### Priority 2
+
 - Create: `/home/dustin/projects/hacky-hack/tests/unit/config/constant-synchronization.test.ts`
 
 ### Priority 3
+
 - Apply pattern to other test files in codebase
 
 ---
@@ -153,6 +159,7 @@ expect(runtimeValue).toBe('hardcoded-value');
 **Method:** Codebase analysis + testing best practices
 **Limitations:** Web search unavailable due to rate limits
 **Sources:**
+
 - Existing codebase patterns
 - Testing best practices
 - TypeScript/JavaScript conventions

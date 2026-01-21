@@ -7,6 +7,7 @@ This document provides comprehensive research on the Researcher Agent implementa
 ## Researcher Agent Implementation
 
 ### Location
+
 - **File**: `src/agents/prp-generator.ts` (564 lines)
 - **Agent Factory**: `src/agents/agent-factory.ts` (createResearcherAgent function)
 
@@ -31,6 +32,7 @@ export function createResearcherAgent(): Agent {
 ```
 
 **Configuration Details**:
+
 - **Model**: GLM-4.7
 - **Max Tokens**: 4096 (from PERSONA_TOKEN_LIMITS)
 - **System Prompt**: PRP_BLUEPRINT_PROMPT
@@ -176,6 +178,7 @@ From `PROMPTS.md` lines 189-637:
 **Important Finding**: The "subagent spawning" described in prompts is aspirational rather than implemented.
 
 From codebase research:
+
 - PRPGenerator caches a single Researcher Agent instance (line 178)
 - No "batch tools" implementation exists
 - Subagent spawning is mentioned in prompts but not in code
@@ -184,6 +187,7 @@ From codebase research:
 ### Testing Implications
 
 When testing Researcher Agent:
+
 1. Mock the single agent.prompt() call (not multiple subagents)
 2. Test the caching behavior (hash, TTL, metadata)
 3. Verify prompt structure contains subagent instructions (even if not implemented)
@@ -210,6 +214,7 @@ When testing Researcher Agent:
 ### Prompt References
 
 From PROMPTS.md:
+
 - Line 81: "You must store architectural findings in `$SESSION_DIR/architecture/`"
 - Line 113: "Store findings in `$SESSION_DIR/architecture/` (e.g., `system_context.md`, `external_deps.md`)"
 - Line 227: "Use relevant research and plan information in the plan/architecture/ directory"
@@ -217,6 +222,7 @@ From PROMPTS.md:
 ### Testing Internal Research
 
 To test that Researcher Agent checks architecture/:
+
 1. Mock existence of architecture/ directory
 2. Mock readFile for architecture files
 3. Verify prompt includes instructions to read architecture/
@@ -229,6 +235,7 @@ To test that Researcher Agent checks architecture/:
 **No WebFetch MCP tool exists** in current codebase.
 
 Existing MCP tools:
+
 - BASH_MCP (shell commands)
 - FILESYSTEM_MCP (file operations)
 - GIT_MCP (git operations)
@@ -236,6 +243,7 @@ Existing MCP tools:
 ### Prompt Instructions
 
 From PROMPTS.md lines 231-240:
+
 - "Library documentation (include specific URLs)"
 - "Implementation examples (GitHub/StackOverflow/blogs)"
 - "Use the batch tools to spawn subagents to search for similar features/patterns online"
@@ -243,6 +251,7 @@ From PROMPTS.md lines 231-240:
 ### Testing External Research
 
 Since web fetching is not implemented:
+
 1. Test that prompt instructs external research
 2. Mock any future web fetch calls
 3. Verify prompt mentions URLs and online research
@@ -286,14 +295,16 @@ Validation: `PRPDocumentSchema.parse(result)` at line 444
 ### Retry Logic
 
 From `src/utils/retry.ts`:
+
 ```typescript
-await retryAgentPrompt(
-  () => this.#researcherAgent.prompt(prompt),
-  { agentType: 'Researcher', operation: 'generatePRP' }
-)
+await retryAgentPrompt(() => this.#researcherAgent.prompt(prompt), {
+  agentType: 'Researcher',
+  operation: 'generatePRP',
+});
 ```
 
 Configuration:
+
 - Max retries: 3
 - Base delay: 1000ms
 - Max delay: 30000ms

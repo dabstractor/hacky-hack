@@ -81,20 +81,24 @@ env: {
 ## 3. Related Environment Variables
 
 ### Core API Variables:
+
 - `ANTHROPIC_AUTH_TOKEN` (input): Shell environment variable for authentication
 - `ANTHROPIC_API_KEY` (SDK): Expected by Anthropic/z.ai SDK (mapped from AUTH_TOKEN)
 - `ANTHROPIC_BASE_URL`: API endpoint URL (defaults to `https://api.z.ai/api/anthropic`)
 
 ### Model Override Variables:
+
 - `ANTHROPIC_DEFAULT_OPUS_MODEL`: Override default opus model name
-- `ANTHROPIC_DEFAULT_SONNET_MODEL`: Override default sonnet model name  
+- `ANTHROPIC_DEFAULT_SONNET_MODEL`: Override default sonnet model name
 - `ANTHROPIC_DEFAULT_HAIKU_MODEL`: Override default haiku model name
 
 ### Directory Variables (Session Context):
+
 - `$SESSION_DIR`: Session directory path (used in prompts, not directly in code)
 - `$PREV_SESSION_DIR`: Previous session directory (used in delta analysis prompts)
 
 ### NOT Found Variables:
+
 - `PRP_PIPELINE_RUNNING`: Not found in the codebase
 - `SKIP_BUG_FINDING`: Not found in the codebase
 - `PLAN_DIR`: Not found in the codebase
@@ -165,13 +169,13 @@ export const REQUIRED_ENV_VARS = {
 async function main(): Promise<number> {
   // Parse CLI arguments first
   const args: CLIArgs = parseCLIArgs();
-  
+
   // Setup global error handlers
   setupGlobalHandlers(args.verbose);
-  
+
   // CRITICAL: Configure environment before any API operations
   configureEnvironment();
-  
+
   // Continue with pipeline creation and execution...
   const pipeline = new PRPPipeline(/* args... */);
   const result = await pipeline.run();
@@ -243,7 +247,7 @@ constructor(
 
 - **Tier-based**: Three tiers: 'opus', 'sonnet', 'haiku'
 - **Environment Overrides**: Can override default models via `ANTHROPIC_DEFAULT_*_MODEL` vars
-- **Default Models**: 
+- **Default Models**:
   - Opus: GLM-4.7 (highest quality)
   - Sonnet: GLM-4.7 (balanced, default)
   - Haiku: GLM-4.5-Air (fastest)

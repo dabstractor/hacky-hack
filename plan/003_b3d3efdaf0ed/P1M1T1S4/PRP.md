@@ -7,6 +7,7 @@
 **Deliverable**: Unit test file `tests/unit/core/session-state-batching.test.ts` with complete test coverage for batching behavior, atomic write operations, and dirty state preservation on failure.
 
 **Success Definition**:
+
 - All 5 CONTRACT requirements from work item description are tested and passing
 - Test file runs successfully with `npx vitest run tests/unit/core/session-state-batching.test.ts`
 - Tests validate: (a) multiple updates are batched in memory, (b) `flushUpdates()` writes all changes in single atomic operation, (c) temp file is created before final write, (d) rename operation is atomic, (e) dirty state is preserved on flush failure for retry
@@ -17,6 +18,7 @@
 **Business Value**: The batching pattern is critical for performance optimization in the PRP Pipeline. Without proper batching, each task status update would trigger a separate disk write operation, causing significant I/O overhead. With batching, hundreds of task updates can be accumulated and flushed in a single atomic write operation, reducing disk I/O by up to 99% while maintaining data integrity through atomic writes.
 
 **Integration Points**:
+
 - Validates `updateItemStatus()` from `src/core/session-manager.ts` (lines 768-800) for batch accumulation
 - Validates `flushUpdates()` from `src/core/session-manager.ts` (lines 670-720) for batch flushing
 - Validates `atomicWrite()` from `src/core/session-utils.ts` (lines 99-180) for temp file + rename pattern
@@ -24,6 +26,7 @@
 - Uses existing test patterns from `tests/unit/core/session-manager.test.ts` for mocking reference
 
 **Problems Solved**:
+
 - Ensures multiple status updates are properly accumulated in memory (not written immediately)
 - Confirms atomic write pattern prevents data corruption during process crashes
 - Verifies dirty state is preserved on flush failure, enabling retry capability
@@ -35,6 +38,7 @@
 **User-Visible Behavior**: No direct user-visible behavior - this is infrastructure validation for the session state batching system that enables efficient task execution with minimal disk I/O overhead.
 
 **Success Criteria**:
+
 - [ ] Test verifies multiple `updateItemStatus()` calls accumulate in memory (CONTRACT a)
 - [ ] Test verifies `flushUpdates()` writes all changes in single operation (CONTRACT b)
 - [ ] Test verifies temp file is created before final write (CONTRACT c)
@@ -54,6 +58,7 @@
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Answer**: YES. This PRP provides:
+
 - Complete batching state machine specification with state transitions
 - Exact implementation details of atomicWrite with temp filename pattern
 - All mock patterns needed for Vitest fs testing
@@ -238,7 +243,12 @@ import type { Backlog, Status } from '../../../src/core/models.js';
 
 // Import SessionManager and dependencies
 import { SessionManager } from '../../../src/core/session-manager.js';
-import { hashPRD, createSessionDirectory, writeTasksJSON, SessionFileError } from '../../../src/core/session-utils.js';
+import {
+  hashPRD,
+  createSessionDirectory,
+  writeTasksJSON,
+  SessionFileError,
+} from '../../../src/core/session-utils.js';
 
 // Mock modules at top level
 vi.mock('node:fs/promises', () => ({

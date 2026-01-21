@@ -10,18 +10,18 @@ The **PRP Pipeline** is a fully-functional TypeScript-based autonomous developme
 
 ### ✅ Already Implemented Components
 
-| Component | PRD Section | Current Implementation | Status |
-|-----------|-------------|------------------------|--------|
-| **Session Manager** | §3.1, §5.1 | `src/core/session-manager.ts` (1172 lines) | ✅ Complete |
-| **Task Orchestrator** | §3.2, §5.3 | `src/core/task-orchestrator.ts` (836 lines) | ✅ Complete |
-| **Agent Runtime** | §3.3, §6 | `src/agents/` directory with factory pattern | ✅ Complete |
-| **Pipeline Controller** | §3.4 | `src/workflows/prp-pipeline.ts` (1848 lines) | ✅ Complete |
-| **Delta Sessions** | §4.3 | Delta analysis workflow + task patcher | ✅ Complete |
-| **Bug Hunt Workflow** | §4.4, §6.5 | BugHuntWorkflow + FixCycleWorkflow | ✅ Complete |
-| **CLI Interface** | - | `src/cli/index.ts` with Commander.js | ✅ Complete |
-| **MCP Tools** | §5.2 | BashMCP, FilesystemMCP, GitMCP | ✅ Complete |
-| **State Persistence** | §5.1 | tasks.json with atomic writes | ✅ Complete |
-| **Smart Commits** | §5.1 | Git commit automation | ✅ Complete |
+| Component               | PRD Section | Current Implementation                       | Status      |
+| ----------------------- | ----------- | -------------------------------------------- | ----------- |
+| **Session Manager**     | §3.1, §5.1  | `src/core/session-manager.ts` (1172 lines)   | ✅ Complete |
+| **Task Orchestrator**   | §3.2, §5.3  | `src/core/task-orchestrator.ts` (836 lines)  | ✅ Complete |
+| **Agent Runtime**       | §3.3, §6    | `src/agents/` directory with factory pattern | ✅ Complete |
+| **Pipeline Controller** | §3.4        | `src/workflows/prp-pipeline.ts` (1848 lines) | ✅ Complete |
+| **Delta Sessions**      | §4.3        | Delta analysis workflow + task patcher       | ✅ Complete |
+| **Bug Hunt Workflow**   | §4.4, §6.5  | BugHuntWorkflow + FixCycleWorkflow           | ✅ Complete |
+| **CLI Interface**       | -           | `src/cli/index.ts` with Commander.js         | ✅ Complete |
+| **MCP Tools**           | §5.2        | BashMCP, FilesystemMCP, GitMCP               | ✅ Complete |
+| **State Persistence**   | §5.1        | tasks.json with atomic writes                | ✅ Complete |
+| **Smart Commits**       | §5.1        | Git commit automation                        | ✅ Complete |
 
 ### 📊 Codebase Metrics
 
@@ -56,6 +56,7 @@ class PRPPipeline extends Workflow {
 ```
 
 **Key Decorators**:
+
 - `@ObservedState()`: Automatic state tracking and snapshots
 - `@Step()`: Wraps methods with timing, logging, and error handling
 - `@Task({ concurrent: true })`: Spawns parallel child workflows
@@ -64,14 +65,15 @@ class PRPPipeline extends Workflow {
 
 Four specialized agents created via `AgentFactory`:
 
-| Agent | Role | Model | Max Tokens | Cache |
-|-------|------|-------|------------|-------|
-| **Architect** | PRD → Task Breakdown | GLM-4.7 | 8192 | ✅ |
-| **Researcher** | Task → PRP Generation | GLM-4.7 | 4096 | ✅ |
-| **Coder** | PRP → Implementation | GLM-4.7 | 4096 | ✅ |
-| **QA** | Bug Hunting | GLM-4.7 | 4096 | ✅ |
+| Agent          | Role                  | Model   | Max Tokens | Cache |
+| -------------- | --------------------- | ------- | ---------- | ----- |
+| **Architect**  | PRD → Task Breakdown  | GLM-4.7 | 8192       | ✅    |
+| **Researcher** | Task → PRP Generation | GLM-4.7 | 4096       | ✅    |
+| **Coder**      | PRP → Implementation  | GLM-4.7 | 4096       | ✅    |
+| **QA**         | Bug Hunting           | GLM-4.7 | 4096       | ✅    |
 
 All agents share the same MCP tools:
+
 - **BashMCP**: Shell command execution
 - **FilesystemMCP**: File I/O, glob, grep
 - **GitMCP**: Git operations
@@ -79,6 +81,7 @@ All agents share the same MCP tools:
 ### 3. Session State Management
 
 **Session Structure**:
+
 ```
 plan/
 ├── 001_14b9dc2a33c7/          # Session directory (sequence_hash)
@@ -97,6 +100,7 @@ plan/
 ```
 
 **Key Features**:
+
 - PRD hash-based session detection (SHA-256, first 12 chars)
 - Delta session creation for PRD changes
 - Atomic state updates (temp file + rename pattern)
@@ -113,16 +117,16 @@ interface Backlog {
 
 interface Phase {
   type: 'Phase';
-  id: string;                    // "P1"
+  id: string; // "P1"
   title: string;
-  status: Status;                // Planned | Researching | Implementing | Complete | Failed
+  status: Status; // Planned | Researching | Implementing | Complete | Failed
   description: string;
   milestones: Milestone[];
 }
 
 interface Milestone {
   type: 'Milestone';
-  id: string;                    // "P1.M1"
+  id: string; // "P1.M1"
   title: string;
   status: Status;
   description: string;
@@ -131,7 +135,7 @@ interface Milestone {
 
 interface Task {
   type: 'Task';
-  id: string;                    // "P1.M1.T1"
+  id: string; // "P1.M1.T1"
   title: string;
   status: Status;
   description: string;
@@ -140,21 +144,23 @@ interface Task {
 
 interface Subtask {
   type: 'Subtask';
-  id: string;                    // "P1.M1.T1.S1"
+  id: string; // "P1.M1.T1.S1"
   title: string;
   status: Status;
-  story_points: number;          // 0.5, 1, or 2 (max 2)
-  dependencies: string[];        // Subtask IDs
-  context_scope: string;         // CONTRACT DEFINITION format
+  story_points: number; // 0.5, 1, or 2 (max 2)
+  dependencies: string[]; // Subtask IDs
+  context_scope: string; // CONTRACT DEFINITION format
 }
 ```
 
 **Traversal Algorithm**: Depth-first pre-order
+
 ```
 Phase → Milestone → Task → Subtask (execute)
 ```
 
 **Dependency Resolution**:
+
 ```typescript
 canExecute(subtask): boolean {
   const dependencies = getDependencies(subtask, backlog);
@@ -170,37 +176,44 @@ canExecute(subtask): boolean {
 # PRP: [Subtask ID] - [Subtask Title]
 
 ## Goal
+
 - Feature Goal
 - Deliverable
 - Success Definition
 
 ## User Persona
+
 - Target User
 - Use Case
 - User Journey
 - Pain Points
 
 ## Why
+
 - Business Value
 - Integration Points
 - Problems Solved
 
 ## What
+
 - User-Visible Behavior
 - Success Criteria
 
 ## All Needed Context
+
 - Documentation & References
 - Codebase Tree
 - Gotchas & Patterns
 
 ## Implementation Blueprint
+
 - Data Models
 - Implementation Tasks
 - Patterns to Follow
 - Integration Points
 
 ## Validation Loop
+
 - Level 1: Syntax & Style
 - Level 2: Unit Tests
 - Level 3: Integration Tests
@@ -212,6 +225,7 @@ canExecute(subtask): boolean {
 ```
 
 **Cache System**:
+
 - Key: SHA-256 hash of task definition
 - TTL: 24 hours
 - Metadata: Stored in `prps/.cache/{taskId}.json`
@@ -240,6 +254,7 @@ canExecute(subtask): boolean {
    - Security scans
 
 **Fix Cycle**:
+
 - Max 2 attempts with exponential backoff
 - Automatic retry on validation failure
 - Artifact preservation for debugging
@@ -249,6 +264,7 @@ canExecute(subtask): boolean {
 **Trigger**: PRD hash mismatch detected
 
 **Process**:
+
 1. Load old PRD from `prd_snapshot.md`
 2. Load new PRD from disk
 3. Run `DeltaAnalysisWorkflow` to compute diffs
@@ -261,6 +277,7 @@ canExecute(subtask): boolean {
 7. Resume execution from modified tasks
 
 **Retry Logic** (from PRD):
+
 - If delta PRD not created on first attempt, demand retry
 - Fail fast if delta PRD cannot be generated after retry
 - Incomplete delta sessions detect and regenerate missing delta PRDs on resume
@@ -274,12 +291,14 @@ canExecute(subtask): boolean {
 3. **Adversarial Testing**: Unexpected inputs, missing features, incomplete features, UX issues
 
 **Bug Severity Levels**:
+
 - `critical`: Blocks core functionality
 - `major`: Significantly impacts UX/functionality
 - `minor`: Small improvements
 - `cosmetic`: Polish items
 
 **Fix Cycle** (Self-Contained Sessions):
+
 ```
 bugfix/
 ├── 001_hash/                  # First bug hunt iteration
@@ -294,6 +313,7 @@ bugfix/
 **Termination**: Loop until QA Agent reports no issues
 
 **Interactive Prompts**:
+
 - Before starting bug hunt on completed session
 - Before resuming incomplete bug fix cycle (with archive option)
 
@@ -303,18 +323,19 @@ bugfix/
 
 ### Core Technologies
 
-| Component | Technology | Version | Purpose |
-|-----------|------------|---------|---------|
-| **Runtime** | Node.js | >=20.0.0 | JavaScript runtime |
-| **Language** | TypeScript | 5.2+ | Type-safe development |
-| **Framework** | Groundswell | 0.0.1 | Workflow orchestration |
-| **LLM Provider** | z.ai | - | GLM-4.7, GLM-4.5-Air models |
-| **Test Runner** | Vitest | 1.6.1 | Unit/integration tests |
-| **CLI Parser** | Commander.js | 14.0.2 | Command-line interface |
+| Component        | Technology   | Version  | Purpose                     |
+| ---------------- | ------------ | -------- | --------------------------- |
+| **Runtime**      | Node.js      | >=20.0.0 | JavaScript runtime          |
+| **Language**     | TypeScript   | 5.2+     | Type-safe development       |
+| **Framework**    | Groundswell  | 0.0.1    | Workflow orchestration      |
+| **LLM Provider** | z.ai         | -        | GLM-4.7, GLM-4.5-Air models |
+| **Test Runner**  | Vitest       | 1.6.1    | Unit/integration tests      |
+| **CLI Parser**   | Commander.js | 14.0.2   | Command-line interface      |
 
 ### Key Dependencies
 
 **Production**:
+
 - `@anthropic-ai/sdk`: LLM API client
 - `zod`: Schema validation
 - `pino`: Structured logging
@@ -322,6 +343,7 @@ bugfix/
 - `simple-git`: Git operations
 
 **Development**:
+
 - `tsx`: TypeScript execution
 - `vitest`: Test framework
 - `esbuild`: Fast builds
@@ -331,12 +353,14 @@ bugfix/
 ### Module System
 
 **ES Modules** (`.js` extensions required):
+
 ```typescript
 import { Workflow } from 'groundswell';
 import { SessionManager } from './core/session-manager.js';
 ```
 
 **Path Resolution**:
+
 - Groundswell linked via local path alias in `vitest.config.ts`
 - Absolute imports recommended for stability
 
@@ -345,6 +369,7 @@ import { SessionManager } from './core/session-manager.js';
 ### API Provider: z.ai
 
 **Environment Variables**:
+
 ```bash
 # Authentication
 ANTHROPIC_AUTH_TOKEN=z.ai_api_key_here
@@ -356,6 +381,7 @@ ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.5-Air
 ```
 
 **Mapping**:
+
 - Shell uses `ANTHROPIC_AUTH_TOKEN`
 - SDK expects `ANTHROPIC_API_KEY`
 - System automatically maps AUTH_TOKEN → API_KEY
@@ -376,6 +402,7 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 ### API Endpoint Safeguards
 
 **CRITICAL**: Tests enforce z.ai API usage
+
 - Tests fail immediately if `ANTHROPIC_BASE_URL` is `https://api.anthropic.com`
 - Validation scripts block execution to prevent accidental API usage
 - Warnings for non-z.ai endpoints (excluding localhost/mock/test)
@@ -383,6 +410,7 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 ### Nested Execution Guard
 
 **Logic**:
+
 1. On pipeline start, check if `PRP_PIPELINE_RUNNING` is already set
 2. If set, only allow execution if BOTH:
    - `SKIP_BUG_FINDING=true` (legitimate bug fix recursion)
@@ -391,6 +419,7 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 4. On valid entry, set `PRP_PIPELINE_RUNNING` to current PID
 
 **Session Creation Guards**:
+
 - In bug fix mode, prevent creating sessions in main `plan/` directory
 - Bug fix session paths must contain "bugfix" in the path
 - Debug logging shows `PLAN_DIR`, `SESSION_DIR`, `SKIP_BUG_FINDING` values
@@ -463,6 +492,7 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 ## Protected Files
 
 **NEVER delete or move** (from PRD §5.1):
+
 - `$SESSION_DIR/tasks.json`
 - `$SESSION_DIR/prd_snapshot.md`
 - `$SESSION_DIR/delta_prd.md`
@@ -475,6 +505,7 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 ## Forbidden Operations (All Agents)
 
 **Universal** (from PRD §5.2):
+
 - Never modify `PRD.md` (human-owned document)
 - Never add `plan/`, `PRD.md`, or task files to `.gitignore`
 - Never run `prd`, `run-prd.sh`, or `tsk` commands (prevents recursive execution)
@@ -485,11 +516,13 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 **Command**: `prd` (via `src/index.ts`)
 
 **Modes**:
+
 - `normal`: Full pipeline execution (default)
 - `bug-hunt`: Run QA workflow only
 - `validate`: Run validation scripts only
 
 **Options**:
+
 - `--prd <path>`: PRD file path
 - `--scope <scope>`: Limit execution (e.g., "P3.M4")
 - `--mode <mode>`: Execution mode
@@ -501,6 +534,7 @@ BUGFIX_SCOPE=subtask              # Granularity for bug fix tasks
 - `--max-duration <ms>`: Duration limit
 
 **Task Subcommand**:
+
 ```bash
 prd task              # Show tasks for current session
 prd task next         # Get next task
@@ -509,17 +543,20 @@ prd task -f <file>    # Override with specific file
 ```
 
 **Task File Discovery Priority**:
+
 1. Incomplete bugfix session tasks
 2. Main session tasks
 
 ## Key Files Reference
 
 ### Entry Points
+
 - `src/index.ts`: Main CLI entry point
 - `src/cli/index.ts`: CLI argument parsing
 - `src/workflows/prp-pipeline.ts`: Primary pipeline workflow
 
 ### Core Logic
+
 - `src/core/models.ts`: Type definitions and Zod schemas
 - `src/core/session-manager.ts`: Session state management
 - `src/core/task-orchestrator.ts`: Task execution coordination
@@ -527,23 +564,27 @@ prd task -f <file>    # Override with specific file
 - `src/core/task-patcher.ts`: Delta session task patching
 
 ### Agent System
+
 - `src/agents/agent-factory.ts`: Agent creation factory
 - `src/agents/prp-runtime.ts`: Research→implementation orchestration
 - `src/agents/prp-generator.ts`: PRP generation from tasks
 - `src/agents/prp-executor.ts`: PRP execution and validation
 
 ### Tools
+
 - `src/tools/bash-mcp.ts`: Shell command execution
 - `src/tools/filesystem-mcp.ts`: File operations
 - `src/tools/git-mcp.ts`: Git operations
 
 ### Configuration
+
 - `src/config/environment.ts`: Environment variable management
 - `src/config/constants.ts`: Model names and defaults
 
 ## Conclusion
 
 The PRP Pipeline is a **production-ready, fully-implemented system** built with:
+
 - Solid TypeScript foundation (ES Modules, strict typing, 100% test coverage)
 - Groundswell integration (decorators, agents, workflows, MCP tools)
 - Multi-agent architecture (specialized agents for different phases)
@@ -552,6 +593,7 @@ The PRP Pipeline is a **production-ready, fully-implemented system** built with:
 - Production-grade features (structured logging, error handling, CLI, validation)
 
 The PRD appears to be a **retrospective specification** documenting the architecture and features of the existing system, rather than requirements for a new implementation. Any future work should focus on:
+
 1. Addressing the limitations and pain points identified above
 2. Enhancing concurrency and performance
 3. Improving error handling and retry mechanisms

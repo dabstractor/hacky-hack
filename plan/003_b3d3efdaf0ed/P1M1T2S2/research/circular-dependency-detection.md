@@ -26,9 +26,9 @@ The most common approach for detecting cycles in directed graphs:
 
 ```typescript
 enum NodeColor {
-  WHITE = 'white',   // Unvisited
-  GRAY = 'gray',     // Visiting (in current DFS path)
-  BLACK = 'black'    // Visited (fully processed)
+  WHITE = 'white', // Unvisited
+  GRAY = 'gray', // Visiting (in current DFS path)
+  BLACK = 'black', // Visited (fully processed)
 }
 
 interface DependencyNode {
@@ -133,8 +133,9 @@ function detectCyclesTopological(
 
   // If not all nodes processed, there's a cycle
   if (processed.size !== nodes.size) {
-    const nodesInCycle = Array.from(nodes.keys())
-      .filter(id => !processed.has(id));
+    const nodesInCycle = Array.from(nodes.keys()).filter(
+      id => !processed.has(id)
+    );
     return [nodesInCycle]; // Simplified - actual cycle extraction requires more work
   }
 
@@ -241,7 +242,7 @@ function createCircularDependencyDetector() {
       } finally {
         resolving.delete(id);
       }
-    }
+    },
   };
 }
 ```
@@ -260,7 +261,7 @@ describe('CircularDependencyDetector', () => {
     it('should detect A → B → A', () => {
       const graph = new Map([
         ['A', { deps: ['B'] }],
-        ['B', { deps: ['A'] }]
+        ['B', { deps: ['A'] }],
       ]);
 
       const cycles = detectCycles(graph);
@@ -268,9 +269,7 @@ describe('CircularDependencyDetector', () => {
     });
 
     it('should detect A → A (self-dependency)', () => {
-      const graph = new Map([
-        ['A', { deps: ['A'] }]
-      ]);
+      const graph = new Map([['A', { deps: ['A'] }]]);
 
       const cycles = detectCycles(graph);
       expect(cycles).toEqual([['A', 'A']]);
@@ -282,7 +281,7 @@ describe('CircularDependencyDetector', () => {
       const graph = new Map([
         ['A', { deps: ['B'] }],
         ['B', { deps: ['C'] }],
-        ['C', { deps: ['A'] }]
+        ['C', { deps: ['A'] }],
       ]);
 
       const cycles = detectCycles(graph);
@@ -294,7 +293,7 @@ describe('CircularDependencyDetector', () => {
         ['A', { deps: ['B'] }],
         ['B', { deps: ['A'] }],
         ['C', { deps: ['D'] }],
-        ['D', { deps: ['C'] }]
+        ['D', { deps: ['C'] }],
       ]);
 
       const cycles = detectCycles(graph);
@@ -308,9 +307,9 @@ describe('CircularDependencyDetector', () => {
         ['A', { deps: ['B', 'C'] }],
         ['B', { deps: ['D'] }],
         ['C', { deps: ['D'] }],
-        ['D', { deps: ['A'] }],  // Creates cycle
-        ['E', { deps: ['F'] }],   // Separate DAG
-        ['F', { deps: [] }]
+        ['D', { deps: ['A'] }], // Creates cycle
+        ['E', { deps: ['F'] }], // Separate DAG
+        ['F', { deps: [] }],
       ]);
 
       const cycles = detectCycles(graph);
@@ -323,7 +322,7 @@ describe('CircularDependencyDetector', () => {
         ['A', { deps: ['B', 'C'] }],
         ['B', { deps: ['D'] }],
         ['C', { deps: ['D'] }],
-        ['D', { deps: [] }]
+        ['D', { deps: [] }],
       ]);
 
       const cycles = detectCycles(graph);
@@ -338,9 +337,7 @@ describe('CircularDependencyDetector', () => {
     });
 
     it('should handle single node with no dependencies', () => {
-      const graph = new Map([
-        ['A', { deps: [] }]
-      ]);
+      const graph = new Map([['A', { deps: [] }]]);
 
       const cycles = detectCycles(graph);
       expect(cycles).toEqual([]);
@@ -348,7 +345,7 @@ describe('CircularDependencyDetector', () => {
 
     it('should handle missing dependencies gracefully', () => {
       const graph = new Map([
-        ['A', { deps: ['B'] }]  // B doesn't exist
+        ['A', { deps: ['B'] }], // B doesn't exist
       ]);
 
       const cycles = detectCycles(graph);
@@ -449,15 +446,19 @@ describe('DependencyGraph Construction', () => {
     graph.addNode('C', ['D']);
     graph.addNode('D', []);
 
-    expect(graph.getAllNodes()).toEqual(expect.arrayContaining(['A', 'B', 'C', 'D']));
-    expect(graph.getDependencies('A')).toEqual(expect.arrayContaining(['B', 'C']));
+    expect(graph.getAllNodes()).toEqual(
+      expect.arrayContaining(['A', 'B', 'C', 'D'])
+    );
+    expect(graph.getDependencies('A')).toEqual(
+      expect.arrayContaining(['B', 'C'])
+    );
   });
 
   it('should handle duplicate node additions', () => {
     const graph = new DependencyGraphImpl();
 
     graph.addNode('A', ['B']);
-    graph.addNode('A', ['C']);  // Should replace or merge
+    graph.addNode('A', ['C']); // Should replace or merge
 
     expect(graph.getDependencies('A')).toEqual(['C']); // or ['B', 'C'] depending on implementation
   });
@@ -473,7 +474,7 @@ describe('Transitive Dependencies', () => {
       ['A', { deps: ['B'] }],
       ['B', { deps: ['C'] }],
       ['C', { deps: ['D'] }],
-      ['D', { deps: [] }]
+      ['D', { deps: [] }],
     ]);
 
     const transitive = getTransitiveDependencies(graph, 'A');
@@ -484,7 +485,7 @@ describe('Transitive Dependencies', () => {
     const graph = new Map([
       ['A', { deps: ['B'] }],
       ['B', { deps: ['C'] }],
-      ['C', { deps: ['A'] }]
+      ['C', { deps: ['A'] }],
     ]);
 
     const transitive = getTransitiveDependencies(graph, 'A');
@@ -523,9 +524,7 @@ function getTransitiveDependencies(
 ```typescript
 describe('Self-Dependencies', () => {
   it('should detect direct self-dependency', () => {
-    const graph = new Map([
-      ['A', { deps: ['A'] }]
-    ]);
+    const graph = new Map([['A', { deps: ['A'] }]]);
 
     const cycles = detectCycles(graph);
     expect(cycles).toEqual([['A', 'A']]);
@@ -534,8 +533,8 @@ describe('Self-Dependencies', () => {
   it('should detect self-dependency in complex graph', () => {
     const graph = new Map([
       ['A', { deps: ['B'] }],
-      ['B', { deps: ['C', 'B'] }],  // B depends on itself
-      ['C', { deps: [] }]
+      ['B', { deps: ['C', 'B'] }], // B depends on itself
+      ['C', { deps: [] }],
     ]);
 
     const cycles = detectCycles(graph);
@@ -562,12 +561,14 @@ describe('Self-Dependencies', () => {
 #### Creation-Time Detection (Recommended)
 
 **Pros:**
+
 - Fails fast - errors caught before runtime
 - Better developer experience
 - Can provide detailed error messages with file locations
 - Easier to fix (code isn't running yet)
 
 **Cons:**
+
 - Requires static analysis or build-time tooling
 - May have false positives for dynamic dependencies
 - Adds to build time
@@ -591,9 +592,9 @@ class BuildTimeCycleDetector {
   }
 
   private formatCycles(cycles: string[][]): string {
-    return cycles.map((cycle, i) =>
-      `  ${i + 1}. ${cycle.join(' → ')}`
-    ).join('\n');
+    return cycles
+      .map((cycle, i) => `  ${i + 1}. ${cycle.join(' → ')}`)
+      .join('\n');
   }
 }
 ```
@@ -601,11 +602,13 @@ class BuildTimeCycleDetector {
 #### Execution-Time Detection
 
 **Pros:**
+
 - Handles dynamic dependencies
 - No build-time overhead
 - Works with code splitting and lazy loading
 
 **Cons:**
+
 - Errors only appear when code runs
 - May miss cycles in unexecuted code paths
 - Harder to debug and fix
@@ -620,9 +623,7 @@ class RuntimeCycleDetector {
   resolve<T>(id: string, factory: () => T): T {
     if (this.resolving.has(id)) {
       const path = Array.from(this.resolving).join(' → ');
-      throw new RuntimeError(
-        `Runtime circular dependency: ${path} → ${id}`
-      );
+      throw new RuntimeError(`Runtime circular dependency: ${path} → ${id}`);
     }
 
     this.resolving.add(id);
@@ -698,24 +699,23 @@ function formatCycleError(error: CycleError): string {
 **Prevention Strategies:**
 
 1. **Architectural Constraints**
+
    ```typescript
    // Enforce layer architecture
    const allowedLayers = {
-     'presentation': ['domain', 'application'],
-     'domain': [],
-     'application': ['domain'],
-     'infrastructure': ['domain', 'application']
+     presentation: ['domain', 'application'],
+     domain: [],
+     application: ['domain'],
+     infrastructure: ['domain', 'application'],
    };
 
-   function validateLayer(
-     fromLayer: string,
-     toLayer: string
-   ): boolean {
+   function validateLayer(fromLayer: string, toLayer: string): boolean {
      return allowedLayers[fromLayer]?.includes(toLayer) ?? false;
    }
    ```
 
 2. **Dependency Rules**
+
    ```typescript
    // ESLint rule example
    const noCircularDepsRule = {
@@ -728,12 +728,12 @@ function formatCycleError(error: CycleError): string {
            if (wouldCreateCycle(currentFile, importPath)) {
              context.report({
                node,
-               message: 'Import would create circular dependency'
+               message: 'Import would create circular dependency',
              });
            }
-         }
+         },
        };
-     }
+     },
    };
    ```
 
@@ -942,7 +942,7 @@ export class CircularDependencyDetector {
         cycles.push({
           nodes: cycleNodes,
           paths: this.buildCyclePaths(cycleNodes),
-          type: this.determineCycleType(cycleNodes)
+          type: this.determineCycleType(cycleNodes),
         });
       }
     }
@@ -960,7 +960,7 @@ export class CircularDependencyDetector {
         from: cycleNodes[i],
         to: cycleNodes[i + 1],
         file: fromNode?.metadata?.file,
-        line: fromNode?.metadata?.line
+        line: fromNode?.metadata?.line,
       });
     }
 
@@ -980,10 +980,13 @@ export class CircularDependencyDetector {
   getGraphStats() {
     return {
       totalNodes: this.graph.size,
-      totalEdges: Array.from(this.graph.values())
-        .reduce((sum, node) => sum + node.dependencies.length, 0),
-      nodesWithNoDeps: Array.from(this.graph.values())
-        .filter(node => node.dependencies.length === 0).length
+      totalEdges: Array.from(this.graph.values()).reduce(
+        (sum, node) => sum + node.dependencies.length,
+        0
+      ),
+      nodesWithNoDeps: Array.from(this.graph.values()).filter(
+        node => node.dependencies.length === 0
+      ).length,
     };
   }
 }
@@ -1002,7 +1005,7 @@ describe('CircularDependencyDetector', () => {
 
     detector.addNodes([
       { id: 'A', dependencies: ['B'] },
-      { id: 'B', dependencies: ['A'] }
+      { id: 'B', dependencies: ['A'] },
     ]);
 
     const cycles = detector.detectAll();
@@ -1017,7 +1020,7 @@ describe('CircularDependencyDetector', () => {
     detector.addNodes([
       { id: 'A', dependencies: ['B'] },
       { id: 'B', dependencies: ['C'] },
-      { id: 'C', dependencies: ['A'] }
+      { id: 'C', dependencies: ['A'] },
     ]);
 
     const cycles = detector.detectAll();
@@ -1031,7 +1034,7 @@ describe('CircularDependencyDetector', () => {
     detector.addNode({
       id: 'A',
       dependencies: ['A'],
-      metadata: { file: 'a.ts', line: 10 }
+      metadata: { file: 'a.ts', line: 10 },
     });
 
     const cycles = detector.detectAll();
@@ -1041,7 +1044,7 @@ describe('CircularDependencyDetector', () => {
       from: 'A',
       to: 'A',
       file: 'a.ts',
-      line: 10
+      line: 10,
     });
   });
 
@@ -1052,7 +1055,7 @@ describe('CircularDependencyDetector', () => {
       { id: 'A', dependencies: ['B'] },
       { id: 'B', dependencies: ['A'] },
       { id: 'C', dependencies: ['D'] },
-      { id: 'D', dependencies: ['C'] }
+      { id: 'D', dependencies: ['C'] },
     ]);
 
     const cycles = detector.detectAll();
@@ -1068,7 +1071,7 @@ describe('CircularDependencyDetector', () => {
       { id: 'C', dependencies: ['D'] },
       { id: 'D', dependencies: ['E'] },
       { id: 'E', dependencies: ['B'] }, // Creates cycle: B -> D -> E -> B
-      { id: 'F', dependencies: [] } // Isolated, no cycle
+      { id: 'F', dependencies: [] }, // Isolated, no cycle
     ]);
 
     const cycles = detector.detectAll();
@@ -1084,7 +1087,7 @@ describe('CircularDependencyDetector', () => {
     detector.addNodes([
       { id: 'A', dependencies: ['B', 'C'] },
       { id: 'B', dependencies: [] },
-      { id: 'C', dependencies: [] }
+      { id: 'C', dependencies: [] },
     ]);
 
     const stats = detector.getGraphStats();
@@ -1106,55 +1109,64 @@ import { Compiler } from 'webpack';
 import { CircularDependencyDetector } from './detector';
 
 export class CircularDependencyPlugin {
-  constructor(private options: {
-    failOnError?: boolean;
-    exclude?: RegExp[];
-  } = {}) {}
+  constructor(
+    private options: {
+      failOnError?: boolean;
+      exclude?: RegExp[];
+    } = {}
+  ) {}
 
   apply(compiler: Compiler) {
-    compiler.hooks.compilation.tap('CircularDependencyPlugin', (compilation) => {
-      compilation.hooks.processModules.tapAsync('CircularDependencyPlugin', (modules, callback) => {
-        const detector = new CircularDependencyDetector();
+    compiler.hooks.compilation.tap('CircularDependencyPlugin', compilation => {
+      compilation.hooks.processModules.tapAsync(
+        'CircularDependencyPlugin',
+        (modules, callback) => {
+          const detector = new CircularDependencyDetector();
 
-        // Build dependency graph from webpack modules
-        modules.forEach((module: any) => {
-          const dependencies = module.dependencies
-            .map((dep: any) => dep.module?.identifier())
-            .filter(Boolean);
+          // Build dependency graph from webpack modules
+          modules.forEach((module: any) => {
+            const dependencies = module.dependencies
+              .map((dep: any) => dep.module?.identifier())
+              .filter(Boolean);
 
-          detector.addNode({
-            id: module.identifier(),
-            dependencies,
-            metadata: {
-              file: module.resource,
-              type: module.type
-            }
+            detector.addNode({
+              id: module.identifier(),
+              dependencies,
+              metadata: {
+                file: module.resource,
+                type: module.type,
+              },
+            });
           });
-        });
 
-        const cycles = detector.detectAll();
+          const cycles = detector.detectAll();
 
-        if (cycles.length > 0) {
-          const message = this.formatCycles(cycles);
+          if (cycles.length > 0) {
+            const message = this.formatCycles(cycles);
 
-          if (this.options.failOnError) {
-            compilation.errors.push(new Error(message));
-          } else {
-            compilation.warnings.push(new Error(message));
+            if (this.options.failOnError) {
+              compilation.errors.push(new Error(message));
+            } else {
+              compilation.warnings.push(new Error(message));
+            }
           }
-        }
 
-        callback();
-      });
+          callback();
+        }
+      );
     });
   }
 
-  private formatCycles(cycles: ReturnType<CircularDependencyDetector['detectAll']>): string {
-    return cycles.map((cycle, i) => {
-      const type = cycle.type.toUpperCase();
-      const path = cycle.nodes.join(' → ');
-      return `[${i + 1}] ${type} cycle: ${path}`;
-    }).join('\n');
+  private formatCycles(
+    cycles: ReturnType<CircularDependencyDetector['detectAll']>
+  ): string {
+    return cycles
+      .map((cycle, i) => {
+        const type = cycle.type.toUpperCase();
+        const path = cycle.nodes.join(' → ');
+        return `[${i + 1}] ${type} cycle: ${path}`;
+      })
+      .join('\n');
   }
 }
 ```
@@ -1239,26 +1251,31 @@ export class CircularDependencyPlugin {
 ### 6.6 Key Takeaways Summary
 
 **Detection Algorithms:**
+
 - DFS with coloring is the most common and efficient approach
 - Time complexity: O(V + E) where V = vertices, E = edges
 - Topological sort can also be used but requires additional processing
 
 **Testing Best Practices:**
+
 - Test direct cycles, indirect cycles, and self-dependencies
 - Include edge cases: empty graphs, missing dependencies, large graphs
 - Verify both cycle detection and error message quality
 
 **Implementation Patterns:**
+
 - Use both build-time and runtime detection for maximum safety
 - Provide detailed error messages with file locations and cycle paths
 - Consider performance for large graphs (caching, incremental analysis)
 
 **Prevention Strategies:**
+
 - Architectural constraints (layer enforcement, dependency rules)
 - Design patterns (dependency inversion, event-driven architecture)
 - Tooling (linters, IDE plugins, pre-commit hooks)
 
 **When to Detect:**
+
 - Creation time (build/compile time) is preferred for better developer experience
 - Execution time is necessary for dynamic dependencies
 - Best approach: Use both for comprehensive coverage

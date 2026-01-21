@@ -171,7 +171,6 @@ const example = 'code';
 
 ```markdown
 ---
-
 ---
 
 ---

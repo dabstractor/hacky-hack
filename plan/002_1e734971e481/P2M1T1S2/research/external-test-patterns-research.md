@@ -59,7 +59,10 @@ import path from 'path';
 
 describe('JSON File Loading - Success Cases', () => {
   it('should successfully load and parse a valid simple session', async () => {
-    const fixturePath = path.join(__dirname, 'fixtures/json/valid/simple-session.json');
+    const fixturePath = path.join(
+      __dirname,
+      'fixtures/json/valid/simple-session.json'
+    );
     const result = await loadAndValidateSession(fixturePath);
 
     expect(result.success).toBe(true);
@@ -70,7 +73,10 @@ describe('JSON File Loading - Success Cases', () => {
   });
 
   it('should handle large JSON files efficiently', async () => {
-    const largeFixturePath = path.join(__dirname, 'fixtures/json/edge-cases/large-file.json');
+    const largeFixturePath = path.join(
+      __dirname,
+      'fixtures/json/edge-cases/large-file.json'
+    );
     const startTime = Date.now();
 
     const result = await loadAndValidateSession(largeFixturePath);
@@ -87,7 +93,10 @@ describe('JSON File Loading - Success Cases', () => {
 ```typescript
 describe('JSON File Loading - Error Cases', () => {
   it('should handle malformed JSON gracefully', async () => {
-    const malformedPath = path.join(__dirname, 'fixtures/json/invalid/malformed.json');
+    const malformedPath = path.join(
+      __dirname,
+      'fixtures/json/invalid/malformed.json'
+    );
     const result = await loadAndValidateSession(malformedPath);
 
     expect(result.success).toBe(false);
@@ -98,7 +107,10 @@ describe('JSON File Loading - Error Cases', () => {
   });
 
   it('should provide detailed error messages for missing fields', async () => {
-    const missingFieldsPath = path.join(__dirname, 'fixtures/json/invalid/missing-required-fields.json');
+    const missingFieldsPath = path.join(
+      __dirname,
+      'fixtures/json/invalid/missing-required-fields.json'
+    );
     const result = await loadAndValidateSession(missingFieldsPath);
 
     expect(result.success).toBe(false);
@@ -109,7 +121,10 @@ describe('JSON File Loading - Error Cases', () => {
   });
 
   it('should handle non-existent files', async () => {
-    const nonExistentPath = path.join(__dirname, 'fixtures/json/does-not-exist.json');
+    const nonExistentPath = path.join(
+      __dirname,
+      'fixtures/json/does-not-exist.json'
+    );
     const result = await loadAndValidateSession(nonExistentPath);
 
     expect(result.success).toBe(false);
@@ -125,7 +140,10 @@ describe('JSON File Loading - Error Cases', () => {
 ```typescript
 describe('JSON Type Validation', () => {
   it('should validate complex nested types correctly', async () => {
-    const complexPath = path.join(__dirname, 'fixtures/json/valid/complex-hierarchy.json');
+    const complexPath = path.join(
+      __dirname,
+      'fixtures/json/valid/complex-hierarchy.json'
+    );
     const result = await loadAndValidateSession(complexPath);
 
     expect(result.success).toBe(true);
@@ -133,12 +151,17 @@ describe('JSON Type Validation', () => {
       // Verify nested structure types
       expect(Array.isArray(result.data.phases)).toBe(true);
       expect(typeof result.data.phases[0].milestones).toBe('object');
-      expect(Array.isArray(result.data.phases[0].milestones[0].tasks)).toBe(true);
+      expect(Array.isArray(result.data.phases[0].milestones[0].tasks)).toBe(
+        true
+      );
     }
   });
 
   it('should reject invalid type coercions', async () => {
-    const invalidTypesPath = path.join(__dirname, 'fixtures/json/invalid/invalid-types.json');
+    const invalidTypesPath = path.join(
+      __dirname,
+      'fixtures/json/invalid/invalid-types.json'
+    );
     const result = await loadAndValidateSession(invalidTypesPath);
 
     expect(result.success).toBe(false);
@@ -172,7 +195,12 @@ import { z } from 'zod';
 import { describe, it, expect } from 'vitest';
 
 // Example schema from your codebase
-const TaskStatusSchema = z.enum(['pending', 'in_progress', 'completed', 'blocked']);
+const TaskStatusSchema = z.enum([
+  'pending',
+  'in_progress',
+  'completed',
+  'blocked',
+]);
 const TaskSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(200),
@@ -261,17 +289,16 @@ describe('Task Schema Validation', () => {
 ### 2.2 Custom Refinement Testing
 
 ```typescript
-const SessionSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1).max(100),
-  parentSessionId: z.string().uuid().optional(),
-}).refine(
-  (data) => !data.parentSessionId || data.parentSessionId !== data.id,
-  {
+const SessionSchema = z
+  .object({
+    id: z.string().uuid(),
+    name: z.string().min(1).max(100),
+    parentSessionId: z.string().uuid().optional(),
+  })
+  .refine(data => !data.parentSessionId || data.parentSessionId !== data.id, {
     message: 'Parent session ID cannot be the same as the session ID',
     path: ['parentSessionId'],
-  }
-);
+  });
 
 describe('Session Schema with Custom Refinements', () => {
   it('should allow valid parent-child relationships', () => {
@@ -303,8 +330,9 @@ describe('Session Schema with Custom Refinements', () => {
 ### 2.3 Transform Testing
 
 ```typescript
-const NormalizedStringSchema = z.string()
-  .transform((val) => val.trim().toLowerCase());
+const NormalizedStringSchema = z
+  .string()
+  .transform(val => val.trim().toLowerCase());
 
 describe('Schema Transformations', () => {
   it('should transform strings correctly', () => {
@@ -370,8 +398,8 @@ describe('Discriminated Union Validation', () => {
  * Helper to extract and format Zod error messages
  */
 export function getZodErrors(result: z.ZodError): string[] {
-  return result.issues.map(issue =>
-    `${issue.path.join('.')}: ${issue.message}`
+  return result.issues.map(
+    issue => `${issue.path.join('.')}: ${issue.message}`
   );
 }
 
@@ -379,18 +407,20 @@ export function getZodErrors(result: z.ZodError): string[] {
  * Helper to check if specific field has error
  */
 export function hasFieldError(result: z.ZodError, fieldPath: string): boolean {
-  return result.issues.some(issue =>
-    issue.path.join('.') === fieldPath
-  );
+  return result.issues.some(issue => issue.path.join('.') === fieldPath);
 }
 
 /**
  * Helper to validate schema with custom error messages
  */
-export function expectZodSuccess<T>(result: z.SafeParseSuccess<T> | z.SafeParseError<any>): asserts result is z.SafeParseSuccess<T> {
+export function expectZodSuccess<T>(
+  result: z.SafeParseSuccess<T> | z.SafeParseError<any>
+): asserts result is z.SafeParseSuccess<T> {
   expect(result.success).toBe(true);
   if (!result.success) {
-    throw new Error(`Expected success but got errors:\n${getZodErrors(result.error).join('\n')}`);
+    throw new Error(
+      `Expected success but got errors:\n${getZodErrors(result.error).join('\n')}`
+    );
   }
 }
 
@@ -410,13 +440,17 @@ export function expectZodFailure<T>(
 // Usage in tests
 describe('Using Helper Functions', () => {
   it('should use helper for cleaner assertions', () => {
-    const result = TaskSchema.safeParse({ /* valid data */ });
+    const result = TaskSchema.safeParse({
+      /* valid data */
+    });
     expectZodSuccess(result);
     expect(result.data.title).toBe('Expected Title');
   });
 
   it('should use helper for failure assertions', () => {
-    const result = TaskSchema.safeParse({ /* invalid data */ });
+    const result = TaskSchema.safeParse({
+      /* invalid data */
+    });
     expectZodFailure(result, 2); // Expect exactly 2 validation errors
   });
 });
@@ -435,7 +469,10 @@ import { loadHierarchicalSession } from '@/session/hierarchical-loader';
 describe('Hierarchical Data Restoration', () => {
   describe('Complete Hierarchy Loading', () => {
     it('should restore full 4-level hierarchy', async () => {
-      const fixturePath = path.join(__dirname, 'fixtures/json/valid/complete-hierarchy.json');
+      const fixturePath = path.join(
+        __dirname,
+        'fixtures/json/valid/complete-hierarchy.json'
+      );
       const result = await loadHierarchicalSession(fixturePath);
 
       expect(result.success).toBe(true);
@@ -464,7 +501,10 @@ describe('Hierarchical Data Restoration', () => {
     });
 
     it('should maintain parent-child relationships', async () => {
-      const fixturePath = path.join(__dirname, 'fixtures/json/valid/complete-hierarchy.json');
+      const fixturePath = path.join(
+        __dirname,
+        'fixtures/json/valid/complete-hierarchy.json'
+      );
       const result = await loadHierarchicalSession(fixturePath);
 
       expect(result.success).toBe(true);
@@ -585,9 +625,11 @@ describe('Hierarchical Data Restoration', () => {
       const result = await loadHierarchicalSession(invalidData);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(i =>
-          i.message.includes('Invalid phaseId reference')
-        )).toBe(true);
+        expect(
+          result.error.issues.some(i =>
+            i.message.includes('Invalid phaseId reference')
+          )
+        ).toBe(true);
       }
     });
 
@@ -791,7 +833,9 @@ describe('Session State Persistence - Round Trip', () => {
       expect(loadedResult.data).toEqual(originalSession);
 
       // Verify deep equality
-      expect(loadedResult.data.phases[0].milestones[0].tasks[0].title).toBe('Task 1');
+      expect(loadedResult.data.phases[0].milestones[0].tasks[0].title).toBe(
+        'Task 1'
+      );
     }
   });
 
@@ -826,7 +870,9 @@ describe('Session State Persistence - Round Trip', () => {
     expect(loadedResult.success).toBe(true);
 
     if (loadedResult.success) {
-      expect(loadedResult.data.phases[0].milestones[0].tasks[0].subtasks).toHaveLength(2);
+      expect(
+        loadedResult.data.phases[0].milestones[0].tasks[0].subtasks
+      ).toHaveLength(2);
     }
   });
 });
@@ -842,7 +888,9 @@ describe('Session State Persistence - Concurrency', () => {
     await saveSession(sessionPath, testData);
 
     // Perform multiple concurrent reads
-    const readPromises = Array.from({ length: 10 }, () => loadSession(sessionPath));
+    const readPromises = Array.from({ length: 10 }, () =>
+      loadSession(sessionPath)
+    );
     const results = await Promise.all(readPromises);
 
     results.forEach(result => {
@@ -1011,7 +1059,10 @@ describe('Atomic Write Operations', () => {
     await atomicWrite(targetPath, { id: 'test' });
 
     // Verify file exists and is complete
-    const exists = await fs.access(targetPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(targetPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
 
     const result = await loadSession(targetPath);
@@ -1081,7 +1132,9 @@ describe('Parent-Child Session Relationships', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toContain('Parent session not found');
+      expect(result.error.issues[0].message).toContain(
+        'Parent session not found'
+      );
     }
   });
 
@@ -1159,7 +1212,9 @@ describe('Cascade Operations', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toContain('Cannot delete session with children');
+      expect(result.error.issues[0].message).toContain(
+        'Cannot delete session with children'
+      );
     }
   });
 });
@@ -1420,11 +1475,7 @@ describe('Batch Update Concurrency', () => {
     }
 
     // Trigger concurrent flushes
-    const flushPromises = [
-      manager.flush(),
-      manager.flush(),
-      manager.flush(),
-    ];
+    const flushPromises = [manager.flush(), manager.flush(), manager.flush()];
 
     const results = await Promise.all(flushPromises);
 
@@ -1483,7 +1534,7 @@ describe('Batch Update Performance', () => {
   it('should provide batch progress feedback', async () => {
     const progressUpdates: number[] = [];
 
-    manager.onProgress((progress) => {
+    manager.onProgress(progress => {
       progressUpdates.push(progress);
     });
 
@@ -1511,6 +1562,7 @@ describe('Batch Update Performance', () => {
 ### 8.1 Testing Pitfalls
 
 #### Pitfall 1: Not Cleaning Up Test Artifacts
+
 ```typescript
 // BAD: Tests leave files behind
 it('should save session', async () => {
@@ -1527,6 +1579,7 @@ it('should save session', async () => {
 ```
 
 #### Pitfall 2: Testing Implementation Details
+
 ```typescript
 // BAD: Testing internal structure
 it('should have internal _cache property', () => {
@@ -1542,6 +1595,7 @@ it('should cache loaded sessions', async () => {
 ```
 
 #### Pitfall 3: Not Testing Error Paths
+
 ```typescript
 // BAD: Only testing success
 it('should load session', async () => {
@@ -1563,6 +1617,7 @@ it('should handle invalid session', async () => {
 ```
 
 #### Pitfall 4: Brittle Test Data
+
 ```typescript
 // BAD: Hardcoded values throughout
 it('should validate session', () => {
@@ -1579,6 +1634,7 @@ it('should validate session', () => {
 ### 8.2 Zod-Specific Pitfalls
 
 #### Pitfall 1: Not Using `safeParse` in Tests
+
 ```typescript
 // BAD: Will throw and crash test
 it('should validate', () => {
@@ -1594,6 +1650,7 @@ it('should validate', () => {
 ```
 
 #### Pitfall 2: Ignoring Error Context
+
 ```typescript
 // BAD: Not checking what failed
 it('should fail validation', () => {
@@ -1614,6 +1671,7 @@ it('should fail validation for missing field', () => {
 ### 8.3 Filesystem Testing Pitfalls
 
 #### Pitfall 1: Testing Against Real Project Files
+
 ```typescript
 // BAD: Tests modify actual project files
 it('should save session', async () => {
@@ -1627,6 +1685,7 @@ it('should save session', async () => {
 ```
 
 #### Pitfall 2: Race Conditions in Cleanup
+
 ```typescript
 // BAD: Cleanup doesn't wait for async operations
 afterEach(() => {
@@ -1642,6 +1701,7 @@ afterEach(async () => {
 ### 8.4 Hierarchical Data Pitfalls
 
 #### Pitfall 1: Not Testing Deep Nesting
+
 ```typescript
 // BAD: Only testing shallow structures
 it('should validate hierarchy', () => {
@@ -1652,25 +1712,32 @@ it('should validate hierarchy', () => {
 // GOOD: Testing full depth
 it('should validate deep hierarchy', () => {
   const result = validate({
-    phases: [{
-      milestones: [{
-        tasks: [{
-          subtasks: [{ id: 'subtask-1' }]
-        }]
-      }]
-    }]
+    phases: [
+      {
+        milestones: [
+          {
+            tasks: [
+              {
+                subtasks: [{ id: 'subtask-1' }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   });
   expect(result.success).toBe(true);
 });
 ```
 
 #### Pitfall 2: Not Testing Orphan Detection
+
 ```typescript
 // GOOD: Always verify referential integrity
 it('should detect orphaned tasks', async () => {
   const data = {
     phases: [],
-    tasks: [{ id: 'task-1', milestoneId: 'non-existent' }]
+    tasks: [{ id: 'task-1', milestoneId: 'non-existent' }],
   };
 
   const result = await validate(data);
@@ -1711,11 +1778,13 @@ it('should detect orphaned tasks', async () => {
 ### 9.3 Recommended Reading
 
 #### Books:
+
 - "Working Effectively with Legacy Code" by Michael Feathers
 - "Test-Driven Development" by Kent Beck
 - "The Art of Unit Testing" by Roy Osherove
 
 #### Blog Posts & Articles:
+
 - "Testing Asynchronous Code with Vitest"
 - "Best Practices for Schema Validation Testing"
 - "Integration Testing with Real Filesystems"

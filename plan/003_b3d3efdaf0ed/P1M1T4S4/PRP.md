@@ -9,6 +9,7 @@
 **Deliverable**: Unit test file `tests/unit/nested-execution-guard.test.ts` with complete coverage of guard logic, bug fix recursion conditions, environment variable handling, and debug logging verification.
 
 **Success Definition**: All tests pass, verifying:
+
 - Guard prevents execution when `PRP_PIPELINE_RUNNING` is already set
 - Guard allows execution when `PRP_PIPELINE_RUNNING` is not set
 - Guard sets `PRP_PIPELINE_RUNNING` to current PID on valid entry
@@ -53,7 +54,8 @@ Unit tests that verify the nested execution guard's behavior across guard preven
 
 ### Context Completeness Check
 
-*This PRP passes the "No Prior Knowledge" test:*
+_This PRP passes the "No Prior Knowledge" test:_
+
 - Complete guard specification from PRD and delta_prd documentation
 - Existing test patterns from environment.test.ts with environment mocking examples
 - Test framework patterns from is-fatal-error.test.ts with guard validation examples
@@ -236,7 +238,7 @@ afterEach(() => {
 // PRP_PIPELINE_RUNNING = process.pid.toString() (not number)
 // SKIP_BUG_FINDING must be exactly 'true' (not boolean true)
 vi.stubEnv('PRP_PIPELINE_RUNNING', '12345');
-vi.stubEnv('SKIP_BUG_FINDING', 'true');  // String 'true', not boolean
+vi.stubEnv('SKIP_BUG_FINDING', 'true'); // String 'true', not boolean
 
 // GOTCHA: String comparison is EXACT for SKIP_BUG_FINDING
 // From delta_prd.md line 204: process.env.SKIP_BUG_FINDING === 'true'
@@ -246,7 +248,8 @@ vi.stubEnv('SKIP_BUG_FINDING', 'true');  // String 'true', not boolean
 // CRITICAL: Path matching should be CASE-INSENSITIVE for robustness
 // Use /bugfix/i or toLowerCase() for path matching
 // Works across different filesystems (case-sensitive vs case-insensitive)
-const isBugFixPath = /bugfix/i.test(path) || path.toLowerCase().includes('bugfix');
+const isBugFixPath =
+  /bugfix/i.test(path) || path.toLowerCase().includes('bugfix');
 
 // GOTCHA: PRP_PIPELINE_RUNNING is NOT cleared during normal operation
 // Once set, it persists until process exit
@@ -257,7 +260,10 @@ delete process.env.PRP_PIPELINE_RUNNING;
 // From tests/unit/logger.test.ts pattern
 // Tests verify logger.debug() is called, not what it outputs
 const debugSpy = vi.spyOn(logger, 'debug');
-expect(debugSpy).toHaveBeenCalledWith('[Nested Guard] Environment Check', expect.any(Object));
+expect(debugSpy).toHaveBeenCalledWith(
+  '[Nested Guard] Environment Check',
+  expect.any(Object)
+);
 
 // GOTCHA: Use vi.spyOn() for logger, not vi.mock()
 // Logger is a real utility that needs to be tested
@@ -318,8 +324,8 @@ class NestedExecutionError extends Error {
   constructor(existingPid: string, currentPid: string) {
     super(
       `Pipeline already running (PID: ${existingPid}). ` +
-      `Nested execution is only allowed in bug fix mode ` +
-      `(SKIP_BUG_FINDING=true) with a bugfix path.`
+        `Nested execution is only allowed in bug fix mode ` +
+        `(SKIP_BUG_FINDING=true) with a bugfix path.`
     );
     this.name = 'NestedExecutionError';
     this.existingPid = existingPid;
@@ -932,6 +938,7 @@ grep -A2 "afterEach" tests/unit/nested-execution-guard.test.ts
 **Confidence Score:** 9/10 for one-pass implementation success
 
 **Rationale:**
+
 - Complete specification from PRD, delta_prd, system_context, and external_deps documentation
 - Comprehensive test patterns analysis from existing codebase (environment.test.ts, is-fatal-error.test.ts, logger.test.ts)
 - Detailed implementation tasks with dependency ordering

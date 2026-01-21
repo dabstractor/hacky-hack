@@ -14,6 +14,7 @@
 **Deliverable**: Extended integration test file at `tests/integration/core/task-orchestrator.test.ts` with full coverage of hierarchy traversal scenarios using real SessionManager and multi-level task fixtures.
 
 **Success Definition**:
+
 - `processNextItem()` returns items in correct DFS pre-order (parent before children)
 - Execution queue correctly populated from backlog respecting scope filter
 - Scope filtering works correctly (phase/milestone/task scopes)
@@ -33,6 +34,7 @@
 **Use Case**: Validating that TaskOrchestrator's DFS traversal processes items in the correct order, respects scope boundaries, and correctly delegates execution to type-specific handlers.
 
 **User Journey**:
+
 1. Pipeline initializes TaskOrchestrator with SessionManager
 2. Orchestrator builds execution queue from backlog
 3. `processNextItem()` called repeatedly until `false` returned
@@ -40,6 +42,7 @@
 5. All items in scope completed successfully
 
 **Pain Points Addressed**:
+
 - **Unclear traversal order**: Does it process parents before children? (Tests verify: YES, DFS pre-order)
 - **Unclear scope behavior**: What does "milestone scope" include? (Tests verify: Milestone + tasks + subtasks)
 - **Unclear queue population**: How are items added to queue? (Tests verify: DFS pre-order, scope-filtered)
@@ -72,6 +75,7 @@ Extend the integration test file at `tests/integration/core/task-orchestrator.te
 **TaskOrchestrator Class** (from `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts`):
 
 **Constructor** (lines 107-139):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -87,6 +91,7 @@ constructor(
 ```
 
 **processNextItem() Method** (lines 805-834):
+
 ```typescript
 async processNextItem(): Promise<boolean> {
   // Check if queue is empty
@@ -111,6 +116,7 @@ async processNextItem(): Promise<boolean> {
 ```
 
 **#delegateByType() Method** (lines 445-470):
+
 ```typescript
 async #delegateByType(item: HierarchyItem): Promise<void> {
   switch (item.type) {
@@ -129,6 +135,7 @@ async #delegateByType(item: HierarchyItem): Promise<void> {
 ```
 
 **#buildQueue() Method** (lines 387-414):
+
 ```typescript
 #buildQueue(): void {
   // Refresh backlog from SessionManager
@@ -149,6 +156,7 @@ async #delegateByType(item: HierarchyItem): Promise<void> {
 ```
 
 **ScopeResolver.resolveScope()** (from `/home/dustin/projects/hacky-hack/src/core/scope-resolver.ts`):
+
 ```typescript
 export function resolveScope(
   backlog: Phase[],
@@ -163,6 +171,7 @@ export function resolveScope(
 ```
 
 **Execution Queue Structure**:
+
 - FIFO queue (shift() from front, push() to back)
 - Items in DFS pre-order (parent before children)
 - Filtered by current scope
@@ -188,6 +197,7 @@ export function resolveScope(
 ### Context Completeness Check
 
 **"No Prior Knowledge" Test Results:**
+
 - [x] TaskOrchestrator.processNextItem() implementation documented (lines 805-834)
 - [x] TaskOrchestrator.#delegateByType() implementation documented (lines 445-470)
 - [x] TaskOrchestrator.#buildQueue() implementation documented (lines 387-414)
@@ -523,6 +533,7 @@ hacky-hack/
 No new data models. This task tests existing TaskOrchestrator traversal with real SessionManager integration and multi-level task fixtures.
 
 **Key Types Used**:
+
 - `HierarchyItem`: Union type for Phase | Milestone | Task | Subtask
 - `ExecutionScope`: { type: 'phase' | 'milestone' | 'task', id: string }
 - `Phase`, `Milestone`, `Task`, `Subtask`: From models.ts
@@ -676,7 +687,7 @@ import type {
   Milestone,
   Task,
   Subtask,
-  ExecutionScope
+  ExecutionScope,
 } from '../../../src/core/models.js';
 
 /**
@@ -693,10 +704,7 @@ function createTempDirectory(): string {
  * @param backlog - Task backlog to write to tasks.json
  * @returns Path to session directory
  */
-function createTestSessionDirectory(
-  tempDir: string,
-  backlog: Phase[]
-): string {
+function createTestSessionDirectory(tempDir: string, backlog: Phase[]): string {
   const sessionPath = join(tempDir, 'plan', '001_testhash');
   mkdirSync(sessionPath, { recursive: true });
 
@@ -738,7 +746,7 @@ function createTestSubtask(
     status,
     story_points: 2,
     dependencies,
-    context_scope: 'Test context scope'
+    context_scope: 'Test context scope',
   };
 }
 
@@ -762,7 +770,7 @@ function createTestTask(
     title,
     status,
     description: 'Test task description',
-    subtasks
+    subtasks,
   };
 }
 
@@ -786,7 +794,7 @@ function createTestMilestone(
     title,
     status,
     description: 'Test milestone description',
-    tasks
+    tasks,
   };
 }
 
@@ -810,7 +818,7 @@ function createTestPhase(
     title,
     status,
     description: 'Test phase description',
-    milestones
+    milestones,
   };
 }
 
@@ -832,10 +840,10 @@ describe('TaskOrchestrator Hierarchy Traversal', () => {
       createTestPhase('P1', 'Phase 1', 'Planned', [
         createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
           createTestTask('P1.M1.T1', 'Task 1', 'Planned', [
-            createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned')
-          ])
-        ])
-      ])
+            createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned'),
+          ]),
+        ]),
+      ]),
     ];
 
     // SETUP: Create session directory
@@ -859,10 +867,10 @@ describe('TaskOrchestrator Hierarchy Traversal', () => {
 
   it('should process items in DFS pre-order (parent before children)', async () => {
     // SETUP: Create orchestrator with phase scope
-    const orchestrator = new TaskOrchestrator(
-      sessionManager,
-      { type: 'phase', id: 'P1' }
-    );
+    const orchestrator = new TaskOrchestrator(sessionManager, {
+      type: 'phase',
+      id: 'P1',
+    });
 
     // SETUP: Track processing order
     const processedOrder: string[] = [];
@@ -912,8 +920,8 @@ INPUT FROM TASKORCHESTRATOR UNIT TESTS:
 INPUT FROM TASKORCHESTRATOR IMPLEMENTATION:
   - src/core/task-orchestrator.ts with traversal logic
   - processNextItem() (lines 805-834)
-  - #delegateByType() (lines 445-470)
-  - #buildQueue() (lines 387-414)
+  -  #delegateByType() (lines 445-470)
+  -  #buildQueue() (lines 387-414)
   - Pattern: DFS pre-order traversal
   - Pattern: FIFO queue processing
   - Pattern: Type-specific delegation
@@ -1166,17 +1174,20 @@ console.log('Scope switching works');
 ### Why DFS pre-order traversal?
 
 DFS pre-order ensures parents are initialized before children. This is critical for:
+
 1. **Dependency resolution**: Children depend on parent setup
 2. **Status propagation**: Parent status affects children
 3. **Logical execution**: Can't execute task before milestone starts
 
 Alternative traversal orders (BFS, post-order) would not work because:
+
 - BFS: Processes all milestones before any tasks (no parent-child relationship)
 - Post-order: Children before parents (breaks dependency model)
 
 ### Why test scope filtering separately?
 
 Scope filtering is a critical user feature. Users need to:
+
 1. Debug specific milestones (milestone scope)
 2. Rerun failed tasks (task scope)
 3. Limit execution for testing (any scope level)
@@ -1186,6 +1197,7 @@ Testing scope filtering ensures users can control execution boundaries.
 ### Why use real SessionManager in integration tests?
 
 Unit tests mock SessionManager to test TaskOrchestrator logic in isolation. Integration tests use real SessionManager to verify:
+
 1. File I/O operations work correctly
 2. State persistence works end-to-end
 3. Error handling matches real behavior
@@ -1196,6 +1208,7 @@ This catches issues that mocked tests miss (file permissions, JSON parsing, etc.
 ### Why separate traversal tests from dependency resolution tests?
 
 P2.M2.T1.S1 tests traversal (order, queue, scope). P2.M2.T2 will test dependency resolution (blocking, waiting, cycles). Separating them provides:
+
 1. **Clear separation of concerns** - Traversal vs. dependency logic
 2. **Easier debugging** - Traversal failures vs. dependency failures isolated
 3. **Independent development** - Tests can run in parallel
@@ -1208,6 +1221,7 @@ P2.M2.T1.S1 tests traversal (order, queue, scope). P2.M2.T2 will test dependency
 **Confidence Score**: 10/10 for one-pass implementation success likelihood
 
 **Validation Factors**:
+
 - [x] Complete context from parallel research (4 research tasks + code analysis)
 - [x] TaskOrchestrator implementation fully analyzed with line numbers
 - [x] ScopeResolver implementation documented
@@ -1223,6 +1237,7 @@ P2.M2.T1.S1 tests traversal (order, queue, scope). P2.M2.T2 will test dependency
 - [x] Decision rationale documented
 
 **Risk Mitigation**:
+
 - Creating new integration test file (low risk of breaking existing tests)
 - Integration tests only (no production code changes)
 - Temp directory isolation (no side effects on plan/)
@@ -1231,6 +1246,7 @@ P2.M2.T1.S1 tests traversal (order, queue, scope). P2.M2.T2 will test dependency
 - Follows established integration test patterns
 
 **Known Risks**:
+
 - **SessionManager initialization complexity**: Must create valid session directory
   - Mitigation: Use createTestSessionDirectory() helper with all required files
 - **Scope ID matching**: Scope IDs must match actual task IDs in backlog
