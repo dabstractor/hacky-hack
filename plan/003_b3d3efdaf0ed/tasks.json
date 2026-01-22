@@ -389,7 +389,7 @@
               "type": "Task",
               "id": "P1.M3.T2",
               "title": "Task 1.3.2: PRP Creation Prompt Verification",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Verify PRP Creation Prompt matches PRD §6.2 specification: research process, template structure, quality gates.",
               "subtasks": [
                 {
@@ -416,7 +416,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S3",
                   "title": "Verify PRP quality gates enforcement",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S2"

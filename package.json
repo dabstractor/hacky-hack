@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Autonomous PRP Development Pipeline - Agentic software development system",
   "type": "module",
+  "bin": {
+    "hack": "./dist/index.js"
+  },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
