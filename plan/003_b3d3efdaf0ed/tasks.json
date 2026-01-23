@@ -527,7 +527,7 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Milestone 2.1: User Documentation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Create user-facing documentation for installation, configuration, and usage.",
           "tasks": [
             {
@@ -574,7 +574,7 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Task 2.1.2: Usage Documentation",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create comprehensive usage documentation for all CLI commands and workflows.",
               "subtasks": [
                 {
@@ -590,7 +590,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Create workflow documentation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T2.S1"
@@ -601,7 +601,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S3",
                   "title": "Create PRD best practices guide",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T2.S2"
