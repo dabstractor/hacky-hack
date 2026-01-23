@@ -541,7 +541,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Create installation documentation",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md and external_deps.md - Requirements: Node.js >=20.0.0, npm >=10.0.0. Groundswell linked via npm link. Environment variables: ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL.\n2. INPUT: package.json scripts and dependencies, environment configuration from src/config/environment.ts.\n3. LOGIC: Write installation guide in docs/INSTALLATION.md that covers: (a) prerequisites (Node.js, npm versions), (b) cloning repository, (c) installing dependencies, (d) linking Groundswell library, (e) configuring environment variables, (f) verifying installation with test command. Include troubleshooting section for common issues.\n4. OUTPUT: Documentation file docs/INSTALLATION.md with step-by-step installation instructions and troubleshooting tips."
@@ -550,7 +550,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Create configuration reference",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S1"
