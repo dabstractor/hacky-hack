@@ -494,7 +494,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T5.S1",
                   "title": "Verify Bug Finding Prompt testing phases",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 1059-1175 and system_context.md - Role: Creative QA Engineer and Bug Hunter. Three phases: Scope Analysis, Creative E2E Testing (happy paths, edge cases, workflows, integrations, errors, state, concurrency), Adversarial Testing (unexpected inputs, missing features, incomplete features, UX).\n2. INPUT: BUG_FINDING_PROMPT from `PROMPTS.md`, BugHuntWorkflow implementation.\n3. LOGIC: Write integration test that verifies: (a) prompt defines all three testing phases, (b) prompt specifies happy path testing (primary use cases), (c) prompt specifies edge case testing (boundaries, empty inputs, unicode), (d) prompt specifies workflow testing (complete user journeys), (e) prompt specifies adversarial testing mindset. Mock agent execution and verify prompt compliance.\n4. OUTPUT: Integration test file `tests/integration/bug-finding-prompt.test.ts` with testing phases and scope verification."
