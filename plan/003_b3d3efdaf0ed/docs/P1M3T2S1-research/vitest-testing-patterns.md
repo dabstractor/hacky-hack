@@ -104,8 +104,18 @@ const createMockPRPDocument = (taskId: string) => ({
   context: 'Test context',
   implementationSteps: ['Step 1', 'Step 2', 'Step 3'],
   validationGates: [
-    { level: 1, description: 'Syntax & Style', command: 'npm test', manual: false },
-    { level: 2, description: 'Unit Tests', command: 'npm run lint', manual: false },
+    {
+      level: 1,
+      description: 'Syntax & Style',
+      command: 'npm test',
+      manual: false,
+    },
+    {
+      level: 2,
+      description: 'Unit Tests',
+      command: 'npm run lint',
+      manual: false,
+    },
     { level: 3, description: 'Integration', command: null, manual: true },
     { level: 4, description: 'Manual', command: 'npm run build', manual: true },
   ],

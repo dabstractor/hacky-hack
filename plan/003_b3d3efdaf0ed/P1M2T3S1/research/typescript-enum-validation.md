@@ -241,11 +241,9 @@ const TaskStatusSchema = z.string().transform((val, ctx) => {
 const StatusWithMetadataSchema = z.object({
   status: z.nativeEnum(TaskStatus),
   // Only allow transition if status is not already completed
-  updatedAt: z.coerce
-    .date()
-    .refine(date => date <= new Date(), {
-      message: 'Updated date cannot be in the future',
-    }),
+  updatedAt: z.coerce.date().refine(date => date <= new Date(), {
+    message: 'Updated date cannot be in the future',
+  }),
 });
 ```
 

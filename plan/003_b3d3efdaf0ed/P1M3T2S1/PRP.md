@@ -15,12 +15,14 @@
 **Use Case**: Validating that the PRP creation prompt contains all required research workflow instructions before deployment.
 
 **User Journey**:
+
 1. Developer runs `npm test` or `vitest`
 2. Test suite executes `tests/integration/prp-create-prompt.test.ts`
 3. Tests verify prompt content contains required research instructions
 4. If prompt is modified incorrectly, tests fail immediately
 
 **Pain Points Addressed**:
+
 - Detects accidental removal of critical research instructions
 - Validates prompt structure completeness
 - Ensures aspirational features are documented in tests

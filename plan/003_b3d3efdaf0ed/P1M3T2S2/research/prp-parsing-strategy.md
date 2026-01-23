@@ -10,7 +10,7 @@ This document outlines the strategy for parsing PRP markdown files to validate t
 
 From `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P1M1T1S1/PRP.md`:
 
-```markdown
+````markdown
 # Product Requirement Prompt (PRP): [Title]
 
 **PRP ID**: P1.M1.T1.S1
@@ -25,6 +25,7 @@ From `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P1M1T1S1/PRP.md`:
 **Feature Goal**: [content]
 **Deliverable**: [content]
 **Success Definition**:
+
 - [content]
 
 ## User Persona
@@ -59,6 +60,7 @@ From `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P1M1T1S1/PRP.md`:
 ```yaml
 [yaml content]
 ```
+````
 
 ### Current Codebase tree
 
@@ -156,7 +158,8 @@ From `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P1M1T1S1/PRP.md`:
 
 - ❌ [anti-pattern]
 - ❌ [anti-pattern]
-```
+
+`````
 
 ## Parsing Strategy
 
@@ -298,7 +301,7 @@ function parsePRP(content: string): PRPStructure {
 
   return { sections };
 }
-```
+`````
 
 ### Validation Approach
 
@@ -307,7 +310,16 @@ function validatePRPStructure(structure: PRPStructure): ValidationResult {
   const errors: string[] = [];
 
   // Check required sections
-  const requiredSections = ['Goal', 'Why', 'What', 'All Needed Context', 'Implementation Blueprint', 'Validation Loop', 'Final Validation Checklist', 'Anti-Patterns to Avoid'];
+  const requiredSections = [
+    'Goal',
+    'Why',
+    'What',
+    'All Needed Context',
+    'Implementation Blueprint',
+    'Validation Loop',
+    'Final Validation Checklist',
+    'Anti-Patterns to Avoid',
+  ];
   for (const section of requiredSections) {
     if (!structure.sections.has(section)) {
       errors.push(`Missing required section: ${section}`);
@@ -317,7 +329,11 @@ function validatePRPStructure(structure: PRPStructure): ValidationResult {
   // Check Goal subsections
   const goalSection = structure.sections.get('Goal');
   if (goalSection) {
-    const requiredSubsections = ['Feature Goal', 'Deliverable', 'Success Definition'];
+    const requiredSubsections = [
+      'Feature Goal',
+      'Deliverable',
+      'Success Definition',
+    ];
     for (const subsection of requiredSubsections) {
       if (!goalSection.subsections.has(subsection)) {
         errors.push(`Goal missing required subsection: ${subsection}`);
@@ -330,7 +346,11 @@ function validatePRPStructure(structure: PRPStructure): ValidationResult {
   if (validationLoop) {
     const requiredLevels = ['Level 1', 'Level 2', 'Level 3', 'Level 4'];
     for (const level of requiredLevels) {
-      if (!Array.from(validationLoop.subsections.keys()).some(key => key.startsWith(level))) {
+      if (
+        !Array.from(validationLoop.subsections.keys()).some(key =>
+          key.startsWith(level)
+        )
+      ) {
         errors.push(`Validation Loop missing: ${level}`);
       }
     }

@@ -20,6 +20,7 @@ prd task -f <file>    # Override with specific file
 **Behavior**: Display all tasks for the current session
 
 **Output Format**:
+
 ```
 Current Session: 001_14b9dc2a33c7
 ==================================================
@@ -34,6 +35,7 @@ P1: Phase 1: System Validation & Verification - Complete
 ```
 
 **Discovery Priority**:
+
 1. Bugfix session tasks (if incomplete)
 2. Main session tasks
 
@@ -42,6 +44,7 @@ P1: Phase 1: System Validation & Verification - Complete
 **Behavior**: Return the next executable task based on DFS traversal
 
 **Output Format**:
+
 ```
 Next Task: P1.M2.T1.S2
 Status: Implementing
@@ -52,6 +55,7 @@ Context Scope: CONTRACT DEFINITION: ...
 ```
 
 **Task Selection Logic**:
+
 - Find first task with status 'Planned' or 'Researching'
 - Respect dependency ordering
 - Bugfix tasks prioritized over main tasks
@@ -61,6 +65,7 @@ Context Scope: CONTRACT DEFINITION: ...
 **Behavior**: Show task counts grouped by status
 
 **Output Format**:
+
 ```
 Task Status Summary
 ==================================================
@@ -76,6 +81,7 @@ Total: 185 tasks
 ```
 
 **Status Values**:
+
 - `Planned` - Initial state, not started
 - `Researching` - PRP generation in progress
 - `Implementing` - Code execution in progress
@@ -88,6 +94,7 @@ Total: 185 tasks
 **Behavior**: Override the default tasks.json file with a specific file
 
 **Usage Examples**:
+
 ```bash
 prd task -f ./custom/tasks.json
 prd task -f ../backup/session-tasks.json
@@ -95,11 +102,13 @@ prd task -f plan/002_1e734971e481/tasks.json
 ```
 
 **File Discovery**:
+
 1. If `-f` is provided, use that file
 2. Otherwise, discover session based on PRD hash
 3. Create session path: `plan/{sequence}_{hash}/tasks.json`
 
 **Error Handling**:
+
 - File not found: Error message with suggested paths
 - Invalid JSON: Parse error with line number
 - Invalid schema: Validation error with missing fields
@@ -120,17 +129,20 @@ plan/
 ```
 
 **Naming Convention**: `{sequence:03d}_{hash:12h}`
+
 - Sequence: 3-digit zero-padded (001, 002, ...)
 - Hash: First 12 characters of PRD's SHA-256
 
 ### Bugfix Session Discovery
 
 Bugfix sessions are nested under main sessions:
+
 ```
 plan/001_14b9dc2a33c7/bugfix/001_8d809cc989b9/
 ```
 
 **Priority Order**:
+
 1. Incomplete bugfix session tasks
 2. Main session tasks
 
@@ -159,7 +171,7 @@ program
   .command('task')
   .description('Show and manage tasks')
   .option('-f, --file <path>', 'Override tasks.json file')
-  .action(async (options) => {
+  .action(async options => {
     // Handle 'prd task' (list)
     // Handle 'prd task next'
     // Handle 'prd task status'
@@ -169,6 +181,7 @@ program
 ### Session Manager (src/core/session-manager.ts)
 
 Existing methods to use:
+
 - `loadSession(path: string)` - Load session from directory
 - `getCurrentSession()` - Get current session state
 - `discoverSessions()` - Find available sessions
@@ -176,6 +189,7 @@ Existing methods to use:
 ### Task Orchestrator (src/core/task-orchestrator.ts)
 
 Existing methods to use:
+
 - `processNextItem()` - Get next task
 - `executionQueue` - Current task queue
 - `currentItemId` - Currently executing task

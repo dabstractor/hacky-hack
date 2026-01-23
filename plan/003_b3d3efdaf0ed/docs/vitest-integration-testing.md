@@ -434,10 +434,9 @@ describe('Integration Tests', () => {
   });
 
   it('should fetch user', async () => {
-    const user = await db.query(
-      'SELECT * FROM users WHERE email = $1',
-      ['test@example.com']
-    );
+    const user = await db.query('SELECT * FROM users WHERE email = $1', [
+      'test@example.com',
+    ]);
     expect(user.rows[0].name).toBe('Test User');
   });
 });
@@ -485,7 +484,10 @@ const createComplexBacklog = (): Backlog => {
   const task1 = createTestTask('P1.M1.T1', 'Task 1', [subtask1, subtask2]);
   const task2 = createTestTask('P1.M1.T2', 'Task 2', [subtask3]);
 
-  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [task1, task2]);
+  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [
+    task1,
+    task2,
+  ]);
   const phase1 = createTestPhase('P1', 'Phase 1', [milestone1]);
 
   return createTestBacklog([phase1]);
@@ -513,10 +515,7 @@ const createMockHierarchy = (depth: number = 1) => {
 
   return {
     id: `node-${depth}`,
-    children: [
-      createMockHierarchy(depth - 1),
-      createMockHierarchy(depth - 1),
-    ],
+    children: [createMockHierarchy(depth - 1), createMockHierarchy(depth - 1)],
   };
 };
 
@@ -567,7 +566,9 @@ describe('CONTRACT a: DFS pre-order traversal', () => {
     // SETUP: Create full hierarchy with multiple levels
     const subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1');
     const task = createTestTask('P1.M1.T1', 'Task 1', 'Planned', [subtask]);
-    const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [task]);
+    const milestone = createTestMilestone('P1.M1', 'Milestone 1', 'Planned', [
+      task,
+    ]);
     const phase = createTestPhase('P1', 'Phase 1', 'Planned', [milestone]);
     const backlog = createTestBacklog([phase]);
 
@@ -795,40 +796,47 @@ describe('integration', () => {
 ## Summary of Key Patterns
 
 ### 1. **Test Organization**
+
 - Use nested `describe` blocks for hierarchical test organization
 - Follow GIVEN/SHOULD pattern for descriptive test names
 - Group tests by feature and scenario
 
 ### 2. **Setup/Execute/Verify Structure**
+
 - Clear separation of test data setup, execution, and verification
 - Use factory functions for creating test data
 - Reset state in `beforeEach` for isolation
 
 ### 3. **Mock Management**
+
 - Use `vi.hoisted()` for variables referenced in mocks
 - Mock modules before importing
 - Clear all mocks in `beforeEach`
 - Use typed mock functions with `as any` casting
 
 ### 4. **Error Testing**
+
 - Test error instances with `toBeInstanceOf()`
 - Verify error messages and context properties
 - Use try/catch for detailed error validation
 - Test multiple error scenarios with parameterized tests
 
 ### 5. **Regex Validation Testing**
+
 - Test valid inputs comprehensively
 - Test invalid inputs with specific error messages
 - Test edge cases (whitespace, case sensitivity, boundaries)
 - Use data-driven tests for multiple similar cases
 
 ### 6. **Hierarchical Data Testing**
+
 - Use factory functions for creating nested structures
 - Test traversal order (DFS pre-order)
 - Test empty and non-existent cases
 - Verify type discrimination and filtering
 
 ### 7. **Integration Testing**
+
 - Test complete workflows (parse then resolve)
 - Verify end-to-end behavior
 - Test error handling in integration contexts
@@ -839,6 +847,7 @@ describe('integration', () => {
 ## Additional Resources
 
 ### Vitest Documentation URLs
+
 - Main Guide: https://vitest.dev/guide/
 - API Reference: https://vitest.dev/api/
 - Configuration: https://vitest.dev/config/
@@ -846,11 +855,13 @@ describe('integration', () => {
 - Mocking: https://vitest.dev/guide/mocking.html
 
 ### Related Testing Patterns
+
 - Testing Library: https://testing-library.com/
 - TypeScript Testing: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#more-recursive-type-aliases
 - Custom Error Classes: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Custom
 
 ### Project Examples
+
 - Scope Resolver Tests: `/home/dustin/projects/hacky-hack/tests/unit/core/scope-resolver.test.ts`
 - Task Traversal Tests: `/home/dustin/projects/hacky-hack/tests/unit/core/task-traversal.test.ts`
 - Task Dependencies Tests: `/home/dustin/projects/hacky-hack/tests/unit/core/task-dependencies.test.ts`

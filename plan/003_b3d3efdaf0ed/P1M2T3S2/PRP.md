@@ -9,6 +9,7 @@
 **Deliverable**: Integration test file `tests/integration/scope-resolution.test.ts` with complete coverage of scope string parsing, backlog filtering, execution queue filtering, and invalid scope rejection.
 
 **Success Definition**:
+
 - Scope string 'P3' executes only Phase 3 and all descendant items
 - Scope string 'P3.M4' executes only Milestone 4 and all descendant items
 - Scope string 'P1.M2.T3' executes only Task 3 and all subtasks
@@ -27,6 +28,7 @@
 **Use Case**: Developers need to execute specific portions of a backlog (e.g., only Phase 3, or a specific milestone) without running unrelated tasks
 
 **User Journey**:
+
 1. Developer specifies `--scope P1.M2` when running the pipeline
 2. CLI validates the scope string format
 3. ScopeResolver parses the scope and filters backlog to matching items
@@ -34,6 +36,7 @@
 5. Only tasks within the specified scope are executed
 
 **Pain Points Addressed**:
+
 - Running entire backlog when only need to test a specific feature
 - Unclear which tasks will be executed with a given scope
 - Invalid scope strings causing cryptic errors
@@ -76,6 +79,7 @@ Integration tests that verify scope-based task filtering through the complete ex
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Answer**: Yes. This PRP includes:
+
 - Exact ScopeResolver implementation from scope-resolver.ts
 - CLI scope parsing validation from cli/index.ts
 - Test patterns from existing integration tests (task-orchestrator.test.ts, scope-resolver unit tests)
@@ -186,8 +190,19 @@ const newQueueLength = orchestrator.executionQueue.length;
 
 // PATTERN: Factory functions for test hierarchies
 // From tests/unit/core/scope-resolver.test.ts lines 32-88:
-const createTestSubtask = (id, title, status = 'Planned', dependencies = []) => ({
-  id, type: 'Subtask', title, status, story_points: 2, dependencies, context_scope: 'Test'
+const createTestSubtask = (
+  id,
+  title,
+  status = 'Planned',
+  dependencies = []
+) => ({
+  id,
+  type: 'Subtask',
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope: 'Test',
 });
 // Use 'as const' for type discriminators: type: 'Subtask' as const
 
@@ -216,7 +231,13 @@ for (const dir of [
 }
 
 // CRITICAL: Status is a string union type, not enum
-export type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete';
+export type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed'
+  | 'Obsolete';
 
 // PATTERN: Use vi.hoisted() for mock variables before vi.mock()
 const { mockLogger } = vi.hoisted(() => ({
@@ -234,7 +255,14 @@ No new data models. Tests use existing types from `src/core/models.ts` and `src/
 
 ```typescript
 // Existing types used in tests:
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../src/core/models.js';
 import type { Scope, HierarchyItem } from '../../src/core/scope-resolver.js';
 import { parseScope, resolveScope } from '../../src/core/scope-resolver.js';
 import { TaskOrchestrator } from '../../src/core/task-orchestrator.js';
@@ -338,7 +366,14 @@ import { createHash } from 'node:crypto';
 import { SessionManager } from '../../src/core/session-manager.js';
 import { TaskOrchestrator } from '../../src/core/task-orchestrator.js';
 import { parseScope, resolveScope } from '../../src/core/scope-resolver.js';
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../src/core/models.js';
 import type { Scope } from '../../src/core/scope-resolver.js';
 import { mockSimplePRD } from '../fixtures/simple-prd.js';
 

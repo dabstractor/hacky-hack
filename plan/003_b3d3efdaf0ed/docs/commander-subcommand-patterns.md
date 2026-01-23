@@ -36,6 +36,7 @@ Based on the Commander.js source code at `/home/dustin/projects/hacky-hack/node_
 Creates a new subcommand. Two styles:
 
 **Style 1: Action Handler (description separate)**
+
 ```javascript
 program
   .command('clone <source> [destination]')
@@ -46,6 +47,7 @@ program
 ```
 
 **Style 2: Separate Executable File (description is second parameter)**
+
 ```javascript
 program
   .command('start <service>', 'start named service')
@@ -53,6 +55,7 @@ program
 ```
 
 **Parameters:**
+
 - `nameAndArgs`: Command name and arguments
   - Args use `<required>` or `[optional]` syntax
   - Last arg can be variadic with `...`
@@ -71,6 +74,7 @@ program.addCommand(subcommand);
 ```
 
 **Parameters:**
+
 - `cmd`: Command instance (must have a name)
 - `opts`: Configuration options
   - `isDefault`: Set as default command
@@ -105,15 +109,10 @@ import { Command } from 'commander';
 
 const program = new Command();
 
-program
-  .name('prd')
-  .description('PRD Task Management CLI')
-  .version('1.0.0');
+program.name('prd').description('PRD Task Management CLI').version('1.0.0');
 
 // 'task' command with subcommands
-const taskCommand = program
-  .command('task')
-  .description('Manage tasks');
+const taskCommand = program.command('task').description('Manage tasks');
 
 // Subcommand: task next
 taskCommand
@@ -136,7 +135,7 @@ taskCommand
   .command('list')
   .description('List all tasks')
   .option('--filter <status>', 'Filter by status')
-  .action((options) => {
+  .action(options => {
     console.log('Listing tasks...', options);
   });
 
@@ -144,6 +143,7 @@ program.parse();
 ```
 
 **Usage:**
+
 ```bash
 prd task next
 prd task status
@@ -173,6 +173,7 @@ const taskCommand = program
 ```
 
 **Usage:**
+
 ```bash
 prd task                    # Show all tasks
 prd task P1M2T3             # Operate on specific task
@@ -189,9 +190,7 @@ import { Command } from 'commander';
 
 const program = new Command();
 
-program
-  .name('prd')
-  .version('1.0.0');
+program.name('prd').version('1.0.0');
 
 // Global options (available to all commands)
 program
@@ -199,9 +198,7 @@ program
   .option('-v, --verbose', 'Enable verbose output');
 
 // Main command: prd task
-const taskCmd = program
-  .command('task')
-  .description('Task management commands');
+const taskCmd = program.command('task').description('Task management commands');
 
 // Subcommand: prd task next
 taskCmd
@@ -219,7 +216,7 @@ taskCmd
 taskCmd
   .command('status [taskId]')
   .description('Show task status')
-  .action((taskId) => {
+  .action(taskId => {
     const options = program.opts();
     console.log(`Status for ${taskId || 'all'} tasks`);
     if (options.verbose) {
@@ -239,6 +236,7 @@ program.parse();
 ```
 
 **Usage:**
+
 ```bash
 prd init                          # Standalone command
 prd task next                     # Subcommand
@@ -263,6 +261,7 @@ program
 ```
 
 **Usage:**
+
 ```bash
 prd task -f custom-tasks.json    # Short form
 prd task --file custom-tasks.json # Long form
@@ -275,7 +274,11 @@ import { existsSync } from 'node:fs';
 
 program
   .command('task [taskId]')
-  .option('-f, --file <path>', 'Override default task file path', './tasks.json')
+  .option(
+    '-f, --file <path>',
+    'Override default task file path',
+    './tasks.json'
+  )
   .action((taskId, options) => {
     if (!existsSync(options.file)) {
       console.error(`Task file not found: ${options.file}`);
@@ -303,6 +306,7 @@ program
 ```
 
 **Usage:**
+
 ```bash
 prd task -t custom-tasks.json -c my-config.json
 ```
@@ -343,7 +347,7 @@ program
   .command('list')
   .description('List discovered tasks')
   .option('--dir <path>', 'Tasks directory', './tasks')
-  .action((options) => {
+  .action(options => {
     const tasks = discoverTaskFiles(options.dir);
     console.log('Discovered tasks:');
     tasks.forEach(task => console.log(`  - ${task}`));
@@ -404,7 +408,10 @@ function registerTasks(program: Command) {
   const taskCmd = program.command('task').description('Manage tasks');
 
   taskRegistry.forEach(task => {
-    taskCmd.command(task.name).description(task.description).action(task.handler);
+    taskCmd
+      .command(task.name)
+      .description(task.description)
+      .action(task.handler);
   });
 }
 
@@ -419,7 +426,7 @@ registerTasks(program);
 const taskCmd = program
   .command('task [command]')
   .description('Manage tasks (default: list)')
-  .action((command) => {
+  .action(command => {
     // If no subcommand specified, default to 'list'
     if (!command) {
       console.log('Listing all tasks (default)...');
@@ -430,9 +437,12 @@ const taskCmd = program
   });
 
 // Add explicit subcommands
-taskCmd.command('list').description('List tasks').action(() => {
-  console.log('Listing tasks...');
-});
+taskCmd
+  .command('list')
+  .description('List tasks')
+  .action(() => {
+    console.log('Listing tasks...');
+  });
 ```
 
 ---
@@ -442,34 +452,29 @@ taskCmd.command('list').description('List tasks').action(() => {
 ### 1. Command Organization
 
 **DO:** Group related commands under a parent command
+
 ```typescript
 // Good
-program
-  .command('task')
-  .command('next')
-  .command('status')
-  .command('list');
+program.command('task').command('next').command('status').command('list');
 ```
 
 **DON'T:** Flat structure for many commands
+
 ```typescript
 // Avoid for complex CLIs
-program
-  .command('task-next')
-  .command('task-status')
-  .command('task-list');
+program.command('task-next').command('task-status').command('task-list');
 ```
 
 ### 2. Option Naming Conventions
 
-| Purpose | Pattern | Example |
-|---------|---------|---------|
-| File override | `-f, --file <path>` | `prd task -f custom.json` |
-| Verbose output | `-v, --verbose` | `prd task -v` |
-| Help | `-h, --help` | `prd task -h` |
-| Version | `-V, --version` | `prd -V` |
-| Force/Override | `--force` | `prd task --force` |
-| Config | `-c, --config <path>` | `prd -c config.json` |
+| Purpose        | Pattern               | Example                   |
+| -------------- | --------------------- | ------------------------- |
+| File override  | `-f, --file <path>`   | `prd task -f custom.json` |
+| Verbose output | `-v, --verbose`       | `prd task -v`             |
+| Help           | `-h, --help`          | `prd task -h`             |
+| Version        | `-V, --version`       | `prd -V`                  |
+| Force/Override | `--force`             | `prd task --force`        |
+| Config         | `-c, --config <path>` | `prd -c config.json`      |
 
 ### 3. Type Safety with TypeScript
 
@@ -485,7 +490,7 @@ const taskCmd = program
   .option('-f, --file <path>', 'Task file path')
   .option('-v, --verbose', 'Verbose output')
   .option('--filter <status>', 'Filter by status')
-  .action((options) => {
+  .action(options => {
     const opts = options as TaskOptions;
     // Fully typed!
     console.log(opts.file);
@@ -499,13 +504,16 @@ const taskCmd = program
 program
   .command('task [taskId]')
   .description('Manage PRD tasks')
-  .addHelpText('after', `
+  .addHelpText(
+    'after',
+    `
 Examples:
   prd task                    List all tasks
   prd task P1M2T3             Show specific task
   prd task next               Get next task to work on
   prd task -f tasks.json      Use custom task file
-  `);
+  `
+  );
 ```
 
 ### 5. Error Handling
@@ -528,7 +536,6 @@ program
 
       // Execute task logic
       executeTask(taskId, options.file);
-
     } catch (error) {
       console.error(`Error: ${error.message}`);
       process.exit(1);
@@ -539,17 +546,20 @@ program
 ### 6. Global vs Local Options
 
 **Global Options** (appear before subcommand):
+
 ```bash
 prd -v task next              # Verbose applies to all commands
 prd -f custom.json task next  # File applies to task command
 ```
 
 **Local Options** (appear after subcommand):
+
 ```bash
 prd task next --format json   # Format only for 'next' subcommand
 ```
 
 **Implementation:**
+
 ```typescript
 // Global options
 program
@@ -560,7 +570,7 @@ program
 taskCmd
   .command('next')
   .option('--format <type>', 'Output format (json, text)', 'text')
-  .action((options) => {
+  .action(options => {
     const globalOpts = program.opts();
     const localOpts = options;
 
@@ -624,9 +634,7 @@ function loadTasks(filePath: string): Task[] {
 }
 
 // Task command group
-const taskCmd = program
-  .command('task')
-  .description('Task management commands');
+const taskCmd = program.command('task').description('Task management commands');
 
 // Subcommand: task next
 taskCmd
@@ -651,7 +659,7 @@ taskCmd
 taskCmd
   .command('status [taskId]')
   .description('Show task status')
-  .action((taskId) => {
+  .action(taskId => {
     const opts = program.opts<TaskOptions>();
     const tasks = loadTasks(opts.file);
 
@@ -677,7 +685,7 @@ taskCmd
   .command('list')
   .description('List all tasks')
   .option('--filter <status>', 'Filter by status')
-  .action((options) => {
+  .action(options => {
     const opts = program.opts<TaskOptions>();
     const tasks = loadTasks(opts.file);
 
@@ -696,6 +704,7 @@ program.parse();
 ```
 
 **Usage:**
+
 ```bash
 prd task next                    # Get next task
 prd task status                  # Show all task statuses
@@ -711,6 +720,7 @@ prd -v task next                # Verbose output
 For better organization, use separate files:
 
 **File structure:**
+
 ```
 src/cli/
 ├── index.ts         # Main CLI entry
@@ -721,6 +731,7 @@ src/cli/
 ```
 
 **index.ts:**
+
 ```typescript
 #!/usr/bin/env node
 import { Command } from 'commander';
@@ -729,10 +740,7 @@ import { initCommand } from './commands/init.js';
 
 const program = new Command();
 
-program
-  .name('prd')
-  .description('PRD Task Management CLI')
-  .version('1.0.0');
+program.name('prd').description('PRD Task Management CLI').version('1.0.0');
 
 program.addCommand(taskCommand);
 program.addCommand(initCommand);
@@ -741,6 +749,7 @@ program.parse();
 ```
 
 **commands/task.ts:**
+
 ```typescript
 import { Command } from 'commander';
 
@@ -758,7 +767,7 @@ taskCommand
 taskCommand
   .command('status [taskId]')
   .description('Show task status')
-  .action((taskId) => {
+  .action(taskId => {
     console.log(`Status for ${taskId || 'all'}`);
   });
 ```
@@ -772,10 +781,10 @@ program
   .option('-f, --file <path>', 'Task file')
   .action((taskId, action, options) => {
     console.log(`Task: ${taskId}`);
-    console.log(`Action: ${action || 'info'}`);  // Default action
+    console.log(`Action: ${action || 'info'}`); // Default action
     console.log(`File: ${options.file || 'default'}`);
 
-    switch(action) {
+    switch (action) {
       case 'start':
         console.log('Starting task...');
         break;
@@ -790,6 +799,7 @@ program
 ```
 
 **Usage:**
+
 ```bash
 prd task P1M2T3              # Show info (default)
 prd task P1M2T3 start        # Start task
@@ -850,6 +860,7 @@ While web search is currently rate-limited, these GitHub repositories are known 
 - **Serverless Framework**: https://github.com/serverless/serverless
 
 Search GitHub for examples:
+
 ```bash
 # Find Commander.js usage
 language:typescript commander
@@ -932,6 +943,7 @@ program.parse();
 ```
 
 This provides:
+
 - Clean, intuitive CLI (`prd task next`, `prd task status`)
 - Global file override flag
 - Type-safe implementation

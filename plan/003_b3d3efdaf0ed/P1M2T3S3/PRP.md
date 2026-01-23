@@ -7,6 +7,7 @@
 **Feature Goal**: Implement comprehensive integration tests that verify the `prd task` command and its subcommands (`next`, `status`, `-f <file>`) work correctly for displaying tasks, finding the next executable task, showing status counts, and overriding the default tasks.json file.
 
 **Deliverable**: Integration test file `tests/integration/prd-task-command.test.ts` with complete coverage of:
+
 - `prd task` - displays tasks from current session
 - `prd task next` - returns next executable task
 - `prd task status` - shows task counts by status
@@ -14,6 +15,7 @@
 - Bugfix session tasks prioritized over main session tasks
 
 **Success Definition**:
+
 - `prd task` displays all tasks for the current session with proper hierarchy
 - `prd task next` returns the next executable task based on DFS traversal and status
 - `prd task status` shows accurate task counts grouped by status
@@ -30,18 +32,21 @@
 **Target User**: Development team using the CLI to manage and inspect task state
 
 **Use Case**: Developers need to quickly see:
+
 1. What tasks exist in the current session
 2. What the next task to work on is
 3. Overall progress via status counts
 4. Tasks from alternative files (e.g., backups, other sessions)
 
 **User Journey**:
+
 1. Developer runs `prd task` to see all tasks in current session
 2. Developer runs `prd task next` to identify next task to work on
 3. Developer runs `prd task status` to see overall progress
 4. Developer runs `prd task -f backup.json` to inspect alternative task file
 
 **Pain Points Addressed**:
+
 - Cannot easily see what tasks exist without inspecting tasks.json directly
 - Unclear what the next task to work on is
 - No quick way to see overall progress
@@ -84,6 +89,7 @@ Integration tests for the `prd task` command subcommands documented in system_co
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Answer**: Yes. This PRP includes:
+
 - Exact command specifications from system_context.md
 - CLI handler patterns from existing `src/cli/index.ts`
 - Test patterns from existing integration tests
@@ -210,7 +216,13 @@ const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
 
 // CRITICAL: Status is a string union type, not enum
 // From src/core/models.ts:
-export type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed' | 'Obsolete';
+export type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed'
+  | 'Obsolete';
 
 // CRITICAL: Bugfix sessions are nested under main sessions
 // Pattern: plan/001_14b9dc2a33c7/bugfix/001_8d809cc989b9/
@@ -218,8 +230,19 @@ export type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | '
 
 // PATTERN: Factory functions for test hierarchies
 // From tests/unit/core/scope-resolver.test.ts:
-const createTestSubtask = (id, title, status = 'Planned', dependencies = []) => ({
-  id, type: 'Subtask', title, status, story_points: 2, dependencies, context_scope: 'Test'
+const createTestSubtask = (
+  id,
+  title,
+  status = 'Planned',
+  dependencies = []
+) => ({
+  id,
+  type: 'Subtask',
+  title,
+  status,
+  story_points: 2,
+  dependencies,
+  context_scope: 'Test',
 });
 // Use 'as const' for type discriminators: type: 'Subtask' as const
 
@@ -265,7 +288,14 @@ No new data models. Tests use existing types from `src/core/models.ts`.
 
 ```typescript
 // Existing types used in tests:
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../src/core/models.js';
 import { SessionManager } from '../../src/core/session-manager.js';
 import { TaskOrchestrator } from '../../src/core/task-orchestrator.js';
 ```
@@ -363,14 +393,27 @@ Task 10: IMPLEMENT Session Discovery Tests
  */
 
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 
 import { SessionManager } from '../../src/core/session-manager.js';
 import { TaskOrchestrator } from '../../src/core/task-orchestrator.js';
-import type { Backlog, Phase, Milestone, Task, Subtask, Status } from '../../src/core/models.js';
+import type {
+  Backlog,
+  Phase,
+  Milestone,
+  Task,
+  Subtask,
+  Status,
+} from '../../src/core/models.js';
 
 // Mock the logger with hoisted variables
 const { mockLogger } = vi.hoisted(() => ({
@@ -412,7 +455,11 @@ const createTestSubtask = (
   context_scope: 'Test scope',
 });
 
-const createTestTask = (id: string, title: string, subtasks: Subtask[] = []): Task => ({
+const createTestTask = (
+  id: string,
+  title: string,
+  subtasks: Subtask[] = []
+): Task => ({
   id,
   type: 'Task' as const,
   title,
@@ -434,7 +481,11 @@ const createTestMilestone = (
   tasks,
 });
 
-const createTestPhase = (id: string, title: string, milestones: Milestone[] = []): Phase => ({
+const createTestPhase = (
+  id: string,
+  title: string,
+  milestones: Milestone[] = []
+): Phase => ({
   id,
   type: 'Phase' as const,
   title,
@@ -447,8 +498,18 @@ const createTestPhase = (id: string, title: string, milestones: Milestone[] = []
 function createTestBacklog(): Backlog {
   const s1 = createTestSubtask('P1.M1.T1.S1', 'Complete Task', 'Complete', 1);
   const s2 = createTestSubtask('P1.M1.T1.S2', 'Planned Task', 'Planned', 2);
-  const s3 = createTestSubtask('P1.M1.T2.S1', 'Researching Task', 'Researching', 3);
-  const s4 = createTestSubtask('P1.M1.T2.S2', 'Implementing Task', 'Implementing', 1);
+  const s3 = createTestSubtask(
+    'P1.M1.T2.S1',
+    'Researching Task',
+    'Researching',
+    3
+  );
+  const s4 = createTestSubtask(
+    'P1.M1.T2.S2',
+    'Implementing Task',
+    'Implementing',
+    1
+  );
 
   const t1 = createTestTask('P1.M1.T1', 'Task 1', [s1, s2]);
   const t2 = createTestTask('P1.M1.T2', 'Task 2', [s3, s4]);
@@ -461,7 +522,11 @@ function createTestBacklog(): Backlog {
 }
 
 // Setup a test session with required directory structure
-function setupTestSession(tempDir: string, sessionId: string, backlog: Backlog): string {
+function setupTestSession(
+  tempDir: string,
+  sessionId: string,
+  backlog: Backlog
+): string {
   const planDir = join(tempDir, 'plan');
   const sessionDir = join(planDir, sessionId);
 
@@ -637,7 +702,11 @@ describe('PRD Task Command Integration Tests', () => {
     it('should prioritize bugfix tasks over main tasks', async () => {
       // SETUP: Create main session
       const mainBacklog = createTestBacklog();
-      const mainSession = setupTestSession(tempDir, '001_mainsession', mainBacklog);
+      const mainSession = setupTestSession(
+        tempDir,
+        '001_mainsession',
+        mainBacklog
+      );
 
       // SETUP: Create bugfix session
       const bugfixBacklog: Backlog = {
@@ -645,14 +714,25 @@ describe('PRD Task Command Integration Tests', () => {
           createTestPhase('PFIX', 'Bugfix Phase', [
             createTestMilestone('PFIX.M1', 'Bugfix Milestone', [
               createTestTask('PFIX.M1.T1', 'Bugfix Task', [
-                createTestSubtask('PFIX.M1.T1.S1', 'Critical Bug Fix', 'Planned', 13),
+                createTestSubtask(
+                  'PFIX.M1.T1.S1',
+                  'Critical Bug Fix',
+                  'Planned',
+                  13
+                ),
               ]),
             ]),
           ]),
         ],
       };
 
-      const bugfixDir = join(tempDir, 'plan', '001_mainsession', 'bugfix', '001_bugfix');
+      const bugfixDir = join(
+        tempDir,
+        'plan',
+        '001_mainsession',
+        'bugfix',
+        '001_bugfix'
+      );
       for (const dir of [
         bugfixDir,
         join(bugfixDir, 'architecture'),

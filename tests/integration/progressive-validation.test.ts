@@ -150,7 +150,9 @@ describe('integration: agents/prp-builder-prompt > progressive validation levels
 
     it('should include performance and security checks', () => {
       // Level 4 executes specified validation from PRP which can include performance/security
-      expect(PRP_BUILDER_PROMPT).toContain('Execute specified validation from PRP');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Execute specified validation from PRP'
+      );
     });
   });
 

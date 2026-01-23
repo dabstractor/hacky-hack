@@ -465,7 +465,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T4.S1",
                   "title": "Verify Delta PRD Generation Prompt and retry logic",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From PROMPTS.md lines 793-833 and system_context.md - Role: Change Manager. Inputs: Old PRD, New PRD, Completed Tasks. Output: delta_prd.md focusing only on diffs. Retry logic: if delta PRD not created on first attempt, demand retry. Fail fast if cannot generate after retry.\n2. INPUT: DELTA_PRD_GENERATION_PROMPT from `PROMPTS.md`, DeltaAnalysisWorkflow implementation, retry logic in session manager.\n3. LOGIC: Write integration test that verifies: (a) prompt instructs agent to compare old and new PRDs, (b) prompt instructs agent to focus on new/modified requirements only, (c) prompt instructs agent to reference completed work to avoid duplication, (d) retry logic triggers second attempt if delta PRD missing, (e) session fails if delta PRD cannot be generated after retry. Mock agent responses and delta PRD creation.\n4. OUTPUT: Integration test file `tests/integration/delta-prd-generation.test.ts` with delta PRD creation and retry logic verification."

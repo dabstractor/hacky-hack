@@ -9,6 +9,7 @@
 **Deliverable**: Unit test file `tests/unit/core/task-breakdown-schema.test.ts` with complete schema validation coverage including hierarchy structure, field constraints, edge cases, and architect agent output validation.
 
 **Success Definition**:
+
 - All Zod schemas (BacklogSchema, PhaseSchema, MilestoneSchema, TaskSchema, SubtaskSchema, ContextScopeSchema, StatusEnum, ItemTypeEnum) are validated
 - Story points validation tests cover actual implementation (1-21 Fibonacci integers) and document the discrepancy with system_context.md (0.5, 1, 2)
 - Dependencies array validation ensures only valid subtask ID references
@@ -202,14 +203,21 @@ The test file will validate the following Zod schema hierarchy:
 // Schema hierarchy to test (from src/core/models.ts)
 
 // 1. Base enums
-StatusEnum = z.enum(['Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete'])
-ItemTypeEnum = z.enum(['Phase', 'Milestone', 'Task', 'Subtask'])
+StatusEnum = z.enum([
+  'Planned',
+  'Researching',
+  'Implementing',
+  'Complete',
+  'Failed',
+  'Obsolete',
+]);
+ItemTypeEnum = z.enum(['Phase', 'Milestone', 'Task', 'Subtask']);
 
 // 2. Context scope validation (custom superRefine)
 ContextScopeSchema = z.string().superRefine((value, ctx) => {
   // Validates "CONTRACT DEFINITION:\n" prefix
   // Validates 4 numbered sections in order
-})
+});
 
 // 3. Subtask (leaf node)
 SubtaskSchema = z.object({
@@ -217,10 +225,10 @@ SubtaskSchema = z.object({
   type: z.literal('Subtask'),
   title: z.string().min(1).max(200),
   status: StatusEnum,
-  story_points: z.number().int().min(1).max(21),  // DISCREPANCY: not 0.5/1/2
+  story_points: z.number().int().min(1).max(21), // DISCREPANCY: not 0.5/1/2
   dependencies: z.array(z.string()).min(0),
   context_scope: ContextScopeSchema,
-})
+});
 
 // 4. Task (contains Subtasks)
 TaskSchema = z.object({
@@ -230,7 +238,7 @@ TaskSchema = z.object({
   status: StatusEnum,
   description: z.string().min(1),
   subtasks: z.array(SubtaskSchema),
-})
+});
 
 // 5. Milestone (contains Tasks, uses z.lazy())
 MilestoneSchema = z.lazy(() =>
@@ -242,7 +250,7 @@ MilestoneSchema = z.lazy(() =>
     description: z.string().min(1),
     tasks: z.array(z.lazy(() => TaskSchema)),
   })
-)
+);
 
 // 6. Phase (contains Milestones, uses z.lazy())
 PhaseSchema = z.lazy(() =>
@@ -254,12 +262,12 @@ PhaseSchema = z.lazy(() =>
     description: z.string().min(1),
     milestones: z.array(z.lazy(() => MilestoneSchema)),
   })
-)
+);
 
 // 7. Backlog (root schema)
 BacklogSchema = z.object({
   backlog: z.array(PhaseSchema),
-})
+});
 ```
 
 ### Implementation Tasks (ordered by dependencies)
@@ -498,7 +506,14 @@ describe('StatusEnum', () => {
   });
 
   it('should reject invalid status values', () => {
-    const invalidStatuses = ['Ready', 'Pending', 'InProgress', '', null, undefined];
+    const invalidStatuses = [
+      'Ready',
+      'Pending',
+      'InProgress',
+      '',
+      null,
+      undefined,
+    ];
 
     invalidStatuses.forEach(status => {
       const result = StatusEnum.safeParse(status);
@@ -631,7 +646,9 @@ describe('SubtaskSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         // .int() refinement rejects decimals
-        expect(result.error.issues.some(i => i.message.includes('integer'))).toBe(true);
+        expect(
+          result.error.issues.some(i => i.message.includes('integer'))
+        ).toBe(true);
       }
     });
 
@@ -723,11 +740,7 @@ describe('SubtaskSchema', () => {
 
 describe('SubtaskSchema ID format validation', () => {
   it('should accept valid subtask ID format', () => {
-    const validIds = [
-      'P1.M1.T1.S1',
-      'P99.M99.T99.S99',
-      'P01.M01.T01.S01',
-    ];
+    const validIds = ['P1.M1.T1.S1', 'P99.M99.T99.S99', 'P01.M01.T01.S01'];
 
     validIds.forEach(id => {
       const subtask = {
@@ -747,13 +760,13 @@ describe('SubtaskSchema ID format validation', () => {
 
   it('should reject invalid subtask ID formats', () => {
     const invalidIds = [
-      'P1',           // Wrong level (Phase)
-      'P1.M1',        // Wrong level (Milestone)
-      'P1.M1.T1',     // Wrong level (Task)
+      'P1', // Wrong level (Phase)
+      'P1.M1', // Wrong level (Milestone)
+      'P1.M1.T1', // Wrong level (Task)
       'P1.M1.T1.S1.X1', // Too many levels
-      'p1.m1.t1.s1',  // Lowercase
+      'p1.m1.t1.s1', // Lowercase
       'P1.M1.T1.Ss1', // Mixed case
-      'P1_M1_T1_S1',  // Wrong separator
+      'P1_M1_T1_S1', // Wrong separator
       'Phase1.Milestone1.Task1.Subtask1', // Words instead of numbers
     ];
 

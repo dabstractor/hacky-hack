@@ -47,8 +47,12 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should contain Mission statement with One-Pass Implementation Success', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('## Mission: One-Pass Implementation Success');
-      expect(PRP_BUILDER_PROMPT).toContain('PRPs enable working code on the first attempt');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        '## Mission: One-Pass Implementation Success'
+      );
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'PRPs enable working code on the first attempt'
+      );
     });
   });
 
@@ -56,32 +60,48 @@ describe('integration/prp-execute-prompt', () => {
   describe('execution process step 1: Load PRP (CRITICAL FIRST STEP)', () => {
     it('should contain Load PRP section as critical first step', () => {
       expect(PRP_BUILDER_PROMPT).toContain('## Execution Process');
-      expect(PRP_BUILDER_PROMPT).toContain('1. **Load PRP (CRITICAL FIRST STEP)**');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        '1. **Load PRP (CRITICAL FIRST STEP)**'
+      );
     });
 
     it('should instruct to use Read tool to read the PRP file', () => {
       expect(PRP_BUILDER_PROMPT).toContain('Use the `Read` tool');
-      expect(PRP_BUILDER_PROMPT).toContain('to read the PRP file at the path provided');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'to read the PRP file at the path provided'
+      );
     });
 
     it('should emphasize reading PRP before doing anything else', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('You MUST read this file before doing anything else');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'You MUST read this file before doing anything else'
+      );
       expect(PRP_BUILDER_PROMPT).toContain('It contains your instructions');
     });
 
     it('should instruct to absorb all context and patterns', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Absorb all context, patterns, requirements');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Absorb all context, patterns, requirements'
+      );
       expect(PRP_BUILDER_PROMPT).toContain('gather codebase intelligence');
     });
 
     it('should instruct to use provided documentation references', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Use the provided documentation references');
-      expect(PRP_BUILDER_PROMPT).toContain('consume the right documentation before the appropriate todo/task');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Use the provided documentation references'
+      );
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'consume the right documentation before the appropriate todo/task'
+      );
     });
 
     it('should instruct to trust the PRP context', () => {
-      expect(PRP_BUILDER_PROMPT).toContain("Trust the PRP's context and guidance");
-      expect(PRP_BUILDER_PROMPT).toContain("it's designed for one-pass success");
+      expect(PRP_BUILDER_PROMPT).toContain(
+        "Trust the PRP's context and guidance"
+      );
+      expect(PRP_BUILDER_PROMPT).toContain(
+        "it's designed for one-pass success"
+      );
     });
   });
 
@@ -92,32 +112,46 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should instruct to create comprehensive implementation plan', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Create comprehensive implementation plan');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Create comprehensive implementation plan'
+      );
       expect(PRP_BUILDER_PROMPT).toContain("following the PRP's task order");
     });
 
     it('should instruct to use TodoWrite tool for planning', () => {
       expect(PRP_BUILDER_PROMPT).toContain('TodoWrite');
-      expect(PRP_BUILDER_PROMPT).toContain('Break down into clear todos using TodoWrite tool');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Break down into clear todos using TodoWrite tool'
+      );
     });
 
     it('should instruct to use subagents for parallel work', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Use subagents for parallel work when beneficial');
-      expect(PRP_BUILDER_PROMPT).toContain('always create prp inspired prompts for subagents');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Use subagents for parallel work when beneficial'
+      );
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'always create prp inspired prompts for subagents'
+      );
     });
 
     it('should instruct to follow patterns referenced in the PRP', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Follow the patterns referenced in the PRP');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Follow the patterns referenced in the PRP'
+      );
     });
 
     it('should instruct to use specific file paths and signatures from PRP', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Use specific file paths, class names, and method signatures');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Use specific file paths, class names, and method signatures'
+      );
       expect(PRP_BUILDER_PROMPT).toContain('from PRP context');
     });
 
     it('should instruct to never guess and verify codebase patterns', () => {
       expect(PRP_BUILDER_PROMPT).toContain('Never guess');
-      expect(PRP_BUILDER_PROMPT).toContain('always verify the codebase patterns');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'always verify the codebase patterns'
+      );
     });
   });
 
@@ -128,19 +162,27 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should instruct to follow PRP Implementation Tasks sequence', () => {
-      expect(PRP_BUILDER_PROMPT).toContain("Follow the PRP's Implementation Tasks sequence");
+      expect(PRP_BUILDER_PROMPT).toContain(
+        "Follow the PRP's Implementation Tasks sequence"
+      );
     });
 
     it('should instruct to use patterns and examples referenced in the PRP', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Use the patterns and examples referenced in the PRP');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Use the patterns and examples referenced in the PRP'
+      );
     });
 
     it('should instruct to create files in locations specified by codebase tree', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Create files in locations specified by the desired codebase tree');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Create files in locations specified by the desired codebase tree'
+      );
     });
 
     it('should instruct to apply naming conventions from task specifications', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Apply naming conventions from the task specifications');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Apply naming conventions from the task specifications'
+      );
       expect(PRP_BUILDER_PROMPT).toContain('CLAUDE.md');
     });
   });
@@ -168,11 +210,15 @@ describe('integration/prp-execute-prompt', () => {
 
     it('should define Level 4: specified validation', () => {
       expect(PRP_BUILDER_PROMPT).toContain('**Level 4**');
-      expect(PRP_BUILDER_PROMPT).toContain('Execute specified validation from PRP');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Execute specified validation from PRP'
+      );
     });
 
     it('should specify each level must pass before proceeding', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Each level must pass before proceeding to the next');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Each level must pass before proceeding to the next'
+      );
     });
   });
 
@@ -183,7 +229,9 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should instruct to work through Final Validation Checklist', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Work through the Final Validation Checklist');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Work through the Final Validation Checklist'
+      );
       expect(PRP_BUILDER_PROMPT).toContain('in the PRP');
     });
 
@@ -193,11 +241,15 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should instruct to confirm all Anti-Patterns were avoided', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Confirm all Anti-Patterns were avoided');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Confirm all Anti-Patterns were avoided'
+      );
     });
 
     it('should state implementation is ready and working', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Implementation is ready and working');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Implementation is ready and working'
+      );
     });
   });
 
@@ -208,7 +260,9 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should instruct to use patterns and gotchas from PRP to fix issues', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('use the patterns and gotchas from the PRP to fix issues');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'use the patterns and gotchas from the PRP to fix issues'
+      );
     });
 
     it('should instruct to re-run validation until passing', () => {
@@ -216,8 +270,12 @@ describe('integration/prp-execute-prompt', () => {
     });
 
     it('should instruct to halt on fundamental issues with thorough explanation', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('If a fundamental issue with the plan is found');
-      expect(PRP_BUILDER_PROMPT).toContain('halt and produce a thorough explanation');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'If a fundamental issue with the plan is found'
+      );
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'halt and produce a thorough explanation'
+      );
     });
 
     it('should specify explanation at a 10th grade level', () => {
@@ -228,15 +286,21 @@ describe('integration/prp-execute-prompt', () => {
   // PATTERN: Test suite 8 - JSON Output Format
   describe('json output format', () => {
     it('should specify JSON output format', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('Strictly output your results in this JSON format');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        'Strictly output your results in this JSON format'
+      );
     });
 
     it('should contain result field with success/error/issue values', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('"result": "success" | "error" | "issue"');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        '"result": "success" | "error" | "issue"'
+      );
     });
 
     it('should contain message field for detailed explanation', () => {
-      expect(PRP_BUILDER_PROMPT).toContain('"message": "Detailed explanation of the issue"');
+      expect(PRP_BUILDER_PROMPT).toContain(
+        '"message": "Detailed explanation of the issue"'
+      );
     });
 
     it('should use markdown code block format for JSON', () => {
@@ -258,24 +322,78 @@ describe('integration/prp-execute-prompt', () => {
       console.log('\n=== Prompt (first 500 chars) ===');
       console.log(PRP_BUILDER_PROMPT.slice(0, 500) + '...');
       console.log('\n=== Key sections verification ===');
-      console.log('✓ Contains # Execute BASE PRP:', PRP_BUILDER_PROMPT.includes('# Execute BASE PRP'));
-      console.log('✓ Contains Mission: One-Pass Implementation Success:', PRP_BUILDER_PROMPT.includes('Mission: One-Pass Implementation Success'));
-      console.log('✓ Contains Execution Process:', PRP_BUILDER_PROMPT.includes('## Execution Process'));
-      console.log('✓ Contains Load PRP (CRITICAL FIRST STEP):', PRP_BUILDER_PROMPT.includes('Load PRP (CRITICAL FIRST STEP)'));
-      console.log('✓ Contains ULTRATHINK & Plan:', PRP_BUILDER_PROMPT.includes('ULTRATHINK & Plan'));
-      console.log('✓ Contains Execute Implementation:', PRP_BUILDER_PROMPT.includes('Execute Implementation'));
-      console.log('✓ Contains Progressive Validation:', PRP_BUILDER_PROMPT.includes('Progressive Validation'));
-      console.log('✓ Contains Completion Verification:', PRP_BUILDER_PROMPT.includes('Completion Verification'));
-      console.log('✓ Contains Failure Protocol:', PRP_BUILDER_PROMPT.includes('Failure Protocol'));
-      console.log('✓ Contains JSON output format:', PRP_BUILDER_PROMPT.includes('JSON format'));
-      console.log('✓ Contains $PRP_README placeholder:', PRP_BUILDER_PROMPT.includes('$PRP_README'));
-      console.log('✓ Contains Level 1:', PRP_BUILDER_PROMPT.includes('Level 1'));
-      console.log('✓ Contains Level 2:', PRP_BUILDER_PROMPT.includes('Level 2'));
-      console.log('✓ Contains Level 3:', PRP_BUILDER_PROMPT.includes('Level 3'));
-      console.log('✓ Contains Level 4:', PRP_BUILDER_PROMPT.includes('Level 4'));
-      console.log('✓ Contains TodoWrite:', PRP_BUILDER_PROMPT.includes('TodoWrite'));
-      console.log('✓ Contains Read tool:', PRP_BUILDER_PROMPT.includes('`Read` tool'));
-      console.log('✓ Contains 10th grade level:', PRP_BUILDER_PROMPT.includes('10th grade level'));
+      console.log(
+        '✓ Contains # Execute BASE PRP:',
+        PRP_BUILDER_PROMPT.includes('# Execute BASE PRP')
+      );
+      console.log(
+        '✓ Contains Mission: One-Pass Implementation Success:',
+        PRP_BUILDER_PROMPT.includes('Mission: One-Pass Implementation Success')
+      );
+      console.log(
+        '✓ Contains Execution Process:',
+        PRP_BUILDER_PROMPT.includes('## Execution Process')
+      );
+      console.log(
+        '✓ Contains Load PRP (CRITICAL FIRST STEP):',
+        PRP_BUILDER_PROMPT.includes('Load PRP (CRITICAL FIRST STEP)')
+      );
+      console.log(
+        '✓ Contains ULTRATHINK & Plan:',
+        PRP_BUILDER_PROMPT.includes('ULTRATHINK & Plan')
+      );
+      console.log(
+        '✓ Contains Execute Implementation:',
+        PRP_BUILDER_PROMPT.includes('Execute Implementation')
+      );
+      console.log(
+        '✓ Contains Progressive Validation:',
+        PRP_BUILDER_PROMPT.includes('Progressive Validation')
+      );
+      console.log(
+        '✓ Contains Completion Verification:',
+        PRP_BUILDER_PROMPT.includes('Completion Verification')
+      );
+      console.log(
+        '✓ Contains Failure Protocol:',
+        PRP_BUILDER_PROMPT.includes('Failure Protocol')
+      );
+      console.log(
+        '✓ Contains JSON output format:',
+        PRP_BUILDER_PROMPT.includes('JSON format')
+      );
+      console.log(
+        '✓ Contains $PRP_README placeholder:',
+        PRP_BUILDER_PROMPT.includes('$PRP_README')
+      );
+      console.log(
+        '✓ Contains Level 1:',
+        PRP_BUILDER_PROMPT.includes('Level 1')
+      );
+      console.log(
+        '✓ Contains Level 2:',
+        PRP_BUILDER_PROMPT.includes('Level 2')
+      );
+      console.log(
+        '✓ Contains Level 3:',
+        PRP_BUILDER_PROMPT.includes('Level 3')
+      );
+      console.log(
+        '✓ Contains Level 4:',
+        PRP_BUILDER_PROMPT.includes('Level 4')
+      );
+      console.log(
+        '✓ Contains TodoWrite:',
+        PRP_BUILDER_PROMPT.includes('TodoWrite')
+      );
+      console.log(
+        '✓ Contains Read tool:',
+        PRP_BUILDER_PROMPT.includes('`Read` tool')
+      );
+      console.log(
+        '✓ Contains 10th grade level:',
+        PRP_BUILDER_PROMPT.includes('10th grade level')
+      );
 
       // VERIFY: All assertions pass
       expect(PRP_BUILDER_PROMPT).toBeDefined();

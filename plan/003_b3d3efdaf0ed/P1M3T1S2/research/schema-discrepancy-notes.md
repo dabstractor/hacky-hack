@@ -28,6 +28,7 @@ interface Subtask {
 ```
 
 The documentation specifies:
+
 - Values: `0.5`, `1`, or `2`
 - Maximum: `2`
 
@@ -45,6 +46,7 @@ story_points: z
 ```
 
 The schema enforces:
+
 - Type: Integer (`.int()`)
 - Range: `1` to `21` (Fibonacci sequence: 1, 2, 3, 5, 8, 13, 21)
 
@@ -99,7 +101,9 @@ it('should reject decimal story_points (DISCREPANCY: system_context.md says 0.5 
   expect(result.success).toBe(false);
   if (!result.success) {
     // .int() refinement rejects decimals
-    expect(result.error.issues.some(i => i.message.includes('integer'))).toBe(true);
+    expect(result.error.issues.some(i => i.message.includes('integer'))).toBe(
+      true
+    );
   }
 });
 ```
@@ -109,11 +113,13 @@ it('should reject decimal story_points (DISCREPANCY: system_context.md says 0.5 
 ### Option 1: Update Documentation (Recommended)
 
 **Pros**:
+
 - Aligns documentation with working implementation
 - No code changes required
 - Fibonacci scale provides better granularity
 
 **Changes required**:
+
 1. Update `system_context.md` line 150:
    ```typescript
    story_points: number; // Fibonacci: 1, 2, 3, 5, 8, 13, 21 (max 21)
@@ -124,14 +130,17 @@ it('should reject decimal story_points (DISCREPANCY: system_context.md says 0.5 
 ### Option 2: Update Schema Implementation
 
 **Pros**:
+
 - Aligns implementation with original documentation
 
 **Cons**:
+
 - Loses granularity of Fibonacci scale
 - Requires schema change (breaking change for existing data)
 - May require migration of existing `tasks.json` files
 
 **Changes required**:
+
 1. Remove `.int()` refinement
 2. Update `.min()` and `.max()` to `0.5` and `2`
 3. Migrate existing tasks with story_points > 2

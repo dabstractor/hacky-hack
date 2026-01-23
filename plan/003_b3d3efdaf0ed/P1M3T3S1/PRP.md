@@ -7,6 +7,7 @@
 **Deliverable**: Integration test file `tests/integration/prp-execute-prompt.test.ts` with comprehensive verification of prompt process flow and critical steps.
 
 **Success Definition**:
+
 - All test suites pass verifying prompt structure and content
 - Prompt contains all 5 execution process steps with proper instructions
 - Progressive validation system (4 levels) is clearly defined
@@ -127,13 +128,14 @@ tests/
 
 ### Known Gotchas & Library Quirks
 
-```typescript
+````typescript
 // CRITICAL: Import patterns differ between test files
 // task-breakdown-prompt.test.ts uses direct import:
 import { TASK_BREAKDOWN_PROMPT } from '../../src/agents/prompts.js';
 
 // CRITICAL: prp-create-prompt.test.ts uses dynamic import:
-const { PRP_BLUEPRINT_PROMPT } = await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
+const { PRP_BLUEPRINT_PROMPT } =
+  await import('/home/dustin/projects/hacky-hack/src/agents/prompts.js');
 
 // DECISION: Use direct import pattern from task-breakdown-prompt.test.ts
 // It's simpler and works for prompt content verification tests
@@ -157,7 +159,7 @@ vi.mock('groundswell', async () => {
 
 // GOTCHA: JSON format uses markdown code block format
 // Line 676-680: ```json { "result": "success" | "error" | "issue", ... }
-```
+````
 
 ## Implementation Blueprint
 
@@ -167,7 +169,7 @@ No new data models - this is a test file that verifies existing prompt content.
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE tests/integration/prp-execute-prompt.test.ts file structure
   - IMPLEMENT: Basic test file with imports, describe block, afterEach cleanup
   - FOLLOW pattern: tests/integration/task-breakdown-prompt.test.ts (lines 1-31)
@@ -254,7 +256,7 @@ Task 11: IMPLEMENT Test Suite 12 - Sample output logging (optional debugging)
   - LOG: Prompt length, key sections verification
   - FOLLOW pattern: tests/integration/task-breakdown-prompt.test.ts (lines 345-381)
   - PURPOSE: Debugging aid for manual test inspection
-```
+````
 
 ### Implementation Patterns & Key Details
 
@@ -276,8 +278,12 @@ describe('integration/prp-execute-prompt', () => {
 // PATTERN 2: Content verification assertions
 it('should contain Load PRP step with Read tool instruction', () => {
   expect(PRP_BUILDER_PROMPT).toContain('Load PRP (CRITICAL FIRST STEP)');
-  expect(PRP_BUILDER_PROMPT).toContain('Use the `Read` tool to read the PRP file');
-  expect(PRP_BUILDER_PROMPT).toContain('You MUST read this file before doing anything else');
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'Use the `Read` tool to read the PRP file'
+  );
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'You MUST read this file before doing anything else'
+  );
 });
 
 // PATTERN 3: Multiple related checks in single test (grouped by theme)
@@ -286,7 +292,9 @@ it('should define all 4 progressive validation levels', () => {
   expect(PRP_BUILDER_PROMPT).toContain('Level 2');
   expect(PRP_BUILDER_PROMPT).toContain('Level 3');
   expect(PRP_BUILDER_PROMPT).toContain('Level 4');
-  expect(PRP_BUILDER_PROMPT).toContain('Each level must pass before proceeding to the next');
+  expect(PRP_BUILDER_PROMPT).toContain(
+    'Each level must pass before proceeding to the next'
+  );
 });
 
 // PATTERN 4: Comment headers for test suites (PATTERN: from existing tests)

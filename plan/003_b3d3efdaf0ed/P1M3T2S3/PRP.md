@@ -14,6 +14,7 @@
 **Deliverable**: Unit test file `tests/unit/prp-quality-gates.test.ts` with test suites for all four quality gate checks and edge case verification using PRP samples of varying quality levels.
 
 **Success Definition**:
+
 - All four quality gate checks (Context Completeness, Template Structure Compliance, Information Density, "No Prior Knowledge" test) are validated
 - Test file follows existing test patterns from `tests/unit/prp-template-validation.test.ts`
 - Edge cases for vague/incomplete PRPs are covered
@@ -31,6 +32,7 @@
 **User-visible behavior**: PRP quality gates are enforced at generation time; low-quality PRPs are rejected with specific error messages indicating which quality checks failed.
 
 **Technical Requirements**:
+
 - Implement quality gate validation functions matching the contract definition
 - Create PRP sample fixtures at various quality levels (complete, missing context, vague, incomplete structure)
 - Write unit tests for each quality gate with positive and negative cases
@@ -200,9 +202,19 @@ Use readonly properties for immutability.
     'Create Subtask interface',
   ],
   validationGates: [
-    { level: 1, description: 'Syntax check', command: 'tsc --noEmit', manual: false },
+    {
+      level: 1,
+      description: 'Syntax check',
+      command: 'tsc --noEmit',
+      manual: false,
+    },
     { level: 2, description: 'Unit tests', command: 'npm test', manual: false },
-    { level: 3, description: 'Integration tests', command: 'npm run test:integration', manual: false },
+    {
+      level: 3,
+      description: 'Integration tests',
+      command: 'npm run test:integration',
+      manual: false,
+    },
     { level: 4, description: 'Manual review', command: null, manual: true },
   ],
   successCriteria: [
@@ -241,11 +253,7 @@ Use good coding standards and make sure it works well.
 ### Documentation
 Check the docs for more info.
 `,
-  implementationSteps: [
-    'Do the implementation',
-    'Make it work',
-    'Test it',
-  ],
+  implementationSteps: ['Do the implementation', 'Make it work', 'Test it'],
   validationGates: [
     { level: 1, description: 'Test', command: 'npm test', manual: false },
     { level: 2, description: 'Test', command: 'npm test', manual: false },
@@ -322,7 +330,7 @@ Task 7: IMPLEMENT Edge Case Tests
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // PATTERN: Test structure following existing codebase conventions
 // From tests/unit/prp-template-validation.test.ts
 
@@ -414,13 +422,15 @@ function calculateInformationDensity(prp: PRPDocument): number {
   const totalLength = content.length;
   if (totalLength === 0) return 0;
 
-  const densityScore = (filePatterns + urlPatterns + codeBlocks + specificCommands) / (totalLength / 1000);
+  const densityScore =
+    (filePatterns + urlPatterns + codeBlocks + specificCommands) /
+    (totalLength / 1000);
   return densityScore;
 }
 
 // CRITICAL: Use Vitest assertions, not Jest
 import { describe, expect, it } from 'vitest';
-```
+````
 
 ### Integration Points
 
@@ -431,7 +441,7 @@ TEST_FRAMEWORK:
 
 FIXTURES:
   - add to: tests/unit/fixtures/prp-samples.ts
-  - pattern: "export const FIXTURE_NAME: PRPDocument = { ... };"
+  - pattern: 'export const FIXTURE_NAME: PRPDocument = { ... };'
 
 SCHEMA_VALIDATION:
   - import from: src/core/models.js

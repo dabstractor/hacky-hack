@@ -59,9 +59,12 @@ describe('parseCLIArgs', () => {
     it('should parse all options together', () => {
       // SETUP
       setArgv([
-        '--prd', './custom/PRD.md',
-        '--scope', 'P1.M2.T3',
-        '--mode', 'bug-hunt',
+        '--prd',
+        './custom/PRD.md',
+        '--scope',
+        'P1.M2.T3',
+        '--mode',
+        'bug-hunt',
         '--continue',
         '--dry-run',
         '--verbose',
@@ -359,23 +362,23 @@ describe('argument combination tests', () => {
     {
       name: 'single flag',
       argv: ['--verbose'],
-      expected: { verbose: true, continue: false, dryRun: false }
+      expected: { verbose: true, continue: false, dryRun: false },
     },
     {
       name: 'two flags',
       argv: ['--dry-run', '--verbose'],
-      expected: { verbose: true, continue: false, dryRun: true }
+      expected: { verbose: true, continue: false, dryRun: true },
     },
     {
       name: 'all boolean flags',
       argv: ['--continue', '--dry-run', '--verbose'],
-      expected: { verbose: true, continue: true, dryRun: true }
+      expected: { verbose: true, continue: true, dryRun: true },
     },
     {
       name: 'flag with value',
       argv: ['--scope', 'P3.M4'],
-      expected: { scope: 'P3.M4' }
-    }
+      expected: { scope: 'P3.M4' },
+    },
   ];
 
   testCases.forEach(({ name, argv, expected }) => {
@@ -617,10 +620,13 @@ describe('CLI to execution pipeline', () => {
   it('should parse CLI args and execute pipeline', async () => {
     // SETUP: Parse CLI arguments
     setArgv([
-      '--prd', './test.md',
-      '--scope', 'P1.M1',
-      '--mode', 'bug-hunt',
-      '--verbose'
+      '--prd',
+      './test.md',
+      '--scope',
+      'P1.M1',
+      '--mode',
+      'bug-hunt',
+      '--verbose',
     ]);
 
     const args = parseCLIArgs();
@@ -629,7 +635,7 @@ describe('CLI to execution pipeline', () => {
     const pipeline = new PRPPipeline(args.prd, {
       scope: args.scope,
       mode: args.mode,
-      verbose: args.verbose
+      verbose: args.verbose,
     });
 
     const result = await pipeline.run();
@@ -811,20 +817,20 @@ describe('scope parsing logic', () => {
     'P1.M1.T1.S1',
     'P99',
     'P9.M9.T9.S9',
-    'all'
+    'all',
   ];
 
   const invalidScopes = [
-    'p1',           // lowercase
-    'P1.M1.T1.S2',  // too many levels
+    'p1', // lowercase
+    'P1.M1.T1.S2', // too many levels
     'P1.M1.T1.S1.X1', // too many levels
-    'P1.X1',        // invalid component
-    'M1',           // missing phase
-    'T1',           // missing phase and milestone
-    'INVALID',      // completely invalid
+    'P1.X1', // invalid component
+    'M1', // missing phase
+    'T1', // missing phase and milestone
+    'INVALID', // completely invalid
     'P1.M1.T1.S1.', // trailing dot
     '.P1.M1.T1.S1', // leading dot
-    'P1..T1',       // double dot
+    'P1..T1', // double dot
   ];
 
   validScopes.forEach(scope => {
@@ -1130,28 +1136,33 @@ describe('numeric option validation', () => {
 ### Official Documentation
 
 **Commander.js:**
+
 - GitHub Repository: https://github.com/tj/commander.js
 - npm Package: https://www.npmjs.com/package/commander
 - Documentation: https://commander.js/
 
 **Vitest:**
+
 - Official Website: https://vitest.dev/
 - Documentation: https://vitest.dev/guide/
 - GitHub Repository: https://github.com/vitest-dev/vitest
 - CLI Testing Guide: https://vitest.dev/guide/cli.html
 
 **TypeScript:**
+
 - Handbook: https://www.typescriptlang.org/docs/handbook/
 - Declaration Merging: https://www.typescriptlang.org/docs/handbook/declaration-merging.html
 
 ### Testing Libraries
 
 **Vitest Mocking:**
+
 - vi.mock(): https://vitest.dev/api/vi.html#vi-mock
 - vi.hoisted(): https://vitest.dev/api/vi.html#vi-hoisted
 - vi.mocked(): https://vitest.dev/api/vi.html#vi-mocked
 
 **Node.js Testing:**
+
 - child_process.spawn(): https://nodejs.org/api/child_process.html#child_processspawncommand-args-options
 - process.argv: https://nodejs.org/api/process.html#processargv
 - process.exit(): https://nodejs.org/api/process.html#processexitcode
@@ -1159,16 +1170,19 @@ describe('numeric option validation', () => {
 ### Industry Best Practices
 
 **CLI Design Patterns:**
+
 - CLI Design Patterns: https://clig.dev/
 - Command Line Interface Guidelines: https://github.com/clijuggle/cli-guidelines
 
 **Testing Best Practices:**
+
 - Testing Best Practices: https://github.com/goldbergyoni/javascript-testing-best-practices
 - Vitest Best Practices: https://vitest.dev/guide/why.html
 
 ### Code Examples from hacky-hack
 
 **Test Files:**
+
 - CLI Unit Tests: `/home/dustin/projects/hacky-hack/tests/unit/cli/index.test.ts`
 - CLI Help Parser Tests: `/home/dustin/projects/hacky-hack/tests/unit/utils/cli-help-parser.test.ts`
 - CLI Help Executor Tests: `/home/dustin/projects/hacky-hack/tests/unit/utils/cli-help-executor.test.ts`
@@ -1176,6 +1190,7 @@ describe('numeric option validation', () => {
 - E2E Pipeline Tests: `/home/dustin/projects/hacky-hack/tests/e2e/pipeline.test.ts`
 
 **Source Files:**
+
 - CLI Implementation: `/home/dustin/projects/hacky-hack/src/cli/index.ts`
 - CLI Help Parser: `/home/dustin/projects/hacky-hack/src/utils/cli-help-parser.ts`
 - CLI Help Executor: `/home/dustin/projects/hacky-hack/src/utils/cli-help-executor.ts`
@@ -1184,16 +1199,19 @@ describe('numeric option validation', () => {
 ### Related Research
 
 **Scope Parsing Research:**
+
 - External Research: `/home/dustin/projects/hacky-hack/plan/001_14b9dc2a33c7/P3M2T2S1/research/external_research.md`
 - Scope Patterns: Includes Nx, Lerna, npm/yarn workspace patterns
 
 **Testing Patterns:**
+
 - TypeScript Testing Patterns: `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/P1M3T1S3/research/typescript-testing-patterns.md`
 - Test Patterns: `/home/dustin/projects/hacky-hack/plan/002_1e734971e481/P1M1T1S2/research/test-patterns.md`
 
 ### Additional Resources
 
 **Mock Child Process Pattern:**
+
 ```typescript
 // From: tests/unit/utils/cli-help-executor.test.ts
 function createMockChild(options: {
@@ -1206,6 +1224,7 @@ function createMockChild(options: {
 ```
 
 **process.argv Helper Pattern:**
+
 ```typescript
 // From: tests/unit/cli/index.test.ts
 const setArgv = (args: string[] = []) => {
@@ -1214,6 +1233,7 @@ const setArgv = (args: string[] = []) => {
 ```
 
 **process.exit Mock Pattern:**
+
 ```typescript
 // From: tests/unit/cli/index.test.ts
 const mockExit = vi.fn((code: number) => {

@@ -12,12 +12,14 @@
 **Feature Goal**: Create a unit test file that validates PRP (Product Requirement Prompt) markdown files comply with the template structure defined in PROMPTS.md (lines 319-637), ensuring all required sections, subsections, and content formats are present.
 
 **Deliverable**: Unit test file `tests/unit/prp-template-validation.test.ts` with:
+
 - PRP markdown parser that extracts sections, subsections, and code blocks
 - Template structure validator that verifies required sections and subsections
 - Test cases for valid PRP samples and invalid PRP scenarios
 - 100% code coverage
 
 **Success Definition**:
+
 - Parser correctly extracts all 9 required sections from PRP markdown files
 - Validator correctly identifies missing sections, subsections, and content blocks
 - All test cases pass including valid PRP samples and invalid scenarios
@@ -31,6 +33,7 @@
 **Use Case**: Validating that generated PRP files follow the required template structure before they are used for implementation.
 
 **User Journey**:
+
 1. Developer creates or modifies a PRP file
 2. Test suite runs during CI/CD or local development
 3. Parser reads PRP markdown file and extracts structure
@@ -39,6 +42,7 @@
 6. Developer fixes PRP file structure and re-runs tests
 
 **Pain Points Addressed**:
+
 - Detects incomplete PRP files before implementation starts
 - Validates template structure programmatically (no manual review needed)
 - Catches missing sections that would cause implementation failures
@@ -162,7 +166,7 @@ tests/
 
 ### Known Gotchas of our codebase & Library Quirks
 
-```typescript
+````typescript
 // CRITICAL: Vitest requires ESM imports with .js extension
 // Even though source files are .ts, imports use .js extension
 import { PRP_BLUEPRINT_PROMPT } from '../../src/agents/prompts.js';
@@ -198,7 +202,7 @@ import { PRP_BLUEPRINT_PROMPT } from '../../src/agents/prompts.js';
 // CRITICAL: YAML blocks are a type of code block
 // Format: ```yaml ... ```
 // Must detect language type for proper validation
-```
+````
 
 ## Implementation Blueprint
 
@@ -263,18 +267,20 @@ const PRPSectionSchema = z.object({
 
 const PRPStructureSchema = z.object({
   sections: z.map(z.string(), PRPSectionSchema),
-  metadata: z.object({
-    prpId: z.string().optional(),
-    title: z.string().optional(),
-    generated: z.string().optional(),
-    status: z.string().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      prpId: z.string().optional(),
+      title: z.string().optional(),
+      generated: z.string().optional(),
+      status: z.string().optional(),
+    })
+    .optional(),
 });
 ```
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE tests/unit/prp-template-validation.test.ts skeleton
   - IMPLEMENT: Basic test file structure with imports and describe block
   - FOLLOW pattern: tests/unit/agents/prompts.test.ts (import style, describe structure)
@@ -355,11 +361,11 @@ Task 10: ADD tests for edge cases
   - SCENARIOS: Empty content, only metadata, no subsections, no code blocks, nested code blocks
   - VERIFY: Appropriate errors or warnings
   - PLACEMENT: describe('edge cases', () => {...}) block
-```
+````
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // PATTERN 1: Test file structure (from tests/unit/agents/prompts.test.ts)
 // ============================================================================
@@ -486,7 +492,9 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
     ];
     for (const subsectionName of requiredGoalSubsections) {
       if (!goalSection.subsections.has(subsectionName)) {
-        errors.push(`Goal section missing required subsection: ${subsectionName}`);
+        errors.push(
+          `Goal section missing required subsection: ${subsectionName}`
+        );
       }
     }
   }
@@ -502,7 +510,9 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
     ];
     for (const subsectionName of requiredPersonaSubsections) {
       if (!userPersonaSection.subsections.has(subsectionName)) {
-        errors.push(`User Persona section missing required subsection: ${subsectionName}`);
+        errors.push(
+          `User Persona section missing required subsection: ${subsectionName}`
+        );
       }
     }
   }
@@ -510,8 +520,9 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   // CRITICAL: Check Validation Loop has 4 levels
   const validationLoopSection = structure.sections.get('Validation Loop');
   if (validationLoopSection) {
-    const levels = Array.from(validationLoopSection.subsections.keys())
-      .filter(name => name.match(/^Level \d+/));
+    const levels = Array.from(validationLoopSection.subsections.keys()).filter(
+      name => name.match(/^Level \d+/)
+    );
 
     if (levels.length < 4) {
       errors.push(`Validation Loop must have 4 levels, found ${levels.length}`);
@@ -521,7 +532,9 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
     for (const level of levels) {
       const subsection = validationLoopSection.subsections.get(level);
       if (subsection) {
-        const hasBashBlock = subsection.codeBlocks.some(block => block.language === 'bash');
+        const hasBashBlock = subsection.codeBlocks.some(
+          block => block.language === 'bash'
+        );
         if (!hasBashBlock) {
           warnings.push(`${level} missing bash code block with commands`);
         }
@@ -532,9 +545,13 @@ function validatePRPTemplate(structure: PRPStructure): ValidationResult {
   // CRITICAL: Check Anti-Patterns has at least one anti-pattern
   const antiPatternsSection = structure.sections.get('Anti-Patterns to Avoid');
   if (antiPatternsSection) {
-    const hasAntiPattern = antiPatternsSection.content.some(line => line.includes('❌'));
+    const hasAntiPattern = antiPatternsSection.content.some(line =>
+      line.includes('❌')
+    );
     if (!hasAntiPattern) {
-      errors.push('Anti-Patterns section must contain at least one anti-pattern (❌ format)');
+      errors.push(
+        'Anti-Patterns section must contain at least one anti-pattern (❌ format)'
+      );
     }
   }
 
@@ -581,7 +598,7 @@ describe('unit/prp-template-validation', () => {
     expect(result.errors).toContain('Missing required section: Goal');
   });
 });
-```
+````
 
 ### Integration Points
 

@@ -14,6 +14,7 @@
 **Deliverable**: Integration test file `tests/integration/task-breakdown-prompt.test.ts` with comprehensive validation of the TASK_BREAKDOWN_PROMPT constant.
 
 **Success Definition**:
+
 - Integration test file created at `tests/integration/task-breakdown-prompt.test.ts`
 - Test verifies all 5 prompt structure requirements from contract definition
 - Test validates prompt content against PROMPTS.md specification (lines 54-169)
@@ -52,6 +53,7 @@ Create an integration test that validates the TASK_BREAKDOWN_PROMPT constant con
 ### Context Completeness Check
 
 **No Prior Knowledge Test**: A developer unfamiliar with this codebase would need:
+
 - Location of TASK_BREAKDOWN_PROMPT constant
 - The 5 requirements from the contract definition
 - The original PROMPTS.md specification
@@ -127,7 +129,7 @@ tests/
 
 ### Known Gotchas of our codebase & Library Quirks
 
-```typescript
+````typescript
 // CRITICAL: Vitest requires specific import patterns
 // - Use 'vitest' for test utilities, not 'jest'
 // - Global APIs are enabled (describe, it, expect available without import)
@@ -149,7 +151,7 @@ tests/
 // - All new code must be tested
 // - Coverage reporter: v8 provider
 // - Threshold: all metrics at 100%
-```
+````
 
 ---
 
@@ -293,7 +295,9 @@ describe('integration/task-breakdown-prompt', () => {
   describe('requirement (c): strict JSON output format', () => {
     it('should specify output to ./tasks.json file', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('./$TASKS_FILE');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('Do NOT output JSON to the conversation');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'Do NOT output JSON to the conversation'
+      );
     });
 
     it('should define JSON structure with backlog array', () => {
@@ -308,12 +312,16 @@ describe('integration/task-breakdown-prompt', () => {
   // PATTERN: Validate implicit TDD requirements
   describe('requirement (d): implicit TDD approach', () => {
     it('should forbid separate test subtasks', () => {
-      expect(TASK_BREAKDOWN_PROMPT).toContain('DO NOT create subtasks for "Write Tests."');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'DO NOT create subtasks for "Write Tests."'
+      );
     });
 
     it('should define implied test-first workflow', () => {
       expect(TASK_BREAKDOWN_PROMPT).toContain('IMPLIED WORKFLOW:');
-      expect(TASK_BREAKDOWN_PROMPT).toContain('Write the failing test -> Implement the code -> Pass the test');
+      expect(TASK_BREAKDOWN_PROMPT).toContain(
+        'Write the failing test -> Implement the code -> Pass the test'
+      );
     });
   });
 

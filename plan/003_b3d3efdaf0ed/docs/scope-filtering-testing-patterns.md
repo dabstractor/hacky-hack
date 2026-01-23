@@ -29,6 +29,7 @@ This document compiles best practices for testing scope filtering systems with h
 - **Edge cases** - invalid formats, non-existent IDs, boundary conditions
 
 **Key Files Referenced:**
+
 - `/home/dustin/projects/hacky-hack/tests/unit/core/scope-resolver.test.ts` - Comprehensive unit tests
 - `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator.test.ts` - Integration patterns
 - `/home/dustin/projects/hacky-hack/src/core/scope-resolver.ts` - Implementation under test
@@ -60,6 +61,7 @@ describe('Scope Resolution', () => {
 ```
 
 **Benefits:**
+
 - Clear separation of concerns
 - Easy to scan and understand
 - Consistent across all test files
@@ -107,6 +109,7 @@ const createTestBacklog = (phases: Phase[]): Backlog => ({
 ```
 
 **Benefits:**
+
 - DRY principle - avoid repeating object structures
 - Easy to modify test data globally
 - Default values reduce boilerplate
@@ -119,15 +122,33 @@ For complex test scenarios, create a helper that builds full hierarchies:
 ```typescript
 const createComplexBacklog = (): Backlog => {
   // Create leaf nodes first
-  const subtask1: Subtask = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Complete');
-  const subtask2: Subtask = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned');
-  const subtask3: Subtask = createTestSubtask('P1.M1.T2.S1', 'Subtask 3', 'Planned');
+  const subtask1: Subtask = createTestSubtask(
+    'P1.M1.T1.S1',
+    'Subtask 1',
+    'Complete'
+  );
+  const subtask2: Subtask = createTestSubtask(
+    'P1.M1.T1.S2',
+    'Subtask 2',
+    'Planned'
+  );
+  const subtask3: Subtask = createTestSubtask(
+    'P1.M1.T2.S1',
+    'Subtask 3',
+    'Planned'
+  );
 
   // Build up the tree
-  const task1: Task = createTestTask('P1.M1.T1', 'Task 1', [subtask1, subtask2]);
+  const task1: Task = createTestTask('P1.M1.T1', 'Task 1', [
+    subtask1,
+    subtask2,
+  ]);
   const task2: Task = createTestTask('P1.M1.T2', 'Task 2', [subtask3]);
 
-  const milestone1: Milestone = createTestMilestone('P1.M1', 'Milestone 1', [task1, task2]);
+  const milestone1: Milestone = createTestMilestone('P1.M1', 'Milestone 1', [
+    task1,
+    task2,
+  ]);
   const phase1: Phase = createTestPhase('P1', 'Phase 1', [milestone1]);
 
   return createTestBacklog([phase1]);
@@ -135,6 +156,7 @@ const createComplexBacklog = (): Backlog => {
 ```
 
 **Benefits:**
+
 - Single source of truth for complex test data
 - Easy to understand the hierarchy structure
 - Modifications propagate to all tests using it
@@ -160,6 +182,7 @@ it('SHOULD preserve DFS pre-order traversal', () => {
 ```
 
 **Benefits:**
+
 - Ensures traversal algorithm correctness
 - Catches ordering bugs early
 - Documents expected behavior
@@ -225,6 +248,7 @@ describe('parseScope()', () => {
 ```
 
 **Benefits:**
+
 - Documents all supported formats
 - Ensures regex handles edge cases (multi-digit numbers)
 - Tests whitespace handling
@@ -269,6 +293,7 @@ describe('GIVEN an invalid scope string', () => {
 ```
 
 **Benefits:**
+
 - Ensures robust error handling
 - Tests error message quality
 - Prevents invalid data from propagating
@@ -303,6 +328,7 @@ it('SHOULD preserve input in error context', () => {
 ```
 
 **Benefits:**
+
 - Ensures errors are actionable
 - Helps with debugging
 - Validates error object structure
@@ -337,6 +363,7 @@ describe('ScopeType', () => {
 ```
 
 **Benefits:**
+
 - Validates runtime type checking
 - Ensures type safety at runtime
 - Tests edge cases (null, undefined)
@@ -366,7 +393,10 @@ const createMultiLevelHierarchy = (): Backlog => {
   const task4 = createTestTask('P2.M1.T1', 'Task 4', [subtask5]);
 
   // Level 2: Milestones
-  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [task1, task2]);
+  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [
+    task1,
+    task2,
+  ]);
   const milestone2 = createTestMilestone('P1.M2', 'Milestone 2', [task3]);
   const milestone3 = createTestMilestone('P2.M1', 'Milestone 3', [task4]);
 
@@ -379,6 +409,7 @@ const createMultiLevelHierarchy = (): Backlog => {
 ```
 
 **Benefits:**
+
 - Natural construction order
 - Easy to verify parent-child relationships
 - Clear hierarchy visualization
@@ -414,7 +445,11 @@ const createDependencyChain = (): Backlog => {
     ['P1.M1.T1.S2'] // Depends on S2
   );
 
-  const task1 = createTestTask('P1.M1.T1', 'Task 1', [subtask1, subtask2, subtask3]);
+  const task1 = createTestTask('P1.M1.T1', 'Task 1', [
+    subtask1,
+    subtask2,
+    subtask3,
+  ]);
   const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [task1]);
   const phase1 = createTestPhase('P1', 'Phase 1', [milestone1]);
 
@@ -423,6 +458,7 @@ const createDependencyChain = (): Backlog => {
 ```
 
 **Benefits:**
+
 - Tests linear dependency chains
 - Validates blocking behavior
 - Ensures correct execution order
@@ -436,14 +472,24 @@ Create hierarchies with different statuses to test filtering:
 const createMixedStatusHierarchy = (): Backlog => {
   const completeSubtask = createTestSubtask('P1.M1.T1.S1', 'Done', 'Complete');
   const plannedSubtask = createTestSubtask('P1.M1.T1.S2', 'Todo', 'Planned');
-  const implementingSubtask = createTestSubtask('P1.M1.T2.S1', 'In Progress', 'Implementing');
+  const implementingSubtask = createTestSubtask(
+    'P1.M1.T2.S1',
+    'In Progress',
+    'Implementing'
+  );
   const failedSubtask = createTestSubtask('P1.M2.T1.S1', 'Failed', 'Failed');
 
-  const task1 = createTestTask('P1.M1.T1', 'Task 1', [completeSubtask, plannedSubtask]);
+  const task1 = createTestTask('P1.M1.T1', 'Task 1', [
+    completeSubtask,
+    plannedSubtask,
+  ]);
   const task2 = createTestTask('P1.M1.T2', 'Task 2', [implementingSubtask]);
   const task3 = createTestTask('P1.M2.T1', 'Task 3', [failedSubtask]);
 
-  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [task1, task2]);
+  const milestone1 = createTestMilestone('P1.M1', 'Milestone 1', [
+    task1,
+    task2,
+  ]);
   const milestone2 = createTestMilestone('P1.M2', 'Milestone 2', [task3]);
   const phase1 = createTestPhase('P1', 'Phase 1', [milestone1, milestone2]);
 
@@ -452,6 +498,7 @@ const createMixedStatusHierarchy = (): Backlog => {
 ```
 
 **Benefits:**
+
 - Tests status-based filtering
 - Validates state transitions
 - Ensures correct status propagation
@@ -502,6 +549,7 @@ describe('GIVEN single item hierarchies', () => {
 ```
 
 **Benefits:**
+
 - Tests edge cases
 - Validates empty input handling
 - Ensures robustness
@@ -550,6 +598,7 @@ describe('GIVEN non-existent ID', () => {
 ```
 
 **Benefits:**
+
 - Tests graceful degradation
 - Ensures no crashes on invalid input
 - Validates error handling strategy
@@ -563,18 +612,12 @@ Test handling of circular dependencies:
 describe('Edge Cases', () => {
   it('should handle circular dependencies gracefully', () => {
     // SETUP: Create two subtasks that depend on each other
-    const subtask1 = createTestSubtask(
-      'P1.M1.T1.S1',
-      'Subtask 1',
-      'Planned',
-      ['P1.M1.T1.S2']
-    );
-    const subtask2 = createTestSubtask(
+    const subtask1 = createTestSubtask('P1.M1.T1.S1', 'Subtask 1', 'Planned', [
       'P1.M1.T1.S2',
-      'Subtask 2',
-      'Planned',
-      ['P1.M1.T1.S1']
-    );
+    ]);
+    const subtask2 = createTestSubtask('P1.M1.T1.S2', 'Subtask 2', 'Planned', [
+      'P1.M1.T1.S1',
+    ]);
 
     // EXECUTE: Check if subtask1 can execute
     mockGetDependencies.mockReturnValue([subtask2]);
@@ -602,6 +645,7 @@ describe('Edge Cases', () => {
 ```
 
 **Benefits:**
+
 - Prevents infinite loops
 - Tests deadlock detection
 - Ensures system stability
@@ -634,6 +678,7 @@ it('should handle self-dependency gracefully', () => {
 ```
 
 **Benefits:**
+
 - Tests edge case of self-referential data
 - Ensures no infinite recursion
 - Validates data integrity checks
@@ -698,6 +743,7 @@ describe('GIVEN edge cases and boundary conditions', () => {
 ```
 
 **Benefits:**
+
 - Tests limits of the system
 - Ensures robustness at boundaries
 - Validates data structure constraints
@@ -712,6 +758,7 @@ describe('GIVEN edge cases and boundary conditions', () => {
 **Problem:** Only testing basic patterns like `P1.M1` but missing edge cases like `P10.M5`.
 
 **Solution:** Create a comprehensive test matrix:
+
 ```typescript
 const validPatterns = [
   ['P1', 'phase'],
@@ -739,6 +786,7 @@ validPatterns.forEach(([pattern, expectedType]) => {
 **Problem:** Duplicating test data across multiple tests makes maintenance difficult.
 
 **Solution:** Use factory functions and shared fixtures:
+
 ```typescript
 // In a separate fixtures file
 export const testFixtures = {
@@ -762,6 +810,7 @@ it('should handle complex backlog', () => {
 **Problem:** Assuming the correct items are returned but not verifying their order.
 
 **Solution:** Explicitly test ordering:
+
 ```typescript
 it('SHOULD preserve DFS pre-order traversal', () => {
   const result = resolveScope(testBacklog, scope);
@@ -786,6 +835,7 @@ it('SHOULD preserve DFS pre-order traversal', () => {
 **Problem:** Only unit testing individual functions without testing how they work together.
 
 **Solution:** Create integration tests that test the full flow:
+
 ```typescript
 describe('integration', () => {
   describe('GIVEN parse and resolve flow', () => {
@@ -818,6 +868,7 @@ describe('integration', () => {
 **Problem:** Functions that mutate input data cause subtle bugs.
 
 **Solution:** Test that inputs remain unchanged:
+
 ```typescript
 it('SHOULD preserve immutability of backlog', () => {
   const backlog = createComplexBacklog();
@@ -836,6 +887,7 @@ it('SHOULD preserve immutability of backlog', () => {
 **Problem:** Mocks not covering all code paths, leading to false positives.
 
 **Solution:** Use comprehensive mocking strategy:
+
 ```typescript
 // Mock all dependencies
 vi.mock('../../../src/utils/logger.js', () => ({
@@ -967,6 +1019,7 @@ beforeEach(() => {
 ### StackOverflow References
 
 Search tags:
+
 - `#vitest`
 - `#typescript-testing`
 - `#regex-validation`

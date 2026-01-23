@@ -37,22 +37,24 @@
 
 ## Key Files for This Implementation
 
-| File | Purpose | Lines/Sections |
-|------|---------|----------------|
-| `PROMPTS.md` | Source PRP_CREATE_PROMPT | Lines 189-639 |
-| `src/agents/prompts.ts` | PRP_BLUEPRINT_PROMPT export | Lines 157-603 |
-| `tests/integration/researcher-agent.test.ts` | Test pattern reference | All |
-| `plan/003_b3d3efdaf0ed/docs/system_context.md` | Architecture docs | All |
-| `plan/003_b3d3efdaf0ed/tasks.json` | Contract definition source | P1.M3.T2.S1 entry |
+| File                                           | Purpose                     | Lines/Sections    |
+| ---------------------------------------------- | --------------------------- | ----------------- |
+| `PROMPTS.md`                                   | Source PRP_CREATE_PROMPT    | Lines 189-639     |
+| `src/agents/prompts.ts`                        | PRP_BLUEPRINT_PROMPT export | Lines 157-603     |
+| `tests/integration/researcher-agent.test.ts`   | Test pattern reference      | All               |
+| `plan/003_b3d3efdaf0ed/docs/system_context.md` | Architecture docs           | All               |
+| `plan/003_b3d3efdaf0ed/tasks.json`             | Contract definition source  | P1.M3.T2.S1 entry |
 
 ## Test File Location
 
 New test file to create:
+
 ```
 tests/integration/prp-create-prompt.test.ts
 ```
 
 This follows the existing naming convention:
+
 - `[component]-integration.test.ts` for component tests
 - `[agent]-agent.test.ts` for agent-specific tests
 - `prp-[feature].test.ts` for PRP-related tests

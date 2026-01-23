@@ -385,22 +385,22 @@ describe('task status counting', () => {
 
 ### Key Test Files to Reference
 
-| File | Purpose |
-|------|---------|
-| `tests/unit/cli/index.test.ts` | CLI argument parsing tests |
-| `tests/integration/session-structure.test.ts` | Session structure tests |
-| `tests/unit/core/task-traversal.test.ts` | Task traversal logic |
-| `tests/integration/core/task-orchestrator-e2e.test.ts` | Task orchestrator tests |
-| `tests/unit/protected-files.test.ts` | File discovery patterns |
+| File                                                   | Purpose                    |
+| ------------------------------------------------------ | -------------------------- |
+| `tests/unit/cli/index.test.ts`                         | CLI argument parsing tests |
+| `tests/integration/session-structure.test.ts`          | Session structure tests    |
+| `tests/unit/core/task-traversal.test.ts`               | Task traversal logic       |
+| `tests/integration/core/task-orchestrator-e2e.test.ts` | Task orchestrator tests    |
+| `tests/unit/protected-files.test.ts`                   | File discovery patterns    |
 
 ### Key Implementation Files
 
-| File | Purpose |
-|------|---------|
-| `src/cli/index.ts` | CLI entry point with Commander.js |
-| `src/core/task-orchestrator.ts` | Task traversal and execution |
-| `src/core/session-manager.ts` | Session discovery and loading |
-| `src/utils/task-utils.ts` | Task utility functions |
+| File                            | Purpose                           |
+| ------------------------------- | --------------------------------- |
+| `src/cli/index.ts`              | CLI entry point with Commander.js |
+| `src/core/task-orchestrator.ts` | Task traversal and execution      |
+| `src/core/session-manager.ts`   | Session discovery and loading     |
+| `src/utils/task-utils.ts`       | Task utility functions            |
 
 ---
 

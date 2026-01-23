@@ -16,6 +16,7 @@ This document contains Vitest testing patterns used in the hacky-hack codebase f
 **File**: `/home/dustin/projects/hacky-hack/vitest.config.ts`
 
 Key configuration settings:
+
 - **File Pattern**: `tests/**/*.{test,spec}.ts}`
 - **Exclude Patterns**: `**/dist/**`, `**/node_modules/**`
 - **Coverage Thresholds**: 100% for statements, branches, functions, and lines
@@ -25,6 +26,7 @@ Key configuration settings:
 ## Test File Organization
 
 **Directory Structure**:
+
 - `tests/unit/` - Unit tests (67 files)
 - `tests/integration/` - Integration tests (23 files)
 - `tests/fixtures/` - Test fixtures

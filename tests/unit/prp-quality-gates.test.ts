@@ -937,7 +937,12 @@ Handle special characters in strings`,
           { level: 1, description: 'Test', command: 'test', manual: false },
           { level: 2, description: 'Test', command: 'test', manual: false },
           { level: 3, description: 'Test', command: 'test', manual: false },
-          { level: 99 as 1, description: 'Invalid', command: null, manual: true }, // Invalid level - type assertion for testing
+          {
+            level: 99 as 1,
+            description: 'Invalid',
+            command: null,
+            manual: true,
+          }, // Invalid level - type assertion for testing
         ],
       };
 

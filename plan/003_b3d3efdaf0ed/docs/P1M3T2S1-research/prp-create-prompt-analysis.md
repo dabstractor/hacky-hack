@@ -66,6 +66,7 @@ The contract definition for P1.M3.T2.S1 states:
 From `tests/integration/researcher-agent.test.ts`:
 
 ### Pattern 1: Verify Prompt Contains Research Process Instructions
+
 ```typescript
 it('should contain Research Process section', async () => {
   const { PRP_BLUEPRINT_PROMPT } = await import('src/agents/prompts.js');
@@ -78,6 +79,7 @@ it('should contain Research Process section', async () => {
 ```
 
 ### Pattern 2: Verify Subagent Spawning Instructions
+
 ```typescript
 it('should instruct to spawn subagents', async () => {
   const { PRP_BLUEPRINT_PROMPT } = await import('src/agents/prompts.js');
@@ -87,15 +89,19 @@ it('should instruct to spawn subagents', async () => {
 ```
 
 ### Pattern 3: Verify TodoWrite Tool Instructions
+
 ```typescript
 it('should instruct to use TodoWrite tool', async () => {
   const { PRP_BLUEPRINT_PROMPT } = await import('src/agents/prompts.js');
   expect(PRP_BLUEPRINT_PROMPT).toContain('TodoWrite');
-  expect(PRP_BLUEPRINT_PROMPT).toContain('create comprehensive PRP writing plan');
+  expect(PRP_BLUEPRINT_PROMPT).toContain(
+    'create comprehensive PRP writing plan'
+  );
 });
 ```
 
 ### Pattern 4: Verify Architecture Directory Reference
+
 ```typescript
 it('should mention architecture/ directory', async () => {
   const { PRP_BLUEPRINT_PROMPT } = await import('src/agents/prompts.js');
@@ -119,6 +125,7 @@ The test should be created at:
 `tests/integration/prp-create-prompt.test.ts`
 
 This follows the naming pattern from other integration tests:
+
 - `tests/integration/researcher-agent.test.ts`
 - `tests/integration/prp-generator-integration.test.ts`
 - `tests/integration/architect-agent-integration.test.ts`
