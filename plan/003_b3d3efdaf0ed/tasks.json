@@ -630,7 +630,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Create architecture overview documentation",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Four engines: Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller. Groundswell provides Workflow, Agent, decorators. MCP protocol for tools. State persistence via tasks.json.\n2. INPUT: Component implementations from src/core/, src/agents/, src/workflows/, architecture documentation already created.\n3. LOGIC: Write architecture overview in docs/ARCHITECTURE.md that explains: (a) high-level system design with component diagram, (b) Groundswell framework usage (decorators, workflows), (c) multi-agent architecture with roles, (d) state management and persistence, (e) task hierarchy and execution flow. Include ASCII art diagrams and component interaction descriptions.\n4. OUTPUT: Documentation file docs/ARCHITECTURE.md with system architecture overview and diagrams."
@@ -639,7 +639,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S2",
                   "title": "Create Groundswell integration guide",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T1.S1"
