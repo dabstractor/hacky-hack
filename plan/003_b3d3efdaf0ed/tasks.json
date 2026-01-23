@@ -581,7 +581,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Create CLI command reference",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Main command: 'prd' with modes: normal, bug-hunt, validate. Options: --prd, --scope, --mode, --continue, --dry-run, --no-cache, --continue-on-error, --max-tasks, --max-duration. Subcommand: 'prd task'.\n2. INPUT: CLI implementation from src/cli/index.ts, Commander.js configuration.\n3. LOGIC: Write CLI reference in docs/CLI_REFERENCE.md that documents: (a) main 'prd' command with all options, (b) execution modes (normal, bug-hunt, validate), (c) 'prd task' subcommand with variants, (d) examples for common use cases, (e) exit codes and error handling. Include usage examples for each option.\n4. OUTPUT: Documentation file docs/CLI_REFERENCE.md with complete CLI command documentation."
@@ -590,7 +590,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T2.S2",
                   "title": "Create workflow documentation",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T2.S1"
