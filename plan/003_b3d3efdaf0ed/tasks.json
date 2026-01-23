@@ -458,7 +458,7 @@
               "type": "Task",
               "id": "P1.M3.T4",
               "title": "Task 1.3.4: Delta PRD Generation Prompt Verification",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Verify Delta PRD Generation Prompt matches PRD §6.4 specification with retry logic.",
               "subtasks": [
                 {
@@ -474,7 +474,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T4.S2",
                   "title": "Verify delta session resume regenerates missing delta PRDs",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T4.S1"
