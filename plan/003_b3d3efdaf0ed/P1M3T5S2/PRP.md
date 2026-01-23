@@ -206,12 +206,17 @@ tests/
 export type BugSeverity = 'critical' | 'major' | 'minor' | 'cosmetic';
 
 // CRITICAL: BugSeverityEnum is a Zod enum for runtime validation
-export const BugSeverityEnum = z.enum(['critical', 'major', 'minor', 'cosmetic']);
+export const BugSeverityEnum = z.enum([
+  'critical',
+  'major',
+  'minor',
+  'cosmetic',
+]);
 
 // CRITICAL: BugSchema uses BugSeverityEnum for severity field validation
 export const BugSchema: z.ZodType<Bug> = z.object({
   id: z.string().min(1, 'Bug ID is required'),
-  severity: BugSeverityEnum,  // Validates against 4 valid levels
+  severity: BugSeverityEnum, // Validates against 4 valid levels
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
   description: z.string().min(1, 'Description is required'),
   reproduction: z.string().min(1, 'Reproduction steps are required'),
@@ -220,8 +225,8 @@ export const BugSchema: z.ZodType<Bug> = z.object({
 
 // CRITICAL: TestResults.hasBugs is the control flag
 export interface TestResults {
-  readonly hasBugs: boolean;  // PRIMARY control for fix cycle
-  readonly bugs: Bug[];       // Can be empty (no bugs found)
+  readonly hasBugs: boolean; // PRIMARY control for fix cycle
+  readonly bugs: Bug[]; // Can be empty (no bugs found)
   readonly summary: string;
   readonly recommendations: string[];
 }
@@ -298,7 +303,11 @@ Use existing types and schemas from `src/core/models.ts`:
 
 ```typescript
 // Import existing types for validation testing
-import { BugSchema, BugSeverityEnum, TestResultsSchema } from '../../src/core/models.js';
+import {
+  BugSchema,
+  BugSeverityEnum,
+  TestResultsSchema,
+} from '../../src/core/models.js';
 import type { Bug, BugSeverity, TestResults } from '../../src/core/models.js';
 
 // Factory function for creating valid Bug objects
@@ -515,7 +524,11 @@ Task 12: VERIFY all tests follow project patterns
  */
 
 import { describe, expect, it } from 'vitest';
-import { BugSchema, BugSeverityEnum, TestResultsSchema } from '../../src/core/models.js';
+import {
+  BugSchema,
+  BugSeverityEnum,
+  TestResultsSchema,
+} from '../../src/core/models.js';
 import type { Bug, BugSeverity, TestResults } from '../../src/core/models.js';
 
 // PATTERN: Factory functions for test data
@@ -559,11 +572,22 @@ const SEVERITY_CRITERIA = {
 describe('BugSeverity type', () => {
   it('should define all four severity levels', () => {
     // SETUP: Expected severity levels from system_context.md
-    const expectedSeverities: BugSeverity[] = ['critical', 'major', 'minor', 'cosmetic'];
+    const expectedSeverities: BugSeverity[] = [
+      'critical',
+      'major',
+      'minor',
+      'cosmetic',
+    ];
 
     // EXECUTE & VERIFY: Type allows all four values
     expectedSeverities.forEach(severity => {
-      const bug: Bug = createTestBug('BUG-001', severity, 'Test', 'Desc', 'Rep');
+      const bug: Bug = createTestBug(
+        'BUG-001',
+        severity,
+        'Test',
+        'Desc',
+        'Rep'
+      );
       const result = BugSchema.safeParse(bug);
       expect(result.success).toBe(true);
     });
@@ -585,7 +609,14 @@ describe('BugSeverityEnum schema validation', () => {
 
   it('should reject invalid severity values', () => {
     // SETUP: Invalid severity values
-    const invalidSeverities = ['invalid', 'BLOCKER', 'urgent', '', null, undefined];
+    const invalidSeverities = [
+      'invalid',
+      'BLOCKER',
+      'urgent',
+      '',
+      null,
+      undefined,
+    ];
 
     // EXECUTE & VERIFY: All invalid values fail validation
     invalidSeverities.forEach(severity => {
@@ -599,7 +630,13 @@ describe('BugSeverityEnum schema validation', () => {
 describe('BugSchema severity validation', () => {
   it('should validate bug with critical severity', () => {
     // SETUP: Valid bug with critical severity
-    const bug = createTestBug('BUG-001', 'critical', 'Critical Bug', 'Desc', 'Rep');
+    const bug = createTestBug(
+      'BUG-001',
+      'critical',
+      'Critical Bug',
+      'Desc',
+      'Rep'
+    );
 
     // EXECUTE: Validate with BugSchema
     const result = BugSchema.safeParse(bug);
@@ -615,7 +652,7 @@ describe('BugSchema severity validation', () => {
     // SETUP: Bug with invalid severity (type assertion for testing)
     const invalidBug = {
       id: 'BUG-001',
-      severity: 'BLOCKER',  // Invalid - not in BugSeverityEnum
+      severity: 'BLOCKER', // Invalid - not in BugSeverityEnum
       title: 'Test Bug',
       description: 'Test',
       reproduction: 'Test',
@@ -673,7 +710,9 @@ describe('bug severity criteria from system_context.md', () => {
   });
 
   it('should define major as "significantly impacts UX/functionality"', () => {
-    expect(SEVERITY_CRITERIA.major).toBe('Significantly impacts UX/functionality');
+    expect(SEVERITY_CRITERIA.major).toBe(
+      'Significantly impacts UX/functionality'
+    );
   });
 
   it('should define minor as "small improvements"', () => {

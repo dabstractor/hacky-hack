@@ -7,6 +7,7 @@
 **Feature Goal**: Create comprehensive installation documentation (`docs/INSTALLATION.md`) that enables users to successfully set up the PRP Pipeline development environment from scratch, including all prerequisites, dependencies, environment configuration, and verification steps.
 
 **Deliverable**: Documentation file `docs/INSTALLATION.md` with step-by-step installation instructions covering:
+
 - Prerequisites (Node.js, npm, Git versions)
 - Cloning the repository
 - Installing dependencies
@@ -16,6 +17,7 @@
 - Troubleshooting common issues
 
 **Success Definition**: A new developer can follow the installation guide from a fresh machine and successfully:
+
 1. Install all prerequisites
 2. Set up the development environment
 3. Run tests to verify the installation
@@ -28,6 +30,7 @@
 **Use Case**: A new developer clones the repository and needs to install all dependencies and configure their environment to start development
 
 **User Journey**:
+
 1. User clones the repository
 2. Opens the project and looks for installation instructions
 3. Follows the INSTALLATION.md guide step-by-step
@@ -35,6 +38,7 @@
 5. Encounters an issue and finds solution in troubleshooting section
 
 **Pain Points Addressed**:
+
 - "What do I need to install first?"
 - "How do I link the Groundswell library?"
 - "What environment variables do I need?"
@@ -174,50 +178,77 @@ docs/
 
 ```markdown
 # CRITICAL: Node.js and npm version requirements
+
 # Node.js >= 20.0.0 (engines field in package.json)
+
 # npm >= 10.0.0 (engines field in package.json)
+
 # Older versions will fail due to ES modules and TypeScript 5.2+ features
 
 # CRITICAL: Groundswell library is a LOCAL dependency
+
 # Must be linked via npm link (not installed from npm registry)
+
 # Path: ~/projects/groundswell
+
 # Two-step process:
-#   1. cd ~/projects/groundswell && npm link
-#   2. cd ~/projects/hacky-hack && npm link groundswell
+
+# 1. cd ~/projects/groundswell && npm link
+
+# 2. cd ~/projects/hacky-hack && npm link groundswell
 
 # CRITICAL: Vitest path alias required for tests to find groundswell
+
 # Configured in vitest.config.ts:
+
 # resolve: { alias: { groundswell: new URL('../groundswell/dist/index.js', import.meta.url).pathname } }
 
 # CRITICAL: z.ai API configuration (NOT api.anthropic.com)
+
 # ANTHROPIC_AUTH_TOKEN=zk-xxxxx (mapped to ANTHROPIC_API_KEY internally)
+
 # ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+
 # Tests enforce z.ai usage and will fail if production API is used
 
 # CRITICAL: Environment variable mapping
+
 # Shell uses ANTHROPIC_AUTH_TOKEN
+
 # SDK expects ANTHROPIC_API_KEY
+
 # System automatically maps AUTH_TOKEN → API_KEY at startup
 
 # CRITICAL: ES Module imports require .js extensions
+
 # TypeScript files must import with .js extensions (not .ts)
+
 # Example: import { Workflow } from 'groundswell';
+
 # Example: import { SessionManager } from './core/session-manager.js';
 
 # GOTCHA: Project uses "type": "module" in package.json
+
 # Cannot use require() - must use import statements
+
 # Affects how tests and scripts are written
 
 # GOTCHA: Groundswell must be built before linking
+
 # If groundswell dist/ directory doesn't exist, run: cd ~/projects/groundswell && npm run build
 
 # GOTCHA: Windows path differences in npm link
+
 # Windows may require different npm link syntax
+
 # Troubleshooting should cover Windows, macOS, and Linux
 
 # CRITICAL: Test command uses Vitest (not Jest or Mocha)
+
 # npm test runs Vitest in watch mode
+
 # npm run test:run runs tests once
+
 # npm run test:coverage generates coverage report (100% required)
 ```
 
@@ -271,7 +302,7 @@ Links to other documentation (User Guide, README, etc.)
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: READ and analyze existing documentation patterns
   - READ: docs/user-guide.md for formatting patterns
   - EXTRACT: Heading hierarchy (H1 → H2 → H3), TOC structure, code block formatting
@@ -373,12 +404,13 @@ Task 12: VERIFY document follows all patterns
   - VERIFY: Tone matches user-guide.md (professional, clear, concise)
   - VERIFY: Quick Start is visible without scrolling
   - DEPENDENCIES: Task 11 (document complete)
-```
+````
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # PATTERN: Document header with metadata
+
 # Installation Guide
 
 > Comprehensive guide for setting up the PRP Pipeline development environment.
@@ -388,16 +420,18 @@ Task 12: VERIFY document follows all patterns
 **Version**: 1.0.0
 
 # PATTERN: Table of Contents with auto-generated anchors
+
 ## Table of Contents
 
-* [Quick Start](#quick-start)
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-  * [Clone the Repository](#clone-the-repository)
-  * [Install Dependencies](#install-dependencies)
-  * [Link Groundswell](#link-groundswell)
+- [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+  - [Clone the Repository](#clone-the-repository)
+  - [Install Dependencies](#install-dependencies)
+  - [Link Groundswell](#link-groundswell)
 
 # PATTERN: Quick Start (5 steps max, above the fold)
+
 ## Quick Start
 
 Get up and running in under 5 minutes:
@@ -407,19 +441,23 @@ Get up and running in under 5 minutes:
    git clone https://github.com/YOUR_USERNAME/hacky-hack.git
    cd hacky-hack
    ```
+````
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Link Groundswell library**
+
    ```bash
    cd ~/projects/groundswell && npm link
    cd ~/projects/hacky-hack && npm link groundswell
    ```
 
 4. **Configure environment variables**
+
    ```bash
    export ANTHROPIC_AUTH_TOKEN=zk-xxxxx
    export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
@@ -431,6 +469,7 @@ Get up and running in under 5 minutes:
    ```
 
 # PATTERN: Prerequisites with version check commands
+
 ## Prerequisites
 
 Before installing, ensure you have the following:
@@ -454,23 +493,27 @@ Before installing, ensure you have the following:
 - **Install or upgrade**: [npm documentation](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
 # PATTERN: Code blocks with command and expected output
+
 ```bash
 $ npm test
 # Expected: Tests run in watch mode, all passing
 ```
 
 # PATTERN: Environment variable table
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ANTHROPIC_AUTH_TOKEN` | Yes | None | z.ai API authentication token (mapped to `ANTHROPIC_API_KEY`) |
-| `ANTHROPIC_BASE_URL` | Yes | `https://api.z.ai/api/anthropic` | z.ai API endpoint |
+
+| Variable               | Required | Default                          | Description                                                   |
+| ---------------------- | -------- | -------------------------------- | ------------------------------------------------------------- |
+| `ANTHROPIC_AUTH_TOKEN` | Yes      | None                             | z.ai API authentication token (mapped to `ANTHROPIC_API_KEY`) |
+| `ANTHROPIC_BASE_URL`   | Yes      | `https://api.z.ai/api/anthropic` | z.ai API endpoint                                             |
 
 # PATTERN: Troubleshooting by error message
+
 ## Troubleshooting
 
 ### "npm link fails"
 
 **What you see:**
+
 ```bash
 $ npm link groundswell
 npm ERR! code EEXIST
@@ -480,7 +523,9 @@ npm ERR! code EEXIST
 The groundswell package isn't built or the symlink already exists.
 
 **How to fix:**
+
 1. Build groundswell first:
+
    ```bash
    cd ~/projects/groundswell
    npm run build
@@ -495,23 +540,28 @@ The groundswell package isn't built or the symlink already exists.
    ```
 
 # PATTERN: Platform-specific notes
+
 <details>
 <summary>Windows Users</summary>
 
 On Windows, you may need to run commands as Administrator if you encounter EACCES errors:
+
 ```powershell
 # Run PowerShell as Administrator
 npm install
 ```
 
 Windows paths use backslashes:
+
 ```powershell
 cd projects\groundswell
 npm link
 ```
+
 </details>
 
 # PATTERN: Link to related documentation
+
 ## Next Steps
 
 Now that you have the environment set up:
@@ -521,29 +571,39 @@ Now that you have the environment set up:
 - **[PRD.md](../PRD.md)** - Product requirements document
 
 # CRITICAL: Groundswell linking requires two steps
+
 # Step 1: In the groundswell project directory
+
 cd ~/projects/groundswell
 npm link
 
 # Step 2: In the hacky-hack project directory
+
 cd ~/projects/hacky-hack
 npm link groundswell
 
 # GOTCHA: Order matters - must link from groundswell first
+
 # GOTCHA: Groundswell must be built (npm run build) before linking
 
 # CRITICAL: z.ai API configuration (NOT api.anthropic.com)
+
 # Tests enforce z.ai usage and will fail if wrong endpoint
+
 export ANTHROPIC_AUTH_TOKEN=zk-xxxxx
 export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
 
 # CRITICAL: Environment variable mapping
+
 # Shell: ANTHROPIC_AUTH_TOKEN
+
 # SDK: ANTHROPIC_API_KEY (mapped automatically)
 
 # GOTCHA: .env file should never be committed
+
 # Add .env to .gitignore if creating local env file
-```
+
+````
 
 ### Integration Points
 
@@ -567,7 +627,7 @@ CROSS-REFERENCES:
 PARALLEL CONTEXT:
   - P1.M3.T5.S2 (Verify bug severity levels) - parallel work item
   - No overlap or conflict - this is documentation only
-```
+````
 
 ## Validation Loop
 
@@ -655,7 +715,7 @@ npm run docs:links
 
 - [ ] Heading hierarchy is correct (H1 → H2 → H3, no skipped levels)
 - [ ] Table of Contents is included with working anchor links
-- [ ] Code blocks use language tags (```bash, ```typescript)
+- [ ] Code blocks use language tags (`bash, `typescript)
 - [ ] Tables are properly formatted
 - [ ] Tone matches existing documentation (professional, clear, concise)
 - [ ] Follows formatting patterns from docs/user-guide.md

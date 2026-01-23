@@ -1,0 +1,435 @@
+# Configuration Reference
+
+> Comprehensive guide for configuring the PRP Pipeline development environment.
+
+**Status**: Published
+**Last Updated**: 2026-01-23
+**Version**: 1.0.0
+
+## Table of Contents
+
+- [Quick Reference](#quick-reference)
+- [Environment Variables](#environment-variables)
+  - [API Authentication](#api-authentication)
+  - [Model Selection](#model-selection-1)
+  - [Pipeline Control](#pipeline-control)
+  - [Bug Hunt Configuration](#bug-hunt-configuration)
+  - [Advanced Configuration](#advanced-configuration)
+- [CLI Options](#cli-options)
+  - [Required Options](#required-options)
+  - [Execution Mode](#execution-mode)
+  - [Boolean Flags](#boolean-flags)
+  - [Limit Options](#limit-options)
+- [Model Selection](#model-selection)
+- [Configuration Priority](#configuration-priority)
+- [Security](#security)
+- [Example Configuration](#example-configuration)
+- [Common Gotchas](#common-gotchas)
+- [See Also](#see-also)
+
+---
+
+## Quick Reference
+
+Required environment variables for basic operation:
+
+| Variable               | Required | Default                          | Description                                                   |
+| ---------------------- | -------- | -------------------------------- | ------------------------------------------------------------- |
+| `ANTHROPIC_AUTH_TOKEN` | Yes      | None                             | z.ai API authentication token (mapped to `ANTHROPIC_API_KEY`) |
+| `ANTHROPIC_BASE_URL`   | No       | `https://api.z.ai/api/anthropic` | z.ai API endpoint                                             |
+
+For complete configuration, see [Environment Variables](#environment-variables) below.
+
+---
+
+## Environment Variables
+
+### API Authentication
+
+The PRP Pipeline requires API authentication to interact with the z.ai API endpoint.
+
+| Variable               | Required | Default                          | Mapped From            | Description                                                                               |
+| ---------------------- | -------- | -------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `ANTHROPIC_AUTH_TOKEN` | Yes\*    | None                             | -                      | Your API authentication token. Automatically mapped to `ANTHROPIC_API_KEY` at startup.    |
+| `ANTHROPIC_API_KEY`    | Yes\*    | None                             | `ANTHROPIC_AUTH_TOKEN` | API key expected by Anthropic SDK. If `ANTHROPIC_AUTH_TOKEN` is set, it takes precedence. |
+| `ANTHROPIC_BASE_URL`   | No       | `https://api.z.ai/api/anthropic` | -                      | z.ai API endpoint. **Do NOT use** `https://api.anthropic.com` (blocked by safeguards).    |
+
+\*Required: Either `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY` must be set.
+
+**Mapping Logic:**
+
+```typescript
+// From src/config/environment.ts
+if (process.env.ANTHROPIC_AUTH_TOKEN && !process.env.ANTHROPIC_API_KEY) {
+  process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_AUTH_TOKEN;
+}
+```
+
+**Important:** If both `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_API_KEY` are set, `ANTHROPIC_AUTH_TOKEN` takes precedence and the `API_KEY` value is ignored.
+
+### Model Selection
+
+Configure which models each agent tier uses.
+
+| Variable                         | Required | Default       | Description                                                    |
+| -------------------------------- | -------- | ------------- | -------------------------------------------------------------- |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `GLM-4.7`     | Model for Architect agent (highest quality, complex reasoning) |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `GLM-4.7`     | Model for Researcher/Coder agents (balanced, default)          |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `GLM-4.5-Air` | Model for simple operations (fastest)                          |
+
+See [Model Selection](#model-selection) for detailed guidance on which models to use.
+
+### Pipeline Control
+
+Control pipeline execution behavior.
+
+| Variable               | Required | Default | Description                                                                                                                    |
+| ---------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `PRP_PIPELINE_RUNNING` | No       | None    | Nested execution guard. Contains parent PID to prevent recursive pipeline execution. Automatically set by pipeline controller. |
+| `SKIP_BUG_FINDING`     | No       | `false` | Skip bug hunt / bug fix mode. Set to `true` to disable QA and bug fix operations.                                              |
+| `SKIP_EXECUTION_LOOP`  | No       | `false` | Skip execution, run validation only. Set to `true` to validate PRDs without executing tasks.                                   |
+
+### Bug Hunt Configuration
+
+Configure the bug hunt and bug fix behavior.
+
+| Variable           | Required | Default           | Description                                                                   |
+| ------------------ | -------- | ----------------- | ----------------------------------------------------------------------------- |
+| `BUG_FINDER_AGENT` | No       | `glp`             | Agent type for bug finding operations.                                        |
+| `BUG_RESULTS_FILE` | No       | `TEST_RESULTS.md` | Output file for bug hunt results.                                             |
+| `BUGFIX_SCOPE`     | No       | `subtask`         | Scope level for bug fix operations (`subtask`, `task`, `milestone`, `phase`). |
+
+### Advanced Configuration
+
+Advanced settings for performance and debugging.
+
+| Variable         | Required | Default | Description                                                 |
+| ---------------- | -------- | ------- | ----------------------------------------------------------- |
+| `API_TIMEOUT_MS` | No       | `60000` | Request timeout in milliseconds. Increase for complex PRDs. |
+
+---
+
+## CLI Options
+
+The PRP Pipeline is invoked via `npm run dev -- [options]`. All options can be passed after the `--` separator.
+
+### Required Options
+
+| Option         | Type   | Default    | Description               |
+| -------------- | ------ | ---------- | ------------------------- |
+| `--prd <path>` | string | `./PRD.md` | Path to PRD markdown file |
+
+### Execution Mode
+
+| Option            | Type   | Choices                          | Default  | Description                                                                                 |
+| ----------------- | ------ | -------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `--mode <mode>`   | string | `normal`, `bug-hunt`, `validate` | `normal` | Execution mode                                                                              |
+| `--scope <scope>` | string | -                                | -        | Scope identifier (e.g., `P3.M4`, `P3.M4.T2`). See [Scope Syntax](#scope-syntax) for format. |
+
+**Execution Modes:**
+
+- `normal`: Standard pipeline execution (default)
+- `bug-hunt`: Run QA and bug finding even with incomplete tasks
+- `validate`: Validate PRD syntax and structure without running pipeline
+
+**Scope Format:**
+
+- Phase: `P1`, `P2`, etc.
+- Milestone: `P1.M1`, `P3.M4`, etc.
+- Task: `P1.M1.T1`, `P3.M4.T2`, etc.
+- Subtask: `P1.M1.T1.S1`, `P3.M4.T2.S3`, etc.
+- All: `all` (execute entire backlog)
+
+### Boolean Flags
+
+| Option                | Type    | Default | Description                                                   |
+| --------------------- | ------- | ------- | ------------------------------------------------------------- |
+| `--continue`          | boolean | `false` | Resume from previous session                                  |
+| `--dry-run`           | boolean | `false` | Show plan without executing                                   |
+| `--verbose`           | boolean | `false` | Enable debug logging                                          |
+| `--machine-readable`  | boolean | `false` | Enable machine-readable JSON output                           |
+| `--no-cache`          | boolean | `false` | Bypass cache and regenerate all PRPs                          |
+| `--continue-on-error` | boolean | `false` | Treat all errors as non-fatal and continue pipeline execution |
+| `--validate-prd`      | boolean | `false` | Validate PRD and exit without running pipeline                |
+
+### Limit Options
+
+| Option                 | Type    | Default | Description                                |
+| ---------------------- | ------- | ------- | ------------------------------------------ |
+| `--max-tasks <number>` | integer | None    | Maximum number of tasks to execute         |
+| `--max-duration <ms>`  | integer | None    | Maximum execution duration in milliseconds |
+
+---
+
+## Model Selection
+
+The PRP Pipeline uses three model tiers, each optimized for different tasks.
+
+### Model Tiers
+
+| Model Tier | Default Model | Max Tokens | Use Case                                     | Agents                |
+| ---------- | ------------- | ---------- | -------------------------------------------- | --------------------- |
+| **Opus**   | GLM-4.7       | 8192       | Complex reasoning, architectural planning    | Architect             |
+| **Sonnet** | GLM-4.7       | 4096       | Balanced performance, default for most tasks | Researcher, Coder, QA |
+| **Haiku**  | GLM-4.5-Air   | 4096       | Fast, simple operations                      | Future: quick lookups |
+
+### When to Use Each Tier
+
+**Opus (GLM-4.7):**
+
+- Use for the Architect Agent where complex reasoning is required
+- Higher cost, but higher quality output for breaking down PRDs
+- Best for: PRD analysis, task decomposition, architectural decisions
+
+**Sonnet (GLM-4.7):**
+
+- Use for Researcher, Coder, and QA agents by default
+- Balanced cost and performance
+- Best for: Code implementation, research, testing, documentation
+
+**Haiku (GLM-4.5-Air):**
+
+- Use for simple operations where speed is more important than quality
+- Lower cost, faster response times
+- Currently unused, reserved for future enhancements
+
+### Model Override
+
+Override default models using environment variables:
+
+```bash
+# Override specific agent tier
+export ANTHROPIC_DEFAULT_OPUS_MODEL="GLM-4.7"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="GLM-4.7"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="GLM-4.5-Air"
+```
+
+---
+
+## Configuration Priority
+
+Configuration is loaded from multiple sources in the following priority order (highest to lowest):
+
+1. **Shell Environment** - Environment variables set in your shell or parent process
+2. **`.env` File** - Local project configuration file
+3. **Runtime Overrides** - Explicit environment variable settings in code
+4. **Default Values** - Hardcoded defaults in TypeScript code
+
+### Example: Priority in Action
+
+If `ANTHROPIC_BASE_URL` is set in multiple sources:
+
+```bash
+# In .env file
+ANTHROPIC_BASE_URL=https://api.example.com
+
+# In shell (higher priority)
+export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+```
+
+The shell environment value (`https://api.z.ai/api/anthropic`) takes precedence.
+
+### Special Case: AUTH_TOKEN vs API_KEY
+
+When both `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_API_KEY` are set:
+
+- `ANTHROPIC_AUTH_TOKEN` takes precedence
+- `ANTHROPIC_API_KEY` value is ignored
+- Mapping only occurs if `ANTHROPIC_API_KEY` is NOT already set
+
+---
+
+## Security
+
+### API Key Security
+
+**CRITICAL**: Never commit your `.env` file to version control.
+
+The `.env` file contains sensitive authentication credentials that should never be shared.
+
+```bash
+# .gitignore (already configured)
+.env
+```
+
+**Best Practices:**
+
+1. Use `.env.example` as a template (contains placeholder values only)
+2. Keep your `.env` file local (never commit, never share)
+3. Rotate your API key if it's accidentally exposed
+4. Use environment-specific tokens when possible (development vs production)
+
+### API Endpoint Security
+
+**WARNING**: Do NOT use the production Anthropic API endpoint.
+
+The pipeline includes safeguards that will block execution if you attempt to use `https://api.anthropic.com`:
+
+```typescript
+// From test setup
+if (process.env.ANTHROPIC_BASE_URL?.includes('api.anthropic.com')) {
+  throw new Error('Tests must use z.ai API, not Anthropic production API');
+}
+```
+
+Always use the z.ai proxy endpoint: `https://api.z.ai/api/anthropic`
+
+---
+
+## Example Configuration
+
+Create a `.env` file in your project root:
+
+```bash
+# =============================================================================
+# API AUTHENTICATION
+# =============================================================================
+
+# Your API authentication token
+# This will be automatically mapped to ANTHROPIC_API_KEY
+ANTHROPIC_AUTH_TOKEN=your-api-token-here
+
+# Or set ANTHROPIC_API_KEY directly (AUTH_TOKEN takes precedence if both set)
+# ANTHROPIC_API_KEY=your-api-key-here
+
+# =============================================================================
+# API ENDPOINT
+# =============================================================================
+
+# API endpoint (defaults to z.ai proxy)
+# WARNING: Do NOT use https://api.anthropic.com (blocked by safeguards)
+ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+
+# =============================================================================
+# MODEL CONFIGURATION
+# =============================================================================
+
+# Model for Architect agent (highest quality, complex reasoning)
+# ANTHROPIC_DEFAULT_OPUS_MODEL=GLM-4.7
+
+# Model for Researcher/Coder agents (balanced, default)
+# ANTHROPIC_DEFAULT_SONNET_MODEL=GLM-4.7
+
+# Model for simple operations (fastest)
+# ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.5-Air
+
+# =============================================================================
+# PIPELINE CONTROL (OPTIONAL)
+# =============================================================================
+
+# Skip bug hunt / bug fix mode
+# SKIP_BUG_FINDING=true
+
+# Skip execution, run validation only
+# SKIP_EXECUTION_LOOP=true
+
+# =============================================================================
+# BUG HUNT CONFIGURATION (OPTIONAL)
+# =============================================================================
+
+# Agent type for bug finding
+# BUG_FINDER_AGENT=glp
+
+# Output file for bug hunt results
+# BUG_RESULTS_FILE=TEST_RESULTS.md
+
+# Scope level for bug fix operations
+# BUGFIX_SCOPE=subtask
+
+# =============================================================================
+# ADVANCED CONFIGURATION (OPTIONAL)
+# =============================================================================
+
+# Request timeout in milliseconds (default: 60000)
+# API_TIMEOUT_MS=300000
+```
+
+---
+
+## Common Gotchas
+
+### "API key not working"
+
+**What you see:**
+
+```bash
+Error: Missing required environment variables: ANTHROPIC_API_KEY
+```
+
+**Why it happens:**
+You set `ANTHROPIC_AUTH_TOKEN` but the mapping hasn't occurred yet, or you're setting `ANTHROPIC_API_KEY` directly when `ANTHROPIC_AUTH_TOKEN` takes precedence.
+
+**How to fix:**
+
+```bash
+# Use ANTHROPIC_AUTH_TOKEN (recommended)
+export ANTHROPIC_AUTH_TOKEN=zk-xxxxx
+
+# Or use ANTHROPIC_API_KEY (but don't set both)
+export ANTHROPIC_API_KEY=zk-xxxxx
+```
+
+### "Tests fail with wrong API endpoint"
+
+**What you see:**
+
+```bash
+Error: Tests must use z.ai API, not Anthropic production API
+```
+
+**Why it happens:**
+You're using `https://api.anthropic.com` instead of the z.ai proxy endpoint.
+
+**How to fix:**
+
+```bash
+export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+```
+
+### "Scope format rejected"
+
+**What you see:**
+
+```bash
+Error: Invalid scope "p1.m1.t1.s1"
+Expected format: P1, P1.M1, P1.M1.T1, P1.M1.T1.S1, or all
+```
+
+**Why it happens:**
+Scope format is case-sensitive. You must use uppercase P, M, T, S.
+
+**How to fix:**
+
+```bash
+# Correct (uppercase)
+npm run dev -- --scope P1.M1.T1.S1
+
+# Incorrect (lowercase)
+npm run dev -- --scope p1.m1.t1.s1  # Will fail
+```
+
+### "Model selection affecting cost"
+
+**What you see:**
+Higher than expected API usage costs.
+
+**Why it happens:**
+Using GLM-4.7 (opus/sonnet) for all operations when GLM-4.5-Air (haiku) would suffice.
+
+**How to fix:**
+
+```bash
+# Use faster, cheaper model for simple operations
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="GLM-4.5-Air"
+```
+
+---
+
+## See Also
+
+- **[INSTALLATION.md](./INSTALLATION.md)** - Setup instructions for the development environment
+- **[User Guide](./user-guide.md)** - Comprehensive usage documentation
+- **[README.md](../README.md)** - Project overview and quick start
+- **[.env.example](../.env.example)** - Template for local configuration
+- **[src/config/](../src/config/)** - Source code for environment configuration
+- **[src/cli/](../src/cli/)** - Source code for CLI parsing

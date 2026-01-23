@@ -8,58 +8,62 @@
 
 ## Table of Contents
 
-* [Quick Start](#quick-start)
-* [Prerequisites](#prerequisites)
-  * [Node.js](#nodejs)
-  * [npm](#npm)
-  * [Git](#git)
-* [Installation](#installation)
-  * [Clone the Repository](#clone-the-repository)
-  * [Install Dependencies](#install-dependencies)
-  * [Link Groundswell](#link-groundswell)
-* [Configuration](#configuration)
-  * [Environment Variables](#environment-variables)
-  * [Configuration File](#configuration-file)
-* [Verification](#verification)
-  * [Run Tests](#run-tests)
-  * [Run Validation](#run-validation)
-  * [Build Check](#build-check)
-* [Troubleshooting](#troubleshooting)
-  * ["npm link fails"](#npm-link-fails)
-  * ["Cannot find module 'groundswell'"](#cannot-find-module-groundswell)
-  * ["Wrong Node/npm version"](#wrong-nodenpm-version)
-  * ["Tests fail with API error"](#tests-fail-with-api-error)
-  * ["EACCES permission errors"](#eacces-permission-errors)
-* [Platform-Specific Notes](#platform-specific-notes)
-  * [Windows](#windows)
-  * [macOS](#macos)
-  * [Linux](#linux)
-* [Next Steps](#next-steps)
+- [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
+  - [Node.js](#nodejs)
+  - [npm](#npm)
+  - [Git](#git)
+- [Installation](#installation)
+  - [Clone the Repository](#clone-the-repository)
+  - [Install Dependencies](#install-dependencies)
+  - [Link Groundswell](#link-groundswell)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+  - [Configuration File](#configuration-file)
+- [Verification](#verification)
+  - [Run Tests](#run-tests)
+  - [Run Validation](#run-validation)
+  - [Build Check](#build-check)
+- [Troubleshooting](#troubleshooting)
+  - ["npm link fails"](#npm-link-fails)
+  - ["Cannot find module 'groundswell'"](#cannot-find-module-groundswell)
+  - ["Wrong Node/npm version"](#wrong-nodenpm-version)
+  - ["Tests fail with API error"](#tests-fail-with-api-error)
+  - ["EACCES permission errors"](#eacces-permission-errors)
+- [Platform-Specific Notes](#platform-specific-notes)
+  - [Windows](#windows)
+  - [macOS](#macos)
+  - [Linux](#linux)
+- [Next Steps](#next-steps)
 
-***
+---
 
 ## Quick Start
 
 Get up and running in under 5 minutes:
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/hacky-hack.git
    cd hacky-hack
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Link Groundswell library**
+
    ```bash
    cd ~/projects/groundswell && npm link
    cd ~/projects/hacky-hack && npm link groundswell
    ```
 
 4. **Configure environment variables**
+
    ```bash
    export ANTHROPIC_AUTH_TOKEN=zk-xxxxx
    export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
@@ -72,7 +76,7 @@ Get up and running in under 5 minutes:
 
 For detailed setup instructions and troubleshooting, see the sections below.
 
-***
+---
 
 ## Prerequisites
 
@@ -122,7 +126,7 @@ nvm use 20
   - **macOS**: `brew install git` or `xcode-select --install`
   - **Linux**: `sudo apt-get install git` (Debian/Ubuntu)
 
-***
+---
 
 ## Installation
 
@@ -151,11 +155,13 @@ npm install
 ```
 
 This installs:
+
 - Core dependencies (Anthropic SDK, Commander, Zod, etc.)
 - Development dependencies (TypeScript, Vitest, ESLint, etc.)
 - Build tools and linters
 
 **Expected Output**:
+
 ```
 added 123 packages, and audited 124 packages in 5s
 found 0 vulnerabilities
@@ -179,6 +185,7 @@ npm link
 ```
 
 **Expected Output**:
+
 ```
 /Users/yourname/.nvm/versions/v20.0.0/lib/node_modules/groundswell -> ~/projects/groundswell
 ```
@@ -194,6 +201,7 @@ npm link groundswell
 ```
 
 **Expected Output**:
+
 ```
 /home/dustin/projects/hacky-hack/node_modules/groundswell -> /Users/yourname/.nvm/versions/v20.0.0/lib/node_modules/groundswell -> ~/projects/groundswell
 ```
@@ -206,11 +214,12 @@ npm list groundswell
 ```
 
 **Critical Notes**:
+
 - Order matters: You must link from Groundswell first, then link in hacky-hack
 - Groundswell must be built (`npm run build`) before linking
 - The Vitest path alias is configured in `vitest.config.ts`
 
-***
+---
 
 ## Configuration
 
@@ -220,18 +229,18 @@ The project requires certain environment variables to function. These can be set
 
 **Required Variables**:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ANTHROPIC_AUTH_TOKEN` | Yes | None | z.ai API authentication token (mapped to `ANTHROPIC_API_KEY` internally) |
-| `ANTHROPIC_BASE_URL` | Yes | `https://api.z.ai/api/anthropic` | z.ai API endpoint |
+| Variable               | Required | Default                          | Description                                                              |
+| ---------------------- | -------- | -------------------------------- | ------------------------------------------------------------------------ |
+| `ANTHROPIC_AUTH_TOKEN` | Yes      | None                             | z.ai API authentication token (mapped to `ANTHROPIC_API_KEY` internally) |
+| `ANTHROPIC_BASE_URL`   | Yes      | `https://api.z.ai/api/anthropic` | z.ai API endpoint                                                        |
 
 **Optional Variables**:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No | `GLM-4.7` | Model for Sonnet tier (default agents) |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | No | `GLM-4.5-Air` | Model for Haiku tier (fast operations) |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL` | No | `GLM-4.7` | Model for Opus tier (architect agent) |
+| Variable                         | Required | Default       | Description                            |
+| -------------------------------- | -------- | ------------- | -------------------------------------- |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No       | `GLM-4.7`     | Model for Sonnet tier (default agents) |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | No       | `GLM-4.5-Air` | Model for Haiku tier (fast operations) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | No       | `GLM-4.7`     | Model for Opus tier (architect agent)  |
 
 **Setting Environment Variables (Shell)**:
 
@@ -271,7 +280,7 @@ The shell uses `ANTHROPIC_AUTH_TOKEN`, but the SDK expects `ANTHROPIC_API_KEY`. 
 
 The project supports optional configuration via environment variables only. No separate configuration file is required.
 
-***
+---
 
 ## Verification
 
@@ -288,6 +297,7 @@ npm test
 This runs Vitest in watch mode. All tests should pass.
 
 **Expected Output**:
+
 ```
 ✓ src/core/session-manager.test.ts (5)
 ✓ src/agents/coder-agent.test.ts (10)
@@ -308,12 +318,14 @@ npm run validate
 ```
 
 This runs:
+
 1. Groundswell validation
 2. ESLint (code linting)
 3. Prettier (formatting check)
 4. TypeScript type checking
 
 **Expected Output**:
+
 ```
 > validate
 > npm run validate:groundswell && npm run lint && npm run format:check && npm run typecheck
@@ -342,6 +354,7 @@ npm run build
 ```
 
 **Expected Output**:
+
 ```
 > build
 > tsc
@@ -349,7 +362,7 @@ npm run build
 
 This compiles TypeScript to JavaScript in the `dist/` directory with no errors.
 
-***
+---
 
 ## Troubleshooting
 
@@ -358,6 +371,7 @@ This section covers common installation issues organized by **symptom** (what yo
 ### "npm link fails"
 
 **What you see**:
+
 ```bash
 $ npm link groundswell
 npm ERR! code EEXIST
@@ -370,6 +384,7 @@ The groundswell package isn't built or a symlink already exists.
 **How to fix**:
 
 1. Build groundswell first:
+
    ```bash
    cd ~/projects/groundswell
    npm run build
@@ -383,11 +398,12 @@ The groundswell package isn't built or a symlink already exists.
    npm link groundswell
    ```
 
-***
+---
 
 ### "Cannot find module 'groundswell'"
 
 **What you see**:
+
 ```bash
 Error: Cannot find module 'groundswell'
 ```
@@ -398,6 +414,7 @@ Groundswell isn't linked or the link is broken.
 **How to fix**:
 
 1. Verify groundswell is built:
+
    ```bash
    cd ~/projects/groundswell
    ls dist/  # Should exist
@@ -405,6 +422,7 @@ Groundswell isn't linked or the link is broken.
    ```
 
 2. Re-link groundswell:
+
    ```bash
    cd ~/projects/groundswell
    npm link
@@ -418,11 +436,12 @@ Groundswell isn't linked or the link is broken.
    ls -la node_modules/groundswell
    ```
 
-***
+---
 
 ### "Wrong Node/npm version"
 
 **What you see**:
+
 ```bash
 Error: The engine "node" is incompatible with this module. Expected version ">=20.0.0"
 ```
@@ -433,12 +452,14 @@ Your Node.js or npm version is below the minimum requirement.
 **How to fix**:
 
 1. Check your versions:
+
    ```bash
    node --version  # Should be v20.0.0 or higher
    npm --version   # Should be 10.0.0 or higher
    ```
 
 2. Upgrade Node.js using nvm:
+
    ```bash
    nvm install 20
    nvm use 20
@@ -450,11 +471,12 @@ Your Node.js or npm version is below the minimum requirement.
    npm --version
    ```
 
-***
+---
 
 ### "Tests fail with API error"
 
 **What you see**:
+
 ```bash
 Error: Tests must use z.ai API, not Anthropic production API
 ```
@@ -465,12 +487,14 @@ The `ANTHROPIC_BASE_URL` is pointing to the wrong endpoint. Tests enforce z.ai u
 **How to fix**:
 
 1. Verify your environment variables:
+
    ```bash
    echo $ANTHROPIC_BASE_URL
    # Should be: https://api.z.ai/api/anthropic
    ```
 
 2. Set the correct base URL:
+
    ```bash
    export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
    ```
@@ -480,11 +504,12 @@ The `ANTHROPIC_BASE_URL` is pointing to the wrong endpoint. Tests enforce z.ai u
    npm test
    ```
 
-***
+---
 
 ### "EACCES permission errors"
 
 **What you see**:
+
 ```bash
 npm ERR! Error: EACCES: permission denied
 ```
@@ -495,11 +520,13 @@ Attempting global operations without proper permissions.
 **How to fix**:
 
 **Option 1: Fix npm permissions (Recommended)**:
+
 ```bash
 sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
 ```
 
 **Option 2: Use nvm (Recommended)**:
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install 20
@@ -507,11 +534,12 @@ nvm use 20
 ```
 
 **Option 3: Use sudo (Not Recommended)**:
+
 ```bash
 sudo npm link
 ```
 
-***
+---
 
 ## Platform-Specific Notes
 
@@ -530,12 +558,14 @@ sudo npm link
 **Symlink Permissions**:
 
 If you encounter symlink errors:
+
 1. Enable Developer Mode in Settings → Update & Security → For developers
 2. Or run terminal as Administrator
 
 **Path Differences**:
 
 Windows uses backslashes for paths:
+
 ```powershell
 cd projects\groundswell
 npm link
@@ -559,6 +589,7 @@ brew link node@20
 **Permission Issues**:
 
 If you encounter permission errors, fix npm permissions:
+
 ```bash
 sudo chown -R $(whoami) /usr/local/lib/node_modules
 ```
@@ -574,6 +605,7 @@ nvm use 20
 **Apple Silicon Users**:
 
 Some x86 packages may require Rosetta 2:
+
 ```bash
 softwareupdate --install-rosetta
 ```
@@ -602,12 +634,13 @@ sudo pacman -S nodejs npm
 **File Watcher Limit**:
 
 If you encounter "ENOSPC: system limit for number of file watchers reached":
+
 ```bash
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
 
-***
+---
 
 ## Next Steps
 
@@ -629,7 +662,7 @@ Now that you have the environment set up:
 - Review the [Troubleshooting](#troubleshooting) section above
 - See the User Guide's [Troubleshooting section](./user-guide.md#6-troubleshooting) for runtime issues
 
-***
+---
 
 **Installation Guide Version**: 1.0.0
 **Last Updated**: 2026-01-23

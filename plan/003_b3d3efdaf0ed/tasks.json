@@ -534,7 +534,7 @@
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Task 2.1.1: Installation and Setup Guide",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Create comprehensive guide for installing and configuring the PRP Pipeline.",
               "subtasks": [
                 {
@@ -550,7 +550,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Create configuration reference",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S1"
@@ -561,7 +561,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Create quick start tutorial",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S2"

@@ -424,10 +424,14 @@ function createIncompleteDeltaSession(
   mkdirSync(deltaSessionPath, { recursive: true });
 
   // Write parent_session.txt
-  writeFileSync(join(deltaSessionPath, 'parent_session.txt'), parentSessionId, { mode: 0o644 });
+  writeFileSync(join(deltaSessionPath, 'parent_session.txt'), parentSessionId, {
+    mode: 0o644,
+  });
 
   // Write prd_snapshot.md (new PRD)
-  writeFileSync(join(deltaSessionPath, 'prd_snapshot.md'), newPRD, { mode: 0o644 });
+  writeFileSync(join(deltaSessionPath, 'prd_snapshot.md'), newPRD, {
+    mode: 0o644,
+  });
 
   // Write tasks.json (simulate incomplete state)
   const tasks = {
@@ -441,7 +445,11 @@ function createIncompleteDeltaSession(
       },
     ],
   };
-  writeFileSync(join(deltaSessionPath, 'tasks.json'), JSON.stringify(tasks, null, 2), { mode: 0o644 });
+  writeFileSync(
+    join(deltaSessionPath, 'tasks.json'),
+    JSON.stringify(tasks, null, 2),
+    { mode: 0o644 }
+  );
 
   // CRITICAL: DO NOT write delta_prd.md - this simulates incomplete session
   // const deltaPrdPath = join(deltaSessionPath, 'delta_prd.md');
@@ -510,7 +518,11 @@ describe('integration/delta-resume-regeneration', () => {
       };
 
       // EXECUTE: Trigger regeneration
-      const workflow = new DeltaAnalysisWorkflow(mockSimplePRD, mockSimplePRDv2, []);
+      const workflow = new DeltaAnalysisWorkflow(
+        mockSimplePRD,
+        mockSimplePRDv2,
+        []
+      );
       const result = await workflow.analyzeDelta();
 
       // VERIFY: Regeneration successful
@@ -528,12 +540,16 @@ describe('integration/delta-resume-regeneration', () => {
       const { DELTA_PRD_GENERATION_PROMPT } = await loadPrompts();
 
       // VERIFY: Prompt contains required sections
-      expect(DELTA_PRD_GENERATION_PROMPT).toContain('Generate Delta PRD from Changes');
+      expect(DELTA_PRD_GENERATION_PROMPT).toContain(
+        'Generate Delta PRD from Changes'
+      );
       expect(DELTA_PRD_GENERATION_PROMPT).toContain('SCOPE DELTA');
       expect(DELTA_PRD_GENERATION_PROMPT).toContain('REFERENCE COMPLETED WORK');
 
       // VERIFY: Prompt instructs to compare old and new PRDs
-      expect(DELTA_PRD_GENERATION_PROMPT).toContain('Previous PRD (Completed Session)');
+      expect(DELTA_PRD_GENERATION_PROMPT).toContain(
+        'Previous PRD (Completed Session)'
+      );
       expect(DELTA_PRD_GENERATION_PROMPT).toContain('Current PRD');
 
       // This confirms regeneration uses same prompt as initial creation
@@ -547,7 +563,8 @@ describe('integration/delta-resume-regeneration', () => {
 
       // SETUP: Mock agent that fails twice, succeeds third time
       const mockAgent = {
-        prompt: vi.fn()
+        prompt: vi
+          .fn()
           .mockRejectedValueOnce(new Error('First attempt failed'))
           .mockRejectedValueOnce(new Error('Second attempt failed'))
           .mockResolvedValueOnce({
@@ -559,7 +576,12 @@ describe('integration/delta-resume-regeneration', () => {
 
       // EXECUTE: Retry with regeneration
       const result = await retryAgentPrompt(
-        () => mockAgent.prompt() as Promise<{ changes: unknown[]; patchInstructions: string; taskIds: unknown[] }>,
+        () =>
+          mockAgent.prompt() as Promise<{
+            changes: unknown[];
+            patchInstructions: string;
+            taskIds: unknown[];
+          }>,
         { agentType: 'QA', operation: 'deltaAnalysis' }
       );
 
@@ -582,10 +604,10 @@ describe('integration/delta-resume-regeneration', () => {
 
       // EXECUTE & VERIFY: Should fail after max attempts
       await expect(
-        retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        )
+        retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        })
       ).rejects.toThrow('Permanent failure');
 
       // VERIFY: All 3 attempts made

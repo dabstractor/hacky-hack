@@ -9,6 +9,7 @@
 **Feature Goal**: Create an integration test that verifies the Bug Finding Prompt (BUG_HUNT_PROMPT) contains all required testing phases and specifies comprehensive testing categories including happy path, edge case, workflow, and adversarial testing.
 
 **Deliverable**: Integration test file `tests/integration/bug-finding-prompt.test.ts` with comprehensive verification of:
+
 - All three testing phases (Scope Analysis, Creative E2E Testing, Adversarial Testing)
 - Happy path testing specifications
 - Edge case testing specifications
@@ -16,6 +17,7 @@
 - Adversarial testing mindset
 
 **Success Definition**:
+
 - Test file passes with 100% coverage of the verification logic
 - All assertions correctly validate BUG_HUNT_PROMPT content structure
 - Test follows existing codebase patterns and conventions
@@ -30,6 +32,7 @@
 **Use Case**: Verify that the Bug Finding Prompt used by QA agents contains all required testing phases and categories as specified in the PRD requirements (lines 1059-1175 of PROMPTS.md).
 
 **User Journey**:
+
 1. Developer runs `npm test` to execute test suite
 2. Integration test loads BUG_HUNT_PROMPT from source
 3. Test verifies prompt contains all three testing phases
@@ -37,6 +40,7 @@
 5. Test passes if prompt structure is correct, fails otherwise
 
 **Pain Points Addressed**:
+
 - Ensures prompt completeness before QA agents use it
 - Prevents regression if prompt content is accidentally modified
 - Provides automated verification of prompt compliance with PRD requirements
@@ -78,6 +82,7 @@ Create an integration test file that verifies the BUG_HUNT_PROMPT constant conta
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 ✅ This PRP provides:
+
 - Complete BUG_HUNT_PROMPT content with line numbers
 - Existing test patterns and file locations
 - Vitest configuration details
@@ -273,7 +278,7 @@ type Task = {
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE tests/integration/bug-finding-prompt.test.ts
   - IMPLEMENT: Integration test suite for BUG_HUNT_PROMPT verification
   - FOLLOW pattern: tests/integration/qa-agent.test.ts (structure, organization)
@@ -348,7 +353,7 @@ Task 7: IMPLEMENT adversarial testing mindset verification
   - VERIFY: "Think creatively about what could go wrong" instruction
   - FOLLOW pattern: tests/integration/qa-agent.test.ts (mindset verification)
   - ASSERTIONS: Use expect().toContain() for mindset phrases
-```
+````
 
 ### Implementation Patterns & Key Details
 
@@ -370,14 +375,22 @@ describe('BUG_HUNT_PROMPT verification', () => {
 // ORGANIZE: Tests follow the same hierarchy as the prompt
 describe('BUG_HUNT_PROMPT verification', () => {
   describe('Phase 1: PRD Scope Analysis', () => {
-    it('should contain phase header', () => { /* ... */ });
-    it('should contain scope analysis instructions', () => { /* ... */ });
+    it('should contain phase header', () => {
+      /* ... */
+    });
+    it('should contain scope analysis instructions', () => {
+      /* ... */
+    });
   });
 
   describe('Phase 2: Creative End-to-End Testing', () => {
     describe('Happy Path Testing', () => {
-      it('should contain category name', () => { /* ... */ });
-      it('should contain testing guidance', () => { /* ... */ });
+      it('should contain category name', () => {
+        /* ... */
+      });
+      it('should contain testing guidance', () => {
+        /* ... */
+      });
     });
     // ... other categories
   });
@@ -406,8 +419,12 @@ expectedPhases.forEach(phase => {
 
 // Pattern 4: Descriptive Test Names
 // USE: Full sentences that describe what is being tested
-it('should contain "Happy Path Testing" category with "primary use case" guidance');
-it('should contain "Edge Case Testing" with "empty inputs, max values, unicode" examples');
+it(
+  'should contain "Happy Path Testing" category with "primary use case" guidance'
+);
+it(
+  'should contain "Edge Case Testing" with "empty inputs, max values, unicode" examples'
+);
 it('should verify adversarial testing mindset is defined');
 
 // Pattern 5: Test Data Constants

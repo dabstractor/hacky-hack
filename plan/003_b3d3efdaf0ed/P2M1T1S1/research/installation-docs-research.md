@@ -25,7 +25,8 @@
 Based on research from leading Node.js/TypeScript projects, effective installation documentation should include:
 
 #### A. Quick Installation (Above the Fold)
-```markdown
+
+````markdown
 ## Quick Start
 
 Get running in under 2 minutes:
@@ -41,7 +42,9 @@ npm install
 # Run the project
 npm start
 ```
-```
+````
+
+````
 
 **Key Principles:**
 - Visible without scrolling
@@ -63,8 +66,9 @@ npm start
 node --version
 npm --version
 git --version
-```
-```
+````
+
+````
 
 **Best Practices:**
 - Use version badges in README
@@ -81,7 +85,7 @@ git --version
 
 ```bash
 npm install -g project-name
-```
+````
 
 ### Option 2: Install via yarn
 
@@ -104,7 +108,8 @@ npm install
 npm run build
 npm link
 ```
-```
+
+````
 
 **Pattern:**
 - Provide npm, yarn, pnpm options when applicable
@@ -122,13 +127,15 @@ project-name --version
 
 project-name --help
 # Shows all available commands
-```
+````
 
 **Common Issues:**
+
 - If `command not found`, restart your terminal or verify PATH
 - Windows users may need to run as Administrator
 - See [Troubleshooting](#troubleshooting) for common issues
-```
+
+````
 
 ### 1.2 Progressive Disclosure Pattern
 
@@ -147,18 +154,21 @@ project-name --help
 ```powershell
 # Run as Administrator if prompted
 npm install -g project-name
-```
+````
 
 **Git Bash / WSL:**
+
 ```bash
 npm install -g project-name
 ```
 
 **Common Issues:**
+
 - Run terminal as Administrator for global installs
 - Use Windows PowerShell or Git Bash (not CMD)
 - Enable Developer Mode for symlink permissions
-```
+
+````
 
 #### macOS
 ```markdown
@@ -168,22 +178,25 @@ npm install -g project-name
 ```bash
 brew install node
 npm install -g project-name
-```
+````
 
 **Permission Issues:**
+
 ```bash
 # Fix npm permissions (avoid sudo)
 sudo chown -R $(whoami) /usr/local/lib/node_modules
 ```
 
 **Or use nvm (Recommended):**
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install 20
 nvm use 20
 npm install -g project-name
 ```
-```
+
+````
 
 #### Linux
 ```markdown
@@ -194,20 +207,23 @@ npm install -g project-name
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 npm install -g project-name
-```
+````
 
 **Fedora/RHEL:**
+
 ```bash
 sudo dnf install nodejs npm
 npm install -g project-name
 ```
 
 **Arch Linux:**
+
 ```bash
 sudo pacman -S nodejs npm
 npm install -g project-name
 ```
-```
+
+````
 
 ---
 
@@ -230,18 +246,21 @@ npm install -g project-name
 ### Via npm
 ```bash
 npm install -g typescript
-```
+````
 
 ### Via Yarn
+
 ```bash
 yarn global add typescript
 ```
 
 ### Via PKG Managers
+
 - **Homebrew**: `brew install typescript`
 - **Chocolatey**: `choco install typescript`
 - **APT**: `sudo apt-get install -y typescript`
-```
+
+````
 
 #### Pattern 2: tsx (TypeScript Executor)
 
@@ -257,7 +276,7 @@ yarn global add typescript
 
 ```bash
 npm install tsx
-```
+````
 
 ## Usage
 
@@ -266,10 +285,12 @@ npx tsx src/index.ts
 ```
 
 **Why tsx over ts-node?**
+
 - 10-20x faster
 - Uses esbuild for compilation
 - Better ESM support
-```
+
+````
 
 #### Pattern 3: Vite (Build Tool)
 
@@ -288,12 +309,13 @@ npm create vite@latest my-app -- --template react-ts
 cd my-app
 npm install
 npm run dev
-```
+````
 
 ## What's Next?
 
 As you build, check out [Features](features) and [Configuration](config) for more options.
-```
+
+````
 
 #### Pattern 4: Vitest (Testing Framework)
 
@@ -309,7 +331,7 @@ As you build, check out [Features](features) and [Configuration](config) for mor
 
 ```bash
 npm install -D vitest @vitest/ui
-```
+````
 
 **Configuration:**
 
@@ -321,11 +343,12 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node'
-  }
+    environment: 'node',
+  },
 });
 ```
-```
+
+````
 
 ### 2.2 Common Documentation Patterns
 
@@ -337,9 +360,10 @@ export default defineConfig({
 | `npm run build` | Build for production | Before deployment |
 | `npm test` | Run tests | During development |
 | `npm run dev` | Start dev server | Active development |
-```
+````
 
 #### Pattern B: Configuration File Hierarchy
+
 ```markdown
 ### Configuration Loading Order
 
@@ -352,6 +376,7 @@ export default defineConfig({
 ```
 
 #### Pattern C: Badge Standards
+
 ```markdown
 # Standard README Badges
 
@@ -365,6 +390,7 @@ export default defineConfig({
 ### 2.3 Installation Script Patterns
 
 #### Pre-installation Checks
+
 ```bash
 #!/bin/bash
 # Pre-installation checks
@@ -396,6 +422,7 @@ npm install
 ```
 
 #### Post-installation Verification
+
 ```bash
 #!/bin/bash
 # Post-installation verification
@@ -429,6 +456,7 @@ fi
 ### 3.1 Troubleshooting Section Structure
 
 #### Industry Standard Pattern
+
 ```markdown
 ## Troubleshooting
 
@@ -438,8 +466,10 @@ fi
 
 **Symptoms:**
 ```
+
 npm ERR! Error: EACCES: permission denied
-```
+
+````
 
 **Cause:** Attempting global install without proper permissions
 
@@ -452,9 +482,10 @@ npm config get prefix
 
 # Change ownership of npm directories
 sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
-```
+````
 
 **Option 2: Use Node Version Manager**
+
 ```bash
 # Install nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -468,6 +499,7 @@ npm install -g project-name
 ```
 
 **Option 3: Use sudo (Not Recommended)**
+
 ```bash
 sudo npm install -g project-name
 ```
@@ -475,6 +507,7 @@ sudo npm install -g project-name
 #### "Cannot find module" Error
 
 **Symptoms:**
+
 ```
 Error: Cannot find module 'project-name'
 internal/modules/cjs/loader.js:888
@@ -486,18 +519,21 @@ internal/modules/cjs/loader.js:888
 **Solutions:**
 
 **Check if installed:**
+
 ```bash
 npm list -g project-name
 npm root -g
 ```
 
 **Reinstall:**
+
 ```bash
 npm uninstall -g project-name
 npm install -g project-name
 ```
 
 **Verify PATH:**
+
 ```bash
 echo $PATH | grep "$(npm root -g)/.bin"
 ```
@@ -505,6 +541,7 @@ echo $PATH | grep "$(npm root -g)/.bin"
 #### "node:bad option" Error
 
 **Symptoms:**
+
 ```
 node: bad option: --loader
 ```
@@ -514,12 +551,14 @@ node: bad option: --loader
 **Solutions:**
 
 **Check Node.js version:**
+
 ```bash
 node --version
 # Must be >= 18.0.0 for ESM
 ```
 
 **Upgrade Node.js:**
+
 ```bash
 # Using nvm
 nvm install 20
@@ -530,7 +569,7 @@ nvm use 20
 
 **Pattern:** Organize by error message for quick lookup
 
-```markdown
+````markdown
 ## Troubleshooting (By Error Message)
 
 ### "ENOSPC: system limit for number of file watchers reached"
@@ -538,17 +577,20 @@ nvm use 20
 **Cause:** Inotify limit too low for file watching
 
 **Fix:**
+
 ```bash
 # Increase limit (Linux)
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
+````
 
 ### "gyp: No Xcode or CLT version detected"
 
 **Cause:** Missing Xcode Command Line Tools (macOS)
 
 **Fix:**
+
 ```bash
 xcode-select --install
 ```
@@ -558,9 +600,11 @@ xcode-select --install
 **Cause:** Symlink creation permission issue (Windows)
 
 **Fix:**
+
 - Run terminal as Administrator
 - Or enable Developer Mode in Settings
-```
+
+````
 
 ### 3.3 Platform-Specific Troubleshooting
 
@@ -576,18 +620,20 @@ xcode-select --install
 ```powershell
 # Restart PowerShell or run:
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-```
+````
 
 #### Symlink creation fails
 
 **Fix:**
+
 ```powershell
 # Enable Developer Mode
 Settings → Update & Security → For developers → Developer Mode
 
 # Or run as Administrator
 ```
-```
+
+````
 
 #### macOS-Specific Issues
 ```markdown
@@ -600,16 +646,18 @@ Settings → Update & Security → For developers → Developer Mode
 **Fix:**
 ```bash
 xattr -cr /path/to/project
-```
+````
 
 #### Rosetta translation warning (Apple Silicon)
 
 **Fix:**
+
 ```bash
 softwareupdate --install-rosetta
 arch -x86_64 zsh  # Use x86_64 shell if needed
 ```
-```
+
+````
 
 #### Linux-Specific Issues
 ```markdown
@@ -624,16 +672,18 @@ mkdir ~/.npm-global
 npm config set prefix '~/.npm-global'
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
-```
+````
 
 #### System Node.js conflicts
 
 **Fix:**
+
 ```bash
 # Use nvm instead of system Node
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ```
-```
+
+````
 
 ### 3.4 Diagnostic Commands Section
 
@@ -667,13 +717,15 @@ npm config list
 echo -e "\n=== Global Modules ==="
 npm root -g
 npm bin -g
-```
+````
 
 **Save output to file:**
+
 ```bash
 npm diagnose > diagnostic-info.txt
 ```
-```
+
+````
 
 ---
 
@@ -698,8 +750,9 @@ npm diagnose > diagnostic-info.txt
 node --version  # Should be v20.0.0 or higher
 npm --version   # Should be 10.0.0 or higher
 git --version   # Should be 2.30.0 or higher
-```
-```
+````
+
+````
 
 #### Version Range Syntax
 ```markdown
@@ -718,8 +771,9 @@ git --version   # Should be 2.30.0 or higher
     "npm": ">=10.0.0"
   }
 }
-```
-```
+````
+
+````
 
 ### 4.2 Prerequisite Installation Guides
 
@@ -736,9 +790,10 @@ source ~/.bashrc  # or restart terminal
 nvm install 20
 nvm use 20
 node --version
-```
+````
 
 **Windows (nvm-windows):**
+
 ```powershell
 # Download from: https://github.com/coreybutler/nvm-windows/releases
 nvm install 20.0.0
@@ -756,22 +811,26 @@ Download from: https://nodejs.org/
 #### Option 3: Package Manager
 
 **macOS (Homebrew):**
+
 ```bash
 brew install node@20
 brew link node@20
 ```
 
 **Linux (Debian/Ubuntu):**
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 **Windows (Chocolatey):**
+
 ```powershell
 choco install nodejs-lts
 ```
-```
+
+````
 
 #### Git Installation
 ```markdown
@@ -783,9 +842,10 @@ Download from: https://git-scm.com/download/win
 Or using Chocolatey:
 ```powershell
 choco install git
-```
+````
 
 #### macOS
+
 ```bash
 # Homebrew
 brew install git
@@ -795,6 +855,7 @@ xcode-select --install
 ```
 
 #### Linux
+
 ```bash
 # Debian/Ubuntu
 sudo apt-get install git
@@ -805,7 +866,8 @@ sudo dnf install git
 # Arch Linux
 sudo pacman -S git
 ```
-```
+
+````
 
 ### 4.3 System Requirements
 
@@ -828,20 +890,21 @@ sudo pacman -S git
 #### Testing Environment
 - Same as development
 - Additional: CI/CD system requirements (GitHub Actions, GitLab CI, etc.)
-```
+````
 
 #### Platform Compatibility Matrix
+
 ```markdown
 ### Platform Compatibility
 
-| Platform | Node.js 20.x | Node.js 21.x | Notes |
-|----------|--------------|--------------|-------|
-| **Ubuntu** | ✅ Fully Supported | ✅ Fully Supported | Recommended for production |
-| **Debian** | ✅ Fully Supported | ✅ Fully Supported | Stable |
-| **macOS** | ✅ Fully Supported | ✅ Fully Supported | Intel & Apple Silicon |
-| **Windows 10/11** | ✅ Fully Supported | ⚠️ Experimental | WSL2 recommended for dev |
-| **Alpine Linux** | ✅ Fully Supported | ⚠️ May require musl | For Docker images |
-| **CentOS/RHEL 8+** | ✅ Fully Supported | ✅ Fully Supported | Enterprise Linux |
+| Platform           | Node.js 20.x       | Node.js 21.x        | Notes                      |
+| ------------------ | ------------------ | ------------------- | -------------------------- |
+| **Ubuntu**         | ✅ Fully Supported | ✅ Fully Supported  | Recommended for production |
+| **Debian**         | ✅ Fully Supported | ✅ Fully Supported  | Stable                     |
+| **macOS**          | ✅ Fully Supported | ✅ Fully Supported  | Intel & Apple Silicon      |
+| **Windows 10/11**  | ✅ Fully Supported | ⚠️ Experimental     | WSL2 recommended for dev   |
+| **Alpine Linux**   | ✅ Fully Supported | ⚠️ May require musl | For Docker images          |
+| **CentOS/RHEL 8+** | ✅ Fully Supported | ✅ Fully Supported  | Enterprise Linux           |
 
 **Note:** Node.js 20.x (LTS) is recommended for all platforms.
 ```
@@ -853,22 +916,24 @@ sudo pacman -S git
 ### 5.1 Environment Variable Reference
 
 #### Table Format (Best for Quick Reference)
+
 ```markdown
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PROJECT_NAME_ENV` | No | `development` | Environment to run in |
-| `PROJECT_NAME_API_KEY` | Yes* | - | API key for external services |
-| `PROJECT_NAME_PORT` | No | `3000` | Port number for server |
-| `PROJECT_NAME_LOG_LEVEL` | No | `info` | Logging level (debug, info, warn, error) |
-| `PROJECT_NAME_CONFIG_PATH` | No | `./config.json` | Path to configuration file |
+| Variable                   | Required | Default         | Description                              |
+| -------------------------- | -------- | --------------- | ---------------------------------------- |
+| `PROJECT_NAME_ENV`         | No       | `development`   | Environment to run in                    |
+| `PROJECT_NAME_API_KEY`     | Yes\*    | -               | API key for external services            |
+| `PROJECT_NAME_PORT`        | No       | `3000`          | Port number for server                   |
+| `PROJECT_NAME_LOG_LEVEL`   | No       | `info`          | Logging level (debug, info, warn, error) |
+| `PROJECT_NAME_CONFIG_PATH` | No       | `./config.json` | Path to configuration file               |
 
-*Required when using external API features
+\*Required when using external API features
 ```
 
 #### Detailed Format (For Configuration Files)
-```markdown
+
+````markdown
 ### Environment Variables (Detailed)
 
 #### PROJECT_NAME_ENV
@@ -880,11 +945,14 @@ sudo pacman -S git
 **Default:** `development`
 
 **Example:**
+
 ```bash
 export PROJECT_NAME_ENV=production
 ```
+````
 
 **Behavior:**
+
 - `development`: Enables debug logging, hot reload
 - `production`: Optimized for performance, minimal logging
 - `test`: Configured for testing environments
@@ -900,17 +968,20 @@ export PROJECT_NAME_ENV=production
 **Format:** 32-character alphanumeric string
 
 **How to Get:**
+
 1. Sign up at https://api.example.com
 2. Navigate to Settings → API Keys
 3. Create new API key
 4. Copy key to clipboard
 
 **Example:**
+
 ```bash
 export PROJECT_NAME_API_KEY=abc123def456ghi789jkl012mno345pqr
 ```
 
 **Security Notes:**
+
 - Never commit API keys to version control
 - Use `.env` file for local development (add to `.gitignore`)
 - Rotate keys regularly
@@ -927,12 +998,14 @@ export PROJECT_NAME_API_KEY=abc123def456ghi789jkl012mno345pqr
 **Default:** `3000`
 
 **Example:**
+
 ```bash
 export PROJECT_NAME_PORT=8080
 ```
 
 **Note:** Ports below 1024 may require elevated privileges
-```
+
+````
 
 ### 5.2 Configuration File Patterns
 
@@ -960,7 +1033,7 @@ PROJECT_NAME_LOG_LEVEL=info
 
 # Optional: Feature Flags
 PROJECT_NAME_FEATURE_X_ENABLED=true
-```
+````
 
 **Step 2:** Add to `.gitignore`
 
@@ -974,6 +1047,7 @@ PROJECT_NAME_FEATURE_X_ENABLED=true
 **Step 3:** Load environment variables
 
 **Using dotenv:**
+
 ```bash
 npm install dotenv
 ```
@@ -1003,7 +1077,8 @@ PROJECT_NAME_ENV=
 # Optional: Port (default: 3000)
 PROJECT_NAME_PORT=
 ```
-```
+
+````
 
 ### 5.3 Environment-Specific Configuration
 
@@ -1018,19 +1093,22 @@ PROJECT_NAME_API_KEY=dev-key-123
 PROJECT_NAME_API_URL=https://dev-api.example.com
 PROJECT_NAME_ENABLE_HOT_RELOAD=true
 PROJECT_NAME_CACHE_ENABLED=false
-```
+````
 
 **Used for:**
+
 - Local development
 - Feature testing
 - Debugging
 
 **Characteristics:**
+
 - Verbose logging
 - Hot reload enabled
 - No caching
 - Development API endpoints
-```
+
+````
 
 #### Production Configuration
 ```markdown
@@ -1044,20 +1122,23 @@ PROJECT_NAME_API_URL=https://api.example.com
 PROJECT_NAME_ENABLE_HOT_RELOAD=false
 PROJECT_NAME_CACHE_ENABLED=true
 PROJECT_NAME_COMPRESSION_ENABLED=true
-```
+````
 
 **Used for:**
+
 - Production deployments
 - Staging environments
 - Performance testing
 
 **Characteristics:**
+
 - Minimal logging
 - Optimized performance
 - Caching enabled
 - Production API endpoints
 - Compression enabled
-```
+
+````
 
 #### Test Configuration
 ```markdown
@@ -1070,19 +1151,22 @@ PROJECT_NAME_API_KEY=test-key-789
 PROJECT_NAME_API_URL=http://localhost:8080
 PROJECT_NAME_DATABASE_URL=sqlite::memory:
 PROJECT_NAME_MOCK_ENABLED=true
-```
+````
 
 **Used for:**
+
 - Unit tests
 - Integration tests
 - CI/CD pipelines
 
 **Characteristics:**
+
 - Error-only logging
 - Mock services
 - In-memory databases
 - Local test endpoints
-```
+
+````
 
 ### 5.4 Security Best Practices
 
@@ -1100,7 +1184,7 @@ PROJECT_NAME_MOCK_ENABLED=true
 **/secrets/
 *.key
 *.pem
-```
+````
 
 #### 2. Use .env.example Template
 
@@ -1115,10 +1199,7 @@ PROJECT_NAME_API_KEY=your-api-key-here
 
 ```typescript
 // src/config/validate-env.ts
-const requiredEnvVars = [
-  'PROJECT_NAME_API_KEY',
-  'PROJECT_NAME_DATABASE_URL'
-];
+const requiredEnvVars = ['PROJECT_NAME_API_KEY', 'PROJECT_NAME_DATABASE_URL'];
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
@@ -1150,7 +1231,8 @@ PROJECT_NAME_API_KEY= staging_def456...
 # Production
 PROJECT_NAME_API_KEY=prod_ghi789...
 ```
-```
+
+````
 
 ---
 
@@ -1177,9 +1259,10 @@ npm run build
 
 # Create global symlink
 npm link
-```
+````
 
 **Expected Output:**
+
 ```
 /home/user/.nvm/versions/v20.0.0/lib/node_modules/my-package -> /path/to/my-package
 ```
@@ -1197,6 +1280,7 @@ ls -la node_modules/my-package
 ```
 
 **Expected Output:**
+
 ```
 node_modules/my-package -> ../../../.nvm/versions/v20.0.0/lib/node_modules/my-package -> /path/to/my-package
 ```
@@ -1219,7 +1303,8 @@ npm list my-package
 # Test import
 node -e "console.log(require('my-package'))"
 ```
-```
+
+````
 
 ### 6.2 TypeScript-Specific Considerations
 
@@ -1244,9 +1329,10 @@ node -e "console.log(require('my-package'))"
     }
   }
 }
-```
+````
 
 **tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -1258,12 +1344,14 @@ node -e "console.log(require('my-package'))"
 ```
 
 **Build before linking:**
+
 ```bash
 cd /path/to/my-package
 npm run build
 npm link
 ```
-```
+
+````
 
 #### TypeScript Configuration
 ```markdown
@@ -1279,22 +1367,21 @@ npm link
     "esModuleInterop": true
   }
 }
-```
+````
 
 #### Alternative: Use Project References
 
 **Root tsconfig.json:**
+
 ```json
 {
   "files": [],
-  "references": [
-    { "path": "../my-package" },
-    { "path": "." }
-  ]
+  "references": [{ "path": "../my-package" }, { "path": "." }]
 }
 ```
 
 **my-package/tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -1307,10 +1394,12 @@ npm link
 ```
 
 **Build with project references:**
+
 ```bash
 tsc --build
 ```
-```
+
+````
 
 ### 6.3 Common Issues with npm Link
 
@@ -1319,9 +1408,11 @@ tsc --build
 ### Issue: TypeScript Cannot Find Types
 
 **Error:**
-```
+````
+
 TS2307: Cannot find module 'my-package' or its corresponding type declarations.
-```
+
+````
 
 **Solutions:**
 
@@ -1331,9 +1422,10 @@ TS2307: Cannot find module 'my-package' or its corresponding type declarations.
 {
   "types": "./dist/index.d.ts"
 }
-```
+````
 
 2. **Build before linking:**
+
 ```bash
 cd my-package
 npm run build
@@ -1341,16 +1433,19 @@ npm link
 ```
 
 3. **Restart TypeScript server (VSCode):**
+
 ```
 Command Palette → "TypeScript: Restart TS Server"
 ```
 
 4. **Clear TypeScript cache:**
+
 ```bash
 rm -rf node_modules/.cache
 npx tsc --noCache
 ```
-```
+
+````
 
 #### Issue: Changes Not Reflected
 ```markdown
@@ -1367,26 +1462,30 @@ npx tsc --noCache
 ```bash
 cd my-package
 npm run build
-```
+````
 
 2. **Use watch mode:**
+
 ```bash
 cd my-package
 npm run build:watch
 ```
 
 3. **Clear module cache:**
+
 ```bash
 cd my-project
 rm -rf node_modules/.cache
 ```
 
 4. **Restart dev server:**
+
 ```bash
 cd my-project
 # Stop and restart npm run dev
 ```
-```
+
+````
 
 ### 6.4 Unlinking Workflow
 
@@ -1404,7 +1503,7 @@ npm unlink my-package
 
 # Verify it's removed
 ls -la node_modules/ | grep my-package  # Should show nothing
-```
+````
 
 #### Step 2: Unlink Global Package
 
@@ -1429,7 +1528,8 @@ npm install my-package
 # Or install from local tarball
 npm install /path/to/my-package
 ```
-```
+
+````
 
 ---
 
@@ -1473,9 +1573,10 @@ cp .env.example .env
 
 # Run the project
 npm start
-```
+````
 
 **Expected Output:**
+
 ```
 ✓ Starting [Project Name]
 ✓ Listening on http://localhost:3000
@@ -1489,17 +1590,18 @@ That's it! You're ready to use [Project Name]. For detailed configuration, see [
 
 ### Required Software
 
-| Software | Minimum Version | Recommended | Check Command |
-|----------|----------------|-------------|---------------|
-| **Node.js** | 20.0.0 | 20.x LTS | `node --version` |
-| **npm** | 10.0.0 | 10.x | `npm --version` |
-| **Git** | 2.30.0 | Latest 2.x | `git --version` |
+| Software    | Minimum Version | Recommended | Check Command    |
+| ----------- | --------------- | ----------- | ---------------- |
+| **Node.js** | 20.0.0          | 20.x LTS    | `node --version` |
+| **npm**     | 10.0.0          | 10.x        | `npm --version`  |
+| **Git**     | 2.30.0          | Latest 2.x  | `git --version`  |
 
 ### Installing Prerequisites
 
 #### Node.js & npm
 
 **Option 1: Using nvm (Recommended)**
+
 ```bash
 # Install nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -1521,6 +1623,7 @@ Download from [nodejs.org](https://nodejs.org/)
 **Windows:** Download from [git-scm.com](https://git-scm.com/download/win)
 
 **macOS:**
+
 ```bash
 brew install git
 # or
@@ -1528,6 +1631,7 @@ xcode-select --install
 ```
 
 **Linux:**
+
 ```bash
 sudo apt-get install git  # Debian/Ubuntu
 sudo dnf install git      # Fedora
@@ -1590,6 +1694,7 @@ project-name --version
 ```
 
 **If you get a permission error:**
+
 ```bash
 # Option 1: Fix npm permissions (recommended)
 sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
@@ -1614,6 +1719,7 @@ docker run -p 3000:3000 username/project-name:latest
 ```
 
 **Or build from source:**
+
 ```bash
 git clone https://github.com/username/project.git
 cd project
@@ -1635,16 +1741,17 @@ cp .env.example .env
 
 Edit `.env` with your settings:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PROJECT_NAME_ENV` | No | `development` | Environment (development/production/test) |
-| `PROJECT_NAME_PORT` | No | `3000` | Port number for server |
-| `PROJECT_NAME_API_KEY` | Yes* | - | API key for external services |
-| `PROJECT_NAME_LOG_LEVEL` | No | `info` | Logging level (debug/info/warn/error) |
+| Variable                 | Required | Default       | Description                               |
+| ------------------------ | -------- | ------------- | ----------------------------------------- |
+| `PROJECT_NAME_ENV`       | No       | `development` | Environment (development/production/test) |
+| `PROJECT_NAME_PORT`      | No       | `3000`        | Port number for server                    |
+| `PROJECT_NAME_API_KEY`   | Yes\*    | -             | API key for external services             |
+| `PROJECT_NAME_LOG_LEVEL` | No       | `info`        | Logging level (debug/info/warn/error)     |
 
-*Required when using API features
+\*Required when using API features
 
 **Example .env file:**
+
 ```bash
 # Environment
 PROJECT_NAME_ENV=development
@@ -1666,6 +1773,7 @@ PROJECT_NAME_LOG_LEVEL=debug
 Optionally, create a configuration file:
 
 **project.config.json:**
+
 ```json
 {
   "port": 3000,
@@ -1682,12 +1790,13 @@ Optionally, create a configuration file:
 ```
 
 **TypeScript Configuration:**
+
 ```typescript
 import { defineConfig } from 'project-name';
 
 export default defineConfig({
   port: 3000,
-  logLevel: 'info'
+  logLevel: 'info',
 });
 ```
 
@@ -1738,6 +1847,7 @@ npm start
 ```
 
 **Verify it's running:**
+
 ```bash
 curl http://localhost:3000/health
 # Expected output: {"status":"ok"}
@@ -1752,11 +1862,13 @@ curl http://localhost:3000/health
 #### "EACCES: permission denied" Error
 
 **Symptoms:**
+
 ```
 npm ERR! Error: EACCES: permission denied
 ```
 
 **Solution:**
+
 ```bash
 # Fix npm permissions (recommended)
 sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
@@ -1770,11 +1882,13 @@ nvm use 20
 #### "Cannot find module" Error
 
 **Symptoms:**
+
 ```
 Error: Cannot find module 'project-name'
 ```
 
 **Solution:**
+
 ```bash
 # Reinstall the package
 npm uninstall -g project-name
@@ -1790,11 +1904,13 @@ echo $PATH | grep "$(npm root -g)/.bin"
 #### "node:bad option" Error
 
 **Symptoms:**
+
 ```
 node: bad option: --loader
 ```
 
 **Solution:**
+
 ```bash
 # Check Node.js version
 node --version
@@ -1807,11 +1923,13 @@ nvm use 20
 #### Types Not Found (TypeScript)
 
 **Symptoms:**
+
 ```
 TS2307: Cannot find module 'project-name' or its corresponding type declarations.
 ```
 
 **Solution:**
+
 ```bash
 # Rebuild the package
 cd /path/to/project
@@ -1831,6 +1949,7 @@ npx tsc --noCache
 <summary>Windows: "EPERM: operation not permitted, symlink"</summary>
 
 **Solution:**
+
 - Run terminal as Administrator
 - Or enable Developer Mode in Settings
 
@@ -1840,6 +1959,7 @@ npx tsc --noCache
 <summary>macOS: "gyp: No Xcode or CLT version detected"</summary>
 
 **Solution:**
+
 ```bash
 xcode-select --install
 ```
@@ -1850,6 +1970,7 @@ xcode-select --install
 <summary>Linux: "ENOSPC: system limit for file watchers"</summary>
 
 **Solution:**
+
 ```bash
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
@@ -1962,6 +2083,7 @@ docker run -e PROJECT_NAME_API_KEY=xxx -p 3000:3000 project-name:dev
 ### CI/CD Setup
 
 **GitHub Actions:**
+
 ```yaml
 name: CI
 
@@ -2031,6 +2153,7 @@ rm -f ~/.config/project-name/config.json
 ---
 
 **Still having issues?** [Open an issue on GitHub](https://github.com/username/project/issues/new)
+
 ```
 
 ---
@@ -2127,3 +2250,4 @@ Use the provided template as a starting point and customize it for your project'
 
 **Research compiled:** 2026-01-23
 **Sources:** Existing project research, official documentation, and industry best practices
+```

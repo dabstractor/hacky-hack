@@ -126,11 +126,9 @@ function createIncompleteDeltaSession(
   mkdirSync(deltaSessionPath, { recursive: true });
 
   // Write parent_session.txt
-  writeFileSync(
-    join(deltaSessionPath, 'parent_session.txt'),
-    parentSessionId,
-    { mode: 0o644 }
-  );
+  writeFileSync(join(deltaSessionPath, 'parent_session.txt'), parentSessionId, {
+    mode: 0o644,
+  });
 
   // Write prd_snapshot.md (new PRD)
   writeFileSync(join(deltaSessionPath, 'prd_snapshot.md'), newPRD, {
@@ -416,14 +414,10 @@ describe('integration/delta-resume-regeneration', () => {
       const { DELTA_PRD_PROMPT } = await loadPrompts();
 
       // VERIFY: Prompt contains main header
-      expect(DELTA_PRD_PROMPT).toContain(
-        'Generate Delta PRD from Changes'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('Generate Delta PRD from Changes');
 
       // VERIFY: Prompt contains Previous PRD section
-      expect(DELTA_PRD_PROMPT).toContain(
-        'Previous PRD (Completed Session)'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('Previous PRD (Completed Session)');
       expect(DELTA_PRD_PROMPT).toContain(
         '$(cat "$PREV_SESSION_DIR/prd_snapshot.md")'
       );
@@ -433,9 +427,7 @@ describe('integration/delta-resume-regeneration', () => {
       expect(DELTA_PRD_PROMPT).toContain('$(cat "$PRD_FILE")');
 
       // VERIFY: Prompt contains Previous Session's Completed Tasks section
-      expect(DELTA_PRD_PROMPT).toContain(
-        "Previous Session's Completed Tasks"
-      );
+      expect(DELTA_PRD_PROMPT).toContain("Previous Session's Completed Tasks");
       expect(DELTA_PRD_PROMPT).toContain(
         '$(cat "$PREV_SESSION_DIR/tasks.json")'
       );
@@ -448,36 +440,24 @@ describe('integration/delta-resume-regeneration', () => {
       expect(DELTA_PRD_PROMPT).toContain('SCOPE DELTA');
 
       // VERIFY: Focus on new features/requirements added
-      expect(DELTA_PRD_PROMPT).toContain(
-        'New features/requirements added'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('New features/requirements added');
 
       // VERIFY: Focus on modified requirements
-      expect(DELTA_PRD_PROMPT).toContain(
-        'Modified requirements'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('Modified requirements');
 
       // VERIFY: Note removed requirements but don't create tasks
-      expect(DELTA_PRD_PROMPT).toContain(
-        'Removed requirements'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('Removed requirements');
     });
 
     it('should instruct to REFERENCE COMPLETED WORK', async () => {
       const { DELTA_PRD_PROMPT } = await loadPrompts();
 
       // VERIFY: REFERENCE COMPLETED WORK section exists
-      expect(DELTA_PRD_PROMPT).toContain(
-        'REFERENCE COMPLETED WORK'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('REFERENCE COMPLETED WORK');
 
       // VERIFY: Instruct to reference existing implementations
-      expect(DELTA_PRD_PROMPT).toContain(
-        'Reference existing implementations'
-      );
-      expect(DELTA_PRD_PROMPT).toContain(
-        'rather than re-implementing'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('Reference existing implementations');
+      expect(DELTA_PRD_PROMPT).toContain('rather than re-implementing');
 
       // VERIFY: Instruct to note which files/functions need updates
       expect(DELTA_PRD_PROMPT).toContain(
@@ -489,9 +469,7 @@ describe('integration/delta-resume-regeneration', () => {
       const { DELTA_PRD_PROMPT } = await loadPrompts();
 
       // VERIFY: LEVERAGE PRIOR RESEARCH section exists
-      expect(DELTA_PRD_PROMPT).toContain(
-        'LEVERAGE PRIOR RESEARCH'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('LEVERAGE PRIOR RESEARCH');
 
       // VERIFY: Instruct to check architecture directory
       expect(DELTA_PRD_PROMPT).toContain(
@@ -499,18 +477,14 @@ describe('integration/delta-resume-regeneration', () => {
       );
 
       // VERIFY: Instruct not to duplicate research
-      expect(DELTA_PRD_PROMPT).toContain(
-        "Don't duplicate research"
-      );
+      expect(DELTA_PRD_PROMPT).toContain("Don't duplicate research");
     });
 
     it('should specify output location for delta PRD', async () => {
       const { DELTA_PRD_PROMPT } = await loadPrompts();
 
       // VERIFY: Output instruction includes SESSION_DIR/delta_prd.md
-      expect(DELTA_PRD_PROMPT).toContain(
-        '$SESSION_DIR/delta_prd.md'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('$SESSION_DIR/delta_prd.md');
 
       // VERIFY: Contains OUTPUT instruction (within instruction 5)
       expect(DELTA_PRD_PROMPT).toContain('**OUTPUT**');
@@ -537,10 +511,10 @@ describe('integration/delta-resume-regeneration', () => {
 
       // EXECUTE: Should fail after maxAttempts (3)
       await expect(
-        retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        )
+        retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        })
       ).rejects.toThrow();
 
       // VERIFY: All 3 attempts were made (maxAttempts: 3)
@@ -597,10 +571,10 @@ describe('integration/delta-resume-regeneration', () => {
 
       // EXECUTE & VERIFY: Should fail after max attempts
       await expect(
-        retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        )
+        retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        })
       ).rejects.toThrow();
 
       // VERIFY: All 3 attempts made
@@ -653,9 +627,11 @@ describe('integration/delta-resume-regeneration', () => {
       const { retryAgentPrompt } = await loadRetry();
 
       const delays: number[] = [];
-      const mockOnRetry = vi.fn().mockImplementation((attempt, error, delay) => {
-        delays.push(delay);
-      });
+      const mockOnRetry = vi
+        .fn()
+        .mockImplementation((attempt, error, delay) => {
+          delays.push(delay);
+        });
 
       // SETUP: Mock agent that fails twice, succeeds on third
       const mockAgent = {
@@ -714,9 +690,7 @@ describe('integration/delta-resume-regeneration', () => {
       expect(DeltaAnalysisWorkflow).toBeDefined();
 
       // Verify the class has analyzeDelta method
-      expect(
-        DeltaAnalysisWorkflow.prototype.analyzeDelta
-      ).toBeDefined();
+      expect(DeltaAnalysisWorkflow.prototype.analyzeDelta).toBeDefined();
     });
 
     it('should create workflow with oldPRD, newPRD, and completedTasks', async () => {
@@ -728,7 +702,11 @@ describe('integration/delta-resume-regeneration', () => {
       const completedTasks = ['P1.M1.T1.S1'];
 
       // EXECUTE: Create workflow instance
-      const workflow = new DeltaAnalysisWorkflow(oldPRD, newPRD, completedTasks);
+      const workflow = new DeltaAnalysisWorkflow(
+        oldPRD,
+        newPRD,
+        completedTasks
+      );
 
       // VERIFY: Workflow state initialized
       expect(workflow.oldPRD).toBe(oldPRD);
@@ -757,18 +735,18 @@ describe('integration/delta-resume-regeneration', () => {
       const { DeltaAnalysisWorkflow } = await loadDeltaAnalysisWorkflow();
 
       // EXECUTE & VERIFY: Should throw for empty oldPRD
-      expect(
-        () => new DeltaAnalysisWorkflow('', mockSimplePRDv2, [])
-      ).toThrow('oldPRD cannot be empty');
+      expect(() => new DeltaAnalysisWorkflow('', mockSimplePRDv2, [])).toThrow(
+        'oldPRD cannot be empty'
+      );
     });
 
     it('should throw error for empty newPRD', async () => {
       const { DeltaAnalysisWorkflow } = await loadDeltaAnalysisWorkflow();
 
       // EXECUTE & VERIFY: Should throw for empty newPRD
-      expect(
-        () => new DeltaAnalysisWorkflow(mockSimplePRD, '', [])
-      ).toThrow('newPRD cannot be empty');
+      expect(() => new DeltaAnalysisWorkflow(mockSimplePRD, '', [])).toThrow(
+        'newPRD cannot be empty'
+      );
     });
   });
 
@@ -792,10 +770,10 @@ describe('integration/delta-resume-regeneration', () => {
 
       // EXECUTE & VERIFY: Should fail after maxAttempts
       await expect(
-        retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        )
+        retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        })
       ).rejects.toThrow();
 
       // VERIFY: All 3 attempts were made
@@ -839,10 +817,10 @@ describe('integration/delta-resume-regeneration', () => {
 
       // EXECUTE & VERIFY: Error should contain delta analysis context
       await expect(
-        retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        )
+        retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        })
       ).rejects.toThrow(errorMessage);
     });
   });
@@ -868,10 +846,7 @@ describe('integration/delta-resume-regeneration', () => {
       );
 
       // VERIFY: parent_session.txt exists
-      const parentSessionFile = join(
-        deltaSessionPath,
-        'parent_session.txt'
-      );
+      const parentSessionFile = join(deltaSessionPath, 'parent_session.txt');
       expect(existsSync(parentSessionFile)).toBe(true);
 
       // VERIFY: Contains parent session ID
@@ -1027,10 +1002,7 @@ describe('integration/delta-resume-regeneration', () => {
 
     it('should create valid initial session with tasks', async () => {
       // SETUP: Create initial session
-      const { sessionPath } = createInitialSession(
-        tempDir,
-        mockSimplePRD
-      );
+      const { sessionPath } = createInitialSession(tempDir, mockSimplePRD);
 
       // VERIFY: tasks.json exists
       const tasksPath = join(sessionPath, 'tasks.json');
@@ -1049,10 +1021,7 @@ describe('integration/delta-resume-regeneration', () => {
 
     it('should use correct session ID format', async () => {
       // SETUP: Create initial session
-      const { sessionId } = createInitialSession(
-        tempDir,
-        mockSimplePRD
-      );
+      const { sessionId } = createInitialSession(tempDir, mockSimplePRD);
 
       // VERIFY: Session ID follows naming pattern {sequence}_{hash}
       expect(sessionId).toMatch(/^(\d{3})_([a-z0-9]+)$/);
@@ -1073,7 +1042,7 @@ describe('integration/delta-resume-regeneration', () => {
         'Previous PRD (Completed Session)',
         'Current PRD',
         "Previous Session's Completed Tasks",
-        'Previous Session\'s Architecture Research',
+        "Previous Session's Architecture Research",
         'Instructions:',
         'DIFF ANALYSIS',
         'SCOPE DELTA',
@@ -1086,16 +1055,10 @@ describe('integration/delta-resume-regeneration', () => {
       }
 
       // Verify shell command references for regeneration inputs
-      expect(DELTA_PRD_PROMPT).toContain(
-        '$PREV_SESSION_DIR/prd_snapshot.md'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('$PREV_SESSION_DIR/prd_snapshot.md');
       expect(DELTA_PRD_PROMPT).toContain('$PRD_FILE');
-      expect(DELTA_PRD_PROMPT).toContain(
-        '$PREV_SESSION_DIR/tasks.json'
-      );
-      expect(DELTA_PRD_PROMPT).toContain(
-        '$SESSION_DIR/delta_prd.md'
-      );
+      expect(DELTA_PRD_PROMPT).toContain('$PREV_SESSION_DIR/tasks.json');
+      expect(DELTA_PRD_PROMPT).toContain('$SESSION_DIR/delta_prd.md');
     });
 
     it('should verify regeneration uses same retry behavior as initial creation', async () => {
@@ -1114,10 +1077,10 @@ describe('integration/delta-resume-regeneration', () => {
 
       // Should make exactly 3 attempts before failing
       await expect(
-        retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        )
+        retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        })
       ).rejects.toThrow();
 
       expect(mockAgent.prompt).toHaveBeenCalledTimes(3);
@@ -1180,15 +1143,11 @@ describe('integration/delta-resume-regeneration', () => {
       const checks = [
         {
           name: 'Contains "Generate Delta PRD from Changes":',
-          pass: DELTA_PRD_PROMPT.includes(
-            'Generate Delta PRD from Changes'
-          ),
+          pass: DELTA_PRD_PROMPT.includes('Generate Delta PRD from Changes'),
         },
         {
           name: 'Contains "Previous PRD (Completed Session)":',
-          pass: DELTA_PRD_PROMPT.includes(
-            'Previous PRD (Completed Session)'
-          ),
+          pass: DELTA_PRD_PROMPT.includes('Previous PRD (Completed Session)'),
         },
         {
           name: 'Contains "Current PRD":',
@@ -1200,9 +1159,7 @@ describe('integration/delta-resume-regeneration', () => {
         },
         {
           name: 'Contains "REFERENCE COMPLETED WORK":',
-          pass: DELTA_PRD_PROMPT.includes(
-            'REFERENCE COMPLETED WORK'
-          ),
+          pass: DELTA_PRD_PROMPT.includes('REFERENCE COMPLETED WORK'),
         },
         {
           name: 'Contains "LEVERAGE PRIOR RESEARCH":',
@@ -1210,9 +1167,7 @@ describe('integration/delta-resume-regeneration', () => {
         },
         {
           name: 'Contains $PREV_SESSION_DIR/prd_snapshot.md reference:',
-          pass: DELTA_PRD_PROMPT.includes(
-            '$PREV_SESSION_DIR/prd_snapshot.md'
-          ),
+          pass: DELTA_PRD_PROMPT.includes('$PREV_SESSION_DIR/prd_snapshot.md'),
         },
         {
           name: 'Contains $PRD_FILE reference:',
@@ -1220,15 +1175,11 @@ describe('integration/delta-resume-regeneration', () => {
         },
         {
           name: 'Contains $PREV_SESSION_DIR/tasks.json reference:',
-          pass: DELTA_PRD_PROMPT.includes(
-            '$PREV_SESSION_DIR/tasks.json'
-          ),
+          pass: DELTA_PRD_PROMPT.includes('$PREV_SESSION_DIR/tasks.json'),
         },
         {
           name: 'Contains $SESSION_DIR/delta_prd.md output instruction:',
-          pass: DELTA_PRD_PROMPT.includes(
-            '$SESSION_DIR/delta_prd.md'
-          ),
+          pass: DELTA_PRD_PROMPT.includes('$SESSION_DIR/delta_prd.md'),
         },
       ];
 
@@ -1261,10 +1212,10 @@ describe('integration/delta-resume-regeneration', () => {
       };
 
       try {
-        await retryAgentPrompt(
-          () => mockAgent.prompt() as Promise<never>,
-          { agentType: 'QA', operation: 'deltaAnalysis' }
-        );
+        await retryAgentPrompt(() => mockAgent.prompt() as Promise<never>, {
+          agentType: 'QA',
+          operation: 'deltaAnalysis',
+        });
       } catch (e) {
         // Expected to fail after 3 attempts
       }

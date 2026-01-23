@@ -7,6 +7,7 @@ This research document supports the creation of an integration test for verifyin
 ## Contract Definition Requirements
 
 From the subtask description:
+
 1. **RESEARCH NOTE**: Bug Finding Prompt defines three testing phases: Scope Analysis, Creative E2E Testing (happy paths, edge cases, workflows, integrations, errors, state, concurrency), Adversarial Testing (unexpected inputs, missing features, incomplete features, UX).
 2. **INPUT**: BUG_FINDING_PROMPT from `PROMPTS.md`, BugHuntWorkflow implementation.
 3. **LOGIC**: Write integration test that verifies: (a) prompt defines all three testing phases, (b) prompt specifies happy path testing, (c) prompt specifies edge case testing, (d) prompt specifies workflow testing, (e) prompt specifies adversarial testing mindset.
@@ -15,6 +16,7 @@ From the subtask description:
 ## BUG_HUNT_PROMPT Structure
 
 ### Location
+
 - **File**: `/home/dustin/projects/hacky-hack/src/agents/prompts.ts`
 - **Lines**: 868-979
 - **Export Name**: `BUG_HUNT_PROMPT`
@@ -79,12 +81,14 @@ Think creatively about what could go wrong:
 **Purpose**: Understand PRD requirements before testing
 
 **Key Elements**:
+
 - "Read and deeply understand the original PRD requirements"
 - "Map each requirement to what should have been implemented"
 - "Identify the expected user journeys and workflows"
 - "Note any edge cases or corner cases implied by the requirements"
 
 **Verification Requirements**:
+
 - ✓ Prompt contains "Phase 1: PRD Scope Analysis"
 - ✓ Prompt mentions understanding PRD requirements
 - ✓ Prompt mentions mapping requirements to implementation
@@ -157,6 +161,7 @@ Think creatively about what could go wrong:
 ## BugHuntWorkflow Implementation
 
 ### Location
+
 - **File**: `/home/dustin/projects/hacky-hack/src/workflows/bug-hunt-workflow.ts`
 - **Class**: `BugHuntWorkflow`
 - **Extends**: `Workflow` (from Groundswell)
@@ -196,6 +201,7 @@ export class BugHuntWorkflow extends Workflow {
 The BugHuntWorkflow logs specific test categories:
 
 **Phase 2 E2E Test Categories** (from line 171-180):
+
 ```typescript
 const testCategories = [
   'Happy Path Testing',
@@ -210,6 +216,7 @@ const testCategories = [
 ```
 
 **Phase 3 Adversarial Categories** (from line 214-222):
+
 ```typescript
 const adversarialCategories = [
   'Unexpected Inputs',
@@ -259,12 +266,14 @@ describe('prompt structure validation', () => {
 ## Testing Framework Configuration
 
 ### Vitest Configuration
+
 - **File**: `/home/dustin/projects/hacky-hack/vitest.config.ts`
 - **Environment**: `node`
 - **Coverage Provider**: `v8`
 - **Coverage Threshold**: 100% (statements, branches, functions, lines)
 
 ### Global Test Setup
+
 - **File**: `/home/dustin/projects/hacky-hack/tests/setup.ts`
 - **Key Features**:
   - Environment variable loading via dotenv
@@ -275,6 +284,7 @@ describe('prompt structure validation', () => {
 ## Test File Naming Conventions
 
 Based on existing patterns:
+
 - Integration tests: `tests/integration/*.test.ts`
 - Unit tests: `tests/unit/**/*.test.ts`
 - Manual tests: `tests/manual/*.test.ts`
@@ -284,6 +294,7 @@ For this task: `tests/integration/bug-finding-prompt.test.ts`
 ## Mock Patterns
 
 ### Agent Factory Mocking
+
 ```typescript
 vi.mock('../../src/agents/agent-factory.js', () => ({
   createQAAgent: vi.fn(),
@@ -291,6 +302,7 @@ vi.mock('../../src/agents/agent-factory.js', () => ({
 ```
 
 ### Prompt Import Pattern
+
 ```typescript
 // Use dynamic import for prompts to avoid Groundswell initialization
 const { BUG_HUNT_PROMPT } = await import('../../src/agents/prompts.js');
@@ -299,6 +311,7 @@ const { BUG_HUNT_PROMPT } = await import('../../src/agents/prompts.js');
 ## Test Data Fixtures
 
 ### Task Factory Pattern
+
 ```typescript
 const createTestTask = (
   id: string,
@@ -315,6 +328,7 @@ const createTestTask = (
 ```
 
 ### PRD Content Sample
+
 ```typescript
 const mockPRD = `# Test PRD
 
@@ -332,6 +346,7 @@ Build a user authentication system.
 ## Assertion Patterns
 
 ### Content Verification
+
 ```typescript
 expect(prompt).toContain('Phase 1: PRD Scope Analysis');
 expect(prompt).toContain('Happy Path Testing');
@@ -339,11 +354,13 @@ expect(prompt).toContain('Edge Case Testing');
 ```
 
 ### Regex Pattern Matching
+
 ```typescript
 expect(prompt).toMatch(/Happy Path Testing.*primary use case/s);
 ```
 
 ### Structure Verification
+
 ```typescript
 expect(prompt.systemOverride).toBeDefined();
 expect(prompt.user).toBeDefined();
@@ -355,23 +372,28 @@ expect(prompt.enableReflection).toBe(true);
 Based on the contract definition, the integration test must verify:
 
 ### (a) Prompt defines all three testing phases
+
 - Phase 1: PRD Scope Analysis
 - Phase 2: Creative End-to-End Testing
 - Phase 3: Adversarial Testing
 
 ### (b) Prompt specifies happy path testing
+
 - Contains "Happy Path Testing"
 - Mentions "primary use case"
 
 ### (c) Prompt specifies edge case testing
+
 - Contains "Edge Case Testing"
 - Mentions "boundaries", "empty inputs", "max values", "unicode"
 
 ### (d) Prompt specifies workflow testing
+
 - Contains "Workflow Testing"
 - Mentions "full journey"
 
 ### (e) Prompt specifies adversarial testing mindset
+
 - Contains "Phase 3: Adversarial Testing"
 - Mentions "Think like a user, then think like an adversary"
 - Contains adversarial categories
@@ -379,13 +401,17 @@ Based on the contract definition, the integration test must verify:
 ## Implementation Considerations
 
 ### 1. Dynamic Import for Prompts
+
 The BUG_HUNT_PROMPT is defined in `src/agents/prompts.ts` which may have side effects. Use dynamic import within tests.
 
 ### 2. Mock Groundswell Dependencies
+
 The prompt creation uses Groundswell's `createPrompt()` which may initialize agents. Mock these to avoid side effects.
 
 ### 3. Test Organization
+
 Structure tests to mirror the prompt's phase structure:
+
 - describe('Phase 1: Scope Analysis')
 - describe('Phase 2: Creative E2E Testing')
   - describe('Happy Path Testing')
@@ -394,20 +420,24 @@ Structure tests to mirror the prompt's phase structure:
 - describe('Phase 3: Adversarial Testing')
 
 ### 4. Reusable Test Utilities
+
 Consider creating helper functions for common assertions:
+
 ```typescript
-function verifyPhasePresent(prompt: string, phaseName: string): void
-function verifyTestingCategory(prompt: string, category: string): void
+function verifyPhasePresent(prompt: string, phaseName: string): void;
+function verifyTestingCategory(prompt: string, category: string): void;
 ```
 
 ## External Research References
 
 ### Vitest Documentation
+
 - https://vitest.dev/guide/ - Main guide
 - https://vitest.dev/api/expect.html - Assertion API
 - https://vitest.dev/api/mock.html - Mocking functions
 
 ### Testing Best Practices
+
 - Three-phase testing (Setup/Execute/Verify)
 - Factory functions for test data
 - Mock external dependencies
@@ -426,6 +456,7 @@ This research provides comprehensive context for creating an integration test th
 6. Use Vitest with proper mocking and assertions
 
 Key files to reference:
+
 - `/home/dustin/projects/hacky-hack/PROMPTS.md` (lines 1059-1175)
 - `/home/dustin/projects/hacky-hack/src/agents/prompts.ts` (lines 868-979)
 - `/home/dustin/projects/hacky-hack/src/workflows/bug-hunt-workflow.ts`
