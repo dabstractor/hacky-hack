@@ -663,7 +663,7 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Task 2.2.2: Extensibility Documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Document how to extend the pipeline with custom agents, tools, and workflows.",
               "subtasks": [
                 {
@@ -690,7 +690,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Create custom workflow development guide",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T2.S2"
@@ -710,7 +710,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T3.S1",
                   "title": "Create testing strategy documentation",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Testing framework: Vitest with 100% coverage requirement. Test structure: unit/ (single function/class), integration/ (multi-component), e2e/ (full workflow). Setup: tests/setup.ts with environment configuration.\n2. INPUT: Test structure from tests/, vitest configuration from vitest.config.ts.\n3. LOGIC: Write testing strategy in docs/TESTING.md that explains: (a) testing philosophy (100% coverage, TDD), (b) test structure and organization, (c) unit vs integration vs e2e tests, (d) mocking strategies (agents, file system, git), (e) running tests and coverage reports. Include test writing guidelines and examples.\n4. OUTPUT: Documentation file docs/TESTING.md with testing strategy and guidelines."
