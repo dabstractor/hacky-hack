@@ -69,12 +69,12 @@
 
 The PRP Pipeline uses a **workflow orchestration system** built on Groundswell to manage the complete development lifecycle from PRD to working code. There are **four main workflows** that coordinate to transform requirements into tested, working software.
 
-| Workflow | Purpose | Phases |
-| --- | --- | --- |
-| **PRPPipeline** | Main orchestration workflow | 6 phases (init, breakdown, delta, execute, QA, cleanup) |
-| **DeltaAnalysisWorkflow** | Handle PRD changes | 1 phase (semantic PRD comparison) |
-| **BugHuntWorkflow** | QA testing and bug finding | 4 phases (scope, creative E2E, adversarial, report) |
-| **FixCycleWorkflow** | Iterative bug fixing | 4 steps in a loop (create, execute, retest, check) |
+| Workflow                  | Purpose                     | Phases                                                  |
+| ------------------------- | --------------------------- | ------------------------------------------------------- |
+| **PRPPipeline**           | Main orchestration workflow | 6 phases (init, breakdown, delta, execute, QA, cleanup) |
+| **DeltaAnalysisWorkflow** | Handle PRD changes          | 1 phase (semantic PRD comparison)                       |
+| **BugHuntWorkflow**       | QA testing and bug finding  | 4 phases (scope, creative E2E, adversarial, report)     |
+| **FixCycleWorkflow**      | Iterative bug fixing        | 4 steps in a loop (create, execute, retest, check)      |
 
 **Key Concepts:**
 
@@ -157,12 +157,12 @@ stateDiagram-v2
 
 **State Transitions:**
 
-| Current State | Event | Next State | Action |
-|---|---|---|---|
-| `idle` | `run()` | `running` | Start phase execution |
-| `running` | Phase complete | `running` | Continue to next phase |
-| `running` | All phases complete | `completed` | Finalize and return result |
-| `running` | Fatal error | `failed` | Log error and cleanup |
+| Current State | Event               | Next State  | Action                     |
+| ------------- | ------------------- | ----------- | -------------------------- |
+| `idle`        | `run()`             | `running`   | Start phase execution      |
+| `running`     | Phase complete      | `running`   | Continue to next phase     |
+| `running`     | All phases complete | `completed` | Finalize and return result |
+| `running`     | Fatal error         | `failed`    | Log error and cleanup      |
 
 ### Common Workflow Patterns
 
@@ -215,11 +215,13 @@ flowchart TD
 **Purpose:** Create a new session or load an existing one for resumption.
 
 **Entry Conditions:**
+
 - PRD file path provided
 - Plan directory exists or can be created
 - Configuration loaded
 
 **Process:**
+
 1. Generate unique session ID (timestamp-based hash)
 2. Create session directory structure (`plan/{sequence}_{hash}/`)
 3. Initialize session state (tasks.json, session state)
@@ -227,16 +229,19 @@ flowchart TD
 5. Check for PRD changes and trigger delta if needed
 
 **Exit Conditions:**
+
 - Session directory created or loaded
 - Session state initialized
 - PRD hash calculated
 
 **Output:**
+
 - `plan/{sequence}_{hash}/tasks.json` - Task hierarchy
 - `plan/{sequence}_{hash}/session-state.json` - Current session state
 - `plan/{sequence}_{hash}/prd_snapshot.md` - PRD content for delta detection
 
 **Decorator Pattern:**
+
 ```typescript
 @Step({ trackTiming: true })
 async initializeSession(): Promise<void> {
@@ -258,10 +263,12 @@ async initializeSession(): Promise<void> {
 **Purpose:** Generate task backlog via Architect agent for new sessions.
 
 **Entry Conditions:**
+
 - Session initialized
 - No existing backlog (new session)
 
 **Process:**
+
 1. Check if backlog already exists (skip if resuming)
 2. Create Architect agent with task breakdown prompt
 3. Call Architect agent to decompose PRD into hierarchy
@@ -269,15 +276,18 @@ async initializeSession(): Promise<void> {
 5. Save backlog to session via SessionManager
 
 **Exit Conditions:**
+
 - Task hierarchy generated (Phase > Milestone > Task > Subtask)
 - Backlog saved to disk
 - Total task count calculated
 
 **Output:**
+
 - `plan/{session}/tasks.json` - Complete task hierarchy
 - Total tasks count for progress tracking
 
 **Skip Condition:**
+
 - Existing backlog found → Skip generation, resume execution
 
 ### Phase 3: Delta Handling
@@ -287,10 +297,12 @@ async initializeSession(): Promise<void> {
 **Purpose:** Handle PRD changes via delta workflow when PRD is modified.
 
 **Entry Conditions:**
+
 - Session initialized
 - PRD hash changed from previous session
 
 **Process:**
+
 1. Load old PRD from session snapshot
 2. Load new PRD from disk
 3. Extract completed task IDs
@@ -300,15 +312,18 @@ async initializeSession(): Promise<void> {
 7. Save patched backlog to delta session
 
 **Exit Conditions:**
+
 - Delta session created
 - Backlog patched with changes
 - Parent session linked
 
 **Output:**
+
 - `plan/{new_session}/parent_session.txt` - Link to parent session
 - Patched tasks.json with new/modified tasks
 
 **Integration:**
+
 ```typescript
 // Uses DeltaAnalysisWorkflow
 const workflow = new DeltaAnalysisWorkflow(oldPRD, newPRD, completedTaskIds);
@@ -323,10 +338,12 @@ const patchedBacklog = patchBacklog(backlog, delta);
 **Purpose:** Execute all tasks in backlog via TaskOrchestrator.
 
 **Entry Conditions:**
+
 - Backlog available (from decomposition or delta)
 - TaskOrchestrator initialized
 
 **Process:**
+
 1. Initialize progress tracker with backlog
 2. Process items via `TaskOrchestrator.processNextItem()`
 3. Update completed tasks count after each item
@@ -335,16 +352,19 @@ const patchedBacklog = patchBacklog(backlog, delta);
 6. Continue until queue empty or shutdown requested
 
 **Exit Conditions:**
+
 - All tasks processed OR
 - Resource limit reached OR
 - Shutdown requested
 
 **Output:**
+
 - All subtasks executed (status: Complete or Failed)
 - Progress tracked and logged
 - State flushed to disk
 
 **Graceful Shutdown:**
+
 ```typescript
 // Check for shutdown request after each task
 if (this.shutdownRequested) {
@@ -361,19 +381,21 @@ if (this.shutdownRequested) {
 **Purpose:** Run bug hunt and fix cycle to ensure quality.
 
 **Entry Conditions:**
+
 - Backlog execution complete
 - Tasks either all Complete or in bug-hunt mode
 
 **Behavior by Mode:**
 
-| Mode | Condition | Action |
-|---|---|---|
-| `normal` | All tasks Complete | Run QA bug hunt |
-| `normal` | Tasks incomplete | Skip QA |
-| `bug-hunt` | Any state | Run QA immediately |
-| `validate` | Any state | Skip QA (validation only) |
+| Mode       | Condition          | Action                    |
+| ---------- | ------------------ | ------------------------- |
+| `normal`   | All tasks Complete | Run QA bug hunt           |
+| `normal`   | Tasks incomplete   | Skip QA                   |
+| `bug-hunt` | Any state          | Run QA immediately        |
+| `validate` | Any state          | Skip QA (validation only) |
 
 **Process:**
+
 1. **Bug Hunt Phase:**
    - Run BugHuntWorkflow with PRD + completed tasks
    - Generate TestResults with bug reports
@@ -385,11 +407,13 @@ if (this.shutdownRequested) {
    - Print QA summary to console
 
 **Exit Conditions:**
+
 - QA cycle complete
 - TEST_RESULTS.md written (if bugs found)
 - Bug count tracked
 
 **Output:**
+
 - `plan/{session}/TEST_RESULTS.md` - Bug report (if bugs found)
 - Console summary with bug counts
 
@@ -400,10 +424,12 @@ if (this.shutdownRequested) {
 **Purpose:** Preserve state and clean up resources before shutdown.
 
 **Entry Conditions:**
+
 - All phases complete or error occurred
 - Runs in `finally` block (always executes)
 
 **Process:**
+
 1. Stop resource monitoring
 2. Flush pending updates to disk
 3. Save backlog with final state
@@ -412,17 +438,20 @@ if (this.shutdownRequested) {
 6. Generate resource limit report if triggered
 
 **Exit Conditions:**
+
 - State saved to disk
 - Resources cleaned up
 - Listeners removed
 
 **Critical Files Never Deleted:**
+
 - `tasks.json` - Single source of truth
 - `prd_snapshot.md` - Used for delta detection
 - `parent_session.txt` - Links delta sessions
 - `TEST_RESULTS.md` - Bug report
 
 **Decorator Pattern:**
+
 ```typescript
 @Step({ trackTiming: true })
 async cleanup(): Promise<void> {
@@ -464,14 +493,14 @@ stateDiagram-v2
 
 ### Timing Specifications
 
-| Phase | Min Duration | Expected | Max Duration | Timeout |
-|---|---|---|---|---|
-| Session Initialization | 2s | 3s | 5s | 10s |
-| PRD Decomposition | 30s | 60s | 120s | 300s |
-| Delta Handling | 10s | 20s | 40s | 60s |
-| Backlog Execution | Variable | Variable | Variable | Configurable |
-| QA Cycle | 60s | 120s | 300s | 600s |
-| Cleanup | 1s | 2s | 5s | 10s |
+| Phase                  | Min Duration | Expected | Max Duration | Timeout      |
+| ---------------------- | ------------ | -------- | ------------ | ------------ |
+| Session Initialization | 2s           | 3s       | 5s           | 10s          |
+| PRD Decomposition      | 30s          | 60s      | 120s         | 300s         |
+| Delta Handling         | 10s          | 20s      | 40s          | 60s          |
+| Backlog Execution      | Variable     | Variable | Variable     | Configurable |
+| QA Cycle               | 60s          | 120s     | 300s         | 600s         |
+| Cleanup                | 1s           | 2s       | 5s           | 10s          |
 
 ---
 
@@ -482,6 +511,7 @@ stateDiagram-v2
 The DeltaAnalysisWorkflow handles PRD changes by performing semantic comparison between old and new PRD versions. It generates structured patch instructions for updating the task backlog while preserving completed work.
 
 **Key Characteristics:**
+
 - Single-step workflow with `@Step` decorator
 - Uses QA agent for semantic PRD comparison
 - Returns structured `DeltaAnalysis` with changes
@@ -515,6 +545,7 @@ flowchart LR
 3. **Removed Requirements:** Features deleted (noted for awareness)
 
 **Semantic Analysis:**
+
 - Uses QA agent with `createDeltaAnalysisPrompt()`
 - Compares PRD structure, not just text diff
 - Identifies affected tasks based on requirement mapping
@@ -586,6 +617,7 @@ plan/
 ```
 
 **Benefits:**
+
 - Clear audit trail of PRD evolution
 - Preserves completed work from parent
 - Enables session chain navigation
@@ -600,6 +632,7 @@ plan/
 The BugHuntWorkflow performs comprehensive QA testing using an adversarial mindset to find bugs beyond standard validation. It uses AI-powered testing with three distinct phases to uncover issues.
 
 **Key Characteristics:**
+
 - 4-phase workflow (analyze, E2E test, adversarial test, report)
 - Uses QA agent with creative testing strategies
 - Generates structured `TestResults` for bug fix pipeline
@@ -628,11 +661,13 @@ flowchart TD
 ```
 
 **Phase 1: Scope Analysis**
+
 - Understand PRD requirements and expected behaviors
 - Map requirements to implementation
 - Identify user journeys and edge cases
 
 **Phase 2: Creative E2E Testing**
+
 - Happy path testing (primary use cases)
 - Edge case testing (boundaries, empty inputs, unicode)
 - Workflow testing (complete user journeys)
@@ -642,6 +677,7 @@ flowchart TD
 - Concurrency testing (parallel operations)
 
 **Phase 3: Adversarial Testing**
+
 - Unexpected inputs (undefined scenarios, malformed data)
 - Missing features (PRD requirements not implemented)
 - Incomplete features (partial implementations)
@@ -651,6 +687,7 @@ flowchart TD
 - Performance issues (latency, resource usage)
 
 **Phase 4: Generate Report**
+
 - Execute QA agent with all test scenarios
 - Generate structured `TestResults`
 - Classify bugs by severity
@@ -677,20 +714,21 @@ stateDiagram-v2
 
 Bugs are classified into four severity levels:
 
-| Severity | Description | Action Required | Example |
-|---|---|---|---|
-| **Critical** | Blocks core functionality | Must fix immediately | App crashes on startup, data loss |
-| **Major** | Significant impact on UX | Should fix before release | Broken user workflow, incorrect results |
-| **Minor** | Small inconvenience | Nice to fix | UI glitch, suboptimal error message |
-| **Cosmetic** | Visual issues only | Optional | Inconsistent styling, typo |
+| Severity     | Description               | Action Required           | Example                                 |
+| ------------ | ------------------------- | ------------------------- | --------------------------------------- |
+| **Critical** | Blocks core functionality | Must fix immediately      | App crashes on startup, data loss       |
+| **Major**    | Significant impact on UX  | Should fix before release | Broken user workflow, incorrect results |
+| **Minor**    | Small inconvenience       | Nice to fix               | UI glitch, suboptimal error message     |
+| **Cosmetic** | Visual issues only        | Optional                  | Inconsistent styling, typo              |
 
 **Severity Mapping in FixCycleWorkflow:**
+
 ```typescript
 const severityToPoints: Record<Bug['severity'], number> = {
-  critical: 13,  // Highest priority
+  critical: 13, // Highest priority
   major: 8,
   minor: 3,
-  cosmetic: 1,   // Lowest priority
+  cosmetic: 1, // Lowest priority
 };
 ```
 
@@ -700,12 +738,12 @@ const severityToPoints: Record<Bug['severity'], number> = {
 
 ```typescript
 interface Bug {
-  id: string;           // Unique bug identifier
+  id: string; // Unique bug identifier
   severity: 'critical' | 'major' | 'minor' | 'cosmetic';
-  title: string;        // Brief bug description
-  description: string;  // Detailed explanation
+  title: string; // Brief bug description
+  description: string; // Detailed explanation
   reproduction: string; // Steps to reproduce
-  location?: string;    // File/location of bug
+  location?: string; // File/location of bug
 }
 ```
 
@@ -723,12 +761,12 @@ Found 1 critical bug, 1 major bug, 1 minor bug during comprehensive testing.
 
 ## Bug Breakdown
 
-| Severity | Count |
-|----------|-------|
-| 🔴 Critical | 1 |
-| 🟠 Major | 1 |
-| 🟡 Minor | 1 |
-| ⚪ Cosmetic | 0 |
+| Severity    | Count |
+| ----------- | ----- |
+| 🔴 Critical | 1     |
+| 🟠 Major    | 1     |
+| 🟡 Minor    | 1     |
+| ⚪ Cosmetic | 0     |
 
 ## Bug Details
 
@@ -740,6 +778,7 @@ Found 1 critical bug, 1 major bug, 1 minor bug during comprehensive testing.
 Database connections remain open causing connection pool exhaustion.
 
 **Reproduction**:
+
 1. Run pipeline with `--scope P1.M1`
 2. Check database connection count
 3. Observe 100+ open connections
@@ -761,6 +800,7 @@ Database connections remain open causing connection pool exhaustion.
 - **File doesn't exist:** No critical/major bugs → Pipeline success
 
 **Implementation:**
+
 ```typescript
 if (finalResults.bugs.length > 0) {
   // Write TEST_RESULTS.md
@@ -778,6 +818,7 @@ if (finalResults.bugs.length > 0) {
 The FixCycleWorkflow orchestrates iterative bug fixing with a maximum of 3 iterations. It converts bugs to fix subtasks, executes them via TaskOrchestrator, and re-runs BugHuntWorkflow to verify fixes.
 
 **Key Characteristics:**
+
 - Loop-based workflow (max 3 iterations)
 - Converts bugs to fix subtasks with severity-based story points
 - Re-runs BugHuntWorkflow for verification
@@ -806,22 +847,26 @@ flowchart TD
 ### 4-Step Breakdown
 
 **Phase 1: Create Fix Tasks**
+
 - Convert each bug to a subtask-like fix task
 - Assign story points based on severity (critical=13, major=8, minor=3, cosmetic=1)
 - Generate ID format: `PFIX.M1.T{index}.S1`
 - Include bug details in `context_scope`
 
 **Phase 2: Execute Fixes**
+
 - Execute fix tasks via TaskOrchestrator
 - Handle failures gracefully (log error, continue with next fix)
 - Track success/failure counts
 
 **Phase 3: Re-test**
+
 - Extract completed tasks from session
 - Run BugHuntWorkflow again
 - Generate new TestResults
 
 **Phase 4: Check Completion**
+
 - Return `true` if no critical/major bugs remain
 - Return `false` if critical/major bugs still exist
 - Loop back to Phase 1 if not complete and iterations < 3
@@ -873,11 +918,11 @@ for (const fixTask of this.#fixTasks) {
 
 ```typescript
 interface FixTask extends Subtask {
-  id: string;              // PFIX.M1.T{index}.S1
-  title: string;           // [BUG FIX] {bug.title}
-  story_points: number;    // Severity-based (13, 8, 3, 1)
-  dependencies: string[];  // Empty (fix tasks are independent)
-  context_scope: string;   // Bug details + fix requirements
+  id: string; // PFIX.M1.T{index}.S1
+  title: string; // [BUG FIX] {bug.title}
+  story_points: number; // Severity-based (13, 8, 3, 1)
+  dependencies: string[]; // Empty (fix tasks are independent)
+  context_scope: string; // Bug details + fix requirements
 }
 ```
 
@@ -889,13 +934,14 @@ FixCycleWorkflow re-runs BugHuntWorkflow to verify fixes:
 // From FixCycleWorkflow.retest()
 const bugHuntWorkflow = new BugHuntWorkflow(
   this.prdContent,
-  completedTasks  // Includes newly fixed tasks
+  completedTasks // Includes newly fixed tasks
 );
 const results = await bugHuntWorkflow.run();
 this.currentResults = results;
 ```
 
 **Retest Behavior:**
+
 - Uses updated completed tasks (includes fixes)
 - Runs same 4-phase testing process
 - Generates new TestResults
@@ -909,6 +955,7 @@ The fix cycle stops when:
 2. **Max Iterations:** 3 iterations reached (regardless of bug state)
 
 **Stopping Logic:**
+
 ```typescript
 const hasCriticalOrMajor = this.currentResults.bugs.some(
   bug => bug.severity === 'critical' || bug.severity === 'major'
@@ -916,16 +963,17 @@ const hasCriticalOrMajor = this.currentResults.bugs.some(
 
 if (!hasCriticalOrMajor) {
   this.logger.info('All critical/major bugs resolved - fix cycle complete');
-  break;  // Exit loop
+  break; // Exit loop
 }
 
 if (this.iteration >= this.maxIterations) {
   this.logger.warn(`Max iterations (${this.maxIterations}) reached`);
-  break;  // Exit loop with remaining bugs
+  break; // Exit loop with remaining bugs
 }
 ```
 
 **Tolerance:**
+
 - Minor and cosmetic bugs are acceptable (don't trigger another iteration)
 - Only critical and major bugs drive the fix cycle
 
@@ -995,36 +1043,41 @@ sequenceDiagram
 ### Data Flow Between Workflows
 
 **PRPPipeline → DeltaAnalysisWorkflow:**
+
 - Input: Old PRD, new PRD, completed task IDs
 - Output: DeltaAnalysis with changes and affected tasks
 
 **PRPPipeline → BugHuntWorkflow:**
+
 - Input: PRD content, completed tasks
 - Output: TestResults with bug reports
 
 **BugHuntWorkflow → FixCycleWorkflow:**
+
 - Input: TestResults (from bug hunt)
 - Output: Final TestResults (after fixes)
 
 **FixCycleWorkflow → BugHuntWorkflow:**
+
 - Input: PRD content, completed tasks (including fixes)
 - Output: New TestResults (verification)
 
 **All Workflows → SessionManager:**
+
 - All workflows save state via SessionManager
 - State persisted to `plan/{session}/` directory
 - Enables resumption and delta sessions
 
 ### Prompt-to-Workflow Mapping
 
-| Prompt | Workflow Phase | Used By |
-|---|---|---|
-| `TASK_BREAKDOWN_PROMPT` | Phase 1: Task Breakdown | PRPPipeline.decomposePRD() |
-| `PRP_CREATE_PROMPT` | Phase 2: PRP Generation | TaskOrchestrator (researcher agent) |
-| `PRP_EXECUTE_PROMPT` | Phase 3: Implementation | TaskOrchestrator (coder agent) |
-| `BUG_FINDING_PROMPT` | Phase 4: Bug Hunt | BugHuntWorkflow |
-| `DELTA_PRD_GENERATION_PROMPT` | Delta Session | DeltaAnalysisWorkflow |
-| `VALIDATION_PROMPT` | QA Cycle | PRPPipeline.runQACycle() |
+| Prompt                        | Workflow Phase          | Used By                             |
+| ----------------------------- | ----------------------- | ----------------------------------- |
+| `TASK_BREAKDOWN_PROMPT`       | Phase 1: Task Breakdown | PRPPipeline.decomposePRD()          |
+| `PRP_CREATE_PROMPT`           | Phase 2: PRP Generation | TaskOrchestrator (researcher agent) |
+| `PRP_EXECUTE_PROMPT`          | Phase 3: Implementation | TaskOrchestrator (coder agent)      |
+| `BUG_FINDING_PROMPT`          | Phase 4: Bug Hunt       | BugHuntWorkflow                     |
+| `DELTA_PRD_GENERATION_PROMPT` | Delta Session           | DeltaAnalysisWorkflow               |
+| `VALIDATION_PROMPT`           | QA Cycle                | PRPPipeline.runQACycle()            |
 
 ### Component Interaction Diagram
 
@@ -1084,43 +1137,46 @@ graph TB
 
 ### Timing Specifications Table
 
-| Phase | Min Duration | Expected | Max Duration | Timeout |
-|---|---|---|---|---|
-| **PRPPipeline** | | | | |
-| Session Initialization | 2s | 3s | 5s | 10s |
-| PRD Decomposition | 30s | 60s | 120s | 300s |
-| Delta Handling | 10s | 20s | 40s | 60s |
-| Backlog Execution | Variable | Variable | Variable | Configurable |
-| QA Cycle | 60s | 120s | 300s | 600s |
-| Cleanup | 1s | 2s | 5s | 10s |
-| **DeltaAnalysisWorkflow** | | | | |
-| analyzeDelta | 5s | 15s | 30s | 60s |
-| **BugHuntWorkflow** | | | | |
-| Scope Analysis | 2s | 5s | 10s | 30s |
-| E2E Testing | 3s | 10s | 20s | 60s |
-| Adversarial Testing | 3s | 10s | 20s | 60s |
-| Generate Report | 10s | 30s | 60s | 120s |
-| **FixCycleWorkflow** | | | | |
-| Create Fix Tasks | 1s | 2s | 5s | 10s |
-| Execute Fixes | Variable | Variable | Variable | Configurable |
-| Re-test | 60s | 120s | 300s | 600s |
-| Check Completion | 1s | 2s | 5s | 10s |
+| Phase                     | Min Duration | Expected | Max Duration | Timeout      |
+| ------------------------- | ------------ | -------- | ------------ | ------------ |
+| **PRPPipeline**           |              |          |              |              |
+| Session Initialization    | 2s           | 3s       | 5s           | 10s          |
+| PRD Decomposition         | 30s          | 60s      | 120s         | 300s         |
+| Delta Handling            | 10s          | 20s      | 40s          | 60s          |
+| Backlog Execution         | Variable     | Variable | Variable     | Configurable |
+| QA Cycle                  | 60s          | 120s     | 300s         | 600s         |
+| Cleanup                   | 1s           | 2s       | 5s           | 10s          |
+| **DeltaAnalysisWorkflow** |              |          |              |              |
+| analyzeDelta              | 5s           | 15s      | 30s          | 60s          |
+| **BugHuntWorkflow**       |              |          |              |              |
+| Scope Analysis            | 2s           | 5s       | 10s          | 30s          |
+| E2E Testing               | 3s           | 10s      | 20s          | 60s          |
+| Adversarial Testing       | 3s           | 10s      | 20s          | 60s          |
+| Generate Report           | 10s          | 30s      | 60s          | 120s         |
+| **FixCycleWorkflow**      |              |          |              |              |
+| Create Fix Tasks          | 1s           | 2s       | 5s           | 10s          |
+| Execute Fixes             | Variable     | Variable | Variable     | Configurable |
+| Re-test                   | 60s          | 120s     | 300s         | 600s         |
+| Check Completion          | 1s           | 2s       | 5s           | 10s          |
 
 ### Expected Duration Ranges
 
 **Small Project (10-20 subtasks):**
+
 - PRD Decomposition: 30-60s
 - Backlog Execution: 5-15 minutes
 - QA Cycle: 60-120s
 - **Total: 10-20 minutes**
 
 **Medium Project (20-50 subtasks):**
+
 - PRD Decomposition: 60-120s
 - Backlog Execution: 20-45 minutes
 - QA Cycle: 120-300s
 - **Total: 30-60 minutes**
 
 **Large Project (50-100+ subtasks):**
+
 - PRD Decomposition: 120-300s
 - Backlog Execution: 60-120+ minutes
 - QA Cycle: 300-600s
@@ -1197,13 +1253,13 @@ class SessionError extends PipelineError  // Session management failures
 
 **Recovery Strategies:**
 
-| Error Type | Fatal | Recovery Strategy |
-|---|---|---|
-| `TaskError` | No | Log error, continue to next task |
-| `AgentError` | No | Retry with exponential backoff |
-| `ValidationError` | Yes | Abort pipeline, fix PRD |
-| `SessionError` | Yes | Abort pipeline, check filesystem |
-| `ResourceLimitError` | No | Graceful shutdown, save state |
+| Error Type           | Fatal | Recovery Strategy                |
+| -------------------- | ----- | -------------------------------- |
+| `TaskError`          | No    | Log error, continue to next task |
+| `AgentError`         | No    | Retry with exponential backoff   |
+| `ValidationError`    | Yes   | Abort pipeline, fix PRD          |
+| `SessionError`       | Yes   | Abort pipeline, check filesystem |
+| `ResourceLimitError` | No    | Graceful shutdown, save state    |
 
 ### Retry Logic for Workflows
 
@@ -1238,6 +1294,7 @@ async function retryAgentPrompt<T>(
 ```
 
 **Retry Configuration:**
+
 - Max retries: 3 attempts
 - Backoff strategy: Exponential (2^n seconds)
 - Applies to: All agent prompt() calls
@@ -1245,11 +1302,13 @@ async function retryAgentPrompt<T>(
 ### State Transitions on Error
 
 **Normal Flow:**
+
 ```
 idle → running → completed
 ```
 
 **Error Flow:**
+
 ```
 idle → running → failed
 ```
@@ -1265,14 +1324,14 @@ try {
   this.setStatus('completed');
 } catch (error) {
   this.setStatus('failed');
-  await this.#generateErrorReport();  // Always generate report
+  await this.#generateErrorReport(); // Always generate report
   return {
     success: false,
     error: error.message,
     // ... other fields
   };
 } finally {
-  await this.cleanup();  // Always cleanup
+  await this.cleanup(); // Always cleanup
 }
 ```
 
@@ -1284,6 +1343,7 @@ npm run dev -- --prd ./PRD.md --continue-on-error
 ```
 
 With `--continue-on-error`:
+
 - Task failures tracked but don't abort pipeline
 - Error report generated at end
 - Useful for gathering maximum feedback
@@ -1293,17 +1353,20 @@ With `--continue-on-error`:
 #### "Session not found"
 
 **What you see:**
+
 ```bash
 [Session Manager] Session not found
 Error: Cannot resume session
 ```
 
 **Why it happens:**
+
 - Using `--continue` without an existing session
 - Session directory was deleted
 - PRD hash doesn't match any existing session
 
 **How to fix:**
+
 ```bash
 # List available sessions
 ls plan/
@@ -1318,14 +1381,17 @@ npm run dev -- --prd ./PRD.md
 #### "PRD hash changed"
 
 **What you see:**
+
 ```bash
 [Session Manager] PRD hash changed
 ```
 
 **Why it happens:**
+
 - PRD was modified between runs
 
 **How to fix:**
+
 ```bash
 # Delta mode runs automatically
 # Or explicitly:
@@ -1335,15 +1401,18 @@ npm run dev -- --prd ./PRD.md --mode delta
 #### "Agent timeout"
 
 **What you see:**
+
 ```bash
 Error: Agent request timed out after 60000ms
 ```
 
 **Why it happens:**
+
 - LLM API request took too long
 - Complex task requires more time
 
 **How to fix:**
+
 ```bash
 # Increase timeout
 export API_TIMEOUT_MS=120000
@@ -1354,16 +1423,19 @@ export API_TIMEOUT_MS=120000
 #### "Resource limit reached"
 
 **What you see:**
+
 ```bash
 [PRPPipeline] Resource limit reached, initiating graceful shutdown
 ```
 
 **Why it happens:**
+
 - File handle limit exceeded
 - Max tasks limit reached
 - Max duration limit reached
 
 **How to fix:**
+
 ```bash
 # Resume from where it stopped
 npm run dev -- --prd ./PRD.md --continue

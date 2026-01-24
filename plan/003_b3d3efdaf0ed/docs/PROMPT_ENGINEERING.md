@@ -57,6 +57,7 @@ export const TASK_BREAKDOWN_PROMPT = `
 ```
 
 **Best Practices**:
+
 - Use specific professional titles (e.g., "Lead Technical Architect" not "Helper")
 - Specify expertise level (senior, expert, specialist)
 - Define the scope of authority and knowledge
@@ -75,7 +76,9 @@ function constructUserPrompt(
 ): string {
   const itemDescription = isSubtask(task)
     ? task.context_scope
-    : task.description.length > 0 ? task.description : task.title;
+    : task.description.length > 0
+      ? task.description
+      : task.title;
 
   const parentContext = extractParentContext(task.id, backlog);
   const taskContext = extractTaskContext(task, backlog);
@@ -101,6 +104,7 @@ ${PRP_BLUEPRINT_PROMPT}
 ```
 
 **Context Types**:
+
 - **Task Context**: Title, description, dependencies, context_scope
 - **Parent Context**: Phase, Milestone, and Task descriptions
 - **Codebase Context**: File paths, patterns, conventions
@@ -123,6 +127,7 @@ PRPs enable working code on the first attempt through:
 ```
 
 **Task Specification Elements**:
+
 - **Goal**: Clear statement of the desired outcome
 - **Constraints**: Limitations on what the agent can do
 - **Success Criteria**: Measurable definition of completion
@@ -138,13 +143,14 @@ export function createArchitectPrompt(prdContent: string): Prompt<Backlog> {
   return createPrompt({
     user: prdContent,
     system: TASK_BREAKDOWN_PROMPT,
-    responseFormat: BacklogSchema,  // Type-safe JSON output
+    responseFormat: BacklogSchema, // Type-safe JSON output
     enableReflection: true,
   });
 }
 ```
 
 **Output Format Elements**:
+
 - **Schema Definition**: Zod schema for type-safe validation
 - **File Output**: Path where output should be written
 - **Format Requirements**: JSON structure, field naming, etc.
@@ -171,6 +177,7 @@ Defines quality standards and validation requirements.
 ```
 
 **Constraint Types**:
+
 - **Process Constraints**: Workflow rules, step ordering
 - **Scope Constraints**: What's in/out of scope
 - **Output Constraints**: Required format and completeness
@@ -200,6 +207,7 @@ export const TASK_BREAKDOWN_PROMPT = `
 ```
 
 **Best Practices**:
+
 - Use specific professional titles (not generic "assistant")
 - Define the expertise level (senior, principal, lead)
 - Specify the domain scope (software architecture, QA, research)
@@ -210,6 +218,7 @@ export const TASK_BREAKDOWN_PROMPT = `
 The knowledge domain and capabilities the persona can draw upon.
 
 **Architect Agent Expertise**:
+
 - System design and architecture patterns
 - Technology stack evaluation and selection
 - Feasibility analysis and risk assessment
@@ -217,6 +226,7 @@ The knowledge domain and capabilities the persona can draw upon.
 - Cross-domain coordination (Security, DevOps, Backend, Frontend, QA)
 
 **Researcher Agent Expertise**:
+
 - Codebase pattern recognition
 - External documentation research
 - Library and framework analysis
@@ -224,6 +234,7 @@ The knowledge domain and capabilities the persona can draw upon.
 - Dependency analysis
 
 **Coder Agent Expertise**:
+
 - Implementation and coding
 - Pattern following and code style adherence
 - Test writing and validation
@@ -231,6 +242,7 @@ The knowledge domain and capabilities the persona can draw upon.
 - Git workflow and version control
 
 **QA Agent Expertise**:
+
 - Creative bug hunting and adversarial testing
 - End-to-end workflow validation
 - Edge case identification
@@ -241,12 +253,12 @@ The knowledge domain and capabilities the persona can draw upon.
 
 How the persona expresses itself and interacts with users/other agents.
 
-| Persona   | Tone                           | Characteristics                                           |
-|-----------|--------------------------------|-----------------------------------------------------------|
-| Architect | Authoritative, structured       | Uses hierarchical language, precise terminology            |
-| Researcher| Thorough, methodical            | Explains reasoning, cites sources, detail-oriented        |
-| Coder     | Pragmatic, implementation-focused| Direct, code-centric, pattern-following                   |
-| QA        | Creative, adversarial           | Questioning, exploratory, bug-hunting mindset             |
+| Persona    | Tone                              | Characteristics                                    |
+| ---------- | --------------------------------- | -------------------------------------------------- |
+| Architect  | Authoritative, structured         | Uses hierarchical language, precise terminology    |
+| Researcher | Thorough, methodical              | Explains reasoning, cites sources, detail-oriented |
+| Coder      | Pragmatic, implementation-focused | Direct, code-centric, pattern-following            |
+| QA         | Creative, adversarial             | Questioning, exploratory, bug-hunting mindset      |
 
 **Example: QA Agent Tone**
 
@@ -288,6 +300,7 @@ Explicit limitations on what the persona can and cannot do.
 ```
 
 **Constraint Categories**:
+
 - **Process Constraints**: Workflow rules, step ordering, validation gates
 - **Scope Constraints**: What's in/out of scope for the persona
 - **Output Constraints**: Required format, structure, completeness criteria
@@ -317,6 +330,7 @@ issues that standard validation might have missed.
 ```
 
 **Success Metrics**:
+
 - **Architect**: Hierarchical decomposition completeness, feasibility validation
 - **Researcher**: PRP enabling one-pass implementation success
 - **Coder**: Code passing all 4 validation levels on first attempt
@@ -356,10 +370,10 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ```typescript
 // src/agents/agent-factory.ts (lines 118-123)
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Higher limit for complex strategic reasoning
-  researcher: 4096,  // Medium for contextual research
-  coder: 4096,       // Medium for tactical implementation
-  qa: 4096,          // Medium for validation testing
+  architect: 8192, // Higher limit for complex strategic reasoning
+  researcher: 4096, // Medium for contextual research
+  coder: 4096, // Medium for tactical implementation
+  qa: 4096, // Medium for validation testing
 } as const;
 ```
 
@@ -406,6 +420,7 @@ Linear step-by-step instructions where each step depends on the previous one.
 ```
 
 **Best Practices for Sequential Instructions**:
+
 - Number steps clearly (1, 2, 3...)
 - Make dependencies explicit ("Each level must pass before proceeding")
 - Use imperative mood ("Load", "Create", "Verify")
@@ -431,6 +446,7 @@ After research completion, create comprehensive PRP writing plan using TodoWrite
 ```
 
 **Best Practices for Conditional Instructions**:
+
 - Use explicit conditions ("If X, then Y")
 - Define fallback behavior
 - Include escalation criteria ("halt and produce explanation")
@@ -475,6 +491,7 @@ ULTRATHINK & PLAN
 ```
 
 **Best Practices for Parallel Instructions**:
+
 - Use batch tools for efficiency
 - Define clear task boundaries for each subagent
 - Specify aggregation method for results
@@ -497,6 +514,7 @@ Instructions for breaking down complex tasks into sub-components.
 ```
 
 **Best Practices for Hierarchical Instructions**:
+
 - Define level boundaries clearly
 - Specify story point guidelines
 - Include decomposition criteria
@@ -603,13 +621,13 @@ export function createArchitectPrompt(prdContent: string): Prompt<Backlog> {
 
 ```typescript
 interface PromptConfig<T> {
-  user: string;                           // Required: user message
-  data?: Record<string, unknown>;         // Optional: structured data
-  responseFormat: z.ZodType<T>;           // Required: response schema
-  system?: string;                        // Optional: system prompt override
-  tools?: Tool[];                         // Optional: tools override
-  mcps?: MCPServer[];                     // Optional: MCPs override
-  enableReflection?: boolean;             // Optional: enable reflection
+  user: string; // Required: user message
+  data?: Record<string, unknown>; // Optional: structured data
+  responseFormat: z.ZodType<T>; // Required: response schema
+  system?: string; // Optional: system prompt override
+  tools?: Tool[]; // Optional: tools override
+  mcps?: MCPServer[]; // Optional: MCPs override
+  enableReflection?: boolean; // Optional: enable reflection
 }
 ```
 
@@ -644,6 +662,7 @@ Use your file writing tools to create \`./$TASKS_FILE\` with this structure:
 ```
 
 **File Output Pattern**:
+
 1. **Explicit Path**: Specify exact file path
 2. **Format Requirement**: Define expected format (JSON, markdown, etc.)
 3. **Constraints**: Limit what should be written (e.g., "Do NOT output to conversation")
@@ -679,6 +698,7 @@ Including examples in prompts dramatically improves structured output accuracy.
 ```
 
 **Few-Shot Best Practices**:
+
 1. **Show 2-4 examples**: More examples can confuse the LLM, fewer may not demonstrate patterns
 2. **Cover edge cases**: Include examples that show handling of empty arrays, null values, etc.
 3. **Use realistic data**: Examples should match the complexity of real inputs
@@ -712,6 +732,7 @@ const prompt = createPrompt({
 ```
 
 **Data Injection Best Practices**:
+
 - Use `data` property for structured context
 - Keep user prompt focused on instructions
 - Separate configuration from instructions
@@ -730,7 +751,7 @@ Groundswell provides a multi-level reflection system for error recovery:
 ```typescript
 const prompt = createPrompt({
   user: 'Complex analysis task',
-  enableReflection: true,  // Auto-retry on validation failure
+  enableReflection: true, // Auto-retry on validation failure
   responseFormat: StrictAnswerSchema,
 });
 
@@ -741,12 +762,14 @@ const prompt = createPrompt({
 ```
 
 **When to Use Reflection**:
+
 - Complex schema validation (nested objects, strict constraints)
 - Multi-step reasoning tasks
 - High-stakes outputs where accuracy is critical
 - Tasks with potential for hallucination
 
 **When NOT to Use Reflection**:
+
 - Simple classification tasks
 - High-volume, low-latency requirements
 - Idempotent operations where retry is wasteful
@@ -779,7 +802,7 @@ await executeWithReflection(
     failedNode: mockNode,
     error,
     attemptNumber: attempt,
-    previousAttempts: history
+    previousAttempts: history,
   })
 );
 ```
@@ -850,6 +873,7 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
 ```
 
 **Test Criteria**:
+
 - [ ] Passes "No Prior Knowledge" test from template
 - [ ] All YAML references are specific and accessible
 - [ ] Implementation tasks include exact naming and placement guidance
@@ -917,16 +941,19 @@ Draft Prompt → Test with Examples → Analyze Failures → Refine → Retest
 When comparing prompt variations:
 
 **Control Variables**:
+
 - Same test inputs
 - Same model and temperature
 - Same evaluation criteria
 
 **Test Variables**:
+
 - Different prompt wording
 - Different example sets
 - Different constraint structures
 
 **Metrics**:
+
 - Success rate (output passes validation)
 - Quality score (human-rated)
 - Token usage (efficiency)
@@ -970,12 +997,12 @@ Login must be instant but also have 2FA with email verification.
 
 **Quantitative Metrics**:
 
-| Metric        | Target                     | Measurement Method         |
-|---------------|----------------------------|----------------------------|
-| **Success Rate** | >95% (pass validation)   | Automated test suite       |
-| **Quality Score** | >4/5 (human-rated)       | Human evaluation sample    |
-| **Token Efficiency** | <5000 tokens avg     | Token usage tracking       |
-| **Latency** | <30s average             | Execution time monitoring  |
+| Metric               | Target                 | Measurement Method        |
+| -------------------- | ---------------------- | ------------------------- |
+| **Success Rate**     | >95% (pass validation) | Automated test suite      |
+| **Quality Score**    | >4/5 (human-rated)     | Human evaluation sample   |
+| **Token Efficiency** | <5000 tokens avg       | Token usage tracking      |
+| **Latency**          | <30s average           | Execution time monitoring |
 
 **Qualitative Criteria**:
 
@@ -998,6 +1025,7 @@ Login must be instant but also have 2FA with email verification.
 **Role**: LEAD TECHNICAL ARCHITECT & PROJECT SYNTHESIZER
 
 **Key Characteristics**:
+
 - Research-driven architecture validation
 - Hierarchical decomposition (Phase > Milestone > Task > Subtask)
 - Strict context_scope requirements for subtasks
@@ -1019,6 +1047,7 @@ export function createArchitectPrompt(prdContent: string): Prompt<Backlog> {
 **Output Schema**: `BacklogSchema` (array of Phase objects with nested milestones, tasks, subtasks)
 
 **Critical Constraints**:
+
 1. Research-driven: Must validate PRD through codebase research before planning
 2. Coherence: Subtasks must not exist in isolation, explicit handoffs required
 3. Implicit TDD: Testing assumed in every subtask
@@ -1028,6 +1057,7 @@ export function createArchitectPrompt(prdContent: string): Prompt<Backlog> {
 
 ```markdown
 ## PROCESS
+
 ULTRATHINK & PLAN
 
 1. **ANALYZE** the attached or referenced PRD.
@@ -1050,6 +1080,7 @@ ULTRATHINK & PLAN
 **Role**: Context Curation Specialist
 
 **Key Characteristics**:
+
 - Systematic research (codebase + internal + external)
 - PRP template-based generation
 - Context completeness validation
@@ -1073,6 +1104,7 @@ export function createPRPBlueprintPrompt(
 ```
 
 **Context Injection**:
+
 - Task information (title, description, dependencies)
 - Parent context (Phase, Milestone, Task descriptions)
 - Codebase path for analysis
@@ -1081,6 +1113,7 @@ export function createPRPBlueprintPrompt(
 **Output Schema**: `PRPDocumentSchema` (structured PRP with goal, context, implementation tasks, validation gates)
 
 **Critical Constraints**:
+
 1. One-pass implementation success goal
 2. "No Prior Knowledge" test requirement
 3. Specific URLs with section anchors (not just domains)
@@ -1120,6 +1153,7 @@ export function createPRPBlueprintPrompt(
 **Role**: Implementation Specialist
 
 **Key Characteristics**:
+
 - One-pass implementation success focus
 - Progressive validation (4-level gates)
 - Pattern-following approach
@@ -1133,6 +1167,7 @@ export function createPRPBlueprintPrompt(
 ## Mission: One-Pass Implementation Success
 
 PRPs enable working code on the first attempt through:
+
 - **Context Completeness**: Everything needed, nothing guessed
 - **Progressive Validation**: 4-level gates catch errors early
 - **Pattern Consistency**: Follow existing codebase approaches
@@ -1182,6 +1217,7 @@ PRPs enable working code on the first attempt through:
 **Role**: Creative QA Engineer and Bug Hunter
 
 **Key Characteristics**:
+
 - Adversarial testing mindset
 - 4-phase testing process (scope, E2E, adversarial, report)
 - Bug severity classification
@@ -1204,6 +1240,7 @@ export function createBugHuntPrompt(
 ```
 
 **Context Injection**:
+
 - Original PRD content
 - Completed tasks list (for context)
 
@@ -1211,13 +1248,16 @@ export function createBugHuntPrompt(
 
 ```markdown
 ### Phase 1: PRD Scope Analysis
+
 1. Read and deeply understand the original PRD requirements
 2. Map each requirement to what should have been implemented
 3. Identify expected user journeys and workflows
 4. Note edge cases or corner cases implied by requirements
 
 ### Phase 2: Creative End-to-End Testing
+
 Think like a user, then think like an adversary:
+
 1. **Happy Path Testing**: Primary use case
 2. **Edge Case Testing**: Boundaries, empty inputs, unicode
 3. **Workflow Testing**: Complete user journey
@@ -1228,7 +1268,9 @@ Think like a user, then think like an adversary:
 8. **Regression Testing**: Did fixing break anything?
 
 ### Phase 3: Adversarial Testing
+
 Think creatively about what could go wrong:
+
 1. **Unexpected Inputs**: Undefined scenarios
 2. **Missing Features**: PRD requirements not implemented
 3. **Incomplete Features**: Partial implementations
@@ -1236,6 +1278,7 @@ Think creatively about what could go wrong:
 5. **User Experience Issues**: Usability problems
 
 ### Phase 4: Documentation as Bug Report
+
 Write structured bug report to `./$BUG_RESULTS_FILE`
 ```
 

@@ -60,22 +60,22 @@
 
 Key Groundswell exports used in the PRP Pipeline:
 
-| Export | Purpose | Usage |
-|--------|---------|-------|
-| `Workflow` | Base class for workflows | `class MyWorkflow extends Workflow` |
-| `@Step` | Step decorator for timing tracking | `@Step({ trackTiming: true })` |
-| `createAgent` | Agent factory function | `createAgent({ name, system })` |
-| `createPrompt` | Prompt factory with Zod validation | `createPrompt({ user, responseFormat })` |
-| `MCPHandler` | Base class for MCP tools | `class MyMCP extends MCPHandler` |
-| `WorkflowTreeDebugger` | ASCII tree visualization | `new WorkflowTreeDebugger(workflow)` |
+| Export                 | Purpose                            | Usage                                    |
+| ---------------------- | ---------------------------------- | ---------------------------------------- |
+| `Workflow`             | Base class for workflows           | `class MyWorkflow extends Workflow`      |
+| `@Step`                | Step decorator for timing tracking | `@Step({ trackTiming: true })`           |
+| `createAgent`          | Agent factory function             | `createAgent({ name, system })`          |
+| `createPrompt`         | Prompt factory with Zod validation | `createPrompt({ user, responseFormat })` |
+| `MCPHandler`           | Base class for MCP tools           | `class MyMCP extends MCPHandler`         |
+| `WorkflowTreeDebugger` | ASCII tree visualization           | `new WorkflowTreeDebugger(workflow)`     |
 
 Common decorator patterns:
 
-| Pattern | Purpose | Production Usage |
-|---------|---------|------------------|
-| `@Step({ trackTiming: true })` | Track execution timing | **Always used** |
-| `@Task({ concurrent: true })` | Parallel child workflow execution | **Not used** (sequential preferred) |
-| `@ObservedState()` | Mark fields for state snapshots | **Not used** (public fields instead) |
+| Pattern                        | Purpose                           | Production Usage                     |
+| ------------------------------ | --------------------------------- | ------------------------------------ |
+| `@Step({ trackTiming: true })` | Track execution timing            | **Always used**                      |
+| `@Task({ concurrent: true })`  | Parallel child workflow execution | **Not used** (sequential preferred)  |
+| `@ObservedState()`             | Mark fields for state snapshots   | **Not used** (public fields instead) |
 
 ---
 
@@ -116,14 +116,14 @@ npm link groundswell
 
 Groundswell is integrated throughout the PRP Pipeline:
 
-| Component | Groundswell Feature | Location |
-|-----------|---------------------|----------|
-| Main Pipeline | Workflow class, @Step decorator | `src/workflows/prp-pipeline.ts` |
-| Agent Creation | createAgent factory | `src/agents/agent-factory.ts` |
-| Prompt Generation | createPrompt with Zod | `src/agents/prompts/*.ts` |
-| Tool System | MCPHandler extensions | `src/tools/*.mcp.ts` |
-| Caching | Custom filesystem cache | `src/agents/prp-generator.ts` |
-| Retry Logic | Custom wrapper (not Groundswell's) | `src/utils/retry.ts` |
+| Component         | Groundswell Feature                | Location                        |
+| ----------------- | ---------------------------------- | ------------------------------- |
+| Main Pipeline     | Workflow class, @Step decorator    | `src/workflows/prp-pipeline.ts` |
+| Agent Creation    | createAgent factory                | `src/agents/agent-factory.ts`   |
+| Prompt Generation | createPrompt with Zod              | `src/agents/prompts/*.ts`       |
+| Tool System       | MCPHandler extensions              | `src/tools/*.mcp.ts`            |
+| Caching           | Custom filesystem cache            | `src/agents/prp-generator.ts`   |
+| Retry Logic       | Custom wrapper (not Groundswell's) | `src/utils/retry.ts`            |
 
 ---
 
@@ -222,8 +222,12 @@ class MyMCP extends MCPHandler {
 
   constructor() {
     super();
-    this.registerServer({ name: this.name, transport: this.transport, tools: this.tools });
-    this.registerToolExecutor('my-mcp', 'my_tool', async (input) => {
+    this.registerServer({
+      name: this.name,
+      transport: this.transport,
+      tools: this.tools,
+    });
+    this.registerToolExecutor('my-mcp', 'my_tool', async input => {
       return { result: `processed: ${input.param}` };
     });
   }
@@ -282,6 +286,7 @@ export class PRPPipeline extends Workflow {
 ```
 
 **Key Points**:
+
 - Call `super(name)` in constructor with workflow name
 - Use public fields for state (not `@ObservedState` - see gotchas below)
 - Manage status lifecycle: `idle → running → completed/failed`
@@ -317,13 +322,13 @@ async handleDelta(): Promise<void> {
 
 **Decorator Options**:
 
-| Option | Type | Default | Production Value |
-|--------|------|---------|------------------|
-| `trackTiming` | boolean | `true` | `true` (always enabled) |
-| `name` | string | method name | Custom for one step only |
-| `snapshotState` | boolean | `false` | Never used |
-| `logStart` | boolean | `false` | Never used |
-| `logFinish` | boolean | `false` | Never used |
+| Option          | Type    | Default     | Production Value         |
+| --------------- | ------- | ----------- | ------------------------ |
+| `trackTiming`   | boolean | `true`      | `true` (always enabled)  |
+| `name`          | string  | method name | Custom for one step only |
+| `snapshotState` | boolean | `false`     | Never used               |
+| `logStart`      | boolean | `false`     | Never used               |
+| `logFinish`     | boolean | `false`     | Never used               |
 
 ### @Task Decorator
 
@@ -335,11 +340,7 @@ async handleDelta(): Promise<void> {
 
 ```typescript
 // Production pattern (from prp-pipeline.ts:548)
-const workflow = new DeltaAnalysisWorkflow(
-  oldPRD,
-  newPRD,
-  completedTaskIds
-);
+const workflow = new DeltaAnalysisWorkflow(oldPRD, newPRD, completedTaskIds);
 const delta: DeltaAnalysis = await workflow.run();
 ```
 
@@ -388,10 +389,10 @@ class MyWorkflow extends Workflow {
   @ObservedState()
   progress = 0;
 
-  @ObservedState({ redact: true })  // Shown as '***'
+  @ObservedState({ redact: true }) // Shown as '***'
   apiKey = 'secret';
 
-  @ObservedState({ hidden: true })   // Excluded from snapshots
+  @ObservedState({ hidden: true }) // Excluded from snapshots
   internalState = {};
 }
 ```
@@ -404,11 +405,7 @@ Workflows form a hierarchy. Pass the parent to the constructor:
 
 ```typescript
 // Create child workflow with parent reference
-const workflow = new DeltaAnalysisWorkflow(
-  oldPRD,
-  newPRD,
-  completedTaskIds
-);
+const workflow = new DeltaAnalysisWorkflow(oldPRD, newPRD, completedTaskIds);
 // DeltaAnalysisWorkflow constructor: super('DeltaAnalysisWorkflow')
 // No explicit parent passed - uses default behavior
 ```
@@ -565,12 +562,12 @@ export function createArchitectAgent(): Agent {
 
 The PRP Pipeline uses four specialized agent personas:
 
-| Persona | Max Tokens | System Prompt | Purpose |
-|---------|------------|---------------|---------|
-| **Architect** | 8192 | `TASK_BREAKDOWN_PROMPT` | PRD analysis, task breakdown |
-| **Researcher** | 4096 | `PRP_BLUEPRINT_PROMPT` | PRP generation, codebase research |
-| **Coder** | 4096 | `PRP_BUILDER_PROMPT` | Code implementation from PRPs |
-| **QA** | 4096 | `BUG_HUNT_PROMPT` | Validation, bug hunting |
+| Persona        | Max Tokens | System Prompt           | Purpose                           |
+| -------------- | ---------- | ----------------------- | --------------------------------- |
+| **Architect**  | 8192       | `TASK_BREAKDOWN_PROMPT` | PRD analysis, task breakdown      |
+| **Researcher** | 4096       | `PRP_BLUEPRINT_PROMPT`  | PRP generation, codebase research |
+| **Coder**      | 4096       | `PRP_BUILDER_PROMPT`    | Code implementation from PRPs     |
+| **QA**         | 4096       | `BUG_HUNT_PROMPT`       | Validation, bug hunting           |
 
 **Persona Token Limits**:
 
@@ -578,7 +575,7 @@ The PRP Pipeline uses four specialized agent personas:
 
 ```typescript
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Higher limit for complex reasoning
+  architect: 8192, // Higher limit for complex reasoning
   researcher: 4096,
   coder: 4096,
   qa: 4096,
@@ -595,12 +592,12 @@ All agents share a common configuration structure:
 
 ```typescript
 export interface AgentConfig {
-  readonly name: string;              // Agent identifier
-  readonly system: string;            // System prompt
-  readonly model: string;             // GLM-4.7
-  readonly enableCache: boolean;      // true for all agents
+  readonly name: string; // Agent identifier
+  readonly system: string; // System prompt
+  readonly model: string; // GLM-4.7
+  readonly enableCache: boolean; // true for all agents
   readonly enableReflection: boolean; // true for all agents
-  readonly maxTokens: number;         // Persona-specific
+  readonly maxTokens: number; // Persona-specific
   readonly env: {
     readonly ANTHROPIC_API_KEY: string;
     readonly ANTHROPIC_BASE_URL: string;
@@ -634,25 +631,35 @@ import { z } from 'zod';
 
 // Define response schema
 const BacklogSchema = z.object({
-  backlog: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    milestones: z.array(z.object({
+  backlog: z.array(
+    z.object({
       id: z.string(),
-      tasks: z.array(z.object({
-        id: z.string(),
-        subtasks: z.array(z.object({
+      title: z.string(),
+      milestones: z.array(
+        z.object({
           id: z.string(),
-          title: z.string(),
-          context_scope: z.string(),
-        })),
-      })),
-    })),
-  })),
+          tasks: z.array(
+            z.object({
+              id: z.string(),
+              subtasks: z.array(
+                z.object({
+                  id: z.string(),
+                  title: z.string(),
+                  context_scope: z.string(),
+                })
+              ),
+            })
+          ),
+        })
+      ),
+    })
+  ),
 });
 
 // Create prompt with schema
-export function createArchitectPrompt(prdContent: string): Prompt<BacklogSchema> {
+export function createArchitectPrompt(
+  prdContent: string
+): Prompt<BacklogSchema> {
   return createPrompt({
     user: 'Analyze this PRD and create a task backlog',
     data: { prd: prdContent },
@@ -770,7 +777,8 @@ Tools are defined with JSON Schema input validation:
 ```typescript
 const bashTool: Tool = {
   name: 'execute_bash',
-  description: 'Execute shell commands with optional working directory and timeout.',
+  description:
+    'Execute shell commands with optional working directory and timeout.',
   input_schema: {
     type: 'object',
     properties: {
@@ -815,7 +823,9 @@ interface BashToolResult {
   error?: string;
 }
 
-async function executeBashCommand(input: BashToolInput): Promise<BashToolResult> {
+async function executeBashCommand(
+  input: BashToolInput
+): Promise<BashToolResult> {
   const { command, cwd, timeout = DEFAULT_TIMEOUT } = input;
 
   // PATTERN: Validate working directory exists
@@ -859,12 +869,20 @@ async function executeBashCommand(input: BashToolInput): Promise<BashToolResult>
 export class BashMCP extends MCPHandler {
   readonly name = 'bash';
   readonly transport = 'inprocess' as const;
-  readonly tools = [bashTool];  // Single tool
+  readonly tools = [bashTool]; // Single tool
 
   constructor() {
     super();
-    this.registerServer({ name: this.name, transport: this.transport, tools: this.tools });
-    this.registerToolExecutor('bash', 'execute_bash', executeBashCommand as ToolExecutor);
+    this.registerServer({
+      name: this.name,
+      transport: this.transport,
+      tools: this.tools,
+    });
+    this.registerToolExecutor(
+      'bash',
+      'execute_bash',
+      executeBashCommand as ToolExecutor
+    );
   }
 }
 ```
@@ -882,7 +900,7 @@ export class FilesystemMCP extends MCPHandler {
     fileWriteTool,
     globFilesTool,
     grepSearchTool,
-  ];  // Four tools
+  ]; // Four tools
 
   constructor() {
     super();
@@ -893,10 +911,26 @@ export class FilesystemMCP extends MCPHandler {
     });
 
     // Register each tool executor
-    this.registerToolExecutor('filesystem', 'file_read', readFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'file_write', writeFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'glob_files', globFiles as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'grep_search', grepSearch as ToolExecutor);
+    this.registerToolExecutor(
+      'filesystem',
+      'file_read',
+      readFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'file_write',
+      writeFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'glob_files',
+      globFiles as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'grep_search',
+      grepSearch as ToolExecutor
+    );
   }
 }
 ```
@@ -914,11 +948,15 @@ export class GitMCP extends MCPHandler {
     gitDiffTool,
     gitAddTool,
     gitCommitTool,
-  ];  // Four Git tools
+  ]; // Four Git tools
 
   constructor() {
     super();
-    this.registerServer({ name: this.name, transport: this.transport, tools: this.tools });
+    this.registerServer({
+      name: this.name,
+      transport: this.transport,
+      tools: this.tools,
+    });
     this.registerToolExecutor('git', 'git_status', gitStatus as ToolExecutor);
     this.registerToolExecutor('git', 'git_diff', gitDiff as ToolExecutor);
     this.registerToolExecutor('git', 'git_add', gitAdd as ToolExecutor);
@@ -933,17 +971,17 @@ export class GitMCP extends MCPHandler {
 
 **Examples**:
 
-| Server | Tool | Full Name |
-|--------|------|-----------|
-| `bash` | `execute_bash` | `bash__execute_bash` |
-| `filesystem` | `file_read` | `filesystem__file_read` |
-| `filesystem` | `file_write` | `filesystem__file_write` |
-| `filesystem` | `glob_files` | `filesystem__glob_files` |
-| `filesystem` | `grep_search` | `filesystem__grep_search` |
-| `git` | `git_status` | `git__git_status` |
-| `git` | `git_diff` | `git__git_diff` |
-| `git` | `git_add` | `git__git_add` |
-| `git` | `git_commit` | `git__git_commit` |
+| Server       | Tool           | Full Name                 |
+| ------------ | -------------- | ------------------------- |
+| `bash`       | `execute_bash` | `bash__execute_bash`      |
+| `filesystem` | `file_read`    | `filesystem__file_read`   |
+| `filesystem` | `file_write`   | `filesystem__file_write`  |
+| `filesystem` | `glob_files`   | `filesystem__glob_files`  |
+| `filesystem` | `grep_search`  | `filesystem__grep_search` |
+| `git`        | `git_status`   | `git__git_status`         |
+| `git`        | `git_diff`     | `git__git_diff`           |
+| `git`        | `git_add`      | `git__git_add`            |
+| `git`        | `git_commit`   | `git__git_commit`         |
 
 ---
 
@@ -962,11 +1000,11 @@ export class GitMCP extends MCPHandler {
 ```typescript
 interface PRPCacheMetadata {
   readonly taskId: string;
-  readonly taskHash: string;      // SHA-256 for change detection
+  readonly taskHash: string; // SHA-256 for change detection
   readonly createdAt: number;
   readonly accessedAt: number;
   readonly version: string;
-  readonly prp: PRPDocument;      // Full PRP for easy retrieval
+  readonly prp: PRPDocument; // Full PRP for easy retrieval
 }
 ```
 
@@ -1006,6 +1044,7 @@ Cache keys are generated from task inputs to detect changes:
 ```
 
 **Excluded from hash**: Fields that don't affect PRP content:
+
 - `status` (changes during execution)
 - `dependencies` (structural, not content)
 - `story_points` (metadata)
@@ -1090,13 +1129,13 @@ console.log(debugger_.toTreeString());
 
 **Status Symbols**:
 
-| Symbol | Status |
-|--------|--------|
-| `o` | idle |
-| `-` | running |
-| `+` | completed |
-| `x` | failed |
-| `/` | cancelled |
+| Symbol | Status    |
+| ------ | --------- |
+| `o`    | idle      |
+| `-`    | running   |
+| `+`    | completed |
+| `x`    | failed    |
+| `/`    | cancelled |
 
 ### Observer Pattern
 
@@ -1128,16 +1167,16 @@ workflow.addObserver(observer);
 
 **Event Types**:
 
-| Type | Description |
-|------|-------------|
-| `stepStart` | Step execution started |
-| `stepEnd` | Step completed (includes duration) |
-| `taskStart` | Task execution started |
-| `taskEnd` | Task completed |
-| `childAttached` | Child workflow attached |
-| `stateSnapshot` | State snapshot captured |
-| `error` | Error occurred |
-| `treeUpdated` | Tree structure changed |
+| Type            | Description                        |
+| --------------- | ---------------------------------- |
+| `stepStart`     | Step execution started             |
+| `stepEnd`       | Step completed (includes duration) |
+| `taskStart`     | Task execution started             |
+| `taskEnd`       | Task completed                     |
+| `childAttached` | Child workflow attached            |
+| `stateSnapshot` | State snapshot captured            |
+| `error`         | Error occurred                     |
+| `treeUpdated`   | Tree structure changed             |
 
 ### Logging and Correlation IDs
 
@@ -1176,9 +1215,7 @@ Progress is tracked and reported every 5 tasks:
 ```typescript
 // Log progress every 5 tasks
 if (this.completedTasks % 5 === 0) {
-  this.logger.info(
-    `[PRPPipeline] ${this.#progressTracker?.formatProgress()}`
-  );
+  this.logger.info(`[PRPPipeline] ${this.#progressTracker?.formatProgress()}`);
 }
 ```
 
@@ -1259,7 +1296,12 @@ Add a new agent persona to the factory:
 
 ```typescript
 // 1. Update AgentPersona type
-export type AgentPersona = 'architect' | 'researcher' | 'coder' | 'qa' | 'designer';
+export type AgentPersona =
+  | 'architect'
+  | 'researcher'
+  | 'coder'
+  | 'qa'
+  | 'designer';
 
 // 2. Add token limit
 const PERSONA_TOKEN_LIMITS = {
@@ -1267,7 +1309,7 @@ const PERSONA_TOKEN_LIMITS = {
   researcher: 4096,
   coder: 4096,
   qa: 4096,
-  designer: 6144,  // New persona
+  designer: 6144, // New persona
 } as const;
 
 // 3. Create system prompt
@@ -1336,7 +1378,9 @@ const databaseTool: Tool = {
 };
 
 // Implement executor
-async function executeDatabaseQuery(input: DatabaseToolInput): Promise<DatabaseToolResult> {
+async function executeDatabaseQuery(
+  input: DatabaseToolInput
+): Promise<DatabaseToolResult> {
   const { query, database = 'default' } = input;
 
   try {
@@ -1364,7 +1408,11 @@ export class DatabaseMCP extends MCPHandler {
       transport: this.transport,
       tools: this.tools,
     });
-    this.registerToolExecutor('database', 'execute_query', executeDatabaseQuery as ToolExecutor);
+    this.registerToolExecutor(
+      'database',
+      'execute_query',
+      executeDatabaseQuery as ToolExecutor
+    );
   }
 }
 ```
@@ -1374,7 +1422,12 @@ export class DatabaseMCP extends MCPHandler {
 ```typescript
 // In agent-factory.ts
 const DATABASE_MCP = new DatabaseMCP();
-const MCP_TOOLS: MCPServer[] = [BASH_MCP, FILESYSTEM_MCP, GIT_MCP, DATABASE_MCP];
+const MCP_TOOLS: MCPServer[] = [
+  BASH_MCP,
+  FILESYSTEM_MCP,
+  GIT_MCP,
+  DATABASE_MCP,
+];
 ```
 
 **Tool name**: `database__execute_query` (double underscore format)

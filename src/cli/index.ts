@@ -48,6 +48,7 @@ const logger = getLogger('CLI');
  * @property dryRun - Show plan without executing
  * @property verbose - Enable debug logging
  * @property machineReadable - Enable machine-readable JSON output
+ * @property progressMode - Progress display mode: auto, always, or never
  */
 export interface CLIArgs {
   /** Path to PRD markdown file */
@@ -85,6 +86,9 @@ export interface CLIArgs {
 
   /** Maximum execution duration in milliseconds (optional) */
   maxDuration?: number;
+
+  /** Progress display mode (auto/always/never) */
+  progressMode?: 'auto' | 'always' | 'never';
 }
 
 // ===== MAIN FUNCTION =====
@@ -144,6 +148,13 @@ export function parseCLIArgs(): CLIArgs {
     )
     .option('--max-tasks <number>', 'Maximum number of tasks to execute')
     .option('--max-duration <ms>', 'Maximum execution duration in milliseconds')
+    // Progress mode with choices
+    .addOption(
+      program
+        .createOption('--progress-mode <mode>', 'Progress display mode')
+        .choices(['auto', 'always', 'never'])
+        .default('auto')
+    )
     .parse(process.argv);
 
   // Get typed options

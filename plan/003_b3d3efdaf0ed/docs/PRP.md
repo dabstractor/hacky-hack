@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive custom workflow development guide (`docs/CUSTOM_WORKFLOWS.md`) that documents the Groundswell Workflow base class, decorator patterns (@Step, @Task, @ObservedState), workflow lifecycle management, error handling and recovery patterns, workflow composition patterns, and includes a complete example of adding a 'DeploymentWorkflow'.
 
 **Deliverable**: Documentation file `docs/CUSTOM_WORKFLOWS.md` containing:
+
 - Groundswell Workflow base class overview (extends Workflow pattern)
 - @Step decorator for method tracking with timing
 - @Task decorator for child workflow composition
@@ -25,6 +26,7 @@
 - Cross-references to existing workflow implementations and documentation
 
 **Success Definition**:
+
 - A developer can create a new custom workflow following the guide
 - The DeploymentWorkflow example is complete and can be implemented directly
 - All patterns reference actual code from the codebase with file paths
@@ -36,6 +38,7 @@
 ## User Persona
 
 **Target User**: Developer or contributor who needs to:
+
 - Extend the PRP Pipeline with custom workflows
 - Understand the Groundswell Workflow class and decorators
 - Create domain-specific workflows (e.g., DeploymentWorkflow, MigrationWorkflow, DataProcessingWorkflow)
@@ -44,6 +47,7 @@
 - Track workflow state and observability
 
 **Use Case**: User needs to understand:
+
 - What is the Groundswell Workflow base class?
 - How do I use @Step, @Task, and @ObservedState decorators?
 - How do I manage workflow lifecycle and status?
@@ -53,6 +57,7 @@
 - Is there a complete example I can follow?
 
 **User Journey**:
+
 1. User opens docs/CUSTOM_WORKFLOWS.md to understand workflow development
 2. User learns about Groundswell Workflow base class
 3. User studies @Step, @Task, and @ObservedState decorator patterns
@@ -64,6 +69,7 @@
 9. User can now create and integrate custom workflows effectively
 
 **Pain Points Addressed**:
+
 - "What is the Groundswell Workflow class?" - Workflow base class overview section
 - "How do I use the decorators?" - Decorator patterns section with examples
 - "How do I manage workflow lifecycle?" - Lifecycle patterns section
@@ -109,6 +115,7 @@ Create docs/CUSTOM_WORKFLOWS.md with comprehensive custom workflow development d
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete workflow implementations (PRPPipeline, BugHuntWorkflow, FixCycleWorkflow, DeltaAnalysisWorkflow, HelloWorldWorkflow)
 - Groundswell Workflow base class usage patterns
 - Decorator patterns (@Step, @Task, @ObservedState)
@@ -494,10 +501,11 @@ Task 11: VALIDATE documentation quality
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Documentation Style Guidelines (follow existing patterns)
 
 # Header Pattern
+
 > Brief one-sentence description
 
 **Status**: Published
@@ -505,10 +513,13 @@ Task 11: VALIDATE documentation quality
 **Version**: 1.0.0
 
 # Section Headers
+
 ## Section Name
+
 ### Subsection Name
 
 # Code Examples
+
 ```typescript
 // Include file path comment
 // src/workflows/my-workflow.ts
@@ -538,21 +549,26 @@ export class MyWorkflow extends Workflow {
   }
 }
 ```
+````
 
 # Cross-References
+
 See [PRPPipeline](../src/workflows/prp-pipeline.ts) for complete workflow example.
 See [BugHuntWorkflow](../src/workflows/bug-hunt-workflow.ts) for simple 4-step workflow.
 See [Workflow Best Practices](./plan/003_b3d3efdaf0ed/P2M2T2S3/research/workflow-best-practices.md) for external research.
 
 # Tables
-| Decorator | Purpose | Configuration |
-|-----------|---------|---------------|
-| @Step | Method tracking with timing | trackTiming: boolean, name?: string |
-| @Task | Child workflow composition | (attached automatically) |
-| @ObservedState | State field observability | (automatic on public fields) |
+
+| Decorator      | Purpose                     | Configuration                       |
+| -------------- | --------------------------- | ----------------------------------- |
+| @Step          | Method tracking with timing | trackTiming: boolean, name?: string |
+| @Task          | Child workflow composition  | (attached automatically)            |
+| @ObservedState | State field observability   | (automatic on public fields)        |
 
 # Diagrams (Mermaid)
+
 ## Lifecycle State Diagram
+
 ```mermaid
 stateDiagram-v2
     [*] --> Idle: Workflow Created
@@ -564,6 +580,7 @@ stateDiagram-v2
 ```
 
 ## Workflow Class Inheritance
+
 ```mermaid
 classDiagram
     class Workflow {
@@ -586,6 +603,7 @@ classDiagram
 ```
 
 # Callouts
+
 > **Note**: Important information uses blockquote format.
 
 **CRITICAL**: Use emphasis for critical implementation details.
@@ -597,10 +615,12 @@ classDiagram
 **SECURITY**: Highlight security considerations.
 
 # External Links
+
 [Groundswell Framework](https://github.com/anthropics/groundswell)
 [Prefect Documentation](https://docs.prefect.io/concepts/workflows)
 [Airflow DAGs](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags)
-```
+
+````
 
 ### Integration Points
 
@@ -632,7 +652,7 @@ PARALLEL WORK CONSIDERATIONS:
   - Focus CUSTOM_WORKFLOWS.md on workflow implementation, not agent or tool creation
   - Avoid duplicating agent development content - reference CUSTOM_AGENTS.md instead
   - Avoid duplicating MCP tool content - reference CUSTOM_TOOLS.md instead
-```
+````
 
 ---
 

@@ -196,7 +196,9 @@ async function main(): Promise<number> {
     args.noCache,
     args.continueOnError,
     args.maxTasks,
-    args.maxDuration
+    args.maxDuration,
+    undefined, // planDir - use default
+    args.progressMode ?? 'auto'
   );
 
   // Run pipeline

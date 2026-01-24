@@ -43,6 +43,7 @@ coverage: {
 ```
 
 **What this means:**
+
 - Every statement must be executed during tests
 - Every branch (if/else, switch) must be tested
 - Every function must be called
@@ -68,15 +69,15 @@ Each test must be **completely isolated** from others:
 ```typescript
 // Global setup in tests/setup.ts ensures isolation
 beforeEach(() => {
-  vi.clearAllMocks();           // Clear mock call histories
-  validateApiEndpoint();        // Verify API endpoint configuration
+  vi.clearAllMocks(); // Clear mock call histories
+  validateApiEndpoint(); // Verify API endpoint configuration
   // Track unhandled promise rejections
 });
 
 afterEach(() => {
-  vi.unstubAllEnvs();           // Restore environment variables
+  vi.unstubAllEnvs(); // Restore environment variables
   if (typeof global.gc === 'function') {
-    global.gc();                // Force garbage collection
+    global.gc(); // Force garbage collection
   }
 });
 ```
@@ -237,6 +238,7 @@ This organization makes it easy to find tests for any given module.
 **Location**: `tests/unit/`
 
 **Characteristics**:
+
 - Fast execution (< 1ms per test)
 - No external dependencies (all mocked)
 - Test individual functions and methods
@@ -273,6 +275,7 @@ describe('createBaseConfig', () => {
 ```
 
 **Key patterns**:
+
 - Uses `it.each()` for parameterized tests
 - Tests return values and edge cases
 - No mocking of the unit under test
@@ -285,6 +288,7 @@ describe('createBaseConfig', () => {
 **Location**: `tests/integration/`
 
 **Characteristics**:
+
 - Medium execution time (10-100ms per test)
 - Tests component interactions
 - May use real objects with mocked dependencies
@@ -364,6 +368,7 @@ describe('createArchitectAgent', () => {
 ```
 
 **Key patterns**:
+
 - **Groundswell mocking** with `vi.importActual()` to preserve exports
 - **Mock fixtures** for reusable test data
 - **AAA pattern** (Arrange-Act-Assert) clearly marked in comments
@@ -376,6 +381,7 @@ describe('createArchitectAgent', () => {
 **Location**: `tests/e2e/`
 
 **Characteristics**:
+
 - Slower execution (1-10 seconds per test)
 - Tests complete user workflows
 - Minimal mocking (only external services)
@@ -412,11 +418,11 @@ describe('Full Pipeline E2E', () => {
 
 **When to use each type**:
 
-| Test Type | Use When | Examples |
-|-----------|----------|----------|
-| **Unit** | Testing single functions, edge cases, utility functions | `createBaseConfig()`, `parseTaskId()`, `validatePRD()` |
-| **Integration** | Testing component interactions, data flow | Agent creation with Groundswell, PRP generation workflow |
-| **E2E** | Testing complete critical workflows | Full PRD → Code pipeline, Delta session workflow |
+| Test Type       | Use When                                                | Examples                                                 |
+| --------------- | ------------------------------------------------------- | -------------------------------------------------------- |
+| **Unit**        | Testing single functions, edge cases, utility functions | `createBaseConfig()`, `parseTaskId()`, `validatePRD()`   |
+| **Integration** | Testing component interactions, data flow               | Agent creation with Groundswell, PRP generation workflow |
+| **E2E**         | Testing complete critical workflows                     | Full PRD → Code pipeline, Delta session workflow         |
 
 ---
 
@@ -438,7 +444,7 @@ Groundswell exports must be mocked at the top level before any imports, using `v
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
   return {
-    ...actual,  // PRESERVE non-mocked exports (MCPHandler, MCPServer)
+    ...actual, // PRESERVE non-mocked exports (MCPHandler, MCPServer)
     createAgent: vi.fn(),
     createPrompt: vi.fn(),
   };
@@ -448,6 +454,7 @@ import { createAgent, createPrompt } from 'groundswell';
 ```
 
 **Why this pattern is critical:**
+
 - **Hoisting**: `vi.mock()` must be at top level before imports
 - **Preserve exports**: `MCPHandler` and `MCPServer` are needed by MCP tools
 - **Prevent errors**: Without preserving exports, you get "MCP server 'undefined' is already registered"
@@ -601,7 +608,9 @@ describe('Environment configuration', () => {
 
     const config = createBaseConfig('architect');
 
-    expect(config.env.ANTHROPIC_BASE_URL).toBe('https://api.z.ai/api/anthropic');
+    expect(config.env.ANTHROPIC_BASE_URL).toBe(
+      'https://api.z.ai/api/anthropic'
+    );
     expect(config.env.ANTHROPIC_API_KEY).toBe('test-key-123');
   });
 
@@ -698,6 +707,7 @@ coverage: {
 ```
 
 **Coverage output locations:**
+
 - **Console**: Text summary printed to terminal
 - **HTML report**: `coverage/index.html` - Interactive browser report
 - **JSON report**: `coverage/coverage-final.json` - Machine-readable data
@@ -828,6 +838,7 @@ describe('createArchitectAgent', () => {
 ```
 
 **Benefits of AAA pattern:**
+
 - Clear separation of setup, execution, and verification
 - Easy to scan and understand
 - Consistent structure across all tests
@@ -948,6 +959,7 @@ describe('ModuleName', () => {
 ### Best Practices
 
 1. **Test Isolation**
+
    ```typescript
    // Good: Each test is independent
    it('should create user', () => {
@@ -972,6 +984,7 @@ describe('ModuleName', () => {
    ```
 
 2. **Clean Up Resources**
+
    ```typescript
    afterEach(() => {
      vi.clearAllMocks();
@@ -980,6 +993,7 @@ describe('ModuleName', () => {
    ```
 
 3. **Test Edge Cases**
+
    ```typescript
    describe('parseInt', () => {
      it('should parse valid numbers', () => {
@@ -1005,6 +1019,7 @@ describe('ModuleName', () => {
    ```
 
 4. **Use Parameterized Tests**
+
    ```typescript
    const personas: AgentPersona[] = ['architect', 'researcher', 'coder', 'qa'];
 
@@ -1018,8 +1033,9 @@ describe('ModuleName', () => {
 5. **Meaningful Error Messages**
    ```typescript
    it('should throw validation error for invalid email', () => {
-     expect(() => createUser({ email: 'invalid' }))
-       .toThrow('Email must be a valid email address');
+     expect(() => createUser({ email: 'invalid' })).toThrow(
+       'Email must be a valid email address'
+     );
    });
    ```
 

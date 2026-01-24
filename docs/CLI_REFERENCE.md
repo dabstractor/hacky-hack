@@ -34,14 +34,14 @@
 
 Essential commands for daily use:
 
-| Command                                         | Description                                        |
-| ----------------------------------------------- | -------------------------------------------------- |
-| `npm run dev -- --prd ./PRD.md`                 | Run full pipeline with default PRD                 |
-| `npm run dev -- --prd ./PRD.md --scope P1`      | Execute only Phase 1                               |
-| `npm run dev -- --prd ./PRD.md --continue`      | Resume from previous session                       |
-| `npm run dev -- --prd ./PRD.md --dry-run`       | Show plan without executing                        |
-| `npm run dev -- --prd ./PRD.md --verbose`       | Run with debug logging enabled                     |
-| `npm run dev -- --prd ./PRD.md --validate-prd`  | Validate PRD syntax without running pipeline       |
+| Command                                        | Description                                  |
+| ---------------------------------------------- | -------------------------------------------- |
+| `npm run dev -- --prd ./PRD.md`                | Run full pipeline with default PRD           |
+| `npm run dev -- --prd ./PRD.md --scope P1`     | Execute only Phase 1                         |
+| `npm run dev -- --prd ./PRD.md --continue`     | Resume from previous session                 |
+| `npm run dev -- --prd ./PRD.md --dry-run`      | Show plan without executing                  |
+| `npm run dev -- --prd ./PRD.md --verbose`      | Run with debug logging enabled               |
+| `npm run dev -- --prd ./PRD.md --validate-prd` | Validate PRD syntax without running pipeline |
 
 ---
 
@@ -58,6 +58,7 @@ npm run dev -- --prd ./PRD.md
 ```
 
 This command:
+
 - Reads the PRD from the specified path
 - Analyzes requirements and generates tasks
 - Executes all tasks through AI agents
@@ -71,6 +72,7 @@ npm run dev -- --prd ./PRD.md --verbose
 ```
 
 Enable debug logging to see detailed execution information, including:
+
 - Parsed CLI arguments
 - Scope parsing results
 - Agent invocation details
@@ -99,13 +101,13 @@ npm run dev -- --prd ./PRD.md --scope all
 
 **Scope Format:**
 
-| Format    | Example       | Description                       |
-| --------- | ------------- | --------------------------------- |
-| Phase     | `P1`          | Execute all tasks in Phase 1      |
+| Format    | Example       | Description                        |
+| --------- | ------------- | ---------------------------------- |
+| Phase     | `P1`          | Execute all tasks in Phase 1       |
 | Milestone | `P1.M1`       | Execute all tasks in Milestone 1.1 |
 | Task      | `P1.M1.T1`    | Execute all subtasks in Task 1.1.1 |
 | Subtask   | `P1.M1.T1.S1` | Execute only subtask 1.1.1.1       |
-| All       | `all`         | Execute entire backlog (default)  |
+| All       | `all`         | Execute entire backlog (default)   |
 
 **Important**: Scope format is **case-sensitive**. Use uppercase letters: `P1.M1`, not `p1.m1`.
 
@@ -126,6 +128,7 @@ npm run dev -- --prd ./PRD.md --dry-run
 ```
 
 Shows what would be executed without actually running the pipeline. Useful for:
+
 - Verifying PRD syntax
 - Checking scope selection
 - Previewing execution plan
@@ -150,10 +153,10 @@ Validates the PRD syntax and structure without running the pipeline. Exits with 
 
 ### Execution Control
 
-| Option            | Type   | Choices                          | Default  | Description                                                                 |
-| ----------------- | ------ | -------------------------------- | -------- | --------------------------------------------------------------------------- |
-| `--mode <mode>`   | string | `normal`, `bug-hunt`, `validate` | `normal` | Execution mode                                                              |
-| `--scope <scope>` | string | -                                | -        | Scope identifier (e.g., `P3.M4`, `P3.M4.T2`)                                  |
+| Option            | Type   | Choices                          | Default  | Description                                  |
+| ----------------- | ------ | -------------------------------- | -------- | -------------------------------------------- |
+| `--mode <mode>`   | string | `normal`, `bug-hunt`, `validate` | `normal` | Execution mode                               |
+| `--scope <scope>` | string | -                                | -        | Scope identifier (e.g., `P3.M4`, `P3.M4.T2`) |
 
 **Execution Modes:**
 
@@ -220,12 +223,12 @@ Validates the PRD syntax and structure without running the pipeline. Exits with 
 
 The pipeline uses specific exit codes to indicate completion status:
 
-| Code | Name            | Description                          |
-| ---- | --------------- | ------------------------------------ |
-| 0    | SUCCESS         | Pipeline completed successfully       |
-| 1    | ERROR           | General error occurred                |
+| Code | Name             | Description                            |
+| ---- | ---------------- | -------------------------------------- |
+| 0    | SUCCESS          | Pipeline completed successfully        |
+| 1    | ERROR            | General error occurred                 |
 | 2    | VALIDATION_ERROR | PRD or configuration validation failed |
-| 130  | INTERRUPTED     | Process interrupted by user (Ctrl+C)  |
+| 130  | INTERRUPTED      | Process interrupted by user (Ctrl+C)   |
 
 **Exit Code Details:**
 
@@ -486,6 +489,7 @@ npm run dev -- --prd ./PRD.md --verbose
 ```
 
 Verbose logging provides detailed information about:
+
 - Parsed CLI arguments
 - Scope resolution
 - Agent invocations
@@ -524,6 +528,7 @@ ls -la plan/
 ```
 
 Each session has a unique ID and contains:
+
 - `session.json` - Session state
 - `tasks.json` - Task backlog
 - `ERROR_REPORT.md` - Error details (if failures occurred)

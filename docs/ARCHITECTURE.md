@@ -184,7 +184,7 @@ Subtasks declare dependencies using the `dependencies` array:
 
 ```typescript
 interface Subtask {
-  readonly dependencies: string[];  // e.g., ['P1.M1.T1.S1', 'P1.M1.T1.S2']
+  readonly dependencies: string[]; // e.g., ['P1.M1.T1.S1', 'P1.M1.T1.S2']
 }
 ```
 
@@ -208,12 +208,12 @@ The Agent Runtime manages LLM agent creation, configuration, and execution with 
 
 #### Agent Types
 
-| Agent       | Persona              | Responsibility                      | Token Limit |
-| ----------- | -------------------- | ----------------------------------- | ----------- |
-| **Architect**  | System Designer    | Generates task backlog from PRD     | 8192        |
-| **Researcher** | Context Gatherer   | Generates PRPs for subtasks         | 4096        |
-| **Coder**      | Implementation Expert | Executes PRPs to produce code    | 4096        |
-| **QA**         | Quality Assurance  | Finds and fixes bugs                | 4096        |
+| Agent          | Persona               | Responsibility                  | Token Limit |
+| -------------- | --------------------- | ------------------------------- | ----------- |
+| **Architect**  | System Designer       | Generates task backlog from PRD | 8192        |
+| **Researcher** | Context Gatherer      | Generates PRPs for subtasks     | 4096        |
+| **Coder**      | Implementation Expert | Executes PRPs to produce code   | 4096        |
+| **QA**         | Quality Assurance     | Finds and fixes bugs            | 4096        |
 
 #### Tool System
 
@@ -357,13 +357,13 @@ const coderAgent = createAgent({
   apiKey: process.env.ANTHROPIC_API_KEY!,
   model: 'claude-opus-4-5-20251101',
   maxTokens: 8192,
-  systemPrompt: CODER_SYSTEM_PROMPT
+  systemPrompt: CODER_SYSTEM_PROMPT,
 });
 
 const response = await coderAgent.generate({
   prompt: 'Implement the PRP',
   tools: [bashTool, fileTool, gitTool],
-  responseFormat: { type: 'text' }
+  responseFormat: { type: 'text' },
 });
 ```
 
@@ -381,17 +381,17 @@ mcp.registerTool({
   name: 'execute_command',
   description: 'Execute shell command',
   inputSchema: z.object({
-    command: z.string()
+    command: z.string(),
   }),
-  handler: async (input) => {
+  handler: async input => {
     return { output: await exec(input.command) };
-  }
+  },
 });
 
 // Use with agent
 const response = await agent.generate({
   prompt: 'List files',
-  tools: mcp.getTools()
+  tools: mcp.getTools(),
 });
 ```
 
@@ -417,12 +417,12 @@ The PRP Pipeline uses specialized AI agents for each stage of development, with 
 
 ### Agent Personas
 
-| Agent       | Persona              | Purpose                 | Input          | Output           | Invoked When       |
-| ----------- | -------------------- | ----------------------- | -------------- | ---------------- | ------------------ |
-| **Architect**  | System Designer    | Decompose PRD into tasks | PRD.md         | tasks.json       | New session        |
-| **Researcher** | Context Gatherer   | Generate PRPs           | Subtask context| PRP.md           | Subtask starts     |
-| **Coder**      | Implementation Expert | Implement PRPs      | PRP.md         | Code changes     | PRP generated      |
-| **QA**         | Quality Assurance  | Find bugs               | Completed code | TEST_RESULTS.md  | All tasks complete |
+| Agent          | Persona               | Purpose                  | Input           | Output          | Invoked When       |
+| -------------- | --------------------- | ------------------------ | --------------- | --------------- | ------------------ |
+| **Architect**  | System Designer       | Decompose PRD into tasks | PRD.md          | tasks.json      | New session        |
+| **Researcher** | Context Gatherer      | Generate PRPs            | Subtask context | PRP.md          | Subtask starts     |
+| **Coder**      | Implementation Expert | Implement PRPs           | PRP.md          | Code changes    | PRP generated      |
+| **QA**         | Quality Assurance     | Find bugs                | Completed code  | TEST_RESULTS.md | All tasks complete |
 
 ### Prompt Engineering
 
@@ -461,7 +461,7 @@ Execute shell commands for build, test, and git operations:
 ```typescript
 await bashTool.execute({
   command: 'npm test',
-  timeout: 30000
+  timeout: 30000,
 });
 ```
 
@@ -514,21 +514,25 @@ graph LR
 ```
 
 **Level 1: Syntax & Style**
+
 - Linting (ESLint)
 - Type checking (TypeScript)
 - Code formatting (Prettier)
 
 **Level 2: Unit Tests**
+
 - Component-level tests
 - Edge case coverage
 - Mock external dependencies
 
 **Level 3: Integration Tests**
+
 - Service startup validation
 - Endpoint testing
 - Database operations
 
 **Level 4: Manual/E2E**
+
 - User workflow testing
 - Creative edge cases
 - Adversarial testing
@@ -672,7 +676,7 @@ interface SessionState {
   readonly metadata: SessionMetadata;
   readonly prdSnapshot: string;
   readonly taskRegistry: Backlog;
-  currentItemId: string | null;  // Mutable for batching
+  currentItemId: string | null; // Mutable for batching
 }
 ```
 
@@ -710,12 +714,12 @@ Phase (P1)
 
 **Hierarchy Levels**:
 
-| Level     | ID Format   | Duration      | Purpose                          |
-| --------- | ----------- | ------------- | -------------------------------- |
-| **Phase** | P1, P2, P3  | Weeks-months  | Project-scope goals              |
-| **Milestone** | P1.M1, P1.M2 | 1-12 weeks | Key objectives within a Phase    |
-| **Task** | P1.M1.T1    | Days-weeks    | Complete features                |
-| **Subtask** | P1.M1.T1.S1 | 0.5-2 SP     | Atomic implementation steps       |
+| Level         | ID Format    | Duration     | Purpose                       |
+| ------------- | ------------ | ------------ | ----------------------------- |
+| **Phase**     | P1, P2, P3   | Weeks-months | Project-scope goals           |
+| **Milestone** | P1.M1, P1.M2 | 1-12 weeks   | Key objectives within a Phase |
+| **Task**      | P1.M1.T1     | Days-weeks   | Complete features             |
+| **Subtask**   | P1.M1.T1.S1  | 0.5-2 SP     | Atomic implementation steps   |
 
 **Story Points**:
 
@@ -772,8 +776,8 @@ Subtasks can declare dependencies on other subtasks:
 
 ```typescript
 interface Subtask {
-  readonly id: string;              // "P1.M1.T1.S2"
-  readonly dependencies: string[];  // ["P1.M1.T1.S1"]
+  readonly id: string; // "P1.M1.T1.S2"
+  readonly dependencies: string[]; // ["P1.M1.T1.S1"]
   readonly title: string;
   readonly story_points: number;
   readonly context_scope: string;

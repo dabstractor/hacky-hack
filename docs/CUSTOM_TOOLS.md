@@ -27,6 +27,7 @@
 This guide explains how to create custom MCP (Model Context Protocol) tools for use with the PRP Pipeline's AI agents. MCP tools provide structured interfaces for LLM agents to interact with external systems like file systems, version control, databases, and APIs.
 
 **What You'll Learn:**
+
 - What MCP is and how it works
 - How to implement the MCPServer interface using Groundswell's MCPHandler
 - How to define tool schemas with JSON Schema
@@ -35,6 +36,7 @@ This guide explains how to create custom MCP (Model Context Protocol) tools for 
 - Complete DockerMCP example with 5 working tools
 
 **Prerequisites:**
+
 - TypeScript/JavaScript knowledge
 - Understanding of async/await patterns
 - Familiarity with Node.js APIs (fs, child_process)
@@ -57,11 +59,11 @@ The **Model Context Protocol (MCP)** is an open protocol that standardizes how A
 
 MCP consists of three main components:
 
-| Component | Description | Example |
-|-----------|-------------|---------|
-| **Tools** | Callable functions that perform actions | `execute_bash`, `file_read`, `git_status` |
-| **Resources** | Data sources that can be read | Files, APIs, database connections |
-| **Prompts** | Reusable prompt templates | System prompts, task descriptions |
+| Component     | Description                             | Example                                   |
+| ------------- | --------------------------------------- | ----------------------------------------- |
+| **Tools**     | Callable functions that perform actions | `execute_bash`, `file_read`, `git_status` |
+| **Resources** | Data sources that can be read           | Files, APIs, database connections         |
+| **Prompts**   | Reusable prompt templates               | System prompts, task descriptions         |
 
 **CRITICAL**: This codebase focuses on **Tools** - callable functions that agents can invoke.
 
@@ -82,6 +84,7 @@ flowchart LR
 ```
 
 **Flow Description:**
+
 1. Agent calls tool with input parameters
 2. MCP validates input against JSON Schema
 3. Tool executor receives validated input
@@ -101,14 +104,15 @@ const toolSchema: Tool = {
     type: 'object',
     properties: {
       path: { type: 'string', description: 'File path to read' },
-      encoding: { type: 'string', description: 'Encoding (default: utf-8)' }
+      encoding: { type: 'string', description: 'Encoding (default: utf-8)' },
     },
-    required: ['path']
-  }
+    required: ['path'],
+  },
 };
 ```
 
 **Benefits of JSON Schema:**
+
 - **Type Safety**: Ensures correct parameter types
 - **Validation**: Catches invalid inputs before execution
 - **Documentation**: Self-documenting interface
@@ -132,12 +136,12 @@ import { MCPHandler, type Tool, type ToolExecutor } from 'groundswell';
 
 ### Key Differences
 
-| Feature | Groundswell MCPHandler | Standard FastMCP |
-|---------|----------------------|------------------|
-| **Registration** | Constructor-based | Decorator-based |
-| **Transport** | Primarily 'inprocess' | Multiple transport types |
-| **Tool Naming** | Automatic `server__tool` prefix | Manual naming |
-| **Type Imports** | From 'groundswell' package | From '@modelcontextprotocol/sdk' |
+| Feature          | Groundswell MCPHandler          | Standard FastMCP                 |
+| ---------------- | ------------------------------- | -------------------------------- |
+| **Registration** | Constructor-based               | Decorator-based                  |
+| **Transport**    | Primarily 'inprocess'           | Multiple transport types         |
+| **Tool Naming**  | Automatic `server__tool` prefix | Manual naming                    |
+| **Type Imports** | From 'groundswell' package      | From '@modelcontextprotocol/sdk' |
 
 ### MCPHandler Base Class
 
@@ -187,6 +191,7 @@ interface MCPServer {
 ```
 
 **Transport Types:**
+
 - **`'inprocess'`**: Local execution in same process (used in this codebase)
 - **`'stdio'`**: Communication via standard input/output
 - **`'http'`**: Communication via HTTP endpoints
@@ -204,6 +209,7 @@ Final tool name: 'filesystem__file_read'
 ```
 
 **Examples:**
+
 - `bash__execute_bash` - Bash command execution
 - `filesystem__file_read` - File reading
 - `filesystem__file_write` - File writing
@@ -229,11 +235,14 @@ interface Tool {
   /** JSON Schema for input validation */
   input_schema: {
     type: 'object';
-    properties: Record<string, {
-      type: string;
-      description?: string;
-      // ... additional JSON Schema keywords
-    }>;
+    properties: Record<
+      string,
+      {
+        type: string;
+        description?: string;
+        // ... additional JSON Schema keywords
+      }
+    >;
     required: string[];
   };
 }
@@ -298,7 +307,8 @@ interface Tool {
 
 const bashTool: Tool = {
   name: 'execute_bash',
-  description: 'Execute shell commands with optional working directory and timeout. ' +
+  description:
+    'Execute shell commands with optional working directory and timeout. ' +
     'Returns stdout, stderr, exit code, and success status. ' +
     'Commands are executed safely using spawn() without shell interpretation.',
   input_schema: {
@@ -331,7 +341,8 @@ const bashTool: Tool = {
 
 const fileReadTool: Tool = {
   name: 'file_read',
-  description: 'Read file contents with optional encoding. ' +
+  description:
+    'Read file contents with optional encoding. ' +
     'Returns file content as string or error message.',
   input_schema: {
     type: 'object',
@@ -372,6 +383,7 @@ type ToolExecutor = (input: unknown) => Promise<ToolResult>;
 ```
 
 **Key Points:**
+
 - Input is typed as `unknown` (validated by JSON Schema before calling)
 - Returns a Promise that resolves to `ToolResult`
 - Must be cast to `ToolExecutor` when registering
@@ -385,7 +397,7 @@ async function executeTool(input: ToolInput): Promise<ToolResult> {
     if (!input.requiredParam) {
       return {
         success: false,
-        error: 'Required parameter missing'
+        error: 'Required parameter missing',
       };
     }
 
@@ -395,13 +407,13 @@ async function executeTool(input: ToolInput): Promise<ToolResult> {
     // 3. Return success
     return {
       success: true,
-      ...result
+      ...result,
     };
   } catch (error) {
     // 4. Handle errors
     return {
       success: false,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }
@@ -450,19 +462,22 @@ async function readFile(input: FileReadInput): Promise<FileReadResult> {
 ```typescript
 // File: /home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts
 
-async function executeBashCommand(input: BashToolInput): Promise<BashToolResult> {
+async function executeBashCommand(
+  input: BashToolInput
+): Promise<BashToolResult> {
   const { command, cwd, timeout = DEFAULT_TIMEOUT } = input;
 
   // PATTERN: Validate working directory exists
-  const workingDir = typeof cwd === 'string'
-    ? (() => {
-        const absoluteCwd = resolve(cwd);
-        if (!existsSync(absoluteCwd)) {
-          throw new Error(`Working directory does not exist: ${absoluteCwd}`);
-        }
-        return realpathSync(absoluteCwd);
-      })()
-    : undefined;
+  const workingDir =
+    typeof cwd === 'string'
+      ? (() => {
+          const absoluteCwd = resolve(cwd);
+          if (!existsSync(absoluteCwd)) {
+            throw new Error(`Working directory does not exist: ${absoluteCwd}`);
+          }
+          return realpathSync(absoluteCwd);
+        })()
+      : undefined;
 
   // PATTERN: Parse command into executable and arguments
   const args = command.split(' ');
@@ -477,7 +492,7 @@ async function executeBashCommand(input: BashToolInput): Promise<BashToolResult>
     const child = spawn(executable, commandArgs, {
       cwd: workingDir,
       stdio: ['ignore', 'pipe', 'pipe'],
-      shell: false,  // SECURITY: Critical for preventing command injection
+      shell: false, // SECURITY: Critical for preventing command injection
     });
 
     // PATTERN: Set up timeout handler
@@ -556,6 +571,7 @@ import fg from 'fast-glob';
 ```
 
 **Best Practices:**
+
 1. Use `promises` API for async fs operations
 2. Use `spawn()` with `shell: false` for command execution
 3. Handle specific error codes from Node.js APIs
@@ -591,7 +607,7 @@ async function readFile(input: FileReadInput): Promise<FileReadResult> {
   try {
     const safePath = resolve(input.path);
     const content = await fs.readFile(safePath, {
-      encoding: input.encoding || 'utf-8'
+      encoding: input.encoding || 'utf-8',
     });
     return { success: true, content };
   } catch (error) {
@@ -644,7 +660,8 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
     if (msg.includes('nothing to commit')) {
       return {
         success: false,
-        error: 'No changes staged for commit. Use git_add to stage files first.',
+        error:
+          'No changes staged for commit. Use git_add to stage files first.',
       };
     }
     if (msg.includes('merge conflict')) {
@@ -660,14 +677,14 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
 
 ### Common Error Codes
 
-| Error Code | Description | Example Usage |
-|------------|-------------|---------------|
-| `ENOENT` | Entity not found | File or directory does not exist |
-| `EACCES` | Permission denied | Insufficient permissions |
-| `EISDIR` | Is a directory | Path is directory, not file |
-| `ENOTDIR` | Not a directory | Path component not a directory |
-| `EEXIST` | File exists | Directory/file already exists |
-| `EINVAL` | Invalid argument | Invalid input parameter |
+| Error Code | Description       | Example Usage                    |
+| ---------- | ----------------- | -------------------------------- |
+| `ENOENT`   | Entity not found  | File or directory does not exist |
+| `EACCES`   | Permission denied | Insufficient permissions         |
+| `EISDIR`   | Is a directory    | Path is directory, not file      |
+| `ENOTDIR`  | Not a directory   | Path component not a directory   |
+| `EEXIST`   | File exists       | Directory/file already exists    |
+| `EINVAL`   | Invalid argument  | Invalid input parameter          |
 
 **GOTCHA**: Access error codes via `(error as NodeJS.ErrnoException).code`
 
@@ -680,12 +697,22 @@ return { success: false, error: 'Error occurred' };
 
 // ✅ GOOD: Specific, actionable error messages
 return { success: false, error: `File not found: ${path}` };
-return { success: false, error: `Permission denied: ${path}. Check file permissions.` };
-return { success: false, error: `Invalid timeout: ${timeout}. Must be between 1000-300000ms.` };
-return { success: false, error: `Not a git repository: ${repoPath}. Initialize with 'git init'.` };
+return {
+  success: false,
+  error: `Permission denied: ${path}. Check file permissions.`,
+};
+return {
+  success: false,
+  error: `Invalid timeout: ${timeout}. Must be between 1000-300000ms.`,
+};
+return {
+  success: false,
+  error: `Not a git repository: ${repoPath}. Initialize with 'git init'.`,
+};
 ```
 
 **Good Error Messages Should:**
+
 1. **Be specific**: Identify exactly what went wrong
 2. **Provide context**: Include the relevant value/path
 3. **Suggest action**: Tell user how to fix it
@@ -732,20 +759,20 @@ export class CustomMCP extends MCPHandler {
 import { BashMCP } from '../tools/bash-mcp.js';
 import { FilesystemMCP } from '../tools/filesystem-mcp.js';
 import { GitMCP } from '../tools/git-mcp.js';
-import { CustomMCP } from '../tools/custom-mcp.js';  // Your custom tool
+import { CustomMCP } from '../tools/custom-mcp.js'; // Your custom tool
 
 // Singleton MCP server instances
 const BASH_MCP = new BashMCP();
 const FILESYSTEM_MCP = new FilesystemMCP();
 const GIT_MCP = new GitMCP();
-const CUSTOM_MCP = new CustomMCP();  // Your custom instance
+const CUSTOM_MCP = new CustomMCP(); // Your custom instance
 
 // Combined array of all MCP tools for agent integration
 const MCP_TOOLS: MCPServer[] = [
   BASH_MCP,
   FILESYSTEM_MCP,
   GIT_MCP,
-  CUSTOM_MCP,  // Add your tool here
+  CUSTOM_MCP, // Add your tool here
 ];
 
 export function createCoderAgent(): Agent {
@@ -753,13 +780,14 @@ export function createCoderAgent(): Agent {
   const config = {
     ...baseConfig,
     system: PRP_BUILDER_PROMPT,
-    mcps: MCP_TOOLS,  // Inject MCP servers
+    mcps: MCP_TOOLS, // Inject MCP servers
   };
   return createAgent(config);
 }
 ```
 
 **Key Points:**
+
 - **Singleton Pattern**: Create one instance of each MCP server
 - **Shared Array**: All agents share the same `MCP_TOOLS` array
 - **Constructor Registration**: Tools register themselves in constructor
@@ -802,15 +830,32 @@ export class FilesystemMCP extends MCPHandler {
     });
 
     // Register tool executors
-    this.registerToolExecutor('filesystem', 'file_read', readFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'file_write', writeFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'glob_files', globFiles as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'grep_search', grepSearch as ToolExecutor);
+    this.registerToolExecutor(
+      'filesystem',
+      'file_read',
+      readFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'file_write',
+      writeFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'glob_files',
+      globFiles as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'grep_search',
+      grepSearch as ToolExecutor
+    );
   }
 }
 ```
 
 **Result**: Tools are accessible as:
+
 - `filesystem__file_read`
 - `filesystem__file_write`
 - `filesystem__glob_files`
@@ -855,6 +900,7 @@ interface DatabaseQueryResult {
 ```
 
 **Best Practices:**
+
 - Use TypeScript interfaces for type safety
 - Document each property with JSDoc comments
 - Mark optional properties with `?`
@@ -865,7 +911,8 @@ interface DatabaseQueryResult {
 ```typescript
 const databaseQueryTool: Tool = {
   name: 'database_query',
-  description: 'Execute SQL query on SQLite database. ' +
+  description:
+    'Execute SQL query on SQLite database. ' +
     'Only SELECT queries are allowed for security. ' +
     'Returns query results as array of rows.',
   input_schema: {
@@ -891,6 +938,7 @@ const databaseQueryTool: Tool = {
 ```
 
 **Best Practices:**
+
 - Use snake_case for tool names
 - Write comprehensive descriptions
 - Use `required` array for mandatory parameters
@@ -948,6 +996,7 @@ async function databaseQuery(
 ```
 
 **Best Practices:**
+
 - Validate inputs before processing
 - Handle specific error codes
 - Use try-catch for error handling
@@ -983,6 +1032,7 @@ export class DatabaseMCP extends MCPHandler {
 ```
 
 **Best Practices:**
+
 - Extend `MCPHandler`
 - Set `transport = 'inprocess' as const`
 - Register in constructor
@@ -1001,11 +1051,12 @@ const MCP_TOOLS: MCPServer[] = [
   BASH_MCP,
   FILESYSTEM_MCP,
   GIT_MCP,
-  DATABASE_MCP,  // Add your custom tool
+  DATABASE_MCP, // Add your custom tool
 ];
 ```
 
 **Best Practices:**
+
 - Use singleton pattern (one instance)
 - Import with `.js` extension (ES modules)
 - Add to `MCP_TOOLS` array
@@ -1014,16 +1065,14 @@ const MCP_TOOLS: MCPServer[] = [
 
 ```typescript
 // Export types for external use
-export type {
-  DatabaseQueryInput,
-  DatabaseQueryResult,
-};
+export type { DatabaseQueryInput, DatabaseQueryResult };
 
 // Export tool schema and executor for testing
 export { databaseQueryTool, databaseQuery };
 ```
 
 **Best Practices:**
+
 - Export input/result interfaces
 - Export tool schema for validation tests
 - Export executor function for unit tests
@@ -1037,6 +1086,7 @@ This section provides a complete, production-ready example of a custom MCP tool 
 ### Overview
 
 **DockerMCP** provides tools for managing Docker containers and images:
+
 - `container_ps` - List running containers
 - `container_logs` - Get container logs
 - `container_exec` - Execute command in container
@@ -1044,6 +1094,7 @@ This section provides a complete, production-ready example of a custom MCP tool 
 - `image_rm` - Remove Docker image
 
 **Dependencies:**
+
 ```bash
 npm install dockerode
 npm install --save-dev @types/dockerode
@@ -1051,7 +1102,7 @@ npm install --save-dev @types/dockerode
 
 ### Complete Implementation
 
-```typescript
+````typescript
 /**
  * Docker MCP Tool Module
  *
@@ -1164,7 +1215,8 @@ interface ImageRmResult {
 
 const containerPsTool: Tool = {
   name: 'container_ps',
-  description: 'List Docker containers. Returns container information including ID, image, command, status, and names.',
+  description:
+    'List Docker containers. Returns container information including ID, image, command, status, and names.',
   input_schema: {
     type: 'object',
     properties: {
@@ -1178,7 +1230,8 @@ const containerPsTool: Tool = {
 
 const containerLogsTool: Tool = {
   name: 'container_logs',
-  description: 'Get logs from a Docker container. Returns the log output as a string.',
+  description:
+    'Get logs from a Docker container. Returns the log output as a string.',
   input_schema: {
     type: 'object',
     properties: {
@@ -1199,7 +1252,8 @@ const containerLogsTool: Tool = {
 
 const containerExecTool: Tool = {
   name: 'container_exec',
-  description: 'Execute a command in a running Docker container. Returns command output and exit code.',
+  description:
+    'Execute a command in a running Docker container. Returns command output and exit code.',
   input_schema: {
     type: 'object',
     properties: {
@@ -1223,7 +1277,8 @@ const containerExecTool: Tool = {
 
 const imageBuildTool: Tool = {
   name: 'image_build',
-  description: 'Build a Docker image from a Dockerfile. Returns the built image ID on success.',
+  description:
+    'Build a Docker image from a Dockerfile. Returns the built image ID on success.',
   input_schema: {
     type: 'object',
     properties: {
@@ -1233,7 +1288,8 @@ const imageBuildTool: Tool = {
       },
       dockerfile: {
         type: 'string',
-        description: 'Dockerfile path relative to context (default: Dockerfile)',
+        description:
+          'Dockerfile path relative to context (default: Dockerfile)',
       },
       tag: {
         type: 'string',
@@ -1265,7 +1321,9 @@ const imageRmTool: Tool = {
 
 // ===== TOOL EXECUTORS =====
 
-async function containerPs(input: ContainerPsInput): Promise<ContainerPsResult> {
+async function containerPs(
+  input: ContainerPsInput
+): Promise<ContainerPsResult> {
   try {
     const docker = getDockerClient();
     const containers = await docker.listContainers({ all: input.all ?? false });
@@ -1287,7 +1345,9 @@ async function containerPs(input: ContainerPsInput): Promise<ContainerPsResult> 
   }
 }
 
-async function containerLogs(input: ContainerLogsInput): Promise<ContainerLogsResult> {
+async function containerLogs(
+  input: ContainerLogsInput
+): Promise<ContainerLogsResult> {
   try {
     const docker = getDockerClient();
     const container = docker.getContainer(input.container);
@@ -1302,13 +1362,18 @@ async function containerLogs(input: ContainerLogsInput): Promise<ContainerLogsRe
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     if (msg.includes('No such container')) {
-      return { success: false, error: `Container not found: ${input.container}` };
+      return {
+        success: false,
+        error: `Container not found: ${input.container}`,
+      };
     }
     return { success: false, error: msg };
   }
 }
 
-async function containerExec(input: ContainerExecInput): Promise<ContainerExecResult> {
+async function containerExec(
+  input: ContainerExecInput
+): Promise<ContainerExecResult> {
   try {
     const docker = getDockerClient();
     const container = docker.getContainer(input.container);
@@ -1338,7 +1403,10 @@ async function containerExec(input: ContainerExecInput): Promise<ContainerExecRe
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     if (msg.includes('No such container')) {
-      return { success: false, error: `Container not found: ${input.container}` };
+      return {
+        success: false,
+        error: `Container not found: ${input.container}`,
+      };
     }
     return { success: false, error: msg };
   }
@@ -1348,13 +1416,16 @@ async function imageBuild(input: ImageBuildInput): Promise<ImageBuildResult> {
   try {
     const docker = getDockerClient();
 
-    const stream = await docker.buildImage({
-      context: await docker.getContext(input.context),
-      src: ['Dockerfile'],
-    }, {
-      dockerfile: input.dockerfile ?? 'Dockerfile',
-      t: input.tag,
-    });
+    const stream = await docker.buildImage(
+      {
+        context: await docker.getContext(input.context),
+        src: ['Dockerfile'],
+      },
+      {
+        dockerfile: input.dockerfile ?? 'Dockerfile',
+        t: input.tag,
+      }
+    );
 
     return new Promise((resolve, reject) => {
       docker.modem.followProgress(stream, (err, res) => {
@@ -1365,7 +1436,10 @@ async function imageBuild(input: ImageBuildInput): Promise<ImageBuildResult> {
           if (imageId) {
             resolve({ success: true, imageId });
           } else {
-            resolve({ success: false, error: 'Build failed - no image ID returned' });
+            resolve({
+              success: false,
+              error: 'Build failed - no image ID returned',
+            });
           }
         }
       });
@@ -1425,10 +1499,26 @@ export class DockerMCP extends MCPHandler {
       tools: this.tools,
     });
 
-    this.registerToolExecutor('docker', 'container_ps', containerPs as ToolExecutor);
-    this.registerToolExecutor('docker', 'container_logs', containerLogs as ToolExecutor);
-    this.registerToolExecutor('docker', 'container_exec', containerExec as ToolExecutor);
-    this.registerToolExecutor('docker', 'image_build', imageBuild as ToolExecutor);
+    this.registerToolExecutor(
+      'docker',
+      'container_ps',
+      containerPs as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'docker',
+      'container_logs',
+      containerLogs as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'docker',
+      'container_exec',
+      containerExec as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'docker',
+      'image_build',
+      imageBuild as ToolExecutor
+    );
     this.registerToolExecutor('docker', 'image_rm', imageRm as ToolExecutor);
   }
 }
@@ -1459,17 +1549,19 @@ export {
   imageBuild,
   imageRm,
 };
-```
+````
 
 ### Integration Instructions
 
 **1. Install dependencies:**
+
 ```bash
 npm install dockerode
 npm install --save-dev @types/dockerode
 ```
 
 **2. Add to agent factory:**
+
 ```typescript
 // File: src/agents/agent-factory.ts
 
@@ -1481,11 +1573,12 @@ const MCP_TOOLS: MCPServer[] = [
   BASH_MCP,
   FILESYSTEM_MCP,
   GIT_MCP,
-  DOCKER_MCP,  // Add DockerMCP here
+  DOCKER_MCP, // Add DockerMCP here
 ];
 ```
 
 **3. Usage examples:**
+
 ```typescript
 // List running containers
 await dockerMCP.executeTool('docker__container_ps', {});
@@ -1493,26 +1586,26 @@ await dockerMCP.executeTool('docker__container_ps', {});
 // Get container logs
 await dockerMCP.executeTool('docker__container_logs', {
   container: 'my-container',
-  tail: 50
+  tail: 50,
 });
 
 // Execute command in container
 await dockerMCP.executeTool('docker__container_exec', {
   container: 'my-container',
   command: 'ls',
-  args: ['-la', '/app']
+  args: ['-la', '/app'],
 });
 
 // Build Docker image
 await dockerMCP.executeTool('docker__image_build', {
   context: './myapp',
-  tag: 'myapp:latest'
+  tag: 'myapp:latest',
 });
 
 // Remove Docker image
 await dockerMCP.executeTool('docker__image_rm', {
   image: 'myapp:latest',
-  force: true
+  force: true,
 });
 ```
 
@@ -1557,9 +1650,11 @@ describe('tools/custom-mcp', () => {
       it('should execute with valid input', async () => {
         // SETUP
         const mockContainer = {
-          listContainers: vi.fn().mockResolvedValue([
-            { Id: 'abc123', Image: 'nginx', Status: 'running' }
-          ])
+          listContainers: vi
+            .fn()
+            .mockResolvedValue([
+              { Id: 'abc123', Image: 'nginx', Status: 'running' },
+            ]),
         };
         mockDocker.mockImplementation(() => mockContainer as any);
 
@@ -1576,8 +1671,8 @@ describe('tools/custom-mcp', () => {
         // SETUP
         const mockContainer = {
           getContainer: vi.fn().mockReturnValue({
-            logs: vi.fn().mockRejectedValue(new Error('No such container'))
-          })
+            logs: vi.fn().mockRejectedValue(new Error('No such container')),
+          }),
         };
         mockDocker.mockImplementation(() => mockContainer as any);
 
@@ -1613,7 +1708,7 @@ describe('MCP Integration', () => {
     const mcp = new CustomMCP();
 
     const result = await mcp.executeTool('custom__tool_name', {
-      param: 'value'
+      param: 'value',
     });
 
     expect(result.success).toBe(true);

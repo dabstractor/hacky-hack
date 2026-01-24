@@ -65,6 +65,7 @@
 A Product Requirements Document (PRD) is a **complete specification** of what needs to be built. The PRP Pipeline processes PRDs autonomously to generate working code, so **PRD quality directly affects implementation success**.
 
 This guide covers:
+
 - PRD structure and essential sections
 - Writing clear, testable requirements
 - Defining success criteria and acceptance criteria
@@ -76,6 +77,7 @@ This guide covers:
 ### Why PRD Quality Matters
 
 The PRP Pipeline uses AI agents to transform your PRD into working code. When requirements are unclear, ambiguous, or incomplete:
+
 - Implementation agents make incorrect assumptions
 - Validation gates fail unexpectedly
 - Bug reports identify missing requirements
@@ -94,11 +96,13 @@ A comprehensive PRD includes the following sections. Each section serves a speci
 **Purpose**: High-level overview of the product (1-2 paragraphs)
 
 **Content**:
+
 - What the product does
 - Primary goals and success metrics
 - Target audience
 
 **Example**:
+
 ```markdown
 ## 1. Executive Summary
 
@@ -112,11 +116,13 @@ Unlike standard "coding agents" that drift and lose context, this pipeline uses 
 **Purpose**: Clearly articulate what problem you're solving and why it matters
 
 **Content**:
+
 - Current pain points
 - Why existing solutions are inadequate
 - Impact of not solving the problem
 
 **Example**:
+
 ```markdown
 ## 2. Problem Statement
 
@@ -128,21 +134,25 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Define specific, measurable objectives
 
 **Content**:
+
 - Primary goals (specific outcomes)
 - Success metrics (quantifiable measures)
 - Key performance indicators
 
 **Example**:
+
 ```markdown
 ## 3. Goals & Success Metrics
 
 **Primary Goals**:
+
 - Enable autonomous code generation from PRDs
 - Maintain context fidelity across complex projects
 - Reduce human intervention in development lifecycle
 
 **Success Metrics**:
-- >80% of tasks complete without human revision
+
+- > 80% of tasks complete without human revision
 - PRD-to-code latency <24 hours for typical projects
 - Bug density <0.5 bugs per KLOC
 ```
@@ -152,20 +162,24 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Define who will use the product
 
 **Content**:
+
 - Primary user personas
 - User characteristics and needs
 - User skill levels and contexts
 
 **Example**:
+
 ```markdown
 ## 4. Target Audience & User Personas
 
 **Primary Users**:
+
 - Product Managers: Need to translate ideas into working code
 - Technical Founders: Want to prototype quickly without hiring
 - Development Teams: Seeking to accelerate feature delivery
 
 **User Persona: "Product Paula"**
+
 - Background: Product manager at B2B SaaS company
 - Pain Points: Engineering backlog is 3+ months
 - Goals: Ship features faster without sacrificing quality
@@ -177,15 +191,18 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Detailed feature specifications (required by PRP validator)
 
 **Content**:
+
 - Feature breakdown with user stories
 - Input/output specifications
 - Functional behavior and constraints
 
 **Example**:
+
 ```markdown
 ## 5. Functional Requirements
 
 ### 5.1 State & File Management
+
 - **Must** maintain a `tasks.json` file as the single source of truth
 - **Must** create a `plan/` directory structure: `plan/{sequence}_{hash}/`
 - **Must** support "Smart Commit": Automatically staging changes while protecting pipeline state files
@@ -196,21 +213,25 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Performance, security, and quality attributes
 
 **Content**:
+
 - Performance requirements (latency, throughput)
 - Security requirements (authentication, authorization)
 - Scalability requirements
 - Reliability/availability
 
 **Example**:
+
 ```markdown
 ## 6. Non-Functional Requirements
 
 ### Performance
+
 - PRD decomposition must complete within 120 seconds
 - API request timeout: 60 seconds (configurable)
 - Cache hit ratio target: >80%
 
 ### Security
+
 - API tokens must be stored in environment variables only
 - `.env` files must never be committed to version control
 ```
@@ -220,16 +241,19 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Define how users interact with the system
 
 **Content**:
+
 - User workflows and journeys
 - UI/UX requirements (if applicable)
 - Accessibility considerations
 - Error handling expectations
 
 **Example**:
+
 ```markdown
 ## 7. User Experience & Design
 
 ### User Workflows
+
 1. User provides PRD.md
 2. System validates PRD structure
 3. System generates task backlog
@@ -237,6 +261,7 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 5. User reviews completed implementation
 
 ### Error Handling
+
 - Clear error messages with actionable suggestions
 - Graceful degradation on partial failures
 - State preservation for resumption
@@ -247,22 +272,26 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Architectural and technical constraints
 
 **Content**:
+
 - Architecture decisions
 - Technology stack
 - Integration requirements
 - Data models
 
 **Example**:
+
 ```markdown
 ## 8. Technical Considerations
 
 ### Technology Stack
+
 - **Runtime**: Node.js 20+ / TypeScript 5.2+
 - **Core Framework**: Groundswell (local library)
 - **LLM Provider**: z.ai (Anthropic compatible API)
 - **State Management**: Groundswell `@ObservedState` & `Workflow` persistence
 
 ### Architecture
+
 - Workflow orchestration via Groundswell
 - Agent-based task execution
 - Immutable session state
@@ -273,25 +302,30 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Document assumptions and external dependencies
 
 **Content**:
+
 - What we're assuming to be true
 - External dependencies (APIs, libraries)
 - Technical and business constraints
 
 **Example**:
+
 ```markdown
 ## 9. Assumptions, Dependencies & Constraints
 
 ### Assumptions
+
 - Users have Node.js 20+ installed
 - Groundswell library is available via npm link
 - z.ai API endpoint is accessible
 
 ### Dependencies
+
 - Groundswell library (local, ~/projects/groundswell)
 - Anthropic TypeScript SDK
 - z.ai API endpoint
 
 ### Constraints
+
 - Must use z.ai proxy endpoint (not production Anthropic API)
 - Pipeline execution must be guarded against recursion
 ```
@@ -301,19 +335,21 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Identify potential risks and mitigation strategies
 
 **Content**:
+
 - Technical risks
 - Business risks
 - Mitigation strategies
 
 **Example**:
+
 ```markdown
 ## 10. Risk Assessment
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| LLM API rate limits | High | Medium | Implement retry with exponential backoff |
-| Context window overflow | High | Low | Use context compression and caching |
-| PRD ambiguity | Medium | High | Validation checks and error messages |
+| Risk                    | Impact | Probability | Mitigation                               |
+| ----------------------- | ------ | ----------- | ---------------------------------------- |
+| LLM API rate limits     | High   | Medium      | Implement retry with exponential backoff |
+| Context window overflow | High   | Low         | Use context compression and caching      |
+| PRD ambiguity           | Medium | High        | Validation checks and error messages     |
 ```
 
 ### 11. Release Planning
@@ -321,6 +357,7 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Define phases and milestones (optional but recommended)
 
 **Content**:
+
 - Development phases
 - Milestones and deliverables
 - Timeline estimates
@@ -330,6 +367,7 @@ AI coding agents often fail at complex tasks due to context dilution. As project
 **Purpose**: Track issues to be resolved
 
 **Content**:
+
 - Outstanding questions
 - Decisions needed
 - Blockers
@@ -344,13 +382,13 @@ Clear requirements are the foundation of successful implementation. This section
 
 Every requirement should be:
 
-| Criterion | Description | Example |
-|-----------|-------------|---------|
-| **Specific** | Clear and unambiguous | "Users can log in with email and password" |
-| **Measurable** | Quantifiable outcomes | "Login responds in <200ms for 95% of requests" |
-| **Achievable** | Realistic given constraints | "Support 1,000 concurrent users" |
-| **Relevant** | Aligned with business goals | "Reduces support tickets by 30%" |
-| **Time-bound** | Clear timeline | "Available in Q2 2026" |
+| Criterion      | Description                 | Example                                        |
+| -------------- | --------------------------- | ---------------------------------------------- |
+| **Specific**   | Clear and unambiguous       | "Users can log in with email and password"     |
+| **Measurable** | Quantifiable outcomes       | "Login responds in <200ms for 95% of requests" |
+| **Achievable** | Realistic given constraints | "Support 1,000 concurrent users"               |
+| **Relevant**   | Aligned with business goals | "Reduces support tickets by 30%"               |
+| **Time-bound** | Clear timeline              | "Available in Q2 2026"                         |
 
 ### User Story Template
 
@@ -365,15 +403,18 @@ Every requirement should be:
 [Additional background information]
 
 **Acceptance Criteria:**
+
 - [ ] Given [context], when [action], then [outcome]
 - [ ] [specific criterion 2]
 - [ ] [specific criterion 3]
 
 **Edge Cases:**
+
 - [edge case 1]
 - [edge case 2]
 
 **Dependencies:**
+
 - [dependency 1]
 - [dependency 2]
 
@@ -382,6 +423,7 @@ Every requirement should be:
 ```
 
 **Example**:
+
 ```markdown
 #### P1.M1.T1: User Authentication
 
@@ -390,6 +432,7 @@ Every requirement should be:
 **So that** I can access my personalized dashboard
 
 **Acceptance Criteria:**
+
 - [ ] Given a registered email, when user enters correct password, then user is logged in
 - [ ] Given a registered email, when user enters incorrect password, then "Invalid credentials" message is shown
 - [ ] Given an unregistered email, when user attempts login, then "Email not found" message is shown
@@ -411,8 +454,10 @@ AND a success message is displayed
 ```
 
 **Template**:
+
 ```markdown
 **Acceptance Criteria:**
+
 - [ ] GIVEN [precondition/context], WHEN [action/trigger], THEN [expected outcome]
 - [ ] GIVEN [context], WHEN [action], THEN [outcome] AND [additional outcome]
 - [ ] WHEN [action], THEN [outcome] (implicit context)
@@ -420,16 +465,16 @@ AND a success message is displayed
 
 ### Avoiding Ambiguous Language
 
-| Avoid | Use Instead | Why |
-|-------|-------------|-----|
-| "fast" | "responds in <200ms for 95% of requests" | "Fast" is subjective |
-| "user-friendly" | "requires <3 clicks to complete task" | "User-friendly" is vague |
-| "scalable" | "handles 10,000 concurrent users" | "Scalable" has no bounds |
-| "soon" | "within 5 seconds" | "Soon" is not measurable |
-| "good performance" | "<100ms response time (p95)" | "Good" is subjective |
-| "appropriate" | "[specific behavior]" | "Appropriate" is context-dependent |
-| "etc." | [list all items] | "Etc." implies completeness without specifying |
-| "various" | [list specific types] | "Various" is not specific |
+| Avoid              | Use Instead                              | Why                                            |
+| ------------------ | ---------------------------------------- | ---------------------------------------------- |
+| "fast"             | "responds in <200ms for 95% of requests" | "Fast" is subjective                           |
+| "user-friendly"    | "requires <3 clicks to complete task"    | "User-friendly" is vague                       |
+| "scalable"         | "handles 10,000 concurrent users"        | "Scalable" has no bounds                       |
+| "soon"             | "within 5 seconds"                       | "Soon" is not measurable                       |
+| "good performance" | "<100ms response time (p95)"             | "Good" is subjective                           |
+| "appropriate"      | "[specific behavior]"                    | "Appropriate" is context-dependent             |
+| "etc."             | [list all items]                         | "Etc." implies completeness without specifying |
+| "various"          | [list specific types]                    | "Various" is not specific                      |
 
 ### Acceptance Criteria Template
 
@@ -437,19 +482,23 @@ AND a success message is displayed
 **Acceptance Criteria:**
 
 **Functional Requirements:**
+
 - [ ] [specific functional requirement 1]
 - [ ] [specific functional requirement 2]
 - [ ] [specific functional requirement 3]
 
 **Non-Functional Requirements:**
+
 - [ ] Performance: [metric]
 - [ ] Security: [requirement]
 - [ ] Accessibility: [requirement]
 
 **Error Handling:**
+
 - [ ] Given [error condition], when [action], then [error response]
 
 **Edge Cases:**
+
 - [ ] [edge case 1]
 - [ ] [edge case 2]
 - [ ] [edge case 3]
@@ -467,8 +516,10 @@ Always specify behavior for edge cases:
 - **Error recovery**: How to recover from failures?
 
 **Example**:
+
 ```markdown
 **Edge Cases:**
+
 - Empty email field → Show "Email is required" validation
 - Email without @ symbol → Show "Invalid email format" validation
 - Password < 8 characters → Show "Password must be at least 8 characters"
@@ -482,12 +533,12 @@ Always specify behavior for edge cases:
 
 ### Product-Level Success Criteria
 
-| Category | Metrics | Example | How to Measure |
-|----------|---------|---------|----------------|
-| **Business** | Revenue, conversion, retention | "Increase conversion by 15%" | Analytics tracking |
-| **Engagement** | DAU/MAU, session length, feature usage | "Average session >5 minutes" | Usage metrics |
-| **UX** | Task completion, error rate, satisfaction | "95% task completion rate" | User testing |
-| **Support** | Ticket volume, resolution time | "Reduce tickets by 30%" | Support metrics |
+| Category       | Metrics                                   | Example                      | How to Measure     |
+| -------------- | ----------------------------------------- | ---------------------------- | ------------------ |
+| **Business**   | Revenue, conversion, retention            | "Increase conversion by 15%" | Analytics tracking |
+| **Engagement** | DAU/MAU, session length, feature usage    | "Average session >5 minutes" | Usage metrics      |
+| **UX**         | Task completion, error rate, satisfaction | "95% task completion rate"   | User testing       |
+| **Support**    | Ticket volume, resolution time            | "Reduce tickets by 30%"      | Support metrics    |
 
 ### Story-Level Acceptance Criteria
 
@@ -495,6 +546,7 @@ Always specify behavior for edge cases:
 #### P1.M1.T1: User Authentication
 
 **Acceptance Criteria:**
+
 - [ ] Users can register with email and password
 - [ ] Email validation requires @ symbol and domain
 - [ ] Password must be at least 8 characters with 1 uppercase, 1 number
@@ -514,6 +566,7 @@ A Definition of Done (DoD) checklist ensures consistent quality:
 
 ```markdown
 **Definition of Done:**
+
 - [ ] Code written and reviewed
 - [ ] Unit tests pass (>80% coverage)
 - [ ] Integration tests pass
@@ -531,12 +584,12 @@ Define measurable metrics for each requirement:
 ```markdown
 **Success Metrics:**
 
-| Metric | Target | Measurement Method | Frequency |
-|--------|--------|-------------------|-----------|
-| Task completion rate | >90% | Automated tests | Per build |
-| Response time (p95) | <200ms | Performance monitoring | Continuous |
-| Bug density | <0.5/KLOC | Bug tracking | Per release |
-| User satisfaction | >4.5/5 | User surveys | Quarterly |
+| Metric               | Target    | Measurement Method     | Frequency   |
+| -------------------- | --------- | ---------------------- | ----------- |
+| Task completion rate | >90%      | Automated tests        | Per build   |
+| Response time (p95)  | <200ms    | Performance monitoring | Continuous  |
+| Bug density          | <0.5/KLOC | Bug tracking           | Per release |
+| User satisfaction    | >4.5/5    | User surveys           | Quarterly   |
 ```
 
 ---
@@ -558,23 +611,23 @@ Define terms to ensure consistent understanding:
 ```markdown
 ## Glossary
 
-| Term | Definition |
-|------|------------|
-| Session | A user's authenticated interaction with the system, bounded by login/logout |
-| PRP | Product Requirement Prompt - a micro-PRD for a single task containing all context needed for implementation |
-| Subtask | The smallest unit of work in the PRP Pipeline, containing a CONTRACT DEFINITION with INPUT/LOGIC/OUTPUT |
-| Delta Session | A new session created when the PRD changes, preserving completed work from the parent session |
+| Term          | Definition                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| Session       | A user's authenticated interaction with the system, bounded by login/logout                                 |
+| PRP           | Product Requirement Prompt - a micro-PRD for a single task containing all context needed for implementation |
+| Subtask       | The smallest unit of work in the PRP Pipeline, containing a CONTRACT DEFINITION with INPUT/LOGIC/OUTPUT     |
+| Delta Session | A new session created when the PRD changes, preserving completed work from the parent session               |
 ```
 
 ### Traceability Matrix
 
 Track requirements from definition to implementation:
 
-| Requirement | Feature | Test Case | Status |
-|-------------|---------|-----------|--------|
-| REQ-001: User Login | P1.M1.T1 | TC-101: Login Valid Credentials | Pass |
-| REQ-002: Password Reset | P1.M1.T2 | TC-102: Password Reset Flow | Pass |
-| REQ-003: Session Timeout | P1.M1.T3 | TC-103: Session Expiry | Pending |
+| Requirement              | Feature  | Test Case                       | Status  |
+| ------------------------ | -------- | ------------------------------- | ------- |
+| REQ-001: User Login      | P1.M1.T1 | TC-101: Login Valid Credentials | Pass    |
+| REQ-002: Password Reset  | P1.M1.T2 | TC-102: Password Reset Flow     | Pass    |
+| REQ-003: Session Timeout | P1.M1.T3 | TC-103: Session Expiry          | Pending |
 
 ### Cross-Referencing
 
@@ -582,6 +635,7 @@ Link related requirements and dependencies:
 
 ```markdown
 **See Also:**
+
 - Related to REQ-001 (User Login)
 - Depends on REQ-005 (Database Schema)
 - Conflicts with: None identified
@@ -598,6 +652,7 @@ npm run dev -- --prd ./PRD.md --validate-prd
 ```
 
 **Validation Checks:**
+
 - File existence
 - Content length (minimum 100 characters)
 - Required sections present (Executive Summary, Functional Requirements, User Workflows)
@@ -641,14 +696,15 @@ PRD Brainstormer maintains a **Decision Ledger** throughout the conversation:
 ```markdown
 ## Decision Ledger
 
-| Question | Answer | Confirmed |
-|----------|--------|-----------|
-| Who is the primary user? | Product managers at B2B SaaS companies | Yes |
-| What is the max response time? | <200ms for 95% of requests | Yes |
-| Should we support OAuth? | Not in v1, consider for v2 | Yes |
+| Question                       | Answer                                 | Confirmed |
+| ------------------------------ | -------------------------------------- | --------- |
+| Who is the primary user?       | Product managers at B2B SaaS companies | Yes       |
+| What is the max response time? | <200ms for 95% of requests             | Yes       |
+| Should we support OAuth?       | Not in v1, consider for v2             | Yes       |
 ```
 
 **Benefits:**
+
 - Tracks confirmed facts
 - Prevents circular questioning
 - Provides audit trail of decisions
@@ -659,9 +715,11 @@ PRD Brainstormer maintains a **Decision Ledger** throughout the conversation:
 PRD Brainstormer follows a **linear questioning rule**: no parallel questions that could invalidate each other.
 
 **Bad (Parallel Questions):**
+
 > "What should the timeout be? Should we support retry logic?"
 
 **Good (Linear Questions):**
+
 > "What should the timeout be?" → "30 seconds"
 > "Given the 30-second timeout, should we support retry logic?" → "Yes, up to 3 retries"
 
@@ -673,6 +731,7 @@ Every specification generated by PRD Brainstormer must have testability requirem
 **Requirement**: Users can log in with email and password
 
 **Testability**:
+
 - Can verify via automated test: Yes
 - Test case: "Given valid credentials, when login attempted, then redirect to dashboard"
 - Measurable outcome: HTTP 302 redirect to /dashboard
@@ -684,6 +743,7 @@ PRD Brainstormer identifies conflicting requirements:
 
 ```markdown
 **Conflict Detected**:
+
 - Requirement A: "System must respond instantly"
 - Requirement B: "System must perform complex validation"
 - Resolution: Changed to "System must respond in <200ms after validation completes"
@@ -735,6 +795,7 @@ Create a simple hello world function.
 
 **context_scope**:
 CONTRACT DEFINITION:
+
 1. RESEARCH NOTE: Simple function implementation
 2. INPUT: None
 3. LOGIC: Create src/hello.ts with function hello() that returns "Hello, World!"
@@ -742,6 +803,7 @@ CONTRACT DEFINITION:
 ```
 
 **Annotations:**
+
 - Clear title and description
 - Hierarchical structure (Phase > Milestone > Task > Subtask)
 - Each subtask has `story_points`, `dependencies`, `status`
@@ -759,39 +821,48 @@ For a comprehensive PRD example, see the main [PRD.md](../PRD.md) file which def
 # Product Requirements Document: Autonomous PRP Development Pipeline
 
 ## 1. Executive Summary
+
 The **PRP (Product Requirement Prompt) Pipeline** is an agentic software development system...
 
 ## 2. Core Philosophy & Concepts
+
 ### 2.1 The "PRP" Concept
+
 The central thesis is that AI fails at complex coding tasks due to context dilution...
 
 ## 3. System Architecture
+
 The new system must implement four distinct processing engines...
 
 ## 4. User Workflows
+
 ### 4.1 Initialization & Breakdown
+
 1. Input: User provides a `PRD.md`
 2. State Check: System hashes the PRD...
 ```
 
 ### Good vs Bad Requirements
 
-| Aspect | Bad Requirement | Good Requirement |
-|--------|----------------|------------------|
-| **Specificity** | "Make it fast" | "Responds in <200ms for 95% of requests" |
-| **Measurability** | "Improve UX" | "Task completion rate >95%, error rate <5%" |
-| **Completeness** | "User can log in" | "Users can log in with email/password, session expires after 24h" |
-| **Context** | "Add caching" | "Cache API responses for 5 minutes to reduce load" |
-| **Edge Cases** | "Handle errors" | "Show specific error messages: network timeout, invalid credentials, server error" |
-| **Testability** | "System works well" | "All unit tests pass, integration tests cover 80%+ of code paths" |
+| Aspect            | Bad Requirement     | Good Requirement                                                                   |
+| ----------------- | ------------------- | ---------------------------------------------------------------------------------- |
+| **Specificity**   | "Make it fast"      | "Responds in <200ms for 95% of requests"                                           |
+| **Measurability** | "Improve UX"        | "Task completion rate >95%, error rate <5%"                                        |
+| **Completeness**  | "User can log in"   | "Users can log in with email/password, session expires after 24h"                  |
+| **Context**       | "Add caching"       | "Cache API responses for 5 minutes to reduce load"                                 |
+| **Edge Cases**    | "Handle errors"     | "Show specific error messages: network timeout, invalid credentials, server error" |
+| **Testability**   | "System works well" | "All unit tests pass, integration tests cover 80%+ of code paths"                  |
 
 **Bad Example:**
+
 ```markdown
 ## User Authentication
+
 The system should have fast, user-friendly authentication that works well.
 ```
 
 **Good Example:**
+
 ```markdown
 ## User Authentication
 
@@ -802,6 +873,7 @@ The system should have fast, user-friendly authentication that works well.
 **So that** I can access my personalized dashboard
 
 **Acceptance Criteria:**
+
 - [ ] Given valid email/password, when login submitted, then redirect to dashboard within 200ms
 - [ ] Given invalid credentials, when login submitted, then show "Invalid email or password" message
 - [ ] Given empty fields, when login submitted, then show "Email and password are required" validation
@@ -809,10 +881,12 @@ The system should have fast, user-friendly authentication that works well.
 - [ ] Failed login attempts are logged for security monitoring
 
 **Performance:**
+
 - Response time <200ms for 95% of requests
 - Maximum 3 concurrent sessions per user
 
 **Security:**
+
 - Passwords hashed using bcrypt with salt rounds=10
 - Session tokens are cryptographically signed
 ```
@@ -823,18 +897,18 @@ The system should have fast, user-friendly authentication that works well.
 
 ### 10 Common Pitfalls
 
-| Pitfall | Problem | Solution | Example |
-|---------|---------|----------|---------|
-| **Ambiguity and Vagueness** | "Make it fast" | Use specific metrics | "responds in <200ms" |
-| **Over-Specification** | "Use React for frontend" | Focus on WHAT, not HOW | "Supports modern browsers" |
-| **Under-Specification** | Missing edge cases | Cover all scenarios | Include error handling |
-| **Contradictions** | "Always respond instantly" and "Must validate" | Review for conflicts | "Respond in <5s after validation" |
-| **Ignoring the "Why"** | Requirements without context | Include problem statement | "Reduces support load" |
-| **Unrealistic Timelines** | "Build in 2 weeks" | Break into phases | "Phase 1: MVP in 6 weeks" |
-| **No Stakeholder Alignment** | Different understandings | Collaborative writing | Shared review process |
-| **Ignoring NFRs** | Forgetting performance | Include NFRs section | "Handles 10k concurrent users" |
-| **Not Defining "Done"** | Unclear completion | Definition of Done | DoD checklist |
-| **Never Updating** | PRD becomes stale | Living document | Version control, changelog |
+| Pitfall                      | Problem                                        | Solution                  | Example                           |
+| ---------------------------- | ---------------------------------------------- | ------------------------- | --------------------------------- |
+| **Ambiguity and Vagueness**  | "Make it fast"                                 | Use specific metrics      | "responds in <200ms"              |
+| **Over-Specification**       | "Use React for frontend"                       | Focus on WHAT, not HOW    | "Supports modern browsers"        |
+| **Under-Specification**      | Missing edge cases                             | Cover all scenarios       | Include error handling            |
+| **Contradictions**           | "Always respond instantly" and "Must validate" | Review for conflicts      | "Respond in <5s after validation" |
+| **Ignoring the "Why"**       | Requirements without context                   | Include problem statement | "Reduces support load"            |
+| **Unrealistic Timelines**    | "Build in 2 weeks"                             | Break into phases         | "Phase 1: MVP in 6 weeks"         |
+| **No Stakeholder Alignment** | Different understandings                       | Collaborative writing     | Shared review process             |
+| **Ignoring NFRs**            | Forgetting performance                         | Include NFRs section      | "Handles 10k concurrent users"    |
+| **Not Defining "Done"**      | Unclear completion                             | Definition of Done        | DoD checklist                     |
+| **Never Updating**           | PRD becomes stale                              | Living document           | Version control, changelog        |
 
 ### Pitfall Detection Checklist
 
@@ -874,12 +948,14 @@ Before submitting your PRD to the pipeline:
 - **[PRD.md](../PRD.md)** - Example of a comprehensive PRD
 
 **For PRD Validation:**
+
 ```bash
 # Validate your PRD before running the pipeline
 npm run dev -- --prd ./YOUR_PRD.md --validate-prd
 ```
 
 **For Running Your PRD:**
+
 ```bash
 # Run the pipeline with your PRD
 npm run dev -- --prd ./YOUR_PRD.md

@@ -66,6 +66,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "cli-progress": "^3.12.0",
     "commander": "^14.0.2",
     "fast-glob": "^3.3.3",
     "pino": "^9.14.0",
@@ -73,6 +74,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/cli-progress": "^3.11.6",
     "@types/node": "^20.10.0",
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^7.18.0",

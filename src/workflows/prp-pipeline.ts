@@ -48,6 +48,11 @@ import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
 import { progressTracker, type ProgressTracker } from '../utils/progress.js';
+import {
+  ProgressDisplay,
+  type ProgressDisplayOptions,
+  type CurrentTaskInfo,
+} from '../utils/progress-display.js';
 import { retryAgentPrompt } from '../utils/retry.js';
 import { ResourceMonitor } from '../utils/resource-monitor.js';
 
@@ -230,6 +235,12 @@ export class PRPPipeline extends Workflow {
   /** Progress tracker for real-time execution metrics */
   #progressTracker?: ProgressTracker;
 
+  /** Progress display for visual progress bars */
+  #progressDisplay?: ProgressDisplay;
+
+  /** Progress mode from CLI (auto/always/never) */
+  readonly #progressMode: 'auto' | 'always' | 'never' = 'auto';
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -245,6 +256,7 @@ export class PRPPipeline extends Workflow {
    * @param maxTasks - Maximum number of tasks to execute (optional)
    * @param maxDuration - Maximum execution duration in milliseconds (optional)
    * @param planDir - Custom plan directory path (defaults to resolve('plan'))
+   * @param progressMode - Progress display mode: 'auto', 'always', or 'never' (default: 'auto')
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -255,7 +267,8 @@ export class PRPPipeline extends Workflow {
     continueOnError: boolean = false,
     maxTasks?: number,
     maxDuration?: number,
-    planDir?: string
+    planDir?: string,
+    progressMode: 'auto' | 'always' | 'never' = 'auto'
   ) {
     super('PRPPipeline');
 
@@ -274,6 +287,7 @@ export class PRPPipeline extends Workflow {
     this.#maxTasks = maxTasks;
     this.#maxDuration = maxDuration;
     this.#planDir = planDir;
+    this.#progressMode = progressMode;
 
     // SessionManager will be created in run() to catch initialization errors
     this.sessionManager = null as any;
@@ -760,6 +774,21 @@ export class PRPPipeline extends Workflow {
         `[PRPPipeline] Progress tracking initialized: ${this.#progressTracker?.getProgress().total ?? 0} subtasks`
       );
 
+      // Initialize ProgressDisplay for visual progress bars
+      this.#progressDisplay = new ProgressDisplay({
+        progressMode: this.#progressMode,
+        updateInterval: 100,
+        showLogs: true,
+        logCount: 3,
+      });
+
+      if (this.#progressDisplay.isEnabled()) {
+        this.#progressDisplay.start(backlog);
+        this.logger.info('[PRPPipeline] Progress display enabled');
+      } else {
+        this.logger.debug('[PRPPipeline] Progress display disabled');
+      }
+
       let iterations = 0;
       const maxIterations = 10000; // Safety limit
 
@@ -781,6 +810,25 @@ export class PRPPipeline extends Workflow {
           const currentItemId =
             this.taskOrchestrator.currentItemId ?? 'unknown';
           this.#progressTracker?.recordComplete(currentItemId);
+
+          // Update progress display with current task info
+          // Need to get current task info from backlog if available
+          const currentTaskInfo: CurrentTaskInfo | undefined = undefined;
+          if (currentItemId !== 'unknown') {
+            // Try to find current task in backlog for display
+            // For now, use basic info - could be enhanced to look up title
+            this.#progressDisplay?.update(
+              this.completedTasks,
+              this.totalTasks,
+              {
+                id: currentItemId,
+                title: 'Current Task',
+                type: 'Subtask',
+              }
+            );
+          } else {
+            this.#progressDisplay?.update(this.completedTasks, this.totalTasks);
+          }
 
           // CRITICAL: Record task completion in resource monitor
           if (this.#resourceMonitor) {
@@ -1247,6 +1295,10 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
     this.logger.info('[PRPPipeline] Starting cleanup and state preservation');
 
     try {
+      // CRITICAL: Stop progress display (must happen before other cleanup)
+      this.#progressDisplay?.stop();
+      this.logger.debug('[PRPPipeline] Progress display stopped');
+
       // CRITICAL: Stop resource monitoring
       if (this.#resourceMonitor) {
         this.#resourceMonitor.stop();

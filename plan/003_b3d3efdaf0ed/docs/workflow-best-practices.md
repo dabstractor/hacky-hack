@@ -1,6 +1,7 @@
 # Workflow Development Best Practices and Patterns
 
 ## Table of Contents
+
 1. [Workflow Orchestration Best Practices](#workflow-orchestration-best-practices)
 2. [Step-Based Workflow Patterns](#step-based-workflow-patterns)
 3. [State Management in Workflows](#state-management-in-workflows)
@@ -50,6 +51,7 @@
 ### Architecture Patterns
 
 **Pipeline Pattern**
+
 ```python
 # Linear execution with clear stages
 class Pipeline:
@@ -67,6 +69,7 @@ class Pipeline:
 ```
 
 **DAG (Directed Acyclic Graph) Pattern**
+
 ```python
 # Complex dependencies with parallel execution
 class WorkflowDAG:
@@ -92,6 +95,7 @@ class WorkflowDAG:
 ### Step Definition Patterns
 
 **Functional Step Pattern**
+
 ```python
 from typing import Callable, Any
 from dataclasses import dataclass
@@ -124,6 +128,7 @@ class Workflow:
 ```
 
 **Class-Based Step Pattern**
+
 ```python
 class Step:
     def execute(self, context: dict) -> dict:
@@ -148,6 +153,7 @@ class DataExtractionStep(Step):
 ### Step Composition Patterns
 
 **Sequential Execution**
+
 ```python
 workflow = Workflow("ETL Pipeline")
 workflow
@@ -157,6 +163,7 @@ workflow
 ```
 
 **Parallel Execution**
+
 ```python
 from concurrent.futures import ThreadPoolExecutor
 
@@ -176,6 +183,7 @@ class ParallelStep(Step):
 ```
 
 **Conditional Branching**
+
 ```python
 class ConditionalStep(Step):
     def __init__(self, name: str, condition: Callable, true_step: Step, false_step: Step = None):
@@ -199,6 +207,7 @@ class ConditionalStep(Step):
 ### State Machine Patterns
 
 **Finite State Machine (FSM) Pattern**
+
 ```python
 from enum import Enum, auto
 from typing import Dict, Callable
@@ -239,6 +248,7 @@ class StateMachine:
 ```
 
 **Observable State Pattern**
+
 ```python
 from typing import List, Callable
 from dataclasses import dataclass
@@ -290,6 +300,7 @@ class ObservableState:
 ### Context Management Patterns
 
 **Immutable Context Pattern**
+
 ```python
 from dataclasses import dataclass, replace
 from typing import Any
@@ -310,6 +321,7 @@ class WorkflowContext:
 ```
 
 **Context Builder Pattern**
+
 ```python
 class ContextBuilder:
     def __init__(self):
@@ -338,6 +350,7 @@ class ContextBuilder:
 ### Retry Patterns
 
 **Exponential Backoff**
+
 ```python
 import time
 import random
@@ -382,6 +395,7 @@ def retry_with_backoff(
 ```
 
 **Circuit Breaker Pattern**
+
 ```python
 from enum import Enum, auto
 from datetime import datetime, timedelta
@@ -446,6 +460,7 @@ class CircuitBreaker:
 ### Recovery Patterns
 
 **Saga Pattern for Distributed Transactions**
+
 ```python
 from typing import List, Callable
 from dataclasses import dataclass
@@ -486,6 +501,7 @@ class Saga:
 ```
 
 **Checkpoint and Recovery Pattern**
+
 ```python
 import json
 from pathlib import Path
@@ -525,6 +541,7 @@ class CheckpointManager:
 ### Hierarchical Workflow Pattern
 
 **Nested Workflow Pattern**
+
 ```python
 class CompositeWorkflow(Workflow):
     def __init__(self, name: str):
@@ -545,6 +562,7 @@ class CompositeWorkflow(Workflow):
 ```
 
 **Workflow Template Pattern**
+
 ```python
 class WorkflowTemplate:
     def __init__(self):
@@ -1005,12 +1023,14 @@ def process_data(context: dict = None):
 ### Apache Airflow
 
 **Key Patterns:**
+
 - DAG-based orchestration
 - Operator extensibility
 - XCom for data passing
 - Scheduler-based execution
 
 **Best Practices:**
+
 - Use `@task` decorator for simple tasks
 - Implement custom operators for complex operations
 - Leverage task groups for organization
@@ -1021,12 +1041,14 @@ def process_data(context: dict = None):
 ### Prefect
 
 **Key Patterns:**
+
 - Flow and task decorators
 - Native async support
 - Dynamic workflow generation
 - State-based execution
 
 **Best Practices:**
+
 - Use `@flow` and `@task` decorators
 - Implement sub-flows for composition
 - Leverage result caching
@@ -1037,12 +1059,14 @@ def process_data(context: dict = None):
 ### Dagster
 
 **Key Patterns:**
+
 - Software-defined assets
 - Ops and jobs
 - Resource management
 - Type-safe data passing
 
 **Best Practices:**
+
 - Define assets as first-class citizens
 - Use ops for transformations
 - Implement resources for external systems
@@ -1053,12 +1077,14 @@ def process_data(context: dict = None):
 ### Temporal
 
 **Key Patterns:**
+
 - Durable execution
 - Workflow as code
 - Activity-based tasks
 - Deterministic execution
 
 **Best Practices:**
+
 - Keep workflows deterministic
 - Use activities for non-deterministic operations
 - Implement workflow signals and queries
@@ -1069,12 +1095,14 @@ def process_data(context: dict = None):
 ### Luigi
 
 **Key Patterns:**
+
 - Task dependencies
 - Target-based outputs
 - Parameterized tasks
 - Central scheduler
 
 **Best Practices:**
+
 - Define clear task outputs
 - Use requires() for dependencies
 - Implement atomic operations
@@ -1164,22 +1192,26 @@ def process_data(context: dict = None):
 ## Additional Resources
 
 ### Books and Documentation
+
 - "Data Pipelines with Apache Airflow" by Bas Harenslak and Julian Rutten
 - "Flow-Based Programming" by J. Paul Morrison
 - "Enterprise Integration Patterns" by Gregor Hohpe and Bobby Woolf
 
 ### Research Papers
+
 - "Sagas: A Simple Way to Implement Long-Running Transactions" by Hector Garcia-Molina and Kenneth Salem
 - "The Saga Pattern: How to Execute Distributed Transactions Without Locks"
 - "Choreography and Orchestration: A Comparison of Workflow Patterns"
 
 ### Community Resources
+
 - Apache Airflow GitHub: https://github.com/apache/airflow
 - Prefect Community: https://prefect.io/slack
 - Dagster Community: https://dagster.io/community
 - Temporal Community: https://community.temporal.io/
 
 ### Standards and Specifications
+
 - BPMN 2.0 Specification: https://www.omg.org/spec/BPMN/2.0/
 - W3C Workflow Description Language: https://www.w3.org/TR/wf-dl/
 - CNCF Serverless Workflow Specification: https://github.com/serverlessworkflow/specification

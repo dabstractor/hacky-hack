@@ -25,6 +25,7 @@
 ### Primary TDD Sources
 
 **Books:**
+
 - **"Test-Driven Development: By Example" by Kent Beck** (2002) - The foundational TDD text
   - ISBN: 978-0321146533
   - Chapter 3: "The TDD Pattern" covers Red-Green-Refactor in depth
@@ -38,6 +39,7 @@
   - Chapter 9: "Unit Testing" covers TDD practices and clean testing
 
 **Blog Posts & Articles:**
+
 - **Martin Fowler - "The Practical Test Pyramid"**
   - URL: https://martinfowler.com/articles/practical-test-pyramid.html
   - Section anchors: #test-pyramid, #writing-good-tests, #testing-strategies
@@ -58,6 +60,7 @@
 ### TypeScript/Node.js Testing Sources
 
 **Official Documentation:**
+
 - **Vitest Documentation**
   - URL: https://vitest.dev/guide/
   - Section: https://vitest.dev/guide/why.html (Why Vitest)
@@ -74,6 +77,7 @@
   - Covers TypeScript-specific testing patterns
 
 **Community Resources:**
+
 - **TestingJavaScript.com by Kent C. Dodds**
   - URL: https://testingjavascript.com/
   - Comprehensive course on JavaScript testing principles
@@ -85,6 +89,7 @@
 ### Coverage & Quality Sources
 
 **Articles & Research:**
+
 - **"How to Find Your Test Coverage Sweet Spot" by Alberto Savoia**
   - URL: https://www.perforce.com/blog/qac/what-test-coverage
   - Discusses when 100% coverage makes sense
@@ -130,12 +135,14 @@
 **Phase 1: 🔴 RED - Write a Failing Test**
 
 **Principles:**
+
 - Write the test BEFORE writing any production code
 - The test MUST fail initially (confirming it tests something)
 - Keep tests small and focused on one behavior
 - Use descriptive test names that explain what and why
 
 **Best Practices:**
+
 ```typescript
 // ❌ BAD: Writing production code first
 function add(a: number, b: number): number {
@@ -158,6 +165,7 @@ function add(a: number, b: number): number {
 ```
 
 **Red Phase Checklist:**
+
 - [ ] Test file created before implementation
 - [ ] Test name describes behavior clearly
 - [ ] Test fails with meaningful error message
@@ -167,12 +175,14 @@ function add(a: number, b: number): number {
 **Phase 2: 🟢 GREEN - Make It Pass**
 
 **Principles:**
+
 - Write the SIMPLEST code to make the test pass
 - Don't worry about perfect implementation yet
 - Focus on getting to green quickly
 - The code can be "ugly" as long as it works
 
 **Best Practices:**
+
 ```typescript
 // ✅ GOOD: Simplest implementation first
 function add(a: number, b: number): number {
@@ -191,6 +201,7 @@ function add(a: number, b: number): number {
 ```
 
 **Green Phase Checklist:**
+
 - [ ] Minimal changes made to production code
 - [ ] Test passes
 - [ ] No additional features added beyond test requirements
@@ -200,12 +211,14 @@ function add(a: number, b: number): number {
 **Phase 3: ♻️ REFACTOR - Improve the Code**
 
 **Principles:**
+
 - Clean up the code while keeping tests green
 - Improve design, remove duplication, enhance readability
 - Apply design patterns and principles
 - Ensure no functionality changes
 
 **Best Practices:**
+
 ```typescript
 // After green phase, refactor while keeping tests passing
 
@@ -216,7 +229,12 @@ function calculateTotal(price: number, quantity: number, tax: number): number {
   return subtotal + taxAmount;
 }
 
-function calculateDiscountTotal(price: number, quantity: number, tax: number, discount: number): number {
+function calculateDiscountTotal(
+  price: number,
+  quantity: number,
+  tax: number,
+  discount: number
+): number {
   const subtotal = price * quantity;
   const taxAmount = subtotal * (tax / 100);
   const discountAmount = subtotal * (discount / 100);
@@ -237,13 +255,19 @@ function calculateTotal(price: number, quantity: number, tax: number): number {
   return subtotal + calculateTax(subtotal, tax);
 }
 
-function calculateDiscountTotal(price: number, quantity: number, tax: number, discount: number): number {
+function calculateDiscountTotal(
+  price: number,
+  quantity: number,
+  tax: number,
+  discount: number
+): number {
   const subtotal = calculateSubtotal(price, quantity);
-  return subtotal + calculateTax(subtotal, tax) - (subtotal * discount / 100);
+  return subtotal + calculateTax(subtotal, tax) - (subtotal * discount) / 100;
 }
 ```
 
 **Refactor Phase Checklist:**
+
 - [ ] All tests still pass (green maintained)
 - [ ] Code is cleaner and more maintainable
 - [ ] Duplication removed
@@ -254,45 +278,50 @@ function calculateDiscountTotal(price: number, quantity: number, tax: number, di
 ### TDD Cycle Timing and Rhythm
 
 **Optimal Cycle Duration:**
+
 - **Target:** 2-5 minutes per cycle
 - **Maximum:** 10-15 minutes for complex features
 - **Warning Sign:** If cycle takes >30 minutes, test is too large
 
 **Keeping Cycles Short:**
+
 ```typescript
 // ❌ BAD: Too much logic in one cycle
 it('should process payment with multiple items, discounts, tax, and shipping', () => {
   // 50+ lines of test setup
   // Testing too much at once
-})
+});
 
 // ✅ GOOD: Small, focused tests
 it('should calculate subtotal for multiple items', () => {
   // 5-10 lines, focused
-})
+});
 
 it('should apply percentage discount', () => {
   // 5-10 lines, focused
-})
+});
 
 it('should calculate tax based on location', () => {
   // 5-10 lines, focused
-})
+});
 ```
 
 ### TDD Variations
 
 **Classic TDD:**
+
 1. Write test
 2. Write implementation
 3. Refactor
 
 **Test-First Development (simplified):**
+
 1. Write test
 2. Write implementation
 3. (Refactor later or implicitly)
 
 **Test-Last Development (NOT TDD):**
+
 1. Write implementation
 2. Write tests
 3. (Rarely refactor)
@@ -323,11 +352,13 @@ https://martinfowler.com/articles/practical-test-pyramid.html#test-pyramid
 ### Recommended Test Ratios
 
 **Ideal Pyramid Distribution:**
+
 - **Unit Tests:** 70-80% of total tests
 - **Integration Tests:** 15-20% of total tests
 - **E2E Tests:** 5-10% of total tests
 
 **Google's Testing Approach (from "How Google Tests Software"):**
+
 - **Small Tests (Unit):** ~70% - Focus on single functions/classes
 - **Medium Tests (Integration):** ~20% - Focus on interactions between components
 - **Large Tests (E2E):** ~10% - Focus on critical user paths
@@ -335,21 +366,23 @@ https://martinfowler.com/articles/practical-test-pyramid.html#test-pyramid
 **Performance Characteristics:**
 | Test Type | Execution Time | Cost to Maintain | Feedback Speed | Failure Isolation |
 |-----------|---------------|------------------|----------------|-------------------|
-| Unit      | milliseconds  | Low              | Immediate      | Easy              |
-| Integration| seconds      | Medium           | Slow           | Medium            |
-| E2E       | minutes       | High             | Very Slow      | Hard              |
+| Unit | milliseconds | Low | Immediate | Easy |
+| Integration| seconds | Medium | Slow | Medium |
+| E2E | minutes | High | Very Slow | Hard |
 
 ### Unit Tests: Foundation of the Pyramid
 
 **Purpose:** Test individual functions and classes in isolation
 
 **Characteristics:**
+
 - Fast (milliseconds)
 - No external dependencies (mocked)
 - Focus on business logic
 - Test edge cases and boundary conditions
 
 **TypeScript/Node.js Example:**
+
 ```typescript
 // src/utils/calculator.ts
 export class Calculator {
@@ -407,6 +440,7 @@ describe('Calculator', () => {
 ```
 
 **Unit Test Best Practices:**
+
 - [ ] Test one thing at a time
 - [ ] Use descriptive names that explain behavior
 - [ ] Mock external dependencies
@@ -419,12 +453,14 @@ describe('Calculator', () => {
 **Purpose:** Test interactions between components
 
 **Characteristics:**
+
 - Medium speed (seconds)
 - Real dependencies (database, API, file system)
 - Focus on integration points
 - Test contracts and protocols
 
 **TypeScript/Node.js Example:**
+
 ```typescript
 // tests/integration/session-manager.test.ts
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -470,6 +506,7 @@ describe('SessionManager Integration', () => {
 ```
 
 **Integration Test Best Practices:**
+
 - [ ] Test real interactions between components
 - [ ] Use real databases/services (or test containers)
 - [ ] Clean up resources in afterEach
@@ -482,18 +519,21 @@ describe('SessionManager Integration', () => {
 **Purpose:** Test critical user journeys through the entire system
 
 **Characteristics:**
+
 - Slow (minutes)
 - Real application and real infrastructure
 - Focus on user workflows
 - Test "happy paths" and critical business flows
 
 **When to Write E2E Tests:**
+
 - Critical business workflows (checkout, authentication)
 - Complex multi-system interactions
 - User acceptance testing
 - Regression prevention for high-risk areas
 
 **E2E Test Example (Playwright):**
+
 ```typescript
 // tests/e2e/user-workflow.spec.ts
 import { test, expect } from '@playwright/test';
@@ -531,6 +571,7 @@ test.describe('User Registration and Login Flow', () => {
 ```
 
 **E2E Test Best Practices:**
+
 - [ ] Test only critical user journeys
 - [ ] Keep tests independent
 - [ ] Use Page Object Model for maintainability
@@ -555,6 +596,7 @@ test.describe('User Registration and Login Flow', () => {
 ```
 
 **Key Differences from Traditional Pyramid:**
+
 - Fewer unit tests (only test complex logic, not simple components)
 - More integration tests (test user interactions)
 - Minimal E2E tests (only critical paths)
@@ -566,6 +608,7 @@ test.describe('User Registration and Login Flow', () => {
 ### Framework Selection
 
 **Vitest (Recommended for New Projects):**
+
 - Native ESM support
 - Faster than Jest (using Vite)
 - Jest-compatible API
@@ -573,6 +616,7 @@ test.describe('User Registration and Login Flow', () => {
 - Watch mode with instant feedback
 
 **Configuration:**
+
 ```typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
@@ -601,6 +645,7 @@ export default defineConfig({
 ```
 
 **Jest (Legacy Projects):**
+
 - Mature ecosystem
 - Wide community adoption
 - Good migration path from Vitest
@@ -684,6 +729,7 @@ it('should throw on invalid session ID', async () => {
 ### Async Testing Patterns
 
 **Testing Promises:**
+
 ```typescript
 // ✅ GOOD: Use async/await
 it('should load session asynchronously', async () => {
@@ -693,9 +739,9 @@ it('should load session asynchronously', async () => {
 
 // ✅ GOOD: Test promise rejection
 it('should throw error for invalid session', async () => {
-  await expect(
-    sessionManager.loadSession('invalid-id')
-  ).rejects.toThrow('Session not found');
+  await expect(sessionManager.loadSession('invalid-id')).rejects.toThrow(
+    'Session not found'
+  );
 });
 
 // ❌ BAD: Not using async/await
@@ -707,8 +753,9 @@ it('should load session', () => {
 ```
 
 **Testing Callbacks:**
+
 ```typescript
-it('should call callback when session is created', (done) => {
+it('should call callback when session is created', done => {
   const callback = (session: Session) => {
     expect(session.id).toBeDefined();
     done(); // Signal test completion
@@ -720,6 +767,7 @@ it('should call callback when session is created', (done) => {
 ```
 
 **Testing Event Emitters:**
+
 ```typescript
 it('should emit event when session changes', async () => {
   const eventPromise = new Promise<Session>(resolve => {
@@ -736,6 +784,7 @@ it('should emit event when session changes', async () => {
 ### Mocking External Dependencies
 
 **Mocking File System:**
+
 ```typescript
 import { vi } from 'vitest';
 import { promises as fs } from 'node:fs';
@@ -759,6 +808,7 @@ describe('SessionManager with mocked file system', () => {
 ```
 
 **Mocking HTTP Requests:**
+
 ```typescript
 import { vi } from 'vitest';
 
@@ -786,6 +836,7 @@ describe('API Client', () => {
 ```
 
 **Mocking Environment Variables:**
+
 ```typescript
 import { vi } from 'vitest';
 
@@ -854,17 +905,20 @@ describe('Database Integration Tests', () => {
 ### Understanding Code Coverage
 
 **Types of Coverage:**
+
 - **Statement Coverage:** Percentage of statements executed
 - **Branch Coverage:** Percentage of decision branches executed
 - **Function Coverage:** Percentage of functions called
 - **Line Coverage:** Percentage of lines executed (similar to statement)
 
 **What 100% Coverage Means:**
+
 - Every line of code is executed at least once
 - Every branch (if/else) is tested in both directions
 - Every function is called with some input
 
 **What 100% Coverage Does NOT Mean:**
+
 - No bugs
 - Good tests
 - Correct logic
@@ -875,6 +929,7 @@ describe('Database Integration Tests', () => {
 **✅ Good Candidates for 100% Coverage:**
 
 1. **Critical Business Logic**
+
    ```typescript
    // Financial calculations - 100% coverage essential
    export function calculateInterest(
@@ -891,6 +946,7 @@ describe('Database Integration Tests', () => {
    ```
 
 2. **Security-Critical Code**
+
    ```typescript
    // Authentication - 100% coverage essential
    export function validatePassword(password: string): boolean {
@@ -903,6 +959,7 @@ describe('Database Integration Tests', () => {
    ```
 
 3. **Data Transformation Utilities**
+
    ```typescript
    // Data parsers - 100% coverage helpful
    export function parseCSV(csv: string): string[][] {
@@ -921,6 +978,7 @@ describe('Database Integration Tests', () => {
 **❌ Poor Candidates for 100% Coverage:**
 
 1. **UI Components with Many Variants**
+
    ```typescript
    // Not worth 100% coverage - high maintenance cost
    export function Button({ variant, size, disabled, children }) {
@@ -930,6 +988,7 @@ describe('Database Integration Tests', () => {
    ```
 
 2. **Error Handling for Unlikely Events**
+
    ```typescript
    // Not worth testing - failure scenario is extremely rare
    export function processData(data: string) {
@@ -954,6 +1013,7 @@ describe('Database Integration Tests', () => {
 ### Realistic Coverage Targets
 
 **Industry Standards:**
+
 - **Critical Systems (Medical, Financial):** 90-100%
 - **Enterprise Applications:** 80-90%
 - **Consumer Web Apps:** 70-80%
@@ -961,6 +1021,7 @@ describe('Database Integration Tests', () => {
 - **Prototypes/Proof of Concepts:** 40-60%
 
 **Tiered Coverage Strategy:**
+
 ```
 src/
 ├── core/              → 90-100% coverage (critical logic)
@@ -1017,6 +1078,7 @@ describe('Password Validation', () => {
 ### Measuring Coverage Effectiveness
 
 **Mutation Testing:**
+
 - Use tools like `stryker-js` or `istanbul-mutation`
 - Mutates code and checks if tests catch the bugs
 - Better measure than raw coverage
@@ -1030,6 +1092,7 @@ npx stryker run
 ```
 
 **Coverage Quality Metrics:**
+
 - **Mutation Score:** Percentage of mutations killed
 - **Assertion Density:** Number of assertions per test
 - **Test Complexity:** Cyclomatic complexity of test code
@@ -1063,6 +1126,7 @@ describe('SessionManager', () => {
 ### BDD: Given-When-Then Pattern
 
 **Gherkin Syntax:**
+
 ```gherkin
 GIVEN a user is logged in
 WHEN they click the logout button
@@ -1070,6 +1134,7 @@ THEN they should be redirected to the login page
 ```
 
 **Translated to Tests:**
+
 ```typescript
 describe('User Authentication', () => {
   describe('Logout', () => {
@@ -1090,6 +1155,7 @@ describe('User Authentication', () => {
 ### AAA: Arrange-Act-Assert Pattern
 
 **Explicit Comments (recommended for beginners):**
+
 ```typescript
 it('should calculate total with tax', () => {
   // Arrange
@@ -1106,6 +1172,7 @@ it('should calculate total with tax', () => {
 ```
 
 **Implicit (experienced teams):**
+
 ```typescript
 it('should calculate total with tax', () => {
   const calculator = new Calculator();
@@ -1116,18 +1183,19 @@ it('should calculate total with tax', () => {
 
 ### Naming Comparison Table
 
-| Pattern | Example | Pros | Cons |
-|---------|---------|------|------|
-| Should | `should add two numbers` | Clear, readable | Can get long |
-| Given-When-Then | `given valid input when adding then return sum` | BDD-friendly | Very long |
-| AAA | `add_two_numbers_returns_sum` | Structured | Less descriptive |
-| Unit Test | `testAddition` | Concise | Lacks clarity |
+| Pattern         | Example                                         | Pros            | Cons             |
+| --------------- | ----------------------------------------------- | --------------- | ---------------- |
+| Should          | `should add two numbers`                        | Clear, readable | Can get long     |
+| Given-When-Then | `given valid input when adding then return sum` | BDD-friendly    | Very long        |
+| AAA             | `add_two_numbers_returns_sum`                   | Structured      | Less descriptive |
+| Unit Test       | `testAddition`                                  | Concise         | Lacks clarity    |
 
 **Recommended:** Use "should" convention with descriptive context in `describe` blocks.
 
 ### Test Structure Best Practices
 
 **Descriptive Test Names:**
+
 ```typescript
 // ❌ BAD: Vague
 it('should work', () => {});
@@ -1141,6 +1209,7 @@ it('should persist session state to disk', () => {});
 ```
 
 **Nested Describe Blocks:**
+
 ```typescript
 describe('SessionManager', () => {
   describe('createSession', () => {
@@ -1168,6 +1237,7 @@ describe('SessionManager', () => {
 ### Directory Structure
 
 **Option 1: Co-Location (Recommended)**
+
 ```
 src/
 ├── core/
@@ -1182,6 +1252,7 @@ src/
 ```
 
 **Option 2: Separate Test Directory**
+
 ```
 src/
 ├── core/
@@ -1210,16 +1281,18 @@ tests/
 ### Test File Naming
 
 **Conventions:**
+
 - `*.test.ts` - Vitest/Jest standard
 - `*.spec.ts` - Alternative common convention
 - `test.ts` - For single test files
 
 **Consistency is Key:**
+
 ```typescript
 // Choose one and stick with it
-calculator.test.ts  // ✅ GOOD
-calculator.spec.ts  // ✅ GOOD
-calculator_tests.ts // ❌ BAD (unconventional)
+calculator.test.ts; // ✅ GOOD
+calculator.spec.ts; // ✅ GOOD
+calculator_tests.ts; // ❌ BAD (unconventional)
 ```
 
 ### Test Organization Patterns
@@ -1271,6 +1344,7 @@ describe('SessionManager', () => {
 ### Shared Test Fixtures
 
 **Fixture Factory Pattern:**
+
 ```typescript
 // tests/fixtures/session-fixture.ts
 export class SessionFixture {
@@ -1360,6 +1434,7 @@ const session = new SessionBuilder()
 ### Anti-Pattern 1: Testing Implementation Details
 
 **❌ Bad:**
+
 ```typescript
 it('should set internal property', () => {
   const session = new Session();
@@ -1376,6 +1451,7 @@ it('should call private method', () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should expose computed value through public API', () => {
   const session = new Session();
@@ -1395,6 +1471,7 @@ it('should update state when public method is called', () => {
 ### Anti-Pattern 2: Over-Mocking
 
 **❌ Bad:**
+
 ```typescript
 vi.mock('fs', () => ({
   readFileSync: vi.fn(),
@@ -1408,6 +1485,7 @@ vi.mock('fs', () => ({
 ```
 
 **✅ Good:**
+
 ```typescript
 // Mock only what you need to control
 vi.mock('fs/promises', () => ({
@@ -1422,6 +1500,7 @@ vi.mock('fs/promises', () => ({
 ### Anti-Pattern 3: Brittle Assertions
 
 **❌ Bad:**
+
 ```typescript
 it('should have exactly 5 sessions', () => {
   expect(sessions.length).toBe(5); // Breaks when adding tests
@@ -1437,6 +1516,7 @@ it('should match exact object', () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should have at least one session', () => {
   expect(sessions.length).toBeGreaterThanOrEqual(1);
@@ -1456,6 +1536,7 @@ it('should have expected structure', () => {
 ### Anti-Pattern 4: Testing Multiple Behaviors
 
 **❌ Bad:**
+
 ```typescript
 it('should create session, update status, and add artifacts', async () => {
   const session = await createSession();
@@ -1466,6 +1547,7 @@ it('should create session, update status, and add artifacts', async () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should create session with valid structure', async () => {
   const session = await createSession();
@@ -1485,6 +1567,7 @@ it('should update session status', async () => {
 ### Anti-Pattern 5: Ignoring Async Errors
 
 **❌ Bad:**
+
 ```typescript
 it('should handle error', async () => {
   await sessionManager.loadSession('invalid');
@@ -1499,11 +1582,12 @@ it('should handle rejection', () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should throw error for invalid session', async () => {
-  await expect(
-    sessionManager.loadSession('invalid')
-  ).rejects.toThrow('Session not found');
+  await expect(sessionManager.loadSession('invalid')).rejects.toThrow(
+    'Session not found'
+  );
 });
 ```
 
@@ -1512,6 +1596,7 @@ it('should throw error for invalid session', async () => {
 ### Anti-Pattern 6: Test Interdependence
 
 **❌ Bad:**
+
 ```typescript
 let sharedSession: Session;
 
@@ -1526,6 +1611,7 @@ it('should update session', async () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should update session', async () => {
   const session = await createSession(); // Independent
@@ -1540,6 +1626,7 @@ it('should update session', async () => {
 ### Anti-Pattern 7: Sleeps and Waits
 
 **❌ Bad:**
+
 ```typescript
 it('should process data', async () => {
   await processData();
@@ -1549,6 +1636,7 @@ it('should process data', async () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should process data', async () => {
   const promise = processData();
@@ -1562,6 +1650,7 @@ it('should process data', async () => {
 ### Anti-Pattern 8: Testing Framework or Library Code
 
 **❌ Bad:**
+
 ```typescript
 it('should call array.map', () => {
   const numbers = [1, 2, 3];
@@ -1572,6 +1661,7 @@ it('should call array.map', () => {
 ```
 
 **✅ Good:**
+
 ```typescript
 it('should double all numbers', () => {
   const numbers = [1, 2, 3];
@@ -1688,6 +1778,7 @@ it('should double all numbers', () => {
 ## Quick Reference
 
 ### TDD Cycle Summary
+
 ```
 🔴 RED   → Write failing test (2-5 min)
 🟢 GREEN → Write minimal code to pass (2-5 min)
@@ -1695,6 +1786,7 @@ it('should double all numbers', () => {
 ```
 
 ### Testing Pyramid Ratios
+
 ```
 Unit:         ████████████████████████████████████████████ 70-80%
 Integration:  ██████████████ 15-20%
@@ -1702,6 +1794,7 @@ E2E:          ███ 5-10%
 ```
 
 ### Coverage Targets by Layer
+
 ```
 Core/Business Logic: 90-100%
 Utilities:           80-90%
@@ -1711,6 +1804,7 @@ UI/Components:       50-70%
 ```
 
 ### Test Naming Template
+
 ```
 it('should <expected outcome> when <condition>', () => {
   // Arrange
@@ -1720,6 +1814,7 @@ it('should <expected outcome> when <condition>', () => {
 ```
 
 ### Common Anti-Patterns to Avoid
+
 1. Testing implementation details
 2. Over-mocking dependencies
 3. Brittle assertions
@@ -1740,24 +1835,29 @@ it('should <expected outcome> when <condition>', () => {
 ## Authoritative Source URLs (for Reference)
 
 **TDD Fundamentals:**
+
 - Martin Fowler - Test Pyramid: https://martinfowler.com/articles/practical-test-pyramid.html
 - Kent Beck - TDD Origin: https://medium.com/@kentbeck_7670/test-driven-development-1d9ac0e1f4c6
 - Google Testing Blog: https://testing.googleblog.com/
 
 **TypeScript/Node.js Testing:**
+
 - Vitest Documentation: https://vitest.dev/guide/
 - Jest Documentation: https://jestjs.io/docs/getting-started
 - Testing JavaScript: https://testingjavascript.com/
 
 **Coverage & Quality:**
+
 - Martin Fowler on Coverage: https://martinfowler.com/bliki/TestCoverage.html
 - 100% Coverage Debate: https://medium.com/javascript-scene/100-test-coverage-5a5519d30635
 
 **Testing Patterns:**
+
 - xUnit Test Patterns: http://xunitpatterns.com/
 - Given-When-Then (Cucumber): https://cucumber.io/docs/gherkin/reference/
 - Arrange-Act-Assert: https://wiki.c2.com/?ArrangeActAssert
 
 **Anti-Patterns:**
+
 - Test Smells: http://xunitpatterns.com/Test%20Smells.html
 - Kent C. Dodds on Testing Mistakes: https://kentcdodds.com/blog/common-mistakes-with-react-testing-library

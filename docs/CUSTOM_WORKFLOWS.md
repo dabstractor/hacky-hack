@@ -6,7 +6,7 @@
 **Last Updated**: 2026-01-23
 **Version**: 1.0.0
 
-***
+---
 
 ## Table of Contents
 
@@ -24,42 +24,42 @@
 - [Testing Custom Workflows](#testing-custom-workflows)
 - [See Also](#see-also)
 
-***
+---
 
 ## Overview
 
 The PRP Pipeline is built on the **Groundswell Framework**, which provides workflow primitives for orchestrating complex, multi-step operations. Custom workflows enable you to:
 
-* **Domain-Specific Automation**: Create workflows for deployment, migration, data processing, testing, and more
-* **Observability**: Track timing, state changes, and progress automatically
-* **Error Resilience**: Built-in retry logic, graceful shutdown, and error recovery
-* **Composability**: Combine workflows into larger workflows using parent-child relationships
+- **Domain-Specific Automation**: Create workflows for deployment, migration, data processing, testing, and more
+- **Observability**: Track timing, state changes, and progress automatically
+- **Error Resilience**: Built-in retry logic, graceful shutdown, and error recovery
+- **Composability**: Combine workflows into larger workflows using parent-child relationships
 
 ### Why Create Custom Workflows?
 
-* **Deployment**: Automate build, test, and deploy processes
-* **Migration**: Schema migrations, data transformations, system upgrades
-* **Testing**: Automated E2E testing, performance testing, security scanning
-* **Maintenance**: Database backups, log rotation, health checks
-* **Integration**: External system synchronization, webhook processing
+- **Deployment**: Automate build, test, and deploy processes
+- **Migration**: Schema migrations, data transformations, system upgrades
+- **Testing**: Automated E2E testing, performance testing, security scanning
+- **Maintenance**: Database backups, log rotation, health checks
+- **Integration**: External system synchronization, webhook processing
 
 ### Use Cases
 
-* **DeploymentWorkflow**: Build → Test → Deploy to Staging → Smoke Tests → Deploy to Production
-* **MigrationWorkflow**: Schema backup → Data export → Transform → Import → Validate
-* **DataProcessingWorkflow**: Extract → Clean → Transform → Load (ETL)
-* **MaintenanceWorkflow**: Health check → Backup → Cleanup → Report
+- **DeploymentWorkflow**: Build → Test → Deploy to Staging → Smoke Tests → Deploy to Production
+- **MigrationWorkflow**: Schema backup → Data export → Transform → Import → Validate
+- **DataProcessingWorkflow**: Extract → Clean → Transform → Load (ETL)
+- **MaintenanceWorkflow**: Health check → Backup → Cleanup → Report
 
-***
+---
 
 ## Groundswell Workflow Base Class
 
 All workflows extend the Groundswell `Workflow` base class, which provides:
 
-* **State Management**: `setStatus()` for lifecycle transitions
-* **Logging**: Built-in logger with structured logging
-* **Correlation IDs**: Automatic tracing for distributed debugging
-* **Observability**: Automatic tracking of public state fields
+- **State Management**: `setStatus()` for lifecycle transitions
+- **Logging**: Built-in logger with structured logging
+- **Correlation IDs**: Automatic tracing for distributed debugging
+- **Observability**: Automatic tracking of public state fields
 
 ### Basic Workflow Structure
 
@@ -139,11 +139,11 @@ classDiagram
 
 All workflows inherit these properties from the `Workflow` base class:
 
-| Property   | Type      | Description                              |
-| ---------- | --------- | ---------------------------------------- |
-| `status`   | `string`  | Current workflow status (idle/running/completed/failed) |
-| `id`       | `string`  | Unique workflow instance identifier        |
-| `logger`   | `Logger`  | Structured logger for logging             |
+| Property | Type     | Description                                             |
+| -------- | -------- | ------------------------------------------------------- |
+| `status` | `string` | Current workflow status (idle/running/completed/failed) |
+| `id`     | `string` | Unique workflow instance identifier                     |
+| `logger` | `Logger` | Structured logger for logging                           |
 
 ### Public vs Private Fields
 
@@ -182,7 +182,7 @@ this.correlationLogger.info('[MyWorkflow] Operation complete', { result });
 
 **See also**: [`src/utils/logger.ts`](../src/utils/logger.ts) for logging utilities
 
-***
+---
 
 ## Decorator Patterns
 
@@ -203,9 +203,9 @@ async myStep(): Promise<void> {
 
 **Decorator Options**:
 
-| Option       | Type    | Default | Description                            |
-| ------------ | ------- | ------- | -------------------------------------- |
-| `trackTiming` | `boolean` | `false` | Enable execution time tracking        |
+| Option        | Type      | Default | Description                                |
+| ------------- | --------- | ------- | ------------------------------------------ |
+| `trackTiming` | `boolean` | `false` | Enable execution time tracking             |
 | `name`        | `string`  | (auto)  | Custom step name (defaults to method name) |
 
 **Example from BugHuntWorkflow** ([`src/workflows/bug-hunt-workflow.ts:123-146`](../src/workflows/bug-hunt-workflow.ts#L123-L146)):
@@ -295,7 +295,7 @@ testResults: TestResults | null;  // Observable
 
 **See also**: [`src/workflows/prp-pipeline.ts:144-177`](../src/workflows/prp-pipeline.ts#L144-L177) for observable state fields in PRPPipeline.
 
-***
+---
 
 ## Workflow Lifecycle
 
@@ -313,12 +313,12 @@ stateDiagram-v2
 
 ### Status States
 
-| Status      | When Set                  | Meaning                          |
-| ----------- | ------------------------- | -------------------------------- |
-| `idle`       | (Initial state)           | Workflow created but not started  |
-| `running`    | `setStatus('running')`     | Workflow is executing            |
-| `completed`  | `setStatus('completed')`   | All steps succeeded              |
-| `failed`     | `setStatus('failed')`       | Fatal error occurred             |
+| Status      | When Set                 | Meaning                          |
+| ----------- | ------------------------ | -------------------------------- |
+| `idle`      | (Initial state)          | Workflow created but not started |
+| `running`   | `setStatus('running')`   | Workflow is executing            |
+| `completed` | `setStatus('completed')` | All steps succeeded              |
+| `failed`    | `setStatus('failed')`    | Fatal error occurred             |
 
 ### Lifecycle Pattern
 
@@ -411,7 +411,7 @@ async run(): Promise<void> {
 }
 ```
 
-***
+---
 
 ## Error Handling and Recovery
 
@@ -420,14 +420,16 @@ Workflows should handle errors gracefully with clear error classification and re
 ### Fatal vs Non-Fatal Errors
 
 **Fatal errors** abort the workflow immediately:
-* Configuration errors (missing required parameters)
-* System errors (file system, network)
-* Validation errors (invalid input)
+
+- Configuration errors (missing required parameters)
+- System errors (file system, network)
+- Validation errors (invalid input)
 
 **Non-fatal errors** are logged and tracked:
-* Individual task failures (with `--continue-on-error`)
-* Transient failures (network timeouts)
-* Retryable operations
+
+- Individual task failures (with `--continue-on-error`)
+- Transient failures (network timeouts)
+- Retryable operations
 
 ### Error Handling Pattern
 
@@ -508,11 +510,12 @@ const result = (await retryAgentPrompt(
 ```
 
 **Retry Configuration**:
-* Max attempts: 3
-* Base delay: 1000ms
-* Max delay: 30000ms
-* Backoff factor: 2 (exponential)
-* Jitter factor: 0.1 (10% variance)
+
+- Max attempts: 3
+- Base delay: 1000ms
+- Max delay: 30000ms
+- Backoff factor: 2 (exponential)
+- Jitter factor: 0.1 (10% variance)
 
 **See also**: [`src/utils/retry.ts`](../src/utils/retry.ts) for retry utilities
 
@@ -545,7 +548,7 @@ Track failures for error reporting:
 
 **See also**: [`src/workflows/prp-pipeline.ts:370-416`](../src/workflows/prp-pipeline.ts#L370-L416) for TaskFailure tracking
 
-***
+---
 
 ## Workflow Composition Patterns
 
@@ -685,7 +688,7 @@ constructor(name: string, parent: Workflow) {
 }
 ```
 
-***
+---
 
 ## Step-by-Step Guide
 
@@ -940,7 +943,7 @@ describe('MyWorkflow', () => {
 
 **See also**: [`tests/unit/workflows/bug-hunt-workflow.test.ts`](../tests/unit/workflows/bug-hunt-workflow.test.ts) for testing patterns
 
-***
+---
 
 ## Complete Example: DeploymentWorkflow
 
@@ -959,7 +962,7 @@ This section provides a complete, production-ready DeploymentWorkflow with 6 ste
 
 ### Complete Implementation
 
-```typescript
+````typescript
 /**
  * Deployment workflow for automated build, test, and deploy
  *
@@ -1107,21 +1110,29 @@ export class DeploymentWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async validateEnvironment(): Promise<void> {
-    this.correlationLogger.info('[DeploymentWorkflow] Phase 1: Validate Environment');
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Phase 1: Validate Environment'
+    );
 
     // Check for required tools
     const requiredTools = ['docker', 'kubectl'];
     for (const tool of requiredTools) {
-      this.correlationLogger.info(`[DeploymentWorkflow] Checking for ${tool}...`);
+      this.correlationLogger.info(
+        `[DeploymentWorkflow] Checking for ${tool}...`
+      );
       // In real implementation, check if tool exists
       this.correlationLogger.info(`[DeploymentWorkflow] ${tool} found`);
     }
 
     // Check configuration files
-    this.correlationLogger.info('[DeploymentWorkflow] Checking configuration files...');
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Checking configuration files...'
+    );
     // In real implementation, check for config files
 
-    this.correlationLogger.info('[DeploymentWorkflow] Environment validation complete');
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Environment validation complete'
+    );
   }
 
   /**
@@ -1139,7 +1150,9 @@ export class DeploymentWorkflow extends Workflow {
     this.correlationLogger.info('[DeploymentWorkflow] Phase 2: Build Artifact');
 
     // In real implementation, execute build command
-    this.correlationLogger.info(`[DeploymentWorkflow] Building ${this.appName}...`);
+    this.correlationLogger.info(
+      `[DeploymentWorkflow] Building ${this.appName}...`
+    );
 
     // Simulate build
     this.artifactPath = `/tmp/${this.appName}-${Date.now()}.tar.gz`;
@@ -1199,10 +1212,14 @@ export class DeploymentWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async deployStaging(): Promise<void> {
-    this.correlationLogger.info('[DeploymentWorkflow] Phase 4: Deploy to Staging');
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Phase 4: Deploy to Staging'
+    );
 
     if (this.environment !== 'staging') {
-      this.correlationLogger.info('[DeploymentWorkflow] Skipping staging deployment (production mode)');
+      this.correlationLogger.info(
+        '[DeploymentWorkflow] Skipping staging deployment (production mode)'
+      );
       return;
     }
 
@@ -1212,9 +1229,12 @@ export class DeploymentWorkflow extends Workflow {
     this.deploymentStatus = 'staged';
     this.deploymentUrl = `https://${this.appName}-staging.example.com`;
 
-    this.correlationLogger.info('[DeploymentWorkflow] Staging deployment complete', {
-      deploymentUrl: this.deploymentUrl,
-    });
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Staging deployment complete',
+      {
+        deploymentUrl: this.deploymentUrl,
+      }
+    );
   }
 
   /**
@@ -1234,7 +1254,9 @@ export class DeploymentWorkflow extends Workflow {
     this.correlationLogger.info('[DeploymentWorkflow] Phase 5: Smoke Tests');
 
     if (this.environment !== 'staging') {
-      this.correlationLogger.info('[DeploymentWorkflow] Skipping smoke tests (production mode)');
+      this.correlationLogger.info(
+        '[DeploymentWorkflow] Skipping smoke tests (production mode)'
+      );
       return;
     }
 
@@ -1271,22 +1293,31 @@ export class DeploymentWorkflow extends Workflow {
    */
   @Step({ trackTiming: true })
   async deployProduction(): Promise<void> {
-    this.correlationLogger.info('[DeploymentWorkflow] Phase 6: Deploy to Production');
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Phase 6: Deploy to Production'
+    );
 
     // In real implementation, execute deployment
     if (this.environment === 'production') {
-      this.correlationLogger.info('[DeploymentWorkflow] Deploying to production...');
+      this.correlationLogger.info(
+        '[DeploymentWorkflow] Deploying to production...'
+      );
     } else {
-      this.correlationLogger.info('[DeploymentWorkflow] Skipping production deployment (staging mode)');
+      this.correlationLogger.info(
+        '[DeploymentWorkflow] Skipping production deployment (staging mode)'
+      );
       return;
     }
 
     this.deploymentStatus = 'deployed';
     this.deploymentUrl = `https://${this.appName}.example.com`;
 
-    this.correlationLogger.info('[DeploymentWorkflow] Production deployment complete', {
-      deploymentUrl: this.deploymentUrl,
-    });
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Production deployment complete',
+      {
+        deploymentUrl: this.deploymentUrl,
+      }
+    );
   }
 
   // ========================================================================
@@ -1312,7 +1343,9 @@ export class DeploymentWorkflow extends Workflow {
    */
   async run(): Promise<DeploymentResult> {
     this.setStatus('running');
-    this.correlationLogger.info('[DeploymentWorkflow] Starting deployment workflow');
+    this.correlationLogger.info(
+      '[DeploymentWorkflow] Starting deployment workflow'
+    );
 
     try {
       // Execute phases sequentially
@@ -1331,18 +1364,25 @@ export class DeploymentWorkflow extends Workflow {
         timestamp: new Date().toISOString(),
       };
 
-      this.correlationLogger.info('[DeploymentWorkflow] Deployment workflow completed', {
-        success: result.success,
-        deploymentUrl: result.deploymentUrl,
-      });
+      this.correlationLogger.info(
+        '[DeploymentWorkflow] Deployment workflow completed',
+        {
+          success: result.success,
+          deploymentUrl: result.deploymentUrl,
+        }
+      );
 
       return result;
     } catch (error) {
       this.setStatus('failed');
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.correlationLogger.error('[DeploymentWorkflow] Deployment workflow failed', {
-        error: errorMessage,
-      });
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.correlationLogger.error(
+        '[DeploymentWorkflow] Deployment workflow failed',
+        {
+          error: errorMessage,
+        }
+      );
 
       const result: DeploymentResult = {
         success: false,
@@ -1354,7 +1394,7 @@ export class DeploymentWorkflow extends Workflow {
     }
   }
 }
-```
+````
 
 ### Usage Example
 
@@ -1372,7 +1412,7 @@ const productionResult = await productionWorkflow.run();
 console.log(`Production: ${productionResult.deploymentUrl}`);
 ```
 
-***
+---
 
 ## Testing Custom Workflows
 
@@ -1460,9 +1500,7 @@ describe('MyWorkflow', () => {
 
       await workflow.step1();
 
-      expect(logSpy).toHaveBeenCalledWith(
-        '[MyWorkflow] Step 1: Processing'
-      );
+      expect(logSpy).toHaveBeenCalledWith('[MyWorkflow] Step 1: Processing');
     });
   });
 });
@@ -1540,45 +1578,45 @@ describe('lifecycle', () => {
 
 **See also**: [`tests/unit/workflows/bug-hunt-workflow.test.ts`](../tests/unit/workflows/bug-hunt-workflow.test.ts) for comprehensive testing patterns
 
-***
+---
 
 ## See Also
 
 ### Project Documentation
 
-* **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Multi-agent architecture overview with workflow system design
-* **[WORKFLOWS.md](./WORKFLOWS.md)** - Pipeline workflow documentation with all workflow details
-* **[CUSTOM_AGENTS.md](./CUSTOM_AGENTS.md)** - Custom agent development guide
-* **[CUSTOM_TOOLS.md](./CUSTOM_TOOLS.md)** - Custom MCP tool development guide
-* **[CLI_REFERENCE.md](./CLI_REFERENCE.md)** - Command-line interface documentation
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Multi-agent architecture overview with workflow system design
+- **[WORKFLOWS.md](./WORKFLOWS.md)** - Pipeline workflow documentation with all workflow details
+- **[CUSTOM_AGENTS.md](./CUSTOM_AGENTS.md)** - Custom agent development guide
+- **[CUSTOM_TOOLS.md](./CUSTOM_TOOLS.md)** - Custom MCP tool development guide
+- **[CLI_REFERENCE.md](./CLI_REFERENCE.md)** - Command-line interface documentation
 
 ### Source Code
 
-* **[src/workflows/](../src/workflows/)** - Workflow implementations
-  * [prp-pipeline.ts](../src/workflows/prp-pipeline.ts) - Main pipeline workflow (complete example)
-  * [bug-hunt-workflow.ts](../src/workflows/bug-hunt-workflow.ts) - Simple 4-step workflow
-  * [fix-cycle-workflow.ts](../src/workflows/fix-cycle-workflow.ts) - Iterative workflow
-  * [delta-analysis-workflow.ts](../src/workflows/delta-analysis-workflow.ts) - Simple 1-step workflow
-  * [hello-world.ts](../src/workflows/hello-world.ts) - Minimal validation workflow
-* **[src/utils/logger.ts](../src/utils/logger.ts)** - Logging utilities with correlation support
-* **[src/utils/retry.ts](../src/utils/retry.ts)** - Retry logic with exponential backoff
-* **[src/agents/agent-factory.ts](../src/agents/agent-factory.ts)** - Agent creation and configuration
+- **[src/workflows/](../src/workflows/)** - Workflow implementations
+  - [prp-pipeline.ts](../src/workflows/prp-pipeline.ts) - Main pipeline workflow (complete example)
+  - [bug-hunt-workflow.ts](../src/workflows/bug-hunt-workflow.ts) - Simple 4-step workflow
+  - [fix-cycle-workflow.ts](../src/workflows/fix-cycle-workflow.ts) - Iterative workflow
+  - [delta-analysis-workflow.ts](../src/workflows/delta-analysis-workflow.ts) - Simple 1-step workflow
+  - [hello-world.ts](../src/workflows/hello-world.ts) - Minimal validation workflow
+- **[src/utils/logger.ts](../src/utils/logger.ts)** - Logging utilities with correlation support
+- **[src/utils/retry.ts](../src/utils/retry.ts)** - Retry logic with exponential backoff
+- **[src/agents/agent-factory.ts](../src/agents/agent-factory.ts)** - Agent creation and configuration
 
 ### Testing
 
-* **[tests/unit/workflows/](../tests/unit/workflows/)** - Workflow unit tests
-  * [bug-hunt-workflow.test.ts](../tests/unit/workflows/bug-hunt-workflow.test.ts) - Testing patterns
-  * [fix-cycle-workflow.test.ts](../tests/unit/workflows/fix-cycle-workflow.test.ts) - Iterative workflow tests
-  * [delta-analysis-workflow.test.ts](../tests/unit/workflows/delta-analysis-workflow.test.ts) - Delta workflow tests
+- **[tests/unit/workflows/](../tests/unit/workflows/)** - Workflow unit tests
+  - [bug-hunt-workflow.test.ts](../tests/unit/workflows/bug-hunt-workflow.test.ts) - Testing patterns
+  - [fix-cycle-workflow.test.ts](../tests/unit/workflows/fix-cycle-workflow.test.ts) - Iterative workflow tests
+  - [delta-analysis-workflow.test.ts](../tests/unit/workflows/delta-analysis-workflow.test.ts) - Delta workflow tests
 
 ### External Resources
 
-* **[Groundswell Framework](https://github.com/anthropics/groundswell)** - Agentic workflow primitives
-* **[Prefect Documentation](https://docs.prefect.io/concepts/workflows)** - Workflow best practices
-* **[Airflow DAGs](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags)** - DAG patterns
-* **[Temporal Workflows](https://docs.temporal.io/learn/workflows)** - Workflow orchestration patterns
+- **[Groundswell Framework](https://github.com/anthropics/groundswell)** - Agentic workflow primitives
+- **[Prefect Documentation](https://docs.prefect.io/concepts/workflows)** - Workflow best practices
+- **[Airflow DAGs](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags)** - DAG patterns
+- **[Temporal Workflows](https://docs.temporal.io/learn/workflows)** - Workflow orchestration patterns
 
-***
+---
 
 **Document Version**: 1.0.0
 **Last Updated**: 2026-01-23

@@ -1,11 +1,13 @@
 # Research Summary: Testing Strategy Documentation
 
 ## Overview
+
 This research document summarizes findings for creating the TESTING.md guide as part of work item P2.M2.T3.S1.
 
 ## Key Findings from Codebase Analysis
 
 ### 1. Test Structure (from Explore Agent)
+
 - Total test files: 137 test files
 - Unit tests: 58 files in `tests/unit/`
 - Integration tests: 65 files in `tests/integration/`
@@ -15,6 +17,7 @@ This research document summarizes findings for creating the TESTING.md guide as 
 - Test fixtures: 5 files
 
 ### 2. Vitest Configuration (from Explore Agent)
+
 - **Framework**: Vitest with TypeScript
 - **Configuration**: `/home/dustin/projects/hacky-hack/vitest.config.ts`
 - **Setup file**: `/home/dustin/projects/hacky-hack/tests/setup.ts`
@@ -25,20 +28,26 @@ This research document summarizes findings for creating the TESTING.md guide as 
 ### 3. Testing Patterns (from Explore Agent - Test Examples)
 
 #### Unit Test Pattern
+
 **File**: `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts`
+
 - Environment variable mocking with `vi.stubEnv()`
 - Validation testing with try/catch for expected errors
 - Cleanup pattern with `afterEach()`
 
 #### Integration Test Pattern
+
 **File**: `/home/dustin/projects/hacky-hack/tests/integration/architect-agent.test.ts`
+
 - Full agent workflow testing
 - Agent factory mocking
 - Schema validation with Zod
 - Mock vs real LLM switching with `USE_REAL_LLM` flag
 
 #### E2E Test Pattern
+
 **File**: `/home/dustin/projects/hacky-hack/tests/e2e/pipeline.test.ts`
+
 - Complete pipeline workflow testing
 - Module-level mocking with hoisting
 - Temporary directory management
@@ -47,6 +56,7 @@ This research document summarizes findings for creating the TESTING.md guide as 
 ### 4. Mocking Strategies (from Explore Agent)
 
 #### Module-level Mocking (hoisting pattern)
+
 ```typescript
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
@@ -59,6 +69,7 @@ vi.mock('groundswell', async () => {
 ```
 
 #### Environment Variable Mocking
+
 ```typescript
 beforeEach(() => {
   vi.stubEnv('ANTHROPIC_AUTH_TOKEN', 'test-token');
@@ -67,6 +78,7 @@ beforeEach(() => {
 ```
 
 #### External Service Mocking
+
 - **Git Operations**: Mock `simple-git` with mock instance
 - **File System**: Mock `fs/promises` and `node:fs`
 - **Child Process**: Mock `spawn` for Bash operations
@@ -75,6 +87,7 @@ beforeEach(() => {
 ### 5. Documentation Style (from Read)
 
 **Header Pattern** (from docs/ARCHITECTURE.md, docs/CUSTOM_AGENTS.md):
+
 ```markdown
 # Document Title
 
@@ -85,27 +98,34 @@ beforeEach(() => {
 **Version**: 1.0.0
 
 ## Table of Contents
+
 - [Section 1](#section-1)
 - [Section 2](#section-2)
-...
+  ...
 ```
 
 **See Also Section Pattern**:
+
 ```markdown
 ## See Also
 
 ### Project Documentation
+
 - **[LINK](path)** - Description
 
 ### Source Code
+
 - **[path/to/file](path/to/file)** - Description
 
 ### External Resources
+
 - [Resource Name](URL) - Description
 ```
 
 ### 6. Test Setup File (from System Context)
+
 **File**: `/home/dustin/projects/hacky-hack/tests/setup.ts`
+
 - Environment variable loading (dotenv)
 - z.ai API endpoint validation (blocks Anthropic API)
 - Promise rejection tracking
@@ -113,6 +133,7 @@ beforeEach(() => {
 - Memory management with garbage collection
 
 ### 7. Test Scripts (from Package.json)
+
 - `npm test`: `vitest` - Run tests in watch mode
 - `npm run test:run`: `vitest run` - Run tests once
 - `npm run test:coverage`: `vitest run --coverage` - Run with coverage
@@ -121,6 +142,7 @@ beforeEach(() => {
 ## Documentation Requirements
 
 Based on the contract definition in the work item:
+
 1. Testing philosophy (100% coverage, TDD)
 2. Test structure and organization
 3. Unit vs integration vs e2e tests
@@ -131,29 +153,35 @@ Based on the contract definition in the work item:
 ## File Paths to Reference
 
 ### Configuration
+
 - `/home/dustin/projects/hacky-hack/vitest.config.ts` - Vitest configuration
 - `/home/dustin/projects/hacky-hack/tests/setup.ts` - Global test setup
 
 ### Test Examples
+
 - `/home/dustin/projects/hacky-hack/tests/unit/config/environment.test.ts` - Unit test example
 - `/home/dustin/projects/hacky-hack/tests/integration/architect-agent.test.ts` - Integration test example
 - `/home/dustin/projects/hacky-hack/tests/e2e/pipeline.test.ts` - E2E test example
 
 ### Mocking Examples
+
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/bash-mcp.test.ts` - Bash MCP mocking
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/git-mcp.test.ts` - Git MCP mocking
 - `/home/dustin/projects/hacky-hack/tests/unit/tools/filesystem-mcp.test.ts` - Filesystem mocking
 
 ### Fixtures
+
 - `/home/dustin/projects/hacky-hack/tests/fixtures/simple-prd.ts` - Test fixture example
 
 ### Documentation Style References
+
 - `/home/dustin/projects/hacky-hack/docs/ARCHITECTURE.md` - Documentation structure
 - `/home/dustin/projects/hacky-hack/docs/CUSTOM_AGENTS.md` - Documentation style
 
 ## Parallel Work Considerations
 
 From P2.M2.T2.S3 (Create Custom Workflow Development Guide):
+
 - CUSTOM_WORKFLOWS.md is being created in parallel
 - Focus TESTING.md on testing patterns, not workflow development
 - Reference CUSTOM_AGENTS.md for agent testing patterns
@@ -163,6 +191,7 @@ From P2.M2.T2.S3 (Create Custom Workflow Development Guide):
 The research agents noted that web search tools have reached monthly limits and will reset February 1, 2026. URLs should be verified after that date.
 
 Expected resources:
+
 - Vitest Documentation: https://vitest.dev
 - TDD Best Practices: Martin Fowler, Kent Beck resources
 - Testing Pyramid: https://martinfowler.com/articles/practical-test-pyramid.html

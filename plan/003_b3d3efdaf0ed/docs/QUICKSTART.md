@@ -25,6 +25,7 @@
 In this tutorial, you'll create a simple **TODO application** with command-line interface. This example demonstrates the complete PRD-to-code pipeline while being simple enough to complete quickly.
 
 **Features you'll build:**
+
 - Add new tasks to a TODO list
 - Display all tasks with their status
 - Mark tasks as complete
@@ -92,16 +93,19 @@ A command-line TODO application that allows users to manage tasks through a term
 ## Acceptance Criteria
 
 ### Create Task
+
 - [ ] CLI accepts task description as argument
 - [ ] Task is saved with unique ID and "pending" status
 - [ ] Confirmation message displays on success
 
 ### List Tasks
+
 - [ ] All tasks display in a numbered list
 - [ ] Each task shows ID, description, and status
 - [ ] Empty state shows "No tasks found"
 
 ### Mark Complete
+
 - [ ] CLI accepts task ID as argument
 - [ ] Task status updates to "completed"
 - [ ] Confirmation message displays on success
@@ -262,12 +266,12 @@ plan/001_a3f8e2b1d4c7/
 
 **Key Files Explained:**
 
-| File | Purpose |
-|------|---------|
-| `tasks.json` | Single source of truth for task hierarchy and status. Never edit manually. |
-| `prd_snapshot.md` | Snapshot of your PRD at session creation. Used for delta detection. |
+| File               | Purpose                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| `tasks.json`       | Single source of truth for task hierarchy and status. Never edit manually.                       |
+| `prd_snapshot.md`  | Snapshot of your PRD at session creation. Used for delta detection.                              |
 | `{task_id}/PRP.md` | Generated Product Requirement Prompt for each subtask. Contains complete implementation context. |
-| `architecture/` | Research findings from the Architect Agent about codebase structure. |
+| `architecture/`    | Research findings from the Architect Agent about codebase structure.                             |
 
 **Session Hash Behavior:**
 
@@ -335,13 +339,13 @@ All validation gates passed before the pipeline completed.
 
 Common first-run issues and solutions:
 
-| Symptom | Solution |
-|---------|----------|
-| `Error: ANTHROPIC_AUTH_TOKEN not set` | Set environment variable: <br>`export ANTHROPIC_AUTH_TOKEN=zk-your-key` |
-| `Command not found: prd` | Ensure installation completed: <br>`npm run dev -- --prd ./TODO_PRD.md` (not `prd` command) |
-| `No tasks generated` | Verify PRD has Requirements and Acceptance Criteria sections |
-| `Pipeline runs but no code created` | Check task status in `plan/*/tasks.json` - look for Failed status |
-| `API connection timeout` | Verify `ANTHROPIC_BASE_URL` points to z.ai endpoint: <br>`export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic` |
+| Symptom                               | Solution                                                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Error: ANTHROPIC_AUTH_TOKEN not set` | Set environment variable: <br>`export ANTHROPIC_AUTH_TOKEN=zk-your-key`                                             |
+| `Command not found: prd`              | Ensure installation completed: <br>`npm run dev -- --prd ./TODO_PRD.md` (not `prd` command)                         |
+| `No tasks generated`                  | Verify PRD has Requirements and Acceptance Criteria sections                                                        |
+| `Pipeline runs but no code created`   | Check task status in `plan/*/tasks.json` - look for Failed status                                                   |
+| `API connection timeout`              | Verify `ANTHROPIC_BASE_URL` points to z.ai endpoint: <br>`export ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic` |
 
 **Getting More Help:**
 

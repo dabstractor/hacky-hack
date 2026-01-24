@@ -116,7 +116,7 @@ function validateNpmLink(): boolean {
 /**
  * Validates Groundswell version compatibility
  */
-function validateVersionCompatibility(): boolean {
+async function validateVersionCompatibility(): Promise<boolean> {
   logSection('Validating version compatibility');
 
   try {
@@ -134,9 +134,11 @@ function validateVersionCompatibility(): boolean {
       return false;
     }
 
-    // Read package.json
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const groundswellPackage = require(packageJsonPath);
+    // Read package.json using fs
+    const { readFileSync } = await import('node:fs');
+    const groundswellPackage = JSON.parse(
+      readFileSync(packageJsonPath, 'utf-8')
+    );
     const version = groundswellPackage.version;
 
     logSuccess(`Groundswell version: ${version}`);
@@ -159,7 +161,7 @@ function validateVersionCompatibility(): boolean {
 /**
  * Validates Groundswell imports
  */
-function validateImports(): boolean {
+async function validateImports(): Promise<boolean> {
   logSection('Validating Groundswell imports');
 
   const requiredExports = [
@@ -172,20 +174,15 @@ function validateImports(): boolean {
   ];
 
   try {
-    // Try to import each export
+    // Dynamic import for ES modules
+    const groundswell = await import('groundswell');
+
+    // Try to check each export
     for (const exp of requiredExports) {
-      try {
-        // Dynamic import to check if export exists
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const groundswell = require('groundswell');
-        if (groundswell[exp] !== undefined) {
-          logSuccess(`Export '${exp}' is accessible`);
-        } else {
-          logError(`Export '${exp}' is not accessible`);
-          return false;
-        }
-      } catch (importError) {
-        logError(`Failed to import '${exp}': ${importError}`);
+      if ((groundswell as Record<string, unknown>)[exp] !== undefined) {
+        logSuccess(`Export '${exp}' is accessible`);
+      } else {
+        logError(`Export '${exp}' is not accessible`);
         return false;
       }
     }
@@ -200,18 +197,20 @@ function validateImports(): boolean {
 /**
  * Validates Groundswell decorators
  */
-function validateDecorators(): boolean {
+async function validateDecorators(): Promise<boolean> {
   logSection('Validating Groundswell decorators');
 
   const decorators = ['@Step', '@Task', '@ObservedState'];
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const groundswell = require('groundswell');
+    // Dynamic import for ES modules
+    const groundswell = await import('groundswell');
 
     for (const decorator of decorators) {
       const decoratorName = decorator.substring(1); // Remove @
-      if (groundswell[decoratorName] !== undefined) {
+      if (
+        (groundswell as Record<string, unknown>)[decoratorName] !== undefined
+      ) {
         logSuccess(`Decorator ${decorator} is accessible`);
       } else {
         logError(`Decorator ${decorator} is not accessible`);
@@ -250,7 +249,7 @@ function validateNodeVersion(): boolean {
 /**
  * Main validation function
  */
-function main(): void {
+async function main(): Promise<void> {
   log(colors.bold, '\n🔍 Groundswell Library Validation\n');
 
   const results = {
@@ -264,9 +263,9 @@ function main(): void {
   // Run all validations
   results.nodeVersion = validateNodeVersion();
   results.npmLink = validateNpmLink();
-  results.version = validateVersionCompatibility();
-  results.imports = validateImports();
-  results.decorators = validateDecorators();
+  results.version = await validateVersionCompatibility();
+  results.imports = await validateImports();
+  results.decorators = await validateDecorators();
 
   // Summary
   logSection('Summary');
