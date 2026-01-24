@@ -663,14 +663,14 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Task 2.2.2: Extensibility Documentation",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Document how to extend the pipeline with custom agents, tools, and workflows.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M2.T2.S1",
                   "title": "Create custom agent development guide",
-                  "status": "Researching",
+                  "status": "Failed",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Agents created via AgentFactory with createAgent(). Configuration: name, system prompt, model, cache, reflection, maxTokens, MCP tools. Four built-in agents: Architect, Researcher, Coder, QA.\n2. INPUT: Agent factory from src/agents/agent-factory.ts, existing agent implementations.\n3. LOGIC: Write custom agent guide in docs/CUSTOM_AGENTS.md that covers: (a) creating new agent types, (b) defining agent roles and system prompts, (c) configuring model selection and token limits, (d) registering custom MCP tools, (e) adding agents to factory. Include complete example of adding a new 'SecurityAuditor' agent.\n4. OUTPUT: Documentation file docs/CUSTOM_AGENTS.md with custom agent development tutorial."
@@ -679,7 +679,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S2",
                   "title": "Create custom MCP tool development guide",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T2.S1"
@@ -690,7 +690,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Create custom workflow development guide",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T2.S2"
