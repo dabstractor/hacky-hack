@@ -112,6 +112,7 @@ Once all tasks are complete, or if run in `bug-hunt` mode:
 - **Must** validate session paths in bug fix mode (must contain "bugfix" in path).
 
 **Protected Files (NEVER delete or move):**
+
 - `$SESSION_DIR/tasks.json` - Pipeline state tracking
 - `$SESSION_DIR/prd_snapshot.md` - PRD snapshot for session
 - `$SESSION_DIR/delta_prd.md` - Delta PRD for incremental sessions
@@ -134,17 +135,18 @@ Once all tasks are complete, or if run in `bug-hunt` mode:
 
 Each agent type has strictly defined output scopes and forbidden operations to prevent pipeline corruption:
 
-| Agent Type | Allowed Output Scope | Forbidden Operations |
-|------------|---------------------|---------------------|
-| Task Breakdown | `tasks.json`, `architecture/` | PRD.md, source code, .gitignore |
-| Research (PRP) | `PRP.md`, `research/` | tasks.json, source code, prd_snapshot.md |
-| Implementation | `src/`, `tests/`, `lib/` | plan/, PRD.md, tasks.json, pipeline scripts |
-| Cleanup | `docs/` organization | plan/, PRD.md, tasks.json, session directories |
-| Task Update | `tasks.json` modifications | PRD.md, source code, prd_snapshot.md |
-| Validation | `validate.sh`, `validation_report.md` | plan/, source code, tasks.json |
-| Bug Hunter | `TEST_RESULTS.md` (if bugs found) | plan/, source code, tasks.json |
+| Agent Type     | Allowed Output Scope                  | Forbidden Operations                           |
+| -------------- | ------------------------------------- | ---------------------------------------------- |
+| Task Breakdown | `tasks.json`, `architecture/`         | PRD.md, source code, .gitignore                |
+| Research (PRP) | `PRP.md`, `research/`                 | tasks.json, source code, prd_snapshot.md       |
+| Implementation | `src/`, `tests/`, `lib/`              | plan/, PRD.md, tasks.json, pipeline scripts    |
+| Cleanup        | `docs/` organization                  | plan/, PRD.md, tasks.json, session directories |
+| Task Update    | `tasks.json` modifications            | PRD.md, source code, prd_snapshot.md           |
+| Validation     | `validate.sh`, `validation_report.md` | plan/, source code, tasks.json                 |
+| Bug Hunter     | `TEST_RESULTS.md` (if bugs found)     | plan/, source code, tasks.json                 |
 
 **Universal Forbidden Operations (all agents):**
+
 - Never modify `PRD.md` (human-owned document)
 - Never add `plan/`, `PRD.md`, or task files to `.gitignore`
 - Never run `prd`, `run-prd.sh`, or `tsk` commands (prevents recursive execution)
@@ -167,6 +169,7 @@ prd task -f <file>    # Override with specific file
 ```
 
 **Task File Discovery Priority:**
+
 1. Incomplete bugfix session tasks (`SESSION_DIR/bugfix/NNN_hash/tasks.json`)
 2. Main session tasks (`SESSION_DIR/tasks.json`)
 
@@ -314,6 +317,7 @@ This prevents the massive usage spikes that occurred when tests were accidentall
 **Solution:** The pipeline sets `PRP_PIPELINE_RUNNING` environment variable at script entry and validates it before proceeding.
 
 **Guard Logic:**
+
 1. On pipeline start, check if `PRP_PIPELINE_RUNNING` is already set
 2. If set, only allow execution if BOTH conditions are true:
    - `SKIP_BUG_FINDING=true` (legitimate bug fix recursion)
@@ -322,6 +326,7 @@ This prevents the massive usage spikes that occurred when tests were accidentall
 4. On valid entry, set `PRP_PIPELINE_RUNNING` to current PID
 
 **Session Creation Guards:**
+
 - In bug fix mode, prevent creating sessions in main `plan/` directory
 - Bug fix session paths must contain "bugfix" in the path
 - Provides debug logging showing `PLAN_DIR`, `SESSION_DIR`, and `SKIP_BUG_FINDING` values

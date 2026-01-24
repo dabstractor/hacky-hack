@@ -82,7 +82,8 @@ const mockBacklog: Backlog = {
                   status: 'Failed',
                   story_points: 1,
                   dependencies: [],
-                  context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                  context_scope:
+                    'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                 },
                 {
                   id: 'P1.M1.T1.S2',
@@ -91,7 +92,8 @@ const mockBacklog: Backlog = {
                   status: 'Planned',
                   story_points: 1,
                   dependencies: ['P1.M1.T1.S1'],
-                  context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                  context_scope:
+                    'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                 },
               ],
             },
@@ -109,7 +111,8 @@ const mockBacklog: Backlog = {
                   status: 'Planned',
                   story_points: 1,
                   dependencies: ['P1.M1.T1.S1'],
-                  context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
+                  context_scope:
+                    'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: None\n3. LOGIC: Test logic\n4. OUTPUT: Test output',
                 },
               ],
             },

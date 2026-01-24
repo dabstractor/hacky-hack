@@ -41,7 +41,7 @@
     "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\"",
     "=== Validation ===": "",
-    "validate": "npm run validate:groundswell && npm run lint && npm run format:check && npm run typecheck",
+    "validate": "npm run lint && npm run format:check && npm run typecheck",
     "fix": "npm run lint:fix && npm run format",
     "=== Groundswell ===": "",
     "validate:groundswell": "tsx src/scripts/validate-groundswell.ts",
@@ -67,11 +67,13 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.6.2",
+    "cli-highlight": "^2.1.11",
     "cli-progress": "^3.12.0",
     "cli-table3": "^0.6.5",
     "commander": "^14.0.2",
+    "diff": "^8.0.3",
     "fast-glob": "^3.3.3",
-    "groundswell": "^0.0.1",
+    "groundswell": "^0.0.2",
     "pino": "^9.14.0",
     "simple-git": "^3.30.0",
     "zod": "^3.22.4"

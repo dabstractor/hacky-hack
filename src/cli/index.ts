@@ -28,8 +28,10 @@
 import { Command } from 'commander';
 import { parseScope, ScopeParseError } from '../core/scope-resolver.js';
 import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { getLogger } from '../utils/logger.js';
 import { InspectCommand, type InspectorOptions } from './commands/inspect.js';
+import { ArtifactsCommand } from './commands/artifacts.js';
 
 const logger = getLogger('CLI');
 
@@ -112,6 +114,7 @@ export interface CLIArgs {
  * Supports subcommands:
  * - No subcommand: Default pipeline execution (legacy behavior)
  * - `inspect`: Inspect pipeline state and session details
+ * - `artifacts`: View and compare pipeline artifacts
  *
  * @example
  * ```typescript
@@ -122,11 +125,15 @@ export interface CLIArgs {
  *
  * // Or use inspect subcommand
  * // CLI: prp-pipeline inspect
+ *
+ * // Or use artifacts subcommand
+ * // CLI: prp-pipeline artifacts list
  * ```
  */
 export function parseCLIArgs():
   | CLIArgs
-  | { subcommand: 'inspect'; options: InspectorOptions } {
+  | { subcommand: 'inspect'; options: InspectorOptions }
+  | { subcommand: 'artifacts'; options: Record<string, unknown> } {
   const program = new Command();
 
   // Configure program
@@ -196,6 +203,33 @@ export function parseCLIArgs():
       }
     });
 
+  // Add artifacts subcommand
+  program
+    .command('artifacts')
+    .description('View and compare pipeline artifacts')
+    .argument('[action]', 'Action: list, view, diff', 'list')
+    .option('--session <id>', 'Session ID')
+    .option('--task <id>', 'Task ID (for view)')
+    .option('--task1 <id>', 'First task ID (for diff)')
+    .option('--task2 <id>', 'Second task ID (for diff)')
+    .option('-o, --output <format>', 'Output format: table, json', 'table')
+    .option('--no-color', 'Disable colored output')
+    .action(async (action, options) => {
+      try {
+        const planDir = resolve('plan');
+        const prdPath = resolve('PRD.md');
+        const artifactsCommand = new ArtifactsCommand(planDir, prdPath);
+        await artifactsCommand.execute(action, options);
+        // Exit successfully after artifacts
+        process.exit(0);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        logger.error(`Artifacts command failed: ${errorMessage}`);
+        process.exit(1);
+      }
+    });
+
   // Parse arguments
   program.parse(process.argv);
 
@@ -212,6 +246,14 @@ export function parseCLIArgs():
         artifactsOnly: false,
         errorsOnly: false,
       },
+    };
+  }
+  if (args.length > 0 && args[0] === 'artifacts') {
+    // Artifacts subcommand was invoked and already handled by action()
+    // This return is for type safety; actual execution already happened
+    return {
+      subcommand: 'artifacts',
+      options: {},
     };
   }
 

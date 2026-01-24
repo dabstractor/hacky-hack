@@ -65,50 +65,37 @@ function logError(message: string): void {
 }
 
 /**
- * Validates Groundswell npm link
+ * Validates Groundswell is installed (via npm install or npm link)
  */
-function validateNpmLink(): boolean {
-  logSection('Validating npm link');
+function validateInstallation(): boolean {
+  logSection('Validating groundswell installation');
 
   try {
-    // Check if groundswell is linked
     const result = execSync('npm list groundswell', {
       encoding: 'utf-8',
       stdio: 'pipe',
     });
 
-    // Check if it's a linked version (contains ->)
-    const isLinked = result.includes(' -> ');
-
-    if (isLinked) {
-      // Extract the linked path
+    // Check if it's linked (informational only)
+    if (result.includes(' -> ')) {
       const match = result.match(/-> (.+?)\n/);
       if (match && match[1]) {
-        logSuccess(`Groundswell linked to: ${match[1]}`);
-
-        // Verify it's pointing to ~/projects/groundswell
-        const expectedPath = join(
-          process.env.HOME || '',
-          'projects/groundswell'
-        );
-        const normalizedLinked = match[1].trim();
-        const normalizedExpected = expectedPath;
-
-        if (normalizedLinked.includes('groundswell')) {
-          logSuccess('Link points to groundswell directory');
-          return true;
-        }
-        logWarning(`Link does not point to expected location: ${expectedPath}`);
-        logWarning('Current link may work but is not in the standard location');
-        return true; // Still pass if linked somewhere
+        logSuccess(`Groundswell linked from: ${match[1].trim()}`);
+      }
+    } else {
+      // Extract version from npm list output
+      const versionMatch = result.match(/groundswell@([\d.]+)/);
+      if (versionMatch) {
+        logSuccess(`Groundswell installed: ${versionMatch[1]}`);
+      } else {
+        logSuccess('Groundswell installed');
       }
     }
 
-    logError('Groundswell is not linked via npm link');
-    logError('Run: npm link ~/projects/groundswell');
-    return false;
-  } catch (error) {
-    logError(`Failed to check npm link: ${error}`);
+    return true;
+  } catch {
+    logError('Groundswell is not installed');
+    logError('Run: npm install');
     return false;
   }
 }
@@ -130,7 +117,7 @@ async function validateVersionCompatibility(): Promise<boolean> {
 
     if (!existsSync(packageJsonPath)) {
       logError('groundswell package.json not found in node_modules');
-      logError('Run: npm link ~/projects/groundswell');
+      logError('Run: npm install');
       return false;
     }
 
@@ -253,7 +240,7 @@ async function main(): Promise<void> {
   log(colors.bold, '\n🔍 Groundswell Library Validation\n');
 
   const results = {
-    npmLink: false,
+    installation: false,
     version: false,
     imports: false,
     decorators: false,
@@ -262,7 +249,7 @@ async function main(): Promise<void> {
 
   // Run all validations
   results.nodeVersion = validateNodeVersion();
-  results.npmLink = validateNpmLink();
+  results.installation = validateInstallation();
   results.version = await validateVersionCompatibility();
   results.imports = await validateImports();
   results.decorators = await validateDecorators();
