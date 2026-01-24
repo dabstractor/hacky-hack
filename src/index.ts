@@ -36,7 +36,7 @@
  */
 
 import { configureEnvironment } from './config/environment.js';
-import { parseCLIArgs, type CLIArgs } from './cli/index.js';
+import { parseCLIArgs, type ValidatedCLIArgs } from './cli/index.js';
 import { PRPPipeline } from './workflows/prp-pipeline.js';
 import { parseScope, type Scope } from './core/scope-resolver.js';
 import { getLogger, type Logger } from './utils/logger.js';
@@ -107,7 +107,7 @@ async function main(): Promise<number> {
   }
 
   // Otherwise, use the regular CLI args for pipeline execution
-  const args: CLIArgs = parseResult;
+  const args: ValidatedCLIArgs = parseResult;
 
   // Setup global error handlers (preserve console.error for uncaught exceptions)
   setupGlobalHandlers(args.verbose);
@@ -208,7 +208,8 @@ async function main(): Promise<number> {
     args.maxTasks,
     args.maxDuration,
     undefined, // planDir - use default
-    args.progressMode ?? 'auto'
+    args.progressMode ?? 'auto',
+    args.parallelism
   );
 
   // Run pipeline

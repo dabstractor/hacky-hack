@@ -229,6 +229,9 @@ export class PRPPipeline extends Workflow {
   /** Progress mode from CLI (auto/always/never) */
   readonly #progressMode: 'auto' | 'always' | 'never' = 'auto';
 
+  /** Parallelism limit for concurrent subtask execution */
+  readonly #parallelism: number = 2;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -245,6 +248,7 @@ export class PRPPipeline extends Workflow {
    * @param maxDuration - Maximum execution duration in milliseconds (optional)
    * @param planDir - Custom plan directory path (defaults to resolve('plan'))
    * @param progressMode - Progress display mode: 'auto', 'always', or 'never' (default: 'auto')
+   * @param parallelism - Max concurrent subtasks (1-10, default: 2)
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -256,7 +260,8 @@ export class PRPPipeline extends Workflow {
     maxTasks?: number,
     maxDuration?: number,
     planDir?: string,
-    progressMode: 'auto' | 'always' | 'never' = 'auto'
+    progressMode: 'auto' | 'always' | 'never' = 'auto',
+    parallelism: number = 2
   ) {
     super('PRPPipeline');
 
@@ -276,6 +281,7 @@ export class PRPPipeline extends Workflow {
     this.#maxDuration = maxDuration;
     this.#planDir = planDir;
     this.#progressMode = progressMode;
+    this.#parallelism = parallelism;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations

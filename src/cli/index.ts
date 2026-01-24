@@ -32,6 +32,7 @@ import { resolve } from 'node:path';
 import { getLogger } from '../utils/logger.js';
 import { InspectCommand, type InspectorOptions } from './commands/inspect.js';
 import { ArtifactsCommand } from './commands/artifacts.js';
+import * as os from 'node:os';
 
 const logger = getLogger('CLI');
 
@@ -92,6 +93,21 @@ export interface CLIArgs {
 
   /** Progress display mode (auto/always/never) */
   progressMode?: 'auto' | 'always' | 'never';
+
+  /** Max concurrent subtasks (1-10, default: 2) - may be string from commander */
+  parallelism: number | string;
+}
+
+/**
+ * Validated CLI arguments where parallelism is guaranteed to be a number
+ *
+ * @remarks
+ * This is the type returned by parseCLIArgs() after validation.
+ * The parallelism value is parsed and validated as a number.
+ */
+export interface ValidatedCLIArgs extends Omit<CLIArgs, 'parallelism'> {
+  /** Max concurrent subtasks (1-10, default: 2) - validated as number */
+  parallelism: number;
 }
 
 // ===== MAIN FUNCTION =====
@@ -131,7 +147,7 @@ export interface CLIArgs {
  * ```
  */
 export function parseCLIArgs():
-  | CLIArgs
+  | ValidatedCLIArgs
   | { subcommand: 'inspect'; options: InspectorOptions }
   | { subcommand: 'artifacts'; options: Record<string, unknown> } {
   const program = new Command();
@@ -166,6 +182,11 @@ export function parseCLIArgs():
     )
     .option('--max-tasks <number>', 'Maximum number of tasks to execute')
     .option('--max-duration <ms>', 'Maximum execution duration in milliseconds')
+    .option(
+      '--parallelism <n>',
+      'Max concurrent subtasks (1-10, default: 2)',
+      '2'
+    )
     // Progress mode with choices
     .addOption(
       program
@@ -306,7 +327,41 @@ export function parseCLIArgs():
     }
   }
 
-  return options;
+  // Validate parallelism
+  const parallelismStr =
+    typeof options.parallelism === 'string'
+      ? options.parallelism
+      : String(options.parallelism);
+  const parallelism = parseInt(parallelismStr, 10);
+
+  if (isNaN(parallelism) || parallelism < 1 || parallelism > 10) {
+    logger.error('--parallelism must be an integer between 1 and 10');
+    process.exit(1);
+  }
+
+  // System resource warnings (non-blocking)
+  const cpuCores = os.cpus().length;
+  if (parallelism > cpuCores) {
+    logger.warn(
+      `⚠️  Warning: Parallelism (${parallelism}) exceeds CPU cores (${cpuCores})`
+    );
+    logger.warn(`   This may cause context switching overhead.`);
+    logger.warn(`   Recommended: --parallelism ${Math.max(1, cpuCores - 1)}`);
+  }
+
+  // Memory warning
+  const freeMemoryGB = os.freemem() / 1024 ** 3;
+  const estimatedMemoryGB = parallelism * 0.5; // Assume 500MB per worker
+  if (estimatedMemoryGB > freeMemoryGB * 0.8) {
+    logger.warn(
+      `⚠️  Warning: High parallelism may exhaust free memory (${freeMemoryGB.toFixed(1)}GB available)`
+    );
+  }
+
+  // Store validated number value
+  options.parallelism = parallelism;
+
+  return options as ValidatedCLIArgs;
 }
 
 /**
@@ -324,7 +379,7 @@ export function parseCLIArgs():
  * ```
  */
 export function isCLIArgs(
-  args: CLIArgs | { subcommand: string; options: unknown }
-): args is CLIArgs {
+  args: ValidatedCLIArgs | { subcommand: string; options: unknown }
+): args is ValidatedCLIArgs {
   return !('subcommand' in args);
 }
