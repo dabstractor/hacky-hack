@@ -29,6 +29,7 @@ import { Command } from 'commander';
 import { parseScope, ScopeParseError } from '../core/scope-resolver.js';
 import { existsSync } from 'node:fs';
 import { getLogger } from '../utils/logger.js';
+import { InspectCommand, type InspectorOptions } from './commands/inspect.js';
 
 const logger = getLogger('CLI');
 
@@ -108,14 +109,24 @@ export interface CLIArgs {
  *
  * Exits with code 1 on validation failures.
  *
+ * Supports subcommands:
+ * - No subcommand: Default pipeline execution (legacy behavior)
+ * - `inspect`: Inspect pipeline state and session details
+ *
  * @example
  * ```typescript
+ * // Legacy pipeline execution
  * const args = parseCLIArgs();
  * const pipeline = new PRPPipeline(args.prd);
  * await pipeline.run();
+ *
+ * // Or use inspect subcommand
+ * // CLI: prp-pipeline inspect
  * ```
  */
-export function parseCLIArgs(): CLIArgs {
+export function parseCLIArgs():
+  | CLIArgs
+  | { subcommand: 'inspect'; options: InspectorOptions } {
   const program = new Command();
 
   // Configure program
@@ -154,10 +165,57 @@ export function parseCLIArgs(): CLIArgs {
         .createOption('--progress-mode <mode>', 'Progress display mode')
         .choices(['auto', 'always', 'never'])
         .default('auto')
-    )
-    .parse(process.argv);
+    );
 
-  // Get typed options
+  // Add inspect subcommand
+  program
+    .command('inspect')
+    .description('Inspect pipeline state and session details')
+    .option(
+      '-o, --output <format>',
+      'Output format (table, json, yaml, tree)',
+      'table'
+    )
+    .option('--task <id>', 'Show detailed information for specific task')
+    .option('-f, --file <path>', 'Override tasks.json file path')
+    .option('--session <id>', 'Inspect specific session by hash')
+    .option('-v, --verbose', 'Show verbose output', false)
+    .option('--artifacts', 'Show only artifact information', false)
+    .option('--errors', 'Show only error information', false)
+    .action(async options => {
+      try {
+        const inspectCommand = new InspectCommand();
+        await inspectCommand.execute(options as InspectorOptions);
+        // Exit successfully after inspect
+        process.exit(0);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        logger.error(`Inspect command failed: ${errorMessage}`);
+        process.exit(1);
+      }
+    });
+
+  // Parse arguments
+  program.parse(process.argv);
+
+  // Check if a subcommand was invoked
+  const args = process.argv.slice(2);
+  if (args.length > 0 && args[0] === 'inspect') {
+    // Inspect subcommand was invoked and already handled by action()
+    // This return is for type safety; actual execution already happened
+    return {
+      subcommand: 'inspect',
+      options: {
+        output: 'table',
+        verbose: false,
+        artifactsOnly: false,
+        errorsOnly: false,
+      },
+    };
+  }
+
+  // Get typed options for default pipeline execution
   const options = program.opts<CLIArgs>();
 
   // Validate PRD file exists
@@ -203,4 +261,24 @@ export function parseCLIArgs(): CLIArgs {
   }
 
   return options;
+}
+
+/**
+ * Type guard to check if parsed args are CLIArgs (not a subcommand)
+ *
+ * @param args - Parsed args to check
+ * @returns True if args is CLIArgs
+ *
+ * @example
+ * ```typescript
+ * const args = parseCLIArgs();
+ * if (isCLIArgs(args)) {
+ *   console.log(args.prd); // TypeScript knows this is CLIArgs
+ * }
+ * ```
+ */
+export function isCLIArgs(
+  args: CLIArgs | { subcommand: string; options: unknown }
+): args is CLIArgs {
+  return !('subcommand' in args);
 }

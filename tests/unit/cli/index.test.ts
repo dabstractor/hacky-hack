@@ -12,7 +12,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { parseCLIArgs } from '../../../src/cli/index.js';
+import { parseCLIArgs, isCLIArgs, type CLIArgs } from '../../../src/cli/index.js';
 
 // Mock process.argv
 const originalArgv = process.argv;
@@ -80,6 +80,18 @@ describe('cli/index', () => {
     process.argv = ['node', '/path/to/script.js', ...args];
   };
 
+  /**
+   * Helper to parse CLI args with type guard
+   * Throws if the result is a subcommand (should not happen in these tests)
+   */
+  const parseArgs = (): CLIArgs => {
+    const args = parseCLIArgs();
+    if (!isCLIArgs(args)) {
+      throw new Error('Unexpected subcommand result in CLI args test');
+    }
+    return args;
+  };
+
   describe('parseCLIArgs', () => {
     describe('default values', () => {
       it('should use default PRD path when not provided', () => {
@@ -87,7 +99,7 @@ describe('cli/index', () => {
         setArgv([]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Default PRD path is used
         expect(args.prd).toBe('./PRD.md');
@@ -98,7 +110,7 @@ describe('cli/index', () => {
         setArgv([]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Default mode is 'normal'
         expect(args.mode).toBe('normal');
@@ -109,7 +121,7 @@ describe('cli/index', () => {
         setArgv([]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: All boolean flags are false
         expect(args.continue).toBe(false);
@@ -122,7 +134,7 @@ describe('cli/index', () => {
         setArgv([]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is undefined
         expect(args.scope).toBeUndefined();
@@ -135,7 +147,7 @@ describe('cli/index', () => {
         setArgv(['--prd', './custom/PRD.md']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Custom PRD path is used
         expect(args.prd).toBe('./custom/PRD.md');
@@ -146,7 +158,7 @@ describe('cli/index', () => {
         setArgv(['--scope', 'P3.M4']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is parsed
         expect(args.scope).toBe('P3.M4');
@@ -157,7 +169,7 @@ describe('cli/index', () => {
         setArgv(['--mode', 'bug-hunt']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Mode is set to bug-hunt
         expect(args.mode).toBe('bug-hunt');
@@ -168,7 +180,7 @@ describe('cli/index', () => {
         setArgv(['--mode', 'validate']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Mode is set to validate
         expect(args.mode).toBe('validate');
@@ -179,7 +191,7 @@ describe('cli/index', () => {
         setArgv(['--continue']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Continue flag is true
         expect(args.continue).toBe(true);
@@ -190,7 +202,7 @@ describe('cli/index', () => {
         setArgv(['--dry-run']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Dry run flag is true
         expect(args.dryRun).toBe(true);
@@ -201,7 +213,7 @@ describe('cli/index', () => {
         setArgv(['--verbose']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Verbose flag is true
         expect(args.verbose).toBe(true);
@@ -222,7 +234,7 @@ describe('cli/index', () => {
         ]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: All options are parsed correctly
         expect(args.prd).toBe('./custom/PRD.md');
@@ -282,7 +294,7 @@ describe('cli/index', () => {
         setArgv(['--prd', './existing.md']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: process.exit was NOT called
         expect(mockExit).not.toHaveBeenCalled();
@@ -296,7 +308,7 @@ describe('cli/index', () => {
         setArgv(['--scope', 'P1']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is accepted
         expect(args.scope).toBe('P1');
@@ -308,7 +320,7 @@ describe('cli/index', () => {
         setArgv(['--scope', 'P1.M1']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is accepted
         expect(args.scope).toBe('P1.M1');
@@ -319,7 +331,7 @@ describe('cli/index', () => {
         setArgv(['--scope', 'P1.M1.T1']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is accepted
         expect(args.scope).toBe('P1.M1.T1');
@@ -330,7 +342,7 @@ describe('cli/index', () => {
         setArgv(['--scope', 'P1.M1.T1.S1']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is accepted
         expect(args.scope).toBe('P1.M1.T1.S1');
@@ -341,7 +353,7 @@ describe('cli/index', () => {
         setArgv(['--scope', 'all']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Scope is accepted
         expect(args.scope).toBe('all');
@@ -406,7 +418,7 @@ describe('cli/index', () => {
         setArgv([]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: No scope validation error
         expect(args.scope).toBeUndefined();
@@ -420,7 +432,7 @@ describe('cli/index', () => {
         setArgv(['--mode', 'normal']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Mode is accepted
         expect(args.mode).toBe('normal');
@@ -431,7 +443,7 @@ describe('cli/index', () => {
         setArgv(['--mode', 'bug-hunt']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Mode is accepted
         expect(args.mode).toBe('bug-hunt');
@@ -442,7 +454,7 @@ describe('cli/index', () => {
         setArgv(['--mode', 'validate']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Mode is accepted
         expect(args.mode).toBe('validate');
@@ -464,7 +476,7 @@ describe('cli/index', () => {
         setArgv(['--verbose']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY
         expect(args.verbose).toBe(true);
@@ -477,7 +489,7 @@ describe('cli/index', () => {
         setArgv(['--dry-run', '--verbose']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY
         expect(args.dryRun).toBe(true);
@@ -490,7 +502,7 @@ describe('cli/index', () => {
         setArgv(['--continue', '--dry-run', '--verbose']);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY
         expect(args.continue).toBe(true);
@@ -505,7 +517,7 @@ describe('cli/index', () => {
         setArgv([]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: All required properties exist
         expect(args).toHaveProperty('prd');
@@ -532,7 +544,7 @@ describe('cli/index', () => {
         ]);
 
         // EXECUTE
-        const args = parseCLIArgs();
+        const args = parseArgs();
 
         // VERIFY: Types are correct
         expect(typeof args.prd).toBe('string');

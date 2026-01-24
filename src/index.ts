@@ -97,7 +97,17 @@ function setupGlobalHandlers(verbose: boolean): void {
  */
 async function main(): Promise<number> {
   // Parse CLI arguments first (this may exit on validation failure)
-  const args: CLIArgs = parseCLIArgs();
+  const parseResult = parseCLIArgs();
+
+  // If inspect subcommand was invoked, it already handled execution
+  if ('subcommand' in parseResult) {
+    // The inspect command action already ran and called process.exit()
+    // This return is for type safety; execution never reaches here
+    return 0;
+  }
+
+  // Otherwise, use the regular CLI args for pipeline execution
+  const args: CLIArgs = parseResult;
 
   // Setup global error handlers (preserve console.error for uncaught exceptions)
   setupGlobalHandlers(args.verbose);

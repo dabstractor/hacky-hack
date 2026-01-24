@@ -66,7 +66,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.6.2",
     "cli-progress": "^3.12.0",
+    "cli-table3": "^0.6.5",
     "commander": "^14.0.2",
     "fast-glob": "^3.3.3",
     "pino": "^9.14.0",
