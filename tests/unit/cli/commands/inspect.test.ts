@@ -34,6 +34,15 @@ const { mockLogger } = vi.hoisted(() => ({
   },
 }));
 
+// Mock the SessionManager with hoisted variables
+const { mockLoadSession, mockListSessions, mockFindLatestSession } = vi.hoisted(
+  () => ({
+    mockLoadSession: vi.fn(),
+    mockListSessions: vi.fn(),
+    mockFindLatestSession: vi.fn(),
+  })
+);
+
 vi.mock('../../../../src/utils/logger.js', () => ({
   getLogger: vi.fn(() => mockLogger),
 }));
@@ -56,25 +65,17 @@ vi.mock('node:fs', () => ({
 
 // Mock the SessionManager
 vi.mock('../../../../src/core/session-manager.js', () => {
-  const mockLoadSession = vi.fn();
-  const MockedSessionManager = class {
-    static async listSessions(...args: any[]) {
-      return vi.mocked(MockedSessionManager).listSessions(...args);
-    }
-    static async findLatestSession(...args: any[]) {
-      return vi.mocked(MockedSessionManager).findLatestSession(...args);
-    }
-    static async loadSession(...args: any[]) {
-      return mockLoadSession(...args);
-    }
-    constructor(...args: any[]) {
-      // Instance method mock
-    }
-  };
-  MockedSessionManager.listSessions = vi.fn();
-  MockedSessionManager.findLatestSession = vi.fn();
   return {
-    SessionManager: MockedSessionManager,
+    SessionManager: class {
+      static listSessions = mockListSessions;
+      static findLatestSession = mockFindLatestSession;
+      async loadSession(...args: any[]) {
+        return mockLoadSession(...args);
+      }
+      constructor(...args: any[]) {
+        // Instance method mock
+      }
+    },
   };
 });
 
@@ -193,13 +194,13 @@ describe('InspectCommand', () => {
     const mockSessionState = createMockSessionState();
 
     beforeEach(() => {
-      vi.mocked(SessionManager).listSessions.mockResolvedValue([
+      mockListSessions.mockResolvedValue([
         mockSessionState.metadata,
       ]);
-      vi.mocked(SessionManager).findLatestSession.mockResolvedValue(
+      mockFindLatestSession.mockResolvedValue(
         mockSessionState.metadata
       );
-      vi.mocked(SessionManager).loadSession.mockResolvedValue(mockSessionState);
+      mockLoadSession.mockResolvedValue(mockSessionState);
     });
 
     it('should execute overview with default options', async () => {
@@ -270,8 +271,8 @@ describe('InspectCommand', () => {
     });
 
     it('should throw error when no sessions found', async () => {
-      vi.mocked(SessionManager).listSessions.mockResolvedValue([]);
-      vi.mocked(SessionManager).findLatestSession.mockResolvedValue(null);
+      mockListSessions.mockResolvedValue([]);
+      mockFindLatestSession.mockResolvedValue(null);
 
       const options: InspectorOptions = {
         output: 'table',
@@ -286,7 +287,7 @@ describe('InspectCommand', () => {
     });
 
     it('should throw error when session not found by hash', async () => {
-      vi.mocked(SessionManager).listSessions.mockResolvedValue([
+      mockListSessions.mockResolvedValue([
         mockSessionState.metadata,
       ]);
 
@@ -338,13 +339,13 @@ describe('InspectCommand', () => {
     const mockSessionState = createMockSessionState();
 
     beforeEach(() => {
-      vi.mocked(SessionManager).listSessions.mockResolvedValue([
+      mockListSessions.mockResolvedValue([
         mockSessionState.metadata,
       ]);
-      vi.mocked(SessionManager).findLatestSession.mockResolvedValue(
+      mockFindLatestSession.mockResolvedValue(
         mockSessionState.metadata
       );
-      vi.mocked(SessionManager).loadSession.mockResolvedValue(mockSessionState);
+      mockLoadSession.mockResolvedValue(mockSessionState);
     });
 
     it('should format output as JSON', async () => {
@@ -409,13 +410,13 @@ describe('InspectCommand', () => {
     const mockSessionState = createMockSessionState();
 
     beforeEach(() => {
-      vi.mocked(SessionManager).listSessions.mockResolvedValue([
+      mockListSessions.mockResolvedValue([
         mockSessionState.metadata,
       ]);
-      vi.mocked(SessionManager).findLatestSession.mockResolvedValue(
+      mockFindLatestSession.mockResolvedValue(
         mockSessionState.metadata
       );
-      vi.mocked(SessionManager).loadSession.mockResolvedValue(mockSessionState);
+      mockLoadSession.mockResolvedValue(mockSessionState);
 
       // Mock PRP file exists
       mockExistsSync.mockImplementation((path: string) => {
@@ -556,9 +557,7 @@ describe('InspectCommand', () => {
         },
       });
 
-      vi.mocked(SessionManager).loadSession.mockResolvedValue(
-        failedSessionState
-      );
+      mockLoadSession.mockResolvedValue(failedSessionState);
 
       const options: InspectorOptions = {
         output: 'table',
