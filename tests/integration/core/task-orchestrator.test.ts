@@ -595,8 +595,8 @@ describe('TaskOrchestrator Integration Tests', () => {
         interval: 100,
       });
 
-      setTimeout(async () => {
-        await sessionManager.updateItemStatus('P1.M1.T1.S1', 'Complete');
+      setTimeout(() => {
+        void sessionManager.updateItemStatus('P1.M1.T1.S1', 'Complete');
       }, 100);
 
       await expect(waitPromise).resolves.toBeUndefined();

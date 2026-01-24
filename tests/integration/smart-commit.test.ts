@@ -36,7 +36,7 @@ import type { Backlog, Subtask } from '../../src/core/models.js';
 vi.mock('../../src/utils/git-commit.js', () => ({
   smartCommit: vi.fn(),
   filterProtectedFiles: vi.fn((files: string[]) => {
-    const { basename } = require('node:path');
+    const { basename } = require('node:path'); // eslint-disable-line @typescript-eslint/no-var-requires
     return files.filter(
       (f: string) =>
         !['tasks.json', 'PRD.md', 'prd_snapshot.md'].includes(basename(f))

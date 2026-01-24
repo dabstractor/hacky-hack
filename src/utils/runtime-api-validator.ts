@@ -115,9 +115,9 @@ export function validateApiEndpoint(): void {
  * });
  * ```
  */
-export function withApiValidation<T extends (...args: unknown[]) => Promise<unknown>>(
-  fn: T
-): T {
+export function withApiValidation<
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(fn: T): T {
   return (async (...args: Parameters<T>) => {
     validateApiEndpoint();
     return fn(...args);

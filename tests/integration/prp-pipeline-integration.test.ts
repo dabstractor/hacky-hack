@@ -60,13 +60,13 @@ describe('PRPPipeline Integration Tests', () => {
   const createTestPRD = (
     content: string = '# Test PRD\n\nThis is a test PRD.'
   ) => {
-    const fs = require('node:fs');
+    const fs = require('node:fs'); // eslint-disable-line @typescript-eslint/no-var-requires
     fs.writeFileSync(prdPath, content);
   };
 
   // Helper to create a minimal tasks.json in session directory
   const createTasksJson = (sessionPath: string, backlog: Backlog) => {
-    const fs = require('node:fs');
+    const fs = require('node:fs'); // eslint-disable-line @typescript-eslint/no-var-requires
     const tasksPath = join(sessionPath, 'tasks.json');
     fs.writeFileSync(tasksPath, JSON.stringify(backlog, null, 2));
   };
@@ -135,7 +135,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 
@@ -184,7 +184,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 
@@ -209,7 +209,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 
@@ -246,7 +246,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 
@@ -320,7 +320,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 
@@ -524,7 +524,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 
@@ -588,7 +588,7 @@ describe('PRPPipeline Integration Tests', () => {
           return JSON.stringify({ backlog: [] });
         }
         // Return actual file content for other files (like PRD.md)
-        const actual = require('node:fs/promises');
+        const actual = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return actual.readFile(path, 'utf-8');
       });
 

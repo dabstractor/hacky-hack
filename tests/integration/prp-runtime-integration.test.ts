@@ -456,7 +456,7 @@ This is a unique test PRD for PRPRuntime integration tests with ID: ${uniqueId}.
           return Promise.resolve(undefined);
         }
         // Use real writeFile for test setup
-        const fs = require('node:fs/promises');
+        const fs = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return fs.writeFile(path, data, options);
       });
 

@@ -81,22 +81,21 @@ The `ResearchQueue` class (`src/core/research-queue.ts`) already implements para
 ```typescript
 // From research-queue.ts:57-197
 export class ResearchQueue {
-  readonly maxSize: number;  // Concurrency limit (currently 3)
-  readonly researching: Map<string, Promise<PRPDocument>>;  // In-flight tracking
+  readonly maxSize: number; // Concurrency limit (currently 3)
+  readonly researching: Map<string, Promise<PRPDocument>>; // In-flight tracking
 
   async processNext(backlog: Backlog): Promise<void> {
     // Check capacity
     if (this.queue.length === 0 || this.researching.size >= this.maxSize) {
-      return;  // Backpressure: wait for capacity
+      return; // Backpressure: wait for capacity
     }
 
     // Dequeue and start processing
     const task = this.queue.shift();
-    const promise = this.#prpGenerator.generate(task, backlog)
-      .finally(() => {
-        this.researching.delete(task.id);
-        this.processNext(backlog);  // Start next when complete
-      });
+    const promise = this.#prpGenerator.generate(task, backlog).finally(() => {
+      this.researching.delete(task.id);
+      this.processNext(backlog); // Start next when complete
+    });
     this.researching.set(task.id, promise);
   }
 }
@@ -195,6 +194,7 @@ S2 (no deps) ──────────────────┤
 ```
 
 **Execution Waves**:
+
 - **Wave 1**: S1 and S2 execute concurrently (both have no dependencies)
 - **Wave 2**: After S1 and S2 complete, S3 and S4 can execute concurrently
 
@@ -224,8 +224,8 @@ Parallel execution requires configurable concurrency limits to prevent resource 
 
 ```typescript
 interface ParallelismConfig {
-  enabled: boolean;           // Enable/disable parallel execution
-  maxConcurrency: number;     // Pool size for implementation (default: 3)
+  enabled: boolean; // Enable/disable parallel execution
+  maxConcurrency: number; // Pool size for implementation (default: 3)
   prpGenerationLimit: number; // Pool size for PRP generation (default: 3)
 }
 ```
@@ -280,23 +280,23 @@ const semaphore = new Semaphore(config.maxConcurrency);
 
 // Wrap each subtask execution with semaphore
 async function executeWithSemaphore(subtask: Subtask): Promise<void> {
-  await semaphore.acquire();  // Blocks if at limit
+  await semaphore.acquire(); // Blocks if at limit
   try {
     await executeSubtask(subtask);
   } finally {
-    semaphore.release();  // Always release
+    semaphore.release(); // Always release
   }
 }
 ```
 
 ### Recommended Pool Sizes by Workload
 
-| Workload Type | Recommended Pool Size | Rationale |
-|---------------|----------------------|-----------|
-| I/O-bound (API calls, file ops) | 5-10 | High latency, low CPU usage |
-| CPU-bound (compilation, processing) | 2-4 | Limited by CPU cores |
-| Mixed (typical subtask execution) | 3 (default) | Balanced for most workloads |
-| Resource-constrained environments | 1-2 | Prevent memory exhaustion |
+| Workload Type                       | Recommended Pool Size | Rationale                   |
+| ----------------------------------- | --------------------- | --------------------------- |
+| I/O-bound (API calls, file ops)     | 5-10                  | High latency, low CPU usage |
+| CPU-bound (compilation, processing) | 2-4                   | Limited by CPU cores        |
+| Mixed (typical subtask execution)   | 3 (default)           | Balanced for most workloads |
+| Resource-constrained environments   | 1-2                   | Prevent memory exhaustion   |
 
 ---
 
@@ -316,11 +316,12 @@ The PRP Pipeline has **two distinct phases** that can be parallelized independen
 - **Location**: `src/core/research-queue.ts:57-197`
 
 **Current Implementation**:
+
 ```typescript
 // From task-orchestrator.ts:128-134
 this.researchQueue = new ResearchQueue(
   this.sessionManager,
-  3,  // Hardcoded concurrency limit
+  3, // Hardcoded concurrency limit
   this.#noCache
 );
 ```
@@ -337,13 +338,11 @@ this.researchQueue = new ResearchQueue(
 - **Location**: To be implemented in `ConcurrentTaskExecutor`
 
 **New Implementation**:
+
 ```typescript
 // New class: ConcurrentTaskExecutor
 class ConcurrentTaskExecutor {
-  constructor(
-    orchestrator: TaskOrchestrator,
-    config: ParallelismConfig
-  ) {
+  constructor(orchestrator: TaskOrchestrator, config: ParallelismConfig) {
     this.maxConcurrency = config.maxConcurrency;
   }
 
@@ -390,18 +389,19 @@ Parallel execution requires monitoring multiple resource types to prevent exhaus
 
 ```typescript
 interface ResourceUsage {
-  memory: number;    // Heap usage ratio (0.0 to 1.0)
+  memory: number; // Heap usage ratio (0.0 to 1.0)
   fileHandles: number; // Open file handles count
 }
 ```
 
 **Detection**:
+
 ```typescript
 function getMemoryUsage(): number {
   const usage = process.memoryUsage();
   const heapUsed = usage.heapUsed;
   const heapTotal = usage.heapTotal;
-  return heapUsed / heapTotal;  // Ratio 0.0 to 1.0
+  return heapUsed / heapTotal; // Ratio 0.0 to 1.0
 }
 ```
 
@@ -428,7 +428,7 @@ class RateLimiter {
 
   async acquire(): Promise<void> {
     const now = Date.now();
-    const windowStart = now - 60000;  // 1-minute window
+    const windowStart = now - 60000; // 1-minute window
 
     // Remove old requests outside window
     this.requestTimes = this.requestTimes.filter(t => t > windowStart);
@@ -453,14 +453,16 @@ Backpressure pauses task execution when resources are near limits:
  * Wait for resource availability (backpressure)
  * @param threshold - Maximum resource usage ratio (default: 0.8 = 80%)
  */
-async function waitForResourceAvailability(threshold: number = 0.8): Promise<void> {
+async function waitForResourceAvailability(
+  threshold: number = 0.8
+): Promise<void> {
   while (true) {
     const memory = getMemoryUsage();
     const fileHandles = await getFileHandleCount();
-    const maxHandles = 1024;  // OS limit
+    const maxHandles = 1024; // OS limit
 
     if (memory < threshold && fileHandles < maxHandles * threshold) {
-      break;  // Resources available
+      break; // Resources available
     }
 
     // Wait before retrying (1 second backoff)
@@ -535,6 +537,7 @@ For parallel execution, follow these rules:
 #### 1. Never Update the Same Subtask Concurrently
 
 Each subtask is processed by exactly one worker. This is guaranteed by:
+
 - Filtering executable subtasks excludes those already running
 - Worker assignment is one-to-one with subtasks
 
@@ -576,7 +579,10 @@ The `SessionManager` uses atomic file writes via temp file + rename:
 
 ```typescript
 // From session-utils.ts (referenced in session-manager.ts:620-646)
-async function writeTasksJSON(sessionPath: string, backlog: Backlog): Promise<void> {
+async function writeTasksJSON(
+  sessionPath: string,
+  backlog: Backlog
+): Promise<void> {
   const tempPath = `${sessionPath}/tasks.json.tmp`;
   const finalPath = `${sessionPath}/tasks.json`;
 
@@ -593,6 +599,7 @@ async function writeTasksJSON(sessionPath: string, backlog: Backlog): Promise<vo
 ### Conflict Resolution
 
 Status races are prevented by:
+
 1. Each worker updates a different subtask (no overlapping writes)
 2. Batching ensures all updates are applied atomically
 3. Status progression is linear (Planned → Researching → Implementing → Complete/Failed)
@@ -622,14 +629,12 @@ async function executeBatch(subtasks: Subtask[]): Promise<void> {
         'Failed',
         error instanceof Error ? error.message : String(error)
       );
-      throw error;  // Re-throw for aggregation
+      throw error; // Re-throw for aggregation
     }
   });
 
   // Execute all workers (semaphore limits concurrency)
-  const results = await Promise.allSettled(
-    workers.map(worker => worker())
-  );
+  const results = await Promise.allSettled(workers.map(worker => worker()));
 
   // Aggregate failures
   const failures = results.filter(r => r.status === 'rejected');
@@ -653,6 +658,7 @@ async function executeBatch(subtasks: Subtask[]): Promise<void> {
 #### 1. Non-Fatal Errors (Continue Execution)
 
 **Examples**:
+
 - Subtask implementation fails (syntax error, test failure)
 - LLM API rate limit exceeded (retry after backoff)
 - File I/O error (retry or skip subtask)
@@ -662,6 +668,7 @@ async function executeBatch(subtasks: Subtask[]): Promise<void> {
 #### 2. Fatal Errors (Abort All)
 
 **Examples**:
+
 - Session file corruption
 - Out of memory (heap limit exceeded)
 - Unhandled exception in orchestrator
@@ -670,7 +677,10 @@ async function executeBatch(subtasks: Subtask[]): Promise<void> {
 
 ```typescript
 class FatalExecutionError extends Error {
-  constructor(message: string, public readonly cause: unknown) {
+  constructor(
+    message: string,
+    public readonly cause: unknown
+  ) {
     super(message);
     this.name = 'FatalExecutionError';
   }
@@ -683,7 +693,7 @@ async function executeBatch(subtasks: Subtask[]): Promise<void> {
     // Detect fatal errors
     if (error instanceof FatalExecutionError) {
       logger.error({ error }, 'Fatal error - aborting batch');
-      throw error;  // Re-throw to abort
+      throw error; // Re-throw to abort
     }
   }
 }
@@ -702,11 +712,11 @@ async function executeWithRetry(
   while (attempt < maxRetries) {
     try {
       await executeSubtask(subtask);
-      return;  // Success
+      return; // Success
     } catch (error) {
       attempt++;
       if (attempt >= maxRetries) {
-        throw error;  // Final attempt failed
+        throw error; // Final attempt failed
       }
       // Backoff before retry
       await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
@@ -741,9 +751,9 @@ researchQueue.processNext(backlog).catch(error => {
  */
 
 interface ParallelSchedulerConfig {
-  maxConcurrency: number;        // Default: 3
-  prpGenerationLimit: number;    // Default: 3 (existing ResearchQueue)
-  resourceThreshold: number;     // Default: 0.8 (80% resource usage)
+  maxConcurrency: number; // Default: 3
+  prpGenerationLimit: number; // Default: 3 (existing ResearchQueue)
+  resourceThreshold: number; // Default: 0.8 (80% resource usage)
 }
 
 class ParallelScheduler {
@@ -816,10 +826,7 @@ class ParallelScheduler {
           await this.waitForResourceAvailability();
 
           // Execute subtask via PRPRuntime
-          await this.orchestrator.prpRuntime.executeSubtask(
-            subtask,
-            backlog
-          );
+          await this.orchestrator.prpRuntime.executeSubtask(subtask, backlog);
 
           // Update status to Complete
           await this.orchestrator.setStatus(
@@ -845,9 +852,7 @@ class ParallelScheduler {
     });
 
     // Execute all workers in parallel (semaphore limits concurrency)
-    const results = await Promise.allSettled(
-      workers.map(worker => worker())
-    );
+    const results = await Promise.allSettled(workers.map(worker => worker()));
 
     // Log any failures (non-fatal)
     const failures = results.filter(r => r.status === 'rejected');
@@ -868,9 +873,11 @@ class ParallelScheduler {
     while (true) {
       const usage = await resourceMonitor.getCurrentUsage();
 
-      if (usage.memory < this.config.resourceThreshold &&
-          usage.fileHandles < this.config.resourceThreshold) {
-        break;  // Resources available
+      if (
+        usage.memory < this.config.resourceThreshold &&
+        usage.fileHandles < this.config.resourceThreshold
+      ) {
+        break; // Resources available
       }
 
       // Wait before retrying
@@ -898,13 +905,18 @@ class ParallelScheduler {
       // Deadlock detected - log blocking dependencies
       for (const subtask of planned) {
         const blockers = this.orchestrator.getBlockingDependencies(subtask);
-        this.logger.error({
-          subtaskId: subtask.id,
-          blockers: blockers.map(b => ({ id: b.id, status: b.status }))
-        }, 'Deadlock: subtask blocked with circular dependencies');
+        this.logger.error(
+          {
+            subtaskId: subtask.id,
+            blockers: blockers.map(b => ({ id: b.id, status: b.status })),
+          },
+          'Deadlock: subtask blocked with circular dependencies'
+        );
       }
 
-      throw new Error('Deadlock detected: no executable tasks but planned tasks remain');
+      throw new Error(
+        'Deadlock detected: no executable tasks but planned tasks remain'
+      );
     }
   }
 
@@ -1117,7 +1129,7 @@ this.researchQueue = new ResearchQueue(this.sessionManager, 3, this.#noCache);
 // Enhanced: configurable
 this.researchQueue = new ResearchQueue(
   this.sessionManager,
-  config.prpGenerationLimit,  // Configurable
+  config.prpGenerationLimit, // Configurable
   this.#noCache
 );
 ```
@@ -1133,10 +1145,7 @@ this.researchQueue = new ResearchQueue(
 
 ```typescript
 // In ParallelScheduler worker
-await this.orchestrator.prpRuntime.executeSubtask(
-  subtask,
-  backlog
-);
+await this.orchestrator.prpRuntime.executeSubtask(subtask, backlog);
 ```
 
 **Pattern**: Thread-safe status updates via `TaskOrchestrator.setStatus()` method.
@@ -1150,10 +1159,7 @@ await this.orchestrator.prpRuntime.executeSubtask(
 
 ```typescript
 // Worker updates status (batched)
-await this.orchestrator.sessionManager.updateItemStatus(
-  subtask.id,
-  'Complete'
-);
+await this.orchestrator.sessionManager.updateItemStatus(subtask.id, 'Complete');
 
 // Batch flushed after all workers complete
 await this.orchestrator.sessionManager.flushUpdates();
@@ -1168,11 +1174,12 @@ await this.orchestrator.sessionManager.flushUpdates();
 
 ```typescript
 // CLI options
---parallelism <n>        // Max concurrent subtasks (default: 3)
---parallelism-prp <n>    // Max concurrent PRP generations (default: 3)
+--parallelism<n>; // Max concurrent subtasks (default: 3)
+--parallelism - prp<n>; // Max concurrent PRP generations (default: 3)
 ```
 
 **Configuration Interface**:
+
 ```typescript
 interface ParallelismConfig {
   enabled: boolean;
@@ -1188,7 +1195,7 @@ interface ParallelismConfig {
 
 ```typescript
 interface ResourceUsage {
-  memory: number;      // Heap usage ratio (0.0 to 1.0)
+  memory: number; // Heap usage ratio (0.0 to 1.0)
   fileHandles: number; // Open file handles count
 }
 
@@ -1236,7 +1243,9 @@ test('respects concurrency limit of 3', async () => {
   const tracker = new ConcurrencyTracker();
   const executor = new ConcurrentTaskExecutor(config);
 
-  const subtasks = [/* 10 subtasks with no deps */];
+  const subtasks = [
+    /* 10 subtasks with no deps */
+  ];
   await executor.executeParallel(subtasks);
 
   expect(tracker.getMaxConcurrency()).toBe(3);
@@ -1297,16 +1306,18 @@ Mock resource monitor to test backpressure:
 test('applies backpressure when resources exhausted', async () => {
   const mockMonitor = {
     getCurrentUsage: vi.fn().mockResolvedValue({
-      memory: 0.9,  // Over threshold
-      fileHandles: 0.5
-    })
+      memory: 0.9, // Over threshold
+      fileHandles: 0.5,
+    }),
   };
 
   // Should wait before executing
   const executor = new ConcurrentTaskExecutor({ resourceMonitor: mockMonitor });
   const startTime = Date.now();
 
-  await executor.executeParallel([/* subtask */]);
+  await executor.executeParallel([
+    /* subtask */
+  ]);
 
   // Verify backpressure delay occurred
   expect(Date.now() - startTime).toBeGreaterThan(1000);
@@ -1320,21 +1331,30 @@ test('applies backpressure when resources exhausted', async () => {
 ```typescript
 test('executes complete task hierarchy in parallel', async () => {
   const backlog = {
-    backlog: [{
-      id: 'P1',
-      type: 'Phase',
-      milestones: [{
-        id: 'P1.M1',
-        tasks: [{
-          id: 'P1.M1.T1',
-          subtasks: [
-            { id: 'P1.M1.T1.S1', dependencies: [] },
-            { id: 'P1.M1.T1.S2', dependencies: [] },
-            { id: 'P1.M1.T1.S3', dependencies: ['P1.M1.T1.S1', 'P1.M1.T1.S2'] },
-          ]
-        }]
-      }]
-    }]
+    backlog: [
+      {
+        id: 'P1',
+        type: 'Phase',
+        milestones: [
+          {
+            id: 'P1.M1',
+            tasks: [
+              {
+                id: 'P1.M1.T1',
+                subtasks: [
+                  { id: 'P1.M1.T1.S1', dependencies: [] },
+                  { id: 'P1.M1.T1.S2', dependencies: [] },
+                  {
+                    id: 'P1.M1.T1.S3',
+                    dependencies: ['P1.M1.T1.S1', 'P1.M1.T1.S2'],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   };
 
   const orchestrator = new TaskOrchestrator(sessionManager);
@@ -1357,14 +1377,14 @@ test('executes complete task hierarchy in parallel', async () => {
 test('detects circular dependencies', async () => {
   const subtasks = [
     { id: 'S1', dependencies: ['S2'] },
-    { id: 'S2', dependencies: ['S1'] },  // Circular
+    { id: 'S2', dependencies: ['S1'] }, // Circular
   ];
 
   const executor = new ConcurrentTaskExecutor(config);
 
-  await expect(
-    executor.executeParallel(subtasks)
-  ).rejects.toThrow('Deadlock detected');
+  await expect(executor.executeParallel(subtasks)).rejects.toThrow(
+    'Deadlock detected'
+  );
 });
 ```
 
@@ -1377,7 +1397,7 @@ test('parallel execution faster than sequential', async () => {
   const subtasks = Array.from({ length: 10 }, (_, i) => ({
     id: `S${i}`,
     dependencies: [],
-    duration: 100  // ms
+    duration: 100, // ms
   }));
 
   // Sequential

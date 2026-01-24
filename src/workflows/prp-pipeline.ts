@@ -31,10 +31,7 @@ import type { Backlog, Status, DeltaAnalysis, Task } from '../core/models.js';
 import type { Scope } from '../core/scope-resolver.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
-import {
-  isPipelineError,
-  isFatalError,
-} from '../utils/errors.js';
+import { isPipelineError, isFatalError } from '../utils/errors.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
 import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
@@ -43,10 +40,7 @@ import { FixCycleWorkflow } from './fix-cycle-workflow.js';
 import { patchBacklog } from '../core/task-patcher.js';
 import { filterByStatus } from '../utils/task-utils.js';
 import { progressTracker, type ProgressTracker } from '../utils/progress.js';
-import {
-  ProgressDisplay,
-  type CurrentTaskInfo,
-} from '../utils/progress-display.js';
+import { ProgressDisplay } from '../utils/progress-display.js';
 import { retryAgentPrompt } from '../utils/retry.js';
 import { ResourceMonitor } from '../utils/resource-monitor.js';
 
@@ -142,10 +136,10 @@ export class PRPPipeline extends Workflow {
   // ========================================================================
 
   /** Session state manager */
-  sessionManager: SessionManager;
+  sessionManager!: SessionManager;
 
   /** Task execution orchestrator */
-  taskOrchestrator: TaskOrchestrator;
+  taskOrchestrator!: TaskOrchestrator;
 
   /** Correlation logger with correlation ID for tracing */
   correlationLogger: Logger;
@@ -283,12 +277,8 @@ export class PRPPipeline extends Workflow {
     this.#planDir = planDir;
     this.#progressMode = progressMode;
 
-    // SessionManager will be created in run() to catch initialization errors
-    this.sessionManager = null as SessionManager | null;
-
-    // Create TaskOrchestrator (will be initialized with session after initializeSession)
-    // Placeholder for now - will be recreated after session initialization
-    this.taskOrchestrator = null as TaskOrchestrator | null;
+    // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
+    // Using definite assignment assertion (!) in property declarations
 
     // Create correlation logger with correlation ID
     this.correlationLogger = getLogger('PRPPipeline').child({

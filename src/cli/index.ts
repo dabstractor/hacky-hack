@@ -172,7 +172,11 @@ export function parseCLIArgs():
         .createOption('--progress-mode <mode>', 'Progress display mode')
         .choices(['auto', 'always', 'never'])
         .default('auto')
-    );
+    )
+    // Default action when no subcommand is given - enables running with just options
+    .action(() => {
+      // No-op: actual execution happens in main() after parseCLIArgs() returns
+    });
 
   // Add inspect subcommand
   program

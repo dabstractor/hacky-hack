@@ -153,12 +153,12 @@ describe('PRD Inspect Command Integration Tests', () => {
     process.exit = mockExit as any;
 
     // Create temp directory using real fs
-    const os = require('os');
+    const os = require('os'); // eslint-disable-line @typescript-eslint/no-var-requires
     tempDir =
       os.tmpdir() +
       '/prd-inspect-test-' +
       Math.random().toString(36).slice(2, 8);
-    require('fs').mkdirSync(tempDir, { recursive: true });
+    require('fs').mkdirSync(tempDir, { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
   });
 
   afterEach(() => {
@@ -168,7 +168,7 @@ describe('PRD Inspect Command Integration Tests', () => {
 
     // Clean up temp directory
     try {
-      require('fs').rmSync(tempDir, { recursive: true, force: true });
+      require('fs').rmSync(tempDir, { recursive: true, force: true }); // eslint-disable-line @typescript-eslint/no-var-requires
     } catch {
       // Ignore cleanup errors
     }
@@ -186,25 +186,27 @@ describe('PRD Inspect Command Integration Tests', () => {
       const sessionDir = join(planDir, sessionId);
 
       // Create directories using real fs
-      require('fs').mkdirSync(sessionDir, { recursive: true });
-      require('fs').mkdirSync(join(sessionDir, 'prps'), { recursive: true });
+      require('fs').mkdirSync(sessionDir, { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
+      require('fs').mkdirSync(join(sessionDir, 'prps'), { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
       require('fs').mkdirSync(join(sessionDir, 'artifacts'), {
         recursive: true,
-      });
+      }); // eslint-disable-line @typescript-eslint/no-var-requires
 
       // Write session files
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'tasks.json'),
         JSON.stringify({ backlog: backlog.backlog }, null, 2)
       );
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'prd_snapshot.md'),
         '# Test PRD\n'
       );
 
       // EXECUTE: Load and inspect session
       const tasksPath = join(sessionDir, 'tasks.json');
-      const content = require('fs').readFileSync(tasksPath, 'utf-8');
+      const content = require('fs').readFileSync(tasksPath, 'utf-8'); // eslint-disable-line @typescript-eslint/no-var-requires
       const loadedBacklog = JSON.parse(content) as Backlog;
 
       // VERIFY: Session loaded successfully
@@ -219,19 +221,21 @@ describe('PRD Inspect Command Integration Tests', () => {
       const planDir = join(tempDir, 'plan');
       const sessionDir = join(planDir, sessionId);
 
-      require('fs').mkdirSync(sessionDir, { recursive: true });
+      require('fs').mkdirSync(sessionDir, { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'tasks.json'),
         JSON.stringify({ backlog: backlog.backlog }, null, 2)
       );
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'prd_snapshot.md'),
         '# Test PRD\n'
       );
 
       // EXECUTE: Load tasks
       const tasksPath = join(sessionDir, 'tasks.json');
-      const content = require('fs').readFileSync(tasksPath, 'utf-8');
+      const content = require('fs').readFileSync(tasksPath, 'utf-8'); // eslint-disable-line @typescript-eslint/no-var-requires
       const loadedBacklog = JSON.parse(content) as Backlog;
 
       // VERIFY: Task hierarchy has correct structure
@@ -253,31 +257,35 @@ describe('PRD Inspect Command Integration Tests', () => {
       const planDir = join(tempDir, 'plan');
       const sessionDir = join(planDir, sessionId);
 
-      require('fs').mkdirSync(sessionDir, { recursive: true });
-      require('fs').mkdirSync(join(sessionDir, 'prps'), { recursive: true });
+      require('fs').mkdirSync(sessionDir, { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
+      require('fs').mkdirSync(join(sessionDir, 'prps'), { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
       require('fs').mkdirSync(join(sessionDir, 'artifacts'), {
         recursive: true,
-      });
+      }); // eslint-disable-line @typescript-eslint/no-var-requires
 
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'tasks.json'),
         JSON.stringify({ backlog: backlog.backlog }, null, 2)
       );
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'prd_snapshot.md'),
         '# Test PRD\n'
       );
 
       // Create PRP file
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'prps', 'P1.M1.T1.S1.md'),
         '# Test PRP\n\n## Goal\n\nTest implementation.'
       );
 
       // Create artifact directory with file
       const artifactDir = join(sessionDir, 'artifacts', 'P1.M1.T1.S1');
-      require('fs').mkdirSync(artifactDir, { recursive: true });
+      require('fs').mkdirSync(artifactDir, { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(artifactDir, 'implementation.ts'),
         '// Test code\n'
       );
@@ -285,8 +293,8 @@ describe('PRD Inspect Command Integration Tests', () => {
       // VERIFY: Artifacts exist
       const prpPath = join(sessionDir, 'prps', 'P1.M1.T1.S1.md');
       const artifactPath = join(sessionDir, 'artifacts', 'P1.M1.T1.S1');
-      expect(require('fs').existsSync(prpPath)).toBe(true);
-      expect(require('fs').existsSync(artifactPath)).toBe(true);
+      expect(require('fs').existsSync(prpPath)).toBe(true); // eslint-disable-line @typescript-eslint/no-var-requires
+      expect(require('fs').existsSync(artifactPath)).toBe(true); // eslint-disable-line @typescript-eslint/no-var-requires
     });
   });
 
@@ -298,12 +306,14 @@ describe('PRD Inspect Command Integration Tests', () => {
       const planDir = join(tempDir, 'plan');
       const sessionDir = join(planDir, sessionId);
 
-      require('fs').mkdirSync(sessionDir, { recursive: true });
+      require('fs').mkdirSync(sessionDir, { recursive: true }); // eslint-disable-line @typescript-eslint/no-var-requires
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'tasks.json'),
         JSON.stringify({ backlog: backlog.backlog }, null, 2)
       );
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         join(sessionDir, 'prd_snapshot.md'),
         '# Test PRD\n'
       );
@@ -350,12 +360,13 @@ describe('PRD Inspect Command Integration Tests', () => {
 
       const customPath = join(tempDir, 'custom-tasks.json');
       require('fs').writeFileSync(
+        // eslint-disable-line @typescript-eslint/no-var-requires
         customPath,
         JSON.stringify(customBacklog, null, 2)
       );
 
       // EXECUTE: Load from custom file
-      const content = require('fs').readFileSync(customPath, 'utf-8');
+      const content = require('fs').readFileSync(customPath, 'utf-8'); // eslint-disable-line @typescript-eslint/no-var-requires
       const loadedBacklog = JSON.parse(content) as Backlog;
 
       // VERIFY: Custom file loaded

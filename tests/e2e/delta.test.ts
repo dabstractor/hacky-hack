@@ -450,23 +450,23 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    const initializeSpy = vi
+    const _initializeSpy = vi
       .spyOn(pipeline1 as any, 'initializeSession')
       .mockResolvedValue(undefined);
-    const decomposeSpy = vi
+    const _decomposeSpy = vi
       .spyOn(pipeline1 as any, 'decomposePRD')
       .mockImplementation(async () => {
         (pipeline1 as any).sessionManager = { currentSession: mockSession1 };
         (pipeline1 as any).totalTasks = 3;
         (pipeline1 as any).completedTasks = 3;
       });
-    const executeSpy = vi
+    const _executeSpy = vi
       .spyOn(pipeline1 as any, 'executeBacklog')
       .mockResolvedValue(undefined);
-    const qaSpy = vi
+    const _qaSpy = vi
       .spyOn(pipeline1 as any, 'runQACycle')
       .mockResolvedValue(undefined);
-    const cleanupSpy = vi
+    const _cleanupSpy = vi
       .spyOn(pipeline1 as any, 'cleanup')
       .mockResolvedValue(undefined);
 
@@ -541,10 +541,10 @@ describe('E2E Delta Session Tests', () => {
       currentItemId: null,
     };
 
-    const initializeSpy2 = vi
+    const _initializeSpy2 = vi
       .spyOn(pipeline2 as any, 'initializeSession')
       .mockResolvedValue(undefined);
-    const decomposeSpy2 = vi
+    const _decomposeSpy2 = vi
       .spyOn(pipeline2 as any, 'decomposePRD')
       .mockImplementation(async () => {
         (pipeline2 as any).sessionManager = {
@@ -554,18 +554,18 @@ describe('E2E Delta Session Tests', () => {
         (pipeline2 as any).totalTasks = 4;
         (pipeline2 as any).completedTasks = 4;
       });
-    const handleDeltaSpy = vi
+    const _handleDeltaSpy = vi
       .spyOn(pipeline2 as any, 'handleDelta')
       .mockImplementation(async () => {
         (pipeline2 as any).sessionManager.currentSession = mockSession2;
       });
-    const executeSpy2 = vi
+    const _executeSpy2 = vi
       .spyOn(pipeline2 as any, 'executeBacklog')
       .mockResolvedValue(undefined);
-    const qaSpy2 = vi
+    const _qaSpy2 = vi
       .spyOn(pipeline2 as any, 'runQACycle')
       .mockResolvedValue(undefined);
-    const cleanupSpy2 = vi
+    const _cleanupSpy2 = vi
       .spyOn(pipeline2 as any, 'cleanup')
       .mockResolvedValue(undefined);
 
@@ -708,7 +708,7 @@ describe('E2E Delta Session Tests', () => {
       (pipeline2 as any).totalTasks = 4;
       (pipeline2 as any).completedTasks = 4;
     });
-    const handleDeltaSpy2 = vi
+    const _handleDeltaSpy2 = vi
       .spyOn(pipeline2 as any, 'handleDelta')
       .mockImplementation(async () => {
         (pipeline2 as any).sessionManager.currentSession = mockSession2;

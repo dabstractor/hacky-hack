@@ -41,6 +41,10 @@ import { resolveScope } from './scope-resolver.js';
 import { smartCommit } from '../utils/git-commit.js';
 import { ResearchQueue } from './research-queue.js';
 import { PRPRuntime } from '../agents/prp-runtime.js';
+import {
+  ConcurrentTaskExecutor,
+  type ParallelismConfig,
+} from './concurrent-executor.js';
 
 /**
  * Task Orchestrator for PRP Pipeline backlog processing
@@ -188,6 +192,19 @@ export class TaskOrchestrator {
   }
 
   /**
+   * Gets the PRP Runtime instance
+   *
+   * @returns PRPRuntime instance for subtask execution
+   *
+   * @remarks
+   * Public accessor for ConcurrentTaskExecutor to execute subtasks.
+   * The PRPRuntime orchestrates PRP generation and execution.
+   */
+  get prpRuntime(): PRPRuntime {
+    return this.#prpRuntime;
+  }
+
+  /**
    * Sets item status with logging and state persistence
    *
    * @param itemId - Item ID to update (e.g., "P1.M1.T1.S1")
@@ -226,7 +243,7 @@ export class TaskOrchestrator {
     await this.sessionManager.updateItemStatus(itemId, status);
 
     // PATTERN: Reload backlog to get latest state
-    await this.#refreshBacklog();
+    await this.refreshBacklog();
   }
 
   /**
@@ -327,7 +344,7 @@ export class TaskOrchestrator {
     // PATTERN: Polling loop with timeout
     while (Date.now() - startTime < timeout) {
       // Refresh backlog to get latest status
-      await this.#refreshBacklog();
+      await this.refreshBacklog();
 
       // Check if dependencies are complete
       if (this.canExecute(subtask)) {
@@ -361,8 +378,9 @@ export class TaskOrchestrator {
    * @remarks
    * This method should be called after any status update to ensure
    * the orchestrator has the latest backlog state from disk.
+   * Public method for ConcurrentTaskExecutor integration.
    */
-  async #refreshBacklog(): Promise<void> {
+  async refreshBacklog(): Promise<void> {
     const currentSession = this.sessionManager.currentSession;
     if (!currentSession) {
       throw new Error('Cannot refresh backlog: no active session');
@@ -389,7 +407,7 @@ export class TaskOrchestrator {
     const updated = await this.sessionManager.updateItemStatus(id, status);
 
     // Reload backlog to get latest state
-    await this.#refreshBacklog();
+    await this.refreshBacklog();
 
     return updated;
   }
@@ -827,9 +845,86 @@ export class TaskOrchestrator {
     await this.#delegateByType(nextItem);
 
     // 6. Refresh backlog after status update
-    await this.#refreshBacklog();
+    await this.refreshBacklog();
 
     // 7. Indicate item was processed (more items may remain)
     return true;
+  }
+
+  /**
+   * Executes subtasks in parallel with dependency awareness
+   *
+   * @param config - Parallel execution configuration
+   * @returns Promise that resolves when all subtasks complete
+   * @throws {Error} If concurrent execution fails or deadlock detected
+   *
+   * @remarks
+   * Creates ConcurrentTaskExecutor and executes all subtasks from the backlog
+   * in parallel while respecting dependency constraints. Subtasks with satisfied
+   * dependencies execute concurrently up to maxConcurrency limit.
+   *
+   * Preserves existing sequential processNextItem() for backward compatibility.
+   *
+   * @example
+   * ```typescript
+   * const orchestrator = new TaskOrchestrator(sessionManager);
+   * await orchestrator.executeParallel({
+   *   enabled: true,
+   *   maxConcurrency: 3,
+   *   prpGenerationLimit: 3,
+   *   resourceThreshold: 0.8
+   * });
+   * ```
+   */
+  public async executeParallel(config: ParallelismConfig): Promise<void> {
+    if (!config.enabled) {
+      this.#logger.info('Parallel execution disabled, skipping');
+      return;
+    }
+
+    this.#logger.info(
+      { maxConcurrency: config.maxConcurrency },
+      'Starting parallel execution'
+    );
+
+    // Get all subtasks from backlog
+    const subtasks = this.#getAllSubtasks(this.#backlog);
+
+    this.#logger.info(
+      { subtaskCount: subtasks.length },
+      'Found subtasks for parallel execution'
+    );
+
+    // Create executor and run parallel execution
+    const executor = new ConcurrentTaskExecutor(this, config);
+    await executor.executeParallel(subtasks);
+
+    this.#logger.info('Parallel execution complete');
+  }
+
+  /**
+   * Gets all subtasks from the backlog hierarchy
+   *
+   * @param backlog - Backlog to extract subtasks from
+   * @returns Array of all subtasks in the backlog
+   *
+   * @remarks
+   * Recursively traverses Phase > Milestone > Task > Subtask hierarchy
+   * and collects all subtasks into a flat array.
+   *
+   * @private
+   */
+  #getAllSubtasks(backlog: Backlog): Subtask[] {
+    const subtasks: Subtask[] = [];
+
+    for (const phase of backlog.backlog) {
+      for (const milestone of phase.milestones) {
+        for (const task of milestone.tasks) {
+          subtasks.push(...task.subtasks);
+        }
+      }
+    }
+
+    return subtasks;
   }
 }

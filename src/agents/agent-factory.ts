@@ -22,11 +22,7 @@
 
 import { configureEnvironment, getModel } from '../config/environment.js';
 import { getLogger } from '../utils/logger.js';
-import {
-  createAgent,
-  type Agent,
-  type MCPServer,
-} from 'groundswell';
+import { createAgent, type Agent, type MCPServer } from 'groundswell';
 import {
   TASK_BREAKDOWN_PROMPT,
   PRP_BLUEPRINT_PROMPT,

@@ -363,7 +363,7 @@ This is a unique test PRD for PRPGenerator integration tests with ID: ${uniqueId
           return Promise.reject(new Error('EACCES: permission denied'));
         }
         // Use real writeFile for test setup
-        const fs = require('node:fs/promises');
+        const fs = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return fs.writeFile(path, data, options);
       });
 
@@ -393,7 +393,7 @@ This is a unique test PRD for PRPGenerator integration tests with ID: ${uniqueId
           return Promise.reject(new Error('EACCES: permission denied'));
         }
         // Use real writeFile for test setup
-        const fs = require('node:fs/promises');
+        const fs = require('node:fs/promises'); // eslint-disable-line @typescript-eslint/no-var-requires
         return fs.writeFile(path, data, options);
       });
 
