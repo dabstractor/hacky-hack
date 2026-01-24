@@ -12,7 +12,11 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { parseCLIArgs, isCLIArgs, type CLIArgs } from '../../../src/cli/index.js';
+import {
+  parseCLIArgs,
+  isCLIArgs,
+  type CLIArgs,
+} from '../../../src/cli/index.js';
 
 // Mock process.argv
 const originalArgv = process.argv;

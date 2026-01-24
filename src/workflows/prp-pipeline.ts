@@ -1412,113 +1412,92 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
       return;
     }
 
-    // Build error report data
+    try {
+      // Import ErrorReportBuilder dynamically
+      const { ErrorReportBuilder } =
+        await import('../utils/errors/error-reporter.js');
+
+      // Build enhanced error report
+      const startTime = new Date(this.#startTime);
+      const currentSession = this.sessionManager.currentSession;
+      if (!currentSession) {
+        this.logger.warn(
+          '[PRPPipeline] Current session not available for error report'
+        );
+        return;
+      }
+      const sessionId = currentSession.metadata.id;
+
+      const builder = new ErrorReportBuilder(this.logger, startTime, sessionId);
+      const reportContent = await builder.generateReport(this.#failedTasks, {
+        sessionPath,
+        sessionId,
+        backlog: currentSession.taskRegistry,
+        totalTasks: this.totalTasks,
+        completedTasks: this.completedTasks,
+        pipelineMode: this.mode,
+        continueOnError: this.#continueOnError,
+        startTime,
+      });
+
+      // Write error report to session directory
+      const { resolve } = await import('node:path');
+      const { writeFile } = await import('node:fs/promises');
+      const reportPath = resolve(sessionPath, 'ERROR_REPORT.md');
+
+      await writeFile(reportPath, reportContent, 'utf-8');
+      this.logger.info(`[PRPPipeline] Error report written to ${reportPath}`);
+    } catch (error) {
+      this.logger.error('[PRPPipeline] Failed to generate error report', {
+        error,
+      });
+
+      // Fallback to simple error report if enhanced generation fails
+      await this.#generateFallbackErrorReport(sessionPath);
+    }
+  }
+
+  /**
+   * Fallback error report generation if enhanced reporter fails
+   *
+   * @param sessionPath - Path to session directory
+   *
+   * @remarks
+   * Simple error report generation as fallback when the enhanced
+   * error reporter encounters an error.
+   *
+   * @private
+   */
+  async #generateFallbackErrorReport(sessionPath: string): Promise<void> {
     const failures = Array.from(this.#failedTasks.values());
 
-    // Categorize by error type
-    const errorCategories = {
-      taskError: 0,
-      agentError: 0,
-      validationError: 0,
-      sessionError: 0,
-      other: 0,
-    };
-
-    for (const failure of failures) {
-      if (isTaskError(failure.error)) {
-        errorCategories.taskError++;
-      } else if (isAgentError(failure.error)) {
-        errorCategories.agentError++;
-      } else if (isValidationError(failure.error)) {
-        errorCategories.validationError++;
-      } else if (isSessionError(failure.error)) {
-        errorCategories.sessionError++;
-      } else {
-        errorCategories.other++;
-      }
-    }
-
-    const successRate =
-      this.totalTasks > 0
-        ? ((this.completedTasks / this.totalTasks) * 100).toFixed(1)
-        : '0.0';
-
-    // Generate markdown content
-    const content = `# Error Report
+    const content = `# Error Report (Fallback)
 
 **Generated**: ${new Date().toISOString()}
 **Pipeline Mode**: ${this.mode}
-**Continue on Error**: ${this.#continueOnError ? 'Yes' : 'No'}
-
-## Summary
-
-| Metric | Count |
-|--------|-------|
-| Total Tasks | ${this.totalTasks} |
-| Completed | ${this.completedTasks} |
-| Failed | ${this.#failedTasks.size} |
-| Success Rate | ${successRate}% |
 
 ## Failed Tasks
 
 ${failures
-  .map((failure, index) => {
-    const errorType = failure.errorCode
-      ? `${failure.error.constructor.name} (${failure.errorCode})`
-      : failure.error.constructor.name;
+  .map(
+    failure => `### ${failure.taskId}: ${failure.taskTitle}
 
-    return `### ${index + 1}. ${failure.taskId}: ${failure.taskTitle}
-
-**Phase**: ${failure.phase || 'Unknown'}
-**Milestone**: ${failure.milestone || 'N/A'}
-**Error Type**: ${errorType}
-**Timestamp**: ${failure.timestamp.toISOString()}
-
-**Error Message**:
-\`\`\`
-${failure.error.message}
-\`\`\`
-
-${
-  failure.error.stack
-    ? `**Stack Trace**:
-\`\`\`
-${failure.error.stack.split('\n').slice(0, 5).join('\n')}
-...
-\`\`\`
+**Error**: ${failure.error.message}
 `
-    : ''
-}
-`;
-  })
+  )
   .join('\n---\n')}
-
-## Error Categories
-
-- **TaskError**: ${errorCategories.taskError} tasks
-- **AgentError**: ${errorCategories.agentError} tasks
-- **ValidationError**: ${errorCategories.validationError} tasks
-- **SessionError**: ${errorCategories.sessionError} tasks
-- **Other**: ${errorCategories.other} tasks
-
-## Recommendations
-
-1. Review failed tasks above for common patterns
-2. Check error messages and stack traces for root causes
-3. Fix underlying issues (code, configuration, environment)
-4. Re-run pipeline with \`--scope <task-id>\` to retry specific tasks
-5. Use \`--continue-on-error\` flag to maximize progress on re-run
 
 **Report Location**: ${sessionPath}/ERROR_REPORT.md
 `;
 
-    // Write error report to session directory
     const { resolve } = await import('node:path');
     const { writeFile } = await import('node:fs/promises');
     const reportPath = resolve(sessionPath, 'ERROR_REPORT.md');
 
     await writeFile(reportPath, content, 'utf-8');
-    this.logger.info(`[PRPPipeline] Error report written to ${reportPath}`);
+    this.logger.info(
+      `[PRPPipeline] Fallback error report written to ${reportPath}`
+    );
   }
 
   /**

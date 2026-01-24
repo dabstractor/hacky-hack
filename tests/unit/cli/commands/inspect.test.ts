@@ -194,12 +194,8 @@ describe('InspectCommand', () => {
     const mockSessionState = createMockSessionState();
 
     beforeEach(() => {
-      mockListSessions.mockResolvedValue([
-        mockSessionState.metadata,
-      ]);
-      mockFindLatestSession.mockResolvedValue(
-        mockSessionState.metadata
-      );
+      mockListSessions.mockResolvedValue([mockSessionState.metadata]);
+      mockFindLatestSession.mockResolvedValue(mockSessionState.metadata);
       mockLoadSession.mockResolvedValue(mockSessionState);
     });
 
@@ -287,9 +283,7 @@ describe('InspectCommand', () => {
     });
 
     it('should throw error when session not found by hash', async () => {
-      mockListSessions.mockResolvedValue([
-        mockSessionState.metadata,
-      ]);
+      mockListSessions.mockResolvedValue([mockSessionState.metadata]);
 
       const options: InspectorOptions = {
         output: 'table',
@@ -339,12 +333,8 @@ describe('InspectCommand', () => {
     const mockSessionState = createMockSessionState();
 
     beforeEach(() => {
-      mockListSessions.mockResolvedValue([
-        mockSessionState.metadata,
-      ]);
-      mockFindLatestSession.mockResolvedValue(
-        mockSessionState.metadata
-      );
+      mockListSessions.mockResolvedValue([mockSessionState.metadata]);
+      mockFindLatestSession.mockResolvedValue(mockSessionState.metadata);
       mockLoadSession.mockResolvedValue(mockSessionState);
     });
 
@@ -410,12 +400,8 @@ describe('InspectCommand', () => {
     const mockSessionState = createMockSessionState();
 
     beforeEach(() => {
-      mockListSessions.mockResolvedValue([
-        mockSessionState.metadata,
-      ]);
-      mockFindLatestSession.mockResolvedValue(
-        mockSessionState.metadata
-      );
+      mockListSessions.mockResolvedValue([mockSessionState.metadata]);
+      mockFindLatestSession.mockResolvedValue(mockSessionState.metadata);
       mockLoadSession.mockResolvedValue(mockSessionState);
 
       // Mock PRP file exists

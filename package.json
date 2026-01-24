@@ -71,6 +71,7 @@
     "cli-table3": "^0.6.5",
     "commander": "^14.0.2",
     "fast-glob": "^3.3.3",
+    "groundswell": "^0.0.1",
     "pino": "^9.14.0",
     "simple-git": "^3.30.0",
     "zod": "^3.22.4"
