@@ -25,6 +25,7 @@
 
 import { spawn, type ChildProcess } from 'node:child_process';
 import { access, lstat, readFile, readlink, writeFile } from 'node:fs/promises';
+import { lstatSync, readlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { verifyGroundswellExists } from './groundswell-verifier.js';
 
@@ -626,13 +627,14 @@ export async function linkGroundswellLocally(
     }
 
     // PATTERN: Handle close event with exit code and symlink verification
-    child.on('close', async exitCode => {
+    child.on('close', (exitCode: number | null) => {
       clearTimeout(timeoutId);
 
       // PATTERN: Verify symlink only if npm link succeeded
       if (exitCode === 0 && !timedOut && !killed) {
+        // Use synchronous versions of fs functions in close callback
         try {
-          const stats = await lstat(symlinkPath);
+          const stats = lstatSync(symlinkPath);
           if (!stats.isSymbolicLink()) {
             return resolve({
               success: false,
@@ -645,7 +647,7 @@ export async function linkGroundswellLocally(
             });
           }
 
-          const symlinkTarget = await readlink(symlinkPath);
+          const symlinkTarget = readlinkSync(symlinkPath);
           resolve({
             success: true,
             message: `Successfully linked groundswell in project at ${symlinkPath}`,

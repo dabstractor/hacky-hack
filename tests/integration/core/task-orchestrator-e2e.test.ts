@@ -195,7 +195,7 @@ function createComplexBacklog(): Backlog {
 }
 
 function createSessionState(backlog: Backlog, planDir: string) {
-  const { createHash } = require('node:crypto');
+  const { createHash } = require('node:crypto'); // eslint-disable-line @typescript-eslint/no-var-requires
   const hash = createHash('sha256')
     .update(JSON.stringify(backlog))
     .digest('hex');

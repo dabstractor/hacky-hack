@@ -19,7 +19,7 @@
 
 import Table from 'cli-table3';
 import chalk from 'chalk';
-import type { SessionMetadata, Phase } from '../../core/models.js';
+import type { SessionMetadata, Phase, Status } from '../../core/models.js';
 import { getStatusIndicator } from './status-colors.js';
 
 // Local type definitions for inspect command
@@ -418,7 +418,7 @@ export function formatCurrentTask(
   table.push(
     ['Current Task', chalk.bold.cyan('→ ') + chalk.bold(taskId)],
     ['Title', title],
-    ['Status', getStatusIndicator(status as any) + ' ' + status]
+    ['Status', getStatusIndicator(status as Status) + ' ' + status]
   );
 
   if (startTime) {

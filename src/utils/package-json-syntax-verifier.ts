@@ -73,7 +73,7 @@ export interface PackageJsonSyntaxResult {
  * TypeScript interface for parsed package.json.
  * We only need to verify syntax, so we use 'unknown' type.
  */
-interface PackageJsonRaw {
+interface _PackageJsonRaw {
   [key: string]: unknown;
 }
 

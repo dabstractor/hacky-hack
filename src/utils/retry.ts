@@ -45,7 +45,6 @@
 
 import { getLogger } from './logger.js';
 import {
-  isAgentError,
   isValidationError,
   isPipelineError,
   ErrorCodes,

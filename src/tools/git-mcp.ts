@@ -431,9 +431,9 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
     const git = simpleGit(safePath);
 
     // Build options
-    const options: Options = {};
+    const options: Options & { '--allow-empty'?: boolean } = {};
     if (input.allowEmpty ?? false) {
-      (options as any)['--allow-empty'] = true;
+      options['--allow-empty'] = true;
     }
 
     // CRITICAL: CommitResult structure from simple-git

@@ -170,10 +170,11 @@ export async function executeCliHelp(
   } catch (error) {
     // Handle synchronous spawn errors (e.g., ENOENT, EACCES)
     let errorMessage = 'Failed to execute CLI help';
-    if ((error as any).code === 'ENOENT') {
+    const errno = error as NodeJS.ErrnoException;
+    if (errno.code === 'ENOENT') {
       errorMessage =
         'npm not found. Please ensure Node.js and npm are installed.';
-    } else if ((error as any).code === 'EACCES') {
+    } else if (errno.code === 'EACCES') {
       errorMessage = 'Permission denied executing npm.';
     } else {
       errorMessage += `: ${error instanceof Error ? error.message : String(error)}`;
@@ -265,10 +266,11 @@ export async function executeCliHelp(
       clearTimeout(timeoutId);
 
       let errorMessage = 'Failed to execute CLI help';
-      if ((error as any).code === 'ENOENT') {
+      const errno = error as NodeJS.ErrnoException;
+      if (errno.code === 'ENOENT') {
         errorMessage =
           'npm not found. Please ensure Node.js and npm are installed.';
-      } else if ((error as any).code === 'EACCES') {
+      } else if (errno.code === 'EACCES') {
         errorMessage = 'Permission denied executing npm.';
       } else {
         errorMessage += `: ${error.message}`;

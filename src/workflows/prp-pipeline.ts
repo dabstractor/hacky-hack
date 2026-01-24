@@ -33,12 +33,7 @@ import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import {
   isPipelineError,
-  isSessionError,
-  isTaskError,
-  isAgentError,
-  isValidationError,
   isFatalError,
-  ErrorCodes,
 } from '../utils/errors.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
@@ -50,7 +45,6 @@ import { filterByStatus } from '../utils/task-utils.js';
 import { progressTracker, type ProgressTracker } from '../utils/progress.js';
 import {
   ProgressDisplay,
-  type ProgressDisplayOptions,
   type CurrentTaskInfo,
 } from '../utils/progress-display.js';
 import { retryAgentPrompt } from '../utils/retry.js';
@@ -290,11 +284,11 @@ export class PRPPipeline extends Workflow {
     this.#progressMode = progressMode;
 
     // SessionManager will be created in run() to catch initialization errors
-    this.sessionManager = null as any;
+    this.sessionManager = null as SessionManager | null;
 
     // Create TaskOrchestrator (will be initialized with session after initializeSession)
     // Placeholder for now - will be recreated after session initialization
-    this.taskOrchestrator = null as any;
+    this.taskOrchestrator = null as TaskOrchestrator | null;
 
     // Create correlation logger with correlation ID
     this.correlationLogger = getLogger('PRPPipeline').child({
@@ -813,7 +807,6 @@ export class PRPPipeline extends Workflow {
 
           // Update progress display with current task info
           // Need to get current task info from backlog if available
-          const currentTaskInfo: CurrentTaskInfo | undefined = undefined;
           if (currentItemId !== 'unknown') {
             // Try to find current task in backlog for display
             // For now, use basic info - could be enhanced to look up title
@@ -1743,7 +1736,7 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       this.logger.debug('[PRPPipeline] Workflow failed with error', {
         errorMessage,
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        errorCode: (error as any)?.code,
+        errorCode: (error as { code?: string })?.code,
         currentPhase: this.currentPhase,
         ...(error instanceof Error && { stack: error.stack }),
       });

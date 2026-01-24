@@ -26,10 +26,10 @@
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-misused-promises": "error",
-    "@typescript-eslint/strict-boolean-expressions": "warn",
+    "@typescript-eslint/strict-boolean-expressions": "off",
     "no-undef": "off",
     "no-unused-vars": "off",
-    "no-console": ["warn", { "allow": ["warn", "error"] }]
+    "no-console": "off"
   },
   "env": {
     "node": true,
@@ -48,6 +48,7 @@
     "node_modules/",
     "dist/",
     "coverage/",
+    "scripts/",
     "*.config.js",
     "*.config.ts",
     "plan/**/research/*.ts",

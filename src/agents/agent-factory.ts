@@ -25,7 +25,6 @@ import { getLogger } from '../utils/logger.js';
 import {
   createAgent,
   type Agent,
-  type MCPHandler,
   type MCPServer,
 } from 'groundswell';
 import {
