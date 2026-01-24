@@ -616,7 +616,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Milestone 2.2: Developer Documentation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Create developer-facing documentation for architecture, extensibility, and contribution.",
           "tasks": [
             {
@@ -703,14 +703,14 @@
               "type": "Task",
               "id": "P2.M2.T3",
               "title": "Task 2.2.3: Testing Documentation",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Document testing strategies, writing tests, and achieving 100% coverage.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M2.T3.S1",
                   "title": "Create testing strategy documentation",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Testing framework: Vitest with 100% coverage requirement. Test structure: unit/ (single function/class), integration/ (multi-component), e2e/ (full workflow). Setup: tests/setup.ts with environment configuration.\n2. INPUT: Test structure from tests/, vitest configuration from vitest.config.ts.\n3. LOGIC: Write testing strategy in docs/TESTING.md that explains: (a) testing philosophy (100% coverage, TDD), (b) test structure and organization, (c) unit vs integration vs e2e tests, (d) mocking strategies (agents, file system, git), (e) running tests and coverage reports. Include test writing guidelines and examples.\n4. OUTPUT: Documentation file docs/TESTING.md with testing strategy and guidelines."
@@ -719,7 +719,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T3.S2",
                   "title": "Create test writing examples",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T3.S1"
