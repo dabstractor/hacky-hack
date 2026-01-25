@@ -190,6 +190,9 @@ export class PRPPipeline extends Workflow {
   /** Maximum duration limit from CLI --max-duration (milliseconds) */
   readonly #maxDuration?: number;
 
+  /** Monitoring interval from CLI --monitor-interval (milliseconds) */
+  readonly #monitorInterval?: number;
+
   /** Custom plan directory for testing (defaults to resolve('plan')) */
   readonly #planDir?: string;
 
@@ -259,6 +262,7 @@ export class PRPPipeline extends Workflow {
     continueOnError: boolean = false,
     maxTasks?: number,
     maxDuration?: number,
+    monitorInterval?: number,
     planDir?: string,
     progressMode: 'auto' | 'always' | 'never' = 'auto',
     parallelism: number = 2
@@ -279,6 +283,7 @@ export class PRPPipeline extends Workflow {
     this.#continueOnError = continueOnError;
     this.#maxTasks = maxTasks;
     this.#maxDuration = maxDuration;
+    this.#monitorInterval = monitorInterval;
     this.#planDir = planDir;
     this.#progressMode = progressMode;
     this.#parallelism = parallelism;
@@ -296,11 +301,13 @@ export class PRPPipeline extends Workflow {
       this.#resourceMonitor = new ResourceMonitor({
         maxTasks,
         maxDuration,
+        pollingInterval: monitorInterval,
       });
       this.#resourceMonitor.start();
       this.logger.info('[PRPPipeline] Resource monitoring enabled', {
         maxTasks,
         maxDuration,
+        monitorInterval,
       });
     }
 

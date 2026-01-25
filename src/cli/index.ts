@@ -91,6 +91,9 @@ export interface CLIArgs {
   /** Maximum execution duration in milliseconds (optional) */
   maxDuration?: number;
 
+  /** Monitoring interval in milliseconds (1000-60000, default: 30000) */
+  monitorInterval?: number;
+
   /** Progress display mode (auto/always/never) */
   progressMode?: 'auto' | 'always' | 'never';
 
@@ -182,6 +185,10 @@ export function parseCLIArgs():
     )
     .option('--max-tasks <number>', 'Maximum number of tasks to execute')
     .option('--max-duration <ms>', 'Maximum execution duration in milliseconds')
+    .option(
+      '--monitor-interval <ms>',
+      'Resource monitoring interval in milliseconds (1000-60000, default: 30000)'
+    )
     .option(
       '--parallelism <n>',
       'Max concurrent subtasks (1-10, default: 2)',
@@ -325,6 +332,23 @@ export function parseCLIArgs():
       logger.error('--max-duration must be a positive integer (milliseconds)');
       process.exit(1);
     }
+  }
+
+  // Validate monitorInterval
+  if (options.monitorInterval !== undefined) {
+    const monitorInterval = Number(options.monitorInterval);
+    if (
+      !Number.isInteger(monitorInterval) ||
+      monitorInterval < 1000 ||
+      monitorInterval > 60000
+    ) {
+      logger.error(
+        '--monitor-interval must be an integer between 1000 and 60000'
+      );
+      process.exit(1);
+    }
+    // Convert to number
+    options.monitorInterval = monitorInterval;
   }
 
   // Validate parallelism

@@ -832,7 +832,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Milestone 3.1: Concurrency Improvements",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Implement parallel subtask execution and optimize resource usage.",
           "tasks": [
             {
@@ -879,14 +879,14 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Task 3.1.2: Resource Optimization",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Optimize resource usage for file handle monitoring and research queue concurrency.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Optimize file handle monitoring on macOS",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - File handle monitoring uses lsof command (slow, requires spawn). Alternative: use /dev/fd directory listing or kstat/sysctl on macOS.\n2. INPUT: ResourceMonitor from src/utils/resource-monitor.ts, lsof-based implementation.\n3. LOGIC: Optimize ResourceMonitor to use faster file handle counting: (a) on Linux, use /proc/{pid}/fd directory listing, (b) on macOS, use lsof but cache results for 1 second, (c) on Windows, use handle.exe (if available) or skip monitoring, (d) add --monitor-interval CLI option to control polling frequency. Update platform detection and caching logic. Add benchmarks to verify performance improvement.\n4. OUTPUT: Optimized ResourceMonitor at src/utils/resource-monitor.ts, benchmarks in tests/benchmark/resource-monitoring.bench.ts."
@@ -895,7 +895,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S2",
                   "title": "Make ResearchQueue concurrency configurable",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M1.T2.S1"

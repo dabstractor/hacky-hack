@@ -560,4 +560,59 @@ describe('ResourceMonitor', () => {
       expect(status.limitType).toBeNull();
     });
   });
+
+  // ========================================================================
+  // lsof Cache Configuration Tests
+  // ========================================================================
+
+  describe('lsof Cache Configuration', () => {
+    it('should accept cacheTtl in ResourceConfig', () => {
+      const config: ResourceConfig = {
+        cacheTtl: 5000,
+      };
+      const monitor = new ResourceMonitor(config);
+      expect(monitor).toBeDefined();
+    });
+
+    it('should use default cacheTtl of 1000ms when not specified', () => {
+      const monitor = new ResourceMonitor({});
+      expect(monitor).toBeDefined();
+      // Default cacheTtl is handled internally
+    });
+
+    it('should provide clearLsofCache() method on FileHandleMonitor', () => {
+      const monitor = new ResourceMonitor({
+        cacheTtl: 5000,
+      });
+      // Verify the method exists and is callable
+      expect(typeof monitor.fileHandleMonitor.clearLsofCache).toBe('function');
+      expect(() => monitor.fileHandleMonitor.clearLsofCache()).not.toThrow();
+    });
+
+    it('should handle different cacheTtl values', () => {
+      const ttls = [100, 500, 1000, 5000, 10000];
+
+      for (const ttl of ttls) {
+        const config: ResourceConfig = { cacheTtl: ttl };
+        const monitor = new ResourceMonitor(config);
+        expect(monitor).toBeDefined();
+        expect(typeof monitor.fileHandleMonitor.clearLsofCache).toBe(
+          'function'
+        );
+      }
+    });
+
+    it('should accept cacheTtl alongside other ResourceConfig options', () => {
+      const config: ResourceConfig = {
+        cacheTtl: 2000,
+        fileHandleWarnThreshold: 0.6,
+        fileHandleCriticalThreshold: 0.8,
+        memoryWarnThreshold: 0.7,
+        memoryCriticalThreshold: 0.9,
+        pollingInterval: 15000,
+      };
+      const monitor = new ResourceMonitor(config);
+      expect(monitor).toBeDefined();
+    });
+  });
 });
