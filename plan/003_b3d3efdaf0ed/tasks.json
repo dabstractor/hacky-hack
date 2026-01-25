@@ -910,7 +910,7 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Milestone 3.2: Error Handling & Retry Improvements",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Improve error handling, add automatic retry mechanisms, and enhance state recovery.",
           "tasks": [
             {
@@ -957,7 +957,7 @@
               "type": "Task",
               "id": "P3.M2.T2",
               "title": "Task 3.2.2: State Recovery Improvements",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Improve state recovery after failures and add checkpoint/resume capabilities.",
               "subtasks": [
                 {
@@ -984,7 +984,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S3",
                   "title": "Add state validation and repair tools",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T2.S2"
@@ -1013,7 +1013,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Make PRP cache TTL configurable",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - PRP cache TTL fixed at 24 hours. Not configurable for different use cases (fast iteration vs long-term caching).\n2. INPUT: PRP cache from src/agents/prp-generator.ts, CACHE_TTL_MS constant.\n3. LOGIC: Make cache TTL configurable: (a) add constructor parameter to PRPGenerator, (b) read from environment variable (PRP_CACHE_TTL_MS=86400000), (c) allow CLI override via --cache-ttl <duration>, (d) support human-readable durations (24h, 1d, 12h). Update PRPGenerator instantiation. Add tests for TTL configuration and expiration.\n4. OUTPUT: Configurable cache TTL in src/agents/prp-generator.ts, CLI option in src/cli/index.ts, tests in tests/unit/prp-cache-ttl.test.ts."

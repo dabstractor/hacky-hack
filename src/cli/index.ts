@@ -32,6 +32,10 @@ import { resolve } from 'node:path';
 import { getLogger } from '../utils/logger.js';
 import { InspectCommand, type InspectorOptions } from './commands/inspect.js';
 import { ArtifactsCommand } from './commands/artifacts.js';
+import {
+  ValidateStateCommand,
+  type ValidateStateOptions,
+} from './commands/validate-state.js';
 import * as os from 'node:os';
 
 const logger = getLogger('CLI');
@@ -125,7 +129,12 @@ export interface CLIArgs {
  */
 export interface ValidatedCLIArgs extends Omit<
   CLIArgs,
-  'parallelism' | 'researchConcurrency' | 'taskRetry' | 'retryBackoff' | 'retry' | 'flushRetries'
+  | 'parallelism'
+  | 'researchConcurrency'
+  | 'taskRetry'
+  | 'retryBackoff'
+  | 'retry'
+  | 'flushRetries'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -167,6 +176,7 @@ export interface ValidatedCLIArgs extends Omit<
  * - No subcommand: Default pipeline execution (legacy behavior)
  * - `inspect`: Inspect pipeline state and session details
  * - `artifacts`: View and compare pipeline artifacts
+ * - `validate-state`: Validate task hierarchy state and dependencies
  *
  * @example
  * ```typescript
@@ -185,7 +195,8 @@ export interface ValidatedCLIArgs extends Omit<
 export function parseCLIArgs():
   | ValidatedCLIArgs
   | { subcommand: 'inspect'; options: InspectorOptions }
-  | { subcommand: 'artifacts'; options: Record<string, unknown> } {
+  | { subcommand: 'artifacts'; options: Record<string, unknown> }
+  | { subcommand: 'validate-state'; options: Record<string, unknown> } {
   const program = new Command();
 
   // Configure program
@@ -252,11 +263,7 @@ export function parseCLIArgs():
       'Enable automatic retry for all tasks (default: enabled)',
       true
     )
-    .option(
-      '--no-retry',
-      'Disable automatic retry for all tasks',
-      false
-    )
+    .option('--no-retry', 'Disable automatic retry for all tasks', false)
     // Progress mode with choices
     .addOption(
       program
@@ -325,6 +332,40 @@ export function parseCLIArgs():
       }
     });
 
+  // Add validate-state subcommand
+  program
+    .command('validate-state')
+    .description('Validate task hierarchy state and dependencies')
+    .option(
+      '-o, --output <format>',
+      'Output format (table, json, yaml)',
+      'table'
+    )
+    .option('-f, --file <path>', 'Override tasks.json file path')
+    .option('--auto-repair', 'Automatically repair without prompting', false)
+    .option('--no-backup', 'Skip backup creation before repair', false)
+    .option('--max-backups <n>', 'Maximum backups to keep', '5')
+    .option('-s, --session <hash>', 'Validate specific session by hash')
+    .action(async options => {
+      try {
+        const validateCommand = new ValidateStateCommand();
+        await validateCommand.execute({
+          output: options.output || 'table',
+          file: options.file,
+          autoRepair: options.autoRepair || false,
+          backup: options.backup !== false,
+          maxBackups: parseInt(options.maxBackups || '5', 10),
+          session: options.session,
+        });
+        process.exit(0);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        logger.error(`Validate-state command failed: ${errorMessage}`);
+        process.exit(1);
+      }
+    });
+
   // Parse arguments
   program.parse(process.argv);
 
@@ -348,6 +389,14 @@ export function parseCLIArgs():
     // This return is for type safety; actual execution already happened
     return {
       subcommand: 'artifacts',
+      options: {},
+    };
+  }
+  if (args.length > 0 && args[0] === 'validate-state') {
+    // Validate-state subcommand was invoked and already handled by action()
+    // This return is for type safety; actual execution already happened
+    return {
+      subcommand: 'validate-state',
       options: {},
     };
   }
