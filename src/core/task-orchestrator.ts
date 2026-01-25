@@ -92,6 +92,9 @@ export class TaskOrchestrator {
   /** Cache bypass flag from CLI --no-cache */
   readonly #noCache: boolean;
 
+  /** Configurable research queue concurrency limit */
+  readonly #researchQueueConcurrency: number;
+
   /** Current item ID being processed (for progress tracking) */
   currentItemId: string | null = null;
 
@@ -101,6 +104,7 @@ export class TaskOrchestrator {
    * @param sessionManager - Session state manager for persistence
    * @param scope - Optional scope to limit execution (defaults to all items)
    * @param noCache - Whether to bypass cache (default: false)
+   * @param researchQueueConcurrency - Max concurrent research tasks (default: 3)
    * @throws {Error} If sessionManager.currentSession is null
    *
    * @remarks
@@ -111,11 +115,13 @@ export class TaskOrchestrator {
   constructor(
     sessionManager: SessionManager,
     scope?: Scope,
-    noCache: boolean = false
+    noCache: boolean = false,
+    researchQueueConcurrency: number = 3
   ) {
     this.#logger = getLogger('TaskOrchestrator');
     this.sessionManager = sessionManager;
     this.#noCache = noCache;
+    this.#researchQueueConcurrency = researchQueueConcurrency;
 
     // Load initial backlog from session state
     const currentSession = sessionManager.currentSession;
@@ -129,13 +135,16 @@ export class TaskOrchestrator {
     this.#scope = scope;
     this.#executionQueue = this.#buildQueue(scope);
 
-    // Initialize ResearchQueue with concurrency limit of 3
+    // Initialize ResearchQueue with configurable concurrency
     this.researchQueue = new ResearchQueue(
       this.sessionManager,
-      3,
+      this.#researchQueueConcurrency,
       this.#noCache
     );
-    this.#logger.debug({ maxSize: 3 }, 'ResearchQueue initialized');
+    this.#logger.debug(
+      { maxSize: this.#researchQueueConcurrency },
+      'ResearchQueue initialized'
+    );
 
     // Initialize PRPRuntime for execution
     this.#prpRuntime = new PRPRuntime(this);

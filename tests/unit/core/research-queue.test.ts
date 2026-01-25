@@ -162,6 +162,64 @@ describe('ResearchQueue', () => {
       expect(queue.maxSize).toBe(5);
     });
 
+    it('should handle minimum concurrency of 1', () => {
+      // SETUP
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: createTestBacklog([]),
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const mockGenerate = vi
+        .fn()
+        .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+      MockPRPGenerator.mockImplementation(() => ({
+        generate: mockGenerate,
+      }));
+
+      // EXECUTE
+      const queue = new ResearchQueue(mockManager, 1);
+
+      // VERIFY
+      expect(queue.maxSize).toBe(1);
+    });
+
+    it('should handle maximum concurrency of 10', () => {
+      // SETUP
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: createTestBacklog([]),
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const mockGenerate = vi
+        .fn()
+        .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+      MockPRPGenerator.mockImplementation(() => ({
+        generate: mockGenerate,
+      }));
+
+      // EXECUTE
+      const queue = new ResearchQueue(mockManager, 10);
+
+      // VERIFY
+      expect(queue.maxSize).toBe(10);
+    });
+
     it('should use default maxSize of 3 when not specified', () => {
       // SETUP
       const currentSession = {

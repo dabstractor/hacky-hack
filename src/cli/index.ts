@@ -99,6 +99,9 @@ export interface CLIArgs {
 
   /** Max concurrent subtasks (1-10, default: 2) - may be string from commander */
   parallelism: number | string;
+
+  /** Max concurrent research tasks (1-10, default: 3) - may be string from commander */
+  researchConcurrency: number | string;
 }
 
 /**
@@ -108,9 +111,15 @@ export interface CLIArgs {
  * This is the type returned by parseCLIArgs() after validation.
  * The parallelism value is parsed and validated as a number.
  */
-export interface ValidatedCLIArgs extends Omit<CLIArgs, 'parallelism'> {
+export interface ValidatedCLIArgs extends Omit<
+  CLIArgs,
+  'parallelism' | 'researchConcurrency'
+> {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
+
+  /** Max concurrent research tasks (1-10, default: 3) - validated as number */
+  researchConcurrency: number;
 }
 
 // ===== MAIN FUNCTION =====
@@ -193,6 +202,11 @@ export function parseCLIArgs():
       '--parallelism <n>',
       'Max concurrent subtasks (1-10, default: 2)',
       '2'
+    )
+    .option(
+      '--research-concurrency <n>',
+      'Max concurrent research tasks (1-10, default: 3, env: RESEARCH_QUEUE_CONCURRENCY)',
+      process.env.RESEARCH_QUEUE_CONCURRENCY ?? '3'
     )
     // Progress mode with choices
     .addOption(
@@ -365,6 +379,8 @@ export function parseCLIArgs():
 
   // System resource warnings (non-blocking)
   const cpuCores = os.cpus().length;
+  const freeMemoryGB = os.freemem() / 1024 ** 3;
+
   if (parallelism > cpuCores) {
     logger.warn(
       `⚠️  Warning: Parallelism (${parallelism}) exceeds CPU cores (${cpuCores})`
@@ -374,7 +390,6 @@ export function parseCLIArgs():
   }
 
   // Memory warning
-  const freeMemoryGB = os.freemem() / 1024 ** 3;
   const estimatedMemoryGB = parallelism * 0.5; // Assume 500MB per worker
   if (estimatedMemoryGB > freeMemoryGB * 0.8) {
     logger.warn(
@@ -384,6 +399,41 @@ export function parseCLIArgs():
 
   // Store validated number value
   options.parallelism = parallelism;
+
+  // Validate research-concurrency
+  const researchConcurrencyStr =
+    typeof options.researchConcurrency === 'string'
+      ? options.researchConcurrency
+      : String(options.researchConcurrency);
+  const researchConcurrency = parseInt(researchConcurrencyStr, 10);
+
+  if (
+    isNaN(researchConcurrency) ||
+    researchConcurrency < 1 ||
+    researchConcurrency > 10
+  ) {
+    logger.error('--research-concurrency must be an integer between 1 and 10');
+    process.exit(1);
+  }
+
+  // System resource warnings (non-blocking)
+  if (researchConcurrency > cpuCores) {
+    logger.warn(
+      `⚠️  Warning: Research concurrency (${researchConcurrency}) exceeds CPU cores (${cpuCores})`
+    );
+    logger.warn(`   This may cause context switching overhead.`);
+  }
+
+  // Memory warning (lighter than task executor - 300MB per task)
+  const estimatedResearchMemoryGB = researchConcurrency * 0.3;
+  if (estimatedResearchMemoryGB > freeMemoryGB * 0.8) {
+    logger.warn(
+      `⚠️  Warning: High research concurrency may exhaust free memory (${freeMemoryGB.toFixed(1)}GB available)`
+    );
+  }
+
+  // Store validated number value
+  options.researchConcurrency = researchConcurrency;
 
   return options as ValidatedCLIArgs;
 }

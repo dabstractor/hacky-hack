@@ -832,7 +832,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Milestone 3.1: Concurrency Improvements",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Implement parallel subtask execution and optimize resource usage.",
           "tasks": [
             {
@@ -879,7 +879,7 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Task 3.1.2: Resource Optimization",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Optimize resource usage for file handle monitoring and research queue concurrency.",
               "subtasks": [
                 {
@@ -895,7 +895,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S2",
                   "title": "Make ResearchQueue concurrency configurable",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M1.T2.S1"
@@ -924,7 +924,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Design task retry strategy",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Individual task failures don't stop pipeline but no automatic retry exists. Fix cycle has retry (max 2 attempts) but task execution doesn't.\n2. INPUT: Task execution from PRPPipeline, error handling in TaskOrchestrator, retry pattern from fix cycle.\n3. LOGIC: Design retry strategy document in plan/003_b3d3efdaf0ed/architecture/retry-strategy-design.md that covers: (a) which errors are retryable (API errors, transient failures), (b) which errors are non-retryable (authentication, validation), (c) retry limits (max attempts, exponential backoff), (d) state preservation between retries, (e) user notification of retries, (f) integration with existing failure tracking. Include decision matrix and pseudocode.\n4. OUTPUT: Design document plan/003_b3d3efdaf0ed/architecture/retry-strategy-design.md with retry strategy."

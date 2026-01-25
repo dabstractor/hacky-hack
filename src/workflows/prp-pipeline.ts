@@ -235,6 +235,9 @@ export class PRPPipeline extends Workflow {
   /** Parallelism limit for concurrent subtask execution */
   readonly #parallelism: number = 2;
 
+  /** Research queue concurrency limit for parallel PRP generation */
+  readonly #researchQueueConcurrency: number = 3;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -252,6 +255,7 @@ export class PRPPipeline extends Workflow {
    * @param planDir - Custom plan directory path (defaults to resolve('plan'))
    * @param progressMode - Progress display mode: 'auto', 'always', or 'never' (default: 'auto')
    * @param parallelism - Max concurrent subtasks (1-10, default: 2)
+   * @param researchQueueConcurrency - Max concurrent research tasks (1-10, default: 3)
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -265,7 +269,8 @@ export class PRPPipeline extends Workflow {
     monitorInterval?: number,
     planDir?: string,
     progressMode: 'auto' | 'always' | 'never' = 'auto',
-    parallelism: number = 2
+    parallelism: number = 2,
+    researchQueueConcurrency: number = 3
   ) {
     super('PRPPipeline');
 
@@ -287,6 +292,7 @@ export class PRPPipeline extends Workflow {
     this.#planDir = planDir;
     this.#progressMode = progressMode;
     this.#parallelism = parallelism;
+    this.#researchQueueConcurrency = researchQueueConcurrency;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations
@@ -462,7 +468,8 @@ export class PRPPipeline extends Workflow {
       this.taskOrchestrator = new TaskOrchestratorClass(
         this.sessionManager,
         this.#scope,
-        this.#noCache
+        this.#noCache,
+        this.#researchQueueConcurrency
       );
 
       // Check for PRD changes and handle delta if needed

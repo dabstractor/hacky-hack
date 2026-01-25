@@ -335,6 +335,43 @@ describe('ResearchQueue Integration Tests', () => {
       // VERIFY: Never exceeded maxSize
       expect(maxActive.value).toBeLessThanOrEqual(3);
     });
+
+    it('should execute serially with concurrency=1', async () => {
+      // SETUP: Track execution order
+      const executionOrder: string[] = [];
+
+      mockGenerate.mockImplementation(async (task: Subtask) => {
+        executionOrder.push(task.id);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        return createTestPRPDocument(task.id);
+      });
+
+      const queue = new ResearchQueue(mockSessionManager, 1); // Serial processing
+      const backlog = createTestBacklog([]);
+
+      const tasks = [
+        createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned'),
+        createTestSubtask('P1.M1.T1.S2', 'Task 2', 'Planned'),
+        createTestSubtask('P1.M1.T1.S3', 'Task 3', 'Planned'),
+      ];
+
+      // EXECUTE: Enqueue all tasks
+      for (const task of tasks) {
+        await queue.enqueue(task, backlog);
+      }
+
+      // Wait for all to complete sequentially (not in parallel)
+      await queue.waitForPRP('P1.M1.T1.S1');
+      await queue.waitForPRP('P1.M1.T1.S2');
+      await queue.waitForPRP('P1.M1.T1.S3');
+
+      // VERIFY: Tasks executed in order (serial processing)
+      expect(executionOrder).toEqual([
+        'P1.M1.T1.S1',
+        'P1.M1.T1.S2',
+        'P1.M1.T1.S3',
+      ]);
+    });
   });
 
   // ===========================================================================
