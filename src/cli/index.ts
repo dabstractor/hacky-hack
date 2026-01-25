@@ -106,6 +106,9 @@ export interface CLIArgs {
   /** Progress display mode (auto/always/never) */
   progressMode?: 'auto' | 'always' | 'never';
 
+  /** PRP compression level (off/standard/aggressive) - may be string from commander */
+  prpCompression?: 'off' | 'standard' | 'aggressive' | string;
+
   /** Max concurrent subtasks (1-10, default: 2) - may be string from commander */
   parallelism: number | string;
 
@@ -149,6 +152,7 @@ export interface ValidatedCLIArgs extends Omit<
   | 'cacheTtl'
   | 'monitorTaskInterval'
   | 'noResourceMonitor'
+  | 'prpCompression'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -176,6 +180,9 @@ export interface ValidatedCLIArgs extends Omit<
 
   /** Disable resource monitoring entirely - validated as boolean */
   noResourceMonitor: boolean;
+
+  /** PRP compression level - validated as 'off' | 'standard' | 'aggressive' */
+  prpCompression: 'off' | 'standard' | 'aggressive';
 }
 
 // ===== MAIN FUNCTION =====
@@ -298,6 +305,11 @@ export function parseCLIArgs():
       process.env.HACKY_PRP_CACHE_TTL ?? '24h'
     )
     .option('--cache-prune', 'Auto-clean expired cache on startup', false)
+    .option(
+      '--prp-compression <level>',
+      'PRP compression level (off|standard|aggressive, default: standard)',
+      'standard'
+    )
     .option(
       '--retry',
       'Enable automatic retry for all tasks (default: enabled)',
@@ -714,6 +726,25 @@ export function parseCLIArgs():
     options.cachePrune = false;
   }
 
+  // Validate prpCompression
+  let validatedPrpCompression: 'off' | 'standard' | 'aggressive';
+  if (options.prpCompression !== undefined) {
+    const validLevels = ['off', 'standard', 'aggressive'];
+    const prpCompressionStr = String(options.prpCompression).toLowerCase();
+    if (!validLevels.includes(prpCompressionStr)) {
+      logger.error(
+        `Invalid --prp-compression value: "${options.prpCompression}". Must be one of: ${validLevels.join(', ')}`
+      );
+      process.exit(1);
+    }
+    validatedPrpCompression = prpCompressionStr as
+      | 'off'
+      | 'standard'
+      | 'aggressive';
+  } else {
+    validatedPrpCompression = 'standard'; // Default
+  }
+
   // Compute noRetry from retry (invert the boolean)
   const noRetry = !options.retry;
 
@@ -721,6 +752,7 @@ export function parseCLIArgs():
     ...options,
     noRetry,
     cacheTtl: validatedCacheTtl,
+    prpCompression: validatedPrpCompression,
   } as ValidatedCLIArgs;
 }
 

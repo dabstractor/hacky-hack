@@ -31,7 +31,13 @@ import { PRPExecutor } from './prp-executor.js';
 import { getLogger } from '../utils/logger.js';
 import type { Logger } from '../utils/logger.js';
 import type { TaskOrchestrator } from '../core/task-orchestrator.js';
-import type { PRPDocument, Subtask, Backlog, Status } from '../core/models.js';
+import type {
+  PRPDocument,
+  Subtask,
+  Backlog,
+  Status,
+  PRPCompressionLevel,
+} from '../core/models.js';
 import type { ExecutionResult } from './prp-executor.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -101,20 +107,26 @@ export class PRPRuntime {
   /** Cache TTL in milliseconds */
   readonly #cacheTtlMs: number;
 
+  /** PRP compression level */
+  readonly #prpCompression: PRPCompressionLevel;
+
   /**
    * Creates a new PRPRuntime instance
    *
    * @param orchestrator - Task Orchestrator for status management
    * @param cacheTtlMs - Cache TTL in milliseconds (default: 24 hours)
+   * @param prpCompression - PRP compression level (default: 'standard')
    * @throws {Error} If no active session exists
    */
   constructor(
     orchestrator: TaskOrchestrator,
-    cacheTtlMs: number = 24 * 60 * 60 * 1000
+    cacheTtlMs: number = 24 * 60 * 60 * 1000,
+    prpCompression: PRPCompressionLevel = 'standard'
   ) {
     this.#logger = getLogger('PRPRuntime');
     this.#orchestrator = orchestrator;
     this.#cacheTtlMs = cacheTtlMs;
+    this.#prpCompression = prpCompression;
 
     // Extract session path from orchestrator's session manager
     const sessionManager = orchestrator.sessionManager;
@@ -127,7 +139,12 @@ export class PRPRuntime {
     this.#sessionPath = currentSession.metadata.path;
 
     // Create PRPGenerator and PRPExecutor instances
-    this.#generator = new PRPGenerator(sessionManager, false, cacheTtlMs);
+    this.#generator = new PRPGenerator(
+      sessionManager,
+      false,
+      cacheTtlMs,
+      prpCompression
+    );
     this.#executor = new PRPExecutor(this.#sessionPath);
   }
 

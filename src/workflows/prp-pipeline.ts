@@ -259,6 +259,9 @@ export class PRPPipeline extends Workflow {
   /** PRP cache TTL in milliseconds (from CLI) */
   readonly #cacheTtl: number = 24 * 60 * 60 * 1000;
 
+  /** PRP compression level (from CLI) */
+  readonly #prpCompression: 'off' | 'standard' | 'aggressive' = 'standard';
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -285,6 +288,7 @@ export class PRPPipeline extends Workflow {
    * @param noRetry - Disable automatic retry for all tasks (default: false)
    * @param flushRetries - Max retries for batch write failures (0-10, default: 3)
    * @param cacheTtl - PRP cache TTL in milliseconds (default: 24 hours)
+   * @param prpCompression - PRP compression level (default: 'standard')
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -306,7 +310,8 @@ export class PRPPipeline extends Workflow {
     retryBackoff?: number,
     noRetry: boolean = false,
     flushRetries?: number,
-    cacheTtl: number = 24 * 60 * 60 * 1000
+    cacheTtl: number = 24 * 60 * 60 * 1000,
+    prpCompression: 'off' | 'standard' | 'aggressive' = 'standard'
   ) {
     super('PRPPipeline');
 
@@ -336,6 +341,7 @@ export class PRPPipeline extends Workflow {
     this.#noRetry = noRetry;
     this.#flushRetries = flushRetries;
     this.#cacheTtl = cacheTtl;
+    this.#prpCompression = prpCompression;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations
@@ -532,6 +538,7 @@ export class PRPPipeline extends Workflow {
         this.#noCache,
         this.#researchQueueConcurrency,
         this.#cacheTtl,
+        this.#prpCompression,
         retryConfig
       );
 

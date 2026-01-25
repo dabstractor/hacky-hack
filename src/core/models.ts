@@ -30,6 +30,44 @@
 import { z } from 'zod';
 
 /**
+ * PRP compression level for PRP generation
+ *
+ * @remarks
+ * Controls how much compression is applied to PRP content.
+ * - 'off': No compression, full context preserved
+ * - 'standard': Moderate compression (30-50% size reduction)
+ * - 'aggressive': Maximum compression (50-70% size reduction)
+ *
+ * @example
+ * ```typescript
+ * import { PRPCompressionLevel } from './core/models.js';
+ *
+ * const level: PRPCompressionLevel = 'standard';
+ * ```
+ */
+export type PRPCompressionLevel = 'off' | 'standard' | 'aggressive';
+
+/**
+ * Zod schema for PRP compression level validation
+ *
+ * @remarks
+ * Validates that a string is one of the valid compression level values.
+ *
+ * @example
+ * ```typescript
+ * import { PRPCompressionLevelSchema } from './core/models.js';
+ *
+ * const result = PRPCompressionLevelSchema.safeParse('standard');
+ * // result.success === true
+ * ```
+ */
+export const PRPCompressionLevelSchema = z.enum([
+  'off',
+  'standard',
+  'aggressive',
+]);
+
+/**
  * Zod schema for context_scope contract format validation
  *
  * @remarks

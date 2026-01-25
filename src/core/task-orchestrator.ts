@@ -33,6 +33,7 @@ import type {
   Task,
   Subtask,
   Status,
+  PRPCompressionLevel,
 } from './models.js';
 import type { HierarchyItem } from '../utils/task-utils.js';
 import { getDependencies } from '../utils/task-utils.js';
@@ -102,6 +103,9 @@ export class TaskOrchestrator {
   /** Cache TTL in milliseconds */
   readonly #cacheTtlMs: number;
 
+  /** PRP compression level */
+  readonly #prpCompression: PRPCompressionLevel;
+
   /** Task retry manager for automatic retry of failed subtasks */
   readonly #retryManager: TaskRetryManager;
 
@@ -116,6 +120,7 @@ export class TaskOrchestrator {
    * @param noCache - Whether to bypass cache (default: false)
    * @param researchQueueConcurrency - Max concurrent research tasks (default: 3)
    * @param cacheTtlMs - Cache TTL in milliseconds (default: 24 hours)
+   * @param prpCompression - PRP compression level (default: 'standard')
    * @param retryConfig - Optional retry configuration (default: enabled with 3 max attempts)
    * @throws {Error} If sessionManager.currentSession is null
    *
@@ -130,6 +135,7 @@ export class TaskOrchestrator {
     noCache: boolean = false,
     researchQueueConcurrency: number = 3,
     cacheTtlMs: number = 24 * 60 * 60 * 1000,
+    prpCompression: PRPCompressionLevel = 'standard',
     retryConfig?: Partial<TaskRetryConfig>
   ) {
     this.#logger = getLogger('TaskOrchestrator');
@@ -137,6 +143,7 @@ export class TaskOrchestrator {
     this.#noCache = noCache;
     this.#researchQueueConcurrency = researchQueueConcurrency;
     this.#cacheTtlMs = cacheTtlMs;
+    this.#prpCompression = prpCompression;
 
     // Load initial backlog from session state
     const currentSession = sessionManager.currentSession;
@@ -163,7 +170,11 @@ export class TaskOrchestrator {
     );
 
     // Initialize PRPRuntime for execution
-    this.#prpRuntime = new PRPRuntime(this, this.#cacheTtlMs);
+    this.#prpRuntime = new PRPRuntime(
+      this,
+      this.#cacheTtlMs,
+      this.#prpCompression
+    );
     this.#logger.debug('PRPRuntime initialized for subtask execution');
 
     // Initialize retry manager with optional config

@@ -15,13 +15,21 @@ import { createPRPBlueprintPrompt } from './prompts/prp-blueprint-prompt.js';
 import { getLogger } from '../utils/logger.js';
 import type { Logger } from '../utils/logger.js';
 import type { Agent } from 'groundswell';
-import type { PRPDocument, Task, Subtask, Backlog } from '../core/models.js';
+import type {
+  PRPDocument,
+  Task,
+  Subtask,
+  Backlog,
+  PRPCompressionLevel,
+} from '../core/models.js';
 import { PRPDocumentSchema } from '../core/models.js';
 import type { SessionManager } from '../core/session-manager.js';
 import { mkdir, writeFile, readFile, stat } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { retryAgentPrompt } from '../utils/retry.js';
+import { TokenCounter, PERSONA_TOKEN_LIMITS } from '../utils/token-counter.js';
+import { CodeProcessor } from '../utils/code-processor.js';
 
 /**
  * Custom error for PRP generation failures
@@ -92,6 +100,8 @@ export class PRPFileError extends Error {
  * @remarks
  * Stored alongside PRP markdown files in prps/.cache/ directory.
  * Tracks task hash for change detection and timestamps for TTL expiration.
+ *
+ * Compression fields are optional for backward compatibility with existing cache entries.
  */
 export interface PRPCacheMetadata {
   readonly taskId: string;
@@ -100,6 +110,14 @@ export interface PRPCacheMetadata {
   readonly accessedAt: number;
   readonly version: string;
   readonly prp: PRPDocument;
+
+  // NEW: Compression metrics (all optional for backward compatibility)
+  readonly compressionLevel?: PRPCompressionLevel;
+  readonly inputTokens?: number;
+  readonly outputTokens?: number;
+  readonly compressionRatio?: number; // (originalSize / compressedSize)
+  readonly originalSize?: number; // Character count before compression
+  readonly compressedSize?: number; // Character count after compression
 }
 
 /**
@@ -150,12 +168,22 @@ export class PRPGenerator {
   /** Cache TTL in milliseconds (configurable, default 24 hours) */
   readonly #cacheTtlMs: number;
 
+  /** PRP compression level */
+  readonly #compression: PRPCompressionLevel;
+
+  /** Token counter for measuring token usage */
+  readonly #tokenCounter: TokenCounter;
+
+  /** Code processor for compressing code snippets */
+  readonly #codeProcessor: CodeProcessor;
+
   /**
    * Creates a new PRPGenerator instance
    *
    * @param sessionManager - Session state manager
    * @param noCache - Whether to bypass cache (default: false)
    * @param cacheTtlMs - Cache TTL in milliseconds (default: 24 hours)
+   * @param prpCompression - PRP compression level (default: 'standard')
    * @throws {Error} If no session is currently loaded
    *
    * @example
@@ -166,12 +194,16 @@ export class PRPGenerator {
   constructor(
     sessionManager: SessionManager,
     noCache: boolean = false,
-    cacheTtlMs: number = 24 * 60 * 60 * 1000
+    cacheTtlMs: number = 24 * 60 * 60 * 1000,
+    prpCompression: PRPCompressionLevel = 'standard'
   ) {
     this.#logger = getLogger('PRPGenerator');
     this.sessionManager = sessionManager;
     this.#noCache = noCache;
     this.#cacheTtlMs = cacheTtlMs;
+    this.#compression = prpCompression;
+    this.#tokenCounter = new TokenCounter();
+    this.#codeProcessor = new CodeProcessor();
 
     // Extract session path from current session
     const currentSession = sessionManager.currentSession;
@@ -306,17 +338,22 @@ export class PRPGenerator {
    * @param taskId - The task ID
    * @param taskHash - Hash of task inputs for change detection
    * @param prp - The generated PRPDocument
+   * @param inputTokens - Original token count before compression (optional)
+   * @param outputTokens - Token count after compression (optional)
    * @throws {Error} If directory creation or file write fails
    *
    * @remarks
    * Creates .cache directory if it doesn't exist.
    * Stores full PRPDocument in metadata for easy retrieval.
    * Updates accessedAt timestamp for cache age tracking.
+   * Stores compression metrics for monitoring.
    */
   async #saveCacheMetadata(
     taskId: string,
     taskHash: string,
-    prp: PRPDocument
+    prp: PRPDocument,
+    inputTokens?: number,
+    outputTokens?: number
   ): Promise<void> {
     const metadataPath = this.getCacheMetadataPath(taskId);
     const cacheDir = dirname(metadataPath);
@@ -325,6 +362,20 @@ export class PRPGenerator {
     await mkdir(cacheDir, { recursive: true });
 
     const now = Date.now();
+
+    // Calculate compression metrics if tokens provided
+    const compressionMetrics =
+      inputTokens !== undefined && outputTokens !== undefined
+        ? {
+            compressionLevel: this.#compression,
+            inputTokens,
+            outputTokens,
+            compressionRatio: inputTokens / outputTokens,
+            originalSize: prp.context.length,
+            compressedSize: prp.context.length,
+          }
+        : undefined;
+
     const metadata: PRPCacheMetadata = {
       taskId,
       taskHash,
@@ -332,6 +383,7 @@ export class PRPGenerator {
       accessedAt: now,
       version: '1.0',
       prp,
+      ...compressionMetrics,
     };
 
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2), {
@@ -378,6 +430,131 @@ export class PRPGenerator {
       },
       'PRP cache metrics'
     );
+  }
+
+  /**
+   * Compresses PRP content based on compression level
+   *
+   * @param prp - The PRP document to compress
+   * @returns Object with compressed PRP and token counts
+   *
+   * @remarks
+   * Applies compression strategies based on the configured level:
+   * - 'off': No compression
+   * - 'standard': Code snippet compression, large file references
+   * - 'aggressive': All standard + parent context truncation
+   */
+  #compressPRP(prp: PRPDocument): {
+    compressed: PRPDocument;
+    originalTokens: number;
+    compressedTokens: number;
+  } {
+    if (this.#compression === 'off') {
+      const tokens = this.#tokenCounter.countTokens(prp.context);
+      return {
+        compressed: prp,
+        originalTokens: tokens,
+        compressedTokens: tokens,
+      };
+    }
+
+    const compressed = { ...prp };
+    const originalTokens = this.#tokenCounter.countTokens(prp.context);
+
+    // Compress code snippets in context
+    compressed.context = this.#compressCodeSnippets(compressed.context);
+
+    // Replace large file references (>500 chars)
+    compressed.context = this.#replaceLargeReferences(compressed.context);
+
+    // Aggressive mode: truncate parent context
+    if (this.#compression === 'aggressive') {
+      compressed.context = this.#truncateParentContext(compressed.context);
+    }
+
+    const compressedTokens = this.#tokenCounter.countTokens(compressed.context);
+
+    // Warn if approaching token limit
+    const tokenLimit = PERSONA_TOKEN_LIMITS.researcher;
+    if (compressedTokens > tokenLimit * 0.8) {
+      this.#logger.warn(
+        {
+          taskId: prp.taskId,
+          tokens: compressedTokens,
+          limit: tokenLimit,
+          percentage: ((compressedTokens / tokenLimit) * 100).toFixed(1),
+        },
+        'PRP approaching token limit'
+      );
+    }
+
+    return { compressed, originalTokens, compressedTokens };
+  }
+
+  /**
+   * Compresses code snippets in PRP context
+   *
+   * @param context - The context string to compress
+   * @returns Context with compressed code snippets
+   *
+   * @remarks
+   * Finds all code blocks and compresses them using CodeProcessor.
+   * Preserves language identifiers and code structure.
+   */
+  #compressCodeSnippets(context: string): string {
+    return context.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+      const compressed = this.#codeProcessor.removeComments(code);
+      const noBlanks = this.#codeProcessor.removeBlankLines(compressed);
+      return `\`\`\`${lang || ''}\n${noBlanks}\n\`\`\``;
+    });
+  }
+
+  /**
+   * Replaces large file content with references
+   *
+   * @param context - The context string to process
+   * @returns Context with large files replaced by references
+   *
+   * @remarks
+   * Finds file content blocks >500 characters and replaces them
+   * with references like "See src/path/file.ts lines 1-50".
+   */
+  #replaceLargeReferences(context: string): string {
+    return context.replace(
+      /```(?:file|path):\s*(\S+?)\n([\s\S]{500,}?)```/g,
+      (_, filePath, content) => {
+        const lines = content.split('\n');
+        return `See ${filePath} lines 1-${lines.length}`;
+      }
+    );
+  }
+
+  /**
+   * Truncates parent context to 2 levels, 100 chars each
+   *
+   * @param context - The context string to truncate
+   * @returns Context with truncated parent context
+   *
+   * @remarks
+   * Finds parent context section and truncates each level to 100 characters.
+   * Used in aggressive mode to further reduce token usage.
+   */
+  #truncateParentContext(context: string): string {
+    // Find Parent Context section
+    const parentContextMatch = context.match(
+      /## Parent Context\s*\n([\s\S]*?)(?=\n##|$)/
+    );
+    if (!parentContextMatch) {
+      return context;
+    }
+
+    const parentContext = parentContextMatch[1];
+    const lines = parentContext.split('\n');
+    const truncatedLines = lines
+      .map(line => line.slice(0, 100))
+      .filter(l => l.length > 0);
+
+    return context.replace(parentContextMatch[0], truncatedLines.join('\n'));
   }
 
   /**
@@ -449,16 +626,42 @@ export class PRPGenerator {
     // Step 3: Validate against schema (defensive programming)
     const validated = PRPDocumentSchema.parse(result);
 
-    // Step 4: Write PRP to file (throws PRPFileError directly on failure)
-    await this.#writePRPToFile(validated);
+    // Step 4: Apply compression if enabled
+    const { compressed, originalTokens, compressedTokens } =
+      this.#compressPRP(validated);
 
-    // Step 5: Save cache metadata if cache is enabled
-    if (!this.#noCache) {
-      const currentHash = this.#computeTaskHash(task, backlog);
-      await this.#saveCacheMetadata(task.id, currentHash, validated);
+    // Log compression metrics
+    if (originalTokens !== compressedTokens) {
+      const ratio = originalTokens / compressedTokens;
+      this.#logger.info(
+        {
+          taskId: task.id,
+          level: this.#compression,
+          originalTokens,
+          compressedTokens,
+          reduction: ((1 - compressedTokens / originalTokens) * 100).toFixed(1),
+          ratio: ratio.toFixed(2),
+        },
+        'PRP compression applied'
+      );
     }
 
-    return validated;
+    // Step 5: Write PRP to file (throws PRPFileError directly on failure)
+    await this.#writePRPToFile(compressed);
+
+    // Step 6: Save cache metadata if cache is enabled
+    if (!this.#noCache) {
+      const currentHash = this.#computeTaskHash(task, backlog);
+      await this.#saveCacheMetadata(
+        task.id,
+        currentHash,
+        compressed,
+        originalTokens,
+        compressedTokens
+      );
+    }
+
+    return compressed;
   }
 
   /**
