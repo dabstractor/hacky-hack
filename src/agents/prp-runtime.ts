@@ -98,15 +98,23 @@ export class PRPRuntime {
   /** PRP Executor for implementation phase */
   readonly #executor: PRPExecutor;
 
+  /** Cache TTL in milliseconds */
+  readonly #cacheTtlMs: number;
+
   /**
    * Creates a new PRPRuntime instance
    *
    * @param orchestrator - Task Orchestrator for status management
+   * @param cacheTtlMs - Cache TTL in milliseconds (default: 24 hours)
    * @throws {Error} If no active session exists
    */
-  constructor(orchestrator: TaskOrchestrator) {
+  constructor(
+    orchestrator: TaskOrchestrator,
+    cacheTtlMs: number = 24 * 60 * 60 * 1000
+  ) {
     this.#logger = getLogger('PRPRuntime');
     this.#orchestrator = orchestrator;
+    this.#cacheTtlMs = cacheTtlMs;
 
     // Extract session path from orchestrator's session manager
     const sessionManager = orchestrator.sessionManager;
@@ -119,7 +127,7 @@ export class PRPRuntime {
     this.#sessionPath = currentSession.metadata.path;
 
     // Create PRPGenerator and PRPExecutor instances
-    this.#generator = new PRPGenerator(sessionManager);
+    this.#generator = new PRPGenerator(sessionManager, false, cacheTtlMs);
     this.#executor = new PRPExecutor(this.#sessionPath);
   }
 

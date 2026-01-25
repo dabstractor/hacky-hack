@@ -95,7 +95,10 @@ export class SessionFileError extends Error {
  * @param data - String content to write
  * @throws {SessionFileError} If write or rename fails
  */
-export async function atomicWrite(targetPath: string, data: string): Promise<void> {
+export async function atomicWrite(
+  targetPath: string,
+  data: string
+): Promise<void> {
   const tempPath = resolve(
     dirname(targetPath),
     `.${basename(targetPath)}.${randomBytes(8).toString('hex')}.tmp`

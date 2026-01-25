@@ -99,6 +99,9 @@ export class TaskOrchestrator {
   /** Configurable research queue concurrency limit */
   readonly #researchQueueConcurrency: number;
 
+  /** Cache TTL in milliseconds */
+  readonly #cacheTtlMs: number;
+
   /** Task retry manager for automatic retry of failed subtasks */
   readonly #retryManager: TaskRetryManager;
 
@@ -112,6 +115,7 @@ export class TaskOrchestrator {
    * @param scope - Optional scope to limit execution (defaults to all items)
    * @param noCache - Whether to bypass cache (default: false)
    * @param researchQueueConcurrency - Max concurrent research tasks (default: 3)
+   * @param cacheTtlMs - Cache TTL in milliseconds (default: 24 hours)
    * @param retryConfig - Optional retry configuration (default: enabled with 3 max attempts)
    * @throws {Error} If sessionManager.currentSession is null
    *
@@ -125,12 +129,14 @@ export class TaskOrchestrator {
     scope?: Scope,
     noCache: boolean = false,
     researchQueueConcurrency: number = 3,
+    cacheTtlMs: number = 24 * 60 * 60 * 1000,
     retryConfig?: Partial<TaskRetryConfig>
   ) {
     this.#logger = getLogger('TaskOrchestrator');
     this.sessionManager = sessionManager;
     this.#noCache = noCache;
     this.#researchQueueConcurrency = researchQueueConcurrency;
+    this.#cacheTtlMs = cacheTtlMs;
 
     // Load initial backlog from session state
     const currentSession = sessionManager.currentSession;
@@ -144,19 +150,20 @@ export class TaskOrchestrator {
     this.#scope = scope;
     this.#executionQueue = this.#buildQueue(scope);
 
-    // Initialize ResearchQueue with configurable concurrency
+    // Initialize ResearchQueue with configurable concurrency and cache TTL
     this.researchQueue = new ResearchQueue(
       this.sessionManager,
       this.#researchQueueConcurrency,
-      this.#noCache
+      this.#noCache,
+      this.#cacheTtlMs
     );
     this.#logger.debug(
-      { maxSize: this.#researchQueueConcurrency },
+      { maxSize: this.#researchQueueConcurrency, cacheTtlMs: this.#cacheTtlMs },
       'ResearchQueue initialized'
     );
 
     // Initialize PRPRuntime for execution
-    this.#prpRuntime = new PRPRuntime(this);
+    this.#prpRuntime = new PRPRuntime(this, this.#cacheTtlMs);
     this.#logger.debug('PRPRuntime initialized for subtask execution');
 
     // Initialize retry manager with optional config
@@ -694,10 +701,7 @@ export class TaskOrchestrator {
       const result = await this.#retryManager.executeWithRetry(
         subtask,
         async () => {
-          return await this.#prpRuntime.executeSubtask(
-            subtask,
-            this.#backlog
-          );
+          return await this.#prpRuntime.executeSubtask(subtask, this.#backlog);
         }
       );
 

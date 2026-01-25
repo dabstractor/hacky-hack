@@ -27,7 +27,12 @@
  * ```
  */
 
-import { isTransientError, isPermanentError, calculateDelay, sleep } from '../utils/retry.js';
+import {
+  isTransientError,
+  isPermanentError,
+  calculateDelay,
+  sleep,
+} from '../utils/retry.js';
 import { getLogger } from '../utils/logger.js';
 import type { Logger } from '../utils/logger.js';
 import type { Subtask, Status } from './models.js';
@@ -149,7 +154,10 @@ export class TaskRetryManager {
    * Config is merged with DEFAULT_TASK_RETRY_CONFIG using spread operator.
    * Only provide properties to override; others use defaults.
    */
-  constructor(config: Partial<TaskRetryConfig> = {}, sessionManager: SessionManager) {
+  constructor(
+    config: Partial<TaskRetryConfig> = {},
+    sessionManager: SessionManager
+  ) {
     this.#logger = getLogger('TaskRetryManager');
     this.#sessionManager = sessionManager;
     this.#config = { ...DEFAULT_TASK_RETRY_CONFIG, ...config };
@@ -242,7 +250,6 @@ export class TaskRetryManager {
         }
 
         return result;
-
       } catch (error) {
         lastError = error as Error;
 

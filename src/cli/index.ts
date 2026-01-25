@@ -32,11 +32,9 @@ import { resolve } from 'node:path';
 import { getLogger } from '../utils/logger.js';
 import { InspectCommand, type InspectorOptions } from './commands/inspect.js';
 import { ArtifactsCommand } from './commands/artifacts.js';
-import {
-  ValidateStateCommand,
-  type ValidateStateOptions,
-} from './commands/validate-state.js';
+import { ValidateStateCommand } from './commands/validate-state.js';
 import * as os from 'node:os';
+import ms from 'ms';
 
 const logger = getLogger('CLI');
 
@@ -118,6 +116,9 @@ export interface CLIArgs {
 
   /** Max retries for batch write failures (0-10, default: 3) - may be string from commander */
   flushRetries?: number | string;
+
+  /** PRP cache TTL duration (e.g., "24h", "1d", "12h") - may be string from commander */
+  cacheTtl?: string;
 }
 
 /**
@@ -135,6 +136,7 @@ export interface ValidatedCLIArgs extends Omit<
   | 'retryBackoff'
   | 'retry'
   | 'flushRetries'
+  | 'cacheTtl'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -153,6 +155,9 @@ export interface ValidatedCLIArgs extends Omit<
 
   /** Max retries for batch write failures (0-10, default: 3) - validated as number */
   flushRetries?: number;
+
+  /** PRP cache TTL in milliseconds - validated as number */
+  cacheTtl: number;
 }
 
 // ===== MAIN FUNCTION =====
@@ -257,6 +262,11 @@ export function parseCLIArgs():
       '--flush-retries <n>',
       'Max retries for batch write failures (0-10, default: 3, env: HACKY_FLUSH_RETRIES)',
       process.env.HACKY_FLUSH_RETRIES ?? '3'
+    )
+    .option(
+      '--cache-ttl <duration>',
+      'PRP cache time-to-live (e.g., 24h, 1d, 12h, env: HACKY_PRP_CACHE_TTL)',
+      process.env.HACKY_PRP_CACHE_TTL ?? '24h'
     )
     .option(
       '--retry',
@@ -575,10 +585,46 @@ export function parseCLIArgs():
     options.flushRetries = flushRetries;
   }
 
+  // Validate cache-ttl
+  let validatedCacheTtl: number;
+  if (options.cacheTtl !== undefined) {
+    const cacheTtlStr = String(options.cacheTtl);
+    const cacheTtlMs = ms(cacheTtlStr);
+
+    // CRITICAL: ms returns undefined for invalid formats
+    if (cacheTtlMs === undefined) {
+      logger.error(`Invalid duration format: "${cacheTtlStr}"`);
+      logger.error('Expected formats: 30s, 5m, 1h, 1d, etc.');
+      process.exit(1);
+    }
+
+    // Validate minimum (1 minute)
+    if (cacheTtlMs < 60000) {
+      logger.error('--cache-ttl must be at least 1 minute');
+      process.exit(1);
+    }
+
+    // Validate maximum (30 days)
+    const maxTtl = ms('30d')!;
+    if (cacheTtlMs > maxTtl) {
+      logger.error('--cache-ttl cannot exceed 30 days');
+      process.exit(1);
+    }
+
+    validatedCacheTtl = cacheTtlMs;
+  } else {
+    // Set default if not provided (24 hours)
+    validatedCacheTtl = ms('24h')!;
+  }
+
   // Compute noRetry from retry (invert the boolean)
   const noRetry = !options.retry;
 
-  return { ...options, noRetry } as ValidatedCLIArgs;
+  return {
+    ...options,
+    noRetry,
+    cacheTtl: validatedCacheTtl,
+  } as ValidatedCLIArgs;
 }
 
 /**

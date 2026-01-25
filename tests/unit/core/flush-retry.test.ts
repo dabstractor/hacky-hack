@@ -107,13 +107,16 @@ const mockUpdateItemStatusUtil = vi.mocked(updateItemStatusUtil);
 
 // Setup mock validator instance
 const mockValidate = vi.fn();
-mockPRDValidator.mockImplementation(() => ({
-  validate: mockValidate,
-  validateFileExists: vi.fn(),
-  validateContentLength: vi.fn(),
-  validateRequiredSections: vi.fn(),
-  buildResult: vi.fn(),
-}) as any);
+mockPRDValidator.mockImplementation(
+  () =>
+    ({
+      validate: mockValidate,
+      validateFileExists: vi.fn(),
+      validateContentLength: vi.fn(),
+      validateRequiredSections: vi.fn(),
+      buildResult: vi.fn(),
+    }) as any
+);
 
 // =============================================================================
 // Factory Functions for Test Data
@@ -187,14 +190,20 @@ function _createMockBacklog(): Backlog {
 /**
  * Creates an initialized SessionManager for testing
  */
-async function createMockSessionManager(flushRetries: number = 3): Promise<SessionManager> {
+async function createMockSessionManager(
+  flushRetries: number = 3
+): Promise<SessionManager> {
   // Mock statSync for PRD file validation BEFORE creating SessionManager
   // (constructor validates PRD path synchronously)
   mockStatSync.mockReturnValue({
     isFile: () => true,
   } as any);
 
-  const manager = new SessionManager('/test/PRD.md', '/test/plan', flushRetries);
+  const manager = new SessionManager(
+    '/test/PRD.md',
+    '/test/plan',
+    flushRetries
+  );
 
   // Mock readFile for PRD content (PRDValidator reads the file)
   mockReadFile.mockResolvedValue(
@@ -296,7 +305,7 @@ async function createMockSessionManager(flushRetries: number = 3): Promise<Sessi
       }
 
       // Find or create subtask
-      let subtask = task.subtasks.find(su => su.id === itemId);
+      const subtask = task.subtasks.find(su => su.id === itemId);
       if (!subtask) {
         // Create a new subtask object with the updated status
         (task as any).subtasks = task.subtasks.filter(su => su.id !== itemId);
@@ -451,7 +460,9 @@ describe('SessionManager Flush Retry Mechanism', () => {
     const againError = new SessionFileError(
       '/test/plan/001_14b9dc2a33c7/tasks.json',
       'atomic write',
-      Object.assign(new Error('EAGAIN: temporarily unavailable'), { code: 'EAGAIN' })
+      Object.assign(new Error('EAGAIN: temporarily unavailable'), {
+        code: 'EAGAIN',
+      })
     );
 
     mockWriteTasksJSON
@@ -663,7 +674,9 @@ describe('SessionManager Flush Retry Mechanism', () => {
     const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
     // EXECUTE: Flush updates - expect it to reject
-    const flushPromise = expect(manager.flushUpdates()).rejects.toThrow('EBUSY');
+    const flushPromise = expect(manager.flushUpdates()).rejects.toThrow(
+      'EBUSY'
+    );
 
     // Advance timers to trigger all delays
     await vi.runAllTimersAsync();
@@ -707,7 +720,9 @@ describe('SessionManager Flush Retry Mechanism', () => {
     vi.useFakeTimers();
 
     // EXECUTE: Flush updates - expect it to reject
-    const flushPromise = expect(manager.flushUpdates()).rejects.toThrow('EBUSY');
+    const flushPromise = expect(manager.flushUpdates()).rejects.toThrow(
+      'EBUSY'
+    );
 
     // Advance timers to trigger all delays
     await vi.runAllTimersAsync();
@@ -725,8 +740,8 @@ describe('SessionManager Flush Retry Mechanism', () => {
     );
 
     // VERIFY: Recovery file contains pending updates
-    const recoveryFileCall = mockWriteFile.mock.calls.find(
-      call => String(call[0]).includes('tasks.json.failed')
+    const recoveryFileCall = mockWriteFile.mock.calls.find(call =>
+      String(call[0]).includes('tasks.json.failed')
     );
     expect(recoveryFileCall).toBeDefined();
 
@@ -861,7 +876,9 @@ describe('SessionManager Flush Retry Mechanism', () => {
     vi.useFakeTimers();
 
     // EXECUTE: Flush updates - expect it to reject
-    const flushPromise = expect(manager.flushUpdates()).rejects.toThrow('EBUSY');
+    const flushPromise = expect(manager.flushUpdates()).rejects.toThrow(
+      'EBUSY'
+    );
 
     // Advance timers to trigger all delays
     await vi.runAllTimersAsync();

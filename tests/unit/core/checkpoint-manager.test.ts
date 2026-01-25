@@ -153,7 +153,9 @@ describe('CheckpointManager', () => {
 
     it('should load existing checkpoint file when exists', async () => {
       const existingCheckpoint = createTestCheckpointData(taskId);
-      const existingFile = createTestCheckpointFile(taskId, [existingCheckpoint]);
+      const existingFile = createTestCheckpointFile(taskId, [
+        existingCheckpoint,
+      ]);
 
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFile).mockResolvedValue(existingFile);
@@ -260,9 +262,9 @@ describe('CheckpointManager', () => {
     it('should throw error for invalid checkpoint ID', async () => {
       const manager = new CheckpointManager(sessionPath);
 
-      await expect(
-        manager.restoreCheckpoint('invalid-id')
-      ).rejects.toThrow('Invalid checkpoint ID');
+      await expect(manager.restoreCheckpoint('invalid-id')).rejects.toThrow(
+        'Invalid checkpoint ID'
+      );
     });
 
     it('should throw error when checkpoint not found', async () => {
@@ -273,15 +275,19 @@ describe('CheckpointManager', () => {
 
       const manager = new CheckpointManager(sessionPath);
 
-      await expect(
-        manager.restoreCheckpoint(checkpointId)
-      ).rejects.toThrow('Checkpoint not found');
+      await expect(manager.restoreCheckpoint(checkpointId)).rejects.toThrow(
+        'Checkpoint not found'
+      );
     });
   });
 
   describe('getLatestCheckpoint', () => {
     it('should return latest checkpoint when exists', async () => {
-      const checkpoint1 = createTestCheckpointData(taskId, 'pre-execution', 'First');
+      const checkpoint1 = createTestCheckpointData(
+        taskId,
+        'pre-execution',
+        'First'
+      );
       const checkpoint2 = createTestCheckpointData(
         taskId,
         'coder-response',
@@ -322,7 +328,12 @@ describe('CheckpointManager', () => {
 
   describe('listCheckpoints', () => {
     it('should return all checkpoints sorted by time', async () => {
-      const checkpoint1 = createTestCheckpointData(taskId, 'pre-execution', 'First', new Date('2024-01-12T10:00:00Z'));
+      const checkpoint1 = createTestCheckpointData(
+        taskId,
+        'pre-execution',
+        'First',
+        new Date('2024-01-12T10:00:00Z')
+      );
       const checkpoint2 = createTestCheckpointData(
         taskId,
         'coder-response',
@@ -450,8 +461,16 @@ describe('CheckpointManager', () => {
 
   describe('deleteCheckpoint', () => {
     it('should delete specific checkpoint', async () => {
-      const checkpoint1 = createTestCheckpointData(taskId, 'pre-execution', 'First');
-      const checkpoint2 = createTestCheckpointData(taskId, 'coder-response', 'Second');
+      const checkpoint1 = createTestCheckpointData(
+        taskId,
+        'pre-execution',
+        'First'
+      );
+      const checkpoint2 = createTestCheckpointData(
+        taskId,
+        'coder-response',
+        'Second'
+      );
       const file = createTestCheckpointFile(taskId, [checkpoint1, checkpoint2]);
 
       vi.mocked(readFile).mockResolvedValue(file);
@@ -471,24 +490,28 @@ describe('CheckpointManager', () => {
     it('should throw error for invalid checkpoint ID', async () => {
       const manager = new CheckpointManager(sessionPath);
 
-      await expect(
-        manager.deleteCheckpoint('invalid-id')
-      ).rejects.toThrow('Invalid checkpoint ID');
+      await expect(manager.deleteCheckpoint('invalid-id')).rejects.toThrow(
+        'Invalid checkpoint ID'
+      );
     });
 
     it('should throw error when checkpoint not found', async () => {
       // Use a different ID that doesn't exist in the file
       const checkpointId = `${taskId}_9999999999999_pre-execution_deadbeef`;
-      const checkpoint1 = createTestCheckpointData(taskId, 'pre-execution', 'First');
+      const checkpoint1 = createTestCheckpointData(
+        taskId,
+        'pre-execution',
+        'First'
+      );
       const file = createTestCheckpointFile(taskId, [checkpoint1]);
 
       vi.mocked(readFile).mockResolvedValue(file);
 
       const manager = new CheckpointManager(sessionPath);
 
-      await expect(
-        manager.deleteCheckpoint(checkpointId)
-      ).rejects.toThrow('Checkpoint not found');
+      await expect(manager.deleteCheckpoint(checkpointId)).rejects.toThrow(
+        'Checkpoint not found'
+      );
     });
   });
 
@@ -571,7 +594,9 @@ describe('CheckpointManager', () => {
 
       const id = await manager.saveCheckpoint(taskId, 'Test checkpoint', state);
 
-      expect(id).toMatch(new RegExp(`^${taskId}_\\d+_pre-execution_[a-f0-9]{8}$`));
+      expect(id).toMatch(
+        new RegExp(`^${taskId}_\\d+_pre-execution_[a-f0-9]{8}$`)
+      );
     });
   });
 
@@ -620,7 +645,9 @@ describe('CheckpointManager', () => {
       expect(atomicWrite).toHaveBeenCalledOnce();
       const writtenData = vi.mocked(atomicWrite).mock.calls[0][1];
       const parsed = JSON.parse(writtenData);
-      expect(parsed.checkpoints[0].state.coderResponse).toBe('Implementation complete');
+      expect(parsed.checkpoints[0].state.coderResponse).toBe(
+        'Implementation complete'
+      );
       expect(parsed.checkpoints[0].state.coderResult?.result).toBe('success');
     });
   });

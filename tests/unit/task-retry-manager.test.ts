@@ -49,7 +49,8 @@ describe('TaskRetryManager', () => {
       status: 'Implementing',
       story_points: 2,
       dependencies: [],
-      context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: Test\n3. LOGIC: Test\n4. OUTPUT: Test',
+      context_scope:
+        'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: Test\n3. LOGIC: Test\n4. OUTPUT: Test',
     };
   });
 
@@ -75,7 +76,10 @@ describe('TaskRetryManager', () => {
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(2); // Initial + 1 retry
@@ -98,7 +102,10 @@ describe('TaskRetryManager', () => {
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(2);
@@ -109,13 +116,20 @@ describe('TaskRetryManager', () => {
       const executeFn = async () => {
         attempts++;
         if (attempts === 1) {
-          throw new AgentError('Agent timeout', ErrorCodes.PIPELINE_AGENT_TIMEOUT, {});
+          throw new AgentError(
+            'Agent timeout',
+            ErrorCodes.PIPELINE_AGENT_TIMEOUT,
+            {}
+          );
         }
         return { success: true };
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(2);
@@ -126,13 +140,20 @@ describe('TaskRetryManager', () => {
       const executeFn = async () => {
         attempts++;
         if (attempts === 1) {
-          throw new AgentError('LLM failed', ErrorCodes.PIPELINE_AGENT_LLM_FAILED, {});
+          throw new AgentError(
+            'LLM failed',
+            ErrorCodes.PIPELINE_AGENT_LLM_FAILED,
+            {}
+          );
         }
         return { success: true };
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(2);
@@ -144,14 +165,19 @@ describe('TaskRetryManager', () => {
         attempts++;
         if (attempts === 1) {
           const err = new Error('Internal server error');
-          (err as { response?: { status?: number } }).response = { status: 500 };
+          (err as { response?: { status?: number } }).response = {
+            status: 500,
+          };
           throw err;
         }
         return { success: true };
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(2);
@@ -163,14 +189,19 @@ describe('TaskRetryManager', () => {
         attempts++;
         if (attempts === 1) {
           const err = new Error('Rate limit exceeded');
-          (err as { response?: { status?: number } }).response = { status: 429 };
+          (err as { response?: { status?: number } }).response = {
+            status: 429,
+          };
           throw err;
         }
         return { success: true };
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(2);
@@ -188,8 +219,14 @@ describe('TaskRetryManager', () => {
         return { success: true };
       };
 
-      const retryManager = new TaskRetryManager({ maxAttempts: 4 }, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const retryManager = new TaskRetryManager(
+        { maxAttempts: 4 },
+        mockSessionManager
+      );
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(attempts).toBe(3); // Initial + 2 retries
@@ -209,8 +246,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Invalid input');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Invalid input');
 
       // Should not update status to Retrying
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
@@ -218,13 +256,18 @@ describe('TaskRetryManager', () => {
 
     it('should throw immediately for AgentError with PARSE_FAILED', async () => {
       const executeFn = async () => {
-        throw new AgentError('Parse failed', ErrorCodes.PIPELINE_AGENT_PARSE_FAILED, {});
+        throw new AgentError(
+          'Parse failed',
+          ErrorCodes.PIPELINE_AGENT_PARSE_FAILED,
+          {}
+        );
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Parse failed');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Parse failed');
 
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
     });
@@ -238,8 +281,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Bad request');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Bad request');
 
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
     });
@@ -253,8 +297,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Unauthorized');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Unauthorized');
 
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
     });
@@ -268,8 +313,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Forbidden');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Forbidden');
 
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
     });
@@ -283,8 +329,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Not found');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Not found');
 
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
     });
@@ -306,8 +353,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('ETIMEDOUT');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('ETIMEDOUT');
 
       // Should attempt maxAttempts times (default: 3)
       expect(attempts).toBe(3);
@@ -323,10 +371,14 @@ describe('TaskRetryManager', () => {
         throw err;
       };
 
-      const retryManager = new TaskRetryManager({ maxAttempts: 5, baseDelay: 100 }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { maxAttempts: 5, baseDelay: 100 },
+        mockSessionManager
+      );
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('ETIMEDOUT');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('ETIMEDOUT');
 
       expect(attempts).toBe(5);
       expect(mockSessionManager.updateItemStatus).toHaveBeenCalledTimes(4);
@@ -341,10 +393,14 @@ describe('TaskRetryManager', () => {
         throw err;
       };
 
-      const retryManager = new TaskRetryManager({ maxAttempts: 1 }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { maxAttempts: 1 },
+        mockSessionManager
+      );
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('ETIMEDOUT');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('ETIMEDOUT');
 
       expect(attempts).toBe(1);
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
@@ -357,12 +413,15 @@ describe('TaskRetryManager', () => {
 
   describe('exponential backoff', () => {
     it('should use exponential backoff between retries', () => {
-      const retryManager = new TaskRetryManager({
-        baseDelay: 1000,
-        maxDelay: 30000,
-        backoffFactor: 2,
-        jitterFactor: 0, // No jitter for predictable testing
-      }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        {
+          baseDelay: 1000,
+          maxDelay: 30000,
+          backoffFactor: 2,
+          jitterFactor: 0, // No jitter for predictable testing
+        },
+        mockSessionManager
+      );
 
       // Test calculateDelay directly
       expect(retryManager.calculateDelay(0)).toBe(1000);
@@ -372,12 +431,15 @@ describe('TaskRetryManager', () => {
     });
 
     it('should cap delay at maxDelay', () => {
-      const retryManager = new TaskRetryManager({
-        baseDelay: 1000,
-        maxDelay: 3000,
-        backoffFactor: 2,
-        jitterFactor: 0,
-      }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        {
+          baseDelay: 1000,
+          maxDelay: 3000,
+          backoffFactor: 2,
+          jitterFactor: 0,
+        },
+        mockSessionManager
+      );
 
       // Test calculateDelay directly without executing retries
       expect(retryManager.calculateDelay(0)).toBe(1000);
@@ -388,12 +450,15 @@ describe('TaskRetryManager', () => {
     });
 
     it('should add positive jitter to delays', () => {
-      const retryManager = new TaskRetryManager({
-        baseDelay: 1000,
-        maxDelay: 30000,
-        backoffFactor: 2,
-        jitterFactor: 0.1,
-      }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        {
+          baseDelay: 1000,
+          maxDelay: 30000,
+          backoffFactor: 2,
+          jitterFactor: 0.1,
+        },
+        mockSessionManager
+      );
 
       // Test that jitter adds variance (run multiple times to check range)
       // With jitter: baseDelay to baseDelay * 1.1
@@ -407,12 +472,15 @@ describe('TaskRetryManager', () => {
     });
 
     it('should calculate delay correctly with custom config', async () => {
-      const retryManager = new TaskRetryManager({
-        baseDelay: 500,
-        maxDelay: 5000,
-        backoffFactor: 3,
-        jitterFactor: 0,
-      }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        {
+          baseDelay: 500,
+          maxDelay: 5000,
+          backoffFactor: 3,
+          jitterFactor: 0,
+        },
+        mockSessionManager
+      );
 
       expect(retryManager.calculateDelay(0)).toBe(500);
       expect(retryManager.calculateDelay(1)).toBe(1500);
@@ -435,10 +503,14 @@ describe('TaskRetryManager', () => {
         throw err;
       };
 
-      const retryManager = new TaskRetryManager({ enabled: false }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { enabled: false },
+        mockSessionManager
+      );
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('ECONNRESET');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('ECONNRESET');
 
       // Should only attempt once (no retries)
       expect(attempts).toBe(1);
@@ -450,8 +522,14 @@ describe('TaskRetryManager', () => {
         return { success: true };
       };
 
-      const retryManager = new TaskRetryManager({ enabled: false }, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const retryManager = new TaskRetryManager(
+        { enabled: false },
+        mockSessionManager
+      );
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       expect(result).toEqual({ success: true });
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
@@ -488,14 +566,22 @@ describe('TaskRetryManager', () => {
 
     it('should classify AgentError with PARSE_FAILED as permanent', () => {
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const error = new AgentError('Parse failed', ErrorCodes.PIPELINE_AGENT_PARSE_FAILED, {});
+      const error = new AgentError(
+        'Parse failed',
+        ErrorCodes.PIPELINE_AGENT_PARSE_FAILED,
+        {}
+      );
 
       expect(retryManager.classifyError(error)).toBe('permanent');
     });
 
     it('should classify AgentError with TIMEOUT as retryable', () => {
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const error = new AgentError('Timeout', ErrorCodes.PIPELINE_AGENT_TIMEOUT, {});
+      const error = new AgentError(
+        'Timeout',
+        ErrorCodes.PIPELINE_AGENT_TIMEOUT,
+        {}
+      );
 
       expect(retryManager.classifyError(error)).toBe('retryable');
     });
@@ -560,11 +646,14 @@ describe('TaskRetryManager', () => {
     });
 
     it('should return merged config with overrides', () => {
-      const retryManager = new TaskRetryManager({
-        maxAttempts: 5,
-        baseDelay: 2000,
-        enabled: false,
-      }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        {
+          maxAttempts: 5,
+          baseDelay: 2000,
+          enabled: false,
+        },
+        mockSessionManager
+      );
       const config = retryManager.getConfig();
 
       expect(config.maxAttempts).toBe(5);
@@ -602,7 +691,10 @@ describe('TaskRetryManager', () => {
         return { success: true };
       };
 
-      const retryManager = new TaskRetryManager({ maxAttempts: 2, baseDelay: 100 }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { maxAttempts: 2, baseDelay: 100 },
+        mockSessionManager
+      );
       await retryManager.executeWithRetry(mockSubtask, executeFn);
 
       expect(mockSessionManager.updateItemStatus).toHaveBeenCalledWith(
@@ -623,7 +715,10 @@ describe('TaskRetryManager', () => {
         return { success: true };
       };
 
-      const retryManager = new TaskRetryManager({ baseDelay: 100 }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { baseDelay: 100 },
+        mockSessionManager
+      );
       await retryManager.executeWithRetry(mockSubtask, executeFn);
 
       expect(mockSessionManager.flushUpdates).toHaveBeenCalled();

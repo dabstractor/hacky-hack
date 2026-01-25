@@ -250,6 +250,9 @@ export class PRPPipeline extends Workflow {
   /** Max retries for batch write failures (from CLI) */
   readonly #flushRetries?: number;
 
+  /** PRP cache TTL in milliseconds (from CLI) */
+  readonly #cacheTtl: number = 24 * 60 * 60 * 1000;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -272,6 +275,7 @@ export class PRPPipeline extends Workflow {
    * @param retryBackoff - Base delay before first retry in ms (100-60000, default: 1000)
    * @param noRetry - Disable automatic retry for all tasks (default: false)
    * @param flushRetries - Max retries for batch write failures (0-10, default: 3)
+   * @param cacheTtl - PRP cache TTL in milliseconds (default: 24 hours)
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -290,7 +294,8 @@ export class PRPPipeline extends Workflow {
     taskRetry?: number,
     retryBackoff?: number,
     noRetry: boolean = false,
-    flushRetries?: number
+    flushRetries?: number,
+    cacheTtl: number = 24 * 60 * 60 * 1000
   ) {
     super('PRPPipeline');
 
@@ -317,6 +322,7 @@ export class PRPPipeline extends Workflow {
     this.#retryBackoff = retryBackoff;
     this.#noRetry = noRetry;
     this.#flushRetries = flushRetries;
+    this.#cacheTtl = cacheTtl;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations
@@ -506,6 +512,7 @@ export class PRPPipeline extends Workflow {
         this.#scope,
         this.#noCache,
         this.#researchQueueConcurrency,
+        this.#cacheTtl,
         retryConfig
       );
 

@@ -214,7 +214,9 @@ async function main(): Promise<number> {
     args.researchConcurrency,
     args.taskRetry,
     args.retryBackoff,
-    args.noRetry
+    args.noRetry,
+    args.flushRetries,
+    args.cacheTtl
   );
 
   // Run pipeline

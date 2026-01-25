@@ -1006,14 +1006,14 @@
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Task 3.3.1: Cache Optimizations",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Optimize PRP cache and make TTL configurable.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Make PRP cache TTL configurable",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - PRP cache TTL fixed at 24 hours. Not configurable for different use cases (fast iteration vs long-term caching).\n2. INPUT: PRP cache from src/agents/prp-generator.ts, CACHE_TTL_MS constant.\n3. LOGIC: Make cache TTL configurable: (a) add constructor parameter to PRPGenerator, (b) read from environment variable (PRP_CACHE_TTL_MS=86400000), (c) allow CLI override via --cache-ttl <duration>, (d) support human-readable durations (24h, 1d, 12h). Update PRPGenerator instantiation. Add tests for TTL configuration and expiration.\n4. OUTPUT: Configurable cache TTL in src/agents/prp-generator.ts, CLI option in src/cli/index.ts, tests in tests/unit/prp-cache-ttl.test.ts."
@@ -1022,7 +1022,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S2",
                   "title": "Add cache statistics and cleanup",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M3.T1.S1"

@@ -828,7 +828,6 @@ export class SessionManager {
 
         this.#logger.debug('Batching state reset');
         return; // Success - exit retry loop
-
       } catch (error) {
         lastError = error as Error;
         attempt++;

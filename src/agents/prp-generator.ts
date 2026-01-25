@@ -147,14 +147,15 @@ export class PRPGenerator {
   /** Cache miss counter for metrics */
   #cacheMisses: number = 0;
 
-  /** Cache TTL in milliseconds (24 hours) */
-  readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+  /** Cache TTL in milliseconds (configurable, default 24 hours) */
+  readonly #cacheTtlMs: number;
 
   /**
    * Creates a new PRPGenerator instance
    *
    * @param sessionManager - Session state manager
    * @param noCache - Whether to bypass cache (default: false)
+   * @param cacheTtlMs - Cache TTL in milliseconds (default: 24 hours)
    * @throws {Error} If no session is currently loaded
    *
    * @example
@@ -162,10 +163,15 @@ export class PRPGenerator {
    * const generator = new PRPGenerator(sessionManager, false);
    * ```
    */
-  constructor(sessionManager: SessionManager, noCache: boolean = false) {
+  constructor(
+    sessionManager: SessionManager,
+    noCache: boolean = false,
+    cacheTtlMs: number = 24 * 60 * 60 * 1000
+  ) {
     this.#logger = getLogger('PRPGenerator');
     this.sessionManager = sessionManager;
     this.#noCache = noCache;
+    this.#cacheTtlMs = cacheTtlMs;
 
     // Extract session path from current session
     const currentSession = sessionManager.currentSession;
@@ -258,13 +264,13 @@ export class PRPGenerator {
    * @remarks
    * Uses file modification time (mtime) to determine age.
    * Returns false for ENOENT (file doesn't exist) or any other error.
-   * TTL is 24 hours (86400000 ms) as defined in CACHE_TTL_MS.
+   * TTL is configurable via constructor parameter (default: 24 hours).
    */
   async #isCacheRecent(filePath: string): Promise<boolean> {
     try {
       const stats = await stat(filePath);
       const age = Date.now() - stats.mtimeMs;
-      return age < this.CACHE_TTL_MS;
+      return age < this.#cacheTtlMs;
     } catch {
       // File doesn't exist or can't be read
       return false;

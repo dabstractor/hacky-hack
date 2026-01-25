@@ -117,7 +117,14 @@ describe('CLI Retry Options', () => {
     });
 
     it('should accept 10 (maximum)', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--task-retry', '10'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--task-retry',
+        '10',
+      ];
       const args = parseCLIArgs();
 
       if (isCLIArgs(args)) {
@@ -131,7 +138,14 @@ describe('CLI Retry Options', () => {
       });
       process.exit = mockExit as any;
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--task-retry', '-1'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--task-retry',
+        '-1',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--task-retry must be an integer between 0 and 10'
@@ -144,7 +158,14 @@ describe('CLI Retry Options', () => {
       });
       process.exit = mockExit as any;
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--task-retry', '11'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--task-retry',
+        '11',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--task-retry must be an integer between 0 and 10'
@@ -157,7 +178,14 @@ describe('CLI Retry Options', () => {
       });
       process.exit = mockExit as any;
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--task-retry', 'abc'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--task-retry',
+        'abc',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--task-retry must be an integer between 0 and 10'
@@ -189,7 +217,14 @@ describe('CLI Retry Options', () => {
 
   describe('--retry-backoff', () => {
     it('should accept valid retry-backoff value', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--retry-backoff', '2000'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--retry-backoff',
+        '2000',
+      ];
       const args = parseCLIArgs();
 
       if (isCLIArgs(args)) {
@@ -207,7 +242,14 @@ describe('CLI Retry Options', () => {
     });
 
     it('should accept 100 (minimum)', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--retry-backoff', '100'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--retry-backoff',
+        '100',
+      ];
       const args = parseCLIArgs();
 
       if (isCLIArgs(args)) {
@@ -216,7 +258,14 @@ describe('CLI Retry Options', () => {
     });
 
     it('should accept 60000 (maximum)', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--retry-backoff', '60000'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--retry-backoff',
+        '60000',
+      ];
       const args = parseCLIArgs();
 
       if (isCLIArgs(args)) {
@@ -230,7 +279,14 @@ describe('CLI Retry Options', () => {
       });
       process.exit = mockExit as any;
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--retry-backoff', '99'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--retry-backoff',
+        '99',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--retry-backoff must be an integer between 100 and 60000'
@@ -243,7 +299,14 @@ describe('CLI Retry Options', () => {
       });
       process.exit = mockExit as any;
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--retry-backoff', '60001'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--retry-backoff',
+        '60001',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--retry-backoff must be an integer between 100 and 60000'
@@ -256,7 +319,14 @@ describe('CLI Retry Options', () => {
       });
       process.exit = mockExit as any;
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--retry-backoff', 'abc'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--retry-backoff',
+        'abc',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--retry-backoff must be an integer between 100 and 60000'

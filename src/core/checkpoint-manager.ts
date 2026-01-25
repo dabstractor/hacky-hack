@@ -365,7 +365,9 @@ export class CheckpointManager {
     };
 
     // Validate checkpoint data
-    const validated = CheckpointDataSchema.parse(checkpointData) as CheckpointData;
+    const validated = CheckpointDataSchema.parse(
+      checkpointData
+    ) as CheckpointData;
 
     // Load existing checkpoint file or create new
     const checkpointPath = this.#getCheckpointPath(taskId);
@@ -407,10 +409,7 @@ export class CheckpointManager {
     }
 
     // Save using atomic write
-    await atomicWrite(
-      checkpointPath,
-      JSON.stringify(checkpointFile, null, 2)
-    );
+    await atomicWrite(checkpointPath, JSON.stringify(checkpointFile, null, 2));
 
     this.#logger.info(
       { taskId, checkpointId, stage: state.stage, label },
@@ -436,7 +435,9 @@ export class CheckpointManager {
     const taskId = match[1];
 
     const checkpointFile = await this.#loadCheckpointFile(taskId);
-    const checkpoint = checkpointFile.checkpoints.find(c => c.id === checkpointId);
+    const checkpoint = checkpointFile.checkpoints.find(
+      c => c.id === checkpointId
+    );
 
     if (!checkpoint) {
       throw new Error(`Checkpoint not found: ${checkpointId}`);
@@ -516,10 +517,7 @@ export class CheckpointManager {
       lastModified: new Date(),
     };
 
-    await atomicWrite(
-      checkpointPath,
-      JSON.stringify(mutableFile, null, 2)
-    );
+    await atomicWrite(checkpointPath, JSON.stringify(mutableFile, null, 2));
 
     this.#logger.info(
       {
@@ -544,7 +542,9 @@ export class CheckpointManager {
     const taskId = match[1];
 
     const checkpointFile = await this.#loadCheckpointFile(taskId);
-    const index = checkpointFile.checkpoints.findIndex(c => c.id === checkpointId);
+    const index = checkpointFile.checkpoints.findIndex(
+      c => c.id === checkpointId
+    );
 
     if (index === -1) {
       throw new Error(`Checkpoint not found: ${checkpointId}`);
