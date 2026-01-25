@@ -1042,7 +1042,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T2.S1",
                   "title": "Optimize resource monitoring frequency",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md limitations - Resource monitoring adds overhead to each task execution. File handle counting via spawn is slow.\n2. INPUT: ResourceMonitor from src/utils/resource-monitor.ts, monitoring frequency.\n3. LOGIC: Optimize resource monitoring: (a) monitor only every Nth task (configurable via --monitor-interval), (b) use lazy evaluation (only check if limits are approached), (c) cache file handle counts for 1 second (as implemented in P3.M1.T2.S1), (d) add --no-resource-monitor flag to disable entirely. Update ResourceMonitor integration. Add benchmarks to verify overhead reduction.\n4. OUTPUT: Optimized ResourceMonitor integration in PRPPipeline, CLI options in src/cli/index.ts, benchmarks in tests/benchmark/resource-monitoring.bench.ts."

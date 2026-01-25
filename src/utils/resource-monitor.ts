@@ -73,6 +73,14 @@ export interface ResourceConfig {
   readonly pollingInterval?: number;
   /** lsof cache TTL in milliseconds for macOS (default: 1000 = 1s) */
   readonly cacheTtl?: number;
+  /** Monitor resources every Nth task (default: 1 = every task) */
+  readonly monitorInterval?: number;
+  /** Enable lazy evaluation when resources are stable (default: false) */
+  readonly lazyEvaluation?: boolean;
+  /** Activate lazy evaluation below this percentage (default: 0.5 = 50%) */
+  readonly lazyEvaluationThreshold?: number;
+  /** Completely disable resource monitoring (default: false) */
+  readonly disabled?: boolean;
 }
 
 /**
@@ -520,6 +528,8 @@ export class ResourceMonitor {
   #startTime: number = Date.now();
   #intervalId: NodeJS.Timeout | null = null;
   #snapshots: ResourceSnapshot[] = [];
+  #lazyEvaluationActive: boolean = false;
+  #lastResourceCheck: ResourceSnapshot | null = null;
 
   /**
    * Creates a new resource monitor
@@ -601,9 +611,55 @@ export class ResourceMonitor {
    * Checks all resource limits and returns comprehensive status.
    * Includes warnings, limit type, and actionable suggestions.
    *
+   * When lazy evaluation is enabled and resources are stable, returns
+   * cached status without expensive file handle/memory checks.
+   *
    * @returns Current resource limit status
    */
   getStatus(): ResourceLimitStatus {
+    // If monitoring is disabled, return safe status
+    if (this.config.disabled) {
+      return {
+        shouldStop: false,
+        limitType: null,
+        snapshot: this.#getCurrentSnapshot(),
+        warnings: [],
+        suggestion: undefined,
+      };
+    }
+
+    // Check if we should use lazy evaluation
+    if (this.#lazyEvaluationActive && this.#lastResourceCheck) {
+      const currentSnapshot = this.#getCurrentSnapshot();
+      const maxUsage = Math.max(
+        currentSnapshot.fileHandleUsage,
+        currentSnapshot.memoryUsage
+      );
+
+      // Check if we should exit lazy evaluation (hysteresis: 70% threshold)
+      const activationThreshold = this.config.fileHandleWarnThreshold ?? 0.7;
+      if (maxUsage > activationThreshold) {
+        this.#lazyEvaluationActive = false;
+        void this.#loggerPromise.then(logger =>
+          logger.warn(
+            { usage: (maxUsage * 100).toFixed(1) + '%' },
+            'Lazy evaluation deactivated (resources approaching limits)'
+          )
+        );
+        // Fall through to full check
+      } else {
+        // Return cached status - resources are stable
+        return {
+          shouldStop: false,
+          limitType: null,
+          snapshot: this.#lastResourceCheck,
+          warnings: [],
+          suggestion: undefined,
+        };
+      }
+    }
+
+    // Full resource check
     const fileStatus = this.fileHandleMonitor.check();
     const memStatus = this.memoryMonitor.check();
 
@@ -645,10 +701,32 @@ export class ResourceMonitor {
       }
     }
 
+    const currentSnapshot = this.#getCurrentSnapshot();
+    this.#lastResourceCheck = currentSnapshot;
+
+    // Check if we should activate lazy evaluation
+    if (this.config.lazyEvaluation && !limitType) {
+      const maxUsage = Math.max(
+        currentSnapshot.fileHandleUsage,
+        currentSnapshot.memoryUsage
+      );
+      const deactivationThreshold = this.config.lazyEvaluationThreshold ?? 0.5;
+
+      if (!this.#lazyEvaluationActive && maxUsage < deactivationThreshold) {
+        this.#lazyEvaluationActive = true;
+        void this.#loggerPromise.then(logger =>
+          logger.info(
+            { usage: (maxUsage * 100).toFixed(1) + '%' },
+            'Lazy evaluation activated (resources stable)'
+          )
+        );
+      }
+    }
+
     return {
       shouldStop: limitType !== null,
       limitType,
-      snapshot: this.#getCurrentSnapshot(),
+      snapshot: currentSnapshot,
       warnings,
       suggestion,
     };

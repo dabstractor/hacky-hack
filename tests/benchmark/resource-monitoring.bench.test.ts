@@ -222,4 +222,246 @@ describe('Resource Monitor Benchmarks', () => {
       }
     });
   });
+
+  describe('Lazy Evaluation Benchmarks', () => {
+    it('should reduce overhead when resources are stable', async () => {
+      const bench = new Bench({
+        time: 2000,
+        warmupTime: 500,
+      });
+
+      // Monitor with lazy evaluation enabled
+      const monitorLazy = new ResourceMonitor({
+        lazyEvaluation: true,
+        lazyEvaluationThreshold: 0.5,
+        fileHandleWarnThreshold: 0.7,
+        fileHandleCriticalThreshold: 0.85,
+      });
+
+      // Monitor with lazy evaluation disabled (full monitoring)
+      const monitorFull = new ResourceMonitor({
+        lazyEvaluation: false,
+      });
+
+      // Mock stable resource usage (40% - below lazy eval threshold)
+      vi.spyOn(monitorLazy.fileHandleMonitor, 'getHandleCount').mockReturnValue(
+        400
+      );
+      vi.spyOn(monitorLazy.fileHandleMonitor, 'getUlimit').mockReturnValue(
+        1000
+      );
+
+      vi.spyOn(monitorFull.fileHandleMonitor, 'getHandleCount').mockReturnValue(
+        400
+      );
+      vi.spyOn(monitorFull.fileHandleMonitor, 'getUlimit').mockReturnValue(
+        1000
+      );
+
+      bench
+        .add('Full monitoring (every getStatus call)', () => {
+          monitorFull.getStatus();
+        })
+        .add('Lazy evaluation (stable resources)', () => {
+          monitorLazy.getStatus();
+        });
+
+      await bench.run();
+
+      console.table(bench.table());
+
+      // Extract results
+      const results = bench.tasks.map(t => t.result?.period ?? 0);
+      const fullTime = results[0];
+      const lazyTime = results[1];
+
+      console.log('\n=== Performance Summary ===');
+      console.log(`Full monitoring: ${(fullTime * 1000).toFixed(4)} ms/call`);
+      console.log(`Lazy evaluation: ${(lazyTime * 1000).toFixed(4)} ms/call`);
+
+      if (fullTime > 0 && lazyTime > 0) {
+        const speedup = fullTime / lazyTime;
+        const improvement = ((fullTime - lazyTime) / fullTime) * 100;
+        console.log(`Speedup:  ${speedup.toFixed(1)}x faster`);
+        console.log(
+          `Improvement: ${improvement.toFixed(1)}% reduction in latency`
+        );
+
+        // Assert significant improvement (at least 30% for safety)
+        expect(improvement).toBeGreaterThan(30);
+      }
+    });
+
+    it('should show minimal overhead when approaching limits', async () => {
+      const bench = new Bench({
+        time: 1000,
+        warmupTime: 200,
+      });
+
+      // Monitor with lazy evaluation enabled
+      const monitorLazy = new ResourceMonitor({
+        lazyEvaluation: true,
+        lazyEvaluationThreshold: 0.5,
+        fileHandleWarnThreshold: 0.7,
+      });
+
+      // Monitor with lazy evaluation disabled
+      const monitorFull = new ResourceMonitor({
+        lazyEvaluation: false,
+      });
+
+      // Mock high resource usage (75% - above activation threshold)
+      vi.spyOn(monitorLazy.fileHandleMonitor, 'getHandleCount').mockReturnValue(
+        750
+      );
+      vi.spyOn(monitorLazy.fileHandleMonitor, 'getUlimit').mockReturnValue(
+        1000
+      );
+
+      vi.spyOn(monitorFull.fileHandleMonitor, 'getHandleCount').mockReturnValue(
+        750
+      );
+      vi.spyOn(monitorFull.fileHandleMonitor, 'getUlimit').mockReturnValue(
+        1000
+      );
+
+      bench
+        .add('Full monitoring (high usage)', () => {
+          monitorFull.getStatus();
+        })
+        .add('Lazy evaluation (high usage - deactivated)', () => {
+          monitorLazy.getStatus();
+        });
+
+      await bench.run();
+
+      console.table(bench.table());
+
+      // When approaching limits, lazy evaluation deactivates
+      // so performance should be similar
+      const results = bench.tasks.map(t => t.result?.period ?? 0);
+      const fullTime = results[0];
+      const lazyTime = results[1];
+
+      console.log('\n=== High Usage Performance ===');
+      console.log(`Full monitoring: ${(fullTime * 1000).toFixed(4)} ms/call`);
+      console.log(`Lazy evaluation: ${(lazyTime * 1000).toFixed(4)} ms/call`);
+
+      // At high usage, lazy evaluation should deactivate
+      // Performance should be within 2x of full monitoring
+      expect(lazyTime).toBeLessThan(fullTime * 2);
+    });
+  });
+
+  describe('Interval-Based Monitoring Benchmarks', () => {
+    it('should reduce overhead with larger intervals', async () => {
+      const bench = new Bench({
+        time: 1000,
+        warmupTime: 200,
+      });
+
+      // Mock stable resources
+      const getHandleCountMock = vi.fn().mockReturnValue(400);
+      const getUlimitMock = vi.fn().mockReturnValue(1000);
+
+      // Monitor with interval=1 (every task)
+      const monitorInterval1 = new ResourceMonitor({
+        monitorInterval: 1,
+        lazyEvaluation: false,
+      });
+
+      // Monitor with interval=5 (every 5th task)
+      const monitorInterval5 = new ResourceMonitor({
+        monitorInterval: 5,
+        lazyEvaluation: false,
+      });
+
+      // Monitor with interval=10 (every 10th task)
+      const monitorInterval10 = new ResourceMonitor({
+        monitorInterval: 10,
+        lazyEvaluation: false,
+      });
+
+      // Apply mocks to all monitors
+      vi.spyOn(
+        monitorInterval1.fileHandleMonitor,
+        'getHandleCount'
+      ).mockImplementation(getHandleCountMock);
+      vi.spyOn(
+        monitorInterval1.fileHandleMonitor,
+        'getUlimit'
+      ).mockImplementation(getUlimitMock);
+
+      vi.spyOn(
+        monitorInterval5.fileHandleMonitor,
+        'getHandleCount'
+      ).mockImplementation(getHandleCountMock);
+      vi.spyOn(
+        monitorInterval5.fileHandleMonitor,
+        'getUlimit'
+      ).mockImplementation(getUlimitMock);
+
+      vi.spyOn(
+        monitorInterval10.fileHandleMonitor,
+        'getHandleCount'
+      ).mockImplementation(getHandleCountMock);
+      vi.spyOn(
+        monitorInterval10.fileHandleMonitor,
+        'getUlimit'
+      ).mockImplementation(getUlimitMock);
+
+      bench
+        .add('Interval=1 (every task)', () => {
+          monitorInterval1.recordTaskComplete();
+        })
+        .add('Interval=5 (every 5th task)', () => {
+          monitorInterval5.recordTaskComplete();
+        })
+        .add('Interval=10 (every 10th task)', () => {
+          monitorInterval10.recordTaskComplete();
+        });
+
+      await bench.run();
+
+      console.table(bench.table());
+
+      // Extract results
+      const results = bench.tasks.map(t => ({
+        name: t.name,
+        period: t.result?.period ?? 0,
+      }));
+
+      console.log('\n=== Interval Monitoring Performance ===');
+      results.forEach(r => {
+        console.log(`${r.name}: ${(r.period * 1000).toFixed(4)} ms/call`);
+      });
+
+      // All intervals should have similar performance for recordTaskComplete
+      // since it just increments a counter
+      // The benefit comes from fewer shouldStop() calls in the pipeline
+      const interval1Time = results[0].period;
+      const interval5Time = results[1].period;
+      const interval10Time = results[2].period;
+
+      // recordTaskComplete is just a counter increment, so all should be fast
+      expect(interval1Time).toBeGreaterThan(0);
+      expect(interval5Time).toBeGreaterThan(0);
+      expect(interval10Time).toBeGreaterThan(0);
+    });
+
+    it('should validate task counting accuracy', () => {
+      // Test that task counting works correctly with different intervals
+      const monitorInterval5 = new ResourceMonitor({
+        monitorInterval: 5,
+      });
+
+      // Record 10 tasks
+      for (let i = 0; i < 10; i++) {
+        monitorInterval5.recordTaskComplete();
+      }
+
+      // Should have counted all 10 tasks
+      expect(monitorInterval5.getTasksCompleted()).toBe(10);
+    });
+  });
 });

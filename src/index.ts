@@ -208,6 +208,8 @@ async function main(): Promise<number> {
     args.maxTasks,
     args.maxDuration,
     args.monitorInterval,
+    args.monitorTaskInterval,
+    args.noResourceMonitor,
     undefined, // planDir - use default
     args.progressMode ?? 'auto',
     args.parallelism,

@@ -193,6 +193,12 @@ export class PRPPipeline extends Workflow {
   /** Monitoring interval from CLI --monitor-interval (milliseconds) */
   readonly #monitorInterval?: number;
 
+  /** Monitor resources every Nth task from CLI --monitor-task-interval */
+  readonly #monitorTaskInterval: number = 1;
+
+  /** Disable resource monitoring from CLI --no-resource-monitor */
+  readonly #disableMonitoring: boolean = false;
+
   /** Custom plan directory for testing (defaults to resolve('plan')) */
   readonly #planDir?: string;
 
@@ -267,6 +273,9 @@ export class PRPPipeline extends Workflow {
    * @param continueOnError - Whether to treat all errors as non-fatal (default: false)
    * @param maxTasks - Maximum number of tasks to execute (optional)
    * @param maxDuration - Maximum execution duration in milliseconds (optional)
+   * @param monitorInterval - Resource monitoring polling interval in milliseconds (optional)
+   * @param monitorTaskInterval - Monitor resources every Nth task (default: 1)
+   * @param disableMonitoring - Completely disable resource monitoring (default: false)
    * @param planDir - Custom plan directory path (defaults to resolve('plan'))
    * @param progressMode - Progress display mode: 'auto', 'always', or 'never' (default: 'auto')
    * @param parallelism - Max concurrent subtasks (1-10, default: 2)
@@ -287,6 +296,8 @@ export class PRPPipeline extends Workflow {
     maxTasks?: number,
     maxDuration?: number,
     monitorInterval?: number,
+    monitorTaskInterval: number = 1,
+    disableMonitoring: boolean = false,
     planDir?: string,
     progressMode: 'auto' | 'always' | 'never' = 'auto',
     parallelism: number = 2,
@@ -314,6 +325,8 @@ export class PRPPipeline extends Workflow {
     this.#maxTasks = maxTasks;
     this.#maxDuration = maxDuration;
     this.#monitorInterval = monitorInterval;
+    this.#monitorTaskInterval = monitorTaskInterval;
+    this.#disableMonitoring = disableMonitoring;
     this.#planDir = planDir;
     this.#progressMode = progressMode;
     this.#parallelism = parallelism;
@@ -332,18 +345,24 @@ export class PRPPipeline extends Workflow {
       correlationId: this.#correlationId,
     });
 
-    // Create resource monitor if limits specified
-    if (maxTasks || maxDuration) {
+    // Create resource monitor if limits specified and monitoring not disabled
+    if (disableMonitoring) {
+      this.logger.info('[PRPPipeline] Resource monitoring disabled by user');
+    } else if (maxTasks || maxDuration) {
       this.#resourceMonitor = new ResourceMonitor({
         maxTasks,
         maxDuration,
         pollingInterval: monitorInterval,
+        monitorInterval: monitorTaskInterval,
+        lazyEvaluation: true,
+        lazyEvaluationThreshold: 0.5,
       });
       this.#resourceMonitor.start();
       this.logger.info('[PRPPipeline] Resource monitoring enabled', {
         maxTasks,
         maxDuration,
         monitorInterval,
+        monitorTaskInterval,
       });
     }
 
@@ -838,6 +857,7 @@ export class PRPPipeline extends Workflow {
       }
 
       let iterations = 0;
+      let taskCounter = 0; // Track tasks for interval-based monitoring
       const maxIterations = 10000; // Safety limit
 
       // Process items until queue is empty or shutdown requested
@@ -882,6 +902,9 @@ export class PRPPipeline extends Workflow {
             this.#resourceMonitor.recordTaskComplete();
           }
 
+          // Increment task counter for interval-based monitoring
+          taskCounter++;
+
           // Log progress every 5 tasks
           if (this.completedTasks % 5 === 0) {
             this.logger.info(
@@ -889,8 +912,13 @@ export class PRPPipeline extends Workflow {
             );
           }
 
-          // CRITICAL: Check for resource limits after each task
-          if (this.#resourceMonitor?.shouldStop()) {
+          // CRITICAL: Check for resource limits based on interval or always on last task
+          const shouldCheckResources =
+            this.#monitorTaskInterval === 1 || // Always check if interval is 1
+            taskCounter % this.#monitorTaskInterval === 0 || // Check on interval boundary
+            this.completedTasks === this.totalTasks; // Always check on last task
+
+          if (shouldCheckResources && this.#resourceMonitor?.shouldStop()) {
             const status = this.#resourceMonitor.getStatus();
             this.logger.warn(
               '[PRPPipeline] Resource limit reached, initiating graceful shutdown',

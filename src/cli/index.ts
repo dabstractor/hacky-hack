@@ -97,6 +97,12 @@ export interface CLIArgs {
   /** Monitoring interval in milliseconds (1000-60000, default: 30000) */
   monitorInterval?: number;
 
+  /** Monitor resources every Nth task (1-100, default: 1) */
+  monitorTaskInterval?: number;
+
+  /** Disable resource monitoring entirely */
+  noResourceMonitor?: boolean;
+
   /** Progress display mode (auto/always/never) */
   progressMode?: 'auto' | 'always' | 'never';
 
@@ -141,6 +147,8 @@ export interface ValidatedCLIArgs extends Omit<
   | 'retry'
   | 'flushRetries'
   | 'cacheTtl'
+  | 'monitorTaskInterval'
+  | 'noResourceMonitor'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -162,6 +170,12 @@ export interface ValidatedCLIArgs extends Omit<
 
   /** PRP cache TTL in milliseconds - validated as number */
   cacheTtl: number;
+
+  /** Monitor resources every Nth task (1-100, default: 1) - validated as number */
+  monitorTaskInterval: number;
+
+  /** Disable resource monitoring entirely - validated as boolean */
+  noResourceMonitor: boolean;
 }
 
 // ===== MAIN FUNCTION =====
@@ -242,6 +256,16 @@ export function parseCLIArgs():
     .option(
       '--monitor-interval <ms>',
       'Resource monitoring interval in milliseconds (1000-60000, default: 30000)'
+    )
+    .option(
+      '--monitor-task-interval <n>',
+      'Monitor resources every Nth task (1-100, default: 1, env: MONITOR_TASK_INTERVAL)',
+      process.env.MONITOR_TASK_INTERVAL ?? '1'
+    )
+    .option(
+      '--no-resource-monitor',
+      'Disable resource monitoring entirely',
+      false
     )
     .option(
       '--parallelism <n>',
@@ -513,6 +537,32 @@ export function parseCLIArgs():
     }
     // Convert to number
     options.monitorInterval = monitorInterval;
+  }
+
+  // Validate monitor-task-interval
+  if (options.monitorTaskInterval !== undefined) {
+    const monitorTaskIntervalStr = String(options.monitorTaskInterval);
+    const monitorTaskInterval = parseInt(monitorTaskIntervalStr, 10);
+
+    if (
+      isNaN(monitorTaskInterval) ||
+      monitorTaskInterval < 1 ||
+      monitorTaskInterval > 100
+    ) {
+      logger.error(
+        '--monitor-task-interval must be an integer between 1 and 100'
+      );
+      process.exit(1);
+    }
+    options.monitorTaskInterval = monitorTaskInterval;
+  } else {
+    // Set default to 1 (every task)
+    options.monitorTaskInterval = 1;
+  }
+
+  // Normalize no-resource-monitor (boolean flag)
+  if (options.noResourceMonitor === undefined) {
+    options.noResourceMonitor = false;
   }
 
   // Validate parallelism
