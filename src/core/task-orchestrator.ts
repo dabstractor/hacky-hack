@@ -45,6 +45,10 @@ import {
   ConcurrentTaskExecutor,
   type ParallelismConfig,
 } from './concurrent-executor.js';
+import {
+  TaskRetryManager,
+  type TaskRetryConfig,
+} from './task-retry-manager.js';
 
 /**
  * Task Orchestrator for PRP Pipeline backlog processing
@@ -95,6 +99,9 @@ export class TaskOrchestrator {
   /** Configurable research queue concurrency limit */
   readonly #researchQueueConcurrency: number;
 
+  /** Task retry manager for automatic retry of failed subtasks */
+  readonly #retryManager: TaskRetryManager;
+
   /** Current item ID being processed (for progress tracking) */
   currentItemId: string | null = null;
 
@@ -105,6 +112,7 @@ export class TaskOrchestrator {
    * @param scope - Optional scope to limit execution (defaults to all items)
    * @param noCache - Whether to bypass cache (default: false)
    * @param researchQueueConcurrency - Max concurrent research tasks (default: 3)
+   * @param retryConfig - Optional retry configuration (default: enabled with 3 max attempts)
    * @throws {Error} If sessionManager.currentSession is null
    *
    * @remarks
@@ -116,7 +124,8 @@ export class TaskOrchestrator {
     sessionManager: SessionManager,
     scope?: Scope,
     noCache: boolean = false,
-    researchQueueConcurrency: number = 3
+    researchQueueConcurrency: number = 3,
+    retryConfig?: Partial<TaskRetryConfig>
   ) {
     this.#logger = getLogger('TaskOrchestrator');
     this.sessionManager = sessionManager;
@@ -149,6 +158,10 @@ export class TaskOrchestrator {
     // Initialize PRPRuntime for execution
     this.#prpRuntime = new PRPRuntime(this);
     this.#logger.debug('PRPRuntime initialized for subtask execution');
+
+    // Initialize retry manager with optional config
+    this.#retryManager = new TaskRetryManager(retryConfig, sessionManager);
+    this.#logger.debug('TaskRetryManager initialized for subtask retry');
   }
 
   /**
@@ -671,15 +684,21 @@ export class TaskOrchestrator {
 
     // PATTERN: Wrap execution in try/catch for error handling
     try {
-      // NEW: Use PRPRuntime for execution (handles PRP generation if cache miss)
+      // NEW: Use PRPRuntime for execution with retry wrapper
       this.#logger.info(
         { subtaskId: subtask.id },
-        'Starting PRPRuntime execution'
+        'Starting PRPRuntime execution with retry'
       );
 
-      const result = await this.#prpRuntime.executeSubtask(
+      // Wrap PRPRuntime execution with retry logic
+      const result = await this.#retryManager.executeWithRetry(
         subtask,
-        this.#backlog
+        async () => {
+          return await this.#prpRuntime.executeSubtask(
+            subtask,
+            this.#backlog
+          );
+        }
       );
 
       this.#logger.info(

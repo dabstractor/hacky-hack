@@ -216,7 +216,7 @@ export interface RetryOptions {
  * Non-blocking sleep using Promise + setTimeout.
  * NEVER use blocking sleep loops in async code.
  */
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -243,7 +243,7 @@ function sleep(ms: number): Promise<void> {
  * - Attempt 3: 8000ms to 8800ms (positive-only jitter)
  * - Attempt 4+: 30000ms (capped) to 33000ms (positive-only jitter)
  */
-function calculateDelay(
+export function calculateDelay(
   attempt: number,
   baseDelay: number,
   maxDelay: number,
@@ -333,6 +333,12 @@ export function isTransientError(error: unknown): boolean {
   if (isPipelineError(err)) {
     const errorCode = err.code;
     // Agent errors are transient if they're timeouts or LLM failures
+    // NOTE: AgentError class hardcodes code to PIPELINE_AGENT_LLM_FAILED
+    // So we check the error message for parse errors to determine if permanent
+    const message = String(err.message ?? '').toLowerCase();
+    if (message.includes('parse') || message.includes('parsing')) {
+      return false; // Parse errors are not retryable
+    }
     return (
       errorCode === ErrorCodes.PIPELINE_AGENT_TIMEOUT ||
       errorCode === ErrorCodes.PIPELINE_AGENT_LLM_FAILED
@@ -396,6 +402,20 @@ export function isPermanentError(error: unknown): boolean {
   // Check ValidationError from P5.M4.T1.S1
   if (isValidationError(err)) {
     return true;
+  }
+
+  // Check PipelineError for permanent AgentError codes
+  // NOTE: AgentError class hardcodes code to PIPELINE_AGENT_LLM_FAILED
+  // So we check the error message for parse errors to determine if permanent
+  if (isPipelineError(err)) {
+    const message = String(err.message ?? '').toLowerCase();
+    // AgentError with parse error message is permanent (cannot retry parse errors)
+    if (message.includes('parse') || message.includes('parsing')) {
+      return true;
+    }
+    const errorCode = err.code;
+    // Check for specific permanent error codes (if class is fixed in future)
+    return errorCode === ErrorCodes.PIPELINE_AGENT_PARSE_FAILED;
   }
 
   // Check HTTP client errors (except 408 timeout and 429 rate limit)

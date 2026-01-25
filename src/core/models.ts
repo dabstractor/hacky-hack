@@ -138,6 +138,7 @@ export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
+  | 'Retrying'
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -161,6 +162,7 @@ export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
+  'Retrying',
   'Complete',
   'Failed',
   'Obsolete',

@@ -917,7 +917,7 @@
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Task 3.2.1: Automatic Task Retry",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Implement automatic retry mechanism for failed tasks with exponential backoff.",
               "subtasks": [
                 {
@@ -933,7 +933,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S2",
                   "title": "Implement task retry mechanism",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M2.T1.S1"
@@ -944,7 +944,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S3",
                   "title": "Add retry configuration options",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T1.S2"
