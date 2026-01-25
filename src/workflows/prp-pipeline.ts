@@ -247,6 +247,9 @@ export class PRPPipeline extends Workflow {
   /** Disable automatic retry for all tasks (from CLI) */
   readonly #noRetry: boolean = false;
 
+  /** Max retries for batch write failures (from CLI) */
+  readonly #flushRetries?: number;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -268,6 +271,7 @@ export class PRPPipeline extends Workflow {
    * @param taskRetry - Max retry attempts for tasks (0-10, default: 3)
    * @param retryBackoff - Base delay before first retry in ms (100-60000, default: 1000)
    * @param noRetry - Disable automatic retry for all tasks (default: false)
+   * @param flushRetries - Max retries for batch write failures (0-10, default: 3)
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -285,7 +289,8 @@ export class PRPPipeline extends Workflow {
     researchQueueConcurrency: number = 3,
     taskRetry?: number,
     retryBackoff?: number,
-    noRetry: boolean = false
+    noRetry: boolean = false,
+    flushRetries?: number
   ) {
     super('PRPPipeline');
 
@@ -311,6 +316,7 @@ export class PRPPipeline extends Workflow {
     this.#taskRetry = taskRetry;
     this.#retryBackoff = retryBackoff;
     this.#noRetry = noRetry;
+    this.#flushRetries = flushRetries;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations
@@ -1700,7 +1706,8 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       // Create SessionManager (may throw if PRD doesn't exist)
       this.sessionManager = new SessionManagerClass(
         this.#prdPath,
-        this.#planDir
+        this.#planDir,
+        this.#flushRetries
       );
 
       // Execute workflow steps

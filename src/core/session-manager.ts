@@ -48,6 +48,7 @@ import {
 import { PRDValidator } from '../utils/prd-validator.js';
 import { ValidationError } from '../utils/errors.js';
 import { detectCircularDeps } from './dependency-validator.js';
+import { calculateDelay } from '../utils/retry.js';
 
 /**
  * Compiled regex for session directory matching
@@ -61,6 +62,66 @@ import { detectCircularDeps } from './dependency-validator.js';
  * Example non-matches: "1_abc", "001_abcdef", "001_14b9dc2a33c7_extra"
  */
 const SESSION_DIR_PATTERN = /^(\d{3})_([a-f0-9]{12})$/;
+
+/**
+ * File I/O retry configuration
+ *
+ * @remarks
+ * File operations are 10x faster than network operations.
+ * Use shorter delays for retry.
+ */
+const FILE_IO_RETRY_CONFIG = {
+  /** Maximum retry attempts */
+  maxAttempts: 3,
+
+  /** Base delay before first retry (milliseconds) */
+  baseDelay: 100,
+
+  /** Maximum delay between retries (milliseconds) */
+  maxDelay: 2000,
+
+  /** Exponential backoff factor */
+  backoffFactor: 2,
+
+  /** Jitter factor (10% variance) */
+  jitterFactor: 0.1,
+} as const;
+
+/**
+ * Recovery file data structure
+ *
+ * @remarks
+ * Saved when all flush retries fail. Contains pending updates
+ * and error context for manual recovery.
+ */
+interface RecoveryFile {
+  /** Format version for migration */
+  version: '1.0';
+
+  /** ISO 8601 timestamp when recovery file was created */
+  timestamp: string;
+
+  /** Session directory path */
+  sessionPath: string;
+
+  /** Pending updates that failed to flush */
+  pendingUpdates: Backlog;
+
+  /** Error details */
+  error: {
+    /** Error message */
+    message: string;
+
+    /** Node.js errno code (if available) */
+    code?: string;
+
+    /** Number of retry attempts made */
+    attempts: number;
+  };
+
+  /** Number of pending updates in backlog */
+  pendingCount: number;
+}
 
 /**
  * Parsed session directory information
@@ -115,14 +176,22 @@ export class SessionManager {
   /** Batching state: count of accumulated updates (for stats) */
   #updateCount: number = 0;
 
+  /** Maximum flush retry attempts */
+  readonly #flushRetries: number;
+
   /**
    * Creates a new SessionManager instance
    *
    * @param prdPath - Path to PRD markdown file (must exist)
    * @param planDir - Path to plan directory (default: resolve('plan'))
+   * @param flushRetries - Maximum flush retry attempts (default: 3)
    * @throws {SessionFileError} If PRD file does not exist
    */
-  constructor(prdPath: string, planDir: string = resolve('plan')) {
+  constructor(
+    prdPath: string,
+    planDir: string = resolve('plan'),
+    flushRetries: number = 3
+  ) {
     this.#logger = getLogger('SessionManager');
     // Validate PRD exists synchronously
     const absPath = resolve(prdPath);
@@ -146,6 +215,7 @@ export class SessionManager {
     this.prdPath = absPath;
     this.planDir = resolve(planDir);
     this.#currentSession = null;
+    this.#flushRetries = flushRetries;
   }
 
   /**
@@ -682,40 +752,230 @@ export class SessionManager {
       return;
     }
 
+    if (!this.#currentSession) {
+      throw new Error('Cannot flush updates: no session loaded');
+    }
+
+    // Special case: 0 retries means try once and fail immediately on error
+    if (this.#flushRetries === 0) {
+      try {
+        await this.saveBacklog(this.#pendingUpdates!);
+
+        // Calculate stats for logging
+        const itemsWritten = this.#updateCount;
+        const writeOpsSaved = Math.max(0, itemsWritten - 1);
+
+        // Log batch write completion
+        this.#logger.info(
+          {
+            itemsWritten,
+            writeOpsSaved,
+            efficiency:
+              itemsWritten > 0
+                ? `${((writeOpsSaved / itemsWritten) * 100).toFixed(1)}%`
+                : '0%',
+            attempts: 1,
+          },
+          'Batch write complete'
+        );
+
+        // Reset batching state
+        this.#dirty = false;
+        this.#pendingUpdates = null;
+        this.#updateCount = 0;
+
+        this.#logger.debug('Batching state reset');
+        return;
+      } catch (error) {
+        const err = error as Error;
+        // Preserve to recovery file even with 0 retries
+        await this.#preservePendingUpdates(err);
+        throw err;
+      }
+    }
+
+    let attempt = 0;
+    const maxAttempts = this.#flushRetries;
+    let lastError: Error | null = null;
+
+    while (attempt < maxAttempts) {
+      try {
+        // Attempt to persist accumulated updates
+        await this.saveBacklog(this.#pendingUpdates!);
+
+        // Calculate stats for logging
+        const itemsWritten = this.#updateCount;
+        const writeOpsSaved = Math.max(0, itemsWritten - 1);
+
+        // Log batch write completion
+        this.#logger.info(
+          {
+            itemsWritten,
+            writeOpsSaved,
+            efficiency:
+              itemsWritten > 0
+                ? `${((writeOpsSaved / itemsWritten) * 100).toFixed(1)}%`
+                : '0%',
+            attempts: attempt + 1,
+          },
+          'Batch write complete'
+        );
+
+        // Reset batching state
+        this.#dirty = false;
+        this.#pendingUpdates = null;
+        this.#updateCount = 0;
+
+        this.#logger.debug('Batching state reset');
+        return; // Success - exit retry loop
+
+      } catch (error) {
+        lastError = error as Error;
+        attempt++;
+
+        // Check if we've exhausted all retries
+        if (attempt >= maxAttempts) {
+          // All retries failed - preserve to recovery file
+          await this.#preservePendingUpdates(lastError);
+          throw lastError;
+        }
+
+        // Check if error is retryable
+        if (!this.#isFileIORetryableError(lastError)) {
+          // Non-retryable error - preserve and fail fast
+          this.#logger.warn(
+            {
+              errorCode: (lastError as NodeJS.ErrnoException).code,
+              errorMessage: lastError.message,
+            },
+            'Non-retryable error in flushUpdates - preserving to recovery file'
+          );
+          await this.#preservePendingUpdates(lastError);
+          throw lastError;
+        }
+
+        // Calculate delay with exponential backoff
+        const delay = this.#calculateFlushRetryDelay(attempt);
+
+        // Log retry attempt
+        this.#logger.warn(
+          {
+            attempt,
+            maxAttempts,
+            delay,
+            errorCode: (lastError as NodeJS.ErrnoException).code,
+            errorMessage: lastError.message,
+            pendingCount: this.#updateCount,
+          },
+          'Batch write failed, retrying...'
+        );
+
+        // Wait before retry
+        await this.#sleep(delay);
+      }
+    }
+
+    // Should not reach here, but TypeScript needs it
+    if (lastError) {
+      await this.#preservePendingUpdates(lastError);
+      throw lastError;
+    }
+  }
+
+  /**
+   * Calculate delay for flush retry with exponential backoff
+   *
+   * @param attempt - Retry attempt number (1-indexed)
+   * @returns Delay in milliseconds
+   */
+  #calculateFlushRetryDelay(attempt: number): number {
+    return calculateDelay(
+      attempt - 1, // calculateDelay is 0-indexed
+      FILE_IO_RETRY_CONFIG.baseDelay,
+      FILE_IO_RETRY_CONFIG.maxDelay,
+      FILE_IO_RETRY_CONFIG.backoffFactor,
+      FILE_IO_RETRY_CONFIG.jitterFactor
+    );
+  }
+
+  /**
+   * Check if error is retryable for file I/O operations
+   *
+   * @param error - Error to classify
+   * @returns true if retryable, false otherwise
+   */
+  #isFileIORetryableError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+    const code = (error as NodeJS.ErrnoException).code;
+    // Retryable: transient file system errors
+    const retryableCodes = ['EBUSY', 'EAGAIN', 'EIO', 'ENFILE'];
+    return code !== undefined && retryableCodes.includes(code);
+  }
+
+  /**
+   * Sleep for specified milliseconds
+   *
+   * @param ms - Milliseconds to sleep
+   * @returns Promise that resolves after delay
+   */
+  #sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Preserve pending updates to recovery file
+   *
+   * @param error - Error that caused failure
+   */
+  async #preservePendingUpdates(error: Error): Promise<void> {
+    if (!this.#currentSession) {
+      throw new Error('Cannot preserve pending updates: no session loaded');
+    }
+
+    const recoveryPath = resolve(
+      this.#currentSession.metadata.path,
+      'tasks.json.failed'
+    );
+
+    const recoveryData: RecoveryFile = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      sessionPath: this.#currentSession.metadata.path,
+      pendingUpdates: this.#pendingUpdates!,
+      error: {
+        message: error.message,
+        code: (error as NodeJS.ErrnoException).code,
+        attempts: this.#flushRetries,
+      },
+      pendingCount: this.#updateCount,
+    };
+
     try {
-      // Persist accumulated updates atomically
-      await this.saveBacklog(this.#pendingUpdates);
+      await writeFile(recoveryPath, JSON.stringify(recoveryData, null, 2), {
+        mode: 0o644,
+      });
 
-      // Calculate stats for logging
-      const itemsWritten = this.#updateCount;
-      const writeOpsSaved = Math.max(0, itemsWritten - 1);
-
-      // Log batch write completion
-      this.#logger.info(
-        {
-          itemsWritten,
-          writeOpsSaved,
-          efficiency:
-            itemsWritten > 0
-              ? `${((writeOpsSaved / itemsWritten) * 100).toFixed(1)}%`
-              : '0%',
-        },
-        'Batch write complete'
-      );
-
-      // Reset batching state
-      this.#dirty = false;
-      this.#pendingUpdates = null;
-      this.#updateCount = 0;
-
-      this.#logger.debug('Batching state reset');
-    } catch (error) {
-      // Preserve dirty state on error - allow retry
       this.#logger.error(
-        { error, pendingCount: this.#updateCount },
-        'Batch write failed - pending updates preserved for retry'
+        {
+          recoveryPath,
+          pendingCount: this.#updateCount,
+          errorCode: (error as NodeJS.ErrnoException).code,
+          attempts: this.#flushRetries,
+        },
+        'All flush retries failed - pending updates preserved to recovery file'
       );
-      throw error; // Re-throw for caller to handle
+    } catch (writeError) {
+      this.#logger.error(
+        {
+          recoveryPath,
+          writeErrorCode: (writeError as NodeJS.ErrnoException).code,
+          originalError: error.message,
+        },
+        'Failed to write recovery file - pending updates lost'
+      );
+      // Don't throw - original error is more important
     }
   }
 

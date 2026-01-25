@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "checkpoints": [
+    {
+      "id": "P1.M3.T3.S2_1769311176415_failed_db466a1d",
+      "taskId": "P1.M3.T3.S2",
+      "label": "Task failed",
+      "state": {
+        "prpPath": "/tmp/test-session/prps/P1M3T3S2.md",
+        "stage": "failed",
+        "coderResponse": "{\"result\":\"success\",\"message\":\"Implementation complete\"}",
+        "coderResult": {
+          "result": "success",
+          "message": "Implementation complete"
+        },
+        "validationResults": [
+          {
+            "level": 1,
+            "description": "Syntax check",
+            "success": true,
+            "command": "echo \"Level 1 passed\"",
+            "stdout": "\"Level 1 passed\"\n",
+            "stderr": "",
+            "exitCode": 0,
+            "skipped": false
+          },
+          {
+            "level": 2,
+            "description": "Failing test",
+            "success": false,
+            "command": "false",
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1,
+            "skipped": false
+          }
+        ],
+        "fixAttempt": 2,
+        "timestamp": "2026-01-25T03:19:36.415Z"
+      },
+      "createdAt": "2026-01-25T03:19:36.415Z"
+    },
+    {
+      "id": "P1.M3.T3.S2_1769311176416_pre-execution_be172507",
+      "taskId": "P1.M3.T3.S2",
+      "label": "Before Coder Agent execution",
+      "state": {
+        "prpPath": "/tmp/test-session/prps/P1M3T3S2.md",
+        "stage": "pre-execution",
+        "validationResults": [],
+        "timestamp": "2026-01-25T03:19:36.416Z"
+      },
+      "createdAt": "2026-01-25T03:19:36.416Z"
+    },
+    {
+      "id": "P1.M3.T3.S2_1769311176417_coder-response_1cdb3c24",
+      "taskId": "P1.M3.T3.S2",
+      "label": "After Coder Agent response",
+      "state": {
+        "prpPath": "/tmp/test-session/prps/P1M3T3S2.md",
+        "stage": "coder-response",
+        "coderResponse": "{\"result\":\"success\",\"message\":\"Implementation complete\"}",
+        "coderResult": {
+          "result": "success",
+          "message": "Implementation complete"
+        },
+        "validationResults": [],
+        "timestamp": "2026-01-25T03:19:36.417Z"
+      },
+      "createdAt": "2026-01-25T03:19:36.417Z"
+    },
+    {
+      "id": "P1.M3.T3.S2_1769311176433_validation-gate-4_523b8493",
+      "taskId": "P1.M3.T3.S2",
+      "label": "After validation gate 4",
+      "state": {
+        "prpPath": "/tmp/test-session/prps/P1M3T3S2.md",
+        "stage": "validation-gate-4",
+        "coderResponse": "{\"result\":\"success\",\"message\":\"Implementation complete\"}",
+        "coderResult": {
+          "result": "success",
+          "message": "Implementation complete"
+        },
+        "validationResults": [
+          {
+            "level": 1,
+            "description": "Syntax check",
+            "success": true,
+            "command": "echo \"Level 1 passed\"",
+            "stdout": "\"Level 1 passed\"\n",
+            "stderr": "",
+            "exitCode": 0,
+            "skipped": false
+          },
+          {
+            "level": 4,
+            "description": "Manual review",
+            "success": true,
+            "command": null,
+            "stdout": "",
+            "stderr": "",
+            "exitCode": null,
+            "skipped": true
+          }
+        ],
+        "timestamp": "2026-01-25T03:19:36.433Z"
+      },
+      "createdAt": "2026-01-25T03:19:36.433Z"
+    },
+    {
+      "id": "P1.M3.T3.S2_1769311176434_complete_a0944b87",
+      "taskId": "P1.M3.T3.S2",
+      "label": "Task completed successfully",
+      "state": {
+        "prpPath": "/tmp/test-session/prps/P1M3T3S2.md",
+        "stage": "complete",
+        "coderResponse": "{\"result\":\"success\",\"message\":\"Implementation complete\"}",
+        "coderResult": {
+          "result": "success",
+          "message": "Implementation complete"
+        },
+        "validationResults": [
+          {
+            "level": 1,
+            "description": "Syntax check",
+            "success": true,
+            "command": "echo \"Level 1 passed\"",
+            "stdout": "\"Level 1 passed\"\n",
+            "stderr": "",
+            "exitCode": 0,
+            "skipped": false
+          },
+          {
+            "level": 4,
+            "description": "Manual review",
+            "success": true,
+            "command": null,
+            "stdout": "",
+            "stderr": "",
+            "exitCode": null,
+            "skipped": true
+          }
+        ],
+        "timestamp": "2026-01-25T03:19:36.434Z"
+      },
+      "createdAt": "2026-01-25T03:19:36.434Z"
+    }
+  ],
+  "lastModified": "2026-01-25T03:19:36.434Z"
+}

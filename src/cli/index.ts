@@ -111,6 +111,9 @@ export interface CLIArgs {
 
   /** Enable automatic retry for all tasks (default: true, --no-retry sets to false) */
   retry: boolean;
+
+  /** Max retries for batch write failures (0-10, default: 3) - may be string from commander */
+  flushRetries?: number | string;
 }
 
 /**
@@ -122,7 +125,7 @@ export interface CLIArgs {
  */
 export interface ValidatedCLIArgs extends Omit<
   CLIArgs,
-  'parallelism' | 'researchConcurrency' | 'taskRetry' | 'retryBackoff' | 'retry'
+  'parallelism' | 'researchConcurrency' | 'taskRetry' | 'retryBackoff' | 'retry' | 'flushRetries'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -138,6 +141,9 @@ export interface ValidatedCLIArgs extends Omit<
 
   /** Disable automatic retry for all tasks (computed from --retry/--no-retry) */
   noRetry: boolean;
+
+  /** Max retries for batch write failures (0-10, default: 3) - validated as number */
+  flushRetries?: number;
 }
 
 // ===== MAIN FUNCTION =====
@@ -235,6 +241,11 @@ export function parseCLIArgs():
       '--retry-backoff <ms>',
       'Base delay before first retry in ms (100-60000, default: 1000)',
       '1000'
+    )
+    .option(
+      '--flush-retries <n>',
+      'Max retries for batch write failures (0-10, default: 3, env: HACKY_FLUSH_RETRIES)',
+      process.env.HACKY_FLUSH_RETRIES ?? '3'
     )
     .option(
       '--retry',
@@ -499,6 +510,20 @@ export function parseCLIArgs():
 
     // Convert to number
     options.retryBackoff = retryBackoff;
+  }
+
+  // Validate flush-retries
+  if (options.flushRetries !== undefined) {
+    const flushRetriesStr = String(options.flushRetries);
+    const flushRetries = parseInt(flushRetriesStr, 10);
+
+    if (isNaN(flushRetries) || flushRetries < 0 || flushRetries > 10) {
+      logger.error('--flush-retries must be an integer between 0 and 10');
+      process.exit(1);
+    }
+
+    // Convert to number
+    options.flushRetries = flushRetries;
   }
 
   // Compute noRetry from retry (invert the boolean)

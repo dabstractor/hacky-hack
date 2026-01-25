@@ -910,7 +910,7 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Milestone 3.2: Error Handling & Retry Improvements",
-          "status": "Planned",
+          "status": "Ready",
           "description": "Improve error handling, add automatic retry mechanisms, and enhance state recovery.",
           "tasks": [
             {
@@ -957,7 +957,7 @@
               "type": "Task",
               "id": "P3.M2.T2",
               "title": "Task 3.2.2: State Recovery Improvements",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Improve state recovery after failures and add checkpoint/resume capabilities.",
               "subtasks": [
                 {
@@ -973,7 +973,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S2",
                   "title": "Improve batch write failure recovery",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T2.S1"
@@ -984,7 +984,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S3",
                   "title": "Add state validation and repair tools",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T2.S2"
