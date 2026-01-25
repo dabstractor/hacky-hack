@@ -1006,7 +1006,7 @@
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Task 3.3.1: Cache Optimizations",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Optimize PRP cache and make TTL configurable.",
               "subtasks": [
                 {
@@ -1022,7 +1022,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T1.S2",
                   "title": "Add cache statistics and cleanup",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M3.T1.S1"

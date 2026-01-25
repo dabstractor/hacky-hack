@@ -33,6 +33,7 @@ import { getLogger } from '../utils/logger.js';
 import { InspectCommand, type InspectorOptions } from './commands/inspect.js';
 import { ArtifactsCommand } from './commands/artifacts.js';
 import { ValidateStateCommand } from './commands/validate-state.js';
+import { CacheCommand, type CacheOptions } from './commands/cache.js';
 import * as os from 'node:os';
 import ms from 'ms';
 
@@ -119,6 +120,9 @@ export interface CLIArgs {
 
   /** PRP cache TTL duration (e.g., "24h", "1d", "12h") - may be string from commander */
   cacheTtl?: string;
+
+  /** Auto-clean expired cache on startup */
+  cachePrune?: boolean;
 }
 
 /**
@@ -201,7 +205,8 @@ export function parseCLIArgs():
   | ValidatedCLIArgs
   | { subcommand: 'inspect'; options: InspectorOptions }
   | { subcommand: 'artifacts'; options: Record<string, unknown> }
-  | { subcommand: 'validate-state'; options: Record<string, unknown> } {
+  | { subcommand: 'validate-state'; options: Record<string, unknown> }
+  | { subcommand: 'cache'; options: CacheOptions } {
   const program = new Command();
 
   // Configure program
@@ -268,6 +273,7 @@ export function parseCLIArgs():
       'PRP cache time-to-live (e.g., 24h, 1d, 12h, env: HACKY_PRP_CACHE_TTL)',
       process.env.HACKY_PRP_CACHE_TTL ?? '24h'
     )
+    .option('--cache-prune', 'Auto-clean expired cache on startup', false)
     .option(
       '--retry',
       'Enable automatic retry for all tasks (default: enabled)',
@@ -376,6 +382,30 @@ export function parseCLIArgs():
       }
     });
 
+  // Add cache subcommand
+  program
+    .command('cache')
+    .description('Cache management operations')
+    .argument('[action]', 'Action: stats, clean, clear', 'stats')
+    .option('--force', 'Force action without confirmation', false)
+    .option('--dry-run', 'Show what would be done without executing', false)
+    .option('-o, --output <format>', 'Output format: table, json', 'table')
+    .option('--session <id>', 'Session ID')
+    .action(async (action, options) => {
+      try {
+        const planDir = resolve('plan');
+        const prdPath = resolve('PRD.md');
+        const cacheCommand = new CacheCommand(planDir, prdPath);
+        await cacheCommand.execute(action, options);
+        process.exit(0);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        logger.error(`Cache command failed: ${errorMessage}`);
+        process.exit(1);
+      }
+    });
+
   // Parse arguments
   program.parse(process.argv);
 
@@ -408,6 +438,18 @@ export function parseCLIArgs():
     return {
       subcommand: 'validate-state',
       options: {},
+    };
+  }
+  if (args.length > 0 && args[0] === 'cache') {
+    // Cache subcommand was invoked and already handled by action()
+    // This return is for type safety; actual execution already happened
+    return {
+      subcommand: 'cache',
+      options: {
+        output: 'table',
+        force: false,
+        dryRun: false,
+      },
     };
   }
 
@@ -589,7 +631,7 @@ export function parseCLIArgs():
   let validatedCacheTtl: number;
   if (options.cacheTtl !== undefined) {
     const cacheTtlStr = String(options.cacheTtl);
-    const cacheTtlMs = ms(cacheTtlStr);
+    const cacheTtlMs = ms(cacheTtlStr) as number | undefined;
 
     // CRITICAL: ms returns undefined for invalid formats
     if (cacheTtlMs === undefined) {
@@ -615,6 +657,11 @@ export function parseCLIArgs():
   } else {
     // Set default if not provided (24 hours)
     validatedCacheTtl = ms('24h')!;
+  }
+
+  // Set default for cachePrune if not provided
+  if (options.cachePrune === undefined) {
+    options.cachePrune = false;
   }
 
   // Compute noRetry from retry (invert the boolean)

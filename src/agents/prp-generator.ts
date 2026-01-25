@@ -93,7 +93,7 @@ export class PRPFileError extends Error {
  * Stored alongside PRP markdown files in prps/.cache/ directory.
  * Tracks task hash for change detection and timestamps for TTL expiration.
  */
-interface PRPCacheMetadata {
+export interface PRPCacheMetadata {
   readonly taskId: string;
   readonly taskHash: string;
   readonly createdAt: number;
