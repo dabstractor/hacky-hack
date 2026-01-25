@@ -27,6 +27,8 @@ import type { Agent, Prompt } from 'groundswell';
 import type { PRPDocument, ValidationGate } from '../core/models.js';
 import { BashMCP } from '../tools/bash-mcp.js';
 import { retryAgentPrompt } from '../utils/retry.js';
+import { CheckpointManager } from '../core/checkpoint-manager.js';
+import type { CheckpointExecutionState } from '../core/checkpoint-manager.js';
 
 /**
  * Result from a single validation gate execution
@@ -180,6 +182,9 @@ export class PRPExecutor {
   /** BashMCP instance for running validation commands */
   readonly #bashMCP: BashMCP;
 
+  /** CheckpointManager for persisting execution state */
+  readonly #checkpointManager: CheckpointManager;
+
   /**
    * Creates a new PRPExecutor instance
    *
@@ -199,6 +204,7 @@ export class PRPExecutor {
     this.sessionPath = sessionPath;
     this.#coderAgent = createCoderAgent();
     this.#bashMCP = new BashMCP();
+    this.#checkpointManager = new CheckpointManager(sessionPath);
   }
 
   /**
@@ -246,6 +252,19 @@ export class PRPExecutor {
     );
 
     try {
+      // CHECKPOINT: Pre-execution - before Coder Agent
+      const preExecutionState: CheckpointExecutionState = {
+        prpPath,
+        stage: 'pre-execution',
+        validationResults: [],
+        timestamp: new Date(),
+      };
+      await this.#checkpointManager.saveCheckpoint(
+        prp.taskId,
+        'Before Coder Agent execution',
+        preExecutionState
+      );
+
       // STEP 2: Execute Coder Agent with retry logic
       this.#logger.info({ prpTaskId: prp.taskId }, 'Starting PRP execution');
       const coderResponse = await retryAgentPrompt(
@@ -256,6 +275,21 @@ export class PRPExecutor {
 
       // STEP 3: Parse JSON result
       const coderResult = this.#parseCoderResult(coderResponse as string);
+
+      // CHECKPOINT: Coder response - after parsing result
+      const coderResponseState: CheckpointExecutionState = {
+        prpPath,
+        stage: 'coder-response',
+        coderResponse: coderResponse as string,
+        coderResult,
+        validationResults: [],
+        timestamp: new Date(),
+      };
+      await this.#checkpointManager.saveCheckpoint(
+        prp.taskId,
+        'After Coder Agent response',
+        coderResponseState
+      );
 
       // If Coder Agent reported error, return failed result
       if (coderResult.result !== 'success') {
@@ -273,6 +307,27 @@ export class PRPExecutor {
 
       while (fixAttempts <= maxFixAttempts) {
         validationResults = await this.#runValidationGates(prp);
+
+        // CHECKPOINT: After each validation gate completion
+        if (validationResults.length > 0) {
+          const lastGate = validationResults[validationResults.length - 1];
+          const validationStage: CheckpointExecutionState['stage'] =
+            `validation-gate-${lastGate.level}` as CheckpointExecutionState['stage'];
+          const validationState: CheckpointExecutionState = {
+            prpPath,
+            stage: validationStage,
+            coderResponse: coderResponse as string,
+            coderResult,
+            validationResults,
+            fixAttempt: fixAttempts > 0 ? fixAttempts : undefined,
+            timestamp: new Date(),
+          };
+          await this.#checkpointManager.saveCheckpoint(
+            prp.taskId,
+            `After validation gate ${lastGate.level}`,
+            validationState
+          );
+        }
 
         // Check if all gates passed
         const allPassed = validationResults.every(r => r.success || r.skipped);
@@ -301,6 +356,25 @@ export class PRPExecutor {
       // STEP 5: Build final result
       const allPassed = validationResults.every(r => r.success || r.skipped);
 
+      // CHECKPOINT: Complete or failed state
+      const finalStage: CheckpointExecutionState['stage'] = allPassed
+        ? 'complete'
+        : 'failed';
+      const finalState: CheckpointExecutionState = {
+        prpPath,
+        stage: finalStage,
+        coderResponse: coderResponse as string,
+        coderResult,
+        validationResults,
+        fixAttempt: fixAttempts > 0 ? fixAttempts : undefined,
+        timestamp: new Date(),
+      };
+      await this.#checkpointManager.saveCheckpoint(
+        prp.taskId,
+        allPassed ? 'Task completed successfully' : 'Task failed',
+        finalState
+      );
+
       return {
         success: allPassed,
         validationResults,
@@ -311,6 +385,20 @@ export class PRPExecutor {
         fixAttempts,
       };
     } catch (error) {
+      // CHECKPOINT: Error checkpoint
+      const errorState: CheckpointExecutionState = {
+        prpPath,
+        stage: 'failed',
+        validationResults: [],
+        timestamp: new Date(),
+      };
+      await this.#checkpointManager.saveCheckpoint(
+        prp.taskId,
+        'Error during execution',
+        errorState,
+        error instanceof Error ? error : undefined
+      );
+
       return {
         success: false,
         validationResults: [],
