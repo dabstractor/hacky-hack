@@ -917,7 +917,7 @@
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Task 3.2.1: Automatic Task Retry",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Implement automatic retry mechanism for failed tasks with exponential backoff.",
               "subtasks": [
                 {
@@ -944,7 +944,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S3",
                   "title": "Add retry configuration options",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T1.S2"
@@ -964,7 +964,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S1",
                   "title": "Add checkpoint mechanism for long-running tasks",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Batching state updates exist but no checkpoint mechanism within a single task execution. Long agent calls could lose progress if interrupted.\n2. INPUT: SessionManager state updates, PRP execution flow.\n3. LOGIC: Add checkpoint mechanism for PRP execution: (a) before starting PRP, save 'in-progress' checkpoint with start time, (b) during PRP execution (if supported by agent), save intermediate checkpoints, (c) on interruption, checkpoint allows resume from last state, (d) checkpoints stored in artifacts/{taskId}/checkpoints.json. Implement CheckpointManager class at src/core/checkpoint-manager.ts. Integrate with PRP executor. Add tests for checkpoint save/restore.\n4. OUTPUT: CheckpointManager at src/core/checkpoint-manager.ts, integration in PRP executor, tests in tests/unit/checkpoint-manager.test.ts."

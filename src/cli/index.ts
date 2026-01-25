@@ -102,6 +102,15 @@ export interface CLIArgs {
 
   /** Max concurrent research tasks (1-10, default: 3) - may be string from commander */
   researchConcurrency: number | string;
+
+  /** Max retry attempts for transient errors (0-10, default: 3) - may be string from commander */
+  taskRetry?: number | string;
+
+  /** Base delay before first retry in ms (100-60000, default: 1000) - may be string from commander */
+  retryBackoff?: number | string;
+
+  /** Enable automatic retry for all tasks (default: true, --no-retry sets to false) */
+  retry: boolean;
 }
 
 /**
@@ -113,13 +122,22 @@ export interface CLIArgs {
  */
 export interface ValidatedCLIArgs extends Omit<
   CLIArgs,
-  'parallelism' | 'researchConcurrency'
+  'parallelism' | 'researchConcurrency' | 'taskRetry' | 'retryBackoff' | 'retry'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
 
   /** Max concurrent research tasks (1-10, default: 3) - validated as number */
   researchConcurrency: number;
+
+  /** Max retry attempts for transient errors (0-10, default: 3) - validated as number or undefined */
+  taskRetry?: number;
+
+  /** Base delay before first retry in ms (100-60000, default: 1000) - validated as number or undefined */
+  retryBackoff?: number;
+
+  /** Disable automatic retry for all tasks (computed from --retry/--no-retry) */
+  noRetry: boolean;
 }
 
 // ===== MAIN FUNCTION =====
@@ -207,6 +225,26 @@ export function parseCLIArgs():
       '--research-concurrency <n>',
       'Max concurrent research tasks (1-10, default: 3, env: RESEARCH_QUEUE_CONCURRENCY)',
       process.env.RESEARCH_QUEUE_CONCURRENCY ?? '3'
+    )
+    .option(
+      '--task-retry <n>',
+      'Max retry attempts for transient errors (0-10, default: 3, env: HACKY_TASK_RETRY_MAX_ATTEMPTS)',
+      process.env.HACKY_TASK_RETRY_MAX_ATTEMPTS ?? '3'
+    )
+    .option(
+      '--retry-backoff <ms>',
+      'Base delay before first retry in ms (100-60000, default: 1000)',
+      '1000'
+    )
+    .option(
+      '--retry',
+      'Enable automatic retry for all tasks (default: enabled)',
+      true
+    )
+    .option(
+      '--no-retry',
+      'Disable automatic retry for all tasks',
+      false
     )
     // Progress mode with choices
     .addOption(
@@ -435,7 +473,38 @@ export function parseCLIArgs():
   // Store validated number value
   options.researchConcurrency = researchConcurrency;
 
-  return options as ValidatedCLIArgs;
+  // Validate task-retry
+  if (options.taskRetry !== undefined) {
+    const taskRetryStr = String(options.taskRetry);
+    const taskRetry = parseInt(taskRetryStr, 10);
+
+    if (isNaN(taskRetry) || taskRetry < 0 || taskRetry > 10) {
+      logger.error('--task-retry must be an integer between 0 and 10');
+      process.exit(1);
+    }
+
+    // Convert to number
+    options.taskRetry = taskRetry;
+  }
+
+  // Validate retry-backoff
+  if (options.retryBackoff !== undefined) {
+    const retryBackoffStr = String(options.retryBackoff);
+    const retryBackoff = parseInt(retryBackoffStr, 10);
+
+    if (isNaN(retryBackoff) || retryBackoff < 100 || retryBackoff > 60000) {
+      logger.error('--retry-backoff must be an integer between 100 and 60000');
+      process.exit(1);
+    }
+
+    // Convert to number
+    options.retryBackoff = retryBackoff;
+  }
+
+  // Compute noRetry from retry (invert the boolean)
+  const noRetry = !options.retry;
+
+  return { ...options, noRetry } as ValidatedCLIArgs;
 }
 
 /**

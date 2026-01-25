@@ -238,6 +238,15 @@ export class PRPPipeline extends Workflow {
   /** Research queue concurrency limit for parallel PRP generation */
   readonly #researchQueueConcurrency: number = 3;
 
+  /** Max retry attempts for tasks (from CLI) */
+  readonly #taskRetry?: number;
+
+  /** Base delay before first retry in ms (from CLI) */
+  readonly #retryBackoff?: number;
+
+  /** Disable automatic retry for all tasks (from CLI) */
+  readonly #noRetry: boolean = false;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -256,6 +265,9 @@ export class PRPPipeline extends Workflow {
    * @param progressMode - Progress display mode: 'auto', 'always', or 'never' (default: 'auto')
    * @param parallelism - Max concurrent subtasks (1-10, default: 2)
    * @param researchQueueConcurrency - Max concurrent research tasks (1-10, default: 3)
+   * @param taskRetry - Max retry attempts for tasks (0-10, default: 3)
+   * @param retryBackoff - Base delay before first retry in ms (100-60000, default: 1000)
+   * @param noRetry - Disable automatic retry for all tasks (default: false)
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -270,7 +282,10 @@ export class PRPPipeline extends Workflow {
     planDir?: string,
     progressMode: 'auto' | 'always' | 'never' = 'auto',
     parallelism: number = 2,
-    researchQueueConcurrency: number = 3
+    researchQueueConcurrency: number = 3,
+    taskRetry?: number,
+    retryBackoff?: number,
+    noRetry: boolean = false
   ) {
     super('PRPPipeline');
 
@@ -293,6 +308,9 @@ export class PRPPipeline extends Workflow {
     this.#progressMode = progressMode;
     this.#parallelism = parallelism;
     this.#researchQueueConcurrency = researchQueueConcurrency;
+    this.#taskRetry = taskRetry;
+    this.#retryBackoff = retryBackoff;
+    this.#noRetry = noRetry;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations
@@ -465,11 +483,24 @@ export class PRPPipeline extends Workflow {
       );
 
       // Create TaskOrchestrator now that session is initialized
+      // Build retry config from CLI options
+      // Use undefined for unspecified values to allow TaskRetryManager defaults
+      const retryConfig: {
+        maxAttempts?: number;
+        baseDelay?: number;
+        enabled?: boolean;
+      } = {
+        maxAttempts: this.#taskRetry,
+        baseDelay: this.#retryBackoff,
+        enabled: !this.#noRetry,
+      };
+
       this.taskOrchestrator = new TaskOrchestratorClass(
         this.sessionManager,
         this.#scope,
         this.#noCache,
-        this.#researchQueueConcurrency
+        this.#researchQueueConcurrency,
+        retryConfig
       );
 
       // Check for PRD changes and handle delta if needed

@@ -211,7 +211,10 @@ async function main(): Promise<number> {
     undefined, // planDir - use default
     args.progressMode ?? 'auto',
     args.parallelism,
-    args.researchConcurrency
+    args.researchConcurrency,
+    args.taskRetry,
+    args.retryBackoff,
+    args.noRetry
   );
 
   // Run pipeline
