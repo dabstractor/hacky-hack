@@ -18,7 +18,7 @@
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Fix ResearchQueue Constructor Signature",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Update TaskOrchestrator and all test files to use the correct ResearchQueue constructor signature with all 4 required parameters.",
               "subtasks": [
                 {
@@ -45,7 +45,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
                   "title": "Update ResearchQueue integration tests for constructor consistency",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2"
