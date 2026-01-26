@@ -766,6 +766,23 @@ ${successCriteriaMd}
 ${referencesMd}
 `;
   }
+
+  /**
+   * Gets cache statistics for metrics collection
+   *
+   * @remarks
+   * Returns cache hit/miss statistics for integration with MetricsCollector.
+   *
+   * @returns Cache statistics with hit/miss data
+   */
+  getCacheStats(): { hits: number; misses: number; hitRate: number } {
+    const total = this.#cacheHits + this.#cacheMisses;
+    return {
+      hits: this.#cacheHits,
+      misses: this.#cacheMisses,
+      hitRate: total > 0 ? this.#cacheHits / total : 0,
+    };
+  }
 }
 
 // PATTERN: Export type for convenience

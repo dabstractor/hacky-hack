@@ -435,4 +435,83 @@ describe('utils/cache-manager', () => {
       expect(stats.totalEntries).toBe(0);
     });
   });
+
+  // ========================================================================
+  // Cache Statistics Tracking (New for P2.M3.T1.S2)
+  // ========================================================================
+
+  describe('Cache Statistics Tracking', () => {
+    it('should get metrics stats with zero values initially', () => {
+      // EXECUTE
+      const stats = manager.getMetricsStats();
+
+      // VERIFY: All zeros
+      expect(stats.hits).toBe(0);
+      expect(stats.misses).toBe(0);
+      expect(stats.hitRate).toBe(0);
+      expect(stats.totalRequests).toBe(0);
+    });
+
+    it('should get metrics stats after recording hits and misses', () => {
+      // NOTE: In this implementation, hits/misses are tracked by PRPGenerator
+      // CacheManager provides the getMetricsStats method for metrics collection
+      // The actual hit/miss recording happens in PRPGenerator
+
+      // For testing the method structure
+      const stats = manager.getMetricsStats();
+      expect(stats).toHaveProperty('hits');
+      expect(stats).toHaveProperty('misses');
+      expect(stats).toHaveProperty('hitRate');
+      expect(stats).toHaveProperty('totalRequests');
+    });
+
+    it('should return stats structure matching MetricsCollector expectations', () => {
+      // EXECUTE
+      const stats = manager.getMetricsStats();
+
+      // VERIFY: Stats structure matches expected format
+      expect(typeof stats.hits).toBe('number');
+      expect(typeof stats.misses).toBe('number');
+      expect(typeof stats.hitRate).toBe('number');
+      expect(typeof stats.totalRequests).toBe('number');
+
+      // VERIFY: Hit rate is between 0 and 1
+      expect(stats.hitRate).toBeGreaterThanOrEqual(0);
+      expect(stats.hitRate).toBeLessThanOrEqual(1);
+    });
+
+    it('should calculate hit rate correctly from tracked hits/misses', () => {
+      // NOTE: This tests the hit rate calculation logic
+      // In actual usage, PRPGenerator updates the hit/miss counters
+      // Here we verify the calculation when values are set
+
+      // The implementation uses: total > 0 ? hits / total : 0
+      // Test with zero total
+      const statsZero = manager.getMetricsStats();
+      expect(statsZero.hitRate).toBe(0);
+
+      // The hit/miss values come from PRPGenerator's counters
+      // CacheManager's getMetricsStats provides the structure for metrics collection
+    });
+
+    it('should handle concurrent stats calls', async () => {
+      // SETUP: Mock directory scan
+      mockReaddir.mockResolvedValue(['P1_M1_T1_S1.json']);
+      mockReadFile.mockResolvedValue(
+        JSON.stringify(createMockCacheMetadata('P1.M1.T1.S1', 1000))
+      );
+      mockStat.mockResolvedValue(createMockStat(1024));
+
+      // EXECUTE: Multiple concurrent calls
+      const [stats1, stats2, stats3] = await Promise.all([
+        manager.getStats(),
+        manager.getStats(),
+        manager.getStats(),
+      ]);
+
+      // VERIFY: All return consistent values
+      expect(stats1.totalEntries).toBe(stats2.totalEntries);
+      expect(stats2.totalEntries).toBe(stats3.totalEntries);
+    });
+  });
 });

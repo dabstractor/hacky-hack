@@ -136,6 +136,9 @@ export interface CLIArgs {
 
   /** Auto-clean expired cache on startup */
   cachePrune?: boolean;
+
+  /** Path to output metrics JSON file */
+  metricsOutput?: string;
 }
 
 /**
@@ -159,6 +162,7 @@ export interface ValidatedCLIArgs extends Omit<
   | 'noResourceMonitor'
   | 'prpCompression'
   | 'logLevel'
+  | 'metricsOutput'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -192,6 +196,9 @@ export interface ValidatedCLIArgs extends Omit<
 
   /** Log level - validated as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' */
   logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+
+  /** Path to output metrics JSON file */
+  metricsOutput?: string;
 }
 
 // ===== MAIN FUNCTION =====
@@ -328,6 +335,7 @@ export function parseCLIArgs():
       process.env.HACKY_PRP_CACHE_TTL ?? '24h'
     )
     .option('--cache-prune', 'Auto-clean expired cache on startup', false)
+    .option('--metrics-output <path>', 'Path to output metrics JSON file')
     .option(
       '--prp-compression <level>',
       'PRP compression level (off|standard|aggressive, default: standard)',

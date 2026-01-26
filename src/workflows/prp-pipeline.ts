@@ -43,6 +43,7 @@ import { progressTracker, type ProgressTracker } from '../utils/progress.js';
 import { ProgressDisplay } from '../utils/progress-display.js';
 import { retryAgentPrompt } from '../utils/retry.js';
 import { ResourceMonitor } from '../utils/resource-monitor.js';
+import { MetricsCollector } from '../utils/metrics-collector.js';
 
 /**
  * Result returned by PRPPipeline.run()
@@ -262,6 +263,12 @@ export class PRPPipeline extends Workflow {
   /** PRP compression level (from CLI) */
   readonly #prpCompression: 'off' | 'standard' | 'aggressive' = 'standard';
 
+  /** Optional metrics output path for JSON metrics export */
+  readonly #metricsOutputPath?: string;
+
+  /** Metrics collector for performance tracking */
+  #metricsCollector?: MetricsCollector;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -289,6 +296,7 @@ export class PRPPipeline extends Workflow {
    * @param flushRetries - Max retries for batch write failures (0-10, default: 3)
    * @param cacheTtl - PRP cache TTL in milliseconds (default: 24 hours)
    * @param prpCompression - PRP compression level (default: 'standard')
+   * @param metricsOutputPath - Optional path for JSON metrics export
    * @throws {Error} If prdPath is empty
    */
   constructor(
@@ -311,7 +319,8 @@ export class PRPPipeline extends Workflow {
     noRetry: boolean = false,
     flushRetries?: number,
     cacheTtl: number = 24 * 60 * 60 * 1000,
-    prpCompression: 'off' | 'standard' | 'aggressive' = 'standard'
+    prpCompression: 'off' | 'standard' | 'aggressive' = 'standard',
+    metricsOutputPath?: string
   ) {
     super('PRPPipeline');
 
@@ -342,6 +351,7 @@ export class PRPPipeline extends Workflow {
     this.#flushRetries = flushRetries;
     this.#cacheTtl = cacheTtl;
     this.#prpCompression = prpCompression;
+    this.#metricsOutputPath = metricsOutputPath;
 
     // SessionManager and TaskOrchestrator will be created in run() to catch initialization errors
     // Using definite assignment assertion (!) in property declarations
@@ -518,6 +528,15 @@ export class PRPPipeline extends Workflow {
       this.logger.info(
         `[PRPPipeline] Existing: ${session.taskRegistry.backlog.length > 0}`
       );
+
+      // Initialize MetricsCollector if metrics output path is provided
+      if (this.#metricsOutputPath) {
+        const metricsLogger = getLogger('MetricsCollector');
+        this.#metricsCollector = new MetricsCollector(metricsLogger);
+        this.logger.info('[PRPPipeline] Metrics collector initialized', {
+          outputPath: this.#metricsOutputPath,
+        });
+      }
 
       // Create TaskOrchestrator now that session is initialized
       // Build retry config from CLI options
@@ -1802,6 +1821,9 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       // GENERATE: Error report if any failures occurred
       await this.#generateErrorReport();
 
+      // EXPORT: Metrics if output path is specified
+      await this.#exportMetrics();
+
       return {
         success: this.#failedTasks.size === 0,
         hasFailures: this.#failedTasks.size > 0,
@@ -1835,6 +1857,9 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
 
       // GENERATE: Error report even on fatal error
       await this.#generateErrorReport();
+
+      // EXPORT: Metrics even on failure
+      await this.#exportMetrics();
 
       return {
         success: false,
@@ -1955,5 +1980,45 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       completedMilestones: phase.milestones.filter(m => m.status === 'Complete')
         .length,
     }));
+  }
+
+  /**
+   * Exports metrics to JSON file if metrics collector is initialized
+   *
+   * @remarks
+   * Collects cache statistics and resource data from the pipeline
+   * and exports the complete metrics snapshot to the specified output path.
+   *
+   * @private
+   */
+  async #exportMetrics(): Promise<void> {
+    if (!this.#metricsCollector || !this.#metricsOutputPath) {
+      return;
+    }
+
+    try {
+      // Get final metrics snapshot
+      const snapshot = this.#metricsCollector.getSnapshot();
+
+      // Update metadata with pipeline context
+      snapshot.metadata.sessionPath =
+        this.sessionManager?.currentSession?.metadata.path ?? '';
+      snapshot.metadata.correlationId = this.#correlationId;
+
+      // Export to file
+      await this.#metricsCollector.exportToFile(this.#metricsOutputPath);
+
+      this.logger.info('[PRPPipeline] Metrics exported successfully', {
+        path: this.#metricsOutputPath,
+        taskTimings: Object.keys(snapshot.taskTimings).length,
+        resourceSnapshots: snapshot.resourceSnapshots.length,
+      });
+    } catch (error) {
+      // Log but don't fail pipeline
+      this.logger.warn('[PRPPipeline] Failed to export metrics', {
+        error: error instanceof Error ? error.message : String(error),
+        path: this.#metricsOutputPath,
+      });
+    }
   }
 }

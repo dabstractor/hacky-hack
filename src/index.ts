@@ -219,7 +219,8 @@ async function main(): Promise<number> {
     args.noRetry,
     args.flushRetries,
     args.cacheTtl,
-    args.prpCompression
+    args.prpCompression,
+    args.metricsOutput
   );
 
   // Run pipeline

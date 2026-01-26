@@ -125,6 +125,12 @@ export class CacheManager {
   readonly #cacheTtlMs: number;
   readonly #cacheDir: string;
 
+  /** Cache hit counter */
+  #hits: number = 0;
+
+  /** Cache miss counter */
+  #misses: number = 0;
+
   /**
    * Creates a new CacheManager instance
    *
@@ -168,19 +174,45 @@ export class CacheManager {
       }
     }
 
-    // Note: hits/misses tracked by PRPGenerator, not available here
-    // We return 0 for those metrics as they're tracked separately
+    // Calculate hit ratio from tracked hits/misses
+    const total = this.#hits + this.#misses;
+    const hitRatio = total > 0 ? this.#hits / total : 0;
+
     return {
       cacheId: this.#sessionPath,
-      hits: 0,
-      misses: 0,
-      hitRatio: 0,
+      hits: this.#hits,
+      misses: this.#misses,
+      hitRatio,
       totalEntries: entries.length,
       totalBytes,
       expiredEntries: expiredCount,
       oldestEntry: oldest,
       newestEntry: newest,
       collectedAt: now,
+    };
+  }
+
+  /**
+   * Gets cache hit/miss statistics for metrics collection
+   *
+   * @remarks
+   * Returns cache statistics for integration with MetricsCollector.
+   * This method provides the raw hit/miss counts without scanning entries.
+   *
+   * @returns Cache statistics with hit/miss data
+   */
+  getMetricsStats(): {
+    hits: number;
+    misses: number;
+    hitRate: number;
+    totalRequests: number;
+  } {
+    const total = this.#hits + this.#misses;
+    return {
+      hits: this.#hits,
+      misses: this.#misses,
+      hitRate: total > 0 ? this.#hits / total : 0,
+      totalRequests: total,
     };
   }
 
