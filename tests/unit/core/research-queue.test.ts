@@ -98,6 +98,11 @@ const createMockSessionManager = (currentSession: any): SessionManager => {
   return mockManager;
 };
 
+// Test constants for ResearchQueue constructor parameters
+const DEFAULT_MAX_SIZE = 3;
+const DEFAULT_NO_CACHE = false;
+const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 describe('ResearchQueue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -127,7 +132,12 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
       expect(queue.sessionManager).toBe(mockManager);
@@ -156,7 +166,12 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      const queue = new ResearchQueue(mockManager, 5);
+      const queue = new ResearchQueue(
+        mockManager,
+        5,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
       expect(queue.maxSize).toBe(5);
@@ -185,7 +200,12 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      const queue = new ResearchQueue(mockManager, 1);
+      const queue = new ResearchQueue(
+        mockManager,
+        1,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
       expect(queue.maxSize).toBe(1);
@@ -214,7 +234,12 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      const queue = new ResearchQueue(mockManager, 10);
+      const queue = new ResearchQueue(
+        mockManager,
+        10,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
       expect(queue.maxSize).toBe(10);
@@ -243,7 +268,12 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      const queue = new ResearchQueue(mockManager);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
       expect(queue.maxSize).toBe(3);
@@ -272,10 +302,19 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      new ResearchQueue(mockManager, 3);
+      new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
-      expect(MockPRPGenerator).toHaveBeenCalledWith(mockManager, false, 86400000);
+      expect(MockPRPGenerator).toHaveBeenCalledWith(
+        mockManager,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
     });
 
     it('should initialize with empty queue, researching, and results', () => {
@@ -301,12 +340,136 @@ describe('ResearchQueue', () => {
       }));
 
       // EXECUTE
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY
       expect(queue.queue).toEqual([]);
       expect(queue.researching.size).toBe(0);
       expect(queue.results.size).toBe(0);
+    });
+  });
+
+  describe('noCache parameter', () => {
+    it('should forward noCache=true to PRPGenerator', () => {
+      // SETUP
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: createTestBacklog([]),
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const mockGenerate = vi
+        .fn()
+        .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+      MockPRPGenerator.mockImplementation(() => ({
+        generate: mockGenerate,
+      }));
+
+      // EXECUTE
+      new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        true,
+        DEFAULT_CACHE_TTL_MS
+      );
+
+      // VERIFY
+      expect(MockPRPGenerator).toHaveBeenCalledWith(
+        mockManager,
+        true,
+        DEFAULT_CACHE_TTL_MS
+      );
+    });
+  });
+
+  describe('cacheTtlMs parameter', () => {
+    it('should forward custom cacheTtlMs to PRPGenerator', () => {
+      // SETUP
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: createTestBacklog([]),
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const mockGenerate = vi
+        .fn()
+        .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+      MockPRPGenerator.mockImplementation(() => ({
+        generate: mockGenerate,
+      }));
+      const customTtl = 12 * 60 * 60 * 1000; // 12 hours
+
+      // EXECUTE
+      new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        customTtl
+      );
+
+      // VERIFY
+      expect(MockPRPGenerator).toHaveBeenCalledWith(
+        mockManager,
+        DEFAULT_NO_CACHE,
+        customTtl
+      );
+    });
+
+    it('should use default cacheTtlMs when not specified', () => {
+      // SETUP
+      const currentSession = {
+        metadata: {
+          id: '001_14b9dc2a33c7',
+          hash: '14b9dc2a33c7',
+          path: '/plan/001_14b9dc2a33c7',
+          createdAt: new Date(),
+          parentSession: null,
+        },
+        prdSnapshot: '# Test PRD',
+        taskRegistry: createTestBacklog([]),
+        currentItemId: null,
+      };
+      const mockManager = createMockSessionManager(currentSession);
+      const mockGenerate = vi
+        .fn()
+        .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+      MockPRPGenerator.mockImplementation(() => ({
+        generate: mockGenerate,
+      }));
+
+      // EXECUTE
+      new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
+
+      // VERIFY
+      expect(MockPRPGenerator).toHaveBeenCalledWith(
+        mockManager,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
     });
   });
 
@@ -332,7 +495,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 0); // maxSize = 0, no processing
+      const queue = new ResearchQueue(
+        mockManager,
+        0,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // maxSize = 0, no processing
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -364,7 +532,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -397,7 +570,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -435,7 +613,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -472,7 +655,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
       queue.queue.push(task);
@@ -506,7 +694,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 2); // maxSize = 2
+      const queue = new ResearchQueue(
+        mockManager,
+        2,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // maxSize = 2
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
       const task2 = createTestSubtask('P1.M1.T1.S2', 'Task 2', 'Planned');
       const task3 = createTestSubtask('P1.M1.T1.S3', 'Task 3', 'Planned');
@@ -548,7 +741,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       // EXECUTE
@@ -578,7 +776,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -611,7 +814,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -645,7 +853,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 1); // maxSize = 1, serial processing
+      const queue = new ResearchQueue(
+        mockManager,
+        1,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // maxSize = 1, serial processing
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
       const task2 = createTestSubtask('P1.M1.T1.S2', 'Task 2', 'Planned');
       const backlog = createTestBacklog([]);
@@ -696,7 +909,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -728,7 +946,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 0); // maxSize = 0, no processing
+      const queue = new ResearchQueue(
+        mockManager,
+        0,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // maxSize = 0, no processing
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -760,7 +983,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -793,7 +1021,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY: Unknown task should return false
       expect(queue.isResearching('P1.M1.T1.S999')).toBe(false);
@@ -821,7 +1054,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -855,7 +1093,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 0); // maxSize = 0, no processing
+      const queue = new ResearchQueue(
+        mockManager,
+        0,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // maxSize = 0, no processing
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -896,7 +1139,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -929,7 +1177,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY: Unknown task should return null
       const result = queue.getPRP('P1.M1.T1.S999');
@@ -958,7 +1211,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1001,7 +1259,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1035,7 +1298,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1069,7 +1337,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // EXECUTE & VERIFY: Should throw for unknown task
       await expect(queue.waitForPRP('P1.M1.T1.S999')).rejects.toThrow(
@@ -1100,7 +1373,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
       const task2 = createTestSubtask('P1.M1.T1.S2', 'Task 2', 'Planned');
       const backlog = createTestBacklog([]);
@@ -1139,7 +1417,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // EXECUTE
       const stats = queue.getStats();
@@ -1173,7 +1456,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1210,7 +1498,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1256,7 +1549,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1295,7 +1593,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1328,7 +1631,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -1365,7 +1673,12 @@ describe('ResearchQueue', () => {
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
-      const queue = new ResearchQueue(mockManager, 3);
+      const queue = new ResearchQueue(
+        mockManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Subtask', 'Planned');
       const backlog = createTestBacklog([]);
 
