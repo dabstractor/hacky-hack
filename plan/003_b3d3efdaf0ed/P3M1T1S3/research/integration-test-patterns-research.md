@@ -5,6 +5,7 @@
 **Directory:** `/home/dustin/projects/hacky-hack/tests/integration/`
 
 **Key Files:**
+
 - `inspect-command.test.ts` - Tests for `inspect` subcommand
 - `artifacts-command.test.ts` - Tests for `artifacts` subcommand
 - `prd-task-command.test.ts` - Tests for `prd task` command
@@ -78,9 +79,7 @@ describe('Feature Name Integration Tests', () => {
   describe('specific feature', () => {
     it('should do something specific', async () => {
       // SETUP: Arrange test data
-
       // EXECUTE: Run the code being tested
-
       // VERIFY: Assert expected outcomes
     });
   });
@@ -180,7 +179,14 @@ it('should reject parallelism < 1', async () => {
 
 it('should reject parallelism > 10', async () => {
   // SETUP
-  process.argv = ['node', 'script.js', '--prd', 'PRD.md', '--parallelism', '11'];
+  process.argv = [
+    'node',
+    'script.js',
+    '--prd',
+    'PRD.md',
+    '--parallelism',
+    '11',
+  ];
   const mockExit = vi.fn((code: number) => {
     throw new Error(`process.exit(${code})`);
   });
@@ -196,7 +202,14 @@ it('should reject parallelism > 10', async () => {
 ```typescript
 it('should reject non-integer parallelism', async () => {
   // SETUP
-  process.argv = ['node', 'script.js', '--prd', 'PRD.md', '--parallelism', 'abc'];
+  process.argv = [
+    'node',
+    'script.js',
+    '--prd',
+    'PRD.md',
+    '--parallelism',
+    'abc',
+  ];
   const mockExit = vi.fn((code: number) => {
     throw new Error(`process.exit(${code})`);
   });
@@ -240,6 +253,7 @@ it('should warn when parallelism exceeds CPU cores', async () => {
 **New test file:** `tests/integration/parallelism-option.test.ts`
 
 **Import paths:**
+
 - `import { parseCLIArgs, type CLIArgs } from '../../src/cli/index.js';`
 - `import type { ParallelismConfig } from '../../src/core/concurrent-executor.js';`
 

@@ -7,11 +7,13 @@
 **Feature Goal**: Optimize file handle monitoring on macOS by caching lsof results with configurable TTL, reducing CPU overhead while maintaining accurate resource monitoring.
 
 **Deliverable**: Optimized `ResourceMonitor` at `src/utils/resource-monitor.ts` with:
+
 - Platform-specific file handle counting (Linux: /proc, macOS: cached lsof, Windows: skip/handle.exe fallback)
 - Configurable monitoring interval via `--monitor-interval` CLI option
 - Benchmarks in `tests/benchmark/resource-monitoring.bench.ts` to verify performance improvement
 
 **Success Definition**:
+
 - lsof results are cached with configurable TTL (default 1 second, range 100ms-60s)
 - CPU overhead on macOS is reduced by 80%+ compared to uncached implementation
 - All existing tests pass without modification
@@ -25,6 +27,7 @@
 **Use Case**: During extended pipeline sessions (hours to days), resource monitoring prevents system exhaustion from file handle leaks. The current uncached lsof implementation causes significant CPU overhead on macOS.
 
 **User Journey**:
+
 1. User runs pipeline with default settings (30s polling interval)
 2. Resource monitor checks file handles every 30 seconds using cached lsof results
 3. On macOS, lsof is only executed once per cache TTL (default 1 second)
@@ -32,6 +35,7 @@
 5. If cache TTL needs adjustment, user can configure via ResourceConfig
 
 **Pain Points Addressed**:
+
 - **High CPU usage**: Current lsof execution (0.5-2s) every 30s causes sustained CPU load
 - **Blocking execution**: lsof's 5-second timeout can block pipeline progress
 - **No control**: Users cannot adjust monitoring frequency for their use case
@@ -70,6 +74,7 @@ Optimize `ResourceMonitor` to use platform-specific file handle counting with ca
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete ResourceMonitor source code with line numbers
 - Existing test patterns and mocking approach
 - CLI option patterns from src/cli/index.ts
@@ -386,7 +391,9 @@ class FileHandleMonitor {
     // GOTCHA: Try internal API FIRST before checking cache
     // Internal API is already fastest - don't cache it
     try {
-      const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })._getActiveHandles?.();
+      const handles = (
+        process as unknown as { _getActiveHandles?: () => unknown[] }
+      )._getActiveHandles?.();
       if (handles && Array.isArray(handles)) {
         return handles.length; // No cache for internal API
       }
@@ -402,7 +409,7 @@ class FileHandleMonitor {
       const now = Date.now();
       const cached = this.#lsofCache.get(cacheKey);
 
-      if (cached && (now - cached.timestamp) < this.#lsofCacheTtl) {
+      if (cached && now - cached.timestamp < this.#lsofCacheTtl) {
         return cached.count; // Cache hit - return immediately
       }
 
@@ -454,13 +461,21 @@ export interface CLIArgs {
 }
 
 // In parseCLIArgs():
-program
-  .option('--monitor-interval <ms>', 'Resource monitoring interval in milliseconds (1000-60000, default: 30000)')
+program.option(
+  '--monitor-interval <ms>',
+  'Resource monitoring interval in milliseconds (1000-60000, default: 30000)'
+);
 
 // Validation (after line 328):
 if (options.monitorInterval !== undefined) {
-  if (!Number.isInteger(options.monitorInterval) || options.monitorInterval < 1000 || options.monitorInterval > 60000) {
-    logger.error('--monitor-interval must be an integer between 1000 and 60000');
+  if (
+    !Number.isInteger(options.monitorInterval) ||
+    options.monitorInterval < 1000 ||
+    options.monitorInterval > 60000
+  ) {
+    logger.error(
+      '--monitor-interval must be an integer between 1000 and 60000'
+    );
     process.exit(1);
   }
 }

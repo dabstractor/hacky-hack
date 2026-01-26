@@ -15,6 +15,7 @@
 ```
 
 ### Header Components
+
 - **Title**: H1 level (`# Title`)
 - **Description**: Blockquote (`> `) with brief purpose statement
 - **Metadata**: Bold status fields (`**Status**: Published`)
@@ -23,19 +24,22 @@
 ## Table Formatting
 
 ### Standard Table Format
+
 ```markdown
 | Column Header 1 | Column Header 2 | Column Header 3 |
-| -------------- | --------------- | --------------- |
-| Value 1        | Value 2         | Value 3         |
+| --------------- | --------------- | --------------- |
+| Value 1         | Value 2         | Value 3         |
 ```
 
 ### Column Alignment
+
 - Default: Left-aligned for all columns
 - Multi-line content: Place newlines within the same cell
 
 ## Code Block Formatting
 
 ### Language Tags
+
 - `bash` for shell commands
 - `typescript` for TS code
 - `json` for JSON content
@@ -44,6 +48,7 @@
 - `mermaid` for diagrams
 
 ### Example Patterns
+
 ```bash
 # Standard bash command
 npm run dev -- --prd ./PRD.md
@@ -60,12 +65,14 @@ interface Example {
 ## Cross-Reference Linking
 
 ### Internal Document Links
+
 ```markdown
 - **[INSTALLATION.md](./INSTALLATION.md)** - Setup instructions
 - **[Configuration Reference](./CONFIGURATION.md)** - Environment variables
 ```
 
 ### Relative Path Conventions
+
 - Same directory: `./FILENAME.md`
 - Parent directory: `../FILENAME.md`
 - Subdirectories: `PATH/TO/FILE.md`
@@ -73,12 +80,14 @@ interface Example {
 ## Section Organization
 
 ### Hierarchy Structure
+
 1. H1: `# Title`
 2. H2: `## Section`
 3. H3: `### Subsection`
 4. H4: `#### Sub-subsection`
 
 ### Table of Contents Format
+
 ```markdown
 ## Table of Contents
 
@@ -87,6 +96,7 @@ interface Example {
 ```
 
 ### Section Naming Conventions
+
 - Use kebab-case for links (`#quick-reference`)
 - Start with main sections, then detailed subsections
 - Group related concepts under parent sections
@@ -94,6 +104,7 @@ interface Example {
 ## Special Formatting Patterns
 
 ### "What you see/Why it happens/How to fix" Pattern
+
 ```markdown
 ### "Error Message"
 
@@ -108,6 +119,7 @@ interface Example {
 ```
 
 ### Checklists
+
 ```markdown
 **Acceptance Criteria:**
 
@@ -117,17 +129,20 @@ interface Example {
 ```
 
 ### Numbered Lists
-```markdown
+
+````markdown
 1. **Clone the repository**
    ```bash
    git clone https://github.com/...
    ```
+````
 
 2. **Install dependencies**
    ```bash
    npm install
    ```
-```
+
+````
 
 ## Mermaid Diagram Usage
 
@@ -136,9 +151,10 @@ interface Example {
 stateDiagram-v2
     [*] --> Initializing
     Initializing --> New: PRD hash not found
-```
+````
 
 ### Flowchart
+
 ```mermaid
 flowchart LR
     A[PRD.md] --> B[Architect Agent]
@@ -146,6 +162,7 @@ flowchart LR
 ```
 
 ### Sequence Diagram
+
 ```mermaid
 sequenceDiagram
     participant TO as Task Orchestrator
@@ -153,6 +170,7 @@ sequenceDiagram
 ```
 
 ## See Also Section Pattern
+
 ```markdown
 ## See Also
 

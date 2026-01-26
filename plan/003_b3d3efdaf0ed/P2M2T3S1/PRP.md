@@ -14,7 +14,8 @@
 **Deliverable**: Documentation file `docs/TESTING.md` with testing strategy, guidelines, and examples.
 
 **Success Definition**:
-- Documentation follows the established pattern of other docs/*.md files (frontmatter, TOC, sections)
+
+- Documentation follows the established pattern of other docs/\*.md files (frontmatter, TOC, sections)
 - Covers all required topics from the contract: testing philosophy, test structure, unit/integration/e2e tests, mocking strategies, running tests and coverage
 - Includes code examples from the actual codebase
 - Provides clear guidelines for writing new tests
@@ -28,6 +29,7 @@
 **Use Case**: A developer needs to add a new feature and wants to ensure they write tests that follow the project's conventions and meet the 100% coverage requirement.
 
 **User Journey**:
+
 1. Developer reads `docs/TESTING.md` to understand testing philosophy
 2. Reviews test structure section to know where to place new tests
 3. Studies mocking strategies to avoid external dependencies
@@ -35,6 +37,7 @@
 5. Runs tests and coverage to verify compliance
 
 **Pain Points Addressed**:
+
 - Uncertainty about where to place tests (unit vs integration vs e2e)
 - Confusion about how to mock Groundswell agents, file system, and git operations
 - Lack of clear examples showing actual project test patterns
@@ -56,33 +59,39 @@
 Create `docs/TESTING.md` with the following sections:
 
 ### Testing Philosophy
+
 - 100% coverage requirement (statements, branches, functions, lines)
 - Deterministic testing (no external dependencies during tests)
 - Test isolation (proper setup/teardown and cleanup)
 - Layered testing approach (unit, integration, e2e)
 
 ### Test Structure and Organization
+
 - Directory structure: `tests/unit/`, `tests/integration/`, `tests/e2e/`, `tests/fixtures/`
 - File naming conventions: `*.test.ts`, `*.spec.ts`
 - Test organization mirroring source code structure
 
 ### Unit vs Integration vs E2E Tests
+
 - Unit tests: Single component testing in `tests/unit/`
 - Integration tests: Multi-component testing in `tests/integration/`
 - E2E tests: Full workflow testing in `tests/e2e/`
 
 ### Mocking Strategies
+
 - Groundswell agent mocking pattern (preserve exports with `vi.importActual`)
 - File system mocking (`node:fs`, `node:fs/promises`)
 - Git mocking (`simple-git`)
 - Environment variable stubbing (`vi.stubEnv`)
 
 ### Running Tests and Coverage Reports
+
 - Test commands: `npm test`, `npm run test:coverage`, `npm run test:watch`
 - Coverage thresholds and requirements
 - Debugging tests
 
 ### Test Writing Guidelines
+
 - AAA pattern (Arrange-Act-Assert)
 - Test naming conventions
 - Test file template
@@ -372,41 +381,53 @@ Task 9: VALIDATE documentation completeness
 # Documentation Pattern (from docs/ARCHITECTURE.md)
 
 ## Frontmatter (required at top of file)
+
 **Status**: Published
 **Last Updated**: 2026-01-23
 **Version**: 1.0.0
 
 ## Table of Contents (required after frontmatter)
+
 - [Section 1](#section-1)
 - [Section 2](#section-2)
-...
+  ...
 
 ## Section Headers
+
 # Title (H1, once at top)
+
 ## Main Section (H2)
+
 ### Subsection (H3)
+
 #### Detail (H4)
 
 ## Code Examples
+
 \`\`\`typescript
 // Code with syntax highlighting
 \`\`\`
 
 ## Diagrams (use Mermaid.js)
+
 \`\`\`mermaid
 flowchart LR
-    A --> B
+A --> B
 \`\`\`
 
 ## File References
+
 Use relative paths: \`../src/core/session-manager.ts\`
 Or absolute paths: \`tests/integration/agents.test.ts\`
 
 ## See Also Section (at end)
+
 ### Project Documentation
+
 - **[Related Doc](./path/to/doc.md)** - Description
 
 ### External References
+
 - [Vitest Documentation](https://vitest.dev/guide/)
 ```
 
@@ -452,7 +473,7 @@ npx markdownlint-cli2 docs/TESTING.md 2>&1 || echo "markdownlint not configured"
 
 ### Level 2: Content Validation (Quality Check)
 
-```bash
+````bash
 # Verify code examples are from actual files
 grep -q "tests/integration/agents.test.ts" docs/TESTING.md
 grep -q "tests/unit/agents/agent-factory.test.ts" docs/TESTING.md
@@ -468,7 +489,7 @@ grep -q "vitest.dev" docs/TESTING.md
 grep -c '```typescript' docs/TESTING.md
 
 # Expected: All references are accurate, code examples are present
-```
+````
 
 ### Level 3: Documentation Consistency (Style Check)
 
@@ -581,6 +602,7 @@ tail -50 docs/TESTING.md   # Check See Also section
 ### Documentation Style Reference
 
 Use **docs/ARCHITECTURE.md** as the primary style reference:
+
 - Frontmatter format
 - TOC structure
 - Section organization
@@ -591,6 +613,7 @@ Use **docs/ARCHITECTURE.md** as the primary style reference:
 ### Coverage Requirement Reference
 
 From **vitest.config.ts**:
+
 ```typescript
 coverage: {
   provider: 'v8',

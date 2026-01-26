@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive agent prompt engineering guide (`docs/PROMPT_ENGINEERING.md`) that documents the prompt design principles, patterns, and best practices used across the four critical agent prompts in the PRP Pipeline (Task Breakdown, PRP Creation, PRP Execution, Bug Finding), enabling developers to understand, modify, and extend agent prompts effectively.
 
 **Deliverable**: Documentation file `docs/PROMPT_ENGINEERING.md` containing:
+
 - Prompt structure and components (role/persona, task specification, process instructions, output format, constraints)
 - Role definition and persona design patterns
 - Process instruction patterns (sequential, conditional, parallel, hierarchical)
@@ -23,6 +24,7 @@
 - Cross-references to related documentation
 
 **Success Definition**:
+
 - A new developer can understand how agent prompts are structured in the PRP Pipeline
 - All four agent prompt types are documented with real examples from PROMPTS.md
 - Prompt components are explained with code references
@@ -34,6 +36,7 @@
 ## User Persona
 
 **Target User**: Developer or contributor who needs to:
+
 - Understand the PRP Pipeline's agent prompt architecture
 - Modify existing agent prompts for improved performance
 - Create new agent personas with effective prompts
@@ -41,6 +44,7 @@
 - Extend the system with custom agent prompts
 
 **Use Case**: User needs to understand:
+
 - How are agent prompts structured in this project?
 - What are the four critical prompts and what do they do?
 - How do I write an effective agent persona?
@@ -49,6 +53,7 @@
 - How do I iterate and test prompts?
 
 **User Journey**:
+
 1. User opens docs/PROMPT_ENGINEERING.md to understand prompt design
 2. User learns about prompt structure and components
 3. User studies role definition and persona patterns
@@ -59,6 +64,7 @@
 8. User can now create or modify agent prompts effectively
 
 **Pain Points Addressed**:
+
 - "How do I structure an agent prompt?" - Prompt structure section
 - "What makes a good persona?" - Role definition section
 - "How do I get JSON output?" - Output format section
@@ -102,6 +108,7 @@ Create docs/PROMPT_ENGINEERING.md with comprehensive prompt engineering document
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete PROMPTS.md content with all four critical prompts
 - Agent factory pattern with all four personas from codebase
 - Prompt generator implementation patterns (architect-prompt.ts, prp-blueprint-prompt.ts, bug-hunt-prompt.ts, delta-analysis-prompt.ts)
@@ -370,10 +377,11 @@ Task 10: VALIDATE documentation quality
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Documentation Style Guidelines (follow existing patterns)
 
 # Header Pattern
+
 > Brief one-sentence description
 
 **Status**: Published
@@ -381,26 +389,33 @@ Task 10: VALIDATE documentation quality
 **Version**: 1.0.0
 
 # Section Headers
+
 ## Section Name
+
 ### Subsection Name
 
 # Code Examples
+
 ```typescript
 // Include file path comment
 // src/agents/prompts.ts
 
-export const TASK_BREAKDOWN_PROMPT = `...`
+export const TASK_BREAKDOWN_PROMPT = `...`;
 ```
+````
 
 # Cross-References
+
 See [Architect Prompt Generator](../src/agents/prompts/architect-prompt.ts) for implementation details.
 
 # Tables
-| Prompt | Agent | Purpose | Output Schema |
-|--------|-------|---------|---------------|
+
+| Prompt         | Agent     | Purpose      | Output Schema |
+| -------------- | --------- | ------------ | ------------- |
 | TASK_BREAKDOWN | Architect | PRD analysis | BacklogSchema |
 
 # Callouts
+
 > **Note**: Critical information uses blockquote format.
 
 **CRITICAL**: Use emphasis for critical implementation details.
@@ -408,8 +423,10 @@ See [Architect Prompt Generator](../src/agents/prompts/architect-prompt.ts) for 
 **GOTCHA**: Highlight common pitfalls.
 
 # External Links
+
 [Anthropic Prompt Engineering Guide](https://docs.anthropic.com/claude/docs/prompt-engineering)
-```
+
+````
 
 ### Integration Points
 
@@ -425,7 +442,7 @@ CROSS-REFERENCES:
   - Link to src/agents/prompts/*.ts for generator implementations
   - Link to src/agents/agent-factory.ts for persona configurations
   - Link to PROMPTS.md for original prompt definitions
-```
+````
 
 ---
 

@@ -44,19 +44,23 @@ describe('Logger utility', () => {
   // ========================================================================
 
   describe('LogLevel enum', () => {
-    it('should export all four log levels', () => {
+    it('should export all six log levels', () => {
+      expect(LogLevel.TRACE).toBe('trace');
       expect(LogLevel.DEBUG).toBe('debug');
       expect(LogLevel.INFO).toBe('info');
       expect(LogLevel.WARN).toBe('warn');
       expect(LogLevel.ERROR).toBe('error');
+      expect(LogLevel.FATAL).toBe('fatal');
     });
 
     it('should have correct string values for pino compatibility', () => {
       expect(Object.values(LogLevel)).toEqual([
+        'trace',
         'debug',
         'info',
         'warn',
         'error',
+        'fatal',
       ]);
     });
   });
@@ -69,10 +73,12 @@ describe('Logger utility', () => {
     it('should return a Logger interface', () => {
       const logger = getLogger('TestContext');
       expect(logger).toBeDefined();
+      expect(typeof logger.trace).toBe('function');
       expect(typeof logger.debug).toBe('function');
       expect(typeof logger.info).toBe('function');
       expect(typeof logger.warn).toBe('function');
       expect(typeof logger.error).toBe('function');
+      expect(typeof logger.fatal).toBe('function');
       expect(typeof logger.child).toBe('function');
     });
 
@@ -169,10 +175,12 @@ describe('Logger utility', () => {
     it('should preserve logger interface in child', () => {
       const parent = getLogger('ParentContext');
       const child = parent.child({ key: 'value' });
+      expect(typeof child.trace).toBe('function');
       expect(typeof child.debug).toBe('function');
       expect(typeof child.info).toBe('function');
       expect(typeof child.warn).toBe('function');
       expect(typeof child.error).toBe('function');
+      expect(typeof child.fatal).toBe('function');
       expect(typeof child.child).toBe('function');
     });
   });

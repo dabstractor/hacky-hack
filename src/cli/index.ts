@@ -53,7 +53,8 @@ const logger = getLogger('CLI');
  * @property mode - Execution mode: normal, bug-hunt, or validate
  * @property continue - Resume from previous session
  * @property dryRun - Show plan without executing
- * @property verbose - Enable debug logging
+ * @property logLevel - Log level: trace, debug, info, warn, error, fatal
+ * @property verbose - Enable debug logging (deprecated: use --log-level debug)
  * @property machineReadable - Enable machine-readable JSON output
  * @property progressMode - Progress display mode: auto, always, or never
  */
@@ -72,6 +73,9 @@ export interface CLIArgs {
 
   /** Show plan without executing */
   dryRun: boolean;
+
+  /** Log level: trace, debug, info, warn, error, fatal - may be string from commander */
+  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | string;
 
   /** Enable debug logging */
   verbose: boolean;
@@ -140,6 +144,7 @@ export interface CLIArgs {
  * @remarks
  * This is the type returned by parseCLIArgs() after validation.
  * The parallelism value is parsed and validated as a number.
+ * The logLevel value is validated as a proper log level string.
  */
 export interface ValidatedCLIArgs extends Omit<
   CLIArgs,
@@ -153,6 +158,7 @@ export interface ValidatedCLIArgs extends Omit<
   | 'monitorTaskInterval'
   | 'noResourceMonitor'
   | 'prpCompression'
+  | 'logLevel'
 > {
   /** Max concurrent subtasks (1-10, default: 2) - validated as number */
   parallelism: number;
@@ -183,6 +189,9 @@ export interface ValidatedCLIArgs extends Omit<
 
   /** PRP compression level - validated as 'off' | 'standard' | 'aggressive' */
   prpCompression: 'off' | 'standard' | 'aggressive';
+
+  /** Log level - validated as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' */
+  logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 }
 
 // ===== MAIN FUNCTION =====
@@ -249,7 +258,21 @@ export function parseCLIArgs():
     // Boolean flags with explicit defaults
     .option('--continue', 'Resume from previous session', false)
     .option('--dry-run', 'Show plan without executing', false)
-    .option('--verbose', 'Enable debug logging', false)
+    .option(
+      '--verbose',
+      'Enable debug logging (deprecated: use --log-level debug)',
+      false
+    )
+    // Log level with choices and environment variable
+    .addOption(
+      program
+        .createOption(
+          '--log-level <level>',
+          'Minimum log level (env: HACKY_LOG_LEVEL)'
+        )
+        .choices(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
+        .default(process.env.HACKY_LOG_LEVEL ?? 'info')
+    )
     .option('--machine-readable', 'Enable machine-readable JSON output', false)
     .option('--no-cache', 'Bypass cache and regenerate all PRPs', false)
     .option('--continue-on-error', 'Treat all errors as non-fatal', false)
@@ -748,11 +771,40 @@ export function parseCLIArgs():
   // Compute noRetry from retry (invert the boolean)
   const noRetry = !options.retry;
 
+  // Validate and normalize log level
+  let validatedLogLevel:
+    | 'trace'
+    | 'debug'
+    | 'info'
+    | 'warn'
+    | 'error'
+    | 'fatal';
+  if (options.logLevel !== undefined) {
+    const logLevelStr = String(options.logLevel).toLowerCase();
+    const validLevels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
+    if (!validLevels.includes(logLevelStr)) {
+      logger.error(
+        `Invalid --log-level value: "${options.logLevel}". Must be one of: ${validLevels.join(', ')}`
+      );
+      process.exit(1);
+    }
+    validatedLogLevel = logLevelStr as
+      | 'trace'
+      | 'debug'
+      | 'info'
+      | 'warn'
+      | 'error'
+      | 'fatal';
+  } else {
+    validatedLogLevel = 'info'; // Default
+  }
+
   return {
     ...options,
     noRetry,
     cacheTtl: validatedCacheTtl,
     prpCompression: validatedPrpCompression,
+    logLevel: validatedLogLevel,
   } as ValidatedCLIArgs;
 }
 

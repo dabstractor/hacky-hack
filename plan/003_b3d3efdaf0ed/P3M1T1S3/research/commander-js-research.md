@@ -15,40 +15,55 @@
 import { Command } from 'commander';
 
 // Pattern 1: Inline validator function
-program
-  .option('--parallelism <number>', 'Max concurrent subtasks (1-10, default: 2)', (value) => {
+program.option(
+  '--parallelism <number>',
+  'Max concurrent subtasks (1-10, default: 2)',
+  value => {
     const num = parseInt(value, 10);
     if (isNaN(num)) {
       throw new Error(`Parallelism must be a valid integer: ${value}`);
     }
     if (num < 1 || num > 10) {
-      throw new Error(`Parallelism must be between 1 and 10 (received: ${num})`);
+      throw new Error(
+        `Parallelism must be between 1 and 10 (received: ${num})`
+      );
     }
     return num;
-  }, 2);  // Default value
+  },
+  2
+); // Default value
 ```
 
 ### Reusable Validator Factory
 
 ```typescript
 // Create reusable range validator
-function createRangeValidator(min: number, max: number, paramName: string = 'value') {
+function createRangeValidator(
+  min: number,
+  max: number,
+  paramName: string = 'value'
+) {
   return (value: string) => {
     const num = parseInt(value, 10);
     if (isNaN(num)) {
       throw new Error(`${paramName} must be a valid integer: ${value}`);
     }
     if (num < min || num > max) {
-      throw new Error(`${paramName} must be between ${min} and ${max} (received: ${num})`);
+      throw new Error(
+        `${paramName} must be between ${min} and ${max} (received: ${num})`
+      );
     }
     return num;
   };
 }
 
 // Usage
-program
-  .option('--parallelism <n>', 'Max concurrent subtasks (1-10, default: 2)',
-    createRangeValidator(1, 10, 'parallelism'), 2);
+program.option(
+  '--parallelism <n>',
+  'Max concurrent subtasks (1-10, default: 2)',
+  createRangeValidator(1, 10, 'parallelism'),
+  2
+);
 ```
 
 ## System Resource Validation
@@ -69,13 +84,15 @@ function validateWorkerCount(value: string): number {
   if (workers > availableCores) {
     throw new Error(
       `Cannot use ${workers} workers - only ${availableCores} CPU cores available.\n` +
-      `Recommended: ${Math.max(1, availableCores - 1)}`
+        `Recommended: ${Math.max(1, availableCores - 1)}`
     );
   }
 
   // Warning for using all cores
   if (workers === availableCores) {
-    console.warn(`⚠️  Warning: Using all ${availableCores} CPU cores may affect system responsiveness`);
+    console.warn(
+      `⚠️  Warning: Using all ${availableCores} CPU cores may affect system responsiveness`
+    );
   }
 
   return workers;
@@ -96,16 +113,20 @@ function validateWithResourceWarning(value: string): number {
 
   // CPU warning
   if (parallelism > systemInfo.cpuCores) {
-    console.warn(`⚠️  Warning: Parallelism (${parallelism}) exceeds CPU cores (${systemInfo.cpuCores})`);
+    console.warn(
+      `⚠️  Warning: Parallelism (${parallelism}) exceeds CPU cores (${systemInfo.cpuCores})`
+    );
     console.warn(`   Recommended: --parallelism ${systemInfo.cpuCores - 1}`);
   }
 
   // Memory warning
   const estimatedMemory = parallelism * 500; // MB per worker
-  const availableMemoryGB = (os.freemem() / (1024 ** 3)).toFixed(1);
+  const availableMemoryGB = (os.freemem() / 1024 ** 3).toFixed(1);
 
   if (estimatedMemory > parseFloat(availableMemoryGB) * 1024) {
-    console.warn(`⚠️  Warning: High parallelism may exhaust free memory (${availableMemoryGB}GB available)`);
+    console.warn(
+      `⚠️  Warning: High parallelism may exhaust free memory (${availableMemoryGB}GB available)`
+    );
   }
 
   return parallelism;
@@ -114,8 +135,8 @@ function validateWithResourceWarning(value: string): number {
 function getSystemResources() {
   return {
     cpuCores: os.cpus().length,
-    totalMemoryGB: os.totalmem() / (1024 ** 3),
-    freeMemoryGB: os.freemem() / (1024 ** 3),
+    totalMemoryGB: os.totalmem() / 1024 ** 3,
+    freeMemoryGB: os.freemem() / 1024 ** 3,
   };
 }
 ```

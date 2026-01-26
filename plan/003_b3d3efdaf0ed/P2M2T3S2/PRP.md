@@ -8,11 +8,13 @@ description: |
 **Feature Goal**: Create comprehensive test writing examples documentation (`docs/TEST_EXAMPLES.md`) that provides annotated, executable code examples demonstrating all testing patterns used in the PRP Pipeline codebase.
 
 **Deliverable**: A single markdown file `docs/TEST_EXAMPLES.md` containing:
+
 - Five (5) complete test examples with annotations
 - Clear explanations of each pattern and when to use it
 - Links to related documentation and resources
 
 **Success Definition**:
+
 - [ ] File `docs/TEST_EXAMPLES.md` exists and follows project documentation conventions
 - [ ] Contains all 5 required test types: (a) unit test for utility function, (b) unit test for class with mocked dependencies, (c) integration test for agent with mocked LLM, (d) integration test for workflow with mocked components, (e) e2e test for full pipeline
 - [ ] Each example includes complete, executable code with ARRANGE-ACT-ASSERT comments
@@ -26,6 +28,7 @@ description: |
 **Use Case**: A developer needs to write a new test and wants to reference concrete examples of how tests are structured in this project.
 
 **User Journey**:
+
 1. Developer opens `docs/TEST_EXAMPLES.md` to find test pattern examples
 2. Developer locates the relevant test type (unit/integration/e2e)
 3. Developer reviews the annotated code example
@@ -33,6 +36,7 @@ description: |
 5. Developer successfully writes a test that follows project conventions
 
 **Pain Points Addressed**:
+
 - "How do I mock Groundswell agents?" - Shows the critical `vi.importActual()` pattern
 - "What's the difference between unit and integration tests?" - Clear examples with explanations
 - "How do I test async operations?" - E2E example with proper async/await patterns
@@ -79,6 +83,7 @@ Create `docs/TEST_EXAMPLES.md` with comprehensive, annotated test examples cover
 ### Documentation Requirements
 
 Each example must include:
+
 - Complete, executable code
 - ARRANGE-ACT-ASSERT comments
 - Explanation of when to use this pattern
@@ -100,6 +105,7 @@ Each example must include:
 Before implementing, validate: "If someone knew nothing about this codebase, would they have everything needed to write TEST_EXAMPLES.md successfully?"
 
 **Yes** - This PRP provides:
+
 - Exact file paths for existing test examples to analyze
 - Complete code patterns from the codebase
 - Documentation structure to follow
@@ -345,7 +351,7 @@ Task 9: VALIDATE against success criteria
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // DOCUMENTATION STRUCTURE PATTERN
 // Follow docs/CLI_REFERENCE.md format exactly:
 
@@ -389,13 +395,14 @@ Brief description of when to use this test type and what it validates.
 ```typescript
 // Complete, executable code example
 // With clear comments
-```
+````
 
 **Explanation**: [What the example demonstrates]
 
 // CROSS-REFERENCE PATTERN:
 See [TESTING.md](./TESTING.md) for testing philosophy and [Mocking Strategies](./TESTING.md#mocking-strategies) for detailed mocking patterns.
-```
+
+````
 
 ### Integration Points
 
@@ -410,7 +417,7 @@ CROSS_REFERENCES:
   - link: ARCHITECTURE.md (system architecture context)
   - link: CUSTOM_AGENTS.md (agent development patterns)
   - link: tests/ directory (actual test files)
-```
+````
 
 ## Validation Loop
 
@@ -431,7 +438,7 @@ npx markdownlint docs/TEST_EXAMPLES.md
 
 ### Level 2: Content Validation (Documentation Review)
 
-```bash
+````bash
 # Verify all required sections exist
 grep -E "^(##|###)" docs/TEST_EXAMPLES.md
 
@@ -455,7 +462,7 @@ grep -c '```typescript' docs/TEST_EXAMPLES.md
 grep -c '\[.*\](.*\.md)' docs/TEST_EXAMPLES.md
 
 # Expected: All sections present, code blocks properly tagged
-```
+````
 
 ### Level 3: Completeness Check (Requirements Validation)
 

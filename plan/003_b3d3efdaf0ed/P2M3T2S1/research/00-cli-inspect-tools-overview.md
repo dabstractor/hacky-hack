@@ -23,6 +23,7 @@
 **Documentation:** https://kubernetes.io/docs/reference/kubectl/
 
 **Key Inspect Commands:**
+
 ```bash
 kubectl get pods                    # List resources
 kubectl get pods -o wide            # Wide format with more info
@@ -34,6 +35,7 @@ kubectl logs <pod>                  # Pod logs
 ```
 
 **Output Format Patterns:**
+
 - Default: Table format with aligned columns
 - `-o wide`: Extended table format
 - `-o json`: Machine-readable JSON
@@ -42,6 +44,7 @@ kubectl logs <pod>                  # Pod logs
 - Custom columns: `-o custom-columns=NAME:.metadata.name,STATUS:.status.phase`
 
 **Key Features:**
+
 - Hierarchical resource representation
 - Color-coded status indicators
 - Multiple output formats (table, wide, json, yaml, jsonpath)
@@ -56,6 +59,7 @@ kubectl logs <pod>                  # Pod logs
 **Documentation:** https://docs.docker.com/engine/reference/commandline/cli/
 
 **Key Inspect Commands:**
+
 ```bash
 docker ps                          # List running containers
 docker ps -a                       # List all containers
@@ -67,6 +71,7 @@ docker top <container>             # Container processes
 ```
 
 **Output Format Patterns:**
+
 - Default: Table with truncated IDs
 - `--format "table {{.ID}}\t{{.Image}}"`: Custom Go template
 - `--format json`: JSON output
@@ -74,6 +79,7 @@ docker top <container>             # Container processes
 - `--quiet`: Only IDs
 
 **Key Features:**
+
 - Go template formatting (`--format`)
 - JSON inspection via `docker inspect`
 - Live streaming stats
@@ -87,6 +93,7 @@ docker top <container>             # Container processes
 **Documentation:** https://git-scm.com/docs
 
 **Key Inspect Commands:**
+
 ```bash
 git status                         # Working tree status
 git log --oneline                  # Compact commit history
@@ -98,6 +105,7 @@ git reflog                         # Reference history
 ```
 
 **Output Format Patterns:**
+
 - `--format=<format>`: Custom format strings
 - `--pretty=<format>`: Built-in formats (oneline, short, medium, full, fuller)
 - `--color=<when>`: Color control (always, never, auto)
@@ -105,6 +113,7 @@ git reflog                         # Reference history
 - Hierarchical tree display with `--graph`
 
 **Key Features:**
+
 - Porcelain vs. Plumbing commands (high-level vs. low-level)
 - Custom format strings with placeholders
 - Color-coded output (diffs, branch names)
@@ -118,6 +127,7 @@ git reflog                         # Reference history
 **Documentation:** https://docs.npmjs.com/cli/
 
 **Key Inspect Commands:**
+
 ```bash
 npm list                           # Dependency tree
 npm list --depth=0                 # Top-level dependencies
@@ -129,12 +139,14 @@ npm access                         # Access control
 ```
 
 **Output Format Patterns:**
+
 - Tree-style dependency visualization
 - JSON output with `--json` flag
 - Long format with `--long`
 - Parseable output with `--parseable`
 
 **Key Features:**
+
 - Hierarchical tree display
 - Color-coded version differences
 - JSON for machine parsing
@@ -147,6 +159,7 @@ npm access                         # Access control
 **Documentation:** https://docs.aws.amazon.com/cli/
 
 **Key Inspect Commands:**
+
 ```bash
 aws ec2 describe-instances         # Detailed JSON
 aws ec2 describe-instances --query "Reservations[].Instances[].{ID:InstanceId,Type:InstanceType}"
@@ -156,6 +169,7 @@ aws cloudformation describe-stacks
 ```
 
 **Output Format Patterns:**
+
 - `--output json`: JSON (default)
 - `--output yaml`: YAML
 - `--output yaml-stream`: YAML streaming
@@ -165,6 +179,7 @@ aws cloudformation describe-stacks
 - `--color on|off`: Color control
 
 **Key Features:**
+
 - JMESPath for JSON querying
 - Multiple output formats
 - Pagination support
@@ -183,6 +198,7 @@ This research was conducted through:
 4. **Library Evaluation**: Assessing available Node.js/TypeScript libraries for CLI formatting
 
 **Note**: Due to rate limiting on web search APIs, this research primarily draws from:
+
 - Known documentation from popular CLI tools
 - Existing project dependencies and patterns
 - Established CLI design patterns and best practices
@@ -228,6 +244,7 @@ Display lists of resources in table format:
 - `npm list`
 
 **Characteristics:**
+
 - Columnar layout
 - Aligned headers
 - Truncated long values
@@ -244,6 +261,7 @@ Detailed view of single resource:
 - `npm view <package>`
 
 **Characteristics:**
+
 - Multi-section output
 - Detailed metadata
 - Related resources
@@ -260,6 +278,7 @@ Hierarchical data display:
 - `docker ps --format "tree"`
 
 **Characteristics:**
+
 - ASCII tree characters
 - Indentation levels
 - Parent-child relationships
@@ -275,6 +294,7 @@ Real-time updates:
 - `htop`
 
 **Characteristics:**
+
 - Auto-refreshing display
 - Rate limiting
 - Cursor positioning
@@ -342,6 +362,7 @@ Based on the research and the project's existing dependencies, here are the reco
 **Status:** Excellent choice, actively maintained, native TypeScript support
 
 **Alternatives considered:**
+
 - yargs (More features, more complex)
 - oclif (Full framework, opinionated)
 - cac (Lightweight)

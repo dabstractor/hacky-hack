@@ -4,6 +4,7 @@
 **Focus:** How to suggest fixes, link to documentation, and provide actionable guidance
 
 ## Table of Contents
+
 1. [Fix Suggestion Framework](#fix-suggestion-framework)
 2. [Documentation Linking Strategies](#documentation-linking-strategies)
 3. [Smart Error Recommendations](#smart-error-recommendations)
@@ -271,7 +272,10 @@ class ContextualRecommender {
     }
 
     // Environment-specific recommendations
-    if (context.env?.NODE_ENV === 'production' && error.message.includes('DEBUG')) {
+    if (
+      context.env?.NODE_ENV === 'production' &&
+      error.message.includes('DEBUG')
+    ) {
       recommendations.push({
         diagnosis: {
           cause: 'Debug mode is not recommended in production',
@@ -325,14 +329,9 @@ interface CommandSequence {
 }
 
 const fixSequence: CommandSequence = {
-  preFlight: [
-    'git stash',
-    'git pull --rebase',
-  ],
+  preFlight: ['git stash', 'git pull --rebase'],
   mainCommand: 'hack session create --name new-session',
-  postFlight: [
-    'git stash pop',
-  ],
+  postFlight: ['git stash pop'],
 };
 ```
 
@@ -340,10 +339,7 @@ const fixSequence: CommandSequence = {
 
 ```typescript
 class ConditionalCommandGenerator {
-  generate(
-    error: Error,
-    condition: () => boolean
-  ): string | null {
+  generate(error: Error, condition: () => boolean): string | null {
     if (condition()) {
       return this.generateFix(error);
     }
@@ -390,7 +386,7 @@ class InteractiveFixer {
 
     if (shouldExecute) {
       const { exec } = require('child_process');
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         exec(suggestion.command, (error: any) => {
           resolve(!error);
         });
@@ -734,12 +730,7 @@ class SuggestionFormatter {
     const header = chalk.bold.yellow('Documentation');
     const separator = chalk.gray('─'.repeat(80));
 
-    const lines = [
-      separator,
-      header,
-      separator,
-      '',
-    ];
+    const lines = [separator, header, separator, ''];
 
     const icons = {
       guide: '📚',
@@ -785,12 +776,7 @@ class SuggestionFormatter {
     const header = chalk.bold.yellow('Alternatives');
     const separator = chalk.gray('─'.repeat(80));
 
-    const lines = [
-      separator,
-      header,
-      separator,
-      '',
-    ];
+    const lines = [separator, header, separator, ''];
 
     for (let i = 0; i < alternatives.length; i++) {
       const alt = alternatives[i];
@@ -817,12 +803,7 @@ class SuggestionFormatter {
     const header = chalk.bold.yellow('Prevention');
     const separator = chalk.gray('─'.repeat(80));
 
-    const lines = [
-      separator,
-      header,
-      separator,
-      '',
-    ];
+    const lines = [separator, header, separator, ''];
 
     if (prevention.tips.length > 0) {
       lines.push(chalk.cyan('  Tips:'));
@@ -892,6 +873,7 @@ console.log(formatter.format(suggestion));
 ## Best Practices
 
 ### DO:
+
 - Provide exact, copy-pasteable commands
 - Explain why each step is necessary
 - Link to official documentation
@@ -902,6 +884,7 @@ console.log(formatter.format(suggestion));
 - Test suggested commands before showing
 
 ### DON'T:
+
 - Provide vague suggestions
 - Skip explanations
 - Link to broken or irrelevant docs

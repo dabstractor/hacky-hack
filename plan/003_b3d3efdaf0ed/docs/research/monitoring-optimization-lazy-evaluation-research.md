@@ -6,6 +6,7 @@ This document compiles industry best practices and external documentation source
 
 **Research Date:** 2026-01-25
 **Focus Areas:**
+
 1. Sampling Interval Patterns
 2. Lazy Evaluation for Resource Monitoring
 3. Adaptive Monitoring Frequency
@@ -18,6 +19,7 @@ This document compiles industry best practices and external documentation source
 ### Key Sources
 
 **1. Prometheus Monitoring Best Practices**
+
 - **URL:** https://prometheus.io/docs/practices/naming/
 - **URL:** https://prometheus.io/docs/practices/instrumentation/#avoid-missing-metrics
 - **Key Insight:** Prometheus recommends default scrape intervals of 15-60 seconds for most workloads
@@ -27,6 +29,7 @@ This document compiles industry best practices and external documentation source
   - Low-frequency metrics: 60-300 seconds (infrastructure trends)
 
 **2. Node.js Performance Monitoring Guidelines**
+
 - **URL:** https://nodejs.org/en/docs/guides/simple-profiling/
 - **URL:** https://nodejs.org/en/docs/guides/diagnostics-flamegraph/
 - **Key Insight:** Node.js event loop monitoring should respect the "monitor tax" - keep profiling under 1% overhead
@@ -37,6 +40,7 @@ This document compiles industry best practices and external documentation source
   - Active handles: Every 10-30 seconds
 
 **3. Google Site Reliability Engineering (SRE) Practices**
+
 - **Source:** Google SRE Book (Chapter 6: Monitoring Distributed Systems)
 - **URL:** https://sre.google/sre-book/monitoring-distributed-systems/
 - **Key Insight:** Use "black box" monitoring with 1-minute intervals for external health checks
@@ -44,13 +48,13 @@ This document compiles industry best practices and external documentation source
 
 ### Industry Standard Intervals
 
-| Metric Type | Typical Interval | Use Case |
-|-------------|------------------|----------|
-| **Real-time alerts** | 1-5 seconds | Critical system failures, SLA violations |
-| **Performance metrics** | 15-30 seconds | Response times, throughput, error rates |
-| **Resource utilization** | 30-60 seconds | CPU, memory, disk, network |
-| **Business metrics** | 60-300 seconds | User activity, conversions, trends |
-| **Capacity planning** | 300-600 seconds | Long-term trends, forecasting |
+| Metric Type              | Typical Interval | Use Case                                 |
+| ------------------------ | ---------------- | ---------------------------------------- |
+| **Real-time alerts**     | 1-5 seconds      | Critical system failures, SLA violations |
+| **Performance metrics**  | 15-30 seconds    | Response times, throughput, error rates  |
+| **Resource utilization** | 30-60 seconds    | CPU, memory, disk, network               |
+| **Business metrics**     | 60-300 seconds   | User activity, conversions, trends       |
+| **Capacity planning**    | 300-600 seconds  | Long-term trends, forecasting            |
 
 ### Implementation Guidance
 
@@ -77,6 +81,7 @@ function calculateSampleRate(signalFrequency: number): number {
 ### Core Concepts
 
 **Lazy evaluation** in monitoring means:
+
 1. Defer expensive computations until results are actually needed
 2. Cache computed values and invalidate only when dependencies change
 3. Compute metrics on-demand rather than proactively
@@ -85,16 +90,19 @@ function calculateSampleRate(signalFrequency: number): number {
 ### Key Sources
 
 **1. React Lazy Loading Patterns**
+
 - **URL:** https://react.dev/reference/react/lazy
 - **Key Concept:** Defer component loading until render time
 - **Monitoring Application:** Load monitoring modules only when thresholds are breached
 
 **2. Elasticsearch Lazy Aggregation**
+
 - **URL:** https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
 - **Key Concept:** Defer aggregation until result set is finalized
 - **Monitoring Application:** Aggregate metrics only when queried, not continuously
 
 **3. Python Generators for Stream Processing**
+
 - **URL:** https://docs.python.org/3/howto/functional.html#generator-expressions-and-list-comprehensions
 - **Key Concept:** Process data iteratively, not all at once
 - **Monitoring Application:** Stream metrics rather than collecting full snapshots
@@ -197,6 +205,7 @@ class LazyAggregator {
 ### Core Concepts
 
 **Adaptive monitoring** dynamically adjusts sampling rates based on:
+
 - Current resource usage levels
 - Rate of change (volatility)
 - System load
@@ -206,16 +215,19 @@ class LazyAggregator {
 ### Key Sources
 
 **1. Netflix Hystrix Adaptive Concurrency**
+
 - **URL:** https://github.com/Netflix/Hystrix/wiki/Configuration#executionisolationthread
 - **Key Concept:** Dynamically adjust thread pool sizes based on latency
 - **Monitoring Application:** Increase monitoring frequency during degradation
 
 **2. TCP Congestion Control (Additive Increase/Multiplicative Decrease)**
+
 - **RFC:** https://tools.ietf.org/html/rfc5681
 - **Key Concept:** Gradually increase rate, exponentially decrease on failure
 - **Monitoring Application:** AIMD for sampling frequency adjustment
 
 **3. Kubernetes Horizontal Pod Autoscaler**
+
 - **URL:** https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
 - **Key Concept:** Scale based on CPU/memory usage with stabilization windows
 - **Monitoring Application:** Scale monitoring frequency based on resource pressure
@@ -312,13 +324,13 @@ class PredictiveMonitor {
 
 ### Adaptive Strategies Matrix
 
-| Strategy | Use Case | Pros | Cons |
-|----------|----------|------|------|
-| **Threshold-Based** | Simple systems | Easy to implement, predictable | Can oscillate near thresholds |
-| **Hysteresis** | Prevent oscillation | Stable, reduces noise | Requires tuning of hysteresis gap |
-| **AIMD** | Network-style adaptation | Proven, converges to fair share | Can be slow to react |
-| **Predictive** | Seasonal workloads | Proactive, anticipates | Complex, requires history |
-| **Machine Learning** | Complex patterns | Highly adaptive | Training overhead, black box |
+| Strategy             | Use Case                 | Pros                            | Cons                              |
+| -------------------- | ------------------------ | ------------------------------- | --------------------------------- |
+| **Threshold-Based**  | Simple systems           | Easy to implement, predictable  | Can oscillate near thresholds     |
+| **Hysteresis**       | Prevent oscillation      | Stable, reduces noise           | Requires tuning of hysteresis gap |
+| **AIMD**             | Network-style adaptation | Proven, converges to fair share | Can be slow to react              |
+| **Predictive**       | Seasonal workloads       | Proactive, anticipates          | Complex, requires history         |
+| **Machine Learning** | Complex patterns         | Highly adaptive                 | Training overhead, black box      |
 
 ---
 
@@ -335,17 +347,20 @@ class PredictiveMonitor {
 ### Key Sources
 
 **1. eBPF (Extended Berkeley Packet Filter)**
+
 - **URL:** https://ebpf.io/
 - **URL:** https://www.kernel.org/doc/html/latest/trace/events.html
 - **Key Insight:** Kernel-level tracing with minimal overhead
 - **Technique:** Use kernel probes instead of userspace instrumentation
 
 **2. OpenTelemetry Best Practices**
+
 - **URL:** https://opentelemetry.io/docs/reference/specification/best-practices/
 - **Key Insight:** Batch telemetry data, use efficient serialization
 - **Technique:** Export metrics in batches, not individually
 
 **3. Node.js Worker Threads for Monitoring**
+
 - **URL:** https://nodejs.org/api/worker_threads.html
 - **Key Insight:** Offload monitoring to separate threads
 - **Technique:** Don't block event loop with monitoring
@@ -507,12 +522,12 @@ class SmartAggregator {
 
 ### Overhead Budget Allocation
 
-| Component | Budget | Allocation |
-|-----------|--------|------------|
-| **CPU** | 5% | 2% metrics collection, 1% aggregation, 2% transmission |
-| **Memory** | 50MB | 20MB buffers, 20MB caching, 10MB overhead |
-| **I/O** | 1MB/s | 500KB/s metrics, 500KB/s logs |
-| **Network** | 100KB/s | 50KB/s telemetry, 50KB/s alerts |
+| Component   | Budget  | Allocation                                             |
+| ----------- | ------- | ------------------------------------------------------ |
+| **CPU**     | 5%      | 2% metrics collection, 1% aggregation, 2% transmission |
+| **Memory**  | 50MB    | 20MB buffers, 20MB caching, 10MB overhead              |
+| **I/O**     | 1MB/s   | 500KB/s metrics, 500KB/s logs                          |
+| **Network** | 100KB/s | 50KB/s telemetry, 50KB/s alerts                        |
 
 ---
 
@@ -640,15 +655,15 @@ class ConditionalProfiler {
 ```typescript
 // Proposed interface for optimized monitoring
 interface OptimizedMonitoringConfig {
-  baseInterval: number;        // Base sampling interval (ms)
-  minInterval: number;         // Minimum interval (ms)
-  maxInterval: number;         // Maximum interval (ms)
-  warningThreshold: number;    // Warning threshold (%)
-  criticalThreshold: number;   // Critical threshold (%)
-  enableLazyEval: boolean;     // Enable lazy evaluation
-  enableAdaptive: boolean;     // Enable adaptive frequency
-  enableBatching: boolean;     // Enable batch collection
-  batchSize: number;           // Batch size for collection
+  baseInterval: number; // Base sampling interval (ms)
+  minInterval: number; // Minimum interval (ms)
+  maxInterval: number; // Maximum interval (ms)
+  warningThreshold: number; // Warning threshold (%)
+  criticalThreshold: number; // Critical threshold (%)
+  enableLazyEval: boolean; // Enable lazy evaluation
+  enableAdaptive: boolean; // Enable adaptive frequency
+  enableBatching: boolean; // Enable batch collection
+  batchSize: number; // Batch size for collection
 }
 
 interface OptimizedMonitor {
@@ -774,13 +789,13 @@ Is this metric critical to SLA compliance?
 
 ### Threshold Configuration Matrix
 
-| Resource | Warning | Critical | Min Interval | Max Interval |
-|----------|---------|----------|--------------|--------------|
-| CPU | 70% | 90% | 5s | 300s |
-| Memory | 70% | 85% | 5s | 300s |
-| Disk | 80% | 90% | 30s | 600s |
-| Network | 60% | 80% | 15s | 300s |
-| Event Loop | 50ms | 100ms | 1s | 60s |
+| Resource   | Warning | Critical | Min Interval | Max Interval |
+| ---------- | ------- | -------- | ------------ | ------------ |
+| CPU        | 70%     | 90%      | 5s           | 300s         |
+| Memory     | 70%     | 85%      | 5s           | 300s         |
+| Disk       | 80%     | 90%      | 30s          | 600s         |
+| Network    | 60%     | 80%      | 15s          | 300s         |
+| Event Loop | 50ms    | 100ms    | 1s           | 60s          |
 
 ### Overhead Budget Checklist
 

@@ -56,12 +56,12 @@ This research directory contains comprehensive documentation on CLI inspector/de
 
 ### Recommended Libraries
 
-| Purpose | Library | NPM | Version |
-|---------|---------|-----|---------|
-| Table Format | cli-table3 | https://www.npmjs.com/package/cli-table3 | 3.2.0 |
-| Terminal Style | chalk | https://www.npmjs.com/package/chalk | 5.3.0 |
-| CLI Framework | commander | https://www.npmjs.com/package/commander | 14.0.2 |
-| Progress Bars | cli-progress | https://www.npmjs.com/package/cli-progress | 3.12.0 |
+| Purpose        | Library      | NPM                                        | Version |
+| -------------- | ------------ | ------------------------------------------ | ------- |
+| Table Format   | cli-table3   | https://www.npmjs.com/package/cli-table3   | 3.2.0   |
+| Terminal Style | chalk        | https://www.npmjs.com/package/chalk        | 5.3.0   |
+| CLI Framework  | commander    | https://www.npmjs.com/package/commander    | 14.0.2  |
+| Progress Bars  | cli-progress | https://www.npmjs.com/package/cli-progress | 3.12.0  |
 
 **Note:** commander and cli-progress are already in the project dependencies.
 
@@ -86,27 +86,32 @@ npm install chalk
 ### 1. Common Patterns
 
 **Multiple Output Formats**
+
 - Default: Human-readable table
 - `-o json`: Machine-readable JSON
 - `-o yaml`: YAML format
 - `-o wide`: Extended table with more columns
 
 **Filtering and Sorting**
+
 - Label/selector filtering (`-l app=nginx`)
 - Field filtering (`--field-selector status=Running`)
 - Sorting (`--sort-by name`)
 
 **Watch Mode**
+
 - Real-time updates (`-w` flag)
 - Auto-refreshing display
 
 **Detail Levels**
+
 - Compact vs. verbose (`-v` flag)
 - Quiet mode (`-q` flag)
 
 ### 2. Output Formats
 
 **Table Format** (default)
+
 ```
 NAME          STATUS    PHASE
 task-p1m1t1   Complete  Final
@@ -114,6 +119,7 @@ task-p1m1t2   Active    Running
 ```
 
 **Wide Format**
+
 ```
 NAME          STATUS    PHASE     CREATED       MESSAGE
 task-p1m1t1   Complete  Final     2 days ago    Success
@@ -121,6 +127,7 @@ task-p1m1t2   Active    Running   1 day ago     In progress
 ```
 
 **JSON Format**
+
 ```json
 {
   "items": [
@@ -134,6 +141,7 @@ task-p1m1t2   Active    Running   1 day ago     In progress
 ```
 
 **Tree Format**
+
 ```
 Phase 1
 ├── Milestone 1
@@ -146,6 +154,7 @@ Phase 1
 ### 3. Status Indicators
 
 **Symbols:**
+
 - ✓ (green): Complete/Success
 - ◐ (blue): In Progress/Active
 - ○ (gray): Pending
@@ -153,6 +162,7 @@ Phase 1
 - ⚠ (yellow): Warning
 
 **Colors:**
+
 - Green: Success, healthy, complete
 - Red: Errors, failed, unhealthy
 - Yellow: Warnings, pending
@@ -170,11 +180,7 @@ import Table from 'cli-table3';
 import chalk from 'chalk';
 
 const table = new Table({
-  head: [
-    chalk.cyan('ID'),
-    chalk.cyan('Status'),
-    chalk.cyan('Phase'),
-  ],
+  head: [chalk.cyan('ID'), chalk.cyan('Status'), chalk.cyan('Phase')],
 });
 
 table.push(['P1M1T1', chalk.green('Complete'), 'Final']);
@@ -197,7 +203,11 @@ console.log(chalk.bold('Blocked Tasks:'), chalk.red('1'));
 ### Basic Tree Display
 
 ```typescript
-function renderTree(node: TreeNode, prefix: string = '', isLast: boolean = true): string {
+function renderTree(
+  node: TreeNode,
+  prefix: string = '',
+  isLast: boolean = true
+): string {
   const connector = isLast ? '└── ' : '├── ';
   const line = prefix + connector + node.name;
   let result = [line];
@@ -281,6 +291,7 @@ Based on this research and the project's existing dependencies:
 ## Next Steps
 
 1. **Install dependencies**:
+
    ```bash
    npm install cli-table3 chalk
    npm install @types/cli-table3 --save-dev
@@ -321,11 +332,13 @@ Based on this research and the project's existing dependencies:
 ## Notes
 
 **Research Limitations:**
+
 - Web search APIs were rate-limited during research
 - Primary sources: Existing knowledge, project dependencies, and established patterns
 - URLs provided are to official documentation and repositories
 
 **Verification:**
+
 - Libraries verified on NPM
 - Project dependencies checked in package.json
 - Existing code patterns analyzed

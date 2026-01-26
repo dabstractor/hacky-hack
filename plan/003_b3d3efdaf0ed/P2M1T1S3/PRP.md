@@ -15,6 +15,7 @@
 **Deliverable**: Documentation file `docs/QUICKSTART.md` containing a step-by-step tutorial with a realistic "build a TODO app" example PRD
 
 **Success Definition**:
+
 - A new user can follow the tutorial from scratch to successful completion in under 5 minutes
 - Tutorial covers: PRD creation → pipeline execution → progress monitoring → understanding session structure → reviewing artifacts
 - All example commands are copy-paste ready and produce expected outputs
@@ -27,6 +28,7 @@
 **Use Case**: First-time user wants to validate their installation and understand the basic workflow before writing their own PRDs
 
 **User Journey**:
+
 1. User has completed installation (per INSTALLATION.md)
 2. User opens QUICKSTART.md to run their first pipeline
 3. User creates example PRD following the tutorial
@@ -36,6 +38,7 @@
 7. User reviews the generated code and commits
 
 **Pain Points Addressed**:
+
 - "I installed it, now what?" - Provides immediate next action
 - "What does a good PRD look like?" - Includes complete example PRD
 - "Is it working? What should I see?" - Shows expected output at each step
@@ -54,6 +57,7 @@
 Create docs/QUICKSTART.md with a complete walkthrough using a realistic "TODO app" example:
 
 ### Success Criteria
+
 - [ ] File created at docs/QUICKSTART.md
 - [ ] Document header follows pattern (Status, Last Updated, Version)
 - [ ] Table of Contents included with anchor links
@@ -75,6 +79,7 @@ Create docs/QUICKSTART.md with a complete walkthrough using a realistic "TODO ap
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Exact file paths and content patterns to follow
 - Complete TODO app PRD example content
 - CLI command structure and expected outputs
@@ -251,26 +256,31 @@ Create docs/QUICKSTART.md following established documentation patterns:
 ## Prerequisites
 
 ## Step 1: Create Your First PRD
+
 - What is a PRD?
 - Example: TODO App PRD (complete content)
 - Save the PRD
 
 ## Step 2: Run the Pipeline
+
 - Command to run
 - Expected output (real log sample)
 - What just happened (brief explanation)
 
 ## Step 3: Monitor Progress
+
 - Reading the output
 - Task status indicators
 - Estimated time
 
 ## Step 4: Explore the Session Directory
+
 - Directory structure explanation
 - Tree output example
 - Key artifacts (tasks.json, PRPs, code)
 
 ## Step 5: Review Generated Code
+
 - Where code was created
 - Git commits
 - Quality validation results
@@ -391,8 +401,9 @@ Task 12: VALIDATE - Review against success criteria
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 <!-- Header Pattern (from INSTALLATION.md) -->
+
 # Quick Start Tutorial
 
 > Build your first project with PRP Pipeline in under 5 minutes
@@ -418,19 +429,23 @@ Task 12: VALIDATE - Review against success criteria
 ---
 
 <!-- TODO App PRD Example - Complete Content -->
+
 # Simple TODO Application
 
 ## Overview
+
 A command-line TODO application that allows users to manage tasks through a terminal interface.
 
 ## Requirements
 
 ### Core Features
+
 1. **Create Task**: Add new tasks to the TODO list
 2. **List Tasks**: Display all tasks with their status
 3. **Mark Complete**: Toggle task completion status
 
 ### Technical Requirements
+
 - Written in TypeScript
 - Command-line interface using Node.js
 - Data stored in local JSON file
@@ -445,21 +460,25 @@ A command-line TODO application that allows users to manage tasks through a term
 ## Acceptance Criteria
 
 ### Create Task
+
 - [ ] CLI accepts task description as argument
 - [ ] Task is saved with unique ID and "pending" status
 - [ ] Confirmation message displays on success
 
 ### List Tasks
+
 - [ ] All tasks display in a numbered list
 - [ ] Each task shows ID, description, and status
 - [ ] Empty state shows "No tasks found"
 
 ### Mark Complete
+
 - [ ] CLI accepts task ID as argument
 - [ ] Task status updates to "completed"
 - [ ] Confirmation message displays on success
 
 ## Technical Constraints
+
 - Single-file implementation preferred
 - No external database (use tasks.json)
 - Minimal dependencies (commander for CLI)
@@ -468,12 +487,15 @@ A command-line TODO application that allows users to manage tasks through a term
 ---
 
 <!-- Command Pattern with Double Dash -->
+
 ```bash
 # Run the pipeline
 npm run dev -- --prd ./PRD.md
 ```
+````
 
 <!-- Expected Output Pattern - Realistic Log Sample -->
+
 ```bash
 🔍 Analyzing PRD...
 📋 Generated 3 tasks
@@ -503,6 +525,7 @@ npm run dev -- --prd ./PRD.md
 ```
 
 <!-- Session Directory Tree Pattern -->
+
 ```bash
 plan/abc123def456/
 ├── tasks.json              # Task breakdown
@@ -516,12 +539,14 @@ plan/abc123def456/
 ```
 
 <!-- Troubleshooting Table Pattern -->
-| Symptom | Solution |
-|---------|----------|
+
+| Symptom                               | Solution                                                            |
+| ------------------------------------- | ------------------------------------------------------------------- |
 | `Error: ANTHROPIC_AUTH_TOKEN not set` | Set environment variable: `export ANTHROPIC_AUTH_TOKEN=zk-your-key` |
-| `Command not found: prd` | Ensure installation completed: `npm link` |
-| `No tasks generated` | Verify PRD has Requirements and Acceptance Criteria sections |
-```
+| `Command not found: prd`              | Ensure installation completed: `npm link`                           |
+| `No tasks generated`                  | Verify PRD has Requirements and Acceptance Criteria sections        |
+
+````
 
 ### Integration Points
 
@@ -550,13 +575,13 @@ tests/fixtures/:
   - reference: "Explore more PRD examples in tests/fixtures/"
   - placement: Next Steps suggestion
   - context: Learning resources, not tutorial content
-```
+````
 
 ## Validation Loop
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
-```bash
+````bash
 # Check markdown syntax
 npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 
@@ -568,7 +593,7 @@ npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 - [ ] Document follows established formatting patterns
 
 # Expected: Zero formatting errors, all links valid
-```
+````
 
 ### Level 2: Content Validation (Tutorial Completeness)
 

@@ -27,6 +27,7 @@ This document compiles comprehensive research on checkpoint/recovery patterns, f
 **Overview**: Durable execution platform with built-in checkpointing and automatic recovery.
 
 **Key Features**:
+
 - Automatic state persistence after each workflow step
 - Built-in retry policies with exponential backoff
 - Durable timers that survive process restarts
@@ -35,6 +36,7 @@ This document compiles comprehensive research on checkpoint/recovery patterns, f
 **Documentation**: https://docs.temporal.io/typescript
 
 **Code Example**:
+
 ```typescript
 import { workflow } from '@temporalio/workflow';
 
@@ -43,7 +45,9 @@ export interface ProcessWorkflowArgs {
   outputPath: string;
 }
 
-export async function processWorkflow(args: ProcessWorkflowArgs): Promise<void> {
+export async function processWorkflow(
+  args: ProcessWorkflowArgs
+): Promise<void> {
   // Each activity is a checkpoint
   await activities.download(args.inputUrl, '/tmp/input.txt');
 
@@ -66,12 +70,14 @@ const activities = workflow.proxyActivities({
 ```
 
 **Pros**:
+
 - Automatic checkpoint management
 - Strong consistency guarantees
 - Excellent observability
 - Handles complex distributed scenarios
 
 **Cons**:
+
 - Requires Temporal server infrastructure
 - Learning curve for workflow concepts
 - Overkill for simple use cases
@@ -85,6 +91,7 @@ const activities = workflow.proxyActivities({
 **Overview**: Redis-based queue with job persistence and state tracking.
 
 **Key Features**:
+
 - Job state persistence (waiting, active, completed, failed)
 - Automatic retries with configurable backoff
 - Job prioritization and scheduling
@@ -93,32 +100,37 @@ const activities = workflow.proxyActivities({
 **Documentation**: https://docs.bullmq.io/
 
 **Code Example**:
+
 ```typescript
 import { Queue, Worker, Job } from 'bullmq';
 
 const queue = new Queue('processing', {
-  connection: { host: 'localhost', port: 6379 }
+  connection: { host: 'localhost', port: 6379 },
 });
 
 // Add job with checkpoint data
-await queue.add('process-item', {
-  itemId: '123',
-  checkpoint: {
-    processedItems: ['item1', 'item2'],
-    lastProcessedIndex: 2
-  }
-}, {
-  attempts: 3,
-  backoff: {
-    type: 'exponential',
-    delay: 2000,
+await queue.add(
+  'process-item',
+  {
+    itemId: '123',
+    checkpoint: {
+      processedItems: ['item1', 'item2'],
+      lastProcessedIndex: 2,
+    },
   },
-  // Remove job after completion
-  removeOnComplete: {
-    age: 3600, // 1 hour
-    count: 1000
+  {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000,
+    },
+    // Remove job after completion
+    removeOnComplete: {
+      age: 3600, // 1 hour
+      count: 1000,
+    },
   }
-});
+);
 
 // Worker with progress tracking
 const worker = new Worker('processing', async (job: Job) => {
@@ -131,7 +143,7 @@ const worker = new Worker('processing', async (job: Job) => {
     // Update progress (acts as checkpoint)
     await job.updateProgress({
       processedIndex: i,
-      total: items.length
+      total: items.length,
     });
 
     // Update checkpoint data
@@ -142,12 +154,14 @@ const worker = new Worker('processing', async (job: Job) => {
 ```
 
 **Pros**:
+
 - Simple Redis-based setup
 - Built-in retry mechanisms
 - Good for distributed task processing
 - Excellent dashboard UI
 
 **Cons**:
+
 - Requires Redis infrastructure
 - Not designed for complex workflow orchestration
 - Manual checkpoint management within jobs
@@ -163,6 +177,7 @@ const worker = new Worker('processing', async (job: Job) => {
 **Overview**: State machine library with persistence support and checkpointing capabilities.
 
 **Key Features**:
+
 - State machine visualization
 - State history tracking
 - Event-sourced architecture
@@ -171,6 +186,7 @@ const worker = new Worker('processing', async (job: Job) => {
 **Documentation**: https://xstate.js.org/docs/guides/states.html
 
 **Code Example**:
+
 ```typescript
 import { createMachine, createActor, assign } from 'xstate';
 
@@ -186,11 +202,11 @@ const processingMachine = createMachine({
   context: {
     processedItems: [],
     currentIndex: 0,
-    totalItems: 100
+    totalItems: 100,
   } as CheckpointContext,
   states: {
     idle: {
-      on: { START: 'processing' }
+      on: { START: 'processing' },
     },
     processing: {
       initial: 'itemStep',
@@ -198,34 +214,35 @@ const processingMachine = createMachine({
         itemStep: {
           always: [
             {
-              guard: ({ context }) => context.currentIndex >= context.totalItems,
-              target: '#processing.completed'
+              guard: ({ context }) =>
+                context.currentIndex >= context.totalItems,
+              target: '#processing.completed',
             },
             {
               actions: assign({
                 processedItems: ({ context }) => [
                   ...context.processedItems,
-                  `item-${context.currentIndex}`
+                  `item-${context.currentIndex}`,
                 ],
-                currentIndex: ({ context }) => context.currentIndex + 1
+                currentIndex: ({ context }) => context.currentIndex + 1,
               }),
-              target: 'itemStep' // Continue processing
-            }
-          ]
-        }
-      }
+              target: 'itemStep', // Continue processing
+            },
+          ],
+        },
+      },
     },
     completed: {
-      type: 'final'
-    }
-  }
+      type: 'final',
+    },
+  },
 });
 
 // Persist state to localStorage/file
 function saveCheckpoint(snapshot: any) {
   const checkpoint = {
     state: JSON.stringify(snapshot),
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
   fs.writeFileSync('checkpoint.json', JSON.stringify(checkpoint));
 }
@@ -240,22 +257,24 @@ function loadCheckpoint() {
 // Create actor with checkpoint restoration
 const initialSnapshot = loadCheckpoint();
 const actor = createActor(processingMachine, {
-  snapshot: initialSnapshot
+  snapshot: initialSnapshot,
 });
 
 // Subscribe to state changes for auto-checkpointing
-actor.subscribe((snapshot) => {
+actor.subscribe(snapshot => {
   saveCheckpoint(snapshot);
 });
 ```
 
 **Pros**:
+
 - Visual state debugging
 - Strong typing with TypeScript
 - Testable state machines
 - Guard-based transitions
 
 **Cons**:
+
 - Steeper learning curve
 - Manual persistence integration
 - Can be overkill for simple workflows
@@ -273,6 +292,7 @@ actor.subscribe((snapshot) => {
 **Documentation**: https://www.npmjs.com/package/proper-lockfile
 
 **Code Example**:
+
 ```typescript
 import lockfile from 'proper-lockfile';
 import { writeFile, readFile } from 'fs/promises';
@@ -290,8 +310,8 @@ class CheckpointManager {
       retries: {
         retries: 5,
         minTimeout: 100,
-        maxTimeout: 500
-      }
+        maxTimeout: 500,
+      },
     });
 
     try {
@@ -322,11 +342,13 @@ class CheckpointManager {
 ```
 
 **Pros**:
+
 - Prevents race conditions
 - Cross-platform support
 - Simple API
 
 **Cons**:
+
 - Doesn't handle atomic writes
 - Manual cleanup of stale locks
 - Not distributed-safe
@@ -342,6 +364,7 @@ class CheckpointManager {
 **Documentation**: https://www.npmjs.com/package/fs-extra
 
 **Code Example**:
+
 ```typescript
 import fs from 'fs-extra';
 import path from 'path';
@@ -376,7 +399,7 @@ class AtomicCheckpoint {
       .map(f => ({
         name: f,
         path: path.join(checkpointDir, f),
-        time: parseInt(f.split('-')[1])
+        time: parseInt(f.split('-')[1]),
       }))
       .sort((a, b) => b.time - a.time); // Newest first
 
@@ -389,11 +412,13 @@ class AtomicCheckpoint {
 ```
 
 **Pros**:
+
 - Atomic write operations
 - Cross-platform compatibility
 - Rich API for file operations
 
 **Cons**:
+
 - Additional dependency
 - Manual cleanup needed
 
@@ -410,20 +435,19 @@ class AtomicCheckpoint {
 **Description**: Write to a temporary file, then atomically rename over the target.
 
 **Benefits**:
+
 - Atomic on POSIX systems (rename is atomic)
 - No partial writes visible
 - Works across crashes and interruptions
 
 **Implementation**:
+
 ```typescript
 import { writeFile, rename, unlink } from 'fs/promises';
 import { dirname, basename } from 'path';
 import { randomBytes } from 'crypto';
 
-async function atomicWrite(
-  targetPath: string,
-  data: string
-): Promise<void> {
+async function atomicWrite(targetPath: string, data: string): Promise<void> {
   const tempPath = `${dirname(targetPath)}/.${basename(targetPath)}.${randomBytes(8).toString('hex')}.tmp`;
 
   try {
@@ -453,18 +477,17 @@ async function atomicWrite(
 **Description**: Write data and explicitly sync to disk before considering complete.
 
 **Benefits**:
+
 - Ensures data is physically written to disk
 - Survives power loss immediately after write
 - Stronger durability guarantees
 
 **Implementation**:
+
 ```typescript
 import { writeFile, open } from 'fs/promises';
 
-async function durableWrite(
-  targetPath: string,
-  data: string
-): Promise<void> {
+async function durableWrite(targetPath: string, data: string): Promise<void> {
   const tempPath = `${targetPath}.tmp`;
 
   try {
@@ -496,13 +519,14 @@ async function durableWrite(
 **Problem**: JSON.stringify() converts Dates to strings, losing type information.
 
 **Solution 1: ISO String with Type Marker**:
+
 ```typescript
 function serializeWithDates(obj: any): string {
   return JSON.stringify(obj, (key, value) => {
     if (value instanceof Date) {
       return {
         __type: 'Date',
-        value: value.toISOString()
+        value: value.toISOString(),
       };
     }
     return value;
@@ -520,6 +544,7 @@ function deserializeWithDates(json: string): any {
 ```
 
 **Solution 2: Using super-json**:
+
 ```typescript
 import { SuperJSON } from 'super-json';
 
@@ -527,7 +552,7 @@ const superJson = new SuperJSON();
 
 const data = {
   createdAt: new Date(),
-  processedAt: new Date('2024-01-15')
+  processedAt: new Date('2024-01-15'),
 };
 
 // Serialize with automatic Date handling
@@ -548,6 +573,7 @@ console.log(deserialized.createdAt instanceof Date); // true
 **Problem**: Objects with circular references break JSON.stringify().
 
 **Solution 1: Custom Replacer**:
+
 ```typescript
 function serializeSafe(obj: any): string {
   const seen = new WeakSet();
@@ -565,6 +591,7 @@ function serializeSafe(obj: any): string {
 ```
 
 **Solution 2: Using flatted**:
+
 ```typescript
 import { parse, stringify } from 'flatted';
 
@@ -585,6 +612,7 @@ const parsed = parse(json);
 **Problem**: Deserialized JSON may not match expected structure.
 
 **Solution**: Validate with Zod schemas:
+
 ```typescript
 import { z } from 'zod';
 
@@ -593,7 +621,7 @@ const CheckpointSchema = z.object({
   timestamp: z.string().datetime(),
   processedItems: z.array(z.string()),
   currentIndex: z.number().int().nonnegative(),
-  metadata: z.record(z.unknown()).optional()
+  metadata: z.record(z.unknown()).optional(),
 });
 
 type Checkpoint = z.infer<typeof CheckpointSchema>;
@@ -602,10 +630,7 @@ function saveCheckpoint(checkpointPath: string, data: Checkpoint) {
   // Validate before writing
   const validated = CheckpointSchema.parse(data);
 
-  await atomicWrite(
-    checkpointPath,
-    JSON.stringify(validated, null, 2)
-  );
+  await atomicWrite(checkpointPath, JSON.stringify(validated, null, 2));
 }
 
 function loadCheckpoint(checkpointPath: string): Checkpoint {
@@ -645,15 +670,9 @@ function getCheckpointPath(baseDir: string): string {
 ```typescript
 import { createHash } from 'crypto';
 
-function getCheckpointPathWithHash(
-  baseDir: string,
-  data: any
-): string {
+function getCheckpointPathWithHash(baseDir: string, data: any): string {
   const content = JSON.stringify(data);
-  const hash = createHash('sha256')
-    .update(content)
-    .digest('hex')
-    .slice(0, 12);
+  const hash = createHash('sha256').update(content).digest('hex').slice(0, 12);
 
   return path.join(baseDir, `checkpoint-${hash}.json`);
 }
@@ -669,7 +688,10 @@ class SequentialCheckpoint {
 
   getNextPath(baseDir: string): string {
     this.sequence++;
-    return path.join(baseDir, `checkpoint-${this.sequence.toString().padStart(6, '0')}.json`);
+    return path.join(
+      baseDir,
+      `checkpoint-${this.sequence.toString().padStart(6, '0')}.json`
+    );
   }
 }
 ```
@@ -692,7 +714,7 @@ async function retainLatestN(
     .map(f => ({
       name: f,
       path: path.join(checkpointDir, f),
-      mtime: fs.statSync(path.join(checkpointDir, f)).mtime.getTime()
+      mtime: fs.statSync(path.join(checkpointDir, f)).mtime.getTime(),
     }))
     .sort((a, b) => b.mtime - a.mtime); // Newest first
 
@@ -731,10 +753,10 @@ async function retainRecent(
 
 ```typescript
 interface RetentionPolicy {
-  keepLatest: number;      // Always keep N latest
-  maxAge: number;          // Max age in milliseconds
-  keepDaily: number;       // Keep one per day for N days
-  keepWeekly: number;      // Keep one per week for N weeks
+  keepLatest: number; // Always keep N latest
+  maxAge: number; // Max age in milliseconds
+  keepDaily: number; // Keep one per day for N days
+  keepWeekly: number; // Keep one per week for N weeks
 }
 
 async function applyRetentionPolicy(
@@ -752,7 +774,7 @@ async function applyRetentionPolicy(
           name: f,
           path: filePath,
           mtime: stats.mtime,
-          age: Date.now() - stats.mtime.getTime()
+          age: Date.now() - stats.mtime.getTime(),
         };
       })
   );
@@ -763,7 +785,7 @@ async function applyRetentionPolicy(
     .slice(0, policy.keepLatest);
 
   // Keep daily snapshots
-  const dailySnapshots = new Map<string, typeof checkpoints[0]>();
+  const dailySnapshots = new Map<string, (typeof checkpoints)[0]>();
   for (const cp of checkpoints) {
     const dayKey = cp.mtime.toISOString().split('T')[0];
     if (!dailySnapshots.has(dayKey)) {
@@ -777,7 +799,7 @@ async function applyRetentionPolicy(
   // Combine retention sets
   const toKeep = new Set([
     ...latestN.map(cp => cp.path),
-    ...keepDaily.map(cp => cp.path)
+    ...keepDaily.map(cp => cp.path),
   ]);
 
   // Delete others
@@ -806,7 +828,7 @@ const CheckpointSchema = z.object({
   checksum: z.string(),
   data: z.object({
     // Your checkpoint data structure
-  })
+  }),
 });
 
 async function loadCheckpointWithValidation(
@@ -860,8 +882,8 @@ function migrateCheckpoint(checkpoint: CheckpointV1): CheckpointV2 {
       version: '2.0',
       data: checkpoint.data,
       metadata: {
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
@@ -898,25 +920,19 @@ interface CheckpointWithIntegrity {
 
 function createCheckpoint(data: any): CheckpointWithIntegrity {
   const content = JSON.stringify(data);
-  const checksum = createHash('sha256')
-    .update(content)
-    .digest('hex');
+  const checksum = createHash('sha256').update(content).digest('hex');
 
   return {
     version: '1.0',
     timestamp: Date.now(),
     checksum,
-    data
+    data,
   };
 }
 
-function validateCheckpoint(
-  checkpoint: CheckpointWithIntegrity
-): boolean {
+function validateCheckpoint(checkpoint: CheckpointWithIntegrity): boolean {
   const content = JSON.stringify(checkpoint.data);
-  const calculated = createHash('sha256')
-    .update(content)
-    .digest('hex');
+  const calculated = createHash('sha256').update(content).digest('hex');
 
   return calculated === checkpoint.checksum;
 }
@@ -930,7 +946,8 @@ function quickValidate(checkpointPath: string): boolean {
     // Check file exists and is readable
     const stats = fs.statSync(checkpointPath);
     if (stats.size === 0) return false;
-    if (stats.size > 100 * 1024 * 1024) { // 100MB max
+    if (stats.size > 100 * 1024 * 1024) {
+      // 100MB max
       return false;
     }
 
@@ -1028,9 +1045,7 @@ class ChainCheckpointManager {
 #### Strategy 1: Use Previous Checkpoint
 
 ```typescript
-async function loadCheckpointWithFallback(
-  checkpointDir: string
-): Promise<any> {
+async function loadCheckpointWithFallback(checkpointDir: string): Promise<any> {
   const checkpoints = await this.listCheckpoints(checkpointDir);
 
   // Try latest first
@@ -1068,19 +1083,19 @@ async function partialRecovery(
         processedItems: partial.data?.processedItems || [],
         metadata: partial.metadata || {},
         // Use safe defaults for missing data
-        currentIndex: 0
+        currentIndex: 0,
       };
 
       return {
         status: 'partial',
         data: recovered,
-        warnings: ['Some checkpoint data was corrupted']
+        warnings: ['Some checkpoint data was corrupted'],
       };
     } catch {
       return {
         status: 'failed',
         data: null,
-        warnings: ['Checkpoint completely corrupted']
+        warnings: ['Checkpoint completely corrupted'],
       };
     }
   }
@@ -1101,7 +1116,7 @@ async function loadOrStartFresh(
     const diagnostics = {
       error: error.message,
       checkpointFiles: await fs.readdir(checkpointDir),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     await fs.writeJson(
@@ -1126,11 +1141,13 @@ async function loadOrStartFresh(
 **Checkpoint Strategy**: Workflow artifacts and step results
 
 **Key Patterns**:
+
 - Each step generates artifacts
 - Failed steps can be retried
 - Workflow runs can be re-run from failed jobs
 
 **Similar Pattern Implementation**:
+
 ```typescript
 class WorkflowCheckpoint {
   async saveStepResult(stepName: string, result: any) {
@@ -1186,11 +1203,13 @@ class WorkflowCheckpoint {
 **Checkpoint Strategy**: Build workspace and console output
 
 **Key Patterns**:
+
 - Workspace directory contains build state
 - Console logs provide execution history
 - Builds can be restarted from failed stages
 
 **Similar Pattern Implementation**:
+
 ```typescript
 class BuildCheckpoint {
   private workspaceDir: string;
@@ -1206,7 +1225,7 @@ class BuildCheckpoint {
     const logEntry = {
       timestamp: new Date().toISOString(),
       message: 'Checkpoint saved',
-      stage: buildData.currentStage
+      stage: buildData.currentStage,
     };
 
     await fs.appendFile(
@@ -1241,16 +1260,19 @@ class BuildCheckpoint {
 **Checkpoint Strategy**: Task instance state in database
 
 **Key Patterns**:
+
 - Each task's state stored in database
 - Tasks can be cleared and rerun
 - Workflow DAG preserved between runs
 
 **Key Takeaways**:
+
 1. Database-backed state is more reliable than files
 2. Individual task states allow granular retry
 3. Task dependencies prevent invalid state transitions
 
 **File-Based Adaptation**:
+
 ```typescript
 class AirflowStyleCheckpoint {
   private taskStates: Map<string, TaskState> = new Map();
@@ -1299,16 +1321,19 @@ class AirflowStyleCheckpoint {
 **Checkpoint Strategy**: Durable execution history
 
 **Key Patterns**:
+
 - Workflow history contains all events
 - Commands generated deterministically
 - State replayed from history on restart
 
 **Key Takeaways**:
+
 1. Event sourcing provides complete audit trail
 2. Deterministic workflow code enables replay
 3. Workflow state is reconstructed from history
 
 **File-Based Adaptation**:
+
 ```typescript
 interface HistoryEvent {
   eventId: number;
@@ -1325,7 +1350,7 @@ class EventSourcedCheckpoint {
       eventId: this.history.length,
       eventType,
       timestamp: Date.now(),
-      data
+      data,
     };
 
     this.history.push(event);
@@ -1354,7 +1379,10 @@ class EventSourcedCheckpoint {
       case 'TASK_STARTED':
         return { ...state, currentTask: event.data.taskId };
       case 'TASK_COMPLETED':
-        return { ...state, completedTasks: [...state.completedTasks, event.data.taskId] };
+        return {
+          ...state,
+          completedTasks: [...state.completedTasks, event.data.taskId],
+        };
       default:
         return state;
     }
@@ -1371,16 +1399,19 @@ class EventSourcedCheckpoint {
 **Checkpoint Strategy**: Migration history table
 
 **Key Patterns**:
+
 - `_prisma_migrations` table tracks applied migrations
 - Each migration is atomic (all-or-nothing)
 - Failed migrations can be rolled back
 
 **Key Takeaways**:
+
 1. Transactional migrations ensure consistency
 2. Migration order matters
 3. Rollback requires inverse migrations
 
 **File-Based Adaptation**:
+
 ```typescript
 class MigrationCheckpoint {
   async applyMigration(migration: Migration) {
@@ -1431,16 +1462,19 @@ class MigrationCheckpoint {
 **Checkpoint Strategy**: Versioned migration scripts with checksums
 
 **Key Patterns**:
+
 - Migration files have version numbers
 - Checksums validate file integrity
 - Failed migrations mark state as failed
 
 **Key Takeaways**:
+
 1. Version numbers enforce order
 2. Checksums detect file modifications
 3. Failed state requires manual intervention
 
 **File-Based Adaptation**:
+
 ```typescript
 class VersionedMigration {
   async applyPendingMigrations() {
@@ -1451,9 +1485,7 @@ class VersionedMigration {
       const expectedChecksum = this.calculateChecksum(migration);
 
       if (migration.checksum !== expectedChecksum) {
-        throw new Error(
-          `Migration ${migration.version} has been modified`
-        );
+        throw new Error(`Migration ${migration.version} has been modified`);
       }
 
       try {
@@ -1488,12 +1520,14 @@ class VersionedMigration {
 **Problem**: Writing directly to target file can corrupt data on interruption.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 await fs.writeFile('checkpoint.json', JSON.stringify(data));
 ```
 
 **Solution**: Use atomic write pattern
+
 ```typescript
 // DO THIS
 const tmpPath = 'checkpoint.json.tmp';
@@ -1508,6 +1542,7 @@ await fs.rename(tmpPath, 'checkpoint.json');
 **Problem**: Dates become strings, losing type information.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 const data = { createdAt: new Date() };
@@ -1517,6 +1552,7 @@ await fs.writeFile('checkpoint.json', JSON.stringify(data));
 ```
 
 **Solution**: Use super-json or custom replacer
+
 ```typescript
 // DO THIS
 import { stringify, parse } from 'super-json';
@@ -1535,6 +1571,7 @@ const restored = parse(await fs.readFile('checkpoint.json', 'utf-8'));
 **Problem**: Objects with circular references break JSON.stringify().
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 const obj = { name: 'test' };
@@ -1543,6 +1580,7 @@ JSON.stringify(obj); // Throws: Converting circular structure to JSON
 ```
 
 **Solution**: Use flatted or circular-safe replacer
+
 ```typescript
 // DO THIS
 import { stringify, parse } from 'flatted';
@@ -1559,6 +1597,7 @@ const json = stringify(obj); // Works!
 **Problem**: Corrupted checkpoints cause runtime errors later.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 const data = JSON.parse(fs.readFileSync('checkpoint.json'));
@@ -1566,12 +1605,13 @@ const data = JSON.parse(fs.readFileSync('checkpoint.json'));
 ```
 
 **Solution**: Validate with Zod schema
+
 ```typescript
 // DO THIS
 const CheckpointSchema = z.object({
   version: z.string(),
   timestamp: z.number(),
-  processedItems: z.array(z.string())
+  processedItems: z.array(z.string()),
 });
 
 const raw = JSON.parse(fs.readFileSync('checkpoint.json'));
@@ -1585,6 +1625,7 @@ const data = CheckpointSchema.parse(raw); // Throws if invalid
 **Problem**: Checkpoints accumulate without cleanup.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 // Creates new checkpoint on every save
@@ -1593,6 +1634,7 @@ await fs.writeFile(`checkpoint-${Date.now()}.json`, data);
 ```
 
 **Solution**: Implement retention policy
+
 ```typescript
 // DO THIS
 class CheckpointManager {
@@ -1619,6 +1661,7 @@ class CheckpointManager {
 **Problem**: Multiple processes write to same checkpoint file.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 // Process 1 and 2 both read, modify, and write
@@ -1629,6 +1672,7 @@ await fs.writeFile('checkpoint.json', JSON.stringify(data));
 ```
 
 **Solution**: Use file locking
+
 ```typescript
 // DO THIS
 import lockfile from 'proper-lockfile';
@@ -1650,6 +1694,7 @@ try {
 **Problem**: Process interruption without state save.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 // No signal handlers
@@ -1661,6 +1706,7 @@ await saveCheckpoint(); // Never reached
 ```
 
 **Solution**: Handle shutdown signals
+
 ```typescript
 // DO THIS
 let shutdownRequested = false;
@@ -1687,6 +1733,7 @@ while (!shutdownRequested && processing) {
 **Problem**: Only some data written before failure.
 
 **Bad Example**:
+
 ```typescript
 // DON'T DO THIS
 // Writes multiple files
@@ -1697,14 +1744,18 @@ await fs.writeFile('checkpoint-3.json', data3);
 ```
 
 **Solution**: Use atomic batch writes or transactions
+
 ```typescript
 // DO THIS
 // Write single checkpoint with all data
-await atomicWrite('checkpoint.json', JSON.stringify({
-  data1,
-  data2,
-  data3
-}));
+await atomicWrite(
+  'checkpoint.json',
+  JSON.stringify({
+    data1,
+    data2,
+    data3,
+  })
+);
 ```
 
 ---
@@ -1716,11 +1767,13 @@ await atomicWrite('checkpoint.json', JSON.stringify({
 **Recommended**: `fs-extra`
 
 **Why**:
+
 - Built-in atomic operations
 - Cross-platform compatibility
 - No additional dependencies for basic use
 
 **Code Example**:
+
 ```typescript
 import fs from 'fs-extra';
 
@@ -1744,12 +1797,14 @@ class SimpleCheckpoint {
 **Recommended**: `super-json`
 
 **Why**:
+
 - Handles Date, RegExp, Error, BigInt
 - Handles circular references
 - Preserves type information
 - TypeScript support
 
 **Code Example**:
+
 ```typescript
 import { SuperJSON } from 'super-json';
 
@@ -1759,7 +1814,7 @@ const data = {
   date: new Date(),
   regex: /test/g,
   error: new Error('test'),
-  bigint: 123n
+  bigint: 123n,
 };
 
 const serialized = superJson.serialize(data);
@@ -1775,12 +1830,14 @@ const deserialized = superJson.deserialize(serialized);
 **Recommended**: `flatted`
 
 **Why**:
+
 - Minimal size
 - Fast performance
 - Simple API
 - Works with any circular structure
 
 **Code Example**:
+
 ```typescript
 import { parse, stringify } from 'flatted';
 
@@ -1800,12 +1857,14 @@ const parsed = parse(json);
 **Recommended**: `zod`
 
 **Why**:
+
 - TypeScript-first
 - Runtime type validation
 - Excellent error messages
 - Composable schemas
 
 **Code Example**:
+
 ```typescript
 import { z } from 'zod';
 
@@ -1813,8 +1872,8 @@ const CheckpointSchema = z.object({
   version: z.string(),
   timestamp: z.number(),
   data: z.object({
-    items: z.array(z.string())
-  })
+    items: z.array(z.string()),
+  }),
 });
 
 type Checkpoint = z.infer<typeof CheckpointSchema>;
@@ -1833,12 +1892,14 @@ function validateCheckpoint(data: unknown): Checkpoint {
 **Recommended**: `proper-lockfile`
 
 **Why**:
+
 - Cross-platform (Windows/Linux/macOS)
 - Automatic stale lock detection
 - Retry mechanisms
 - Promise-based API
 
 **Code Example**:
+
 ```typescript
 import lockfile from 'proper-lockfile';
 
@@ -1846,8 +1907,8 @@ const release = await lockfile.lock('checkpoint.json', {
   retries: {
     retries: 5,
     minTimeout: 100,
-    maxTimeout: 500
-  }
+    maxTimeout: 500,
+  },
 });
 
 try {
@@ -1867,6 +1928,7 @@ try {
 **Recommended**: `Temporal` (for complex workflows)
 
 **Why**:
+
 - Built-in durable execution
 - Automatic retries
 - State management
@@ -1877,6 +1939,7 @@ try {
 **Recommended**: `BullMQ` (for task queues)
 
 **Why**:
+
 - Redis-based (simple setup)
 - Job persistence
 - Retry policies
@@ -1891,6 +1954,7 @@ try {
 **Recommended**: `XState`
 
 **Why**:
+
 - Visual debugging
 - TypeScript support
 - State history

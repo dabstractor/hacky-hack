@@ -7,6 +7,7 @@
 **Feature Goal**: Add CLI options for configuring task retry behavior, allowing users to customize max retry attempts, backoff delay, and enable/disable retry without modifying code.
 
 **Deliverable**:
+
 1. CLI options in `src/cli/index.ts`: `--task-retry <n>`, `--retry-backoff <ms>`, `--no-retry`
 2. Updated `CLIArgs` and `ValidatedCLIArgs` interfaces with new properties
 3. CLI option validation (range checking, type conversion)
@@ -17,6 +18,7 @@
 8. Integration test in `tests/integration/retry-options.test.ts`
 
 **Success Definition**:
+
 - CLI options `--task-retry`, `--retry-backoff`, `--no-retry` are parsed and validated
 - Environment variable `HACKY_TASK_RETRY_MAX_ATTEMPTS` is respected
 - Retry configuration flows from CLI → PRPPipeline → TaskOrchestrator → TaskRetryManager
@@ -30,6 +32,7 @@
 **Use Case**: A user experiencing frequent transient failures (e.g., unstable network, rate-limited API) wants to increase retry attempts or adjust backoff delay without modifying source code.
 
 **User Journey**:
+
 1. User runs pipeline with default retry settings (3 attempts, 1000ms base delay)
 2. User experiences transient failures and wants to retry more aggressively
 3. User runs: `npm run dev -- --task-retry 5 --retry-backoff 2000`
@@ -37,6 +40,7 @@
 5. User can also set environment variable: `export HACKY_TASK_RETRY_MAX_ATTEMPTS=5`
 
 **Pain Points Addressed**:
+
 - **No runtime configuration**: Users previously had to modify code to change retry behavior
 - **Environment variability**: Different environments (dev, staging, prod) may need different retry settings
 - **Debugging**: Users may want to disable retry (`--no-retry`) for faster failure detection during debugging
@@ -70,6 +74,7 @@ Add CLI options for retry configuration with the following behavior:
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete CLI option patterns from existing codebase (`--parallelism`, `--research-concurrency`)
 - Full integration flow from CLI → PRPPipeline → TaskOrchestrator
 - TaskRetryConfig interface from P3.M2.T1.S2 PRP (CONTRACT)
@@ -347,7 +352,7 @@ export interface CLIArgs {
 ```typescript
 export interface ValidatedCLIArgs extends Omit<
   CLIArgs,
-  'taskRetry' | 'retryBackoff'  // Omit string versions
+  'taskRetry' | 'retryBackoff' // Omit string versions
 > {
   /** Max retry attempts for transient errors (0-10) - validated as number or undefined */
   taskRetry?: number;
@@ -1039,6 +1044,7 @@ unset HACKY_TASK_RETRY_MAX_ATTEMPTS
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete integration flow documented (CLI → PRPPipeline → TaskOrchestrator)
 - Existing patterns to follow (parallelism, research-concurrency)
 - Contract from P3.M2.T1.S2 PRP clearly defines TaskRetryConfig interface
@@ -1047,11 +1053,13 @@ unset HACKY_TASK_RETRY_MAX_ATTEMPTS
 - All file locations and line numbers specified
 
 **Risk Areas**:
+
 - Dependency on P3.M2.T1.S2 completion (TaskOrchestrator must accept retryConfig)
 - Integration testing may reveal issues with option passing through layers
 - Environment variable cleanup in tests may be overlooked
 
 **Mitigation**:
+
 - Use `undefined` for unspecified values to gracefully handle missing P3.M2.T1.S2 changes
 - Step-by-step validation ensures each layer works before proceeding
 - Test patterns prevent environment variable leakage between tests
@@ -1062,6 +1070,7 @@ unset HACKY_TASK_RETRY_MAX_ATTEMPTS
 **Document Version**: 1.0
 **Last Updated**: 2026-01-24
 **Related Documents**:
+
 - Design Document: plan/003_b3d3efdaf0ed/docs/retry-strategy-design.md
 - Previous PRP: plan/003_b3d3efdaf0ed/P3M2T1S2/PRP.md (Task Retry Mechanism)
 - Next PRP: plan/003_b3d3efdaf0ed/P3M2T1S3/PRP.md (This file)

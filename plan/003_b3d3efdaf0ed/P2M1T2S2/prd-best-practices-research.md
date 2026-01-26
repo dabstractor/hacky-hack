@@ -1,7 +1,7 @@
 # PRD Best Practices Research & Guide
 
-*Research conducted: 2026-01-23*
-*Status: Comprehensive Guide Based on Industry Standards*
+_Research conducted: 2026-01-23_
+_Status: Comprehensive Guide Based on Industry Standards_
 
 ---
 
@@ -25,6 +25,7 @@
 A Product Requirements Document (PRD) is a foundational document that defines what a product should do, why it's being built, who it's for, and how success will be measured. Modern PRDs have evolved from static specifications to living documents that guide cross-functional teams through agile development cycles.
 
 **Key Modern PRD Trends (2024-2025):**
+
 - Shift from comprehensive specifications to minimal viable documentation
 - Integration of AI/ML requirements and ethical considerations
 - Emphasis on accessibility, privacy, and sustainability
@@ -38,6 +39,7 @@ A Product Requirements Document (PRD) is a foundational document that defines wh
 ### Core PRD Structure
 
 #### 1. **Document Metadata**
+
 ```markdown
 - Title: [Product/Feature Name] PRD
 - Version: [X.Y]
@@ -49,6 +51,7 @@ A Product Requirements Document (PRD) is a foundational document that defines wh
 ```
 
 #### 2. **Executive Summary**
+
 - Brief 2-3 paragraph overview
 - Business problem and opportunity
 - Proposed solution at high level
@@ -56,13 +59,16 @@ A Product Requirements Document (PRD) is a foundational document that defines wh
 - Target release timeline
 
 #### 3. **Problem Statement**
+
 **What problem are we solving?**
+
 - Current pain points experienced by users
 - Market gaps or opportunities
 - Business justification (revenue, cost savings, strategic value)
 - Supporting data (user research, analytics, market analysis)
 
 **Example Problem Statement Template:**
+
 ```
 Currently, [user segment] experiences [pain point] when [context].
 This results in [negative outcome], impacting [business metric].
@@ -70,12 +76,15 @@ We have an opportunity to [improve X by Y%] by [proposed approach].
 ```
 
 #### 4. **Goals & Success Metrics**
+
 **Primary Objectives:**
+
 - Business goals (revenue, growth, retention)
 - User goals (satisfaction, engagement, completion rates)
 - Technical goals (performance, reliability, scalability)
 
 **Success Metrics (SMART criteria):**
+
 - **Specific**: Clearly defined what we're measuring
 - **Measurable**: Quantifiable with baseline and target
 - **Achievable**: Realistic given constraints
@@ -83,6 +92,7 @@ We have an opportunity to [improve X by Y%] by [proposed approach].
 - **Time-bound**: Clear timeline for achievement
 
 **Example Metrics Framework:**
+
 ```
 Primary Metric (North Star):
 - User adoption rate: Baseline 15% → Target 35% within 90 days
@@ -95,13 +105,16 @@ Secondary Metrics:
 ```
 
 #### 5. **Target Audience & User Personas**
+
 **User Segments:**
+
 - Primary users (who will use it daily)
 - Secondary users (who interact occasionally)
 - Administrators/power users
 - Economic buyers (if B2B)
 
 **User Personas Include:**
+
 - Demographics (age, role, location, tech proficiency)
 - Goals and motivations
 - Pain points and frustrations
@@ -109,21 +122,25 @@ Secondary Metrics:
 - Quote representing their voice
 
 **Example Persona Template:**
+
 ```markdown
 ### Persona: Busy Manager Brenda
 
 **Demographics:**
+
 - Age: 35-50
 - Role: Middle Manager at enterprise company
 - Tech proficiency: Moderate
 - Time availability: Highly constrained
 
 **Goals:**
+
 - Quickly review team progress without digging into details
 - Identify at-risk projects early
 - Communicate status to leadership effectively
 
 **Pain Points:**
+
 - Current dashboards are too detailed and cluttered
 - Requires too many clicks to find critical information
 - Mobile experience is poor for on-the-go review
@@ -133,12 +150,15 @@ Secondary Metrics:
 ```
 
 #### 6. **Functional Requirements**
+
 **Core Features:**
+
 - Primary capabilities the product must have
 - Organized by priority (P0, P1, P2 or MoSCoW)
 - User story format with acceptance criteria
 
 **User Story Template:**
+
 ```
 As a [user role],
 I want to [action/capability],
@@ -155,19 +175,23 @@ So that I can [benefit/value].
 ```
 
 **Feature Categories:**
+
 - **Must-have (P0/MoSCoW Must):** Critical for launch
 - **Should-have (P1/MoSCoW Should):** Important but not blocking
 - **Could-have (P2/MoSCoW Could):** Nice to have if time permits
 - **Won't-have (MoSCoW Won't):** Explicitly out of scope
 
 #### 7. **Non-Functional Requirements**
+
 **Performance Requirements:**
+
 - Response times (p50, p95, p99)
 - Throughput (requests per second)
 - Concurrent users supported
 - Resource limits (memory, CPU, storage)
 
 **Example Performance Spec:**
+
 ```
 Page Load Time:
 - p50: <1.5 seconds
@@ -184,6 +208,7 @@ Scalability:
 ```
 
 **Security & Compliance:**
+
 - Authentication and authorization requirements
 - Data encryption standards
 - Compliance standards (GDPR, CCPA, SOC2, HIPAA)
@@ -191,19 +216,23 @@ Scalability:
 - Audit logging
 
 **Reliability & Availability:**
+
 - Uptime targets (99.9%, 99.99%, etc.)
 - Disaster recovery requirements
 - Data backup and retention
 - Error handling and graceful degradation
 
 #### 8. **User Experience & Design**
+
 **UX Requirements:**
+
 - User flows and journey maps
 - Navigation structure
 - Interaction patterns
 - Accessibility standards (WCAG 2.1 AA/AAA)
 
 **Design Specifications:**
+
 - Wireframes or mockups (linked)
 - Design system components to use
 - Brand guidelines
@@ -211,7 +240,9 @@ Scalability:
 - Internationalization (i18n) and localization (l10n) needs
 
 #### 9. **Technical Considerations**
+
 **Architecture:**
+
 - High-level system architecture
 - Integration points (APIs, third-party services)
 - Data models and schemas
@@ -219,19 +250,23 @@ Scalability:
 - Legacy system considerations
 
 **Technical Constraints:**
+
 - Platform requirements (web, mobile, desktop)
 - Browser/device support matrix
 - Infrastructure requirements
 - Migration or data import needs
 
 #### 10. **Assumptions, Dependencies & Constraints**
+
 **Assumptions:**
+
 - What we believe to be true but haven't confirmed
 - Market conditions
 - User behavior predictions
 - Technical feasibility assumptions
 
 **Dependencies:**
+
 - Other products or features
 - Third-party services and APIs
 - Team availability
@@ -239,6 +274,7 @@ Scalability:
 - Legal or compliance approvals
 
 **Constraints:**
+
 - Technical limitations
 - Timeline constraints
 - Budget limitations
@@ -246,13 +282,16 @@ Scalability:
 - Strategic boundaries
 
 #### 11. **Risk Assessment & Mitigation**
+
 **Risk Categories:**
+
 - **Technical Risks:** Implementation complexity, technical debt
 - **Business Risks:** Market acceptance, competitive response
 - **User Risks:** Adoption barriers, usability issues
 - **Operational Risks:** Support burden, maintenance costs
 
 **Risk Register Template:**
+
 ```
 | Risk | Likelihood | Impact | Mitigation Strategy | Owner |
 |------|-----------|--------|-------------------|-------|
@@ -260,13 +299,16 @@ Scalability:
 ```
 
 #### 12. **Release Planning**
+
 **Phasing Strategy:**
+
 - MVP (Minimum Viable Product) scope
 - Phase 2, Phase 3 enhancements
 - Beta testing approach
 - Rollout strategy (feature flags, gradual rollout)
 
 **Go-to-Market:**
+
 - Launch requirements
 - Marketing and messaging
 - Sales enablement needs
@@ -274,6 +316,7 @@ Scalability:
 - Support and documentation requirements
 
 #### 13. **Open Questions & Issues**
+
 - Questions that need answers
 - Decisions pending
 - Items requiring further research
@@ -286,6 +329,7 @@ Scalability:
 ### Principles of Clear Requirements
 
 #### 1. **Be Specific and Precise**
+
 ❌ **Vague:** "The system should be fast"
 ✅ **Specific:** "The system must respond to user queries within 200ms for 95% of requests"
 
@@ -293,6 +337,7 @@ Scalability:
 ✅ **Specific:** "Reduce the number of clicks required to complete checkout from 5 to 3"
 
 #### 2. **Use Active Voice and Imperative Mood**
+
 ❌ **Passive:** "The user should be able to..."
 ✅ **Active:** "The system shall allow the user to..."
 
@@ -300,13 +345,16 @@ Scalability:
 ✅ **Strong:** "The system must..." or "The system will..."
 
 #### 3. **Make Requirements Testable**
+
 Each requirement should be verifiable through:
+
 - Automated tests (unit, integration, end-to-end)
 - Manual testing scenarios
 - User acceptance testing
 - Metrics and analytics
 
 **Testability Checklist:**
+
 - [ ] Can a QA engineer write a test case for this?
 - [ ] Is there a clear pass/fail criteria?
 - [ ] Can this be measured or observed?
@@ -316,6 +364,7 @@ Each requirement should be verifiable through:
 #### 4. **Use Standard Templates**
 
 **User Story Format:**
+
 ```
 As a [type of user],
 I want to [perform an action],
@@ -323,6 +372,7 @@ So that I can [achieve a goal].
 ```
 
 **Given-When-Then Format:**
+
 ```
 Given [precondition/context]
 When [action/trigger occurs]
@@ -331,6 +381,7 @@ And [additional outcomes]
 ```
 
 **Example:**
+
 ```
 Given a user is on the checkout page
 And has items in their cart
@@ -343,6 +394,7 @@ And they should receive an email confirmation
 #### 5. **Avoid Ambiguous Language**
 
 **Words to Avoid:**
+
 - "should", "could", "may", "might" → Use "must", "shall", "will"
 - "appropriate", "suitable", "adequate" → Define specific criteria
 - "fast", "responsive", "quickly" → Provide specific metrics
@@ -351,6 +403,7 @@ And they should receive an email confirmation
 - "normal", "typical", "reasonable" → Define explicitly
 
 **Recommended Terminology:**
+
 - **"Must"**: Absolute requirement (failure = product failure)
 - **"Shall"**: Required feature or behavior
 - **"Will"**: Commitment to future functionality
@@ -363,6 +416,7 @@ And they should receive an email confirmation
 #### Structure of Good Acceptance Criteria
 
 **INVEST Criteria:**
+
 - **I**ndependent: Can be developed and tested separately
 - **N**egotiable: Not set in stone, open to discussion
 - **V**aluable: Delivers value to user
@@ -375,6 +429,7 @@ And they should receive an email confirmation
 **Story:** User Profile Management
 
 **Acceptance Criteria:**
+
 1. **AC1:** Given a logged-in user, when they navigate to their profile, then they can view their current profile information including name, email, and avatar
 2. **AC2:** Given a user on their profile page, when they update their name and click "Save", then the changes persist and are reflected across the application
 3. **AC3:** Given a user updating their email, when they submit a new email address, then they receive a verification email before the change takes effect
@@ -385,6 +440,7 @@ And they should receive an email confirmation
 ### Edge Cases and Error Handling
 
 **Always Specify:**
+
 - Empty states (no data, zero results)
 - Error states (network failures, server errors)
 - Boundary conditions (minimum/maximum values)
@@ -393,6 +449,7 @@ And they should receive an email confirmation
 - Performance degradation (slow connections, high load)
 
 **Example Edge Case Specification:**
+
 ```
 Search Feature - Edge Cases:
 
@@ -431,6 +488,7 @@ Success criteria define what success looks like for the entire product or featur
 **Types of Success Criteria:**
 
 #### 1. **Business Metrics**
+
 ```
 Revenue/Business Impact:
 - Generate $500K in ARR within 6 months
@@ -444,6 +502,7 @@ Customer Acquisition:
 ```
 
 #### 2. **User Engagement Metrics**
+
 ```
 Adoption:
 - 40% of eligible users try the feature within 30 days
@@ -459,6 +518,7 @@ Retention:
 ```
 
 #### 3. **User Experience Metrics**
+
 ```
 Usability:
 - Task completion rate >90%
@@ -472,6 +532,7 @@ Performance:
 ```
 
 #### 4. **Support Metrics**
+
 ```
 Support Burden:
 - Support tickets decrease by 30%
@@ -490,10 +551,12 @@ Acceptance criteria define when a specific user story is "done" and ready for re
 **Format Options:**
 
 #### Option 1: Checklist Format
+
 ```markdown
 **User Story:** User can reset password
 
 **Acceptance Criteria:**
+
 - [ ] User can request password reset from login page
 - [ ] User receives email with reset link within 2 minutes
 - [ ] Reset link expires after 24 hours
@@ -504,6 +567,7 @@ Acceptance criteria define when a specific user story is "done" and ready for re
 ```
 
 #### Option 2: Given-When-Then Format
+
 ```markdown
 **User Story:** User can reset password
 
@@ -525,19 +589,21 @@ And they can request a new reset link
 ```
 
 #### Option 3: Specification by Example
+
 ```markdown
 **User Story:** Search products by category
 
 **Examples:**
 
-| Category | Expected Results | Sorting |
-|----------|-----------------|---------|
-| Electronics | 150 products, TVs, laptops, phones | Relevance |
-| Clothing | 75 products, shirts, pants, dresses | Newest |
-| "Invalid Category" | Error: "Category not found" | N/A |
-| Empty search | Show all categories, suggest browsing | Popularity |
+| Category           | Expected Results                      | Sorting    |
+| ------------------ | ------------------------------------- | ---------- |
+| Electronics        | 150 products, TVs, laptops, phones    | Relevance  |
+| Clothing           | 75 products, shirts, pants, dresses   | Newest     |
+| "Invalid Category" | Error: "Category not found"           | N/A        |
+| Empty search       | Show all categories, suggest browsing | Popularity |
 
 **Edge Cases:**
+
 - Category with 0 products → Show "Coming Soon" message
 - Category with 1000+ products → Paginate (50 per page)
 - Special characters → Properly URL encoded
@@ -551,6 +617,7 @@ And they can request a new reset link
 **Definition of Done:**
 
 Code Quality:
+
 - [ ] Code reviewed by at least one other engineer
 - [ ] All tests pass (unit, integration, e2e)
 - [ ] Test coverage ≥80%
@@ -558,6 +625,7 @@ Code Quality:
 - [ ] Linting and formatting standards met
 
 Testing:
+
 - [ ] Unit tests written for new code
 - [ ] Integration tests for API endpoints
 - [ ] E2E tests for critical user flows
@@ -565,18 +633,21 @@ Testing:
 - [ ] Accessibility testing passed (WCAG 2.1 AA)
 
 Documentation:
+
 - [ ] API documentation updated
 - [ ] User-facing documentation created
 - [ ] Internal runbook/ops doc updated
 - [ ] Changelog/release notes written
 
 Product:
+
 - [ ] Acceptance criteria all met
 - [ ] Product owner approval received
 - [ ] Design specs match implementation
 - [ ] Analytics events implemented
 
 Operations:
+
 - [ ] Monitoring and alerts configured
 - [ ] Deployment plan documented
 - [ ] Rollback plan tested
@@ -611,14 +682,14 @@ Long-term (Month 2+):
 
 **Metrics Dashboard Template:**
 
-| Metric | Baseline | Target (Month 1) | Actual | Status |
-|--------|----------|------------------|--------|--------|
-| MAU | 10,000 | 15,000 | 12,500 | 🟡 On track |
-| Conversion rate | 2.5% | 3.5% | 3.8% | 🟢 Exceeded |
-| Feature adoption | N/A | 40% | 55% | 🟢 Exceeded |
-| Support tickets | 150/week | 100/week | 90/week | 🟢 Exceeded |
-| Page load time | 3.2s | 2.0s | 2.3s | 🟡 Close |
-| Error rate | 0.5% | 0.1% | 0.15% | 🟡 Close |
+| Metric           | Baseline | Target (Month 1) | Actual  | Status      |
+| ---------------- | -------- | ---------------- | ------- | ----------- |
+| MAU              | 10,000   | 15,000           | 12,500  | 🟡 On track |
+| Conversion rate  | 2.5%     | 3.5%             | 3.8%    | 🟢 Exceeded |
+| Feature adoption | N/A      | 40%              | 55%     | 🟢 Exceeded |
+| Support tickets  | 150/week | 100/week         | 90/week | 🟢 Exceeded |
+| Page load time   | 3.2s     | 2.0s             | 2.3s    | 🟡 Close    |
+| Error rate       | 0.5%     | 0.1%             | 0.15%   | 🟡 Close    |
 
 ---
 
@@ -627,11 +698,13 @@ Long-term (Month 2+):
 ### 1. **Ambiguity and Vagueness**
 
 **The Problem:**
+
 - Using subjective terms like "fast", "user-friendly", "intuitive"
 - Leaving room for interpretation
 - Unclear what success looks like
 
 **How to Avoid:**
+
 ```
 ❌ Bad: "The system should respond quickly"
 ✅ Good: "API responses must be <200ms at p95 under normal load"
@@ -644,6 +717,7 @@ Long-term (Month 2+):
 ```
 
 **Prevention Strategies:**
+
 - Use the "5 Ws" - Who, What, Where, When, Why
 - Apply SMART criteria to all requirements
 - Have someone unfamiliar with the project review for clarity
@@ -652,11 +726,13 @@ Long-term (Month 2+):
 ### 2. **Over-Specification (Solutioneering)**
 
 **The Problem:**
+
 - Specifying HOW to solve the problem instead of WHAT to solve
 - Dictating technical implementation
 - Removing engineering team's autonomy and expertise
 
 **Example of Over-Specification:**
+
 ```
 ❌ Bad: "Implement a Redis cache with LRU eviction policy
 to store user sessions with 5-minute TTL"
@@ -666,6 +742,7 @@ of requests. Support 10,000 concurrent sessions."
 ```
 
 **How to Avoid:**
+
 - Focus on user needs and business outcomes
 - Define WHAT and WHY, let engineering determine HOW
 - Specify constraints (performance, security) not solutions
@@ -674,12 +751,14 @@ of requests. Support 10,000 concurrent sessions."
 ### 3. **Under-Specification**
 
 **The Problem:**
+
 - Missing critical requirements
 - Forgetting edge cases and error states
 - Incomplete non-functional requirements
 - Assumptions not documented
 
 **Commonly Missed Areas:**
+
 - Error handling and edge cases
 - Performance under load
 - Security and compliance requirements
@@ -688,6 +767,7 @@ of requests. Support 10,000 concurrent sessions."
 - Support and monitoring needs
 
 **How to Avoid:**
+
 - Use comprehensive PRD template
 - Review checklists for each section
 - Involve cross-functional stakeholders early
@@ -697,11 +777,13 @@ of requests. Support 10,000 concurrent sessions."
 ### 4. **Contradictions and Inconsistencies**
 
 **The Problem:**
+
 - Requirements that conflict with each other
 - Inconsistent terminology or definitions
 - Contradictory success metrics
 
 **Examples:**
+
 ```
 Contradiction:
 - "System must respond in <100ms"
@@ -713,6 +795,7 @@ Inconsistency:
 ```
 
 **How to Avoid:**
+
 - **Glossary:** Define all key terms upfront
 - **Cross-reference:** Link related requirements
 - **Review process:** Multiple stakeholders review
@@ -720,6 +803,7 @@ Inconsistency:
 - **Traceability matrix:** Link requirements to goals
 
 **Validation Checklist:**
+
 ```markdown
 - [ ] All metrics have defined baselines
 - [ ] Requirements are mutually compatible
@@ -732,12 +816,14 @@ Inconsistency:
 ### 5. **Ignoring the "Why"**
 
 **The Problem:**
+
 - PRD becomes a laundry list of features
 - No business context or rationale
 - Teams don't understand purpose
 - Can't prioritize effectively
 
 **How to Avoid:**
+
 - Always include problem statement and rationale
 - Link features to business objectives
 - Include user research or data supporting decisions
@@ -745,16 +831,19 @@ Inconsistency:
 - Document trade-offs and decisions
 
 **Template for Rationale:**
+
 ```markdown
 **Feature:** [Feature name]
 
 **Why we're building this:**
+
 - Business problem: [description]
 - Opportunity size: [data/metrics]
 - User pain points: [research findings]
 - Strategic importance: [alignment with goals]
 
 **Success looks like:**
+
 - [Primary metric] changes from [baseline] to [target]
 - Enables [downstream initiative]
 - Unblocks [other team/objective]
@@ -763,12 +852,14 @@ Inconsistency:
 ### 6. **Unrealistic Timelines or Scope**
 
 **The Problem:**
+
 - Overly ambitious MVP
 - Too many "must-have" features
 - Insufficient time for quality
 - Technical underestimation
 
 **How to Avoid:**
+
 - Apply ruthless prioritization (MoSCoW)
 - Break into phases/releases
 - Get engineering input early
@@ -776,6 +867,7 @@ Inconsistency:
 - Focus on minimum viable product
 
 **Scope Reduction Techniques:**
+
 ```
 Question each requirement:
 1. Is this truly needed for MVP?
@@ -788,12 +880,14 @@ Question each requirement:
 ### 7. **Lack of Stakeholder Alignment**
 
 **The Problem:**
+
 - Key stakeholders not involved
 - Conflicting priorities from different teams
 - Surprises late in development
 - Requirements changing mid-sprint
 
 **How to Avoid:**
+
 - Identify all stakeholders early
 - Conduct PRD review with all teams
 - Get sign-off before development
@@ -801,23 +895,28 @@ Question each requirement:
 - Establish change management process
 
 **Stakeholder Engagement Plan:**
+
 ```markdown
 Before Writing:
+
 - Interview key stakeholders
 - Gather requirements from all teams
 - Identify conflicting needs
 
 During Writing:
+
 - Share drafts for feedback
 - Review with design and engineering
 - Validate with data science/legal/compliance
 
 Before Development:
+
 - Final sign-off from all stakeholders
 - Commitment to requirements
 - Agreement on scope and timeline
 
 During Development:
+
 - Manage scope changes through formal process
 - Communicate inevitable changes proactively
 - Re-align on priorities as needed
@@ -826,31 +925,37 @@ During Development:
 ### 8. **Ignoring Non-Functional Requirements**
 
 **The Problem:**
+
 - Focus only on features
 - Forget performance, security, reliability
 - Discover issues too late
 - Technical debt accumulates
 
 **Essential Non-Functional Requirements:**
+
 ```markdown
 Performance:
+
 - Response times, throughput, capacity
 - Scalability requirements
 - Resource utilization limits
 
 Security:
+
 - Authentication and authorization
 - Data encryption and privacy
 - Compliance requirements
 - Threat modeling
 
 Reliability:
+
 - Uptime and availability targets
 - Error rates and handling
 - Disaster recovery
 - Data backup and retention
 
 Maintainability:
+
 - Code quality standards
 - Testing requirements
 - Documentation requirements
@@ -860,20 +965,24 @@ Maintainability:
 ### 9. **Not Defining "Done"**
 
 **The Problem:**
+
 - Unclear when a feature is complete
 - Continuous scope creep
 - Quality varies between stories
 - Definition of "done" differs by person
 
 **How to Avoid:**
+
 - Create explicit Definition of Done
 - Apply DoD to every user story
 - Include quality gates
 - Make DoD visible and enforced
 
 **Sample Definition of Done:**
+
 ```markdown
 A feature is "done" when:
+
 - Code is peer-reviewed and approved
 - All tests pass with ≥80% coverage
 - Acceptance criteria verified by QA
@@ -888,12 +997,14 @@ A feature is "done" when:
 ### 10. **Writing Once and Never Updating**
 
 **The Problem:**
+
 - PRD becomes static document
 - Reality diverges from document
 - Team ignores outdated PRD
 - New members confused by stale info
 
 **How to Avoid:**
+
 - Treat PRD as living document
 - Update when requirements change
 - Track changes with version history
@@ -902,13 +1013,16 @@ A feature is "done" when:
 - Archive old versions for reference
 
 **Living PRD Practices:**
+
 ```markdown
 Version Control:
+
 - Use semantic versioning (1.0, 1.1, 2.0)
 - Maintain changelog
 - Date each version
 
 Update Triggers:
+
 - Requirement changes
 - Technical discoveries
 - Market shifts
@@ -916,6 +1030,7 @@ Update Triggers:
 - Priority changes
 
 Communication:
+
 - Announce significant changes
 - Highlight what's new/changed
 - Explain why changes were made
@@ -933,6 +1048,7 @@ Amazon's famous "Working Backwards" process starts with the press release and FA
 **Amazon PRD Structure:**
 
 #### 1. **Press Release** (Internal)
+
 ```
 [City, State] – [Date] – Amazon today announced [product name],
 a new service that [customer benefit].
@@ -954,14 +1070,17 @@ Pricing and availability: [Details]
 ```
 
 #### 2. **FAQ** (Frequently Asked Questions)
+
 ```markdown
 **External FAQs (Customer-facing):**
+
 - What is [product]?
 - How much does it cost?
 - When will it be available?
 - How do I get started?
 
 **Internal FAQs (Team-facing):**
+
 - What are we launching?
 - Why are we building this?
 - What problems are we solving?
@@ -973,11 +1092,13 @@ Pricing and availability: [Details]
 ```
 
 #### 3. **Visuals and Mockups**
+
 - Mockups of the customer experience
 - User flow diagrams
 - Service architecture diagrams
 
 **Why This Works:**
+
 - Forces customer-first thinking
 - Clarifies value proposition early
 - Identifies gaps before coding
@@ -991,6 +1112,7 @@ Google X uses a specific format for "moonshot" projects:
 **Google X PRD Structure:**
 
 #### 1. **The Problem**
+
 ```
 [X million] people experience [problem]
 This costs [Y amount] in [economic terms/quality of life]
@@ -1002,6 +1124,7 @@ Current solutions fail because:
 ```
 
 #### 2. **The Solution Approach**
+
 ```
 We propose to [radical solution]
 
@@ -1012,6 +1135,7 @@ This would:
 ```
 
 #### 3. **The Science**
+
 ```
 The key scientific insight is [explanation]
 
@@ -1023,6 +1147,7 @@ Uncertainties and what we need to learn:
 ```
 
 #### 4. **The Risks**
+
 ```
 Technical risks: [List and mitigation]
 Execution risks: [List and mitigation]
@@ -1081,30 +1206,39 @@ Stripe uses RFCs for significant technical or product decisions:
 **Last Updated:** [Date]
 
 ## Summary
+
 [2-3 sentence overview]
 
 ## Motivation
+
 [Why are we doing this? What problem does it solve?]
 
 ## Proposed Solution
+
 [Detailed technical approach]
 
 ## Detailed Design
+
 [Technical specifications, architecture, APIs]
 
 ## Drawbacks
+
 [Why this approach might not be ideal]
 
 ## Alternatives Considered
+
 [Other approaches and why they weren't chosen]
 
 ## Unresolved Questions
+
 [What still needs to be decided?]
 
 ## Success Metrics
+
 [How will we measure success?]
 
 ## Implementation Plan
+
 [Phases, timeline, dependencies]
 ```
 
@@ -1116,41 +1250,49 @@ Airbnb uses design briefs that blend product and design thinking:
 
 ```markdown
 ## Project Overview
+
 - Project name
 - Designers + PM + Engineers
 - Timeline
 
 ## The Why
+
 - Why now? (Strategic context)
 - Business impact
 - User need
 
 ## The What
+
 - Problem statement
 - Success metrics
 - Key questions to answer
 
 ## The Who
+
 - Target users
 - User research insights
 - Personas
 
 ## Constraints
+
 - Technical constraints
 - Design constraints
 - Business constraints
 
 ## Success Criteria
+
 - Primary metrics
 - Secondary metrics
 - What does success look like?
 
 ## Explorations
+
 - Design directions explored
 - Concepts considered
 - Decisions made
 
 ## Next Steps
+
 - Hypothesis to validate
 - Research needed
 - Prototype plan
@@ -1248,21 +1390,23 @@ Netflix emphasizes data and experimentation:
 #### 1. **Use Precise Terminology**
 
 **Create a Glossary:**
+
 ```markdown
 **Glossary:**
 
-| Term | Definition |
-|------|------------|
+| Term        | Definition                                     |
+| ----------- | ---------------------------------------------- |
 | Active User | Logged in and performed action in last 30 days |
-| Session | Continuous activity without 30-minute break |
-| Conversion | Free user upgrades to paid plan |
-| Churn | User cancels subscription or doesn't renew |
-| Latency | Time from request to first byte of response |
+| Session     | Continuous activity without 30-minute break    |
+| Conversion  | Free user upgrades to paid plan                |
+| Churn       | User cancels subscription or doesn't renew     |
+| Latency     | Time from request to first byte of response    |
 ```
 
 #### 2. **Apply Requirements Quality Checklist**
 
 **The "SMARTER" Checklist:**
+
 ```markdown
 [ ] Specific - Is it clear and precise?
 [ ] Measurable - Can we measure/verify it?
@@ -1291,6 +1435,7 @@ Netflix emphasizes data and experimentation:
 #### 4. **Use Structured Formats**
 
 **For Requirements:**
+
 ```markdown
 **REQ-001:** User Authentication
 
@@ -1299,17 +1444,20 @@ Netflix emphasizes data and experimentation:
 **Priority:** P0 (Must have)
 
 **Functional Requirements:**
+
 - FR-001.1: System accepts email + password
 - FR-001.2: System supports Google OAuth
 - FR-001.3: System supports Microsoft OAuth
 - FR-001.4: Sessions expire after 14 days of inactivity
 
 **Non-Functional Requirements:**
+
 - NFR-001.1: Authentication completes in <2s (p95)
 - NFR-001.2: Passwords hashed using bcrypt with cost factor 12
 - NFR-001.3: Failed attempts lock account after 5 tries
 
 **Acceptance Criteria:**
+
 - User can register with email/password
 - User can login with email/password
 - User can login with Google OAuth
@@ -1318,10 +1466,12 @@ Netflix emphasizes data and experimentation:
 - Account locks after 5 failed attempts
 
 **Dependencies:**
+
 - Email service for password reset
 - OAuth providers (Google, Microsoft)
 
 **Open Questions:**
+
 - Support social login for Facebook? (Deferred to Phase 2)
 ```
 
@@ -1332,18 +1482,20 @@ Netflix emphasizes data and experimentation:
 Link requirements to goals and features:
 
 ```markdown
-| Goal | Feature | Requirement | Test Case | Status |
-|------|---------|-------------|-----------|--------|
-| Increase conversion | One-page checkout | REQ-101 | TC-101 | ✅ Tested |
-| Increase conversion | Guest checkout | REQ-102 | TC-102 | ✅ Tested |
-| Reduce support burden | Self-service returns | REQ-103 | TC-103 | ⏳ Pending |
+| Goal                  | Feature              | Requirement | Test Case | Status     |
+| --------------------- | -------------------- | ----------- | --------- | ---------- |
+| Increase conversion   | One-page checkout    | REQ-101     | TC-101    | ✅ Tested  |
+| Increase conversion   | Guest checkout       | REQ-102     | TC-102    | ✅ Tested  |
+| Reduce support burden | Self-service returns | REQ-103     | TC-103    | ⏳ Pending |
 ```
 
 #### 2. **Cross-Reference Requirements**
 
 When requirements relate to each other:
+
 ```markdown
 **REQ-150: Search Results Display**
+
 - Display 20 results per page
 - Results sorted by relevance (see REQ-155: Relevance Algorithm)
 - Include product image (see REQ-120: Image CDN)
@@ -1352,6 +1504,7 @@ When requirements relate to each other:
 #### 3. **Use IDs for Everything**
 
 **ID System:**
+
 - **Goals:** GOAL-001, GOAL-002
 - **Features:** FEAT-001, FEAT-002
 - **Requirements:** REQ-001, REQ-002
@@ -1359,6 +1512,7 @@ When requirements relate to each other:
 - **Bugs:** BUG-001, BUG-002
 
 **Benefits:**
+
 - Unambiguous references
 - Easy traceability
 - Clear dependencies
@@ -1369,8 +1523,10 @@ When requirements relate to each other:
 #### 1. **Automated Checks**
 
 **Create Validation Rules:**
+
 ```markdown
 Check for:
+
 - [ ] Two requirements with "must" that can't both be true
 - [ ] Performance requirements that exceed technical limits
 - [ ] Security requirements that conflict with UX requirements
@@ -1381,10 +1537,12 @@ Check for:
 #### 2. **Stakeholder Review Process**
 
 **Contradiction Review Meeting:**
+
 ```markdown
 Attendees: PM, Engineering Lead, Design Lead, QA Lead
 
 Agenda:
+
 1. Review all "must" requirements for conflicts
 2. Check performance vs. security vs. UX tradeoffs
 3. Validate timeline vs. scope
@@ -1392,6 +1550,7 @@ Agenda:
 5. Document and resolve all contradictions
 
 Output:
+
 - Approved PRD with no contradictions
 - Documented tradeoffs and decisions
 - Updated timeline or scope if needed
@@ -1401,22 +1560,27 @@ Output:
 
 ```markdown
 Performance vs. Security:
+
 - "All data encrypted at rest" vs. "<100ms query time"
 - Resolution: Encrypt sensitive data only, cache rest
 
 UX vs. Security:
+
 - "One-click purchase" vs. "Two-factor authentication required"
 - Resolution: Require 2FA for purchases >$200 only
 
 Scope vs. Timeline:
+
 - "10 major features" vs. "Launch in 2 months with 5 engineers"
 - Resolution: Reduce scope or extend timeline
 
 Cost vs. Quality:
+
 - "Build in-house" vs. "$50k budget"
 - Resolution: Use third-party service or increase budget
 
 Flexibility vs. Performance:
+
 - "Support any data format" vs. "<50ms response time"
 - Resolution: Support 5 common formats, others via async processing
 ```
@@ -1426,6 +1590,7 @@ Flexibility vs. Performance:
 #### 1. **Multiple Review Rounds**
 
 **Round 1: Completeness Review**
+
 ```markdown
 - [ ] All template sections filled
 - [ ] No placeholders or "TBD" remaining
@@ -1435,6 +1600,7 @@ Flexibility vs. Performance:
 ```
 
 **Round 2: Consistency Review**
+
 ```markdown
 - [ ] Terminology consistent throughout
 - [ ] No contradictions in requirements
@@ -1444,6 +1610,7 @@ Flexibility vs. Performance:
 ```
 
 **Round 3: Clarity Review**
+
 ```markdown
 - [ ] Requirements are testable
 - [ ] No ambiguous language
@@ -1453,6 +1620,7 @@ Flexibility vs. Performance:
 ```
 
 **Round 4: Stakeholder Review**
+
 ```markdown
 - [ ] Engineering feasibility confirmed
 - [ ] Design requirements realistic
@@ -1464,8 +1632,10 @@ Flexibility vs. Performance:
 #### 2. **The "Rubber Duck" Test**
 
 Explain the PRD to someone unfamiliar with the project:
+
 ```markdown
 Instructions:
+
 1. Find someone who doesn't know the project
 2. Explain the entire product/feature
 3. Have them ask questions
@@ -1476,8 +1646,10 @@ Instructions:
 #### 3. **Scenario Walkthroughs**
 
 **User Journey Validation:**
+
 ```markdown
 For each user story:
+
 1. Walk through the user journey step-by-step
 2. Identify every decision point
 3. Document what happens for each option
@@ -1488,6 +1660,7 @@ Example:
 Story: "User purchases product"
 
 Walkthrough:
+
 1. User views product → [REQ-200: Product Display]
 2. User clicks "Add to Cart" → [REQ-210: Add to Cart]
 3. User sees cart → [REQ-220: Cart Display]
@@ -1509,6 +1682,7 @@ AI and LLM systems introduce unique requirements considerations:
 
 ```markdown
 Key Differences from Traditional Software:
+
 1. Non-deterministic behavior
 2. Probabilistic outputs
 3. Continuous learning and model drift
@@ -1532,6 +1706,7 @@ Use LLM to generate document summaries,
 reducing reading time by 80%.
 
 **Why AI is Appropriate:**
+
 - Requires natural language understanding
 - Large variety of document types and formats
 - Quality improves with more data
@@ -1545,8 +1720,10 @@ manual summarization doesn't scale.
 #### 2. **AI/ML Requirements Section**
 
 **Model Requirements:**
+
 ```markdown
 **Model Specifications:**
+
 - Model type: [GPT-4 / Claude / Custom / Open-source]
 - Context window: [tokens]
 - Fine-tuning: [Yes/No, on what data]
@@ -1554,6 +1731,7 @@ manual summarization doesn't scale.
 - Output modality: [Text, Structured data, Code]
 
 **Performance Targets:**
+
 - Accuracy: [Metric and threshold, e.g., >95% on test set]
 - Latency: [p50, p95, p99 response times]
 - Throughput: [Requests per second/minute]
@@ -1561,6 +1739,7 @@ manual summarization doesn't scale.
 - Token limits: [Input and output]
 
 **Training/Fine-tuning:**
+
 - Training data: [Sources, size, diversity]
 - Training frequency: [Continuous, monthly, quarterly]
 - Evaluation dataset: [Size, diversity, maintenance]
@@ -1568,8 +1747,10 @@ manual summarization doesn't scale.
 ```
 
 **Data Requirements:**
+
 ```markdown
 **Input Data Specifications:**
+
 - Data sources: [Where data comes from]
 - Data volume: [Expected volume per day/month]
 - Data quality: [Quality standards and validation]
@@ -1578,6 +1759,7 @@ manual summarization doesn't scale.
 - PII handling: [Redaction, anonymization]
 
 **Data Governance:**
+
 - Data provenance: [Origin and lineage tracking]
 - Data versioning: [Strategy for data changes]
 - Data access controls: [Who can access what]
@@ -1587,14 +1769,17 @@ manual summarization doesn't scale.
 #### 3. **Performance Metrics for AI**
 
 **Model Performance Metrics:**
+
 ```markdown
 **Quality Metrics:**
+
 - Accuracy/Precision/Recall/F1: [For classification tasks]
 - BLEU/ROUGE/METEOR: [For text generation]
 - Human evaluation scores: [Rating scale 1-5 or 1-10]
 - Task-specific metrics: [e.g., code correctness]
 
 **Operational Metrics:**
+
 - Response time (p50, p95, p99): [Target milliseconds]
 - Throughput: [Requests per time period]
 - Error rate: [Percentage of failed requests]
@@ -1602,6 +1787,7 @@ manual summarization doesn't scale.
 - Rate limit utilization: [Headroom available]
 
 **Cost Metrics:**
+
 - Cost per 1K tokens: [Input and output]
 - Cost per request: [Average]
 - Monthly cost budget: [Maximum spend]
@@ -1611,14 +1797,17 @@ manual summarization doesn't scale.
 #### 4. **Safety and Ethics**
 
 **Safety Requirements:**
+
 ```markdown
 **Content Safety:**
+
 - Hate speech detection: [Block or flag content]
 - Dangerous content: [Medical, legal, financial advice]
 - Sexual content: [Filtering policy]
 - Harassment/bullying: [Detection and response]
 
 **Output Validation:**
+
 - Factuality checking: [Strategy for verification]
 - Hallucination prevention: [Approach to minimize]
 - Source citation: [When and how to cite sources]
@@ -1626,6 +1815,7 @@ manual summarization doesn't scale.
 - "I don't know" responses: [When to use]
 
 **Adversarial Robustness:**
+
 - Prompt injection prevention: [Detection and filtering]
 - Jailbreak prevention: [Guardrails and constraints]
 - Rate limiting: [Per user/IP]
@@ -1633,20 +1823,24 @@ manual summarization doesn't scale.
 ```
 
 **Ethical Considerations:**
+
 ```markdown
 **Bias and Fairness:**
+
 - Training data bias: [Assessment and mitigation]
 - Demographic parity: [Testing approach]
 - Cultural sensitivity: [Localization considerations]
 - Representation diversity: [In user testing and eval]
 
 **Transparency:**
+
 - AI disclosure: [When to inform users it's AI]
 - Explainability: [How decisions are explained]
 - Model card: [Public documentation of model]
 - Data usage: [What data and how it's used]
 
 **Accountability:**
+
 - Human-in-the-loop: [When human review required]
 - Appeal process: [How users can challenge outputs]
 - Liability: [Who is responsible for errors]
@@ -1656,19 +1850,23 @@ manual summarization doesn't scale.
 #### 5. **Compliance and Regulatory**
 
 **Regulatory Requirements:**
+
 ```markdown
 **AI-Specific Regulations:**
+
 - EU AI Act: [Risk classification and requirements]
 - Executive Order on AI: [US federal requirements]
 - Industry-specific: [Healthcare, finance, education]
 
 **Data Protection:**
+
 - GDPR: [Right to explanation, data deletion]
 - CCPA: [California privacy requirements]
 - Data localization: [Where data must be stored]
 - Consent management: [How consent is obtained]
 
 **Audit and Reporting:**
+
 - Model documentation: [Model cards, datasheets]
 - Decision logging: [What is logged and retained]
 - Audit trails: [For compliance reviews]
@@ -1678,26 +1876,31 @@ manual summarization doesn't scale.
 #### 6. **Monitoring and Observability**
 
 **AI System Monitoring:**
+
 ```markdown
 **Model Performance Monitoring:**
+
 - Quality drift detection: [Automated alerts]
 - Data drift detection: [Input distribution changes]
 - Concept drift detection: [Output quality changes]
 - Model degradation: [Performance over time]
 
 **Operational Monitoring:**
+
 - Request volume: [Per endpoint/user]
 - Error analysis: [Types and frequencies]
 - Token usage: [Per user/time period]
 - Cost tracking: [Real-time cost monitoring]
 
 **User Feedback:**
+
 - Thumbs up/down: [Basic feedback]
 - Quality ratings: [1-5 scale]
 - Edit/redisplay rates: [When users regenerate]
 - A/B testing: [Comparing model versions]
 
 **Alerting:**
+
 - Quality threshold breaches: [When accuracy drops below X]
 - Cost overruns: [When spending exceeds budget]
 - Error rate spikes: [When errors exceed Y%]
@@ -1707,20 +1910,24 @@ manual summarization doesn't scale.
 #### 7. **Evaluation and Testing**
 
 **AI Testing Strategy:**
+
 ```markdown
 **Development Testing:**
+
 - Unit tests: [For non-AI components]
 - Integration tests: [API, database, external services]
 - Model tests: [Against evaluation dataset]
 - Prompt tests: [Various inputs and edge cases]
 
 **Quality Assurance:**
+
 - Human evaluation: [Expert review of outputs]
 - Automated evaluation: [BLEU, ROUGE, etc.]
 - Red teaming: [Adversarial testing]
 - User acceptance testing: [Real user feedback]
 
 **Continuous Evaluation:**
+
 - Production monitoring: [Real-time quality tracking]
 - Periodic evaluation: [Weekly/monthly deep dives]
 - Shadow deployment: [Testing new models in production]
@@ -1741,59 +1948,67 @@ manual summarization doesn't scale.
 **Acceptance Criteria:**
 
 **Functional Requirements:**
+
 - AC1: Given a document 1,000-10,000 words, when user clicks "Summarize",
-       then system generates a summary in <10 seconds with 3-5 key points
+  then system generates a summary in <10 seconds with 3-5 key points
 
 - AC2: Given a technical document, when summarizing,
-       then summary preserves technical accuracy and key details
+  then summary preserves technical accuracy and key details
 
 - AC3: Given a document with multiple sections, when summarizing,
-       then summary maintains document structure with section headings
+  then summary maintains document structure with section headings
 
 **Quality Requirements:**
+
 - AC4: Human evaluation scores summary quality ≥4/5 on clarity,
-       accuracy, and completeness (sample size: 100 summaries)
+  accuracy, and completeness (sample size: 100 summaries)
 
 - AC5: Summary length is 5-15% of original document length
-       (or 100-500 words for long documents)
+  (or 100-500 words for long documents)
 
 - AC6: Summary includes no hallucinated information (verified against source)
 
 **Safety Requirements:**
+
 - AC7: Given document with PII, when summarizing,
-       then system redacts or masks sensitive information
+  then system redacts or masks sensitive information
 
 - AC8: Given malicious prompt injection attempt,
-       then system refuses to comply and logs the attempt
+  then system refuses to comply and logs the attempt
 
 **Performance Requirements:**
+
 - AC9: p95 response time <8 seconds for documents up to 5,000 words
 
 - AC10: System can handle 100 concurrent summarization requests
-        with <10% degradation in response time
+  with <10% degradation in response time
 
 **Cost Requirements:**
+
 - AC11: Average cost per summary <$0.05
 
 **Error Handling:**
+
 - AC12: Given document exceeding token limit,
-        then system prompts user to select key sections or provides
-        chapter-by-chapter summary option
+  then system prompts user to select key sections or provides
+  chapter-by-chapter summary option
 
 - AC13: Given PDF with poor OCR quality,
-        then system alerts user to potential quality issues and
-        offers option to proceed or cancel
+  then system alerts user to potential quality issues and
+  offers option to proceed or cancel
 
 **Edge Cases:**
+
 - AC14: Given empty document, returns appropriate error message
 
 - AC15: Given document in unsupported language,
-        returns error message with list of supported languages
+  returns error message with list of supported languages
 
 - AC16: Given document with mostly images,
-        returns summary based on available text or requests text input
+  returns summary based on available text or requests text input
 
 **Success Metrics:**
+
 - 70% of users rate summaries as "helpful" or "very helpful"
 - 50% reduction in average document reading time
 - <5% of summaries regenerated by users
@@ -1806,83 +2021,98 @@ manual summarization doesn't scale.
 # [Product Name] PRD - AI/LLM Feature
 
 ## 1. Executive Summary
+
 - Brief overview of AI-powered feature
 - Why AI is the right approach
 - Expected business impact
 
 ## 2. Problem Statement
+
 - User pain point
 - Why traditional solutions fall short
 - Market opportunity
 
 ## 3. AI/ML Solution Overview
+
 - Model type and approach
 - Key capabilities
 - Technical feasibility assessment
 
 ## 4. Data Requirements
+
 - Training data sources and specifications
 - Input data requirements
 - Data quality standards
 - Data governance and privacy
 
 ## 5. Model Requirements
+
 - Model specifications
 - Performance targets
 - Training/fine-tuning approach
 - Model versioning strategy
 
 ## 6. Functional Requirements
+
 - User stories with AI-specific acceptance criteria
 - Integration with existing systems
 - Edge cases and error handling
 
 ## 7. Non-Functional Requirements
+
 - Performance (latency, throughput, cost)
 - Reliability and availability
 - Scalability requirements
 
 ## 8. Safety and Ethics
+
 - Content safety measures
 - Bias mitigation
 - Transparency and explainability
 - Adversarial robustness
 
 ## 9. Compliance and Regulatory
+
 - Applicable regulations
 - Data protection requirements
 - Audit and reporting needs
 
 ## 10. Evaluation and Testing
+
 - Evaluation metrics
 - Testing strategy
 - Human evaluation approach
 - Red teaming plan
 
 ## 11. Monitoring and Observability
+
 - Model performance monitoring
 - Quality drift detection
 - Cost tracking
 - User feedback mechanisms
 
 ## 12. Success Criteria
+
 - Model quality metrics
 - User engagement metrics
 - Business impact metrics
 - Cost efficiency targets
 
 ## 13. Risks and Mitigations
+
 - Technical risks
 - Safety/ethics risks
 - Regulatory risks
 - Implementation risks
 
 ## 14. Implementation Plan
+
 - Phased rollout approach
 - A/B testing plan
 - Monitoring and iteration strategy
 
 ## 15. Open Questions
+
 - Technical uncertainties
 - Ethical considerations
 - Regulatory clarifications needed
@@ -1893,8 +2123,10 @@ manual summarization doesn't scale.
 #### 1. **Define What "Good" Means**
 
 **Quality Criteria Specification:**
+
 ```markdown
 For each AI capability, define:
+
 1. Objective metrics: [Automatically measurable]
 2. Subjective metrics: [Human evaluation required]
 3. Task-specific metrics: [Domain-specific measures]
@@ -1902,15 +2134,18 @@ For each AI capability, define:
 
 Example - Chatbot Quality:
 Objective:
+
 - Response time <2s (p95)
 - Resolution rate >70%
 - Escalation rate <10%
 
 Subjective:
+
 - Human rating ≥4/5 (sample: 100 conversations)
 - User satisfaction NPS ≥30
 
 Task-specific:
+
 - Factual accuracy ≥95% (verified by experts)
 - Topic relevance ≥90% (human labeled)
 ```
@@ -1918,8 +2153,10 @@ Task-specific:
 #### 2. **Specify Failure Modes**
 
 **AI Failure Handling:**
+
 ```markdown
 When AI fails:
+
 1. Graceful degradation: [Fallback behavior]
 2. User notification: [How to inform user]
 3. Retry mechanism: [Automatic retry options]
@@ -1928,6 +2165,7 @@ When AI fails:
 
 Example:
 "If confidence score <70%, display 'I'm not sure' and offer:
+
 - Option to rephrase question
 - Connection to human agent
 - Suggested related topics"
@@ -1936,8 +2174,10 @@ Example:
 #### 3. **Plan for Continuous Improvement**
 
 **Iteration Strategy:**
+
 ```markdown
 Model Improvement Cycle:
+
 1. Collect data: [User interactions, feedback]
 2. Analyze: [Identify failure patterns]
 3. Retrain/Fine-tune: [Frequency, triggers]
@@ -1946,6 +2186,7 @@ Model Improvement Cycle:
 6. Monitor: [Track performance post-deployment]
 
 Version Management:
+
 - Model versioning: [Semantic versioning]
 - A/B testing: [How to compare versions]
 - Rollback plan: [When to revert to previous version]
@@ -1955,13 +2196,16 @@ Version Management:
 #### 4. **Consider Total Cost of Ownership**
 
 **Cost Breakdown:**
+
 ```markdown
 Development Costs:
+
 - Data collection and labeling
 - Model training/fine-tuning
 - Prompt engineering and testing
 
 Operational Costs:
+
 - API costs per 1K tokens
 - Infrastructure costs (compute, storage)
 - Monitoring and alerting
@@ -1969,6 +2213,7 @@ Operational Costs:
 - Ongoing maintenance and updates
 
 Cost Optimization:
+
 - Caching strategies
 - Model selection (larger vs smaller)
 - Request batching
@@ -1994,16 +2239,16 @@ Cost Optimization:
 
 ## Document Metadata
 
-| Field | Value |
-|-------|-------|
-| Title | [Product Name] PRD |
-| Version | [1.0] |
-| Status | [Draft] |
-| Author | [Name] |
-| Stakeholders | [List] |
-| Created | [Date] |
-| Last Updated | [Date] |
-| Related Docs | [Links] |
+| Field        | Value              |
+| ------------ | ------------------ |
+| Title        | [Product Name] PRD |
+| Version      | [1.0]              |
+| Status       | [Draft]            |
+| Author       | [Name]             |
+| Stakeholders | [List]             |
+| Created      | [Date]             |
+| Last Updated | [Date]             |
+| Related Docs | [Links]            |
 
 ---
 
@@ -2012,6 +2257,7 @@ Cost Optimization:
 [2-3 paragraph overview]
 
 **Key Points:**
+
 - Problem: [What problem are we solving?]
 - Solution: [What are we building?]
 - Impact: [What value will it deliver?]
@@ -2022,29 +2268,35 @@ Cost Optimization:
 ## 2. Problem Statement
 
 ### Current Situation
+
 [Describe current state and pain points]
 
 ### Opportunity
+
 [Market opportunity or business case]
 
 ### Goals & Success Metrics
-| Metric | Baseline | Target | Timeframe |
-|--------|----------|--------|-----------|
-| [Metric 1] | [X] | [Y] | [Z] |
-| [Metric 2] | [X] | [Y] | [Z] |
+
+| Metric     | Baseline | Target | Timeframe |
+| ---------- | -------- | ------ | --------- |
+| [Metric 1] | [X]      | [Y]    | [Z]       |
+| [Metric 2] | [X]      | [Y]    | [Z]       |
 
 ---
 
 ## 3. Target Audience
 
 ### User Personas
+
 [Link to persona documents]
 
 ### Primary Users
+
 - [User segment 1]: [Description]
 - [User segment 2]: [Description]
 
 ### User Stories Overview
+
 - Total stories: [N]
 - P0 stories: [N]
 - P1 stories: [N]
@@ -2055,6 +2307,7 @@ Cost Optimization:
 ## 4. Functional Requirements
 
 ### Priority Legend
+
 - **P0 (Must-have):** Required for launch
 - **P1 (Should-have):** Important but not blocking
 - **P2 (Nice-to-have):** If time permits
@@ -2062,13 +2315,16 @@ Cost Optimization:
 ### Features
 
 #### [Feature 1] (P0)
+
 **Description:** [What this feature does]
 
 **User Stories:**
+
 - [Story 1]
 - [Story 2]
 
 **Acceptance Criteria:**
+
 - AC1: [Criteria]
 - AC2: [Criteria]
 
@@ -2077,6 +2333,7 @@ Cost Optimization:
 **Estimate:** [Story points or t-shirt size]
 
 #### [Feature 2] (P0)
+
 [Repeat structure]
 
 ---
@@ -2084,24 +2341,28 @@ Cost Optimization:
 ## 5. Non-Functional Requirements
 
 ### Performance
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Response time (p95) | <200ms | API timing |
-| Page load time | <2s | Web Vitals |
-| Concurrent users | 10,000 | Load testing |
+
+| Metric              | Target | Measurement  |
+| ------------------- | ------ | ------------ |
+| Response time (p95) | <200ms | API timing   |
+| Page load time      | <2s    | Web Vitals   |
+| Concurrent users    | 10,000 | Load testing |
 
 ### Security
+
 - Authentication: [Requirements]
 - Authorization: [Requirements]
 - Data encryption: [Requirements]
 - Compliance: [GDPR, SOC2, etc.]
 
 ### Reliability
+
 - Uptime target: [99.9%]
 - RPO: [Recovery point objective]
 - RTO: [Recovery time objective]
 
 ### Scalability
+
 - Users supported: [Number]
 - Growth rate accommodated: [Percentage]
 - Scaling strategy: [Vertical/horizontal]
@@ -2115,6 +2376,7 @@ Cost Optimization:
 **User Flows:** [Link to flow diagrams]
 
 **Key Interactions:**
+
 - [Interaction 1]
 - [Interaction 2]
 
@@ -2127,19 +2389,23 @@ Cost Optimization:
 ## 7. Technical Considerations
 
 ### Architecture
+
 **High-level architecture:** [Diagram or description]
 
 **Technology Stack:**
+
 - Frontend: [Tech]
 - Backend: [Tech]
 - Database: [Tech]
 - Infrastructure: [Tech]
 
 ### Integrations
+
 - [API 1]: [Purpose]
 - [API 2]: [Purpose]
 
 ### Data Models
+
 **Key entities:** [Description]
 **Relationships:** [Description]
 
@@ -2148,14 +2414,17 @@ Cost Optimization:
 ## 8. Assumptions, Dependencies & Constraints
 
 ### Assumptions
+
 - [Assumption 1]
 - [Assumption 2]
 
 ### Dependencies
+
 - [Dependency 1] - [Owner, Due date]
 - [Dependency 2] - [Owner, Due date]
 
 ### Constraints
+
 - [Constraint 1]
 - [Constraint 2]
 
@@ -2163,21 +2432,23 @@ Cost Optimization:
 
 ## 9. Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation | Owner |
-|------|-----------|--------|-----------|-------|
-| [Risk 1] | High/Med/Low | High/Med/Low | [Plan] | [Name] |
-| [Risk 2] | High/Med/Low | High/Med/Low | [Plan] | [Name] |
+| Risk     | Likelihood   | Impact       | Mitigation | Owner  |
+| -------- | ------------ | ------------ | ---------- | ------ |
+| [Risk 1] | High/Med/Low | High/Med/Low | [Plan]     | [Name] |
+| [Risk 2] | High/Med/Low | High/Med/Low | [Plan]     | [Name] |
 
 ---
 
 ## 10. Release Planning
 
 ### Phases
+
 **Phase 1 (MVP):** [Scope and date]
 **Phase 2:** [Scope and date]
 **Phase 3:** [Scope and date]
 
 ### Go-to-Market
+
 - Launch strategy: [Description]
 - Beta testing: [Plan]
 - Rollout plan: [Phased approach]
@@ -2187,17 +2458,17 @@ Cost Optimization:
 
 ## 11. Open Questions
 
-| Question | Status | Owner | Due Date |
-|----------|--------|-------|----------|
-| [Q1] | [Open/Resolved] | [Name] | [Date] |
-| [Q2] | [Open/Resolved] | [Name] | [Date] |
+| Question | Status          | Owner  | Due Date |
+| -------- | --------------- | ------ | -------- |
+| [Q1]     | [Open/Resolved] | [Name] | [Date]   |
+| [Q2]     | [Open/Resolved] | [Name] | [Date]   |
 
 ---
 
 ## 12. Glossary
 
-| Term | Definition |
-|------|------------|
+| Term     | Definition   |
+| -------- | ------------ |
 | [Term 1] | [Definition] |
 | [Term 2] | [Definition] |
 
@@ -2206,16 +2477,18 @@ Cost Optimization:
 ## 13. Appendix
 
 ### Related Documents
+
 - [Link to design doc]
 - [Link to technical spec]
 - [Link to research]
 - [Link to competitors analysis]
 
 ### Version History
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | [Date] | Initial version | [Name] |
-| 1.1 | [Date] | Added section X | [Name] |
+
+| Version | Date   | Changes         | Author |
+| ------- | ------ | --------------- | ------ |
+| 1.0     | [Date] | Initial version | [Name] |
+| 1.1     | [Date] | Added section X | [Name] |
 ```
 
 ### PRD Quality Checklist
@@ -2224,6 +2497,7 @@ Use this checklist before finalizing your PRD:
 
 ```markdown
 ## Structure and Completeness
+
 - [ ] All required sections are complete
 - [ ] Executive summary is clear and concise
 - [ ] Problem statement is well-defined
@@ -2232,6 +2506,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Glossary defines all key terms
 
 ## Requirements Quality
+
 - [ ] All requirements are testable
 - [ ] Requirements are prioritized (P0/P1/P2)
 - [ ] Acceptance criteria are specific
@@ -2240,6 +2515,7 @@ Use this checklist before finalizing your PRD:
 - [ ] No ambiguous language (fast, responsive, etc.)
 
 ## Functional Requirements
+
 - [ ] User stories follow INVEST criteria
 - [ ] All stories have acceptance criteria
 - [ ] Dependencies are documented
@@ -2247,6 +2523,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Out of scope is explicitly defined
 
 ## Non-Functional Requirements
+
 - [ ] Performance requirements specified
 - [ ] Security requirements included
 - [ ] Reliability targets defined
@@ -2254,6 +2531,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Compliance requirements listed
 
 ## User Experience
+
 - [ ] User flows documented
 - [ ] Designs linked or attached
 - [ ] Accessibility requirements met
@@ -2261,6 +2539,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Edge cases in user experience covered
 
 ## Technical Considerations
+
 - [ ] High-level architecture described
 - [ ] Technology stack defined
 - [ ] Integrations documented
@@ -2268,6 +2547,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Technical constraints identified
 
 ## Planning and Risks
+
 - [ ] Assumptions documented
 - [ ] Dependencies listed with owners
 - [ ] Constraints identified
@@ -2276,6 +2556,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Open questions tracked
 
 ## Stakeholder Alignment
+
 - [ ] Product manager approval
 - [ ] Engineering feasibility confirmed
 - [ ] Design input incorporated
@@ -2284,6 +2565,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Marketing aligned
 
 ## Quality and Consistency
+
 - [ ] No contradictions in requirements
 - [ ] Terminology is consistent
 - [ ] Metrics align with goals
@@ -2291,6 +2573,7 @@ Use this checklist before finalizing your PRD:
 - [ ] Scope matches resources
 
 ## Ready for Development
+
 - [ ] All "TBD" items resolved
 - [ ] All open questions answered
 - [ ] Stakeholder sign-off received
@@ -2323,14 +2606,17 @@ Use this checklist before finalizing your PRD:
 ### Acceptance Criteria
 
 **AC1:** [Given-When-Then format]
+
 - Given [context]
 - When [action]
 - Then [outcome]
 
 **AC2:** [Another criteria]
+
 - [Details]
 
 **AC3:** [Edge case]
+
 - [Details]
 
 ---
@@ -2338,14 +2624,17 @@ Use this checklist before finalizing your PRD:
 ### Technical Considerations
 
 **API Endpoints:**
+
 - [Endpoint 1]: [Description]
 - [Endpoint 2]: [Description]
 
 **Database Changes:**
+
 - [Table 1]: [Changes]
 - [Table 2]: [Changes]
 
 **Dependencies:**
+
 - [Dependency 1]
 - [Dependency 2]
 
@@ -2362,12 +2651,14 @@ Use this checklist before finalizing your PRD:
 ### Testing Notes
 
 **Test Cases:**
+
 - [Positive case 1]
 - [Positive case 2]
 - [Negative case 1]
 - [Edge case 1]
 
 **Performance:**
+
 - [Performance requirements]
 
 ---
@@ -2416,23 +2707,28 @@ Use this checklist before finalizing your PRD:
 ### Acceptance Criteria
 
 **Functional:**
+
 - AC1: [Given/When/Then for normal operation]
 - AC2: [Specific capability]
 - AC3: [Edge case handling]
 
 **Quality:**
+
 - AC4: [Quality metric] ≥ [threshold]
 - AC5: [Human evaluation] ≥ [score]
 
 **Performance:**
+
 - AC6: Response time (p95) < [X ms]
 - AC7: Throughput ≥ [X requests/min]
 
 **Safety:**
+
 - AC8: [Safety measure]
 - AC9: [Content filtering]
 
 **Cost:**
+
 - AC10: Cost per request < $[X]
 
 ---
@@ -2440,11 +2736,13 @@ Use this checklist before finalizing your PRD:
 ### Data Requirements
 
 **Training Data:**
+
 - Source: [Where data comes from]
 - Size: [Dataset size]
 - Quality: [Quality standards]
 
 **Input Data:**
+
 - Format: [Required format]
 - Validation: [How to validate]
 - Sanitization: [How to clean]
@@ -2454,15 +2752,18 @@ Use this checklist before finalizing your PRD:
 ### Evaluation Strategy
 
 **Automated Metrics:**
+
 - [Metric 1]: [Target]
 - [Metric 2]: [Target]
 
 **Human Evaluation:**
+
 - Sample size: [N]
 - Evaluation criteria: [List]
 - Target score: [X/5]
 
 **Testing:**
+
 - Test set: [Size and diversity]
 - Red teaming: [Approach]
 - A/B testing: [Plan]
@@ -2472,13 +2773,16 @@ Use this checklist before finalizing your PRD:
 ### Safety and Ethics
 
 **Content Safety:**
+
 - [Measure 1]
 - [Measure 2]
 
 **Bias Mitigation:**
+
 - [Approach]
 
 **Transparency:**
+
 - [How users will know it's AI]
 - [How to explain decisions]
 
@@ -2487,10 +2791,12 @@ Use this checklist before finalizing your PRD:
 ### Monitoring
 
 **Metrics to Track:**
+
 - [Metric 1]: [Alert threshold]
 - [Metric 2]: [Alert threshold]
 
 **User Feedback:**
+
 - [Feedback mechanism]
 - [How feedback will be used]
 
@@ -2498,9 +2804,9 @@ Use this checklist before finalizing your PRD:
 
 ### Open Questions
 
-| Question | Owner | Due Date |
-|----------|-------|----------|
-| [Question 1] | [Name] | [Date] |
+| Question     | Owner  | Due Date |
+| ------------ | ------ | -------- |
+| [Question 1] | [Name] | [Date]   |
 ```
 
 ---
@@ -2527,15 +2833,18 @@ Use this checklist before finalizing your PRD:
 ### Online Resources
 
 **Product Management:**
+
 - [Mind the Product](https://www.mindtheproduct.com) - Product management articles and conferences
 - [Product School](https://www.productschool.com) - Product management resources
 - [First Round Review](https://firstround.com/review) - In-depth product articles
 
 **Requirements Engineering:**
+
 - [IEEE 29148 Standard](https://standards.ieee.org) - Requirements engineering standard
 - [IIBA Business Analysis Body of Knowledge](https://www.iiba.org) - BABOK guide
 
 **AI/ML Product Development:**
+
 - [Google's People + AI Guidebook](https://pair.withgoogle.com) - Human-centered AI design
 - [Microsoft's AI Design Guidelines](https://www.microsoft.com/design/ai) - AI design principles
 - [ Partnership on AI](https://www.partnershiponai.org) - AI best practices and ethics
@@ -2543,15 +2852,18 @@ Use this checklist before finalizing your PRD:
 ### Templates and Examples
 
 **PRD Templates:**
+
 - [Atlassian PRD Template](https://www.atlassian.com/agile/project-management/requirements-templates)
 - [ProductPlan PRD Template](https://www.productplan.com/learn/prd-template/)
 - [Draft.dev PRD Template](https://draft.dev/prd-template)
 
 **User Story Templates:**
+
 - [Mountain Goat Software](https://www.mountaingoatsoftware.com/agile/user-stories) - User story fundamentals
 - [Agile Alliance](https://www.agilealliance.org) - Agile requirements
 
 **AI/ML PRD Resources:**
+
 - [Google's Model Cards](https://modelcards.withgoogle.com) - Model documentation
 - [Microsoft's Data Cards](https://www.microsoft.com/ai) - Data documentation
 - [IBM's AI Fairness 360](https://aif360.mybluemix.net) - AI fairness documentation
@@ -2559,16 +2871,19 @@ Use this checklist before finalizing your PRD:
 ### Tools
 
 **PRD Writing Tools:**
+
 - [Confluence](https://www.atlassian.com/software/confluence) - Document collaboration
 - [Notion](https://www.notion.so) - Modern documentation
 - [Google Docs](https://docs.google.com) - Simple collaboration
 
 **Requirements Management:**
+
 - [Jira](https://www.atlassian.com/software/jira) - Issue tracking
 - [Azure DevOps](https://azure.microsoft.com/services/devops) - Requirements management
 - [ Jama Connect](https://www.jamasoftware.com) - Requirements traceability
 
 **Diagramming:**
+
 - [Figma](https://www.figma.com) - UI/UX design and prototyping
 - [Lucidchart](https://www.lucidchart.com) - Diagrams and flowcharts
 - [Miro](https://miro.com) - Collaborative whiteboard
@@ -2599,15 +2914,15 @@ Remember: A good PRD is a tool for alignment, communication, and shared understa
 
 ---
 
-*End of Document*
+_End of Document_
 
 ---
 
 **Version History:**
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2026-01-23 | Initial comprehensive PRD best practices guide | Research Agent |
+| Version | Date       | Changes                                        | Author         |
+| ------- | ---------- | ---------------------------------------------- | -------------- |
+| 1.0     | 2026-01-23 | Initial comprehensive PRD best practices guide | Research Agent |
 
 **Document Status:** Complete
 **Next Review:** As needed based on feedback and industry evolution

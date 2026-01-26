@@ -6,6 +6,7 @@
 ## Key URLs Referenced
 
 ### Official Documentation
+
 - **GitHub Actions:** https://docs.github.com/en/actions/using-workflows
 - **GitHub Actions Syntax:** https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 - **GitLab CI/CD:** https://docs.gitlab.com/ee/ci/
@@ -13,12 +14,14 @@
 - **Azure DevOps:** https://learn.microsoft.com/en-us/azure/devops/pipelines/
 
 ### Diagram Tools
+
 - **Mermaid Official:** https://mermaid.js.org/
 - **Mermaid Live Editor:** https://mermaid.live/
 - **Mermaid Syntax Guide:** https://mermaid.js.org/syntax/
 - **PlantUML:** https://plantuml.com/
 
 ### Workflow Patterns
+
 - **AWS Step Functions:** https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language.html
 - **Workflow Patterns:** http://www.workflowpatterns.com/
 - **State Machine Catalog:** https://www.state-machine.com/
@@ -43,6 +46,7 @@ flowchart TD
 ```
 
 **Flowchart Syntax Elements:**
+
 - `flowchart TD` - Top-down direction
 - `flowchart LR` - Left-right direction
 - `[Rectangle]` - Process/Action
@@ -68,6 +72,7 @@ stateDiagram-v2
 ```
 
 **State Diagram Syntax Elements:**
+
 - `stateDiagram-v2` - Version 2 syntax (recommended)
 - `[*]` - Start/End state
 - `-->` - State transition
@@ -99,6 +104,7 @@ sequenceDiagram
 ```
 
 **Sequence Diagram Syntax Elements:**
+
 - `participant` - System component
 - `->>` - Synchronous message
 - `-->` - Asynchronous message
@@ -134,26 +140,31 @@ gantt
 **Purpose:** One-sentence description of what this phase accomplishes
 
 **Entry Conditions:**
+
 - Required state before entering
 - Required artifacts/inputs
 - Prerequisites
 
 **Process:**
+
 1. Step 1 description
 2. Step 2 description
 3. Step 3 description
 
 **Exit Conditions:**
+
 - State after completion
 - Produced artifacts
 - Side effects
 
 **Timing:**
+
 - Expected duration: X seconds
 - Timeout: Y seconds
 - Dependencies on previous phases
 
 **Error Handling:**
+
 - Common errors
 - Retry strategy
 - Fallback behavior
@@ -165,17 +176,21 @@ gantt
 # [Workflow Name]
 
 ## Overview
+
 - High-level description
 - Purpose and goals
 - Use cases
 
 ## Architecture
+
 - High-level diagram
 - Phase breakdown
 - Component interactions
 
 ## Phases
+
 ### Phase 1: [Name]
+
 - Purpose
 - Input requirements
 - Output/Artifacts
@@ -183,14 +198,17 @@ gantt
 - Dependencies
 
 ### Phase 2: [Name]
+
 ...
 
 ## State Machine
+
 - State diagram
 - Transition rules
 - Error handling
 
 ## Execution Examples
+
 - Successful run walkthrough
 - Error scenario walkthrough
 ```
@@ -228,36 +246,47 @@ gantt
 # Workflow Name
 
 ## Quick Start
+
 [Brief introduction + minimal example]
 
 ## Overview
+
 [Purpose, description, key features, use cases]
 
 ## Architecture
+
 [System overview, components, data flow]
 
 ## Workflow Phases
+
 [Phase-by-phase breakdown]
 
 ## Lifecycle
+
 [State machine, states, transitions]
 
 ## Timing and Performance
+
 [Expected durations, performance characteristics]
 
 ## Error Handling
+
 [Error types, retry logic, recovery]
 
 ## Configuration
+
 [Configuration file, environment variables]
 
 ## Outputs
+
 [Output format, artifacts]
 
 ## Troubleshooting
+
 [Common issues, solutions]
 
 ## Related Workflows
+
 [Prerequisites, alternatives, next workflows]
 ```
 

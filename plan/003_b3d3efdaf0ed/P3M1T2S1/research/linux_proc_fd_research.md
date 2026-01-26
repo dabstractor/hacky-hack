@@ -4,6 +4,7 @@
 **Focus:** File descriptor counting and monitoring using `/proc/{pid}/fd`
 
 ## Table of Contents
+
 1. [How /proc/{pid}/fd Works](#how-procpidfd-works)
 2. [Performance Characteristics: /proc vs lsof](#performance-characteristics)
 3. [Edge Cases and Gotchas](#edge-cases-and-gotchas)
@@ -38,6 +39,7 @@ The `/proc/{pid}/fd` directory is a virtual filesystem entry that exposes all op
 ### Exact Method to Count File Handles
 
 #### Method 1: Using shell commands
+
 ```bash
 # Simple count
 ls /proc/{pid}/fd | wc -l
@@ -50,6 +52,7 @@ find /proc/{pid}/fd -maxdepth 1 -type l 2>/dev/null | wc -l
 ```
 
 #### Method 2: Using Python
+
 ```python
 import os
 
@@ -68,6 +71,7 @@ print(f"Process {pid} has {fd_count} open file descriptors")
 ```
 
 #### Method 3: Using C/system calls
+
 ```c
 #include <dirent.h>
 #include <stdio.h>
@@ -93,6 +97,7 @@ int count_fds(int pid) {
 ```
 
 #### Method 4: Reading symlink targets
+
 ```python
 import os
 
@@ -128,10 +133,10 @@ for fd, target in info.items():
 
 Based on empirical testing conducted for this research:
 
-| Method                | Time for 100 iterations | Per-iteration time | Relative speed |
-|-----------------------|------------------------|-------------------|----------------|
-| `/proc/{pid}/fd`      | ~0.2s                  | ~0.002ms          | 1x (baseline)  |
-| `lsof -p {pid}`       | ~2.3s (10 iterations)  | ~23ms             | **1054x slower**|
+| Method           | Time for 100 iterations | Per-iteration time | Relative speed   |
+| ---------------- | ----------------------- | ------------------ | ---------------- |
+| `/proc/{pid}/fd` | ~0.2s                   | ~0.002ms           | 1x (baseline)    |
+| `lsof -p {pid}`  | ~2.3s (10 iterations)   | ~23ms              | **1054x slower** |
 
 **Key Finding:** Reading `/proc/{pid}/fd` is approximately **1000x faster** than using `lsof` for simple file descriptor counting.
 
@@ -153,6 +158,7 @@ Based on empirical testing conducted for this research:
 ### Performance Implications
 
 #### For Monitoring (frequent polling):
+
 ```python
 # GOOD: Fast, suitable for frequent monitoring
 def monitor_fds_fast(pid, interval_seconds=1):
@@ -172,12 +178,14 @@ def monitor_fds_slow(pid, interval_seconds=1):
 ```
 
 #### For One-time Analysis:
+
 - **lsof** is acceptable and provides more detailed information
 - **/proc** is still faster and sufficient for counting
 
 ### System Call Analysis
 
 Reading `/proc/{pid}/fd` typically involves:
+
 ```
 openat(AT_FDCWD, "/proc/2615621/fd", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 3
 getdents64(3, ...) = ...
@@ -203,6 +211,7 @@ ls -l /proc/self/fd/3
 ```
 
 **Detection:**
+
 ```python
 def check_deleted_fds(pid):
     """Find file descriptors pointing to deleted files"""
@@ -222,6 +231,7 @@ def check_deleted_fds(pid):
 ```
 
 **Implications:**
+
 - File handles still consume FD slots
 - Disk space not freed until all FDs closed
 - Can cause confusion in file management
@@ -241,6 +251,7 @@ except PermissionError:
 ```
 
 **Permission Requirements:**
+
 1. **Same UID**: Can always read your own processes
 2. **CAP_SYS_PTRACE**: Can read any process with this capability
 3. **/proc/sys/kernel/yama/ptrace_scope**: Controls ptrace restrictions
@@ -251,6 +262,7 @@ except PermissionError:
    - `4` = Minimal (non-privileged children only)
 
 **Checking Permissions:**
+
 ```bash
 # Check current ptrace scope
 cat /proc/sys/kernel/yama/ptrace_scope
@@ -291,29 +303,36 @@ def safe_fd_info(pid):
 ### 3.3 Special File Types
 
 #### Socket File Descriptors
+
 ```
 3 -> socket:[12345]
 ```
+
 - No filesystem path
 - Represents network or Unix domain sockets
 - Cannot be opened directly
 
 #### Pipe File Descriptors
+
 ```
 4 -> pipe:[67890]
 ```
+
 - Anonymous pipes between processes
 - FIFO buffers
 - Identified by inode in brackets
 
 #### Anonymous Inodes
+
 ```
 5 -> anon_inode:[eventfd]
 6 -> anon_inode:[signalfd]
 7 -> anon_inode:[timerfd]
 8 -> anon_inode:[epoll]
 ```
+
 Special kernel objects including:
+
 - **eventfd**: Event notification
 - **signalfd**: Signal handling
 - **timerfd**: Timer notifications
@@ -322,11 +341,13 @@ Special kernel objects including:
 - **userfaultfd**: User-space page fault handling
 
 #### Device Files
+
 ```
 9 -> /dev/null
 10 -> /dev/urandom
 11 -> /dev/sda1
 ```
+
 Character and block device files.
 
 ### 3.4 Self-Referential Symlinks
@@ -347,6 +368,7 @@ os.close(fd_dir)
 ### 3.5 Thread-Specific File Descriptors
 
 In multi-threaded programs, be aware that:
+
 - File descriptors are shared across threads
 - But thread-specific information might not be visible
 - Some file descriptors might be in transient states
@@ -354,6 +376,7 @@ In multi-threaded programs, be aware that:
 ### 3.6 Memory-Mapped Files
 
 Memory-mapped files may or may not appear in `/proc/{pid}/fd`:
+
 ```c
 int fd = open("file.txt", O_RDONLY);
 mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -363,6 +386,7 @@ close(fd);  // FD can be closed after mmap, but mapping persists
 ```
 
 Check `/proc/{pid}/maps` for memory-mapped regions:
+
 ```bash
 cat /proc/{pid}/maps | grep "file.txt"
 ```
@@ -396,6 +420,7 @@ def check_fd_limits():
 ### 4.1 For Counting File Descriptors
 
 #### DO:
+
 ```python
 # Fast and simple
 def count_fds(pid: int) -> int | None:
@@ -407,6 +432,7 @@ def count_fds(pid: int) -> int | None:
 ```
 
 #### DON'T:
+
 ```python
 # Slow and resource-intensive
 def count_fds_bad(pid: int) -> int | None:
@@ -579,6 +605,7 @@ def get_fd_count_cached(pid: int, max_age: float = 1.0) -> int | None:
 ### 4.7 Integration with Monitoring Tools
 
 #### Prometheus-compatible metrics:
+
 ```python
 from prometheus_client import Gauge
 
@@ -593,6 +620,7 @@ def update_fd_metrics(pids: list[int]):
 ```
 
 #### Alerting on threshold:
+
 ```python
 def check_fd_threshold(pid: int, warning: float = 0.8, critical: float = 0.9):
     """Check FD usage against limits and alert if needed."""
@@ -826,6 +854,7 @@ if __name__ == '__main__':
 ### 5.2 Bash Script Examples
 
 #### Simple counter
+
 ```bash
 #!/bin/bash
 # Count file descriptors for a process
@@ -848,6 +877,7 @@ echo "Process $PID has $COUNT open file descriptors"
 ```
 
 #### Monitor with alerting
+
 ```bash
 #!/bin/bash
 # Monitor FD usage and alert on threshold
@@ -975,14 +1005,14 @@ if __name__ == '__main__':
 
 ### When to Use Each Method
 
-| Use Case | Recommended Method | Why |
-|----------|-------------------|-----|
-| Simple FD counting | `/proc/{pid}/fd` | Fastest, simplest |
-| Detailed analysis | `lsof -p {pid}` | Comprehensive information |
-| High-frequency monitoring | `/proc/{pid}/fd` | Minimal overhead |
-| One-time debugging | Either | lsof provides more context |
-| Production monitoring | `/proc/{pid}/fd` | Performance critical |
-| Security auditing | `lsof` | More detailed metadata |
+| Use Case                  | Recommended Method | Why                        |
+| ------------------------- | ------------------ | -------------------------- |
+| Simple FD counting        | `/proc/{pid}/fd`   | Fastest, simplest          |
+| Detailed analysis         | `lsof -p {pid}`    | Comprehensive information  |
+| High-frequency monitoring | `/proc/{pid}/fd`   | Minimal overhead           |
+| One-time debugging        | Either             | lsof provides more context |
+| Production monitoring     | `/proc/{pid}/fd`   | Performance critical       |
+| Security auditing         | `lsof`             | More detailed metadata     |
 
 ### Performance Guidelines
 
@@ -1002,11 +1032,13 @@ if __name__ == '__main__':
 ## References
 
 ### Linux Kernel Documentation
+
 - `/proc` filesystem: `man 5 proc`
 - File descriptor limits: `man 2 getrlimit`
 - capabilities: `man 7 capabilities`
 
 ### System Files
+
 - `/proc/sys/fs/file-max` - System-wide FD limit
 - `/proc/sys/fs/file-nr` - Current FD allocation
 - `/proc/{pid}/limits` - Per-process resource limits
@@ -1014,6 +1046,7 @@ if __name__ == '__main__':
 - `/proc/{pid}/fdinfo/{fd}` - Detailed FD information
 
 ### Related Tools
+
 - `lsof(8)` - List open files
 - `fuser(1)` - Find processes using files
 - `strace(1)` - Trace system calls

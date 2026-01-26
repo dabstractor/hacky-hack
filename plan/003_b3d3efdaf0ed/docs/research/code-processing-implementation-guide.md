@@ -17,7 +17,11 @@ npm install terser
 ### Basic Usage
 
 ```typescript
-import { CodeProcessor, processForAI, minifyCode } from './utils/code-processor';
+import {
+  CodeProcessor,
+  processForAI,
+  minifyCode,
+} from './utils/code-processor';
 
 // Optimize code for AI prompts
 const aiOptimized = await processForAI(code, 4000);
@@ -31,7 +35,7 @@ const result = await processor.process(code, {
   forAI: true,
   maxTokens: 4000,
   removeComments: true,
-  removeBlankLines: true
+  removeBlankLines: true,
 });
 ```
 
@@ -69,19 +73,19 @@ Main method for processing code with various options.
 ```typescript
 interface ProcessingOptions {
   // Minification options
-  minify?: boolean;              // Enable full minification
-  removeComments?: boolean;      // Remove comments
-  removeBlankLines?: boolean;    // Remove blank lines
-  mangle?: boolean;              // Mangle variable names
+  minify?: boolean; // Enable full minification
+  removeComments?: boolean; // Remove comments
+  removeBlankLines?: boolean; // Remove blank lines
+  mangle?: boolean; // Mangle variable names
 
   // Extraction options
-  extractLines?: { start: number; end: number };  // Extract line range
-  extractFunction?: string;      // Extract function by name
-  extractClass?: string;         // Extract class by name
+  extractLines?: { start: number; end: number }; // Extract line range
+  extractFunction?: string; // Extract function by name
+  extractClass?: string; // Extract class by name
 
   // AI optimization
-  forAI?: boolean;               // Optimize for AI prompts
-  maxTokens?: number;            // Maximum token limit
+  forAI?: boolean; // Optimize for AI prompts
+  maxTokens?: number; // Maximum token limit
 
   // Output format
   format?: 'minified' | 'readable' | 'compressed';
@@ -93,20 +97,20 @@ interface ProcessingOptions {
 ```typescript
 // Remove comments only
 const result = await processor.process(code, {
-  removeComments: true
+  removeComments: true,
 });
 
 // Extract function and minify
 const result = await processor.process(code, {
   extractFunction: 'myFunction',
   minify: true,
-  mangle: false
+  mangle: false,
 });
 
 // Optimize for AI with token limit
 const result = await processor.process(code, {
   forAI: true,
-  maxTokens: 2000
+  maxTokens: 2000,
 });
 ```
 
@@ -331,7 +335,7 @@ async function prepareForAI(code: string, context: string): Promise<string> {
     forAI: true,
     maxTokens: 3000,
     removeComments: true,
-    removeBlankLines: true
+    removeBlankLines: true,
   });
 
   // Combine with context
@@ -397,7 +401,7 @@ async function batchProcessFiles(pattern: string): Promise<void> {
     const code = readFileSync(file, 'utf-8');
     const processed = await processor.process(code, {
       forAI: true,
-      maxTokens: 4000
+      maxTokens: 4000,
     });
 
     // Save processed version
@@ -446,7 +450,7 @@ async function processLargeFile(code: string): Promise<string> {
   for (const chunk of chunks) {
     const result = await processor.process(chunk, {
       removeComments: true,
-      removeBlankLines: true
+      removeBlankLines: true,
     });
     processed.push(result);
   }
@@ -472,10 +476,7 @@ function getCacheKey(code: string, options: any): string {
     .digest('hex');
 }
 
-async function cachedProcess(
-  code: string,
-  options: any
-): Promise<string> {
+async function cachedProcess(code: string, options: any): Promise<string> {
   const key = getCacheKey(code, options);
   const cachePath = `${cacheDir}/${key}`;
 
@@ -576,7 +577,7 @@ async function prepareAIPrompt(
   // Optimize for AI
   snippet = await processor.process(snippet, {
     forAI: true,
-    maxTokens: 3000
+    maxTokens: 3000,
   });
 
   // Count tokens
@@ -614,16 +615,14 @@ async function prepareForReview(code: string): Promise<{
     .filter(b => b.code.includes('function'))
     .map(b => b.code);
 
-  const classes = blocks
-    .filter(b => b.code.includes('class'))
-    .map(b => b.code);
+  const classes = blocks.filter(b => b.code.includes('class')).map(b => b.code);
 
   // Generate summary
   const stats = {
     lines: codeUtils.countLines(code),
     functions: functions.length,
     classes: classes.length,
-    tokens: processor.countTokens(code)
+    tokens: processor.countTokens(code),
   };
 
   const summary = `Code Review Summary:
@@ -636,7 +635,7 @@ async function prepareForReview(code: string): Promise<{
   return {
     summary,
     functions,
-    classes
+    classes,
   };
 }
 ```

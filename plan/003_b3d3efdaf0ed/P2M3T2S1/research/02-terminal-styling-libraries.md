@@ -20,22 +20,22 @@
 
 ## Library Comparison
 
-| Feature | chalk | kleur | ansi-colors | colors.js | picocolors |
-|---------|-------|-------|-------------|-----------|------------|
-| TypeScript Support | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Chainable API | ✓ | ✗ | ✗ | ✓ | ✗ |
-| Named Colors (256) | ✓ | ✓ | ✓ | ✓ | Basic |
-| RGB/HEX Support | ✓ | ✓ | ✓ | ✓ | ✗ |
-| Background Colors | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Styles (bold, etc.) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Nested Styles | ✓ | Limited | ✗ | ✓ | ✗ |
-| Theme Support | ✓ | ✗ | ✓ | ✓ | ✗ |
-| Auto-Detection | ✓ | ✓ | ✓ | ✓ | ✓ |
-| No Dependencies | 1 dep | 0 deps | 0 deps | 0 deps | 0 deps |
-| Bundle Size | 18KB | 4KB | 7KB | 8KB | 2KB |
-| Weekly Downloads | 100M+ | 15M+ | 5M+ | 3M+ | 50M+ |
-| Maintenance | Active | Stable | Stable | Stable | Active |
-| **Recommended** | **Yes** | **Yes** | **Already in dep tree** | Maybe | **For minimal size** |
+| Feature             | chalk   | kleur   | ansi-colors             | colors.js | picocolors           |
+| ------------------- | ------- | ------- | ----------------------- | --------- | -------------------- |
+| TypeScript Support  | ✓       | ✓       | ✓                       | ✓         | ✓                    |
+| Chainable API       | ✓       | ✗       | ✗                       | ✓         | ✗                    |
+| Named Colors (256)  | ✓       | ✓       | ✓                       | ✓         | Basic                |
+| RGB/HEX Support     | ✓       | ✓       | ✓                       | ✓         | ✗                    |
+| Background Colors   | ✓       | ✓       | ✓                       | ✓         | ✓                    |
+| Styles (bold, etc.) | ✓       | ✓       | ✓                       | ✓         | ✓                    |
+| Nested Styles       | ✓       | Limited | ✗                       | ✓         | ✗                    |
+| Theme Support       | ✓       | ✗       | ✓                       | ✓         | ✗                    |
+| Auto-Detection      | ✓       | ✓       | ✓                       | ✓         | ✓                    |
+| No Dependencies     | 1 dep   | 0 deps  | 0 deps                  | 0 deps    | 0 deps               |
+| Bundle Size         | 18KB    | 4KB     | 7KB                     | 8KB       | 2KB                  |
+| Weekly Downloads    | 100M+   | 15M+    | 5M+                     | 3M+       | 50M+                 |
+| Maintenance         | Active  | Stable  | Stable                  | Stable    | Active               |
+| **Recommended**     | **Yes** | **Yes** | **Already in dep tree** | Maybe     | **For minimal size** |
 
 ---
 
@@ -138,8 +138,8 @@ console.log(chalk.bgRgb(0, 255, 0)('Green background'));
 // Nested styles
 console.log(
   chalk.red('Error: ') +
-  chalk.bold('File not found') +
-  chalk.gray(' (check your path)')
+    chalk.bold('File not found') +
+    chalk.gray(' (check your path)')
 );
 
 // Tagged template literals
@@ -238,30 +238,30 @@ console.log(kleur.bgWhite().red('Error!'));
 
 ```typescript
 // Colors
-kleur.black(text)
-kleur.red(text)
-kleur.green(text)
-kleur.yellow(text)
-kleur.blue(text)
-kleur.magenta(text)
-kleur.cyan(text)
-kleur.white(text)
-kleur.gray(text)
-kleur.brightRed(text)
+kleur.black(text);
+kleur.red(text);
+kleur.green(text);
+kleur.yellow(text);
+kleur.blue(text);
+kleur.magenta(text);
+kleur.cyan(text);
+kleur.white(text);
+kleur.gray(text);
+kleur.brightRed(text);
 // ... etc
 
 // Modifiers
-kleur.bold(text)
-kleur.dim(text)
-kleur.italic(text)
-kleur.underline(text)
-kleur.invert(text)
-kleur.hidden(text)
-kleur.strikethrough(text)
+kleur.bold(text);
+kleur.dim(text);
+kleur.italic(text);
+kleur.underline(text);
+kleur.invert(text);
+kleur.hidden(text);
+kleur.strikethrough(text);
 
 // Background
-kleur.bgBlack(text)
-kleur.bgRed(text)
+kleur.bgBlack(text);
+kleur.bgRed(text);
 // ... etc
 ```
 
@@ -322,38 +322,38 @@ console.log(colors.bold.underline.red('Error!')); // Some chaining support
 
 ```typescript
 // Basic colors
-colors.black(text)
-colors.red(text)
-colors.green(text)
-colors.yellow(text)
-colors.blue(text)
-colors.magenta(text)
-colors.cyan(text)
-colors.white(text)
-colors.gray(text)
-colors.grey(text)
+colors.black(text);
+colors.red(text);
+colors.green(text);
+colors.yellow(text);
+colors.blue(text);
+colors.magenta(text);
+colors.cyan(text);
+colors.white(text);
+colors.gray(text);
+colors.grey(text);
 
 // Bright colors
-colors.redBright(text)
-colors.greenBright(text)
+colors.redBright(text);
+colors.greenBright(text);
 // ... etc
 
 // Background
-colors.bgBlack(text)
-colors.bgRed(text)
+colors.bgBlack(text);
+colors.bgRed(text);
 // ... etc
 
 // Modifiers
-colors.bold(text)
-colors.dim(text)
-colors.italic(text)
-colors.underline(text)
-colors.inverse(text)
-colors.hidden(text)
-colors.strikethrough(text)
+colors.bold(text);
+colors.dim(text);
+colors.italic(text);
+colors.underline(text);
+colors.inverse(text);
+colors.hidden(text);
+colors.strikethrough(text);
 
 // RGB
-colors.rgb(r, g, b)(text)
+colors.rgb(r, g, b)(text);
 ```
 
 ### Pros
@@ -416,26 +416,26 @@ console.log(colors.red('Error!'));
 
 ```typescript
 // Basic colors
-colors.black(text)
-colors.red(text)
-colors.green(text)
-colors.yellow(text)
-colors.blue(text)
-colors.magenta(text)
-colors.cyan(text)
-colors.white(text)
-colors.gray(text)
+colors.black(text);
+colors.red(text);
+colors.green(text);
+colors.yellow(text);
+colors.blue(text);
+colors.magenta(text);
+colors.cyan(text);
+colors.white(text);
+colors.gray(text);
 
 // Background
-colors.bgBlack(text)
-colors.bgRed(text)
+colors.bgBlack(text);
+colors.bgRed(text);
 // ... etc
 
 // Modifiers
-colors.bold(text)
-colors.dim(text)
-colors.italic(text)
-colors.underline(text)
+colors.bold(text);
+colors.dim(text);
+colors.italic(text);
+colors.underline(text);
 // ... etc
 
 // Themes
@@ -676,13 +676,12 @@ interface TestResult {
 }
 
 function formatTestResult(result: TestResult): string {
-  const status = result.passed
-    ? chalk.green('PASS')
-    : chalk.red('FAIL');
+  const status = result.passed ? chalk.green('PASS') : chalk.red('FAIL');
 
-  const duration = result.duration > 1000
-    ? chalk.red(`${result.duration}ms`)
-    : chalk.gray(`${result.duration}ms`);
+  const duration =
+    result.duration > 1000
+      ? chalk.red(`${result.duration}ms`)
+      : chalk.gray(`${result.duration}ms`);
 
   return `${status} ${chalk.bold(result.name)} ${duration}`;
 }
@@ -724,15 +723,21 @@ chalk.level = 0;
 ```typescript
 import chalk from 'chalk';
 
-function logHierarchy(items: Array<{ name: string; level: number; status?: string }>) {
+function logHierarchy(
+  items: Array<{ name: string; level: number; status?: string }>
+) {
   items.forEach(item => {
     const indent = '  '.repeat(item.level);
     const prefix = level => {
       switch (level) {
-        case 0: return chalk.bold('├─');
-        case 1: return chalk.dim('├─');
-        case 2: return chalk.dim('│ └─');
-        default: return chalk.dim('│   └─');
+        case 0:
+          return chalk.bold('├─');
+        case 1:
+          return chalk.dim('├─');
+        case 2:
+          return chalk.dim('│ └─');
+        default:
+          return chalk.dim('│   └─');
       }
     };
 
@@ -774,18 +779,21 @@ logHierarchy([
 ### When to Use Alternatives
 
 #### Use picocolors if:
+
 - Bundle size is critical (2KB vs 18KB)
 - Already in dependency tree (it is!)
 - Only need basic colors
 - Performance is paramount
 
 #### Use kleur if:
+
 - Want zero dependencies
 - Need good performance
 - Don't need RGB/HEX
 - Don't need chaining
 
 #### Use ansi-colors if:
+
 - Want zero dependencies
 - Need some advanced features
 - Don't need the full chalk feature set
@@ -852,8 +860,11 @@ export const colors = {
 };
 
 // Conditional coloring
-export const colorIf = (condition: boolean, colorFn: (msg: string) => string) => {
-  return (msg: string) => condition ? colorFn(msg) : msg;
+export const colorIf = (
+  condition: boolean,
+  colorFn: (msg: string) => string
+) => {
+  return (msg: string) => (condition ? colorFn(msg) : msg);
 };
 
 // Level detection
@@ -884,27 +895,32 @@ export const colors = {
 ## URLs and Resources
 
 ### chalk
+
 - **NPM:** https://www.npmjs.com/package/chalk
 - **GitHub:** https://github.com/chalk/chalk
 - **Documentation:** https://github.com/chalk/chalk#readme
 - **Type Definitions:** Native (included in package)
 
 ### kleur
+
 - **NPM:** https://www.npmjs.com/package/kleur
 - **GitHub:** https://github.com/lukeed/kleur
 - **Documentation:** https://github.com/lukeed/kleur#readme
 
 ### ansi-colors
+
 - **NPM:** https://www.npmjs.com/package/ansi-colors
 - **GitHub:** https://github.com/doowb/ansi-colors
 - **Documentation:** https://github.com/doowb/ansi-colors
 
 ### colors.js
+
 - **NPM:** https://www.npmjs.com/package/colors (use 1.4.1+)
 - **GitHub:** https://github.com/Marak/colors.js
 - **Security Advisory:** https://github.com/advisories/GHSA-7hxg-5wpq-qprq
 
 ### picocolors
+
 - **NPM:** https://www.npmjs.com/package/picocolors
 - **GitHub:** https://github.com/alexeyraspopov/picocolors
 - **Documentation:** https://github.com/alexeyraspopov/picocolors#readme

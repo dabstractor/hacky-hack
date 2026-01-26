@@ -5,10 +5,12 @@
 ### Existing CLI Options (src/cli/index.ts)
 
 **Numeric Options with Validation:**
+
 - `--max-tasks <number>` (lines 167, 294-299)
 - `--max-duration <ms>` (lines 168, 302-307)
 
 **Validation Pattern:**
+
 ```typescript
 // Validate maxTasks
 if (options.maxTasks !== undefined) {
@@ -20,6 +22,7 @@ if (options.maxTasks !== undefined) {
 ```
 
 **CLIArgs Interface** (lines 56-95):
+
 ```typescript
 export interface CLIArgs {
   prd: string;
@@ -41,6 +44,7 @@ export interface CLIArgs {
 ### Option Flow: CLI → PRPPipeline → TaskOrchestrator
 
 **src/cli/index.ts → src/index.ts → src/workflows/prp-pipeline.ts:**
+
 ```typescript
 // In main.ts (lines 198-212)
 const pipeline = new PRPPipeline(
@@ -57,6 +61,7 @@ const pipeline = new PRPPipeline(
 ```
 
 **PRPPipeline Constructor** (prp-pipeline.ts lines 250-260):
+
 ```typescript
 constructor(
   prdPath: string,

@@ -7,6 +7,7 @@
 **Feature Goal**: Make ResearchQueue concurrency configurable via constructor parameter, environment variable (RESEARCH_QUEUE_CONCURRENCY), and CLI option (--research-concurrency <n>) to allow users to adjust parallel PRP generation based on their workload and API rate limits.
 
 **Deliverable**: Configurable ResearchQueue with:
+
 - Constructor parameter `maxSize` (already exists, just needs to be wired to configurable source)
 - Environment variable support `RESEARCH_QUEUE_CONCURRENCY` (default: 3)
 - CLI option `--research-concurrency <n>` for runtime override
@@ -15,6 +16,7 @@
 - Documentation of tradeoffs (higher concurrency = faster but more API usage)
 
 **Success Definition**:
+
 - ResearchQueue accepts `maxSize` from environment variable or CLI (default 3, range 1-10)
 - CLI option `--research-concurrency <n>` allows runtime override (1-10, default: 3)
 - TaskOrchestrator passes configurable concurrency to ResearchQueue
@@ -27,17 +29,20 @@
 **Target User**: Developer/DevOps Engineer running the PRP Pipeline for large-scale PRD processing.
 
 **Use Case**: During pipeline execution with hundreds of subtasks, the user wants to:
+
 1. Increase concurrency to speed up PRP generation (e.g., --research-concurrency 5)
 2. Decrease concurrency to respect API rate limits (e.g., --research-concurrency 1)
 3. Set default via environment variable for their deployment environment
 
 **User Journey**:
+
 1. User runs pipeline with default settings (concurrency=3)
 2. User experiences API rate limiting or slow execution
 3. User adjusts: `--research-concurrency 5` (for faster execution) or `--research-concurrency 1` (to respect rate limits)
 4. User can set environment variable `RESEARCH_QUEUE_CONCURRENCY=5` for default behavior
 
 **Pain Points Addressed**:
+
 - **Hardcoded limit**: Current concurrency=3 is not configurable
 - **Rate limiting**: Some API providers have strict rate limits
 - **Performance tuning**: Different workloads benefit from different concurrency levels
@@ -60,17 +65,20 @@ Make ResearchQueue concurrency configurable through three levels:
 3. **CLI Option**: `--research-concurrency <n>` (default: 3, range: 1-10)
 
 Update TaskOrchestrator to:
+
 - Accept `researchQueueConcurrency` parameter
 - Pass value to ResearchQueue constructor
 - Log the configured concurrency level
 
 Add tests for:
+
 - Different concurrency levels (1, 3, 5, 10)
 - Environment variable loading
 - CLI option parsing
 - Validation (range 1-10)
 
 Document tradeoffs:
+
 - Higher concurrency = faster PRP generation but more API usage
 - Lower concurrency = slower but respects rate limits
 - Recommended values for different scenarios
@@ -92,6 +100,7 @@ Document tradeoffs:
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete ResearchQueue source code (src/core/research-queue.ts:57-277)
 - Complete TaskOrchestrator integration (src/core/task-orchestrator.ts:132-138)
 - CLI option patterns from src/cli/index.ts (lines 192-196, 354-386)
@@ -287,7 +296,10 @@ export interface CLIArgs {
 Add to ValidatedCLIArgs interface:
 
 ```typescript
-export interface ValidatedCLIArgs extends Omit<CLIArgs, 'parallelism' | 'researchConcurrency'> {
+export interface ValidatedCLIArgs extends Omit<
+  CLIArgs,
+  'parallelism' | 'researchConcurrency'
+> {
   /** Max concurrent research tasks (1-10, default: 3) - validated as number */
   researchConcurrency: number;
 }
@@ -638,11 +650,11 @@ CODEBASE:
   - modify: [FIND WHERE TaskOrchestrator IS INSTANTIATED]
     changes:
       - Pass researchConcurrency to TaskOrchestrator constructor
-    search: "new TaskOrchestrator("
+    search: 'new TaskOrchestrator('
 
 CONFIGURATION:
   - add to: .env.example
-    pattern: "RESEARCH_QUEUE_CONCURRENCY=3  # Max concurrent research tasks (1-10, default: 3)"
+    pattern: 'RESEARCH_QUEUE_CONCURRENCY=3  # Max concurrent research tasks (1-10, default: 3)'
 
 TESTS:
   - extend: tests/unit/core/research-queue.test.ts
@@ -777,23 +789,23 @@ npm run test -- tests/integration/core/research-queue.test.ts --grep "concurrenc
 
 ### Concurrency Level Recommendations
 
-| Concurrency | Use Case | API Usage | Speed | Recommended For |
-|-------------|----------|-----------|-------|-----------------|
-| 1 | Sequential debugging | Minimal | Slowest | Rate-limited APIs, debugging |
-| 2 | Conservative | Low | Slow | Resource-constrained environments |
-| 3 (default) | Balanced | Moderate | Medium | Most development environments |
-| 5 | Fast | High | Fast | Powerful workstations |
-| 10 | Maximum | Very High | Fastest | High-performance builds (risk of rate limiting) |
+| Concurrency | Use Case             | API Usage | Speed   | Recommended For                                 |
+| ----------- | -------------------- | --------- | ------- | ----------------------------------------------- |
+| 1           | Sequential debugging | Minimal   | Slowest | Rate-limited APIs, debugging                    |
+| 2           | Conservative         | Low       | Slow    | Resource-constrained environments               |
+| 3 (default) | Balanced             | Moderate  | Medium  | Most development environments                   |
+| 5           | Fast                 | High      | Fast    | Powerful workstations                           |
+| 10          | Maximum              | Very High | Fastest | High-performance builds (risk of rate limiting) |
 
 ### Resource Requirements
 
 | Concurrency | Min RAM | Min CPU Cores | API Calls/Minute |
-|-------------|---------|---------------|------------------|
-| 1 | 2GB | 2 | ~5-10 |
-| 2 | 4GB | 4 | ~10-20 |
-| 3 (default) | 4GB | 4 | ~15-30 |
-| 5 | 8GB | 8 | ~25-50 |
-| 10 | 16GB | 12+ | ~50-100 |
+| ----------- | ------- | ------------- | ---------------- |
+| 1           | 2GB     | 2             | ~5-10            |
+| 2           | 4GB     | 4             | ~10-20           |
+| 3 (default) | 4GB     | 4             | ~15-30           |
+| 5           | 8GB     | 8             | ~25-50           |
+| 10          | 16GB    | 12+           | ~50-100          |
 
 ### Warnings
 

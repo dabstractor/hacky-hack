@@ -14,6 +14,7 @@ This document summarizes the codebase analysis for implementing automatic retry 
 ### Key Finding from system_context.md (lines 445-448)
 
 > **Batching State Corruption Risk**:
+>
 > - If `flushUpdates()` fails, retry is required
 > - No automatic retry mechanism
 > - Pending updates preserved on error
@@ -57,6 +58,7 @@ async flushUpdates(): Promise<void> {
 ```
 
 **Current Behavior**:
+
 - Pending updates (`#pendingUpdates`) ARE preserved on error
 - Dirty flag (`#dirty`) remains true
 - Error is re-thrown to caller
@@ -69,8 +71,14 @@ async flushUpdates(): Promise<void> {
 The `atomicWrite()` function implements temp file + rename pattern:
 
 ```typescript
-export async function atomicWrite(targetPath: string, data: string): Promise<void> {
-  const tempPath = resolve(dirname(targetPath), `.${basename(targetPath)}.${randomBytes(8).toString('hex')}.tmp`);
+export async function atomicWrite(
+  targetPath: string,
+  data: string
+): Promise<void> {
+  const tempPath = resolve(
+    dirname(targetPath),
+    `.${basename(targetPath)}.${randomBytes(8).toString('hex')}.tmp`
+  );
 
   try {
     await writeFile(tempPath, data, { mode: 0o644 });
@@ -89,6 +97,7 @@ export async function atomicWrite(targetPath: string, data: string): Promise<voi
 ```
 
 **Key Characteristics**:
+
 - Writes to temp file first
 - Renames to target (atomic on POSIX)
 - Cleans up temp file on error
@@ -100,15 +109,16 @@ export async function atomicWrite(targetPath: string, data: string): Promise<voi
 
 The codebase has excellent retry infrastructure already:
 
-| Component | Lines | Description |
-|-----------|-------|-------------|
-| `retry()` | 495-549 | Generic retry with exponential backoff |
-| `calculateDelay()` | 246-268 | Exponential backoff with jitter |
-| `isTransientError()` | 323-410 | Error classification |
-| `retryAgentPrompt()` | 648-656 | LLM call retry wrapper |
-| `retryMcpTool()` | 701-724 | MCP tool retry wrapper |
+| Component            | Lines   | Description                            |
+| -------------------- | ------- | -------------------------------------- |
+| `retry()`            | 495-549 | Generic retry with exponential backoff |
+| `calculateDelay()`   | 246-268 | Exponential backoff with jitter        |
+| `isTransientError()` | 323-410 | Error classification                   |
+| `retryAgentPrompt()` | 648-656 | LLM call retry wrapper                 |
+| `retryMcpTool()`     | 701-724 | MCP tool retry wrapper                 |
 
 **Default Retry Configuration** (from TaskRetryManager):
+
 ```typescript
 {
   maxAttempts: 3,
@@ -124,10 +134,12 @@ The codebase has excellent retry infrastructure already:
 From `src/utils/retry.ts` (lines 67-77):
 
 **Retryable (Transient)**:
+
 - `ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `ENOTFOUND` - Network errors
 - `EAGAIN`, `EBUSY` - Resource temporarily unavailable
 
 **Not Retryable (Permanent)**:
+
 - `ENOENT` - File not found
 - `EACCES` - Permission denied
 - `ENOSPC` - No space left on device (disk full)
@@ -139,11 +151,13 @@ From `src/utils/retry.ts` (lines 67-77):
 The parallel work item P3.M2.T2.S1 is implementing a checkpoint mechanism:
 
 **CheckpointManager**: `src/core/checkpoint-manager.ts` (NEW)
+
 - Saves checkpoints at key execution points
 - Uses atomic writes for persistence
 - Stores in `{sessionPath}/artifacts/{taskId}/checkpoints.json`
 
 **Relationship**:
+
 - Checkpoint mechanism saves PRP execution state
 - Batch write retry protects session state persistence
 - Both use atomic write pattern from `session-utils.ts`
@@ -275,6 +289,7 @@ if (options.taskRetry !== undefined) {
 **File**: `src/core/session-manager.ts` (lines 670-720)
 
 **Current**:
+
 ```typescript
 async flushUpdates(): Promise<void> {
   // ... validation ...
@@ -290,6 +305,7 @@ async flushUpdates(): Promise<void> {
 ```
 
 **Enhanced**:
+
 ```typescript
 async flushUpdates(): Promise<void> {
   // ... validation ...
@@ -320,6 +336,7 @@ async flushUpdates(): Promise<void> {
 **File**: `src/cli/index.ts`
 
 Add new CLI option:
+
 ```typescript
 .option(
   '--flush-retries <n>',
@@ -335,11 +352,14 @@ Add new CLI option:
 Location: `{sessionPath}/tasks.json.failed`
 
 Format:
+
 ```json
 {
   "version": "1.0",
   "timestamp": "2026-01-24T15:30:45.123Z",
-  "pendingUpdates": { /* Backlog data */ },
+  "pendingUpdates": {
+    /* Backlog data */
+  },
   "error": {
     "message": "ENOSPC: no space left on device",
     "code": "ENOSPC",
@@ -353,6 +373,7 @@ Format:
 **New File**: `tests/unit/core/flush-retry.test.ts`
 
 Test cases:
+
 - Should retry on transient file I/O errors (EBUSY, EAGAIN)
 - Should not retry on permanent errors (ENOSPC, ENOENT)
 - Should use exponential backoff between retries

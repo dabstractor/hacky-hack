@@ -7,12 +7,14 @@
 **Feature Goal**: Reduce resource monitoring overhead in the PRP Pipeline by implementing intelligent monitoring frequency optimization, lazy evaluation, and configurable monitoring controls.
 
 **Deliverable**:
+
 1. Optimized `ResourceMonitor` with interval-based monitoring (monitor every Nth task)
 2. Lazy evaluation mode (only check when limits are approached)
 3. CLI options `--monitor-interval` and `--no-resource-monitor`
 4. Benchmarks validating overhead reduction in `tests/benchmark/resource-monitoring.bench.test.ts`
 
 **Success Definition**:
+
 - Monitoring overhead reduced by 60-80% in typical workloads
 - No resource exhaustion events go undetected
 - All existing tests pass with new optimization enabled
@@ -25,9 +27,11 @@
 ### Business Value
 
 From `system_context.md` limitations (lines 479-482):
+
 > **Resource Monitoring Overhead**: File handle counting via spawn adds overhead. Heap stats on every task execution.
 
 The current implementation monitors resources after **every task completion**, which adds unnecessary overhead when:
+
 - Resource usage is stable and far from limits
 - Running hundreds of short-lived subtasks
 - System has abundant resources available
@@ -35,6 +39,7 @@ The current implementation monitors resources after **every task completion**, w
 ### Integration with Existing Features
 
 This optimization builds on **P3.M1.T2.S1** (macOS lsof caching) by adding:
+
 - **Interval-based monitoring**: Monitor only every Nth task (configurable)
 - **Lazy evaluation**: Skip checks when resources are at safe levels
 - **Complete disable**: Allow users to disable monitoring entirely with `--no-resource-monitor`
@@ -66,12 +71,12 @@ prd --max-tasks 100 --monitor-interval 10 --no-resource-monitor
 
 #### Behavior Changes
 
-| Scenario | Current Behavior | Optimized Behavior |
-|----------|------------------|-------------------|
-| Every task completion | Always check resources | Check only every Nth task (default: 1) |
-| Resources at safe levels (<50%) | Full monitoring | Lazy evaluation: skip expensive checks |
-| Resources approaching limits (>70%) | Full monitoring | Full monitoring (safety override) |
-| `--no-resource-monitor` flag | N/A | Monitoring completely disabled |
+| Scenario                            | Current Behavior       | Optimized Behavior                     |
+| ----------------------------------- | ---------------------- | -------------------------------------- |
+| Every task completion               | Always check resources | Check only every Nth task (default: 1) |
+| Resources at safe levels (<50%)     | Full monitoring        | Lazy evaluation: skip expensive checks |
+| Resources approaching limits (>70%) | Full monitoring        | Full monitoring (safety override)      |
+| `--no-resource-monitor` flag        | N/A                    | Monitoring completely disabled         |
 
 ### Success Criteria
 
@@ -92,6 +97,7 @@ prd --max-tasks 100 --monitor-interval 10 --no-resource-monitor
 **Question**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file locations and line numbers for all integration points
 - Complete code patterns for CLI options, validation, and pipeline integration
 - External research with URLs for monitoring optimization best practices
@@ -262,10 +268,10 @@ export interface ResourceConfig {
   readonly cacheTtl?: number;
 
   // NEW: Optimization options
-  readonly monitorInterval?: number;           // Monitor every Nth task (default: 1)
-  readonly lazyEvaluation?: boolean;           // Enable lazy evaluation (default: false)
-  readonly lazyEvaluationThreshold?: number;   // Activate lazy eval below this % (default: 0.5)
-  readonly disabled?: boolean;                 // Completely disable monitoring (default: false)
+  readonly monitorInterval?: number; // Monitor every Nth task (default: 1)
+  readonly lazyEvaluation?: boolean; // Enable lazy evaluation (default: false)
+  readonly lazyEvaluationThreshold?: number; // Activate lazy eval below this % (default: 0.5)
+  readonly disabled?: boolean; // Completely disable monitoring (default: false)
 }
 ```
 
@@ -725,6 +731,7 @@ git stash pop
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Reasoning**:
+
 - Comprehensive research with external documentation references
 - Exact file locations and line numbers provided
 - Complete implementation patterns with code examples

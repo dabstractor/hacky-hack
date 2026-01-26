@@ -10,9 +10,11 @@
 **Purpose:** Execute shell commands safely
 
 **Tools:**
+
 - `bash__execute_bash` - Execute shell commands with timeout
 
 **Key Patterns:**
+
 ```typescript
 // Timeout protection
 const DEFAULT_TIMEOUT = 30000;
@@ -21,12 +23,16 @@ const MAX_TIMEOUT = 300000;
 
 // Command injection prevention
 spawn(executable, commandArgs, {
-  shell: false,  // Critical: no shell interpretation
+  shell: false, // Critical: no shell interpretation
 });
 
 // Process management
-child.on('close', exitCode => { /* handle completion */ });
-child.on('error', (error: Error) => { /* handle spawn errors */ });
+child.on('close', exitCode => {
+  /* handle completion */
+});
+child.on('error', (error: Error) => {
+  /* handle spawn errors */
+});
 
 // SIGTERM then SIGKILL timeout handling
 const timeoutId = setTimeout(() => {
@@ -46,12 +52,14 @@ const timeoutId = setTimeout(() => {
 **Purpose:** File system operations
 
 **Tools:**
+
 - `filesystem__file_read` - Read files with encoding options
 - `filesystem__file_write` - Write files with directory creation
 - `filesystem__glob_files` - Find files matching patterns
 - `filesystem__grep_search` - Search file content with regex
 
 **Key Patterns:**
+
 ```typescript
 // Path validation
 const safePath = resolve(input.path);
@@ -91,12 +99,14 @@ const matches = await fg(pattern, {
 **Purpose:** Git version control operations
 
 **Tools:**
+
 - `git__git_status` - Get repository status
 - `git__git_diff` - Show changes (staged/unstaged)
 - `git__git_add` - Stage files with flag injection prevention
 - `git__git_commit` - Create commits with message validation
 
 **Key Patterns:**
+
 ```typescript
 // Repository validation
 async function validateRepositoryPath(path?: string): Promise<string> {
@@ -115,7 +125,7 @@ async function validateRepositoryPath(path?: string): Promise<string> {
 }
 
 // Flag injection prevention (CRITICAL)
-await git.add(['--', ...files]);  // Use '--' separator
+await git.add(['--', ...files]); // Use '--' separator
 
 // Message validation (before path validation for better UX)
 if (!input.message || input.message.trim() === '') {
@@ -161,6 +171,7 @@ for (const file of status.files) {
 ## Common Patterns Across All Tools
 
 ### 1. File Structure Pattern
+
 ```typescript
 /**
  * Tool Module
@@ -171,19 +182,19 @@ for (const file of status.files) {
 import { MCPHandler, type Tool, type ToolExecutor } from 'groundswell';
 
 // ===== INPUT INTERFACES =====
-interface ToolInput { }
+interface ToolInput {}
 
 // ===== RESULT INTERFACES =====
-interface ToolResult { }
+interface ToolResult {}
 
 // ===== TOOL SCHEMAS =====
-const toolSchema: Tool = { };
+const toolSchema: Tool = {};
 
 // ===== TOOL EXECUTORS =====
-async function executeTool(input: ToolInput): Promise<ToolResult> { }
+async function executeTool(input: ToolInput): Promise<ToolResult> {}
 
 // ===== MCP SERVER =====
-export class ToolMCP extends MCPHandler { }
+export class ToolMCP extends MCPHandler {}
 
 // Export types and tools
 export type { ToolInput, ToolResult };
@@ -191,11 +202,12 @@ export { toolSchema, executeTool };
 ```
 
 ### 2. MCP Server Class Pattern
+
 ```typescript
 export class CustomMCP extends MCPHandler {
-  public readonly name = 'custom';           // Server name
+  public readonly name = 'custom'; // Server name
   public readonly transport = 'inprocess' as const;
-  public readonly tools = [tool1, tool2];    // Array of tool schemas
+  public readonly tools = [tool1, tool2]; // Array of tool schemas
 
   constructor() {
     super();
@@ -215,15 +227,17 @@ export class CustomMCP extends MCPHandler {
 ```
 
 ### 3. Result Structure Pattern
+
 ```typescript
 interface ToolResult {
-  success: boolean;        // Always present
-  error?: string;          // Present on failure
+  success: boolean; // Always present
+  error?: string; // Present on failure
   // ... result-specific properties
 }
 ```
 
 ### 4. Error Handling Pattern
+
 ```typescript
 async function executeTool(input: ToolInput): Promise<ToolResult> {
   try {
@@ -248,7 +262,8 @@ async function executeTool(input: ToolInput): Promise<ToolResult> {
 ```
 
 ### 5. JSDoc Documentation Pattern
-```typescript
+
+````typescript
 /**
  * Tool description
  *
@@ -267,7 +282,7 @@ async function executeTool(input: ToolInput): Promise<ToolResult> {
  * });
  * ```
  */
-```
+````
 
 ## Agent Factory Integration Pattern
 
@@ -287,7 +302,7 @@ export function createCoderAgent(): Agent {
   const config = {
     ...baseConfig,
     system: PRP_BUILDER_PROMPT,
-    mcps: MCP_TOOLS,  // Inject MCP servers
+    mcps: MCP_TOOLS, // Inject MCP servers
   };
   return createAgent(config);
 }
@@ -296,6 +311,7 @@ export function createCoderAgent(): Agent {
 ## Security Patterns
 
 ### Path Traversal Prevention
+
 ```typescript
 import { resolve, realpathSync } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -310,12 +326,13 @@ if (!existsSync(safePath)) {
 ```
 
 ### Command Injection Prevention
+
 ```typescript
 import { spawn } from 'node:child_process';
 
 // Use argument arrays with shell: false
 spawn('git', ['commit', '-m', message], {
-  shell: false,  // Critical: no shell interpretation
+  shell: false, // Critical: no shell interpretation
 });
 
 // Use '--' separator to prevent flag injection
@@ -323,6 +340,7 @@ git.add(['--', ...files]);
 ```
 
 ### Resource Limits
+
 ```typescript
 // Timeout enforcement
 const DEFAULT_TIMEOUT = 30000;

@@ -17,6 +17,7 @@
 **License:** MIT
 
 **Why it's recommended:**
+
 - Battle-tested by Vercel/Next.js community
 - Zero dependencies
 - Tiny footprint (~1KB)
@@ -26,40 +27,43 @@
 - Already installed in the project
 
 **Installation:**
+
 ```bash
 npm install ms
 ```
 
 **Usage Examples:**
+
 ```typescript
 import ms from 'ms';
 
 // Parse duration strings to milliseconds
-ms('2 days');      // 172800000
-ms('1d');          // 86400000
-ms('10h');         // 36000000
-ms('2.5 hrs');     // 9000000
-ms('2h');          // 7200000
-ms('1m');          // 60000
-ms('5s');          // 5000
-ms('1y');          // 31557600000
-ms('100');         // 100 (defaults to ms)
-ms('-3 days');     // -259200000 (negative supported)
-ms('-1h');         // -3600000
+ms('2 days'); // 172800000
+ms('1d'); // 86400000
+ms('10h'); // 36000000
+ms('2.5 hrs'); // 9000000
+ms('2h'); // 7200000
+ms('1m'); // 60000
+ms('5s'); // 5000
+ms('1y'); // 31557600000
+ms('100'); // 100 (defaults to ms)
+ms('-3 days'); // -259200000 (negative supported)
+ms('-1h'); // -3600000
 
 // Convert milliseconds to readable strings
-ms(60000);                    // "1m"
-ms(2 * 60000);                // "2m"
-ms(-3 * 60000);               // "-3m"
-ms(ms('10 hours'));           // "10h"
+ms(60000); // "1m"
+ms(2 * 60000); // "2m"
+ms(-3 * 60000); // "-3m"
+ms(ms('10 hours')); // "10h"
 
 // Long format
-ms(60000, { long: true });             // "1 minute"
-ms(2 * 60000, { long: true });         // "2 minutes"
-ms(ms('10 hours'), { long: true });    // "10 hours"
+ms(60000, { long: true }); // "1 minute"
+ms(2 * 60000, { long: true }); // "2 minutes"
+ms(ms('10 hours'), { long: true }); // "10 hours"
 ```
 
 **Supported Units:**
+
 - `ms`, `msec`, `msecs`, `millisecond`, `milliseconds`
 - `s`, `sec`, `secs`, `second`, `seconds`
 - `m`, `min`, `mins`, `minute`, `minutes`
@@ -72,10 +76,11 @@ ms(ms('10 hours'), { long: true });    // "10 hours"
 The regex pattern used by `ms` (from `/home/dustin/projects/hacky-hack/node_modules/ms/index.js`):
 
 ```javascript
-/^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i
+/^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i;
 ```
 
 **Key Features:**
+
 - Optional negative sign: `-?`
 - Decimal numbers supported: `(?:\d+)?\.?\d+`
 - Optional whitespace between number and unit: ` *`
@@ -92,27 +97,31 @@ The regex pattern used by `ms` (from `/home/dustin/projects/hacky-hack/node_modu
 **Weekly downloads:** ~2M
 
 **Why consider it:**
+
 - More flexible than `ms`
 - Supports multiple time units in one string (e.g., "1h 30m")
 - Configurable behavior
 - Good for complex durations
 
 **Installation:**
+
 ```bash
 npm install parse-duration
 ```
 
 **Usage Examples:**
+
 ```typescript
 import parseDuration from 'parse-duration';
 
-parseDuration('1h 30m');      // 5400000
-parseDuration('1.5 days');    // 129600000
-parseDuration('24h');         // 86400000
-parseDuration('30m');         // 1800000
+parseDuration('1h 30m'); // 5400000
+parseDuration('1.5 days'); // 129600000
+parseDuration('24h'); // 86400000
+parseDuration('30m'); // 1800000
 ```
 
 **Trade-offs:**
+
 - Heavier than `ms`
 - More complex API
 - For simple CLI args like "24h", `ms` is sufficient
@@ -122,14 +131,17 @@ parseDuration('30m');         // 1800000
 ### 1.3 Other Libraries (Less Recommended)
 
 #### `timestring`
+
 - Simple but less popular
 - Only one-way conversion (string → ms)
 
 #### `tinyduration`
+
 - XML duration format focused
 - Not ideal for human-readable CLI input
 
 #### `date-fns` / `luxon` / `dayjs`
+
 - Full date/time libraries
 - Overkill for simple duration parsing
 - Larger bundle size
@@ -339,7 +351,7 @@ function parseDuration(value: string): number {
 program.option(
   '--timeout <duration>',
   'Operation timeout',
-  (value) => {
+  value => {
     const parsed = ms(value);
     if (parsed === undefined) {
       throw new Error(`Invalid timeout format: "${value}"`);
@@ -374,16 +386,17 @@ const DurationSchema = z
   .string()
   .min(1, 'Duration cannot be empty')
   .refine(
-    (value) => {
+    value => {
       const parsed = ms(value);
       return parsed !== undefined;
     },
     {
-      message: 'Invalid duration format. Expected: <number><unit> (e.g., "30s", "5m", "1h")',
+      message:
+        'Invalid duration format. Expected: <number><unit> (e.g., "30s", "5m", "1h")',
     }
   )
   .refine(
-    (value) => {
+    value => {
       const parsed = ms(value)!;
       return parsed > 0;
     },
@@ -392,7 +405,7 @@ const DurationSchema = z
     }
   )
   .refine(
-    (value) => {
+    value => {
       const parsed = ms(value)!;
       return parsed <= 86400000; // Max 1 day
     },
@@ -400,7 +413,7 @@ const DurationSchema = z
       message: 'Duration cannot exceed 1 day',
     }
   )
-  .transform((value) => ms(value)!); // Transform to milliseconds
+  .transform(value => ms(value)!); // Transform to milliseconds
 
 // Usage
 function parseDurationInput(input: unknown) {
@@ -408,7 +421,7 @@ function parseDurationInput(input: unknown) {
 
   if (!result.success) {
     console.error('Duration validation failed:');
-    result.error.errors.forEach((err) => {
+    result.error.errors.forEach(err => {
       console.error(`  - ${err.message}`);
     });
     process.exit(1);
@@ -427,10 +440,7 @@ console.log(`Retry wait: ${retryWait}ms (${ms(retryWait, { long: true })})`);
 ```typescript
 import ms from 'ms';
 
-function getDurationFromEnv(
-  key: string,
-  defaultValue: string
-): number {
+function getDurationFromEnv(key: string, defaultValue: string): number {
   const value = process.env[key] || defaultValue;
 
   const parsed = ms(value);
@@ -500,13 +510,15 @@ module.exports = {
 ```typescript
 // PM2 ecosystem.config.js
 module.exports = {
-  apps: [{
-    name: 'my-app',
-    max_memory_restart: '1G',
-    wait_ready: true,
-    listen_timeout: ms('10s'),
-    kill_timeout: ms('5s'),
-  }],
+  apps: [
+    {
+      name: 'my-app',
+      max_memory_restart: '1G',
+      wait_ready: true,
+      listen_timeout: ms('10s'),
+      kill_timeout: ms('5s'),
+    },
+  ],
 };
 ```
 
@@ -520,8 +532,12 @@ import ms from 'ms';
 const program = new Command();
 
 program
-  .option('--timeout <duration>', 'Operation timeout (e.g., 30s, 5m, 1h)', '30s')
-  .action((options) => {
+  .option(
+    '--timeout <duration>',
+    'Operation timeout (e.g., 30s, 5m, 1h)',
+    '30s'
+  )
+  .action(options => {
     const timeoutMs = ms(options.timeout);
 
     if (timeoutMs === undefined) {
@@ -530,7 +546,9 @@ program
       process.exit(1);
     }
 
-    console.log(`Timeout set to ${timeoutMs}ms (${ms(timeoutMs, { long: true })})`);
+    console.log(
+      `Timeout set to ${timeoutMs}ms (${ms(timeoutMs, { long: true })})`
+    );
 
     // Use timeout
     setTimeout(() => {
@@ -553,14 +571,14 @@ import ms from 'ms';
 
 // These return undefined - need validation
 const invalid = [
-  'abc',           // No number
-  '10',            // Ambiguous (ms accepts this as 10ms)
-  '1.2.3h',        // Multiple decimals
-  '1x',            // Invalid unit
-  '',              // Empty string
-  ' ',             // Whitespace only
-  'inf',           // Not a number
-  'NaN',           // Not a number
+  'abc', // No number
+  '10', // Ambiguous (ms accepts this as 10ms)
+  '1.2.3h', // Multiple decimals
+  '1x', // Invalid unit
+  '', // Empty string
+  ' ', // Whitespace only
+  'inf', // Not a number
+  'NaN', // Not a number
 ];
 
 // Validation function
@@ -570,7 +588,7 @@ function validateDuration(value: string): number | never {
   if (parsed === undefined) {
     throw new Error(
       `Invalid duration format: "${value}". ` +
-      `Expected: <number><unit> where unit is s, m, h, d (e.g., "30s", "5m", "1h", "1d")`
+        `Expected: <number><unit> where unit is s, m, h, d (e.g., "30s", "5m", "1h", "1d")`
     );
   }
 
@@ -618,9 +636,9 @@ function parseSignedDuration(value: string): number {
 ### 5.3 Zero Duration
 
 ```typescript
-ms('0s');    // 0
-ms('0m');    // 0
-ms('0');     // 0
+ms('0s'); // 0
+ms('0m'); // 0
+ms('0'); // 0
 
 // Often not valid for retry logic
 function parseNonZeroDuration(value: string): number {
@@ -645,10 +663,7 @@ function parseNonZeroDuration(value: string): number {
 ms('1000y'); // Very large number
 
 // Set reasonable limits
-function parseBoundedDuration(
-  value: string,
-  maxMs: number
-): number {
+function parseBoundedDuration(value: string, maxMs: number): number {
   const parsed = ms(value);
 
   if (parsed === undefined) {
@@ -657,9 +672,7 @@ function parseBoundedDuration(
 
   if (parsed > maxMs) {
     const maxReadable = ms(maxMs, { long: true });
-    throw new Error(
-      `Duration cannot exceed ${maxReadable}: "${value}"`
-    );
+    throw new Error(`Duration cannot exceed ${maxReadable}: "${value}"`);
   }
 
   return parsed;
@@ -674,9 +687,9 @@ const timeout = parseBoundedDuration(userInput, maxTimeout);
 
 ```typescript
 // Decimals are supported
-ms('1.5h');  // 5400000
-ms('0.5m');  // 30000
-ms('1.1s');  // 1100
+ms('1.5h'); // 5400000
+ms('0.5m'); // 30000
+ms('1.1s'); // 1100
 
 // But be careful with floating point
 function parseRoundedDuration(value: string): number {
@@ -695,10 +708,10 @@ function parseRoundedDuration(value: string): number {
 
 ```typescript
 // ms is case-insensitive
-ms('1H');  // 3600000
-ms('1h');  // 3600000
-ms('1M');  // 60000
-ms('1D');  // 86400000
+ms('1H'); // 3600000
+ms('1h'); // 3600000
+ms('1M'); // 60000
+ms('1D'); // 86400000
 
 // All work correctly
 ```
@@ -707,12 +720,12 @@ ms('1D');  // 86400000
 
 ```typescript
 // ms handles optional whitespace
-ms('1h');     // Works
-ms('1 h');    // Works
-ms('1  h');   // Works
+ms('1h'); // Works
+ms('1 h'); // Works
+ms('1  h'); // Works
 
 // Leading/trailing whitespace needs trim
-ms(' 1h ');   // Doesn't work - needs trim
+ms(' 1h '); // Doesn't work - needs trim
 ms(' 1h'.trim()); // Works
 ```
 
@@ -720,7 +733,7 @@ ms(' 1h'.trim()); // Works
 
 ```typescript
 // "m" means minutes, not milliseconds
-ms('10m');  // 600000 (10 minutes, not 10 ms)
+ms('10m'); // 600000 (10 minutes, not 10 ms)
 
 // For milliseconds, use "ms"
 ms('10ms'); // 10
@@ -732,7 +745,7 @@ ms('10ms'); // 10
 
 ### 6.1 Use `ms` Package (Already Installed)
 
-```typescript
+````typescript
 // File: src/utils/duration-parser.ts
 import ms from 'ms';
 
@@ -762,14 +775,12 @@ export function parseDuration(value: string): number {
   if (milliseconds === undefined) {
     throw new Error(
       `Invalid duration format: "${value}". ` +
-      `Expected: <number><unit> where unit is s, m, h, d (e.g., "30s", "5m", "1h", "1d")`
+        `Expected: <number><unit> where unit is s, m, h, d (e.g., "30s", "5m", "1h", "1d")`
     );
   }
 
   if (milliseconds <= 0) {
-    throw new Error(
-      `Duration must be greater than zero: "${value}"`
-    );
+    throw new Error(`Duration must be greater than zero: "${value}"`);
   }
 
   return milliseconds;
@@ -783,17 +794,12 @@ export function parseDuration(value: string): number {
  * @returns Duration in milliseconds
  * @throws Error if format is invalid, non-positive, or exceeds max
  */
-export function parseBoundedDuration(
-  value: string,
-  maxMs: number
-): number {
+export function parseBoundedDuration(value: string, maxMs: number): number {
   const milliseconds = parseDuration(value);
 
   if (milliseconds > maxMs) {
     const maxReadable = ms(maxMs, { long: true });
-    throw new Error(
-      `Duration cannot exceed ${maxReadable}: "${value}"`
-    );
+    throw new Error(`Duration cannot exceed ${maxReadable}: "${value}"`);
   }
 
   return milliseconds;
@@ -806,20 +812,21 @@ export function parseBoundedDuration(
  * @param long - Use long format (e.g., "1 minute" vs "1m")
  * @returns Human-readable duration string
  */
-export function formatDuration(
-  milliseconds: number,
-  long = false
-): string {
+export function formatDuration(milliseconds: number, long = false): string {
   return ms(milliseconds, { long });
 }
-```
+````
 
 ### 6.2 CLI Integration with Commander
 
 ```typescript
 // File: src/cli/duration-options.ts
 import { Command } from 'commander';
-import { parseDuration, parseBoundedDuration, formatDuration } from '../utils/duration-parser.js';
+import {
+  parseDuration,
+  parseBoundedDuration,
+  formatDuration,
+} from '../utils/duration-parser.js';
 
 export function addDurationOptions(program: Command): Command {
   return program
@@ -871,7 +878,10 @@ export function parseDurationOptions(options: Record<string, unknown>) {
 }
 
 // Usage in main CLI
-import { addDurationOptions, parseDurationOptions } from './cli/duration-options.js';
+import {
+  addDurationOptions,
+  parseDurationOptions,
+} from './cli/duration-options.js';
 
 const program = new Command();
 addDurationOptions(program);
@@ -882,8 +892,12 @@ try {
 
   console.log(`Initial wait: ${formatDuration(durations.retryInitialWait)}`);
   console.log(`Max wait: ${formatDuration(durations.retryMaxWait)}`);
-  console.log(`Total timeout: ${formatDuration(durations.retryTotalTimeout, true)}`);
-  console.log(`Operation timeout: ${formatDuration(durations.operationTimeout, true)}`);
+  console.log(
+    `Total timeout: ${formatDuration(durations.retryTotalTimeout, true)}`
+  );
+  console.log(
+    `Operation timeout: ${formatDuration(durations.operationTimeout, true)}`
+  );
 } catch (error) {
   if (error instanceof Error) {
     console.error(`Error: ${error.message}`);
@@ -906,45 +920,36 @@ export const DurationSchema = z
   .string()
   .trim()
   .min(1, 'Duration cannot be empty')
-  .refine(
-    (value) => ms(value) !== undefined,
-    {
-      message: 'Invalid duration format. Expected: <number><unit> (e.g., "30s", "5m", "1h", "1d")',
-    }
-  )
-  .refine(
-    (value) => ms(value)! > 0,
-    {
-      message: 'Duration must be greater than zero',
-    }
-  )
-  .transform((value) => ms(value)!);
+  .refine(value => ms(value) !== undefined, {
+    message:
+      'Invalid duration format. Expected: <number><unit> (e.g., "30s", "5m", "1h", "1d")',
+  })
+  .refine(value => ms(value)! > 0, {
+    message: 'Duration must be greater than zero',
+  })
+  .transform(value => ms(value)!);
 
 /**
  * Schema for duration with maximum
  */
 export const BoundedDurationSchema = (maxMs: number, maxLabel: string) =>
-  DurationSchema.refine(
-    (value) => value <= maxMs,
-    {
-      message: `Duration cannot exceed ${maxLabel}`,
-    }
-  );
+  DurationSchema.refine(value => value <= maxMs, {
+    message: `Duration cannot exceed ${maxLabel}`,
+  });
 
 /**
  * Schema for retry configuration
  */
-export const RetryConfigSchema = z.object({
-  initialWait: DurationSchema,
-  maxWait: DurationSchema,
-  totalTimeout: DurationSchema,
-  operationTimeout: BoundedDurationSchema(ms('1h'), '1 hour'),
-}).refine(
-  (config) => config.maxWait > config.initialWait,
-  {
+export const RetryConfigSchema = z
+  .object({
+    initialWait: DurationSchema,
+    maxWait: DurationSchema,
+    totalTimeout: DurationSchema,
+    operationTimeout: BoundedDurationSchema(ms('1h'), '1 hour'),
+  })
+  .refine(config => config.maxWait > config.initialWait, {
     message: 'maxWait must be greater than initialWait',
-  }
-);
+  });
 
 // Usage
 import { RetryConfigSchema } from './schemas/duration.js';
@@ -958,7 +963,7 @@ const configResult = RetryConfigSchema.safeParse({
 
 if (!configResult.success) {
   console.error('Invalid retry configuration:');
-  configResult.error.errors.forEach((err) => {
+  configResult.error.errors.forEach(err => {
     console.error(`  - ${err.message}`);
   });
   process.exit(1);
@@ -972,12 +977,12 @@ console.log('Retry config:', config);
 
 ## 7. Comparison Summary
 
-| Library | Size | Downloads | Flexibility | Maintenance | Recommendation |
-|---------|------|-----------|-------------|-------------|----------------|
-| **ms** | 1KB | 100M+/week | Medium | ✅ Active | ⭐ **RECOMMENDED** |
-| parse-duration | 5KB | 2M/week | High | ✅ Active | Good for complex cases |
-| timestring | 2KB | 200K/week | Low | ⚠️ Stale | Not recommended |
-| date-fns | 60KB | 20M/week | Very High | ✅ Active | Overkill |
+| Library        | Size | Downloads  | Flexibility | Maintenance | Recommendation         |
+| -------------- | ---- | ---------- | ----------- | ----------- | ---------------------- |
+| **ms**         | 1KB  | 100M+/week | Medium      | ✅ Active   | ⭐ **RECOMMENDED**     |
+| parse-duration | 5KB  | 2M/week    | High        | ✅ Active   | Good for complex cases |
+| timestring     | 2KB  | 200K/week  | Low         | ⚠️ Stale    | Not recommended        |
+| date-fns       | 60KB | 20M/week   | Very High   | ✅ Active   | Overkill               |
 
 ---
 
@@ -1008,12 +1013,14 @@ console.log('Retry config:', config);
 ## 10. Code Examples Repository
 
 All examples from this research can be tested in:
+
 ```bash
 cd /home/dustin/projects/hacky-hack
 npm test  # Run existing test suite
 ```
 
 **Key files to reference:**
+
 - `/home/dustin/projects/hacky-hack/node_modules/ms/index.js` - Source code
 - `/home/dustin/projects/hacky-hack/node_modules/ms/readme.md` - Documentation
 - `/home/dustin/projects/hacky-hack/package.json` - Current dependencies (ms: 2.1.3)

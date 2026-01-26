@@ -14,6 +14,7 @@
 The current pipeline implementation lacks automatic retry for failed individual tasks. According to the system context (system_context.md), individual task failures do not stop the pipeline but also do not automatically retry. While the fix cycle workflow implements iteration-based retry (max 3 iterations), this operates at a higher level and does not address transient failures during individual task execution.
 
 **Current Limitations:**
+
 - No automatic retry for transient errors (network issues, API rate limits, timeouts)
 - Failed tasks remain in "Failed" state requiring manual intervention
 - No distinction between retryable (transient) and non-retryable (permanent) errors at task level
@@ -22,6 +23,7 @@ The current pipeline implementation lacks automatic retry for failed individual 
 ### 1.2 Proposed Solution
 
 Implement a comprehensive task retry strategy that:
+
 1. **Classifies errors** as retryable (transient) or non-retryable (permanent)
 2. **Applies exponential backoff with jitter** for retry attempts
 3. **Preserves retry state** across attempts for crash recovery
@@ -54,20 +56,24 @@ Implement a comprehensive task retry strategy that:
 The codebase already contains a production-ready retry utility with:
 
 **Error Classification** (lines 323-410):
+
 - `isTransientError()`: Detects retryable errors
 - `isPermanentError()`: Detects non-retryable errors
 - Checks PipelineError codes, Node.js error codes, HTTP status codes, and message patterns
 
 **Backoff Calculation** (lines 246-268):
+
 - Exponential backoff formula: `min(baseDelay * backoffFactor^attempt, maxDelay)`
 - Positive-only jitter: `delay = exponentialDelay + (exponentialDelay * jitterFactor * random())`
 - Prevents thundering herd problem
 
 **Configuration** (lines 475-487):
+
 - Default: `maxAttempts: 3`, `baseDelay: 1000ms`, `maxDelay: 30000ms`
 - `backoffFactor: 2`, `jitterFactor: 0.1`
 
 **Specialized Wrappers**:
+
 - `retryAgentPrompt()` (lines 628-636): For LLM calls
 - `retryMcpTool()` (lines 681-704): For MCP tool executions
 
@@ -78,6 +84,7 @@ The codebase already contains a production-ready retry utility with:
 **Location**: `/home/dustin/projects/hacky-hack/src/workflows/fix-cycle-workflow.ts` (lines 305-335)
 
 The fix cycle implements iteration-based retry:
+
 ```typescript
 while (this.iteration < this.maxIterations) {
   this.iteration++;
@@ -91,6 +98,7 @@ while (this.iteration < this.maxIterations) {
 **Configuration** (line 72): `maxIterations: number = 3`
 
 **Important Distinction**: This is NOT individual task retry - it's a high-level QA cycle that:
+
 1. Generates fix tasks for bugs found
 2. Executes the fixes
 3. Re-tests to verify
@@ -103,6 +111,7 @@ Individual task failures within fix execution are NOT retried (lines 186-201 sho
 **Location**: `/home/dustin/projects/hacky-hack/src/agents/prp-executor.ts` (lines 438-457)
 
 The PRPExecutor implements a fix-and-retry mechanism:
+
 - **Maximum 2 fix attempts** for validation gate failures
 - Uses `retryAgentPrompt()` for agent communication
 - Only retries validation failures, not general task execution errors
@@ -116,18 +125,34 @@ The PRPExecutor implements a fix-and-retry mechanism:
 **Location**: `/home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts` (lines 672-776)
 
 Current flow in `executeSubtask()`:
+
 ```typescript
 try {
   const result = await this.#prpRuntime.executeSubtask(subtask, this.#backlog);
   if (result.success) {
-    await this.setStatus(subtask.id, 'Complete', 'Implementation completed successfully');
+    await this.setStatus(
+      subtask.id,
+      'Complete',
+      'Implementation completed successfully'
+    );
   } else {
-    await this.setStatus(subtask.id, 'Failed', result.error ?? 'Execution failed');
+    await this.setStatus(
+      subtask.id,
+      'Failed',
+      result.error ?? 'Execution failed'
+    );
   }
 } catch (error) {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  await this.setStatus(subtask.id, 'Failed', `Execution failed: ${errorMessage}`);
-  this.#logger.error({ subtaskId: subtask.id, error: errorMessage }, 'Subtask execution failed');
+  await this.setStatus(
+    subtask.id,
+    'Failed',
+    `Execution failed: ${errorMessage}`
+  );
+  this.#logger.error(
+    { subtaskId: subtask.id, error: errorMessage },
+    'Subtask execution failed'
+  );
   await this.sessionManager.flushUpdates();
   throw error; // Re-throw for upstream handling
 }
@@ -142,6 +167,7 @@ try {
 **Location**: `/home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts` (lines 381-427)
 
 The `#trackFailure()` method creates failure records:
+
 ```typescript
 const failure: TaskFailure = {
   taskId,
@@ -173,45 +199,46 @@ this.#failedTasks.set(taskId, failure);
 
 #### 3.1.1 Retryable (Transient) Errors
 
-| Error Category | Detection Method | Source | Max Retries |
-|----------------|------------------|--------|-------------|
-| **Network Errors** | Node.js error codes | `src/utils/retry.ts:67-77` | 3 |
-| `ECONNRESET` | `TRANSIENT_ERROR_CODES.has()` | Line 68 | 3 |
-| `ECONNREFUSED` | `TRANSIENT_ERROR_CODES.has()` | Line 69 | 3 |
-| `ETIMEDOUT` | `TRANSIENT_ERROR_CODES.has()` | Line 70 | 3 |
-| `ENOTFOUND` | `TRANSIENT_ERROR_CODES.has()` | Line 71 | 3 |
-| `EPIPE` | `TRANSIENT_ERROR_CODES.has()` | Line 72 | 3 |
-| `EAI_AGAIN` | `TRANSIENT_ERROR_CODES.has()` | Line 73 | 3 |
-| **Rate Limiting** | HTTP status 429 | `src/utils/retry.ts:89` | **5** |
-| **Server Errors** | HTTP status 500-504 | `src/utils/retry.ts:90-94` | 3 |
-| 500 Internal Server Error | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 90 | 3 |
-| 502 Bad Gateway | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 91 | 3 |
-| 503 Service Unavailable | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 92 | 3 |
-| 504 Gateway Timeout | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 94 | 3 |
-| **Timeout Errors** | HTTP status 408 | `src/utils/retry.ts:88` | 3 |
-| **LLM Failures** | PipelineError codes | `src/utils/retry.ts:333-340` | **5** |
-| `PIPELINE_AGENT_TIMEOUT` | Error code check | Line 337 | 5 |
-| `PIPELINE_AGENT_LLM_FAILED` | Error code check | Line 338 | 5 |
-| **Message Patterns** | String matching | `src/utils/retry.ts:102-113` | 3 |
+| Error Category              | Detection Method                    | Source                       | Max Retries |
+| --------------------------- | ----------------------------------- | ---------------------------- | ----------- |
+| **Network Errors**          | Node.js error codes                 | `src/utils/retry.ts:67-77`   | 3           |
+| `ECONNRESET`                | `TRANSIENT_ERROR_CODES.has()`       | Line 68                      | 3           |
+| `ECONNREFUSED`              | `TRANSIENT_ERROR_CODES.has()`       | Line 69                      | 3           |
+| `ETIMEDOUT`                 | `TRANSIENT_ERROR_CODES.has()`       | Line 70                      | 3           |
+| `ENOTFOUND`                 | `TRANSIENT_ERROR_CODES.has()`       | Line 71                      | 3           |
+| `EPIPE`                     | `TRANSIENT_ERROR_CODES.has()`       | Line 72                      | 3           |
+| `EAI_AGAIN`                 | `TRANSIENT_ERROR_CODES.has()`       | Line 73                      | 3           |
+| **Rate Limiting**           | HTTP status 429                     | `src/utils/retry.ts:89`      | **5**       |
+| **Server Errors**           | HTTP status 500-504                 | `src/utils/retry.ts:90-94`   | 3           |
+| 500 Internal Server Error   | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 90                      | 3           |
+| 502 Bad Gateway             | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 91                      | 3           |
+| 503 Service Unavailable     | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 92                      | 3           |
+| 504 Gateway Timeout         | `RETRYABLE_HTTP_STATUS_CODES.has()` | Line 94                      | 3           |
+| **Timeout Errors**          | HTTP status 408                     | `src/utils/retry.ts:88`      | 3           |
+| **LLM Failures**            | PipelineError codes                 | `src/utils/retry.ts:333-340` | **5**       |
+| `PIPELINE_AGENT_TIMEOUT`    | Error code check                    | Line 337                     | 5           |
+| `PIPELINE_AGENT_LLM_FAILED` | Error code check                    | Line 338                     | 5           |
+| **Message Patterns**        | String matching                     | `src/utils/retry.ts:102-113` | 3           |
 
 **Rationale for Different Retry Limits:**
+
 - **Rate limits (429)**: 5 retries - rate limits are temporary and explicitly signal "try again later"
 - **LLM failures**: 5 retries - LLM APIs are variable and expensive, worth more attempts
 - **Other transient**: 3 retries - standard balance between resilience and time
 
 #### 3.1.2 Non-Retryable (Permanent) Errors
 
-| Error Category | Detection Method | Source | Retry Action |
-|----------------|------------------|--------|--------------|
-| **Validation Errors** | `isValidationError()` | `src/utils/retry.ts:343` | **Fail immediately** |
-| ValidationError | Type check + permanent pattern | Line 343 | 0 retries |
-| **HTTP Client Errors** | HTTP status 400-404, 405-407 | `src/utils/retry.ts:402-405` | **Fail immediately** |
-| 400 Bad Request | Status check | Line 403 | 0 retries |
-| 401 Unauthorized | Status check | Line 403 | 0 retries |
-| 403 Forbidden | Status check | Line 403 | 0 retries |
-| 404 Not Found | Status check | Line 403 | 0 retries |
-| **Parse Errors** | Message pattern | `src/utils/retry.ts:122-130` | **Fail immediately** |
-| **Authentication Failures** | Message pattern | `src/utils/retry.ts:128` | **Fail immediately** |
+| Error Category              | Detection Method               | Source                       | Retry Action         |
+| --------------------------- | ------------------------------ | ---------------------------- | -------------------- |
+| **Validation Errors**       | `isValidationError()`          | `src/utils/retry.ts:343`     | **Fail immediately** |
+| ValidationError             | Type check + permanent pattern | Line 343                     | 0 retries            |
+| **HTTP Client Errors**      | HTTP status 400-404, 405-407   | `src/utils/retry.ts:402-405` | **Fail immediately** |
+| 400 Bad Request             | Status check                   | Line 403                     | 0 retries            |
+| 401 Unauthorized            | Status check                   | Line 403                     | 0 retries            |
+| 403 Forbidden               | Status check                   | Line 403                     | 0 retries            |
+| 404 Not Found               | Status check                   | Line 403                     | 0 retries            |
+| **Parse Errors**            | Message pattern                | `src/utils/retry.ts:122-130` | **Fail immediately** |
+| **Authentication Failures** | Message pattern                | `src/utils/retry.ts:128`     | **Fail immediately** |
 
 **Critical Design Decision**: ValidationError is NEVER retryable (line 343) because retrying with the same input will always produce the same validation error. The fix cycle workflow handles validation failures at a higher level.
 
@@ -373,10 +400,10 @@ interface TaskRetryConfig {
 // Default values
 const DEFAULT_RETRY_CONFIG: TaskRetryConfig = {
   maxAttempts: 3,
-  baseDelay: 1000,    // 1 second
-  maxDelay: 30000,    // 30 seconds
+  baseDelay: 1000, // 1 second
+  maxDelay: 30000, // 30 seconds
   backoffFactor: 2,
-  jitterFactor: 0.1,  // 10% variance
+  jitterFactor: 0.1, // 10% variance
   enabled: true,
 };
 ```
@@ -405,15 +432,15 @@ function getMaxAttemptsForError(error: Error): number {
 
 **Error Type to Max Attempts Mapping:**
 
-| Error Type | Max Attempts | Rationale |
-|------------|--------------|-----------|
-| Rate Limit (429) | 5 | Explicitly signals to retry |
-| LLM Failure | 5 | Expensive operations, high variability |
-| Network Error | 3 | Standard transient handling |
-| Timeout (408, 504) | 3 | Standard transient handling |
-| Server Error (500-503) | 3 | Standard transient handling |
-| Validation Error | 0 | Never retryable |
-| Client Error (400-404) | 0 | Permanent failure |
+| Error Type             | Max Attempts | Rationale                              |
+| ---------------------- | ------------ | -------------------------------------- |
+| Rate Limit (429)       | 5            | Explicitly signals to retry            |
+| LLM Failure            | 5            | Expensive operations, high variability |
+| Network Error          | 3            | Standard transient handling            |
+| Timeout (408, 504)     | 3            | Standard transient handling            |
+| Server Error (500-503) | 3            | Standard transient handling            |
+| Validation Error       | 0            | Never retryable                        |
+| Client Error (400-404) | 0            | Permanent failure                      |
 
 #### 3.3.3 Configuration Sources (Priority Order)
 
@@ -449,6 +476,7 @@ delay = max(1, floor(exponentialDelay + jitter))
 ```
 
 **Where:**
+
 - `attempt`: Current attempt number (0-indexed)
 - `baseDelay`: Base delay in milliseconds (default: 1000)
 - `backoffFactor`: Exponential multiplier (default: 2)
@@ -460,17 +488,18 @@ delay = max(1, floor(exponentialDelay + jitter))
 
 **Configuration**: `baseDelay=1000`, `maxDelay=30000`, `backoffFactor=2`, `jitterFactor=0.1`
 
-| Attempt | Exponential Delay | Jitter Range | Final Delay Range |
-|---------|-------------------|--------------|-------------------|
-| 0 (initial) | 0 ms | N/A | 0 ms (no delay) |
-| 1 (retry 1) | 1000 ms | 0-100 ms | 1000-1100 ms |
-| 2 (retry 2) | 2000 ms | 0-200 ms | 2000-2200 ms |
-| 3 (retry 3) | 4000 ms | 0-400 ms | 4000-4400 ms |
-| 4 (retry 4) | 8000 ms | 0-800 ms | 8000-8800 ms |
-| 5 (retry 5) | 16000 ms | 0-1600 ms | 16000-17600 ms |
-| 6+ | 30000 ms | 0-3000 ms | 30000-33000 ms (capped) |
+| Attempt     | Exponential Delay | Jitter Range | Final Delay Range       |
+| ----------- | ----------------- | ------------ | ----------------------- |
+| 0 (initial) | 0 ms              | N/A          | 0 ms (no delay)         |
+| 1 (retry 1) | 1000 ms           | 0-100 ms     | 1000-1100 ms            |
+| 2 (retry 2) | 2000 ms           | 0-200 ms     | 2000-2200 ms            |
+| 3 (retry 3) | 4000 ms           | 0-400 ms     | 4000-4400 ms            |
+| 4 (retry 4) | 8000 ms           | 0-800 ms     | 8000-8800 ms            |
+| 5 (retry 5) | 16000 ms          | 0-1600 ms    | 16000-17600 ms          |
+| 6+          | 30000 ms          | 0-3000 ms    | 30000-33000 ms (capped) |
 
 **Total Time for Failed Operation** (with 3 max attempts):
+
 - Attempt 1: 0-100 ms (operation time)
 - Delay before retry 2: 1000-1100 ms
 - Attempt 2: 0-100 ms (operation time)
@@ -570,7 +599,11 @@ function clearRetryState(subtask: Subtask): void {
 }
 
 // 4. Persist via SessionManager
-await sessionManager.updateItemStatus(subtask.id, 'Implementing', `Retry ${attemptNumber}`);
+await sessionManager.updateItemStatus(
+  subtask.id,
+  'Implementing',
+  `Retry ${attemptNumber}`
+);
 await sessionManager.flushUpdates(); // CRITICAL: Atomic batch write
 ```
 
@@ -579,6 +612,7 @@ await sessionManager.flushUpdates(); // CRITICAL: Atomic batch write
 #### 3.5.3 Crash Recovery
 
 On pipeline restart after crash:
+
 1. Load session from `SessionManager.initialize()`
 2. Scan backlog for tasks with `retryState`
 3. For tasks with `retryState.retryAttempts < maxAttempts`:
@@ -594,14 +628,14 @@ On pipeline restart after crash:
 
 Notifications escalate in detail and urgency as retry attempts accumulate:
 
-| Retry State | Log Level | User Action | Message Pattern |
-|-------------|-----------|-------------|-----------------|
-| **First Attempt** | None | No | (silent - no notification) |
-| **Retry 1** | `info` | No | "Transient error, retrying (1/3) in 1.0s..." |
-| **Retry 2** | `warn` | No | "Still experiencing issues, retrying (2/3) in 2.1s..." |
-| **Retry 3+** | `warn` | Monitor | "Multiple retries attempted (3/3) in 4.3s... Please wait." |
-| **Max Reached** | `error` | Yes | "Task failed after 3 attempts: [error]. Action required." |
-| **Permanent Error** | `error` | Yes | "Task failed (permanent error): [error]. Fix required." |
+| Retry State         | Log Level | User Action | Message Pattern                                            |
+| ------------------- | --------- | ----------- | ---------------------------------------------------------- |
+| **First Attempt**   | None      | No          | (silent - no notification)                                 |
+| **Retry 1**         | `info`    | No          | "Transient error, retrying (1/3) in 1.0s..."               |
+| **Retry 2**         | `warn`    | No          | "Still experiencing issues, retrying (2/3) in 2.1s..."     |
+| **Retry 3+**        | `warn`    | Monitor     | "Multiple retries attempted (3/3) in 4.3s... Please wait." |
+| **Max Reached**     | `error`   | Yes         | "Task failed after 3 attempts: [error]. Action required."  |
+| **Permanent Error** | `error`   | Yes         | "Task failed (permanent error): [error]. Fix required."    |
 
 #### 3.6.2 Notification Format
 
@@ -609,36 +643,42 @@ Notifications escalate in detail and urgency as retry attempts accumulate:
 
 ```typescript
 // Retry notification format
-this.logger.info({
-  subtaskId: subtask.id,
-  attempt: 1,
-  maxAttempts: 3,
-  delayMs: 1050,
-  errorName: 'NetworkError',
-  errorCode: 'ECONNRESET',
-  retryState: {
-    attempts: 1,
-    firstAttemptAt: new Date('2026-01-24T12:00:00Z'),
+this.logger.info(
+  {
+    subtaskId: subtask.id,
+    attempt: 1,
+    maxAttempts: 3,
+    delayMs: 1050,
+    errorName: 'NetworkError',
+    errorCode: 'ECONNRESET',
+    retryState: {
+      attempts: 1,
+      firstAttemptAt: new Date('2026-01-24T12:00:00Z'),
+    },
   },
-}, 'Transient error, retrying');
+  'Transient error, retrying'
+);
 
 // Max retries reached format
-this.logger.error({
-  subtaskId: subtask.id,
-  attempts: 3,
-  maxAttempts: 3,
-  totalDurationMs: 3520,
-  finalError: {
-    name: 'NetworkError',
-    message: 'ECONNRESET',
-    code: 'ECONNRESET',
-  },
-  retryState: {
+this.logger.error(
+  {
+    subtaskId: subtask.id,
     attempts: 3,
-    firstAttemptAt: new Date('2026-01-24T12:00:00Z'),
-    lastAttemptAt: new Date('2026-01-24T12:00:03Z'),
+    maxAttempts: 3,
+    totalDurationMs: 3520,
+    finalError: {
+      name: 'NetworkError',
+      message: 'ECONNRESET',
+      code: 'ECONNRESET',
+    },
+    retryState: {
+      attempts: 3,
+      firstAttemptAt: new Date('2026-01-24T12:00:00Z'),
+      lastAttemptAt: new Date('2026-01-24T12:00:03Z'),
+    },
   },
-}, 'Task failed after max retry attempts');
+  'Task failed after max retry attempts'
+);
 ```
 
 #### 3.6.3 Console Output Examples
@@ -780,6 +820,7 @@ interface RetryMetrics {
 ```
 
 **Metrics Calculation:**
+
 ```
 retrySuccessRate = successAfterRetry / (successAfterRetry + failureAfterRetry)
 averageRetryAttempts = totalRetryAttempts / (successAfterRetry + failureAfterRetry)
@@ -798,20 +839,29 @@ averageRetryAttempts = totalRetryAttempts / (successAfterRetry + failureAfterRet
 **Location**: `executeSubtask()` method (lines 611-777)
 
 **Current Pattern**:
+
 ```typescript
 // Lines 672-776
 try {
   const result = await this.#prpRuntime.executeSubtask(subtask, this.#backlog);
   // Handle result...
 } catch (error) {
-  await this.setStatus(subtask.id, 'Failed', `Execution failed: ${errorMessage}`);
-  this.#logger.error({ subtaskId: subtask.id, error: errorMessage }, 'Subtask execution failed');
+  await this.setStatus(
+    subtask.id,
+    'Failed',
+    `Execution failed: ${errorMessage}`
+  );
+  this.#logger.error(
+    { subtaskId: subtask.id, error: errorMessage },
+    'Subtask execution failed'
+  );
   await this.sessionManager.flushUpdates();
   throw error;
 }
 ```
 
 **Proposed Modification**: Wrap the execution with retry logic
+
 ```typescript
 // NEW: Add retry wrapper
 try {
@@ -876,6 +926,7 @@ async #executeWithRetry(subtask: Subtask): Promise<SubtaskResult> {
 **File**: `src/core/session-manager.ts`
 
 **Add methods**:
+
 ```typescript
 /**
  * Update retry state for a subtask
@@ -914,6 +965,7 @@ clearRetryState(subtaskId: string): void {
 **Reference**: `src/cli/index.ts` lines 192-196, 354-386
 
 **Add CLI options**:
+
 ```typescript
 // Follow existing pattern for parallel execution options
 .option('--task-retry-max-attempts <number>', 'Maximum retry attempts for tasks (default: 3)')
@@ -925,6 +977,7 @@ clearRetryState(subtaskId: string): void {
 ### 4.2 Configuration Sources
 
 **Priority Order** (highest to lowest):
+
 1. CLI flags (e.g., `--task-retry-max-attempts 5`)
 2. Environment variables (e.g., `HACKY_TASK_RETRY_MAX_ATTEMPTS=5`)
 3. Config file (`~/.hacky-hack/config.json` or `.hacky-hack.json`)
@@ -933,11 +986,13 @@ clearRetryState(subtaskId: string): void {
 ### 4.3 Backward Compatibility
 
 **Opt-out Design**: Retry is enabled by default but can be disabled:
+
 - `--task-retry-enabled false` to disable
 - Preserves existing behavior when disabled
 - No breaking changes to existing interfaces
 
 **Migration Path**:
+
 1. Existing tasks without `retryState` field work as before
 2. New tasks automatically get retry state on first error
 3. Manual intervention still possible (set status to "Planned" to retry)
@@ -1180,7 +1235,10 @@ describe('Task Retry Strategy', () => {
     });
 
     it('should classify PIPELINE_AGENT_TIMEOUT as retryable with max 5 attempts', () => {
-      const error = new PipelineError('Agent timeout', 'PIPELINE_AGENT_TIMEOUT');
+      const error = new PipelineError(
+        'Agent timeout',
+        'PIPELINE_AGENT_TIMEOUT'
+      );
       expect(isRetryableError(error)).toBe(true);
       expect(getMaxAttemptsForError(error, 3)).toBe(5);
     });
@@ -1188,7 +1246,12 @@ describe('Task Retry Strategy', () => {
 
   describe('Backoff Calculation', () => {
     it('should calculate exponential backoff correctly', () => {
-      const config = { baseDelay: 1000, maxDelay: 30000, backoffFactor: 2, jitterFactor: 0.1 };
+      const config = {
+        baseDelay: 1000,
+        maxDelay: 30000,
+        backoffFactor: 2,
+        jitterFactor: 0.1,
+      };
 
       const delay1 = calculateDelay(0, config);
       expect(delay1).toBeGreaterThanOrEqual(1000);
@@ -1204,7 +1267,12 @@ describe('Task Retry Strategy', () => {
     });
 
     it('should cap delay at maxDelay', () => {
-      const config = { baseDelay: 1000, maxDelay: 30000, backoffFactor: 2, jitterFactor: 0.1 };
+      const config = {
+        baseDelay: 1000,
+        maxDelay: 30000,
+        backoffFactor: 2,
+        jitterFactor: 0.1,
+      };
 
       const delay10 = calculateDelay(10, config);
       expect(delay10).toBeGreaterThanOrEqual(30000);
@@ -1242,7 +1310,10 @@ describe('Task Retry Strategy', () => {
 
     it('should clear retry state on success', () => {
       const subtask = createMockSubtask();
-      subtask.retryState = { retryAttempts: 2, lastError: { message: 'Error' } };
+      subtask.retryState = {
+        retryAttempts: 2,
+        lastError: { message: 'Error' },
+      };
 
       clearRetryState(subtask);
 
@@ -1255,7 +1326,8 @@ describe('Task Retry Strategy', () => {
       const subtask = createMockSubtask();
       let attempts = 0;
 
-      const mockExecute = jest.fn()
+      const mockExecute = jest
+        .fn()
         .mockRejectedValueOnce(new Error('ECONNRESET'))
         .mockRejectedValueOnce(new Error('ECONNRESET'))
         .mockResolvedValueOnce({ success: true });
@@ -1263,7 +1335,9 @@ describe('Task Retry Strategy', () => {
       (mockExecute as any).mock.calls[0]?.[0]?.code = 'ECONNRESET';
       (mockExecute as any).mock.calls[1]?.[0]?.code = 'ECONNRESET';
 
-      const result = await executeSubtaskWithRetry(subtask, mockExecute, { maxAttempts: 3 });
+      const result = await executeSubtaskWithRetry(subtask, mockExecute, {
+        maxAttempts: 3,
+      });
 
       expect(result.success).toBe(true);
       expect(mockExecute).toHaveBeenCalledTimes(3);
@@ -1271,7 +1345,8 @@ describe('Task Retry Strategy', () => {
 
     it('should not retry on permanent errors', async () => {
       const subtask = createMockSubtask();
-      const mockExecute = jest.fn()
+      const mockExecute = jest
+        .fn()
         .mockRejectedValue(new ValidationError('Invalid input'));
 
       await expect(
@@ -1283,8 +1358,7 @@ describe('Task Retry Strategy', () => {
 
     it('should respect max attempts', async () => {
       const subtask = createMockSubtask();
-      const mockExecute = jest.fn()
-        .mockRejectedValue(new Error('ECONNRESET'));
+      const mockExecute = jest.fn().mockRejectedValue(new Error('ECONNRESET'));
 
       await expect(
         executeSubtaskWithRetry(subtask, mockExecute, { maxAttempts: 2 })
@@ -1307,8 +1381,9 @@ describe('Task Retry Pipeline Integration', () => {
 
     // Mock first attempt to fail, second to succeed
     let attempts = 0;
-    jest.spyOn(pipeline.taskOrchestrator, 'executeSubtask')
-      .mockImplementation(async (subtask) => {
+    jest
+      .spyOn(pipeline.taskOrchestrator, 'executeSubtask')
+      .mockImplementation(async subtask => {
         attempts++;
         if (attempts === 1) {
           const error = new Error('ECONNRESET');
@@ -1327,7 +1402,8 @@ describe('Task Retry Pipeline Integration', () => {
   it('should track failure after max retries', async () => {
     const pipeline = new PRPPipeline(mockConfig);
 
-    jest.spyOn(pipeline.taskOrchestrator, 'executeSubtask')
+    jest
+      .spyOn(pipeline.taskOrchestrator, 'executeSubtask')
       .mockRejectedValue(new Error('ECONNRESET'));
 
     await pipeline.executeBacklog();
@@ -1342,7 +1418,8 @@ describe('Task Retry Pipeline Integration', () => {
   it('should fail immediately on validation error', async () => {
     const pipeline = new PRPPipeline(mockConfig);
 
-    jest.spyOn(pipeline.taskOrchestrator, 'executeSubtask')
+    jest
+      .spyOn(pipeline.taskOrchestrator, 'executeSubtask')
       .mockRejectedValue(new ValidationError('Invalid input'));
 
     await pipeline.executeBacklog();
@@ -1374,7 +1451,9 @@ describe('Retry Chaos Tests', () => {
 
     const results = await Promise.all(
       Array.from({ length: 100 }, () =>
-        executeSubtaskWithRetry(createMockSubtask(), operation, { maxAttempts: 5 })
+        executeSubtaskWithRetry(createMockSubtask(), operation, {
+          maxAttempts: 5,
+        })
       )
     );
 
@@ -1386,7 +1465,8 @@ describe('Retry Chaos Tests', () => {
 
   it('should not retry permanent failures', async () => {
     const operation = jest.fn(async () => {
-      if (Math.random() < 0.1) { // 10% permanent failure rate
+      if (Math.random() < 0.1) {
+        // 10% permanent failure rate
         throw new ValidationError('Invalid');
       }
       return { success: true };
@@ -1395,15 +1475,17 @@ describe('Retry Chaos Tests', () => {
     const results = await Promise.all(
       Array.from({ length: 100 }, async () => {
         try {
-          return await executeSubtaskWithRetry(createMockSubtask(), operation, { maxAttempts: 5 });
+          return await executeSubtaskWithRetry(createMockSubtask(), operation, {
+            maxAttempts: 5,
+          });
         } catch {
           return { success: false, attempts: operation.mock.calls.length };
         }
       })
     );
 
-    const permanentFailures = results.filter(r =>
-      !r.success && r.attempts === 1
+    const permanentFailures = results.filter(
+      r => !r.success && r.attempts === 1
     ).length;
 
     expect(permanentFailures).toBeGreaterThan(0); // Some should fail immediately
@@ -1525,7 +1607,7 @@ interface RetryMetrics {
       count: number;
       retryable: boolean;
       avgRetries: number;
-    }
+    };
   };
 }
 ```
@@ -1565,8 +1647,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High task retry failure rate"
-          description: "More than 50% of task retries are failing"
+          summary: 'High task retry failure rate'
+          description: 'More than 50% of task retries are failing'
 
       - alert: ExcessiveRetryAttempts
         expr: |
@@ -1576,8 +1658,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Excessive retry attempts"
-          description: "Average retry attempts per task exceeds 4"
+          summary: 'Excessive retry attempts'
+          description: 'Average retry attempts per task exceeds 4'
 ```
 
 ---
@@ -1587,17 +1669,20 @@ groups:
 ### 9.1 Internal Documents
 
 **Research Findings:**
+
 - `plan/003_b3d3efdaf0ed/P3M2T1S1/research/fix_cycle_retry_analysis.md` - Fix cycle retry pattern analysis
 - `plan/003_b3d3efdaf0ed/P3M2T1S1/research/task_orchestrator_error_analysis.md` - TaskOrchestrator error handling
 - `plan/003_b3d3efdaf0ed/P3M2T1S1/research/prp_pipeline_task_execution_analysis.md` - PRPPipeline task execution
 - `plan/003_b3d3efdaf0ed/P3M2T1S1/research/retry_strategy_research.md` - Industry best practices research
 
 **Previous PRP:**
+
 - `plan/003_b3d3efdaf0ed/P3M1T2S2/PRP.md` - Parallel execution PRP (for CLI option pattern reference)
 
 ### 9.2 Source Files (with Line Numbers)
 
 **Core Retry Implementation:**
+
 - `src/utils/retry.ts` - Main retry utility
   - Lines 67-77: `TRANSIENT_ERROR_CODES` constant
   - Lines 87-94: `RETRYABLE_HTTP_STATUS_CODES` constant
@@ -1611,12 +1696,14 @@ groups:
   - Lines 649-657: `MCP_RETRY_CONFIG`
 
 **Task Execution:**
+
 - `src/core/task-orchestrator.ts` - Task orchestration
   - Lines 611-777: `executeSubtask()` method
   - Lines 672-776: Error handling try-catch block
   - Lines 232-256: `setStatus()` method
 
 **Pipeline:**
+
 - `src/workflows/prp-pipeline.ts` - Main pipeline
   - Lines 381-427: `#trackFailure()` method
   - Lines 410-418: `TaskFailure` interface
@@ -1624,27 +1711,32 @@ groups:
   - Lines 888-911: Error handling in execution loop
 
 **Fix Cycle:**
+
 - `src/workflows/fix-cycle-workflow.ts` - Fix cycle workflow
   - Lines 72: `maxIterations` constant
   - Lines 305-335: Iteration loop
   - Lines 186-201: Task-level error handling
 
 **PRP Executor:**
+
 - `src/agents/prp-executor.ts` - PRP execution
   - Lines 438-457: Fix-and-retry logic
 
 **Session Manager:**
+
 - `src/core/session-manager.ts` - State persistence
   - `updateItemStatus()` method
   - `flushUpdates()` method
 
 **CLI:**
+
 - `src/cli/index.ts` - CLI interface
   - Lines 192-196, 354-386: CLI option pattern
 
 ### 9.3 External URLs
 
 **Cloud Provider Documentation:**
+
 - [AWS Architecture Blog - Exponential Backoff and Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)
   - Section: Full jitter recommendation
   - Formula: `sleep(random(0, min(cap, base * 2^attempt)))`
@@ -1656,10 +1748,12 @@ groups:
   - Section: Retry pattern implementation
 
 **Production Libraries:**
+
 - [Tenacity - Python Retry Library](https://github.com/jd/tenacity)
   - Section: Decorator-based retry configuration
 
 **API Documentation:**
+
 - [Node.js Error Codes](https://nodejs.org/api/errors.html#errors_common_system_errors)
 - [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 
@@ -1669,15 +1763,15 @@ groups:
 
 ### Retry Configuration by Scenario
 
-| Scenario | Max Attempts | Base Delay | Max Delay | Backoff Factor | Jitter | Rationale |
-|----------|--------------|------------|-----------|----------------|--------|-----------|
-| **Default** | 3 | 1000ms | 30000ms | 2 | 0.1 | Balanced for most use cases |
-| **LLM API Calls** | 5 | 1000ms | 60000ms | 2 | 0.1 | High value, rate limits |
-| **Network Issues** | 3 | 1000ms | 30000ms | 2 | 0.1 | Standard transient handling |
-| **Rate Limits** | 5 | 2000ms | 60000ms | 2 | 0.1 | Explicit retry signal |
-| **User-Facing** | 2 | 500ms | 5000ms | 2 | 0.15 | Fast fail, UX priority |
-| **Background Jobs** | 5 | 2000ms | 120000ms | 2 | 0.1 | Can tolerate longer delays |
-| **Debugging** | 0 | - | - | - | - | Immediate failure |
+| Scenario            | Max Attempts | Base Delay | Max Delay | Backoff Factor | Jitter | Rationale                   |
+| ------------------- | ------------ | ---------- | --------- | -------------- | ------ | --------------------------- |
+| **Default**         | 3            | 1000ms     | 30000ms   | 2              | 0.1    | Balanced for most use cases |
+| **LLM API Calls**   | 5            | 1000ms     | 60000ms   | 2              | 0.1    | High value, rate limits     |
+| **Network Issues**  | 3            | 1000ms     | 30000ms   | 2              | 0.1    | Standard transient handling |
+| **Rate Limits**     | 5            | 2000ms     | 60000ms   | 2              | 0.1    | Explicit retry signal       |
+| **User-Facing**     | 2            | 500ms      | 5000ms    | 2              | 0.15   | Fast fail, UX priority      |
+| **Background Jobs** | 5            | 2000ms     | 120000ms  | 2              | 0.1    | Can tolerate longer delays  |
+| **Debugging**       | 0            | -          | -         | -              | -      | Immediate failure           |
 
 ---
 
@@ -1685,43 +1779,43 @@ groups:
 
 ### Retryable Error Codes
 
-| Code | Type | Source | Max Retries |
-|------|------|--------|-------------|
-| `ECONNRESET` | Network | Node.js | 3 |
-| `ECONNREFUSED` | Network | Node.js | 3 |
-| `ETIMEDOUT` | Network | Node.js | 3 |
-| `ENOTFOUND` | Network | Node.js | 3 |
-| `EPIPE` | Network | Node.js | 3 |
-| `EAI_AGAIN` | Network | Node.js | 3 |
-| `EHOSTUNREACH` | Network | Node.js | 3 |
-| `ENETUNREACH` | Network | Node.js | 3 |
-| `ECONNABORTED` | Network | Node.js | 3 |
-| `PIPELINE_AGENT_TIMEOUT` | LLM | Custom | 5 |
-| `PIPELINE_AGENT_LLM_FAILED` | LLM | Custom | 5 |
+| Code                        | Type    | Source  | Max Retries |
+| --------------------------- | ------- | ------- | ----------- |
+| `ECONNRESET`                | Network | Node.js | 3           |
+| `ECONNREFUSED`              | Network | Node.js | 3           |
+| `ETIMEDOUT`                 | Network | Node.js | 3           |
+| `ENOTFOUND`                 | Network | Node.js | 3           |
+| `EPIPE`                     | Network | Node.js | 3           |
+| `EAI_AGAIN`                 | Network | Node.js | 3           |
+| `EHOSTUNREACH`              | Network | Node.js | 3           |
+| `ENETUNREACH`               | Network | Node.js | 3           |
+| `ECONNABORTED`              | Network | Node.js | 3           |
+| `PIPELINE_AGENT_TIMEOUT`    | LLM     | Custom  | 5           |
+| `PIPELINE_AGENT_LLM_FAILED` | LLM     | Custom  | 5           |
 
 ### Non-Retryable Error Codes
 
-| Code | Type | Source | Action |
-|------|------|--------|--------|
-| ValidationError | Validation | Custom | Fail immediately |
-| 400 | HTTP | HTTP/1.1 | Fail immediately |
-| 401 | HTTP | HTTP/1.1 | Fail immediately |
-| 403 | HTTP | HTTP/1.1 | Fail immediately |
-| 404 | HTTP | HTTP/1.1 | Fail immediately |
-| 405 | HTTP | HTTP/1.1 | Fail immediately |
-| 406 | HTTP | HTTP/1.1 | Fail immediately |
-| 407 | HTTP | HTTP/1.1 | Fail immediately |
+| Code            | Type       | Source   | Action           |
+| --------------- | ---------- | -------- | ---------------- |
+| ValidationError | Validation | Custom   | Fail immediately |
+| 400             | HTTP       | HTTP/1.1 | Fail immediately |
+| 401             | HTTP       | HTTP/1.1 | Fail immediately |
+| 403             | HTTP       | HTTP/1.1 | Fail immediately |
+| 404             | HTTP       | HTTP/1.1 | Fail immediately |
+| 405             | HTTP       | HTTP/1.1 | Fail immediately |
+| 406             | HTTP       | HTTP/1.1 | Fail immediately |
+| 407             | HTTP       | HTTP/1.1 | Fail immediately |
 
 ### Retryable HTTP Status Codes
 
-| Status | Meaning | Max Retries |
-|--------|---------|-------------|
-| 408 | Request Timeout | 3 |
-| 429 | Too Many Requests | **5** |
-| 500 | Internal Server Error | 3 |
-| 502 | Bad Gateway | 3 |
-| 503 | Service Unavailable | 3 |
-| 504 | Gateway Timeout | 3 |
+| Status | Meaning               | Max Retries |
+| ------ | --------------------- | ----------- |
+| 408    | Request Timeout       | 3           |
+| 429    | Too Many Requests     | **5**       |
+| 500    | Internal Server Error | 3           |
+| 502    | Bad Gateway           | 3           |
+| 503    | Service Unavailable   | 3           |
+| 504    | Gateway Timeout       | 3           |
 
 ---
 
@@ -1764,4 +1858,4 @@ groups:
 
 ---
 
-*This design document provides complete specification for implementing automatic task retry in the PRP pipeline. All configuration values are specified, all integration points are identified with specific file paths and line numbers, and all design decisions are justified with references to existing code and industry best practices.*
+_This design document provides complete specification for implementing automatic task retry in the PRP pipeline. All configuration values are specified, all integration points are identified with specific file paths and line numbers, and all design decisions are justified with references to existing code and industry best practices._

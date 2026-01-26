@@ -16,21 +16,21 @@
 
 #### Retryable Error Codes (Transient)
 
-| Error Code | Description | Retry Strategy |
-|------------|-------------|----------------|
-| `EBUSY` | Resource busy or locked | 3 retries, 100ms base delay |
-| `EAGAIN` | Resource temporarily unavailable | 2-3 retries, 100ms base delay |
-| `EIO` | I/O error (transient disk issue) | 2 retries, 200ms base delay |
-| `ENFILE` | System file table full | 1 retry, 500ms delay |
+| Error Code | Description                      | Retry Strategy                |
+| ---------- | -------------------------------- | ----------------------------- |
+| `EBUSY`    | Resource busy or locked          | 3 retries, 100ms base delay   |
+| `EAGAIN`   | Resource temporarily unavailable | 2-3 retries, 100ms base delay |
+| `EIO`      | I/O error (transient disk issue) | 2 retries, 200ms base delay   |
+| `ENFILE`   | System file table full           | 1 retry, 500ms delay          |
 
 #### Non-Retryable Error Codes (Permanent)
 
-| Error Code | Description | Action |
-|------------|-------------|--------|
-| `ENOSPC` | No space left on device | Fail fast, user must free space |
-| `ENOENT` | File or directory not found | Fail fast, create file first |
-| `EACCES` | Permission denied | Fail fast, fix permissions |
-| `EMFILE` | Too many open files | Application bug, fail fast |
+| Error Code | Description                 | Action                          |
+| ---------- | --------------------------- | ------------------------------- |
+| `ENOSPC`   | No space left on device     | Fail fast, user must free space |
+| `ENOENT`   | File or directory not found | Fail fast, create file first    |
+| `EACCES`   | Permission denied           | Fail fast, fix permissions      |
+| `EMFILE`   | Too many open files         | Application bug, fail fast      |
 
 ### 2. Exponential Backoff for File I/O
 
@@ -42,14 +42,15 @@ File I/O operations are **10x faster** than network operations:
 ```typescript
 const FILE_IO_RETRY_CONFIG = {
   maxAttempts: 3,
-  baseDelay: 100,     // 100ms (vs 1000ms for network)
-  maxDelay: 2000,     // 2 seconds (vs 30 seconds for network)
+  baseDelay: 100, // 100ms (vs 1000ms for network)
+  maxDelay: 2000, // 2 seconds (vs 30 seconds for network)
   backoffFactor: 2,
   jitterFactor: 0.1,
 };
 ```
 
 **Total time for 3 retries**:
+
 - Attempt 1: Immediate
 - Attempt 2: 100ms delay
 - Attempt 3: 200ms delay (exponential)
@@ -71,6 +72,7 @@ await writeFile(recoveryPath, JSON.stringify(pendingUpdates));
 ```
 
 Benefits:
+
 - Timestamp ensures uniqueness
 - Easy to recover manually
 - In same directory as original file
@@ -84,6 +86,7 @@ await writeFile(fallbackPath, JSON.stringify(pendingUpdates));
 ```
 
 Benefits:
+
 - Works even if session directory corrupted
 - Can be recovered across sessions
 
@@ -93,6 +96,7 @@ Benefits:
 **URL**: https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
 
 For single-process systems (like our PRP Pipeline):
+
 - **Positive jitter only**: Always adds variance, never subtracts
 - **Jitter factor**: 10% (0.1) is standard
 - **Formula**: `delay = exponentialDelay + (exponentialDelay * jitterFactor * Math.random())`
@@ -111,11 +115,11 @@ const delay = Math.max(1, Math.floor(exponentialDelay + jitter));
 **Source**: Google Cloud Platform
 **URL**: https://cloud.google.com/iot/docs/how-tos/exponential-backoff
 
-| Operation | Base Delay | Max Delay | Max Attempts |
-|-----------|------------|-----------|--------------|
-| File I/O (local) | 100ms | 2s | 3 |
-| Network (HTTP) | 1000ms | 30s | 3 |
-| Database | 200ms | 5s | 5 |
+| Operation        | Base Delay | Max Delay | Max Attempts |
+| ---------------- | ---------- | --------- | ------------ |
+| File I/O (local) | 100ms      | 2s        | 3            |
+| Network (HTTP)   | 1000ms     | 30s       | 3            |
+| Database         | 200ms      | 5s        | 5            |
 
 ### 6. CLI Configuration Patterns
 
@@ -146,6 +150,7 @@ if (isNaN(flushRetries) || flushRetries < 0 || flushRetries > 10) {
 Recommended format: `tasks-pending-2026-01-24T15-30-45-123Z.json`
 
 Components:
+
 - `tasks-pending-`: Prefix indicating content
 - `2026-01-24T15-30-45-123Z`: ISO 8601 timestamp (colons replaced with dashes for filename compatibility)
 - `.json`: File extension
@@ -160,17 +165,21 @@ Alternative: `tasks.json.failed` (simpler, no timestamp)
 For retry operations:
 
 ```typescript
-this.#logger.warn({
-  attempt,
-  maxAttempts,
-  delay,
-  errorCode: error.code,
-  errorMessage: error.message,
-  pendingCount: this.#updateCount,
-}, 'Batch write failed, retrying...');
+this.#logger.warn(
+  {
+    attempt,
+    maxAttempts,
+    delay,
+    errorCode: error.code,
+    errorMessage: error.message,
+    pendingCount: this.#updateCount,
+  },
+  'Batch write failed, retrying...'
+);
 ```
 
 Key fields:
+
 - `attempt`: Current retry attempt (1-indexed)
 - `maxAttempts`: Configured retry limit
 - `delay`: Delay before next retry (ms)
@@ -185,6 +194,7 @@ Key fields:
 ### 1. Use Existing Retry Infrastructure
 
 The codebase already has excellent retry utilities in `src/utils/retry.ts`:
+
 - `calculateDelay()` for exponential backoff
 - `isTransientError()` for error classification
 - `retry()` for generic retry wrapper
@@ -198,8 +208,8 @@ Create file-specific config (faster than network):
 ```typescript
 const FILE_IO_RETRY_CONFIG = {
   maxAttempts: 3,
-  baseDelay: 100,     // 100ms (10x faster than network)
-  maxDelay: 2000,     // 2 seconds
+  baseDelay: 100, // 100ms (10x faster than network)
+  maxDelay: 2000, // 2 seconds
   backoffFactor: 2,
   jitterFactor: 0.1,
 } as const;
@@ -222,7 +232,7 @@ function isFileIORetryableError(error: unknown): boolean {
 ```typescript
 interface RecoveryFile {
   version: '1.0';
-  timestamp: string;  // ISO 8601
+  timestamp: string; // ISO 8601
   sessionPath: string;
   pendingUpdates: Backlog;
   error: {
@@ -279,14 +289,17 @@ class SessionManager {
           this.#flushRetryConfig.jitterFactor
         );
 
-        this.#logger.warn({
-          attempt,
-          maxAttempts: this.#flushRetries,
-          delay,
-          errorCode: (lastError as NodeJS.ErrnoException).code,
-          errorMessage: lastError.message,
-          pendingCount: this.#updateCount,
-        }, 'Batch write failed, retrying...');
+        this.#logger.warn(
+          {
+            attempt,
+            maxAttempts: this.#flushRetries,
+            delay,
+            errorCode: (lastError as NodeJS.ErrnoException).code,
+            errorMessage: lastError.message,
+            pendingCount: this.#updateCount,
+          },
+          'Batch write failed, retrying...'
+        );
 
         await sleep(delay);
       }
@@ -313,11 +326,14 @@ class SessionManager {
 
     await writeFile(recoveryPath, JSON.stringify(recoveryData, null, 2));
 
-    this.#logger.error({
-      recoveryPath,
-      pendingCount: this.#updateCount,
-      errorCode: (error as NodeJS.ErrnoException).code,
-    }, 'All flush retries failed - pending updates preserved to recovery file');
+    this.#logger.error(
+      {
+        recoveryPath,
+        pendingCount: this.#updateCount,
+        errorCode: (error as NodeJS.ErrnoException).code,
+      },
+      'All flush retries failed - pending updates preserved to recovery file'
+    );
   }
 }
 ```

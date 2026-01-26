@@ -4,6 +4,7 @@
 **Focus:** Stack trace formatting, frame filtering, context presentation
 
 ## Table of Contents
+
 1. [Stack Trace Fundamentals](#stack-trace-fundamentals)
 2. [Presentation Patterns](#presentation-patterns)
 3. [Frame Filtering & Selection](#frame-filtering--selection)
@@ -74,6 +75,7 @@ Error: Type validation failed
 ```
 
 **Best for:**
+
 - Default error output
 - Non-technical users
 - CI/CD logs
@@ -112,6 +114,7 @@ Additional Context:
 ```
 
 **Best for:**
+
 - Development mode
 - Debug output
 - Error reports
@@ -138,6 +141,7 @@ Show full trace with: hack --verbose
 ```
 
 **Best for:**
+
 - Production environments
 - Applications with many dependencies
 - Error monitoring systems
@@ -162,6 +166,7 @@ Press [1-2] to view frame, [q] to quit
 ```
 
 **Best for:**
+
 - Interactive terminals
 - Development environments
 - CLI debugging tools
@@ -199,11 +204,7 @@ const defaultFilter: FrameFilter = {
   includeLibraries: false,
   includeInternals: false,
   maxFrames: 10,
-  excludePatterns: [
-    /node_modules/,
-    /internal\//,
-    /\.ts-build-info/,
-  ],
+  excludePatterns: [/node_modules/, /internal\//, /\.ts-build-info/],
 };
 ```
 
@@ -220,18 +221,15 @@ class FrameSelector {
     // Apply inclusion filters
     if (filter.includePatterns) {
       relevantFrames = relevantFrames.filter(frame =>
-        filter.includePatterns!.some(pattern =>
-          pattern.test(frame.file)
-        )
+        filter.includePatterns!.some(pattern => pattern.test(frame.file))
       );
     }
 
     // Apply exclusion filters
     if (filter.excludePatterns) {
-      relevantFrames = relevantFrames.filter(frame =>
-        !filter.excludePatterns!.some(pattern =>
-          pattern.test(frame.file)
-        )
+      relevantFrames = relevantFrames.filter(
+        frame =>
+          !filter.excludePatterns!.some(pattern => pattern.test(frame.file))
       );
     }
 
@@ -240,9 +238,7 @@ class FrameSelector {
     const libraryFrames = relevantFrames.filter(f => !f.isUserCode);
 
     // Combine with priority to user code
-    let selectedFrames = filter.includeUserCode
-      ? userFrames
-      : [];
+    let selectedFrames = filter.includeUserCode ? userFrames : [];
 
     if (filter.includeLibraries) {
       selectedFrames = selectedFrames.concat(libraryFrames);
@@ -390,9 +386,7 @@ class EnhancedFrameFormatter {
     const iconColor = frame.isUserCode ? chalk.red : chalk.gray;
 
     const fileName = this.formatFileName(frame.file);
-    const location = chalk.dim(
-      `:${frame.line}:${frame.column}`
-    );
+    const location = chalk.dim(`:${frame.line}:${frame.column}`);
     const functionStr = frame.function
       ? chalk.yellow(frame.function + '()')
       : chalk.dim('<anonymous>');
@@ -427,26 +421,35 @@ class EnhancedFrameFormatter {
     before.forEach((line, index) => {
       const num = lineNum - before.length + index;
       lines.push(
-        '  ' + chalk.gray('│') + ' ' +
-        chalk.dim(num.toString().padStart(padding)) + '  ' +
-        chalk.dim(line)
+        '  ' +
+          chalk.gray('│') +
+          ' ' +
+          chalk.dim(num.toString().padStart(padding)) +
+          '  ' +
+          chalk.dim(line)
       );
     });
 
     // Error line
     lines.push(
-      '  ' + chalk.gray('│') + ' ' +
-      chalk.red('→'.padStart(padding)) + '  ' +
-      chalk.red(sourceLine)
+      '  ' +
+        chalk.gray('│') +
+        ' ' +
+        chalk.red('→'.padStart(padding)) +
+        '  ' +
+        chalk.red(sourceLine)
     );
 
     // After lines
     after.forEach((line, index) => {
       const num = lineNum + 1 + index;
       lines.push(
-        '  ' + chalk.gray('│') + ' ' +
-        chalk.dim(num.toString().padStart(padding)) + '  ' +
-        chalk.dim(line)
+        '  ' +
+          chalk.gray('│') +
+          ' ' +
+          chalk.dim(num.toString().padStart(padding)) +
+          '  ' +
+          chalk.dim(line)
       );
     });
 
@@ -466,32 +469,22 @@ class EnhancedFrameFormatter {
 
 ```typescript
 class ErrorHighlighter {
-  highlightErrorLine(
-    sourceLine: string,
-    errorColumn: number
-  ): string {
+  highlightErrorLine(sourceLine: string, errorColumn: number): string {
     const before = sourceLine.slice(0, errorColumn);
     const errorChar = sourceLine[errorColumn];
     const after = sourceLine.slice(errorColumn + 1);
 
-    return (
-      chalk.dim(before) +
-      chalk.bold.red(errorChar) +
-      chalk.dim(after)
-    );
+    return chalk.dim(before) + chalk.bold.red(errorChar) + chalk.dim(after);
   }
 
-  highlightWithPointer(
-    sourceLine: string,
-    errorColumn: number
-  ): string[] {
+  highlightWithPointer(sourceLine: string, errorColumn: number): string[] {
     const lines: string[] = [];
 
     // Source line with highlight
     lines.push(
       chalk.dim(sourceLine.slice(0, errorColumn)) +
-      chalk.bold.red(sourceLine[errorColumn] || '^') +
-      chalk.dim(sourceLine.slice(errorColumn + 1))
+        chalk.bold.red(sourceLine[errorColumn] || '^') +
+        chalk.dim(sourceLine.slice(errorColumn + 1))
     );
 
     // Pointer line
@@ -656,10 +649,12 @@ const errorTrace: StackTrace = {
   ],
 };
 
-console.log(await formatter.format(errorTrace, {
-  showSource: true,
-  verbose: false,
-}));
+console.log(
+  await formatter.format(errorTrace, {
+    showSource: true,
+    verbose: false,
+  })
+);
 ```
 
 ---
@@ -667,6 +662,7 @@ console.log(await formatter.format(errorTrace, {
 ## Best Practices
 
 ### DO:
+
 - Show user code frames first
 - Collapse library/internal frames by default
 - Provide --verbose flag for full traces
@@ -677,6 +673,7 @@ console.log(await formatter.format(errorTrace, {
 - Support filtering by pattern
 
 ### DON'T:
+
 - Show raw 100+ frame traces by default
 - Include node internals unless debugging
 - Use color as the only indicator
@@ -695,9 +692,7 @@ console.log(await formatter.format(errorTrace, {
 ```typescript
 import { SourceMapConsumer } from 'source-map';
 
-async function applySourceMaps(
-  frame: StackFrame
-): Promise<StackFrame> {
+async function applySourceMaps(frame: StackFrame): Promise<StackFrame> {
   // Load source map if available
   const mapPath = frame.file + '.map';
   const mapContent = await fs.readFile(mapPath, 'utf-8');

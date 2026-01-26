@@ -21,28 +21,36 @@
 ## Command Categories
 
 ### Type 1: List Commands
+
 Display collections of resources
+
 - `kubectl get pods`
 - `docker ps`
 - `git branch`
 - `npm list`
 
 ### Type 2: Get Commands
+
 Retrieve specific resource
+
 - `kubectl get pod <name>`
 - `docker inspect <container>`
 - `git show <commit>`
 - `npm view <package>`
 
 ### Type 3: Describe/Detail Commands
+
 Detailed information about resource
+
 - `kubectl describe pod <name>`
 - `docker inspect <container>`
 - `git log -p`
 - `npm info <package>`
 
 ### Type 4: Status Commands
+
 Current state/status
+
 - `git status`
 - `kubectl top pods`
 - `docker stats`
@@ -809,7 +817,7 @@ program
   .option('--filter <status>', 'Filter by status')
   .option('--sort <field>', 'Sort by field')
   .option('-w, --watch', 'Watch for changes')
-  .action(async (options) => {
+  .action(async options => {
     const tasks: Task[] = await loadTasks();
 
     // Filter
@@ -852,20 +860,12 @@ program
 
 function displayTable(tasks: Task[]): void {
   const table = new Table({
-    head: [
-      chalk.cyan('ID'),
-      chalk.cyan('Status'),
-      chalk.cyan('Phase'),
-    ],
+    head: [chalk.cyan('ID'), chalk.cyan('Status'), chalk.cyan('Phase')],
     colWidths: [15, 15, 15],
   });
 
   tasks.forEach(task => {
-    table.push([
-      task.id,
-      formatStatus(task.status),
-      task.phase,
-    ]);
+    table.push([task.id, formatStatus(task.status), task.phase]);
   });
 
   console.log(table.toString());
@@ -949,7 +949,9 @@ function displayTaskDetails(task: Task): void {
   if (task.subtasks?.length > 0) {
     console.log(chalk.bold('Subtasks:'));
     task.subtasks.forEach(sub => {
-      console.log(`  ${chalk.cyan(sub.id)} ${formatStatus(sub.status)} ${sub.title}`);
+      console.log(
+        `  ${chalk.cyan(sub.id)} ${formatStatus(sub.status)} ${sub.title}`
+      );
     });
     console.log();
   }
@@ -958,7 +960,9 @@ function displayTaskDetails(task: Task): void {
     console.log(chalk.bold('Events:'));
     task.events.forEach(event => {
       const time = event.time.toLocaleString();
-      console.log(`  ${chalk.gray(time)} ${chalk.bold(event.type)} ${event.message}`);
+      console.log(
+        `  ${chalk.gray(time)} ${chalk.bold(event.type)} ${event.message}`
+      );
     });
   }
 }
@@ -971,7 +975,7 @@ program
   .command('status')
   .description('Show overall status')
   .option('-o, --output <format>', 'Output format (text|json)', 'text')
-  .action(async (options) => {
+  .action(async options => {
     const summary = await getStatusSummary();
 
     switch (options.output) {
@@ -988,15 +992,33 @@ program
 
 function displayStatusSummary(summary: StatusSummary): void {
   console.log(chalk.bold('Overall Status:    '), formatStatus(summary.status));
-  console.log(chalk.bold('Active Tasks:      '), chalk.cyan(summary.active.toString()));
-  console.log(chalk.bold('Complete Tasks:    '), chalk.green(summary.complete.toString()));
-  console.log(chalk.bold('Blocked Tasks:     '), chalk.red(summary.blocked.toString()));
+  console.log(
+    chalk.bold('Active Tasks:      '),
+    chalk.cyan(summary.active.toString())
+  );
+  console.log(
+    chalk.bold('Complete Tasks:    '),
+    chalk.green(summary.complete.toString())
+  );
+  console.log(
+    chalk.bold('Blocked Tasks:     '),
+    chalk.red(summary.blocked.toString())
+  );
   console.log();
 
   if (summary.currentTask) {
-    console.log(chalk.bold('Current Task:      '), chalk.cyan(summary.currentTask.id));
-    console.log(chalk.bold('Current Phase:     '), chalk.blue(summary.currentPhase));
-    console.log(chalk.bold('Started:           '), summary.currentTask.started.toLocaleString());
+    console.log(
+      chalk.bold('Current Task:      '),
+      chalk.cyan(summary.currentTask.id)
+    );
+    console.log(
+      chalk.bold('Current Phase:     '),
+      chalk.blue(summary.currentPhase)
+    );
+    console.log(
+      chalk.bold('Started:           '),
+      summary.currentTask.started.toLocaleString()
+    );
   }
 }
 ```

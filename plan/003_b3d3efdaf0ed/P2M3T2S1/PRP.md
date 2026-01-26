@@ -9,6 +9,7 @@
 **Deliverable**: A new `prd inspect` command handler in `src/cli/commands/inspect.ts` with multiple output formats (table, tree, JSON) and task-specific detail view via `--task <id>` flag.
 
 **Success Definition**:
+
 - Users can run `prd inspect` to see a comprehensive overview of pipeline state including session metadata, task hierarchy, current task, artifacts, and errors
 - Users can run `prd inspect --task <id>` to see detailed information about a specific task
 - Output is formatted as tables by default with optional JSON/YAML/tree formats
@@ -20,6 +21,7 @@
 **Target User**: Developers and project managers using the PRD pipeline who need to debug issues, track progress, and understand the current state of pipeline execution.
 
 **Use Case**: During pipeline execution, users need to inspect:
+
 - What session is currently active and its relationship to parent sessions
 - Which tasks have completed, which are in progress, and which are pending
 - What artifacts have been generated and where they are stored
@@ -27,12 +29,14 @@
 - Detailed information about specific tasks including PRP content, validation results, and dependencies
 
 **User Journey**:
+
 1. User runs `prd inspect` to get an overview of pipeline state
 2. User reviews the session information, task hierarchy, and artifact locations
 3. User identifies a task of interest and runs `prd inspect --task P2.M3.T2.S1` for detailed information
 4. User uses the detailed view to understand task context, dependencies, and any issues
 
 **Pain Points Addressed**:
+
 - Currently, `prd task` only shows basic task listing without detailed state information
 - No way to inspect session metadata, artifact locations, or error summaries
 - No task-specific detail view for debugging
@@ -134,6 +138,7 @@ Displays detailed information for a specific task:
 **"No Prior Knowledge" Test Validation**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and line numbers for all relevant components
 - Complete type definitions for all data structures
 - Specific library recommendations with documentation URLs
@@ -322,7 +327,7 @@ import type {
   HierarchyItem,
   Status,
   Backlog,
-  SessionMetadata
+  SessionMetadata,
 } from '../core/models.js';
 
 // New types for inspector output

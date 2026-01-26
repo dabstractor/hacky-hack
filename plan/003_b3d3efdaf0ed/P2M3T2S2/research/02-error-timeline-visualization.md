@@ -4,6 +4,7 @@
 **Focus:** Visualizing when errors occurred in time, chronological error displays
 
 ## Table of Contents
+
 1. [Timeline Visualization Patterns](#timeline-visualization-patterns)
 2. [Chronological Error Displays](#chronological-error-displays)
 3. [Time-Based Error Grouping](#time-based-error-grouping)
@@ -43,6 +44,7 @@ Summary: 1 error over 1 hour timeline
 ```
 
 **Advantages:**
+
 - Shows temporal relationship clearly
 - Easy to spot error clusters
 - Visual gap for resolution time
@@ -83,6 +85,7 @@ Errors: 1 | Resolved: 1 | Pending: 0
 ```
 
 **Advantages:**
+
 - More space for details
 - Easier to scroll on terminal
 - Natural for log-style output
@@ -110,6 +113,7 @@ Elapsed: 58m | Active: 1 task | Errors: 1 (1 resolved)
 ```
 
 **Advantages:**
+
 - Compact for CLI output
 - Shows flow clearly
 - Easy to parse visually
@@ -150,10 +154,26 @@ class TimelineFormatter {
     const lines: string[] = [];
 
     // Header
-    lines.push(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════════════╗'));
-    lines.push(chalk.bold.cyan(`║ Error Timeline: Session ${timeline.sessionId.padEnd(35)} ║`));
-    lines.push(chalk.bold.cyan('╠═══════════════════════════════════════════════════════════════╣'));
-    lines.push(chalk.bold.cyan('║                                                               ║'));
+    lines.push(
+      chalk.bold.cyan(
+        '\n╔═══════════════════════════════════════════════════════════════╗'
+      )
+    );
+    lines.push(
+      chalk.bold.cyan(
+        `║ Error Timeline: Session ${timeline.sessionId.padEnd(35)} ║`
+      )
+    );
+    lines.push(
+      chalk.bold.cyan(
+        '╠═══════════════════════════════════════════════════════════════╣'
+      )
+    );
+    lines.push(
+      chalk.bold.cyan(
+        '║                                                               ║'
+      )
+    );
 
     // Timeline entries
     for (const entry of timeline.entries) {
@@ -161,8 +181,16 @@ class TimelineFormatter {
     }
 
     // Footer with summary
-    lines.push(chalk.bold.cyan('║                                                               ║'));
-    lines.push(chalk.bold.cyan('╚═══════════════════════════════════════════════════════════════╝'));
+    lines.push(
+      chalk.bold.cyan(
+        '║                                                               ║'
+      )
+    );
+    lines.push(
+      chalk.bold.cyan(
+        '╚═══════════════════════════════════════════════════════════════╝'
+      )
+    );
 
     const summary = this.formatSummary(timeline);
     lines.push(`\nElapsed: ${summary.elapsed} | ${summary.stats}`);
@@ -186,7 +214,10 @@ class TimelineFormatter {
     if (entry.relatedEvents && entry.relatedEvents.length > 0) {
       for (const related of entry.relatedEvents) {
         const relTime = chalk.gray(this.formatTime(related.timestamp));
-        const relIcon = this.colorIcon(this.getIcon(related.level), related.level);
+        const relIcon = this.colorIcon(
+          this.getIcon(related.level),
+          related.level
+        );
         line += `\n        ${chalk.dim('├─')} ${relTime} ${relIcon} ${related.event}`;
       }
     }
@@ -237,11 +268,13 @@ class TimelineFormatter {
     stats: string;
   } {
     const endTime = timeline.endTime || new Date();
-    const elapsed = formatDistanceToNow(timeline.startTime, { addSuffix: false });
+    const elapsed = formatDistanceToNow(timeline.startTime, {
+      addSuffix: false,
+    });
 
     const errors = timeline.entries.filter(e => e.level === 'error').length;
-    const resolved = timeline.entries.filter(e =>
-      e.level === 'success' && e.event.includes('resolved')
+    const resolved = timeline.entries.filter(
+      e => e.level === 'success' && e.event.includes('resolved')
     ).length;
 
     return {
@@ -429,11 +462,14 @@ class ErrorTimelineFormatter {
   private multibar: cliProgress.MultiBar;
 
   constructor() {
-    this.multibar = new cliProgress.MultiBar({
-      clearOnComplete: false,
-      hideCursor: true,
-      format: '{phase} {bar} {percentage}% | {status}',
-    }, cliProgress.Presets.shades_grey);
+    this.multibar = new cliProgress.MultiBar(
+      {
+        clearOnComplete: false,
+        hideCursor: true,
+        format: '{phase} {bar} {percentage}% | {status}',
+      },
+      cliProgress.Presets.shades_grey
+    );
   }
 
   formatTimeline(phases: TimelinePhase[]): string {
@@ -458,7 +494,7 @@ class ErrorTimelineFormatter {
 
     lines.push(
       `\n${chalk.bold(phase.phaseId)}: ${phase.name} ` +
-      statusColor(`(${duration})`)
+        statusColor(`(${duration})`)
     );
 
     for (const error of phase.errors) {
@@ -481,9 +517,8 @@ class ErrorTimelineFormatter {
     if (error.retries && error.retries.length > 0) {
       for (const retry of error.retries) {
         const retryTime = chalk.gray(this.formatTimestamp(retry.timestamp));
-        const retryIcon = retry.result === 'failed'
-          ? chalk.red('✗')
-          : chalk.green('✓');
+        const retryIcon =
+          retry.result === 'failed' ? chalk.red('✗') : chalk.green('✓');
         lines.push(
           `       ${chalk.dim('↳')} ${retryTime} Retry #${retry.attempt} ${retryIcon}`
         );
@@ -492,11 +527,14 @@ class ErrorTimelineFormatter {
 
     // Show resolution
     if (error.resolution) {
-      const resTime = chalk.gray(this.formatTimestamp(error.resolution.timestamp));
+      const resTime = chalk.gray(
+        this.formatTimestamp(error.resolution.timestamp)
+      );
       const resIcon = chalk.green('✓');
-      const resType = error.resolution.type === 'manual'
-        ? chalk.yellow('(manual)')
-        : chalk.cyan('(auto)');
+      const resType =
+        error.resolution.type === 'manual'
+          ? chalk.yellow('(manual)')
+          : chalk.cyan('(auto)');
       lines.push(
         `       ${chalk.dim('↳')} ${resTime} Resolved ${resType}: ${error.resolution.details}`
       );
@@ -511,9 +549,7 @@ class ErrorTimelineFormatter {
 
     // Show resume command
     if (error.resumeCommand) {
-      lines.push(
-        `       ${chalk.dim('→')} ${chalk.cyan(error.resumeCommand)}`
-      );
+      lines.push(`       ${chalk.dim('→')} ${chalk.cyan(error.resumeCommand)}`);
     }
 
     return lines.join('\n');
@@ -584,6 +620,7 @@ console.log(formatter.formatTimeline(timeline));
 ## Best Practices
 
 ### DO:
+
 - Show relative times (e.g., "5 minutes ago")
 - Use consistent time formatting
 - Indicate retry attempts clearly
@@ -593,6 +630,7 @@ console.log(formatter.formatTimeline(timeline));
 - Include resume commands for unresolved errors
 
 ### DON'T:
+
 - Use raw timestamps alone
 - Clutter with successful operations
 - Hide retry information

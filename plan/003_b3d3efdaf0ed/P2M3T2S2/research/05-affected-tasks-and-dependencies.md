@@ -4,6 +4,7 @@
 **Focus:** How to identify and display affected tasks, blocked operations, and dependency chains
 
 ## Table of Contents
+
 1. [Dependency Graph Analysis](#dependency-graph-analysis)
 2. [Task Impact Assessment](#task-impact-assessment)
 3. [Visualizing Blocked Work](#visualizing-blocked-work)
@@ -41,9 +42,9 @@ interface TaskNode {
   title: string;
   status: Status;
   dependencies: {
-    direct: string[];      // Task IDs this task directly depends on
-    dependents: string[];  // Task IDs that depend on this task
-    blocked: string[];     // Tasks blocked by this task's failure
+    direct: string[]; // Task IDs this task directly depends on
+    dependents: string[]; // Task IDs that depend on this task
+    blocked: string[]; // Tasks blocked by this task's failure
   };
 }
 
@@ -199,11 +200,11 @@ class DependencyAnalyzer {
 
 ```typescript
 enum ImpactLevel {
-  CRITICAL = 'critical',  // Blocks entire pipeline
-  HIGH = 'high',          // Blocks multiple phases
-  MEDIUM = 'medium',      // Blocks single phase
-  LOW = 'low',            // Blocks single task
-  NONE = 'none',          // No impact
+  CRITICAL = 'critical', // Blocks entire pipeline
+  HIGH = 'high', // Blocks multiple phases
+  MEDIUM = 'medium', // Blocks single phase
+  LOW = 'low', // Blocks single task
+  NONE = 'none', // No impact
 }
 
 interface TaskImpact {
@@ -221,10 +222,7 @@ interface TaskImpact {
 
 ```typescript
 class ImpactCalculator {
-  calculate(
-    failedTaskId: string,
-    graph: DependencyGraph
-  ): TaskImpact {
+  calculate(failedTaskId: string, graph: DependencyGraph): TaskImpact {
     const downstream = this.findDownstream(failedTaskId, graph);
 
     // Group by hierarchy level
@@ -255,10 +253,7 @@ class ImpactCalculator {
     );
 
     // Determine if pipeline can continue
-    const canContinue = this.canContinueWithFailure(
-      failedTaskId,
-      graph
-    );
+    const canContinue = this.canContinueWithFailure(failedTaskId, graph);
 
     // Suggest action based on impact
     const suggestedAction = this.suggestAction(level, canContinue);
@@ -579,9 +574,13 @@ class CascadeTracker {
     lines.push('');
 
     // Summary
-    lines.push(`Initial Failure: ${Array.from(this.cascadeNodes.values()).find(n => n.tier === 0)?.taskId}`);
+    lines.push(
+      `Initial Failure: ${Array.from(this.cascadeNodes.values()).find(n => n.tier === 0)?.taskId}`
+    );
     lines.push(`Total Blocked Tasks: ${impact.totalBlockedTasks}`);
-    lines.push(`Total Wasted Time: ${this.formatDuration(impact.totalWaitTime)}`);
+    lines.push(
+      `Total Wasted Time: ${this.formatDuration(impact.totalWaitTime)}`
+    );
     lines.push(`Cascade Depth: ${impact.longestCascade} tiers`);
     lines.push('');
 
@@ -593,7 +592,9 @@ class CascadeTracker {
       lines.push(`Tier ${tier} (${tasks.length} tasks):`);
       for (const task of tasks) {
         const node = this.cascadeNodes.get(task)!;
-        lines.push(`  • ${task} (blocked for ${this.formatDuration(node.waitTime)})`);
+        lines.push(
+          `  • ${task} (blocked for ${this.formatDuration(node.waitTime)})`
+        );
       }
       lines.push('');
     }
@@ -798,9 +799,7 @@ class ImpactDisplayFormatter {
     lines.push(
       `Directly Blocked: ${failedTask.dependencies.dependents.length} tasks`
     );
-    lines.push(
-      `Indirectly Blocked: ${impact.affectedTasks.length} tasks`
-    );
+    lines.push(`Indirectly Blocked: ${impact.affectedTasks.length} tasks`);
 
     return lines.join('\n');
   }
@@ -809,19 +808,42 @@ class ImpactDisplayFormatter {
     const table = new Table({
       colWidths: [30, 50],
       chars: {
-        top: '', 'top-mid': '', 'top-left': '', 'top-right': '',
-        bottom: '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
-        left: '', 'left-mid': '', mid: '', 'mid-mid': '',
-        right: '', 'right-mid': '', middle: ' ',
+        top: '',
+        'top-mid': '',
+        'top-left': '',
+        'top-right': '',
+        bottom: '',
+        'bottom-mid': '',
+        'bottom-left': '',
+        'bottom-right': '',
+        left: '',
+        'left-mid': '',
+        mid: '',
+        'mid-mid': '',
+        right: '',
+        'right-mid': '',
+        middle: ' ',
       },
     });
 
     table.push(
-      [chalk.bold('Affected Phases'), impact.blockedPhases.join(', ') || 'None'],
-      [chalk.bold('Affected Milestones'), impact.blockedMilestones.length.toString()],
+      [
+        chalk.bold('Affected Phases'),
+        impact.blockedPhases.join(', ') || 'None',
+      ],
+      [
+        chalk.bold('Affected Milestones'),
+        impact.blockedMilestones.length.toString(),
+      ],
       [chalk.bold('Blocked Tasks'), impact.blockedTasks.length.toString()],
-      [chalk.bold('Can Continue'), impact.canContinue ? chalk.green('Yes') : chalk.red('No')],
-      [chalk.bold('Suggested Action'), chalk.yellow(impact.suggestedAction.toUpperCase())],
+      [
+        chalk.bold('Can Continue'),
+        impact.canContinue ? chalk.green('Yes') : chalk.red('No'),
+      ],
+      [
+        chalk.bold('Suggested Action'),
+        chalk.yellow(impact.suggestedAction.toUpperCase()),
+      ]
     );
 
     return table.toString();
@@ -834,6 +856,7 @@ class ImpactDisplayFormatter {
 ## Best Practices
 
 ### DO:
+
 - Show the complete dependency chain
 - Highlight critical path tasks
 - Display wait times for blocked tasks
@@ -844,6 +867,7 @@ class ImpactDisplayFormatter {
 - Calculate wasted time/effort
 
 ### DON'T:
+
 - Show only immediate dependencies
 - Ignore soft dependencies
 - Overwhelm with too much detail

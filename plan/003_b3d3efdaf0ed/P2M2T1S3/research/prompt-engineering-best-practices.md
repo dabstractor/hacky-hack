@@ -26,15 +26,18 @@
 Based on analysis of production systems and industry best practices, effective prompts for AI agents should include these essential components:
 
 #### **A. Role/Persona Definition**
+
 **Purpose:** Establish the agent's identity, expertise level, and behavioral boundaries
 
 **Best Practices:**
+
 - Use clear, descriptive role titles (e.g., "Lead Technical Architect" not "Helper")
 - Specify expertise level (senior, expert, specialist)
 - Define the scope of authority and knowledge
 - Set behavioral expectations (tone, decision-making approach)
 
 **Example from Production:**
+
 ```markdown
 # LEAD TECHNICAL ARCHITECT & PROJECT SYNTHESIZER
 
@@ -46,15 +49,18 @@ Based on analysis of production systems and industry best practices, effective p
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L54-61`
 
 #### **B. Context and Background Information**
+
 **Purpose:** Provide necessary background without overwhelming the context window
 
 **Best Practices:**
+
 - Include only relevant, actionable context
 - Use structured formats (YAML, JSON) for complex data
 - Provide specific file paths, not generic references
 - Include "gotchas" and known constraints
 
 **Example Pattern:**
+
 ```markdown
 ## Context Completeness Check
 
@@ -63,7 +69,9 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
 ### Documentation & References
 
 \`\`\`yaml
+
 # MUST READ - Include these in your context window
+
 - url: [Complete URL with section anchor]
   why: [Specific methods/concepts needed for implementation]
   critical: [Key insights that prevent common implementation errors]
@@ -72,19 +80,22 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
   why: [Specific pattern to follow - class structure, error handling, etc.]
   pattern: [Brief description of what pattern to extract]
   gotcha: [Known constraints or limitations to avoid]
-\`\`\`
+  \`\`\`
 ```
 
 #### **C. Task Specification**
+
 **Purpose:** Clearly define what needs to be accomplished
 
 **Best Practices:**
+
 - Use imperative mood ("Analyze", "Create", "Implement")
 - Break complex tasks into numbered steps
 - Specify dependencies and prerequisites
 - Define completion criteria
 
 **Example Pattern:**
+
 ```markdown
 ## Process
 
@@ -100,15 +111,18 @@ ULTRATHINK & PLAN
 ```
 
 #### **D. Output Format Specification**
+
 **Purpose:** Define exactly how the response should be structured
 
 **Best Practices:**
+
 - Provide concrete examples of expected output
 - Use JSON schemas for structured data
 - Specify file paths when output should be written
 - Include validation criteria
 
 **Example Pattern:**
+
 ```markdown
 ## Output Format
 
@@ -118,80 +132,92 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 
 \`\`\`json
 {
-  "backlog": [
-    {
-      "type": "Phase",
-      "id": "P[#]",
-      "title": "Phase Title",
-      "status": "Planned | Researching | Ready | Implementing | Complete | Failed"
-    }
-  ]
+"backlog": [
+{
+"type": "Phase",
+"id": "P[#]",
+"title": "Phase Title",
+"status": "Planned | Researching | Ready | Implementing | Complete | Failed"
+}
+]
 }
 \`\`\`
 ```
 
 #### **E. Constraints and Boundaries**
+
 **Purpose:** Define what the agent should NOT do
 
 **Best Practices:**
+
 - List explicit prohibitions
 - Define scope boundaries clearly
 - Specify resource constraints (time, tokens, files)
 - Include anti-patterns to avoid
 
 **Example Pattern:**
+
 ```markdown
 ## CRITICAL CONSTRAINTS & STANDARD OF WORK (SOW)
 
 ### 1. RESEARCH-DRIVEN ARCHITECTURE (NEW PRIORITY)
+
 - **VALIDATE BEFORE BREAKING DOWN:** You cannot plan what you do not understand.
 - **SPAWN SUBAGENTS:** Use your tools to spawn agents to research the codebase.
 - **REALITY CHECK:** Verify that the PRD's requests match the current codebase state.
 ```
 
 #### **F. Examples and Few-Shot Learning**
+
 **Purpose:** Demonstrate expected behavior through concrete examples
 
 **Best Practices:**
+
 - Provide 2-5 diverse examples
 - Show edge cases and error conditions
 - Include "negative examples" (what NOT to do)
 - Explain why each example is good/bad
 
 **Example Pattern:**
+
 ```markdown
 ## Few-Shot Examples
 
 ### Example 1: Added Requirement
+
 **Old PRD:** `## P1.M2.T3: User Authentication\nImplement login.`
 **New PRD:** `## P1.M2.T3: User Authentication\nImplement login with OAuth2 support.`
 
 **Output:**
 \`\`\`json
 {
-  "changes": [{
-    "itemId": "P1.M2.T3",
-    "type": "modified",
-    "description": "Added OAuth2 authentication requirement"
-  }]
+"changes": [{
+"itemId": "P1.M2.T3",
+"type": "modified",
+"description": "Added OAuth2 authentication requirement"
+}]
 }
 \`\`\`
 ```
 
 #### **G. Quality Gates and Validation**
+
 **Purpose:** Ensure output meets standards before completion
 
 **Best Practices:**
+
 - Define specific validation criteria
 - Include automated checks
 - Specify manual review steps
 - Provide feedback mechanisms
 
 **Example Pattern:**
+
 ```markdown
 ## Final Validation Checklist
 
 ### Technical Validation
+
 - [ ] All 4 validation levels completed successfully
 - [ ] All tests pass: `uv run pytest src/ -v`
 - [ ] No linting errors: `uv run ruff check src/`
@@ -207,6 +233,7 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 #### **Core Persona Elements**
 
 **1. Professional Identity**
+
 - **Job Title:** Specific, not generic
   - ✅ "Senior Software Architect specializing in distributed systems"
   - ❌ "Code Helper"
@@ -217,6 +244,7 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
   - Decision-making authority (e.g., "can make architectural trade-offs")
 
 **2. Behavioral Characteristics**
+
 - **Communication Style:** How the agent expresses itself
   - Tone: Professional, direct, conversational
   - Verbosity: Concise vs. detailed
@@ -228,6 +256,7 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
   - Speed vs. accuracy trade-offs
 
 **3. Scope and Boundaries**
+
 - **Domain of Expertise:** What the agent knows
 - **Limitations:** What the agent doesn't know or shouldn't do
 - **Resources Available:** Tools, documentation, external systems
@@ -235,6 +264,7 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 #### **Production Persona Example**
 
 **The Architect Persona:**
+
 ```markdown
 # LEAD TECHNICAL ARCHITECT & PROJECT SYNTHESIZER
 
@@ -243,6 +273,7 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 > **GOAL:** Validate the PRD through research, document findings, and decompose the PRD into a strict hierarchy: Phase > Milestone > Task > Subtask.
 
 ## Characteristics
+
 - **Authority:** Can make architectural decisions and trade-offs
 - **Thoroughness:** Researches deeply before committing to decisions
 - **Standards:** Enforces best practices across all domains
@@ -250,6 +281,7 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 - **Validation:** Verifies feasibility before planning
 
 ## Constraints
+
 - Cannot plan without understanding current codebase state
 - Must validate assumptions through research
 - Must preserve coherence across task boundaries
@@ -259,14 +291,17 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L54-116`
 
 #### **The Researcher Persona:**
+
 ```markdown
 # Create PRP for Work Item
 
 ## Mission
+
 Create a comprehensive PRP that enables **one-pass implementation success** through systematic research and context curation.
 
 **Critical Understanding:**
 The executing AI agent only receives:
+
 - The PRP content you create
 - Its training data knowledge
 - Access to codebase files (but needs guidance on which ones)
@@ -274,9 +309,11 @@ The executing AI agent only receives:
 **Therefore:** Your research and context curation directly determines implementation success. Incomplete context = implementation failure.
 
 ## Research Approach
+
 > During the research process, create clear tasks and spawn as many agents and subagents as needed using the batch tools. The deeper research we do here the better the PRP will be. We optimize for chance of success, not for speed.
 
 ## Characteristics
+
 - **Thoroughness:** Explores multiple research paths in parallel
 - **Validation:** Cross-references findings across sources
 - **Specificity:** Finds exact URLs, file paths, code examples
@@ -287,12 +324,14 @@ The executing AI agent only receives:
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L189-244`
 
 #### **The QA/Tester Persona:**
+
 ```markdown
 # Creative Bug Finding - End-to-End PRD Validation
 
 You are a creative QA engineer and bug hunter. Your mission is to rigorously test the implementation against the original PRD scope and find any issues that the standard validation might have missed.
 
 ## Characteristics
+
 - **Adversarial Thinking:** Thinks like a user, then like an attacker
 - **Creativity:** Explores edge cases and unexpected scenarios
 - **Thoroughness:** Tests everything, documents everything
@@ -300,6 +339,7 @@ You are a creative QA engineer and bug hunter. Your mission is to rigorously tes
 - **Constructive:** Frames issues as improvements, not criticisms
 
 ## Testing Approach
+
 1. **Happy Path Testing:** Primary use cases
 2. **Edge Case Testing:** Boundaries, empty inputs, special characters
 3. **Workflow Testing:** Complete user journeys
@@ -315,16 +355,19 @@ You are a creative QA engineer and bug hunter. Your mission is to rigorously tes
 ### 2.2 Persona Design Principles
 
 #### **Principle 1: Specificity Over Generality**
+
 ```markdown
 ❌ Bad: "You are a helpful coding assistant."
 ✅ Good: "You are a Senior Software Architect with 15+ years of experience in distributed systems, specializing in Rust async/await patterns and microservices architecture."
 ```
 
 #### **Principle 2: Define Decision-Making Framework**
+
 ```markdown
 ## Decision-Making Approach
 
 **When faced with trade-offs:**
+
 1. Prioritize long-term maintainability over short-term speed
 2. Choose established patterns over novel approaches
 3. Favor simplicity over cleverness
@@ -333,14 +376,17 @@ You are a creative QA engineer and bug hunter. Your mission is to rigorously tes
 ```
 
 #### **Principle 3: Set Behavioral Boundaries**
+
 ```markdown
 ## What You Should Do
+
 - Research thoroughly before planning
 - Validate assumptions with evidence
 - Follow existing codebase patterns
 - Ask for clarification when uncertain
 
 ## What You Should NOT Do
+
 - Don't guess or make assumptions
 - Don't create new patterns when existing ones work
 - Don't skip validation because "it should work"
@@ -348,12 +394,13 @@ You are a creative QA engineer and bug hunter. Your mission is to rigorously tes
 ```
 
 #### **Principle 4: Match Persona to Task Complexity**
+
 ```typescript
 // Persona complexity should match task requirements
 const PERSONA_COMPLEXITY = {
-  SIMPLE: "Code Reviewer with 5 years experience",
-  MODERATE: "Senior Developer with 10 years experience",
-  COMPLEX: "Lead Architect with 15+ years experience across domains"
+  SIMPLE: 'Code Reviewer with 5 years experience',
+  MODERATE: 'Senior Developer with 10 years experience',
+  COMPLEX: 'Lead Architect with 15+ years experience across domains',
 };
 ```
 
@@ -408,6 +455,7 @@ const PERSONA_COMPLEXITY = {
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L659-698`
 
 **Key Elements:**
+
 - **Bold action verbs** for emphasis (LOAD, PLAN, EXECUTE)
 - **Capitalized critical warnings** (CRITICAL FIRST STEP)
 - **Nested sub-steps** with bullet points
@@ -422,6 +470,7 @@ const PERSONA_COMPLEXITY = {
 ## Research Process
 
 ### If codebase analysis is needed:
+
 1. Create clear todos and spawn subagents to search the codebase
 2. Identify all necessary files to reference in the PRP
 3. Note all existing conventions to follow
@@ -430,18 +479,21 @@ const PERSONA_COMPLEXITY = {
    - **IF** no patterns found → Plan to find new approach and ask user for confirmation
 
 ### If external research is needed:
+
 1. Spawn subagents with instructions to do deep research online
 2. Include URLs to documentation and examples
 3. Store all research in the work item's research/ subdirectory
 4. Reference critical pieces in the PRP with clear reasoning
 
 ### If clarification is needed:
+
 - Ask the user for clarification
 - If no testing framework is found, ask if they would like to set one up
 - If fundamental misalignment detected, halt and produce thorough explanation
 ```
 
 **Key Elements:**
+
 - **Clear conditionals** (IF/THEN structure)
 - **Explicit fallback paths**
 - **User interaction points**
@@ -459,29 +511,34 @@ const PERSONA_COMPLEXITY = {
 **Parallel Work Streams:**
 
 **Stream 1: Codebase Pattern Analysis**
+
 - Search for similar features/patterns
 - Identify files to reference in PRP
 - Document existing conventions
 - Find test patterns
 
 **Stream 2: External Documentation Research**
+
 - Library documentation (specific URLs)
 - Implementation examples (GitHub/StackOverflow/blogs)
 - Best practices and common pitfalls
 - New validation approaches if needed
 
 **Stream 3: Internal Documentation Review**
+
 - Plan directory for architectural context
 - Previous research documents
 - Design documents and specs
 
 **After all streams complete:**
+
 - Synthesize findings into PRP
 - Resolve any conflicts between sources
 - Validate completeness with "No Prior Knowledge" test
 ```
 
 **Key Elements:**
+
 - **Explicit parallel structure**
 - **Independent work streams**
 - **Synchronization points**
@@ -502,16 +559,19 @@ const PERSONA_COMPLEXITY = {
 ## Decomposition Process
 
 **Level 1: Phase → Milestone**
+
 - Break project into major time-bound goals
 - Each phase should be independently valuable
 - Phases are ordered by dependency
 
 **Level 2: Milestone → Task**
+
 - Identify complete features within each milestone
 - Tasks should be deliverable units of work
 - Tasks have clear success criteria
 
 **Level 3: Task → Subtask**
+
 - Break tasks into atomic implementation steps
 - Each subtask is 0.5-2 story points
 - Subtasks must have explicit dependencies
@@ -519,6 +579,7 @@ const PERSONA_COMPLEXITY = {
 
 **Context Scope Rule:**
 For every Subtask, the `context_scope` must be a **strict set of instructions** for a developer who cannot see the rest of the project. It must define:
+
 - **INPUT:** What specific data/interfaces are available from previous subtasks?
 - **OUTPUT:** What exact interface does this subtask expose?
 - **MOCKING:** What external services must be mocked to keep this subtask isolated?
@@ -527,6 +588,7 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L65-102`
 
 **Key Elements:**
+
 - **Clear level definitions** with time estimates
 - **Decomposition rules** for each level
 - **Atomicity constraints** (story point limits)
@@ -535,6 +597,7 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 ### 3.2 Instruction Following Best Practices
 
 #### **1. Use Imperative Mood**
+
 ```markdown
 ❌ Bad: "The agent should analyze the PRD."
 ✅ Good: "Analyze the PRD above."
@@ -544,9 +607,11 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 ```
 
 #### **2. Be Specific and Concrete**
+
 ```markdown
 ❌ Bad: "Find information about the authentication system."
 ✅ Good: "Search the codebase for authentication-related files:
+
 - Look in src/auth/ for authentication logic
 - Check middleware/ for auth middleware
 - Review models/user.ts for user schema
@@ -554,6 +619,7 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 ```
 
 #### **3. Use Formatting for Emphasis**
+
 ```markdown
 **CRITICAL:** You MUST read this file before doing anything else.
 
@@ -565,6 +631,7 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 ```
 
 #### **4. Provide Clear Success Criteria**
+
 ```markdown
 ## Success Metrics
 
@@ -573,6 +640,7 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 **Validation:** The completed PRP should enable an AI agent unfamiliar with the codebase to implement the feature successfully using only the PRP content and codebase access.
 
 ## Completion Checklist
+
 - [ ] All 4 validation levels completed successfully
 - [ ] All tests pass: `uv run pytest src/ -v`
 - [ ] No linting errors: `uv run ruff check src/`
@@ -580,20 +648,24 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 ```
 
 #### **5. Include Error Handling Instructions**
+
 ```markdown
 ## Failure Protocol
 
 **If validation fails:**
+
 1. Use the patterns and gotchas from the PRP to fix issues
 2. Re-run validation until passing
 3. Document any changes made to the plan
 
 **If fundamental issue found:**
+
 1. Halt implementation immediately
 2. Produce thorough explanation of the problem at a 10th grade level
 3. Suggest alternative approaches if available
 
 **If clarification needed:**
+
 1. State clearly what information is missing
 2. Explain why it's needed for successful completion
 3. Provide options for how to proceed
@@ -608,6 +680,7 @@ For every Subtask, the `context_scope` must be a **strict set of instructions** 
 #### **Best Practices for JSON Output**
 
 **1. Provide Complete Schema Examples**
+
 ```markdown
 ## Output Format
 
@@ -615,16 +688,16 @@ You MUST output valid JSON matching this schema:
 
 \`\`\`typescript
 {
-  "changes": [
-    {
-      "itemId": "P1.M2.T3.S1",
-      "type": "added" | "modified" | "removed",
-      "description": "What changed (human-readable)",
-      "impact": "Implementation impact explanation"
-    }
-  ],
-  "patchInstructions": "Natural language guide for task patching",
-  "taskIds": ["P1.M2.T3.S1", "P1.M2.T3.S2"]
+"changes": [
+{
+"itemId": "P1.M2.T3.S1",
+"type": "added" | "modified" | "removed",
+"description": "What changed (human-readable)",
+"impact": "Implementation impact explanation"
+}
+],
+"patchInstructions": "Natural language guide for task patching",
+"taskIds": ["P1.M2.T3.S1", "P1.M2.T3.S2"]
 }
 \`\`\`
 ```
@@ -632,6 +705,7 @@ You MUST output valid JSON matching this schema:
 **Source:** `/home/dustin/projects/hacky-hack/src/agents/prompts.ts#L780-796`
 
 **2. Specify File Output Location**
+
 ```markdown
 ## Output Format
 
@@ -645,10 +719,12 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L119-126`
 
 **3. Include Validation Criteria**
+
 ```markdown
 ## JSON Schema Validation
 
 **Required Fields:**
+
 - `backlog`: Array of Phase objects
 - Each Phase must have: `type`, `id`, `title`, `status`, `description`
 - Each Milestone must have: `type`, `id`, `title`, `status`, `description`
@@ -656,9 +732,11 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 - Each Subtask must have: `type`, `id`, `title`, `status`, `story_points`, `dependencies`, `context_scope`
 
 **Valid Status Values:**
+
 - "Planned" | "Researching" | "Ready" | "Implementing" | "Complete" | "Failed" | "Obsolete"
 
 **ID Format:**
+
 - Phase: "P[#]"
 - Milestone: "P[#].M[#]"
 - Task: "P[#].M[#].T[#]"
@@ -666,21 +744,25 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 ```
 
 **4. Provide Field Descriptions**
+
 ```markdown
 ### Field Descriptions
 
 **context_scope** (string, required):
+
 - A strict set of instructions for a developer who cannot see the rest of the project
 - Must define INPUT, OUTPUT, and MOCKING requirements
 - Should reference specific files, variables, or APIs from prior work
 - Example: "INPUT: UserService from P1.M1.T2.S1. OUTPUT: AuthenticatedUserDTO. MOCK: External email service."
 
 **dependencies** (array of strings, optional):
+
 - Array of task IDs that must complete before this task
 - Format: ["P1.M1.T2.S1", "P1.M1.T2.S2"]
 - If no dependencies, omit field or use empty array
 
 **story_points** (number, required for Subtasks only):
+
 - Must be 0.5, 1, or 2
 - Max 2 SP per subtask
 - Represents complexity and time estimate
@@ -736,12 +818,14 @@ Use your file writing tools to create `./$TASKS_FILE` with this structure:
 ### 4.2 Markdown Output Specifications
 
 #### **Structured Documentation Format**
+
 ```markdown
 ## Output Specification
 
 Write a structured bug report to `./$BUG_RESULTS_FILE` that can be used as a PRD for fixes:
 
 \`\`\`markdown
+
 # Bug Fix Requirements
 
 ## Overview
@@ -784,7 +868,7 @@ Small improvements or polish items.
 - Failing: X
 - Areas with good coverage: [list]
 - Areas needing more attention: [list]
-\`\`\`
+  \`\`\`
 ```
 
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L1107-1153`
@@ -792,6 +876,7 @@ Small improvements or polish items.
 ### 4.3 Conditional Output Specifications
 
 #### **Presence-Based Signaling**
+
 ```markdown
 ## Output - IMPORTANT
 
@@ -808,18 +893,22 @@ Small improvements or polish items.
 **Key Pattern:** Use file presence/absence as a binary signal for downstream systems.
 
 #### **Conditional Content Structure**
-```markdown
+
+````markdown
 ## Conditional Output Requirements
 
 **IF validation passes:**
+
 ```json
 {
   "result": "success",
   "message": "All validation checks passed successfully"
 }
 ```
+````
 
 **IF validation fails with recoverable error:**
+
 ```json
 {
   "result": "error",
@@ -830,6 +919,7 @@ Small improvements or polish items.
 ```
 
 **IF validation fails with critical error:**
+
 ```json
 {
   "result": "issue",
@@ -838,7 +928,8 @@ Small improvements or polish items.
   "requiresHumanIntervention": true
 }
 ```
-```
+
+````
 
 ### 4.4 Output Validation Gates
 
@@ -872,7 +963,7 @@ Your output MUST pass these checks before being considered complete:
 1. Fix the issue
 2. Re-validate
 3. Do not proceed until all checks pass
-```
+````
 
 ---
 
@@ -881,6 +972,7 @@ Your output MUST pass these checks before being considered complete:
 ### 5.1 Reflection and Self-Correction
 
 #### **Built-in Reflection Steps**
+
 ```markdown
 ## Reflection Phase
 
@@ -911,6 +1003,7 @@ After completing your analysis, but before finalizing output:
 ### Output Validation
 
 Before writing final output:
+
 - Apply the "No Prior Knowledge" test
 - Verify all references are specific and accessible
 - Confirm all validation commands are executable
@@ -927,44 +1020,61 @@ The **4-Level Validation System** from production:
 **Execute the level validation system from the PRP:**
 
 ### Level 1: Syntax & Style (Immediate Feedback)
+
 \`\`\`bash
+
 # Run after each file creation - fix before proceeding
-ruff check src/{new_files} --fix     # Auto-format and fix linting issues
-mypy src/{new_files}                 # Type checking with specific files
-ruff format src/{new_files}          # Ensure consistent formatting
+
+ruff check src/{new_files} --fix # Auto-format and fix linting issues
+mypy src/{new_files} # Type checking with specific files
+ruff format src/{new_files} # Ensure consistent formatting
 
 # Expected: Zero errors. If errors exist, READ output and fix before proceeding.
+
 \`\`\`
 
 ### Level 2: Unit Tests (Component Validation)
+
 \`\`\`bash
+
 # Test each component as it's created
-uv run pytest src/services/tests/test_{domain}_service.py -v
-uv run pytest src/tools/tests/test_{action}_{resource}.py -v
+
+uv run pytest src/services/tests/test*{domain}\_service.py -v
+uv run pytest src/tools/tests/test*{action}\_{resource}.py -v
 
 # Expected: All tests pass. If failing, debug root cause and fix implementation.
+
 \`\`\`
 
 ### Level 3: Integration Testing (System Validation)
+
 \`\`\`bash
+
 # Service startup validation
+
 uv run python main.py &
-sleep 3  # Allow startup time
+sleep 3 # Allow startup time
 
 # Health check validation
+
 curl -f http://localhost:8000/health || echo "Service health check failed"
 
 # Expected: All integrations working, proper responses, no connection errors
+
 \`\`\`
 
 ### Level 4: Creative & Domain-Specific Validation
+
 \`\`\`bash
+
 # MCP Server Validation Examples:
+
 playwright-mcp --url http://localhost:8000 --test-user-journey
 docker-mcp --build --test --cleanup
 database-mcp --validate-schema --test-queries --check-performance
 
 # Expected: All creative validations pass, performance meets requirements
+
 \`\`\`
 
 **Each level must pass before proceeding to the next.**
@@ -973,6 +1083,7 @@ database-mcp --validate-schema --test-queries --check-performance
 **Source:** `/home/dustin/projects/hacky-hack/PROMPTS.md#L500-593`
 
 **Key Principles:**
+
 1. **Fail Fast:** Catch errors at the lowest level possible
 2. **Fix Before Proceeding:** Don't accumulate errors
 3. **Specific Error Messages:** Read output and fix specific issues
@@ -986,6 +1097,7 @@ database-mcp --validate-schema --test-queries --check-performance
 ## Final Validation Checklist
 
 ### Technical Validation
+
 - [ ] All 4 validation levels completed successfully
 - [ ] All tests pass: `uv run pytest src/ -v`
 - [ ] No linting errors: `uv run ruff check src/`
@@ -993,6 +1105,7 @@ database-mcp --validate-schema --test-queries --check-performance
 - [ ] No formatting issues: `uv run ruff format src/ --check`
 
 ### Feature Validation
+
 - [ ] All success criteria from "What" section met
 - [ ] Manual testing successful: [specific commands from Level 3]
 - [ ] Error cases handled gracefully with proper error messages
@@ -1000,6 +1113,7 @@ database-mcp --validate-schema --test-queries --check-performance
 - [ ] User persona requirements satisfied (if applicable)
 
 ### Code Quality Validation
+
 - [ ] Follows existing codebase patterns and naming conventions
 - [ ] File placement matches desired codebase tree structure
 - [ ] Anti-patterns avoided (check against Anti-Patterns section)
@@ -1007,6 +1121,7 @@ database-mcp --validate-schema --test-queries --check-performance
 - [ ] Configuration changes properly integrated
 
 ### Documentation & Deployment
+
 - [ ] Code is self-documenting with clear variable/function names
 - [ ] Logs are informative but not verbose
 - [ ] Environment variables documented if new ones added
@@ -1026,7 +1141,9 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
 ### Documentation & References
 
 \`\`\`yaml
+
 # MUST READ - Include these in your context window
+
 - url: [Complete URL with section anchor]
   why: [Specific methods/concepts needed for implementation]
   critical: [Key insights that prevent common implementation errors]
@@ -1035,7 +1152,7 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
   why: [Specific pattern to follow - class structure, error handling, etc.]
   pattern: [Brief description of what pattern to extract]
   gotcha: [Known constraints or limitations to avoid]
-\`\`\`
+  \`\`\`
 
 ### Information Density Standards
 
@@ -1057,18 +1174,21 @@ Ensure every reference is **specific and actionable**:
 ## PRP Quality Gates
 
 ### Context Completeness Check
+
 - [ ] Passes "No Prior Knowledge" test from template
 - [ ] All YAML references are specific and accessible
 - [ ] Implementation tasks include exact naming and placement guidance
 - [ ] Validation commands are project-specific and verified working
 
 ### Template Structure Compliance
+
 - [ ] All required template sections completed
 - [ ] Goal section has specific Feature Goal, Deliverable, Success Definition
 - [ ] Implementation Tasks follow dependency ordering
 - [ ] Final Validation Checklist is comprehensive
 
 ### Information Density Standards
+
 - [ ] No generic references - all are specific and actionable
 - [ ] File patterns point at specific examples to follow
 - [ ] URLs include section anchors for exact guidance
@@ -1108,6 +1228,7 @@ Ensure every reference is **specific and actionable**:
 Before you begin implementation, verify:
 
 ### Codebase Reality Check
+
 - [ ] Verify technologies in PRD match actual codebase
   - Example: Don't plan React hooks if project is vanilla JS
   - Example: Don't plan TypeScript if project is JavaScript
@@ -1115,16 +1236,19 @@ Before you begin implementation, verify:
 - [ ] Verify existing patterns match planned approach
 
 ### Feasibility Validation
+
 - [ ] Are all requirements technically feasible?
 - [ ] Are there any conflicting requirements?
 - [ ] Is the scope achievable within story point limits?
 
 ### Dependency Verification
+
 - [ ] Are all external dependencies available?
 - [ ] Are version constraints specified?
 - [ ] Are fallback options documented?
 
 ### If Any Check Fails:
+
 1. Halt implementation
 2. Document the issue clearly
 3. Suggest alternatives if available
@@ -1143,12 +1267,14 @@ Before you begin implementation, verify:
 ## Prompt Iteration Framework
 
 ### Phase 1: Initial Design
+
 1. **Define Objectives:** What should the prompt achieve?
 2. **Identify Components:** Role, context, task, output, constraints
 3. **Draft Initial Prompt:** Use best practices from this guide
 4. **Add Examples:** Include few-shot examples
 
 ### Phase 2: Initial Testing
+
 1. **Test on Diverse Inputs:**
    - Simple cases
    - Complex cases
@@ -1161,6 +1287,7 @@ Before you begin implementation, verify:
    - Quality (is the output well-structured?)
 
 ### Phase 3: Analysis and Refinement
+
 1. **Identify Failure Modes:**
    - Where does the prompt fail?
    - What patterns cause errors?
@@ -1172,6 +1299,7 @@ Before you begin implementation, verify:
    - Improve context
 
 ### Phase 4: Validation Testing
+
 1. **A/B Testing:** Compare old vs new prompt
 2. **Metrics Tracking:**
    - Success rate (pass/fail validation gates)
@@ -1181,6 +1309,7 @@ Before you begin implementation, verify:
 3. **Iterate:** Based on metrics
 
 ### Phase 5: Production Deployment
+
 1. **Gradual Rollout:** Test on subset of tasks
 2. **Monitoring:** Track production performance
 3. **Feedback Loops:** Collect issues and edge cases
@@ -1204,24 +1333,31 @@ prompts/
 ```
 
 **Changelog Format:**
+
 ```markdown
 # Prompt Changelog
 
 ## [v1.1.0] - 2025-01-15
+
 ### Added
+
 - Added "No Prior Knowledge" test to researcher prompt
 - Added reflection phase to architect prompt
 
 ### Changed
+
 - Improved context_scope specification in task breakdown
 - Clarified validation gate requirements
 
 ### Fixed
+
 - Fixed ambiguous output format specification
 - Fixed missing dependency validation
 
 ## [v1.0.0] - 2025-01-01
+
 ### Added
+
 - Initial prompt set for architect, researcher, coder, qa personas
 - 4-level validation system
 - Task breakdown hierarchy definitions
@@ -1256,20 +1392,20 @@ interface Metric {
 const QUALITY_METRICS: Metric[] = [
   {
     name: 'Schema Validation',
-    measure: (output) => validateJSONSchema(output, expectedSchema)
+    measure: output => validateJSONSchema(output, expectedSchema),
   },
   {
     name: 'Completeness',
-    measure: (output) => checkAllFieldsPresent(output, requiredFields)
+    measure: output => checkAllFieldsPresent(output, requiredFields),
   },
   {
     name: 'Token Efficiency',
-    measure: (output) => output.tokens / output.fieldsCount
+    measure: output => output.tokens / output.fieldsCount,
   },
   {
     name: 'Success Rate',
-    measure: (output) => output.passedValidationGates === 4
-  }
+    measure: output => output.passedValidationGates === 4,
+  },
 ];
 ```
 
@@ -1281,23 +1417,27 @@ const QUALITY_METRICS: Metric[] = [
 ### Test Categories
 
 **1. Happy Path Tests**
+
 - Typical usage scenarios
 - Well-formed inputs
 - Straightforward requirements
 
 **2. Edge Case Tests**
+
 - Minimal inputs
 - Maximum complexity inputs
 - Ambiguous requirements
 - Conflicting constraints
 
 **3. Error Condition Tests**
+
 - Invalid input formats
 - Missing required fields
 - Impossible constraints
 - Resource limitations
 
 **4. Performance Tests**
+
 - Large context windows
 - Deep nesting levels
 - Many parallel tasks
@@ -1306,21 +1446,25 @@ const QUALITY_METRICS: Metric[] = [
 ### Example Test Cases
 
 **Test Case 1: Simple Feature**
+
 - **Input:** Basic feature with clear requirements
 - **Expected:** Single task with 2-3 subtasks
 - **Validation:** All subtasks have context_scope, valid dependencies
 
 **Test Case 2: Complex Feature**
+
 - **Input:** Multi-component feature with integration points
 - **Expected:** Task hierarchy with milestones
 - **Validation:** Coherent context_scope chain, no circular deps
 
 **Test Case 3: Edge Case - Missing Context**
+
 - **Input:** Feature with unclear requirements
 - **Expected:** Agent asks for clarification
 - **Validation:** Clarification request is specific and actionable
 
 **Test Case 4: Error Condition - Impossible Constraints**
+
 - **Input:** Story point budget < actual complexity
 - **Expected:** Agent flags issue, suggests alternatives
 - **Validation:** Clear explanation, constructive suggestions
@@ -1343,19 +1487,19 @@ interface TestResult {
   output: any;
   errors: string[];
   metrics: {
-    accuracy: number;    // 0-1
+    accuracy: number; // 0-1
     completeness: number; // 0-1
-    format: number;      // 0-1
-    quality: number;     // 0-1
+    format: number; // 0-1
+    quality: number; // 0-1
   };
 }
 
 interface OverallMetrics {
-  successRate: number;      // % of tests passed
-  avgAccuracy: number;      // Average accuracy score
-  avgCompleteness: number;  // Average completeness score
-  avgTokenUsage: number;    // Average tokens per output
-  avgLatency: number;       // Average processing time
+  successRate: number; // % of tests passed
+  avgAccuracy: number; // Average accuracy score
+  avgCompleteness: number; // Average completeness score
+  avgTokenUsage: number; // Average tokens per output
+  avgLatency: number; // Average processing time
 }
 
 // Evaluation function
@@ -1374,7 +1518,7 @@ async function evaluatePrompt(
       passed: metrics.accuracy === 1 && metrics.completeness === 1,
       output,
       errors: validateOutput(output, testCase.expectedOutput),
-      metrics
+      metrics,
     });
   }
 
@@ -1382,7 +1526,7 @@ async function evaluatePrompt(
     promptName: extractPromptName(prompt),
     version: extractVersion(prompt),
     testResults: results,
-    overallMetrics: calculateOverallMetrics(results)
+    overallMetrics: calculateOverallMetrics(results),
   };
 }
 ```
@@ -1395,24 +1539,28 @@ async function evaluatePrompt(
 ## Prompt Performance Metrics
 
 ### 1. Effectiveness Metrics
+
 - **Success Rate:** % of tasks that pass all validation gates
 - **Accuracy:** % of outputs that match expected format and content
 - **Completeness:** % of required fields/values present in output
 - **First-Pass Success:** % of tasks that succeed on first attempt
 
 ### 2. Efficiency Metrics
+
 - **Token Usage:** Average tokens per output
 - **Token Efficiency:** Information density (tokens per meaningful unit)
 - **Latency:** Average processing time per request
 - **Cost:** Cost per successful output
 
 ### 3. Quality Metrics
+
 - **Coherence Score:** How well do parts of output relate to each other?
 - **Specificity Score:** How specific are references (vs. generic)?
 - **Validation Pass Rate:** % of outputs that pass automated validation
 - **Human Approval Rate:** % of outputs approved without modification
 
 ### 4. Reliability Metrics
+
 - **Consistency:** How similar are outputs for similar inputs?
 - **Error Rate:** % of outputs that fail validation
 - **Retry Success Rate:** % of failed outputs that succeed on retry
@@ -1420,14 +1568,14 @@ async function evaluatePrompt(
 
 ### Target Benchmarks
 
-| Metric | Minimum | Target | Excellent |
-|--------|---------|--------|-----------|
-| Success Rate | 70% | 85% | 95% |
-| Accuracy | 80% | 90% | 98% |
-| Completeness | 85% | 95% | 99% |
-| First-Pass Success | 60% | 75% | 90% |
-| Token Efficiency | 0.5 | 0.7 | 0.9 |
-| Validation Pass Rate | 75% | 90% | 98% |
+| Metric               | Minimum | Target | Excellent |
+| -------------------- | ------- | ------ | --------- |
+| Success Rate         | 70%     | 85%    | 95%       |
+| Accuracy             | 80%     | 90%    | 98%       |
+| Completeness         | 85%     | 95%    | 99%       |
+| First-Pass Success   | 60%     | 75%    | 90%       |
+| Token Efficiency     | 0.5     | 0.7    | 0.9       |
+| Validation Pass Rate | 75%     | 90%    | 98%       |
 ```
 
 ### 6.4 Continuous Improvement
@@ -1438,6 +1586,7 @@ async function evaluatePrompt(
 ## Continuous Improvement Process
 
 ### Data Collection
+
 1. **Log All Prompt Executions:**
    - Input parameters
    - Generated outputs
@@ -1452,6 +1601,7 @@ async function evaluatePrompt(
    - Task type
 
 ### Analysis
+
 1. **Weekly Review:**
    - Success rate trends
    - Common failure modes
@@ -1469,6 +1619,7 @@ async function evaluatePrompt(
    - Risk (could it break existing success cases?)
 
 ### Implementation
+
 1. **Design Prompt Changes:**
    - Specific modifications
    - Rationale for each change
@@ -1490,6 +1641,7 @@ async function evaluatePrompt(
    - Document results
 
 ### Documentation
+
 - Maintain changelog of all prompt changes
 - Document rationale for major changes
 - Track performance over time
@@ -1518,7 +1670,11 @@ interface Metrics {
 }
 
 interface Alert {
-  type: 'success_rate_drop' | 'error_spike' | 'latency_increase' | 'quality_degradation';
+  type:
+    | 'success_rate_drop'
+    | 'error_spike'
+    | 'latency_increase'
+    | 'quality_degradation';
   severity: 'info' | 'warning' | 'critical';
   message: string;
   threshold: number;
@@ -1535,24 +1691,24 @@ function monitorPrompt(prompt: PromptConfig): PromptMonitor {
     promptName: prompt.name,
     version: prompt.version,
     metrics,
-    alerts
+    alerts,
   };
 }
 
 // Alert thresholds
 const ALERT_THRESHOLDS = {
   successRate: {
-    warning: 0.80,  // Alert if success rate drops below 80%
-    critical: 0.70  // Alert if success rate drops below 70%
+    warning: 0.8, // Alert if success rate drops below 80%
+    critical: 0.7, // Alert if success rate drops below 70%
   },
   errorRate: {
-    warning: 0.15,  // Alert if error rate exceeds 15%
-    critical: 0.25  // Alert if error rate exceeds 25%
+    warning: 0.15, // Alert if error rate exceeds 15%
+    critical: 0.25, // Alert if error rate exceeds 25%
   },
   latency: {
-    warning: 1.5,   // Alert if latency increases by 50%
-    critical: 2.0   // Alert if latency doubles
-  }
+    warning: 1.5, // Alert if latency increases by 50%
+    critical: 2.0, // Alert if latency doubles
+  },
 };
 ```
 
@@ -1565,19 +1721,23 @@ const ALERT_THRESHOLDS = {
 #### **Pitfall 1: Vague Instructions**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Analyze the codebase and create a plan."
 ```
 
 **Why it fails:**
+
 - No clear scope for analysis
 - No format for the plan
 - No success criteria
 - Agent may guess wrong approach
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Analyze the codebase for authentication-related patterns:
+
 1. Search src/auth/ for authentication logic
 2. Check middleware/ for auth middleware
 3. Review models/user.ts for user schema
@@ -1588,19 +1748,23 @@ const ALERT_THRESHOLDS = {
 #### **Pitfall 2: Missing Context**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Implement user login."
 ```
 
 **Why it fails:**
+
 - No information about existing patterns
 - No specification of authentication method
 - No integration points specified
 - Agent must guess or ask
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Implement user login following these patterns:
+
 - Follow: src/auth/existing_auth.py for JWT handling
 - Use: middleware/authentication.py for session management
 - Integrate with: models/user.py (already exists)
@@ -1611,29 +1775,32 @@ const ALERT_THRESHOLDS = {
 #### **Pitfall 3: Ambiguous Output Format**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Return a JSON with the task breakdown."
 ```
 
 **Why it fails:**
+
 - No schema specified
 - No field definitions
 - No validation criteria
 - Output may not match expectations
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Return JSON matching this exact schema:
 
 \`\`\`json
 {
-  "backlog": [{
-    "type": "Phase",
-    "id": "P1",
-    "title": "string",
-    "status": "Planned|Researching|Ready|Implementing|Complete|Failed",
-    "milestones": [...]
-  }]
+"backlog": [{
+"type": "Phase",
+"id": "P1",
+"title": "string",
+"status": "Planned|Researching|Ready|Implementing|Complete|Failed",
+"milestones": [...]
+}]
 }
 \`\`\`
 
@@ -1645,19 +1812,23 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 4: Ignoring Edge Cases**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Create a user registration endpoint."
 ```
 
 **Why it fails:**
+
 - No error handling specified
 - No validation requirements
 - No duplicate handling
 - No edge cases considered
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Create a user registration endpoint with:
+
 1. Input validation (email format, password strength)
 2. Duplicate detection (email uniqueness check)
 3. Error handling (specific error messages for each failure mode)
@@ -1674,19 +1845,23 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 5: Over-constraining**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Create exactly 5 tasks with exactly 3 subtasks each. Each subtask must be exactly 1 story point. Use exactly these words in descriptions: [list of 100 words]."
 ```
 
 **Why it fails:**
+
 - Arbitrary constraints
 - May prevent optimal solution
 - Agent focuses on constraints, not quality
 - May miss important variations
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Create tasks following these guidelines:
+
 - Break down to subtasks of 0.5-2 story points
 - Ensure each subtask can be implemented in isolation
 - Focus on coherence and completeness over exact counts
@@ -1699,21 +1874,25 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 6: Implicit Dependencies**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "1. Create the user model. 2. Create the auth service. 3. Create the endpoint."
 ```
 
 **Why it fails:**
+
 - Doesn't specify what the auth service needs from the model
 - Doesn't specify what the endpoint needs from the service
 - No explicit data flow
 - May result in incompatible interfaces
 
 **Solution:**
+
 ```markdown
 ✅ Good: "1. Create User model in models/user.ts:
-   - Export User interface with email, passwordHash, id
-   - Export createUser() function
+
+- Export User interface with email, passwordHash, id
+- Export createUser() function
 
 2. Create Auth service in services/auth.ts:
    - INPUT: User interface from models/user.ts
@@ -1729,34 +1908,41 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 7: Missing Validation Gates**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Implement the feature and return the result."
 ```
 
 **Why it fails:**
+
 - No quality checks
 - Errors may propagate
 - No verification of success
 - May produce non-working code
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Implement the feature with progressive validation:
 
 **Level 1: After each file**
+
 - Run linter: ruff check src/new_file --fix
 - Run type checker: mypy src/new_file
 - Fix all errors before proceeding
 
 **Level 2: After implementation**
+
 - Run unit tests: pytest tests/test_new_feature -v
 - All tests must pass before considering complete
 
 **Level 3: Integration validation**
+
 - Test the full workflow
 - Verify all integrations work
 
 **If any level fails:**
+
 1. Stop and analyze the error
 2. Fix the root cause
 3. Re-run validation
@@ -1768,32 +1954,38 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 8: Generic Persona**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "You are a helpful AI assistant."
 ```
 
 **Why it fails:**
+
 - No expertise level specified
 - No behavioral guidance
 - No decision-making framework
 - No scope boundaries
 
 **Solution:**
+
 ```markdown
 ✅ Good: "You are a Senior Software Architect with 15+ years of experience in distributed systems.
 
 **Expertise:**
+
 - Expert in microservices architecture
 - Specialized in async/await patterns
 - Deep knowledge of system design trade-offs
 
 **Behavior:**
+
 - Analytical and thorough
 - Researches before committing to decisions
 - Considers security, performance, and maintainability
 - Documents rationale for significant decisions
 
 **Scope:**
+
 - Architectural decisions and system design
 - Technology stack recommendations
 - Integration patterns and best practices
@@ -1803,29 +1995,34 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 9: Conflicting Constraints**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "You are a thorough architect who researches deeply. Also, you must work extremely fast and skip research to save time."
 ```
 
 **Why it fails:**
+
 - Direct contradiction
 - Agent can't satisfy both
 - Unpredictable behavior
 - Quality vs. speed trade-off unclear
 
 **Solution:**
+
 ```markdown
 ✅ Good: "You are a thorough architect who prioritizes quality over speed.
 
 **Primary Goal:** One-pass implementation success through thorough research
 
 **Trade-offs:**
+
 - Quality > Speed
 - Correctness > Cleverness
 - Long-term maintainability > Short-term convenience
 - Research before planning > Quick decisions
 
 **When to optimize for speed:**
+
 - Only after quality gates are satisfied
 - Only for non-critical iterations
 - Only when explicitly requested"
@@ -1836,34 +2033,38 @@ ID format: P[#] for phases, P[#].M[#] for milestones, etc."
 #### **Pitfall 10: Inconsistent Schema**
 
 **Problem:**
+
 ```markdown
 ❌ Bad: "Return JSON with tasks. Each task has an id (sometimes number, sometimes string like 'P1'), title, status (varies by task type)."
 ```
 
 **Why it fails:**
+
 - Type ambiguity
 - Parsing errors
 - Validation failures
 - Downstream systems break
 
 **Solution:**
+
 ```markdown
 ✅ Good: "Return JSON with this consistent schema:
 
 \`\`\`typescript
 interface Task {
-  id: string;        // Always string format: "P1", "P1.M1", "P1.M1.T1", "P1.M1.T1.S1"
-  type: "Phase" | "Milestone" | "Task" | "Subtask";
-  title: string;
-  status: "Planned" | "Researching" | "Ready" | "Implementing" | "Complete" | "Failed" | "Obsolete";
-  description: string;
-  story_points?: number;  // Only for Subtasks, must be 0.5, 1, or 2
-  dependencies?: string[]; // Array of task IDs
-  context_scope?: string;  // Only for Subtasks
+id: string; // Always string format: "P1", "P1.M1", "P1.M1.T1", "P1.M1.T1.S1"
+type: "Phase" | "Milestone" | "Task" | "Subtask";
+title: string;
+status: "Planned" | "Researching" | "Ready" | "Implementing" | "Complete" | "Failed" | "Obsolete";
+description: string;
+story_points?: number; // Only for Subtasks, must be 0.5, 1, or 2
+dependencies?: string[]; // Array of task IDs
+context_scope?: string; // Only for Subtasks
 }
 \`\`\`
 
 **Strict Rules:**
+
 - id is ALWAYS string, never number
 - status is ALWAYS from the enum, never custom values
 - story_points is ONLY present for Subtasks
@@ -1881,6 +2082,7 @@ interface Task {
 **Location:** `/home/dustin/projects/hacky-hack/src/agents/prompts.ts#L33-146`
 
 **Key Components:**
+
 1. **Role Definition:** Clear persona with specific expertise
 2. **Hierarchy Definitions:** Precise scope definitions
 3. **Critical Constraints:** 4 main constraint categories
@@ -2010,6 +2212,7 @@ Use your file writing tools to create \`./$TASKS_FILE\` with this structure:
 **Location:** `/home/dustin/projects/hacky-hack/src/agents/prompts.ts#L157-603`
 
 **Key Components:**
+
 1. **Mission Statement:** Clear "one-pass success" goal
 2. **Critical Understanding:** Explicit agent limitations
 3. **Research Process:** Detailed, multi-step research approach
@@ -2472,6 +2675,7 @@ bandit -r src/
 **Location:** `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts`
 
 **Key Patterns:**
+
 1. **Persona-based configuration:** Different token limits per role
 2. **Environment configuration:** Proper API key mapping
 3. **Tool integration:** MCP servers for all agents
@@ -2530,6 +2734,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ### 9.1 Official Documentation
 
 #### **Anthropic Claude**
+
 - **Prompt Engineering Guide:** https://docs.anthropic.com/claude/docs/prompt-engineering
   - Sections: Structure, clarity, examples, format, constraints
   - Best practices: Role definition, task specification, output format
@@ -2545,6 +2750,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
   - Error handling
 
 #### **OpenAI**
+
 - **Prompt Engineering Guide:** https://platform.openai.com/docs/guides/prompt-engineering
   - Six strategies for better results
   - Examples and best practices
@@ -2561,6 +2767,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
   - Response format options
 
 #### **Google DeepMind**
+
 - **Gemini Prompt Design:** https://ai.google.dev/docs/prompt_best_practices
   - Prompt structure guidelines
   - Few-shot learning patterns
@@ -2569,6 +2776,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ### 9.2 Research Papers
 
 #### **Prompt Engineering Research**
+
 1. **"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models"** (Wei et al., 2022)
    - arXiv: https://arxiv.org/abs/2201.11903
    - Key insight: Intermediate reasoning steps improve performance
@@ -2586,6 +2794,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
    - Key insight: LLMs can plan without training for planning
 
 #### **Agent System Research**
+
 1. **"Communicative Agents for Software Development"** (Chen et al., 2023)
    - arXiv: https://arxiv.org/abs/2307.02452
    - Key insight: Multi-agent collaboration improves code generation
@@ -2597,6 +2806,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ### 9.3 Community Resources
 
 #### **Prompt Engineering Libraries**
+
 1. **Promptfoo:** https://promptfoo.dev/
    - Prompt testing and evaluation framework
    - A/B testing capabilities
@@ -2613,6 +2823,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
    - Output parsers
 
 #### **Blogs and Guides**
+
 1. **OpenAI Cookbook:** https://github.com/openai/openai-cookbook
    - Code examples
    - Best practices
@@ -2631,6 +2842,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ### 9.4 Tools and Frameworks
 
 #### **Prompt Testing**
+
 - **Promptfoo:** https://www.promptfoo.dev/
   - Local prompt testing
   - Evaluation metrics
@@ -2642,6 +2854,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
   - Analytics
 
 #### **Agent Frameworks**
+
 - **LangChain:** https://python.langchain.com/
   - Agent templates
   - Tool integrations
@@ -2667,39 +2880,46 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ## Essential Components
 
 □ **Role Definition**
-  - Clear persona with expertise level
-  - Behavioral characteristics
-  - Scope and boundaries
+
+- Clear persona with expertise level
+- Behavioral characteristics
+- Scope and boundaries
 
 □ **Context Information**
-  - Relevant background
-  - Specific file paths and references
-  - Known constraints and gotchas
+
+- Relevant background
+- Specific file paths and references
+- Known constraints and gotchas
 
 □ **Task Specification**
-  - Clear, imperative instructions
-  - Numbered steps for complex tasks
-  - Dependencies and prerequisites
+
+- Clear, imperative instructions
+- Numbered steps for complex tasks
+- Dependencies and prerequisites
 
 □ **Output Format**
-  - Complete schema specification
-  - Examples of expected output
-  - File paths if output should be written
+
+- Complete schema specification
+- Examples of expected output
+- File paths if output should be written
 
 □ **Constraints**
-  - Explicit prohibitions
-  - Resource limits
-  - Anti-patterns to avoid
+
+- Explicit prohibitions
+- Resource limits
+- Anti-patterns to avoid
 
 □ **Quality Gates**
-  - Validation criteria
-  - Success metrics
-  - Error handling instructions
+
+- Validation criteria
+- Success metrics
+- Error handling instructions
 
 □ **Examples**
-  - Few-shot examples (2-5)
-  - Edge cases
-  - Negative examples
+
+- Few-shot examples (2-5)
+- Edge cases
+- Negative examples
 ```
 
 ### 10.2 Role Definition Template
@@ -2712,20 +2932,24 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 > **GOAL:** [Primary objective]
 
 ## Expertise
+
 - [Specific domain knowledge areas]
 - [Technical skills and capabilities]
 - [Decision-making authority]
 
 ## Behavioral Characteristics
+
 - **Communication Style:** [How the agent expresses itself]
 - **Decision-Making:** [How choices are made]
 - **Work Style:** [Thorough vs. fast, analytical vs. intuitive]
 
 ## Scope
+
 - **In Scope:** [What the agent handles]
 - **Out of Scope:** [What the agent doesn't handle]
 
 ## Constraints
+
 - [Specific behavioral constraints]
 - [Resource limitations]
 - [Quality standards]
@@ -2741,23 +2965,27 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 **Format:** [JSON/Markdown/Text]
 
 ### Schema
+
 \`\`\`[typescript/json]
 [Complete schema specification]
 \`\`\`
 
 ### Field Definitions
+
 - **fieldName:** [Type] - [Description]
   - Required/Optional
   - Valid values (if enum)
   - Constraints (if any)
 
 ### Examples
+
 **Example 1:** [Description]
 \`\`\`
 [Example output]
 \`\`\`
 
 ### Validation
+
 - [ ] Schema validation passed
 - [ ] All required fields present
 - [ ] All values within constraints
@@ -2768,24 +2996,28 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 
 ```markdown
 ## Pre-Execution Validation
+
 □ Input requirements are clear
 □ Context is complete and specific
 □ Constraints are well-defined
 □ Examples cover main cases
 
 ## During Execution
+
 □ Follow steps in order
 □ Validate each step before proceeding
 □ Check for ambiguous conditions
 □ Handle errors appropriately
 
 ## Post-Execution Validation
+
 □ Output matches specified format
 □ All required fields present
 □ Quality criteria met
 □ No validation errors
 
 ## Continuous Improvement
+
 □ Log all executions
 □ Track success metrics
 □ Analyze failure modes

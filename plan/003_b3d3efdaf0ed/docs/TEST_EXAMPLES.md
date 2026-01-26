@@ -34,13 +34,13 @@ This document provides practical, executable test examples for every testing pat
 
 ### Test Types Covered
 
-| Test Type | Location | Use When | Speed |
-|-----------|----------|----------|-------|
-| **Unit - Utility Function** | `tests/unit/utils/` | Testing pure functions with no dependencies | < 1ms |
-| **Unit - Class with Mocks** | `tests/unit/core/` | Testing classes with external dependencies | < 1ms |
-| **Integration - Agent** | `tests/integration/` | Testing Groundswell agent integration | 10-50ms |
-| **Integration - Workflow** | `tests/integration/` | Testing multi-component workflows | 50-200ms |
-| **E2E - Pipeline** | `tests/e2e/` | Testing complete user workflows | 1-30s |
+| Test Type                   | Location             | Use When                                    | Speed    |
+| --------------------------- | -------------------- | ------------------------------------------- | -------- |
+| **Unit - Utility Function** | `tests/unit/utils/`  | Testing pure functions with no dependencies | < 1ms    |
+| **Unit - Class with Mocks** | `tests/unit/core/`   | Testing classes with external dependencies  | < 1ms    |
+| **Integration - Agent**     | `tests/integration/` | Testing Groundswell agent integration       | 10-50ms  |
+| **Integration - Workflow**  | `tests/integration/` | Testing multi-component workflows           | 50-200ms |
+| **E2E - Pipeline**          | `tests/e2e/`         | Testing complete user workflows             | 1-30s    |
 
 ---
 
@@ -51,6 +51,7 @@ This document provides practical, executable test examples for every testing pat
 **When to use**: Testing pure functions with no external dependencies - functions that take input and return output based solely on their inputs.
 
 **Key patterns**:
+
 - No mocking required (pure functions)
 - Multiple test cases for edge cases
 - Parameterized tests with `it.each()`
@@ -239,7 +240,7 @@ describe('Error hierarchy', () => {
       'email',
     ];
 
-    it.each(sensitiveFields)('should redact %s field', (field) => {
+    it.each(sensitiveFields)('should redact %s field', field => {
       // ARRANGE: Create error with sensitive field
       const error = new SessionError('Test error', {
         [field]: `secret-${field}-value`,
@@ -277,6 +278,7 @@ describe('Error hierarchy', () => {
 ```
 
 **Explanation**: This example demonstrates:
+
 - **Pure function testing** - No mocks needed, testing input/output behavior
 - **Multiple test cases** - Covers happy paths, edge cases, and error conditions
 - **Parameterized tests** - `it.each()` for testing multiple inputs with same logic
@@ -292,6 +294,7 @@ describe('Error hierarchy', () => {
 **When to use**: Testing classes that depend on external modules (file system, network, databases). Mock all dependencies to test the class in isolation.
 
 **Key patterns**:
+
 - Mock external modules at top level before imports
 - Use `vi.mocked()` for type-safe mock access
 - Set up mock return values in `beforeEach`
@@ -510,10 +513,7 @@ describe('SessionManager', () => {
       );
 
       // ASSERT: Verify tasks JSON was written
-      expect(writeTasksJSON).toHaveBeenCalledWith(
-        mockSessionPath,
-        mockBacklog
-      );
+      expect(writeTasksJSON).toHaveBeenCalledWith(mockSessionPath, mockBacklog);
     });
 
     it('should propagate errors from writeFile', async () => {
@@ -597,16 +597,14 @@ describe('SessionManager', () => {
       );
 
       // ASSERT: Verify session was saved
-      expect(writeTasksJSON).toHaveBeenCalledWith(
-        mockSessionPath,
-        mockBacklog
-      );
+      expect(writeTasksJSON).toHaveBeenCalledWith(mockSessionPath, mockBacklog);
     });
   });
 });
 ```
 
 **Explanation**: This example demonstrates:
+
 - **Module-level mocking** - All mocks declared before imports
 - **Type-safe mocks** - `vi.mocked()` provides TypeScript inference
 - **Mock factories** - Reusable test data fixtures
@@ -624,6 +622,7 @@ describe('SessionManager', () => {
 **When to use**: Testing Groundswell agent integration. The agent creates real configurations but mocks the LLM API calls.
 
 **Key patterns**:
+
 - **CRITICAL**: Use `vi.importActual()` to preserve Groundswell exports
 - Mock `createAgent` and `createPrompt` but preserve `MCPHandler`, `MCPServer`
 - Verify agent configuration is correct
@@ -651,7 +650,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
   return {
-    ...actual,  // PRESERVE non-mocked exports (MCPHandler, MCPServer)
+    ...actual, // PRESERVE non-mocked exports (MCPHandler, MCPServer)
     createAgent: vi.fn(),
     createPrompt: vi.fn(),
   };
@@ -1117,6 +1116,7 @@ describe('createBugHuntPrompt', () => {
 ```
 
 **Explanation**: This example demonstrates:
+
 - **Groundswell mocking pattern** - The most critical pattern in the codebase
 - **Preserving exports** - `vi.importActual()` ensures MCP tools work
 - **Schema validation** - Testing Zod schemas are passed correctly
@@ -1133,6 +1133,7 @@ describe('createBugHuntPrompt', () => {
 **When to use**: Testing multi-component workflows where multiple services interact. Use real implementations of workflow classes but mock external dependencies.
 
 **Key patterns**:
+
 - Mock external dependencies (agents, prompts)
 - Use real workflow implementations
 - Test component interaction
@@ -1548,6 +1549,7 @@ describe('BugHuntWorkflow Integration Tests', () => {
 ```
 
 **Explanation**: This example demonstrates:
+
 - **Multi-component testing** - Workflow orchestrates multiple mocked components
 - **Factory functions** - Reusable test data creation
 - **Call order verification** - Ensuring components interact in the right sequence
@@ -1565,6 +1567,7 @@ describe('BugHuntWorkflow Integration Tests', () => {
 **When to use**: Validating complete end-to-end workflows from start to finish. Use minimal mocking (only external services) and real implementations for core logic.
 
 **Key patterns**:
+
 - Real implementations with mocked external services
 - Temporary file system for isolation
 - Real timers for async operations
@@ -2056,6 +2059,7 @@ describe('E2E Pipeline Tests', () => {
 ```
 
 **Explanation**: This example demonstrates:
+
 - **Real implementations** - Pipeline code is not mocked, only external dependencies
 - **Temporary file system** - `mkdtempSync()` creates isolated test directories
 - **Real timers** - `vi.useRealTimers()` required for async mock behavior
@@ -2085,7 +2089,7 @@ describe('E2E Pipeline Tests', () => {
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
   return {
-    ...actual,  // PRESERVE non-mocked exports (MCPHandler, MCPServer)
+    ...actual, // PRESERVE non-mocked exports (MCPHandler, MCPServer)
     createAgent: vi.fn(),
     createPrompt: vi.fn(),
   };
@@ -2111,6 +2115,7 @@ vi.mocked(createPrompt).mockReturnValue(mockPrompt as never);
 ```
 
 **Why this pattern is critical**:
+
 - **Hoisting**: `vi.mock()` must be at top level before imports
 - **Preserve exports**: `MCPHandler` and `MCPServer` are needed by MCP tools
 - **Prevent errors**: Without preserving exports, MCP server registration fails with "server 'undefined' is already registered"
@@ -2356,7 +2361,9 @@ describe('error handling', () => {
     const mockError = new Error('Database connection failed');
     vi.mocked(db.query).mockRejectedValue(mockError);
 
-    await expect(fetchUser('123')).rejects.toThrow('Database connection failed');
+    await expect(fetchUser('123')).rejects.toThrow(
+      'Database connection failed'
+    );
   });
 
   it('should preserve error chain with cause', () => {

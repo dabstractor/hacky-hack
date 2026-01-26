@@ -3,6 +3,7 @@
 ## 1. Official Documentation
 
 ### Repository Information
+
 - **Repository URL**: https://github.com/groundswell-ai/groundswell
 - **Local Path**: `/home/dustin/projects/groundswell`
 - **NPM Package**: `groundswell` (version 0.0.1)
@@ -11,31 +12,31 @@
 
 ### Core Documentation Files
 
-| File | Path | Description |
-|------|------|-------------|
-| Main README | `/home/dustin/projects/groundswell/README.md` | Quick start guide, API reference, examples |
-| PRD | `/home/dustin/projects/groundswell/PRD.md` | Complete product requirements document |
-| Workflow Docs | `/home/dustin/projects/groundswell/docs/workflow.md` | Workflow usage guide |
-| Agent Docs | `/home/dustin/projects/groundswell/docs/agent.md` | Agent configuration and usage |
-| Prompt Docs | `/home/dustin/projects/groundswell/docs/prompt.md` | Prompt creation with Zod schemas |
-| Examples README | `/home/dustin/projects/groundswell/examples/README.md` | Example files overview |
-| CHANGELOG | `/home/dustin/projects/groundswell/CHANGELOG.md` | Version history and changes |
+| File            | Path                                                   | Description                                |
+| --------------- | ------------------------------------------------------ | ------------------------------------------ |
+| Main README     | `/home/dustin/projects/groundswell/README.md`          | Quick start guide, API reference, examples |
+| PRD             | `/home/dustin/projects/groundswell/PRD.md`             | Complete product requirements document     |
+| Workflow Docs   | `/home/dustin/projects/groundswell/docs/workflow.md`   | Workflow usage guide                       |
+| Agent Docs      | `/home/dustin/projects/groundswell/docs/agent.md`      | Agent configuration and usage              |
+| Prompt Docs     | `/home/dustin/projects/groundswell/docs/prompt.md`     | Prompt creation with Zod schemas           |
+| Examples README | `/home/dustin/projects/groundswell/examples/README.md` | Example files overview                     |
+| CHANGELOG       | `/home/dustin/projects/groundswell/CHANGELOG.md`       | Version history and changes                |
 
 ### Example Files
 
-| Example | Path | Topics Covered |
-|---------|------|----------------|
-| 01-basic-workflow | `/home/dustin/projects/groundswell/examples/examples/01-basic-workflow.ts` | Basic workflow creation, logging, status management |
-| 02-decorator-options | `/home/dustin/projects/groundswell/examples/examples/02-decorator-options.ts` | All decorator options (@Step, @Task, @ObservedState) |
-| 03-parent-child | `/home/dustin/projects/groundswell/examples/examples/03-parent-child.ts` | Hierarchical workflows |
-| 04-observers-debugger | `/home/dustin/projects/groundswell/examples/examples/04-observers-debugger.ts` | Observers and debugging |
-| 05-error-handling | `/home/dustin/projects/groundswell/examples/examples/05-error-handling.ts` | Error patterns and retry |
-| 06-concurrent-tasks | `/home/dustin/projects/groundswell/examples/examples/06-concurrent-tasks.ts` | Parallel execution |
-| 07-agent-loops | `/home/dustin/projects/groundswell/examples/examples/07-agent-loops.ts` | Agent.prompt() in workflow loops |
-| 08-sdk-features | `/home/dustin/projects/groundswell/examples/examples/08-sdk-features.ts` | Tools, MCPs, hooks |
-| 09-reflection | `/home/dustin/projects/groundswell/examples/examples/09-reflection.ts` | Multi-level reflection |
-| 10-introspection | `/home/dustin/projects/groundswell/examples/examples/10-introspection.ts` | Introspection tools |
-| 11-reparenting-workflows | `/home/dustin/projects/groundswell/examples/examples/11-reparenting-workflows.ts` | Workflow reparenting patterns |
+| Example                  | Path                                                                              | Topics Covered                                       |
+| ------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 01-basic-workflow        | `/home/dustin/projects/groundswell/examples/examples/01-basic-workflow.ts`        | Basic workflow creation, logging, status management  |
+| 02-decorator-options     | `/home/dustin/projects/groundswell/examples/examples/02-decorator-options.ts`     | All decorator options (@Step, @Task, @ObservedState) |
+| 03-parent-child          | `/home/dustin/projects/groundswell/examples/examples/03-parent-child.ts`          | Hierarchical workflows                               |
+| 04-observers-debugger    | `/home/dustin/projects/groundswell/examples/examples/04-observers-debugger.ts`    | Observers and debugging                              |
+| 05-error-handling        | `/home/dustin/projects/groundswell/examples/examples/05-error-handling.ts`        | Error patterns and retry                             |
+| 06-concurrent-tasks      | `/home/dustin/projects/groundswell/examples/examples/06-concurrent-tasks.ts`      | Parallel execution                                   |
+| 07-agent-loops           | `/home/dustin/projects/groundswell/examples/examples/07-agent-loops.ts`           | Agent.prompt() in workflow loops                     |
+| 08-sdk-features          | `/home/dustin/projects/groundswell/examples/examples/08-sdk-features.ts`          | Tools, MCPs, hooks                                   |
+| 09-reflection            | `/home/dustin/projects/groundswell/examples/examples/09-reflection.ts`            | Multi-level reflection                               |
+| 10-introspection         | `/home/dustin/projects/groundswell/examples/examples/10-introspection.ts`         | Introspection tools                                  |
+| 11-reparenting-workflows | `/home/dustin/projects/groundswell/examples/examples/11-reparenting-workflows.ts` | Workflow reparenting patterns                        |
 
 ---
 
@@ -128,6 +129,7 @@ async mixedReturn(): Promise<(Workflow | string)[]> {
 **File**: `/home/dustin/projects/groundswell/README.md` (lines 176-207)
 
 **Important Notes**:
+
 - Uses duck-typing: any object with an `id` property is treated as workflow-like
 - Non-workflow objects are silently skipped (not attached)
 - Use `concurrent: true` for automatic parallel execution
@@ -192,19 +194,19 @@ Configuration follows a three-level override hierarchy:
 
 ```typescript
 const agent = createAgent({
-  system: 'Default system prompt',  // Agent-level
+  system: 'Default system prompt', // Agent-level
   model: 'claude-sonnet-4-20250514',
 });
 
 const prompt = createPrompt({
   user: 'Hello',
-  system: 'Override system prompt',  // Prompt-level (wins)
+  system: 'Override system prompt', // Prompt-level (wins)
   responseFormat: z.object({ response: z.string() }),
 });
 
 // Or override at execution time
 const result = await agent.prompt(prompt, {
-  model: 'claude-opus-4-5-20251101',  // Execution-level override
+  model: 'claude-opus-4-5-20251101', // Execution-level override
 });
 ```
 
@@ -256,13 +258,17 @@ mcpHandler.registerServer({
 });
 
 // Register tool executor
-mcpHandler.registerToolExecutor('demo', 'calculate', async (input) => {
+mcpHandler.registerToolExecutor('demo', 'calculate', async input => {
   const { operation, a, b } = input;
   switch (operation) {
-    case 'add': return { result: a + b };
-    case 'subtract': return { result: a - b };
-    case 'multiply': return { result: a * b };
-    case 'divide': return { result: a / b };
+    case 'add':
+      return { result: a + b };
+    case 'subtract':
+      return { result: a - b };
+    case 'multiply':
+      return { result: a * b };
+    case 'divide':
+      return { result: a / b };
   }
 });
 
@@ -294,7 +300,7 @@ Tools use full name format: `serverName__toolName`
 const result = await mcpHandler.executeTool('demo__calculate', {
   operation: 'add',
   a: 10,
-  b: 5
+  b: 5,
 });
 ```
 
@@ -309,8 +315,8 @@ import { createAgent, defaultCache } from 'groundswell';
 
 const agent = createAgent({ enableCache: true });
 
-const result1 = await agent.prompt(prompt);  // API call
-const result2 = await agent.prompt(prompt);  // Cached
+const result1 = await agent.prompt(prompt); // API call
+const result2 = await agent.prompt(prompt); // Cached
 
 // Cache metrics
 console.log(defaultCache.metrics());
@@ -322,6 +328,7 @@ console.log(defaultCache.metrics());
 #### Cache Key Generation
 
 Cache keys are deterministic SHA-256 hashes of:
+
 - User message
 - Data
 - System prompt
@@ -379,9 +386,9 @@ const exists = defaultCache.has(key);
 import { LLMCache } from 'groundswell';
 
 const customCache = new LLMCache({
-  maxItems: 500,           // Default: 1000
+  maxItems: 500, // Default: 1000
   maxSizeBytes: 25_000_000, // Default: 50MB
-  defaultTTLMs: 7_200_000,  // Default: 1 hour
+  defaultTTLMs: 7_200_000, // Default: 1 hour
 });
 ```
 
@@ -398,7 +405,7 @@ import {
   ReflectionManager,
   executeWithReflection,
   createReflectionConfig,
-  DEFAULT_REFLECTION_CONFIG
+  DEFAULT_REFLECTION_CONFIG,
 } from 'groundswell';
 
 // Create reflection manager
@@ -429,6 +436,7 @@ await executeWithReflection(
 #### Three Levels of Reflection
 
 1. **Prompt-level**: `enableReflection` on prompt config
+
    ```typescript
    const prompt = createPrompt({
      user: 'Complex question',
@@ -438,6 +446,7 @@ await executeWithReflection(
    ```
 
 2. **Agent-level**: `agent.reflect()` method
+
    ```typescript
    const result = await agent.reflect(prompt);
    // System prompt gets reflection prefix:
@@ -505,18 +514,23 @@ const node = debugger.getNode(workflow.id);
 
 #### Status Symbols
 
-| Symbol | Status |
-|--------|--------|
-| ○ | idle |
-| ◐ | running |
-| ✓ | completed |
-| ✗ | failed |
-| ⊘ | cancelled |
+| Symbol | Status    |
+| ------ | --------- |
+| ○      | idle      |
+| ◐      | running   |
+| ✓      | completed |
+| ✗      | failed    |
+| ⊘      | cancelled |
 
 #### Observers
 
 ```typescript
-import { WorkflowObserver, LogEntry, WorkflowEvent, WorkflowNode } from 'groundswell';
+import {
+  WorkflowObserver,
+  LogEntry,
+  WorkflowEvent,
+  WorkflowNode,
+} from 'groundswell';
 
 const observer: WorkflowObserver = {
   onLog(entry: LogEntry): void {
@@ -550,11 +564,12 @@ import { INTROSPECTION_TOOLS, createAgent } from 'groundswell';
 
 const agent = createAgent({
   name: 'IntrospectionAgent',
-  tools: INTROSPECTION_TOOLS,  // 6 tools for hierarchy navigation
+  tools: INTROSPECTION_TOOLS, // 6 tools for hierarchy navigation
 });
 ```
 
 **Available Tools**:
+
 1. `inspect_current_node` - "Where am I?"
 2. `read_ancestor_chain` - "What's above me?"
 3. `list_siblings_children` - "What's around me?"
@@ -573,20 +588,22 @@ const agent = createAgent({
 #### 1. Attaching Child to Multiple Parents (CRITICAL)
 
 **WRONG** - This now throws an error:
+
 ```typescript
 const parent1 = new Workflow({ name: 'parent1' });
 const parent2 = new Workflow({ name: 'parent2' });
 const child = new Workflow({ name: 'child' });
 
 parent1.attachChild(child);
-parent2.attachChild(child);  // ERROR: child already has a parent
+parent2.attachChild(child); // ERROR: child already has a parent
 ```
 
 **RIGHT** - Use detachChild first:
+
 ```typescript
 parent1.attachChild(child);
-parent1.detachChild(child);  // Detach first
-parent2.attachChild(child);  // Now works correctly
+parent1.detachChild(child); // Detach first
+parent2.attachChild(child); // Now works correctly
 ```
 
 **Source**: CHANGELOG v0.0.2, lines 108-131
@@ -594,6 +611,7 @@ parent2.attachChild(child);  // Now works correctly
 #### 2. Circular Reference Detection
 
 The `attachChild()` method prevents attaching an ancestor as a child:
+
 ```typescript
 const root = new Workflow({ name: 'root' });
 const child = new Workflow({ name: 'child', parent: root });
@@ -617,6 +635,7 @@ Only set `trackTiming: false` for performance-critical code with high-frequency 
 #### 4. @Task Lenient Validation
 
 Methods returning non-Workflow objects are silently skipped:
+
 ```typescript
 @Task()
 async returnsData(): Promise<string> {
@@ -661,8 +680,8 @@ async highFrequencyStep(): Promise<void> {
 
 ```typescript
 const agent = createAgent({ enableCache: true });
-const result = await agent.prompt(prompt);  // First call
-const cached = await agent.prompt(prompt);  // Cached result
+const result = await agent.prompt(prompt); // First call
+const cached = await agent.prompt(prompt); // Cached result
 ```
 
 #### 4. Tree Debugger Optimization
@@ -748,9 +767,7 @@ class ResilientParent extends Workflow {
 class Pipeline extends Workflow {
   @Step()
   async fanOut(): Promise<string[]> {
-    const workers = this.items.map(
-      item => new Worker(item, this)
-    );
+    const workers = this.items.map(item => new Worker(item, this));
 
     // Run all in parallel
     return Promise.all(workers.map(w => w.run()));
@@ -833,12 +850,12 @@ apiKey: string = 'secret-key';  // Shows as '***' in snapshots
 
 ```typescript
 interface WorkflowError {
-  message: string;           // Error message
-  original: unknown;         // Original error
-  workflowId: string;        // Workflow ID
-  stack?: string;            // Stack trace
-  state: Record<string, unknown>;  // State snapshot at error
-  logs: LogEntry[];          // Logs from this node only
+  message: string; // Error message
+  original: unknown; // Original error
+  workflowId: string; // Workflow ID
+  stack?: string; // Stack trace
+  state: Record<string, unknown>; // State snapshot at error
+  logs: LogEntry[]; // Logs from this node only
 }
 ```
 
@@ -861,11 +878,11 @@ class MyWorkflow extends Workflow {
     } catch (error) {
       const wfError = error as WorkflowError;
 
-      console.log(wfError.message);     // 'Processing failed'
-      console.log(wfError.workflowId);  // workflow ID
-      console.log(wfError.state);       // { currentItem: 'item-1' }
-      console.log(wfError.logs);        // logs up to error
-      console.log(wfError.stack);       // stack trace
+      console.log(wfError.message); // 'Processing failed'
+      console.log(wfError.workflowId); // workflow ID
+      console.log(wfError.state); // { currentItem: 'item-1' }
+      console.log(wfError.logs); // logs up to error
+      console.log(wfError.stack); // stack trace
     }
   }
 }
@@ -900,23 +917,23 @@ async createWorkers(): Promise<Worker[]> {
 
 ### Core Classes
 
-| Class | Factory | Description |
-|-------|---------|-------------|
-| `Workflow` | `createWorkflow()` | Hierarchical task container |
-| `Agent` | `createAgent()` | LLM execution wrapper |
-| `Prompt` | `createPrompt()` | Type-safe prompt definition |
-| `MCPHandler` | `new MCPHandler()` | Tool registration and execution |
-| `LLMCache` | `defaultCache` | LRU cache for LLM responses |
-| `ReflectionManager` | `new ReflectionManager()` | Multi-level reflection |
-| `WorkflowTreeDebugger` | `new WorkflowTreeDebugger()` | Tree visualization |
+| Class                  | Factory                      | Description                     |
+| ---------------------- | ---------------------------- | ------------------------------- |
+| `Workflow`             | `createWorkflow()`           | Hierarchical task container     |
+| `Agent`                | `createAgent()`              | LLM execution wrapper           |
+| `Prompt`               | `createPrompt()`             | Type-safe prompt definition     |
+| `MCPHandler`           | `new MCPHandler()`           | Tool registration and execution |
+| `LLMCache`             | `defaultCache`               | LRU cache for LLM responses     |
+| `ReflectionManager`    | `new ReflectionManager()`    | Multi-level reflection          |
+| `WorkflowTreeDebugger` | `new WorkflowTreeDebugger()` | Tree visualization              |
 
 ### Decorators
 
-| Decorator | Purpose | Key Options |
-|-----------|---------|-------------|
-| `@Step` | Wrap methods with events | `name`, `snapshotState`, `trackTiming`, `logStart`, `logFinish` |
-| `@Task` | Spawn child workflows | `name`, `concurrent`, `errorMergeStrategy` |
-| `@ObservedState` | Mark fields for snapshots | `redact`, `hidden` |
+| Decorator        | Purpose                   | Key Options                                                     |
+| ---------------- | ------------------------- | --------------------------------------------------------------- |
+| `@Step`          | Wrap methods with events  | `name`, `snapshotState`, `trackTiming`, `logStart`, `logFinish` |
+| `@Task`          | Spawn child workflows     | `name`, `concurrent`, `errorMergeStrategy`                      |
+| `@ObservedState` | Mark fields for snapshots | `redact`, `hidden`                                              |
 
 ### Factory Functions
 
@@ -967,6 +984,7 @@ npm run start:reparenting     # Reparenting workflows
 ### Version 0.0.3 (2026-01-12)
 
 **Fixed**:
+
 - WorkflowLogger.child() signature
 - Promise.allSettled for concurrent tasks
 - ErrorMergeStrategy implementation
@@ -976,16 +994,19 @@ npm run start:reparenting     # Reparenting workflows
 - trackTiming default documentation
 
 **Added**:
+
 - Public `isDescendantOf()` method
 
 ### Version 0.0.2 (2026-01-12)
 
 **Fixed**:
+
 - attachChild() parent validation
 - Circular reference detection
 - Observer event propagation
 
 **Added**:
+
 - `detachChild()` method
 - `childDetached` event type
 - `isDescendantOf()` helper
@@ -1024,14 +1045,14 @@ Initial release with hierarchical workflow engine.
 
 Key type definitions are located in:
 
-| File | Path | Types |
-|------|------|-------|
-| Main types | `/home/dustin/projects/groundswell/src/types/index.ts` | WorkflowStatus, WorkflowNode, LogEntry, WorkflowError, etc. |
-| Decorator types | `/home/dustin/projects/groundswell/src/types/decorators.ts` | StepOptions, TaskOptions, StateFieldMetadata |
-| Agent types | `/home/dustin/projects/groundswell/src/types/agent.ts` | AgentConfig, AgentHooks, TokenUsage |
-| Prompt types | `/home/dustin/projects/groundswell/src/types/prompt.ts` | PromptConfig, PromptOverrides |
-| Workflow context | `/home/dustin/projects/groundswell/src/types/workflow-context.ts` | WorkflowConfig, WorkflowContext, WorkflowResult |
-| Reflection | `/home/dustin/projects/groundswell/src/types/reflection.ts` | ReflectionConfig, ReflectionContext, ReflectionEntry |
+| File             | Path                                                              | Types                                                       |
+| ---------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| Main types       | `/home/dustin/projects/groundswell/src/types/index.ts`            | WorkflowStatus, WorkflowNode, LogEntry, WorkflowError, etc. |
+| Decorator types  | `/home/dustin/projects/groundswell/src/types/decorators.ts`       | StepOptions, TaskOptions, StateFieldMetadata                |
+| Agent types      | `/home/dustin/projects/groundswell/src/types/agent.ts`            | AgentConfig, AgentHooks, TokenUsage                         |
+| Prompt types     | `/home/dustin/projects/groundswell/src/types/prompt.ts`           | PromptConfig, PromptOverrides                               |
+| Workflow context | `/home/dustin/projects/groundswell/src/types/workflow-context.ts` | WorkflowConfig, WorkflowContext, WorkflowResult             |
+| Reflection       | `/home/dustin/projects/groundswell/src/types/reflection.ts`       | ReflectionConfig, ReflectionContext, ReflectionEntry        |
 
 ---
 

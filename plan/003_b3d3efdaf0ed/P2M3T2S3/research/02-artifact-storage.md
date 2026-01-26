@@ -25,6 +25,7 @@ plan/
 ## Artifact File Types
 
 ### validation-results.json
+
 ```typescript
 interface ValidationGateResult {
   readonly level: 1 | 2 | 3 | 4;
@@ -39,6 +40,7 @@ interface ValidationGateResult {
 ```
 
 ### execution-summary.md
+
 ```markdown
 # Execution Summary
 
@@ -48,16 +50,19 @@ interface ValidationGateResult {
 ## Validation Results
 
 ### Level 1: Syntax & Style validation
+
 - Status: PASSED|FAILED
 - Command: [command executed]
 - Skipped: Yes|No
 
 ## Artifacts
+
 - [artifact path 1]
 - [artifact path 2]
 ```
 
 ### artifacts-list.json
+
 ```json
 [
   "/path/to/created/file1.ts",
@@ -76,16 +81,19 @@ interface ValidationGateResult {
 ## Existing Artifact Functionality
 
 ### Artifact Creation (`src/agents/prp-runtime.ts`)
+
 - Method: `#writeArtifacts()` (lines 245-285)
 - Directory creation: `join(this.#sessionPath, 'artifacts', subtask.id)`
 - File permissions: 0o644 (read/write for owner, read for others)
 
 ### CLI Inspect Command (`src/cli/commands/inspect.ts`)
+
 - Method: `#scanArtifacts()` scans session for artifact directories
 - Option: `--artifacts-only` flag to show only artifact information
 - Display: Table format showing Task ID, Type, Path, Status
 
 ### Artifact Types Categorized
+
 - `prp`: PRP markdown files
 - `validation`: Validation results
 - `implementation`: Implementation artifacts

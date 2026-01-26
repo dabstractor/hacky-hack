@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive custom MCP tool development guide (`docs/CUSTOM_TOOLS.md`) that documents the Model Context Protocol (MCP) basics, how to implement the MCPServer interface using Groundswell's MCPHandler, defining tool schemas with JSON Schema, writing tool executors, error handling and return values, and registering tools with agents. Include a complete example of adding a 'DockerMCP' tool.
 
 **Deliverable**: Documentation file `docs/CUSTOM_TOOLS.md` containing:
+
 - MCP protocol basics (what is MCP, tools, resources, prompts)
 - MCPServer interface implementation with Groundswell's MCPHandler
 - Tool schema definition patterns with JSON Schema examples
@@ -24,6 +25,7 @@
 - Cross-references to existing tool implementations
 
 **Success Definition**:
+
 - A developer can create a new custom MCP tool following the guide
 - The DockerMCP example is complete and can be implemented directly
 - All patterns reference actual code from the codebase with file paths
@@ -35,6 +37,7 @@
 ## User Persona
 
 **Target User**: Developer or contributor who needs to:
+
 - Extend the PRP Pipeline with custom MCP tools
 - Understand the MCP protocol and tool development
 - Create domain-specific tools (e.g., DockerMCP, DatabaseMCP, APIMCP)
@@ -42,6 +45,7 @@
 - Integrate new tools into the PRP Pipeline workflow
 
 **Use Case**: User needs to understand:
+
 - What is the Model Context Protocol (MCP)?
 - How do MCP tools work in this codebase?
 - How do I implement the MCPServer interface?
@@ -51,6 +55,7 @@
 - Is there a complete example I can follow?
 
 **User Journey**:
+
 1. User opens docs/CUSTOM_TOOLS.md to understand MCP tool development
 2. User learns about MCP protocol basics (tools, resources, prompts)
 3. User understands the Groundswell MCPHandler pattern
@@ -61,6 +66,7 @@
 8. User can now create and integrate custom MCP tools effectively
 
 **Pain Points Addressed**:
+
 - "What is MCP and how does it work?" - MCP protocol basics section
 - "How do I create a custom tool?" - Step-by-step implementation guide
 - "How do I define tool schemas?" - JSON Schema examples and patterns
@@ -105,6 +111,7 @@ Create docs/CUSTOM_TOOLS.md with comprehensive custom MCP tool development docum
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete MCP tool implementations (bash-mcp.ts, filesystem-mcp.ts, git-mcp.ts)
 - MCPHandler usage patterns from Groundswell framework
 - Agent factory integration patterns
@@ -424,10 +431,11 @@ Task 12: VALIDATE documentation quality
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Documentation Style Guidelines (follow existing patterns)
 
 # Header Pattern
+
 > Brief one-sentence description
 
 **Status**: Published
@@ -435,10 +443,13 @@ Task 12: VALIDATE documentation quality
 **Version**: 1.0.0
 
 # Section Headers
+
 ## Section Name
+
 ### Subsection Name
 
 # Code Examples
+
 ```typescript
 // Include file path comment
 // src/tools/bash-mcp.ts
@@ -455,24 +466,32 @@ export class BashMCP extends MCPHandler {
       transport: this.transport,
       tools: this.tools,
     });
-    this.registerToolExecutor('bash', 'execute_bash', executeBashCommand as ToolExecutor);
+    this.registerToolExecutor(
+      'bash',
+      'execute_bash',
+      executeBashCommand as ToolExecutor
+    );
   }
 }
 ```
+````
 
 # Cross-References
+
 See [BashMCP](../src/tools/bash-mcp.ts) for complete implementation.
 See [Agent Factory](../src/agents/agent-factory.ts) for tool registration patterns.
 See [MCP Protocol Research](./plan/003_b3d3efdaf0ed/P2M2T2S2/research/mcp-protocol-research.md) for external resources.
 
 # Tables
-| Component | Description | Example |
-|-----------|-------------|---------|
-| Tools | Callable functions | file_read, git_status |
-| Resources | Data sources | files, APIs |
-| Prompts | Reusable templates | System prompts |
+
+| Component | Description        | Example               |
+| --------- | ------------------ | --------------------- |
+| Tools     | Callable functions | file_read, git_status |
+| Resources | Data sources       | files, APIs           |
+| Prompts   | Reusable templates | System prompts        |
 
 # Diagrams (Mermaid)
+
 ```mermaid
 flowchart LR
     Agent[Agent] --> Tool[MCP Tool]
@@ -483,6 +502,7 @@ flowchart LR
 ```
 
 # Callouts
+
 > **Note**: Important information uses blockquote format.
 
 **CRITICAL**: Use emphasis for critical implementation details.
@@ -494,9 +514,11 @@ flowchart LR
 **SECURITY**: Highlight security considerations.
 
 # External Links
+
 [MCP Specification](https://spec.modelcontextprotocol.io/specification/)
 [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-```
+
+````
 
 ### Integration Points
 
@@ -521,7 +543,7 @@ PARALLEL WORK CONSIDERATIONS:
   - CUSTOM_TOOLS.md should reference CUSTOM_AGENTS.md for agent-side integration
   - Focus CUSTOM_TOOLS.md on tool implementation, not agent creation
   - Avoid duplicating MCP tool registration content - reference CUSTOM_AGENTS.md instead
-```
+````
 
 ---
 

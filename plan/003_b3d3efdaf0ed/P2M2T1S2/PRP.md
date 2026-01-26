@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive Groundswell framework integration guide (`docs/GROUNDSWELL_GUIDE.md`) that documents how the PRP Pipeline uses Groundswell for workflow orchestration, agent management, and tool integration, enabling developers to understand and extend the system.
 
 **Deliverable**: Documentation file `docs/GROUNDSWELL_GUIDE.md` containing:
+
 - Groundswell framework overview and integration points
 - Workflow class extension and decorator patterns (@Step, @Task, @ObservedState)
 - Agent creation and configuration patterns
@@ -23,6 +24,7 @@
 - Cross-references to related documentation
 
 **Success Definition**:
+
 - A new developer can understand how Groundswell powers the PRP Pipeline
 - All four agent personas are documented with their configurations
 - Workflow patterns are clearly explained with code examples
@@ -34,12 +36,14 @@
 ## User Persona
 
 **Target User**: Developer or contributor who needs to:
+
 - Understand the PRP Pipeline's Groundswell integration
 - Extend the system with new agents, tools, or workflows
 - Debug or modify existing workflow behavior
 - Implement new features using Groundswell patterns
 
 **Use Case**: User needs to understand:
+
 - What is Groundswell and how is it used in this project?
 - How do I create a new workflow?
 - How do I add a new agent persona?
@@ -48,6 +52,7 @@
 - How does caching and reflection work?
 
 **User Journey**:
+
 1. User opens docs/GROUNDSWELL_GUIDE.md to understand Groundswell
 2. User reads the overview and core concepts
 3. User studies the workflow patterns with examples
@@ -57,6 +62,7 @@
 7. User has a complete understanding of how to extend the system
 
 **Pain Points Addressed**:
+
 - "What is Groundswell?" - Overview section
 - "How do workflows work?" - Workflow patterns section
 - "How do I add a tool?" - MCP tool registration section
@@ -101,6 +107,7 @@ Create docs/GROUNDSWELL_GUIDE.md with comprehensive Groundswell integration docu
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete Groundswell library documentation from official sources
 - All workflow patterns found in the codebase with file references
 - Agent factory patterns with all four personas
@@ -609,8 +616,9 @@ Task 15: VALIDATE - Review against success criteria
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 <!-- Header Pattern (from docs/INSTALLATION.md) -->
+
 # Groundswell Framework Guide
 
 > Comprehensive guide to the Groundswell framework integration in the PRP Pipeline, covering workflow patterns, agent systems, and extensibility.
@@ -622,6 +630,7 @@ Task 15: VALIDATE - Review against success criteria
 ---
 
 <!-- Table of Contents Pattern -->
+
 ## Table of Contents
 
 - [Quick Reference](#quick-reference)
@@ -638,19 +647,21 @@ Task 15: VALIDATE - Review against success criteria
 ---
 
 <!-- Quick Reference Table Pattern -->
+
 ## Quick Reference
 
-| Export | Purpose | Usage |
-|--------|---------|-------|
-| `Workflow` | Base class for workflows | `class MyWorkflow extends Workflow` |
-| `createAgent` | Agent factory | `createAgent({ name, system })` |
-| `createPrompt` | Prompt factory | `createPrompt({ user, responseFormat })` |
-| `@Step` | Step decorator | `@Step({ trackTiming: true })` |
-| `MCPHandler` | MCP tool handler | `class MyMCP extends MCPHandler` |
+| Export         | Purpose                  | Usage                                    |
+| -------------- | ------------------------ | ---------------------------------------- |
+| `Workflow`     | Base class for workflows | `class MyWorkflow extends Workflow`      |
+| `createAgent`  | Agent factory            | `createAgent({ name, system })`          |
+| `createPrompt` | Prompt factory           | `createPrompt({ user, responseFormat })` |
+| `@Step`        | Step decorator           | `@Step({ trackTiming: true })`           |
+| `MCPHandler`   | MCP tool handler         | `class MyMCP extends MCPHandler`         |
 
 ---
 
 <!-- Code Example Pattern -->
+
 ## Extending the Workflow Class
 
 ```typescript
@@ -691,8 +702,10 @@ class MyWorkflow extends Workflow {
   }
 }
 ```
+````
 
 **Key Points**:
+
 - All workflows extend `Workflow` and call `super(name)`
 - Use public fields for state (not `@ObservedState`)
 - All `@Step` decorators use `trackTiming: true`
@@ -701,6 +714,7 @@ class MyWorkflow extends Workflow {
 ---
 
 <!-- Agent Factory Pattern -->
+
 ## Agent Factory Pattern
 
 ```typescript
@@ -742,6 +756,7 @@ const agent = createAgent({
 ---
 
 <!-- MCP Tool Pattern -->
+
 ## MCP Tool Implementation
 
 ```typescript
@@ -763,7 +778,7 @@ class MyMCP extends MCPHandler {
     });
 
     // Register tool executor
-    this.registerToolExecutor('my-mcp', 'my_tool', async (input) => {
+    this.registerToolExecutor('my-mcp', 'my_tool', async input => {
       const { param1 } = input;
       return { result: `processed: ${param1}` };
     });
@@ -789,6 +804,7 @@ const myTool: Tool = {
 ---
 
 <!-- Cross-Reference Pattern -->
+
 ## See Also
 
 - **[Architecture Overview](./ARCHITECTURE.md)** - High-level system architecture
@@ -796,7 +812,8 @@ const myTool: Tool = {
 - **[Configuration](./CONFIGURATION.md)** - Environment variables and settings
 - **[Workflows](./WORKFLOWS.md)** - Pipeline workflow documentation
 - **[Groundswell Documentation](~/projects/groundswell/README.md)** - Official Groundswell library docs
-```
+
+````
 
 ### Integration Points
 
@@ -835,7 +852,7 @@ src/tools/:
   - reference: "MCP tools in [src/tools/](../src/tools/)"
   - placement: MCP Tool Registration section
   - context: Tool implementations (BashMCP, FilesystemMCP, GitMCP)
-```
+````
 
 ---
 
@@ -967,7 +984,7 @@ grep -c "^## " docs/GROUNDSWELL_GUIDE.md  # Should be 10+ top-level sections
 - [ ] MCP patterns match /src/tools/bash-mcp.ts, filesystem-mcp.ts, git-mcp.ts
 - [ ] Cache pattern matches /src/agents/prp-generator.ts (custom, not defaultCache)
 - [ ] Retry pattern matches /src/utils/retry.ts (custom wrapper)
-- [ ] Prompt patterns match /src/agents/prompts/*.ts
+- [ ] Prompt patterns match /src/agents/prompts/\*.ts
 - [ ] Gotchas are documented (@ObservedState, @Task not used in production)
 - [ ] GLM-4.7 model documented for all agents
 - [ ] Token limits documented (Architect: 8192, others: 4096)
@@ -999,7 +1016,7 @@ grep -c "^## " docs/GROUNDSWELL_GUIDE.md  # Should be 10+ top-level sections
 - [ ] Don't use incorrect relative paths (use ./ for same directory, ../ for parent)
 - [ ] Don't skip the See Also section (important for navigation)
 - [ ] Don't use codebase-agnostic examples (use PRP Pipeline-specific patterns)
-- [ ] Don't forget to document tool naming convention (serverName__toolName)
+- [ ] Don't forget to document tool naming convention (serverName\_\_toolName)
 - [ ] Don't skip agent persona differences (token limits, system prompts)
 - [ ] Don't omit the local Groundswell path (~/projects/groundswell)
 - [ ] Don't forget to document GLM-4.7 model usage

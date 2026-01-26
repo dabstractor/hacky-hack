@@ -5,6 +5,7 @@
 ### 1. Session Manager (`src/core/session-manager.ts`)
 
 **Responsibilities**:
+
 - Session state management with immutable `SessionState`
 - PRD hash-based initialization (SHA-256)
 - Session discovery and creation
@@ -12,12 +13,14 @@
 - Atomic persistence with batch writes
 
 **Key Methods**:
+
 - `initialize(): Promise<SessionState>` - Load or create session
 - `createDeltaSession(newPRDPath): Promise<DeltaSession>` - Handle PRD changes
 - `updateItemStatus(itemId, status): Promise<Backlog>` - Batched status updates
 - `flushUpdates(): Promise<void>` - Atomic state persistence
 
 **Session Directory Structure**:
+
 ```
 plan/
 ├── 001_14b9dc2a33c7/
@@ -29,6 +32,7 @@ plan/
 ### 2. Task Orchestrator (`src/core/task-orchestrator.ts`)
 
 **Responsibilities**:
+
 - DFS pre-order traversal (Phase → Milestone → Task → Subtask)
 - Dependency resolution for subtasks
 - Scope-based execution support
@@ -36,12 +40,14 @@ plan/
 - Smart git commits
 
 **Key Methods**:
+
 - `processNextItem(): Promise<boolean>` - Process execution queue
 - `canExecute(subtask): boolean` - Check dependencies satisfied
 - `getBlockingDependencies(subtask): Subtask[]` - Get blocking deps
 - `waitForDependencies(subtask, options): Promise<void>` - Wait for deps
 
 **Task Hierarchy**:
+
 ```
 Phase P1
 ├── Milestone P1.M1
@@ -53,6 +59,7 @@ Phase P1
 ### 3. Agent Runtime (`src/agents/prp-runtime.ts`)
 
 **Responsibilities**:
+
 - Agent factory for all personas
 - Tool registration (Bash, Filesystem, Git)
 - Context injection for agents
@@ -70,6 +77,7 @@ Phase P1
 ### 4. Pipeline Controller (`src/workflows/prp-pipeline.ts`)
 
 **Responsibilities**:
+
 - Main workflow orchestration
 - Error recovery and retry logic
 - Graceful shutdown (SIGINT handling)
@@ -77,6 +85,7 @@ Phase P1
 - Session resumption
 
 **Execution Flow**:
+
 ```
 Initializing → Running → Success/Interrupted/Failure
 ```
@@ -84,29 +93,36 @@ Initializing → Running → Success/Interrupted/Failure
 ## Data Structures
 
 ### Task Hierarchy Types
+
 ```typescript
 type HierarchyItem = Phase | Milestone | Task | Subtask;
 
 interface Phase {
-  readonly id: string;              // P1
+  readonly id: string; // P1
   readonly type: 'Phase';
   readonly milestones: Milestone[];
   readonly status: Status;
 }
 
 interface Subtask {
-  readonly id: string;              // P1.M1.T1.S1
+  readonly id: string; // P1.M1.T1.S1
   readonly type: 'Subtask';
-  readonly dependencies: string[];  // ['P1.M1.T1.S1']
+  readonly dependencies: string[]; // ['P1.M1.T1.S1']
   readonly status: Status;
   readonly story_points: number;
   readonly context_scope: string;
 }
 
-type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed';
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed';
 ```
 
 ### Session Types
+
 ```typescript
 interface SessionState {
   readonly metadata: SessionMetadata;

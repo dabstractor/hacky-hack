@@ -52,6 +52,7 @@ CONTRACT DEFINITION:
 ### Example: Main PRD.md Structure
 
 The main PRD.md demonstrates comprehensive PRD structure:
+
 - Executive Summary with clear goals
 - Core Philosophy & Concepts explaining the "why"
 - System Architecture with components
@@ -62,6 +63,7 @@ The main PRD.md demonstrates comprehensive PRD structure:
 ### Subtask Best Practices
 
 From `simple-prd.ts`, each subtask includes:
+
 - Clear description
 - Story points estimate
 - Dependencies list

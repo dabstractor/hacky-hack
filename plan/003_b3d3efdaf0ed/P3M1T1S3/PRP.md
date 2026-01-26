@@ -13,12 +13,14 @@
 **Feature Goal**: Add `--parallelism <n>` CLI option that allows users to control the maximum number of concurrent subtask executions, with integer range validation (1-10), conservative default value of 2, system resource warnings when value exceeds available CPU/memory, and proper integration with the ConcurrentTaskExecutor from P3.M1.T1.S2.
 
 **Deliverable**:
+
 1. CLI option `--parallelism <n>` in `src/cli/index.ts` with validation
 2. System resource detection and warning logic using `os.cpus()` and `os.freemem()`
 3. Option propagation: CLI → main.ts → PRPPipeline → TaskOrchestrator
 4. Integration test at `tests/integration/parallelism-option.test.ts`
 
 **Success Definition**:
+
 - `--parallelism` option accepts integers 1-10 (inclusive)
 - Default value is 2 (conservative)
 - Values outside range produce clear error messages
@@ -31,12 +33,14 @@
 **Target User**: Developer using the PRP Pipeline who wants to control parallelism for performance tuning
 
 **Use Case**: User wants to:
+
 - Increase parallelism on powerful machines (e.g., `--parallelism 8`)
 - Decrease parallelism on resource-constrained systems
 - Use conservative default on unknown systems
 - Get warnings when settings exceed system capacity
 
 **User Journey**:
+
 1. User runs `prp-pipeline --parallelism 5`
 2. CLI parses and validates the option (1-10 range check)
 3. System checks CPU cores and displays warning if needed
@@ -45,6 +49,7 @@
 6. Subtasks execute with proper concurrency control
 
 **Pain Points Addressed**:
+
 - "How do I control parallelism?" - New `--parallelism` option
 - "What's a safe value?" - Conservative default of 2
 - "Will this overload my system?" - Resource warnings for CPU/memory
@@ -85,6 +90,7 @@ Add `--parallelism <n>` CLI option with:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Exact file locations and line numbers for all modifications
 - Complete code patterns for CLI option definition and validation
 - System resource detection code using Node.js `os` module
@@ -331,13 +337,13 @@ export interface CLIArgs {
   maxTasks?: number;
   maxDuration?: number;
   progressMode?: 'auto' | 'always' | 'never';
-  parallelism: number;  // NEW - Add this field
+  parallelism: number; // NEW - Add this field
 }
 
 // Existing ParallelismConfig interface (src/core/concurrent-executor.ts lines 41-53)
 export interface ParallelismConfig {
   enabled: boolean;
-  maxConcurrency: number;  // This receives the parallelism value
+  maxConcurrency: number; // This receives the parallelism value
   prpGenerationLimit: number;
   resourceThreshold: number;
 }
@@ -345,7 +351,7 @@ export interface ParallelismConfig {
 
 ### Implementation Tasks (Ordered by Dependencies)
 
-```yaml
+````yaml
 Task 1: MODIFY src/cli/index.ts - Add parallelism to CLIArgs interface
   - ADD: parallelism: number field to CLIArgs interface
   - LOCATION: After line 94 (after progressMode field)
@@ -490,7 +496,7 @@ Task 10: VALIDATE implementation
   - VERIFY: Integration tests pass (npm run test:run tests/integration/parallelism-option.test.ts)
   - VERIFY: All tests pass (npm run test:run)
   - VERIFY: Manual testing with --parallelism flag
-```
+````
 
 ### Implementation Patterns & Key Details
 

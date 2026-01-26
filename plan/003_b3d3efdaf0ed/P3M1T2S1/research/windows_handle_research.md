@@ -44,6 +44,7 @@ Windows file handle monitoring presents unique challenges compared to Unix-like 
 **handle.exe** is a command-line utility from Microsoft's Sysinternals suite that displays information about open handles for any process in Windows. It was originally developed by Mark Russinovich and is now maintained by Microsoft.
 
 **Key Characteristics:**
+
 - **Purpose**: Enumerate open file handles, registry handles, and other kernel objects
 - **Platform**: Windows only (NT-based systems)
 - **License**: Freeware, Microsoft EULA
@@ -155,6 +156,7 @@ handle.exe
 **Deployment Strategies:**
 
 1. **Bundle with Application**
+
    ```json
    {
      "scripts": {
@@ -164,6 +166,7 @@ handle.exe
    ```
 
 2. **Download on First Use**
+
    ```typescript
    async function ensureHandleExe(): Promise<string> {
      const path = join(homedir(), '.cache', 'myapp', 'handle.exe');
@@ -242,12 +245,12 @@ async function countFileHandlesAsync(pid: number): Promise<number> {
 
     let count = 0;
 
-    handle.stdout.on('data', (data) => {
+    handle.stdout.on('data', data => {
       const lines = data.toString().split('\n');
       count += lines.filter(l => l.includes(':')).length;
     });
 
-    handle.on('close', (code) => {
+    handle.on('close', code => {
       if (code === 0) {
         resolve(Math.max(0, count - 1)); // Subtract header
       } else {
@@ -321,12 +324,12 @@ async function countWithPrivilegeCheck(pid: number): Promise<number> {
 
 Based on testing and community benchmarks:
 
-| Scenario | Execution Time | CPU Usage | Memory Impact |
-|----------|---------------|-----------|---------------|
-| Single process (node.exe) | 100-300ms | 5-15% | ~2MB |
-| All processes (system-wide) | 2-5 seconds | 30-50% | ~15MB |
-| Filtered by name | 50-200ms | 3-10% | ~2MB |
-| Not in PATH | N/A | 0% | N/A |
+| Scenario                    | Execution Time | CPU Usage | Memory Impact |
+| --------------------------- | -------------- | --------- | ------------- |
+| Single process (node.exe)   | 100-300ms      | 5-15%     | ~2MB          |
+| All processes (system-wide) | 2-5 seconds    | 30-50%    | ~15MB         |
+| Filtered by name            | 50-200ms       | 3-10%     | ~2MB          |
+| Not in PATH                 | N/A            | 0%        | N/A           |
 
 ### Performance Impact Factors
 
@@ -456,8 +459,9 @@ class WindowsHandleMonitor {
 
   private getCountViaInternalApi(): number {
     try {
-      const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
-        ._getActiveHandles?.();
+      const handles = (
+        process as unknown as { _getActiveHandles?: () => unknown[] }
+      )._getActiveHandles?.();
       return handles?.length ?? 0;
     } catch {
       return 0;
@@ -476,8 +480,12 @@ class WindowsHandleMonitor {
     return {
       available: this.available,
       admin: this.admin,
-      method: this.available && this.admin ? 'handle.exe' :
-               this.options.fallbackToInternalApi ? 'internal' : 'none',
+      method:
+        this.available && this.admin
+          ? 'handle.exe'
+          : this.options.fallbackToInternalApi
+            ? 'internal'
+            : 'none',
     };
   }
 }
@@ -518,15 +526,17 @@ class WindowsResourceMonitor extends ResourceMonitor {
 
 ## Alternatives to handle.exe
 
-### Alternative 1: process._getActiveHandles() (Recommended)
+### Alternative 1: process.\_getActiveHandles() (Recommended)
 
 **Pros:**
+
 - No external dependencies
 - Fast (~1ms)
 - No permissions required
 - Works on all platforms
 
 **Cons:**
+
 - Internal API (not officially documented)
 - Returns all handles (not just files)
 - May change in future Node.js versions
@@ -534,8 +544,9 @@ class WindowsResourceMonitor extends ResourceMonitor {
 ```typescript
 function countHandlesViaInternalApi(): number {
   try {
-    const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
-      ._getActiveHandles?.();
+    const handles = (
+      process as unknown as { _getActiveHandles?: () => unknown[] }
+    )._getActiveHandles?.();
     return handles?.length ?? 0;
   } catch {
     return 0;
@@ -548,11 +559,13 @@ function countHandlesViaInternalApi(): number {
 ### Alternative 2: Windows Performance Counters
 
 **Pros:**
+
 - Built into Windows
 - No external tools
 - Can monitor other processes
 
 **Cons:**
+
 - Complex to use from Node.js
 - Requires native modules (node-ffi)
 - Not per-handle granularity
@@ -576,10 +589,12 @@ await getProcessHandleCount(process.pid);
 ### Alternative 3: PowerShell Get-Process
 
 **Pros:**
+
 - Built into Windows
 - Simple to invoke
 
 **Cons:**
+
 - Only returns total handle count (not per-type)
 - Slower than internal API
 - PowerShell startup overhead
@@ -601,10 +616,12 @@ function getHandleCountViaPowerShell(pid: number): number {
 ### Alternative 4: WMIC (Windows Management Instrumentation)
 
 **Pros:**
+
 - Built into Windows
 - No permissions required for basic queries
 
 **Cons:**
+
 - Deprecated (being replaced by PowerShell
 - Slower than other methods
 - Inconsistent output format
@@ -627,14 +644,17 @@ function getHandleCountViaWMIC(pid: number): number {
 ### Alternative 5: Skip Monitoring (Best Practice)
 
 **Pros:**
+
 - Zero overhead
 - Zero complexity
 - Works everywhere
 
 **Cons:**
+
 - No handle leak detection on Windows
 
 **Rationale**:
+
 - Windows file handle limits are much higher (16,777,216 per process)
 - Handle exhaustion is rare on Windows
 - Memory monitoring is more critical
@@ -668,6 +688,7 @@ class FileHandleMonitor {
 **Best Practice**: Don't implement file handle monitoring on Windows at all.
 
 **Reasons:**
+
 1. Windows doesn't have a ulimit concept
 2. Handle limits are per-process and very high
 3. Handle exhaustion is extremely rare
@@ -697,7 +718,7 @@ class ResourceMonitor {
 }
 ```
 
-### Recommendation 2: Use process._getActiveHandles() if Needed
+### Recommendation 2: Use process.\_getActiveHandles() if Needed
 
 If you must monitor file handles on Windows, use the internal API:
 
@@ -705,8 +726,9 @@ If you must monitor file handles on Windows, use the internal API:
 function getHandleCount(): number {
   // Try internal API first (fastest, works on all platforms)
   try {
-    const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
-      ._getActiveHandles?.();
+    const handles = (
+      process as unknown as { _getActiveHandles?: () => unknown[] }
+    )._getActiveHandles?.();
     if (handles && Array.isArray(handles)) {
       return handles.length;
     }
@@ -757,8 +779,8 @@ class ResourceMonitor {
     if (process.platform === 'win32') {
       console.log(
         'File handle monitoring disabled on Windows. ' +
-        'Windows uses per-process handle limits (~16M) that are ' +
-        'rarely reached. Memory monitoring is enabled.'
+          'Windows uses per-process handle limits (~16M) that are ' +
+          'rarely reached. Memory monitoring is enabled.'
       );
     }
 
@@ -854,9 +876,9 @@ class FileHandleMonitor {
   private warnAboutMonitoringFailure(): void {
     console.warn(
       'File handle monitoring unavailable. ' +
-      'On Windows: Install handle.exe from Sysinternals or accept that ' +
-      'file handle monitoring is disabled. ' +
-      'This is not critical - Windows handle limits are very high.'
+        'On Windows: Install handle.exe from Sysinternals or accept that ' +
+        'file handle monitoring is disabled. ' +
+        'This is not critical - Windows handle limits are very high.'
     );
   }
 }
@@ -892,7 +914,9 @@ class ResourceMonitor {
         this.initWindowsMonitoring(config);
       } else {
         // Auto mode - skip on Windows
-        console.log('File handle monitoring disabled on Windows (auto-detected)');
+        console.log(
+          'File handle monitoring disabled on Windows (auto-detected)'
+        );
       }
     } else {
       // Unix platforms - always enable
@@ -925,6 +949,7 @@ class ResourceMonitor {
 **Don't implement file handle monitoring on Windows.**
 
 **Rationale:**
+
 - Windows handle limits are per-process (~16M) vs system-wide on Linux (1024)
 - Handle exhaustion is extremely rare on Windows
 - Performance overhead is significant (100-500ms vs 5ms on Linux)
@@ -932,6 +957,7 @@ class ResourceMonitor {
 - No native ulimit concept
 
 **Implementation:**
+
 ```typescript
 function getHandleCount(): number {
   if (process.platform === 'win32') {
@@ -946,12 +972,14 @@ function getHandleCount(): number {
 **If monitoring is required, use `process._getActiveHandles()`.**
 
 **Rationale:**
+
 - No external dependencies
 - Fast (~1ms)
 - Works on all platforms
 - No permissions required
 
 **Implementation:**
+
 ```typescript
 function getHandleCount(): number {
   try {
@@ -968,11 +996,13 @@ function getHandleCount(): number {
 **If handle.exe is required (e.g., for handle type filtering):**
 
 **Rationale:**
+
 - Provides detailed handle information (type, name, etc.)
 - Industry-standard tool
 - Well-maintained by Microsoft
 
 **Implementation Requirements:**
+
 - Check availability at startup
 - Require Administrator privileges
 - Implement caching to reduce overhead
@@ -981,26 +1011,26 @@ function getHandleCount(): number {
 
 ### Decision Matrix
 
-| Scenario | Recommended Approach |
-|----------|---------------------|
-| Cross-platform app | Skip on Windows, use internal API for basic count |
-| Windows-only app | Skip or use internal API |
-| Need handle details (names, types) | handle.exe with graceful degradation |
-| Production environment | Skip on Windows (avoid deployment complexity) |
-| Development/Debugging | handle.exe (install manually) |
-| CI/CD environment | Skip on Windows (avoid permission issues) |
+| Scenario                           | Recommended Approach                              |
+| ---------------------------------- | ------------------------------------------------- |
+| Cross-platform app                 | Skip on Windows, use internal API for basic count |
+| Windows-only app                   | Skip or use internal API                          |
+| Need handle details (names, types) | handle.exe with graceful degradation              |
+| Production environment             | Skip on Windows (avoid deployment complexity)     |
+| Development/Debugging              | handle.exe (install manually)                     |
+| CI/CD environment                  | Skip on Windows (avoid permission issues)         |
 
 ### Performance Comparison Summary
 
-| Method | Execution Time | Dependencies | Permissions | Accuracy |
-|--------|---------------|--------------|-------------|----------|
-| Linux /proc | ~5ms | None | None | 100% |
-| macOS lsof | ~200ms | None | None | 100% |
-| Windows internal API | ~1ms | None | None | ~80%* |
-| Windows handle.exe | ~300ms | handle.exe | Admin | 100% |
-| Windows (skip) | 0ms | None | None | N/A |
+| Method               | Execution Time | Dependencies | Permissions | Accuracy |
+| -------------------- | -------------- | ------------ | ----------- | -------- |
+| Linux /proc          | ~5ms           | None         | None        | 100%     |
+| macOS lsof           | ~200ms         | None         | None        | 100%     |
+| Windows internal API | ~1ms           | None         | None        | ~80%\*   |
+| Windows handle.exe   | ~300ms         | handle.exe   | Admin       | 100%     |
+| Windows (skip)       | 0ms            | None         | None        | N/A      |
 
-*Internal API counts all handles, not just file handles
+\*Internal API counts all handles, not just file handles
 
 ---
 
@@ -1019,15 +1049,18 @@ Windows file handle monitoring is fundamentally different from Unix-like systems
 ## Additional Resources
 
 ### Official Documentation
+
 - **Sysinternals Handle**: https://learn.microsoft.com/en-us/sysinternals/handle
 - **Node.js Process API**: https://nodejs.org/api/process.html
 - **Windows Handle Limits**: https://docs.microsoft.com/en-us/windows/win32/memory/handle-objects
 
 ### Downloads
+
 - **handle.exe**: https://download.sysinternals.com/files/Handle.zip
 - **Sysinternals Suite**: https://learn.microsoft.com/en-us/sysinternals/downloads/sysinternals-suite
 
 ### Related Tools
+
 - **Process Explorer**: https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer
 - **Process Monitor**: https://learn.microsoft.com/en-us/sysinternals/downloads/procmon
 

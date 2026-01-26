@@ -9,6 +9,7 @@
 **Deliverable**: Enhanced PRP generation system with configurable compression, token tracking, and optimized storage format.
 
 **Success Definition**:
+
 - PRP markdown files reduced by 50%+ average size
 - Token usage reduction of 40%+ for Researcher/Coder agents
 - New `--prp-compression` CLI flag with aggressive/standard/off modes
@@ -20,18 +21,21 @@
 ## Why
 
 **Business Value and User Impact**:
+
 - **Cost Reduction**: Current PRP files consume 2000-4000 tokens per generation; 40% reduction saves $90/month ($1,080/year) at scale
 - **Performance**: Smaller PRPs reduce LLM processing time by 30-50%
 - **Scalability**: As projects grow, large PRP files become bottlenecks (noted in system_context.md)
 - **Developer Experience**: Faster PRP generation and execution
 
 **Integration with Existing Features**:
+
 - Extends existing cache system in `src/agents/prp-generator.ts`
 - Builds on TTL-based cache metadata in `prps/.cache/`
 - Integrates with CLI flag patterns from `src/cli/index.ts`
 - Complements `--cache-ttl` and `--cache-prune` flags
 
 **Problems Solved**:
+
 1. **Large PRP Files**: Current PRPs stored as full markdown with all context (system_context.md line 488-491)
 2. **No Token Awareness**: No tracking of token usage or approaching limits
 3. **Redundant Content**: Parent context repeated across sibling PRPs
@@ -44,6 +48,7 @@
 ### User-Visible Behavior
 
 **CLI Enhancement**:
+
 ```bash
 # Standard compression (default)
 prd PRD.md --prp-compression
@@ -56,12 +61,14 @@ prd PRD.md --no-prp-compression
 ```
 
 **Behavior Changes**:
+
 - PRP files stored in compressed format (smaller markdown)
 - Cache metadata includes token count and compression ratio
 - Warning when token usage approaches agent limits
 - Researcher Agent receives compressed PRP context
 
 **Backward Compatibility**:
+
 - Default compression level preserves full context
 - `--no-prp-compression` flag disables all optimizations
 - Existing cache entries remain valid
@@ -93,6 +100,7 @@ prd PRD.md --no-prp-compression
 ### Context Completeness Check
 
 ✅ **Complete** - All required context included for implementation. Research covered:
+
 - Current PRP generation implementation
 - CLI flag patterns and configuration flow
 - Cache architecture and metadata structure
@@ -228,10 +236,10 @@ tests/unit/
 ```typescript
 // CRITICAL: GLM-4.7 token limits by persona (src/agents/agent-factory.ts)
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Complex PRD analysis
+  architect: 8192, // Complex PRD analysis
   researcher: 4096, // PRP generation - TARGET FOR OPTIMIZATION
-  coder: 4096,      // PRP execution
-  qa: 4096,        // Bug hunting
+  coder: 4096, // PRP execution
+  qa: 4096, // Bug hunting
 } as const;
 
 // GOTCHA: Tiktoken uses GPT-4 tokenizer, not GLM-4
@@ -291,8 +299,8 @@ export interface PRPCacheMetadata {
   readonly inputTokens?: number;
   readonly outputTokens?: number;
   readonly compressionRatio?: number; // (originalSize / compressedSize)
-  readonly originalSize?: number;     // Character count before compression
-  readonly compressedSize?: number;   // Character count after compression
+  readonly originalSize?: number; // Character count before compression
+  readonly compressedSize?: number; // Character count after compression
 }
 ```
 
@@ -391,7 +399,7 @@ Task 10: MODIFY tests/unit/agents/prp-generator.test.ts
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ===== PATTERN 1: Token Counter =====
 // File: src/utils/token-counter.ts
 
@@ -457,7 +465,11 @@ export class CodeProcessor {
   /**
    * Converts large content to file reference
    */
-  createFileReference(filePath: string, lineStart: number, lineEnd: number): string {
+  createFileReference(
+    filePath: string,
+    lineStart: number,
+    lineEnd: number
+  ): string {
     return `See ${filePath} lines ${lineStart}-${lineEnd}`;
   }
 }
@@ -475,7 +487,7 @@ export class PRPGenerator {
     sessionManager: SessionManager,
     noCache: boolean = false,
     cacheTtlMs: number = 24 * 60 * 60 * 1000,
-    prpCompression: PRPCompressionLevel = 'standard'  // NEW PARAM
+    prpCompression: PRPCompressionLevel = 'standard' // NEW PARAM
   ) {
     // ... existing constructor code ...
     this.#compression = prpCompression;
@@ -493,7 +505,11 @@ export class PRPGenerator {
   } {
     if (this.#compression === 'off') {
       const tokens = this.#tokenCounter.countTokens(prp.context);
-      return { compressed: prp, originalTokens: tokens, compressedTokens: tokens };
+      return {
+        compressed: prp,
+        originalTokens: tokens,
+        compressedTokens: tokens,
+      };
     }
 
     let compressed = { ...prp };
@@ -573,7 +589,8 @@ export class PRPGenerator {
     const validated = PRPDocumentSchema.parse(result);
 
     // NEW: Compress before writing
-    const { compressed, originalTokens, compressedTokens } = this.#compressPRP(validated);
+    const { compressed, originalTokens, compressedTokens } =
+      this.#compressPRP(validated);
 
     // Write compressed PRP
     await this.#writePRPToFile(compressed);
@@ -597,20 +614,23 @@ export class PRPGenerator {
 
 export interface CLIArgs {
   // ... existing fields ...
-  prpCompression?: string;  // NEW: 'off' | 'standard' | 'aggressive'
+  prpCompression?: string; // NEW: 'off' | 'standard' | 'aggressive'
 }
 
 export interface ValidatedCLIArgs extends Omit<CLIArgs, 'prpCompression'> {
   // ... existing fields ...
-  prpCompression: 'off' | 'standard' | 'aggressive';  // VALIDATED
+  prpCompression: 'off' | 'standard' | 'aggressive'; // VALIDATED
 }
 
 export function parseCLIArgs(): ValidatedCLIArgs {
   const program = new Command();
 
-  program
-    .option('--prp-compression <level>', 'PRP compression level (off|standard|aggressive)', 'standard')
-    // ... other options ...
+  program.option(
+    '--prp-compression <level>',
+    'PRP compression level (off|standard|aggressive)',
+    'standard'
+  );
+  // ... other options ...
 
   const args = program.parse(process.argv).opts() as CLIArgs;
 
@@ -620,7 +640,9 @@ export function parseCLIArgs(): ValidatedCLIArgs {
   };
 }
 
-function validateCompressionLevel(level: string): 'off' | 'standard' | 'aggressive' {
+function validateCompressionLevel(
+  level: string
+): 'off' | 'standard' | 'aggressive' {
   const valid = ['off', 'standard', 'aggressive'];
   if (!valid.includes(level)) {
     logger.error(`Invalid compression level: ${level}`);
@@ -651,7 +673,7 @@ export interface PRPCacheMetadata {
 
 // CRITICAL: Use ?? operator when reading old cache entries
 const originalTokens = metadata.inputTokens ?? 0;
-```
+````
 
 ---
 
@@ -791,7 +813,7 @@ ls -lh plan/003_b3d3efdaf0ed/prps/P3M3T2S2.md
 
 ### Level 4: Creative & Domain-Specific Validation
 
-```bash
+````bash
 # PRP Compression Validation:
 
 # 1. Compression Ratio Validation
@@ -839,7 +861,7 @@ time prd PRD.md --prp-compression=standard --scope P3.M3.T2.S2
 # Verify it works correctly with ?? defaults
 
 # Expected: All creative validations pass with expected improvements.
-```
+````
 
 ---
 
@@ -908,6 +930,7 @@ time prd PRD.md --prp-compression=standard --scope P3.M3.T2.S2
 **Confidence Score: 9/10**
 
 **Validation**: This PRP provides comprehensive context including:
+
 - Complete current implementation analysis (PRPGenerator, CLI, Cache)
 - External research documentation with specific URLs
 - Code compression utility patterns (esbuild, tiktoken)
@@ -916,6 +939,7 @@ time prd PRD.md --prp-compression=standard --scope P3.M3.T2.S2
 - All integration points and gotchas documented
 
 **Expected Outcomes**:
+
 - 50% reduction in PRP file size
 - 40% reduction in agent token usage
 - $90/month cost savings at scale
@@ -923,6 +947,7 @@ time prd PRD.md --prp-compression=standard --scope P3.M3.T2.S2
 - Zero breaking changes to existing functionality
 
 **Risk Mitigation**:
+
 - Backward compatibility preserved with optional fields
 - Three compression levels allow gradual rollout
 - Comprehensive test coverage ensures correctness

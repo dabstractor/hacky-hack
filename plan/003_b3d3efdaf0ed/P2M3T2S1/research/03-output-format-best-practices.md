@@ -80,6 +80,7 @@ Use standard conventions across commands:
 **Best for:** Lists of items
 
 **Characteristics:**
+
 - Columnar layout
 - Aligned headers
 - Truncated long values (with `--no-trunc` option)
@@ -87,6 +88,7 @@ Use standard conventions across commands:
 - Consistent spacing
 
 **Example pattern:**
+
 ```
 NAME             STATUS    PHASE     MESSAGE
 task-p1m1t1      Complete  Final     Task completed successfully
@@ -98,11 +100,13 @@ task-p1m1t2      Active    Running  In progress
 **Best for:** Lists needing more columns
 
 **Characteristics:**
+
 - Extended table with additional columns
 - Still human-readable
 - May wrap on narrow terminals
 
 **Example pattern:**
+
 ```bash
 kubectl get pods -o wide
 # Adds: IP, NODE, and other columns
@@ -113,12 +117,14 @@ kubectl get pods -o wide
 **Best for:** Machine parsing, scripting, APIs
 
 **Characteristics:**
+
 - Structured data
 - Full detail
 - No truncation
 - Parseable by jq, jq, etc.
 
 **Example pattern:**
+
 ```json
 {
   "items": [
@@ -135,11 +141,13 @@ kubectl get pods -o wide
 **Best for:** Configuration, human-readable structured data
 
 **Characteristics:**
+
 - More readable than JSON
 - Good for configuration
 - Supports comments (in files)
 
 **Example pattern:**
+
 ```yaml
 items:
   - metadata:
@@ -153,11 +161,13 @@ items:
 **Best for:** Extracting specific fields
 
 **Characteristics:**
+
 - User-defined format
 - Specific field extraction
 - Custom separators
 
 **Example patterns:**
+
 ```bash
 # kubectl jsonpath
 kubectl get pods -o jsonpath='{.items[*].metadata.name}'
@@ -174,11 +184,13 @@ git log --format="%h %an %s"
 **Best for:** Hierarchical data (dependencies, branches)
 
 **Characteristics:**
+
 - ASCII box-drawing characters
 - Indentation levels
 - Parent-child relationships
 
 **Example pattern:**
+
 ```
 project
 ├── package.json
@@ -199,11 +211,13 @@ project
 **Maximum Width:** Keep columns narrow enough for 80-character terminals
 
 **Alignment:**
+
 - Left-align text (names, descriptions)
 - Right-align numbers (counts, sizes, durations)
 - Center-align short status indicators
 
 **Example:**
+
 ```
 NAME             STATUS    COUNT    SIZE
 task-1           Running   5        1.2 GB
@@ -213,6 +227,7 @@ task-long-name   Stopped   10       500 MB
 ### 2. Status Indicators
 
 **Use symbols:**
+
 ```
 ✓ Complete  (green)
 ◐ Active    (blue)
@@ -223,6 +238,7 @@ task-long-name   Stopped   10       500 MB
 ```
 
 **Use color:**
+
 - Green: Success, healthy, complete
 - Red: Errors, failed, unhealthy
 - Yellow: Warnings, pending
@@ -230,6 +246,7 @@ task-long-name   Stopped   10       500 MB
 - Gray: Disabled, muted, pending
 
 **Use text status:**
+
 ```
 Running, Succeeded, Failed, Pending, Unknown
 ```
@@ -237,12 +254,14 @@ Running, Succeeded, Failed, Pending, Unknown
 ### 3. Truncation
 
 **Truncate long values by default:**
+
 ```bash
 CONTAINER ID   IMAGE     COMMAND
 abcd1234...    nginx     "/docker-entr..."
 ```
 
 **Provide --no-trunc option:**
+
 ```bash
 docker ps --no-trunc
 # Shows full IDs and commands
@@ -253,6 +272,7 @@ docker ps --no-trunc
 ### 4. Filtering and Sorting
 
 **Provide filtering options:**
+
 ```bash
 kubectl get pods --field-selector=status.phase=Running
 kubectl get pods -l app=nginx
@@ -260,6 +280,7 @@ git log --author="John"
 ```
 
 **Provide sorting options:**
+
 ```bash
 kubectl get pods --sort-by=.metadata.name
 docker ps --sort=size
@@ -269,11 +290,13 @@ ls -lt  # sort by time
 ### 5. Pagination
 
 **Paginate long output:**
+
 - Use pager for interactive use (less, more)
 - Disable with `--no-pager` flag
 - Detect TTY automatically
 
 **Example:**
+
 ```bash
 git log  # Uses pager by default
 git log --no-pager  # No pager
@@ -283,11 +306,13 @@ git --paginate=false log  # Global config
 ### 6. Progress Indicators
 
 **For long operations:**
+
 - Progress bars for known duration
 - Spinners for indeterminate duration
 - Periodic updates
 
 **Examples:**
+
 ```bash
 # Progress bar
 npm install
@@ -305,12 +330,14 @@ docker build
 ### 7. Verbose vs. Quiet
 
 **Provide verbosity levels:**
+
 - `--verbose` / `-v`: More detail
 - `--quiet` / `-q`: Less output
 - `--silent`: No output (except errors)
 - `--debug`: Debug information
 
 **Example:**
+
 ```bash
 npm install            # Normal output
 npm install --verbose  # Detailed output
@@ -422,6 +449,7 @@ task-3    0%     256MB     Idle
 ### 1. Color Detection
 
 **Detect color support:**
+
 ```typescript
 import chalk from 'chalk';
 
@@ -435,6 +463,7 @@ if (chalk.level === 0) {
 ```
 
 **Force enable/disable:**
+
 ```bash
 --color=always    # Force colors
 --color=never     # Disable colors
@@ -444,6 +473,7 @@ if (chalk.level === 0) {
 ### 2. Screen Reader Compatibility
 
 **Use semantic symbols:**
+
 ```
 ✓ Complete
 ✗ Failed
@@ -451,6 +481,7 @@ if (chalk.level === 0) {
 ```
 
 **Avoid color-only indicators:**
+
 - Don't rely on color alone
 - Use symbols + color
 - Use text labels
@@ -458,17 +489,20 @@ if (chalk.level === 0) {
 ### 3. Clear Contrast
 
 **Good contrast:**
+
 - Black on white (high contrast)
 - White on dark blue (high contrast)
 - Avoid light colors on light backgrounds
 
 **Test contrast:**
+
 - Use WebAIM Contrast Checker
 - Test with terminal themes
 
 ### 4. Text Size
 
 **Don't rely on font size:**
+
 - Terminal controls font size
 - Use clear text, not size
 
@@ -479,6 +513,7 @@ if (chalk.level === 0) {
 ### 1. Structure
 
 **Good error message:**
+
 ```bash
 error: failed to load task file 'tasks.json'
   cause: file not found
@@ -486,6 +521,7 @@ error: failed to load task file 'tasks.json'
 ```
 
 **Components:**
+
 - Error type/severity
 - Clear description
 - Cause (if helpful)
@@ -494,25 +530,29 @@ error: failed to load task file 'tasks.json'
 ### 2. Exit Codes
 
 **Standard exit codes:**
+
 - 0: Success
 - 1: General error
 - 2: Incorrect usage
 - 127: Command not found
 
 **Example:**
+
 ```typescript
-process.exit(1);  // Error
-process.exit(0);  // Success
+process.exit(1); // Error
+process.exit(0); // Success
 ```
 
 ### 3. Error Output
 
 **Write errors to stderr:**
+
 ```typescript
 console.error('Error: message');
 ```
 
 **Keep output separate:**
+
 - stdout: Regular output
 - stderr: Errors and warnings
 
@@ -523,6 +563,7 @@ console.error('Error: message');
 ### kubectl
 
 **List command:**
+
 ```bash
 kubectl get pods
 # Default: Table format
@@ -531,6 +572,7 @@ kubectl get pods -o json  # JSON format
 ```
 
 **Features:**
+
 - Multiple output formats
 - Wide format option
 - Filtering with labels/selectors
@@ -541,6 +583,7 @@ kubectl get pods -o json  # JSON format
 ### Docker
 
 **List command:**
+
 ```bash
 docker ps
 # Default: Table format
@@ -550,6 +593,7 @@ docker ps --no-trunc  # Full IDs
 ```
 
 **Features:**
+
 - Go template formatting
 - Custom columns
 - JSON output
@@ -559,6 +603,7 @@ docker ps --no-trunc  # Full IDs
 ### Git
 
 **Status command:**
+
 ```bash
 git status
 # Default: Porcelain format
@@ -568,6 +613,7 @@ git status --branch  # Show branch info
 ```
 
 **Features:**
+
 - Porcelain vs. Plumbing
 - Multiple verbosity levels
 - Branch visualization
@@ -577,6 +623,7 @@ git status --branch  # Show branch info
 ### npm
 
 **List command:**
+
 ```bash
 npm list
 # Default: Tree format
@@ -586,6 +633,7 @@ npm list --long  # Detailed format
 ```
 
 **Features:**
+
 - Tree visualization
 - Depth control
 - Multiple formats

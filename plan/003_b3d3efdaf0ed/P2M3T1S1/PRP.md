@@ -9,6 +9,7 @@
 **Deliverable**: Enhanced logger at `src/utils/logger.ts` with new features, `--log-level` CLI option in `src/cli/index.ts`, and comprehensive unit tests in `tests/unit/logger-enhancements.test.ts`.
 
 **Success Definition**:
+
 - All new log levels (trace, fatal) are available and functional
 - Correlation IDs are automatically generated and propagated through child loggers
 - Component-level log filtering works via binding-based filtering
@@ -23,6 +24,7 @@
 **Use Case**: Developer runs `hack --log-level trace` to get maximum verbosity for debugging a complex multi-agent interaction, with correlation IDs linking logs across different components (TaskOrchestrator, AgentRuntime, etc.).
 
 **User Journey**:
+
 1. Developer encounters an issue in parallel task execution
 2. Developer sets `HACKY_LOG_LEVEL=trace` or uses `--log-level trace`
 3. Developer sees all log entries with correlation IDs linking related operations
@@ -30,6 +32,7 @@
 5. Developer quickly identifies the issue through correlated log traces
 
 **Pain Points Addressed**:
+
 - Current logger lacks `trace` level for fine-grained debugging
 - No automatic correlation between related log entries across components
 - Difficult to trace a single request/operation through multiple agents
@@ -48,27 +51,32 @@
 ### Functional Requirements
 
 **A. New Log Levels**
+
 - Add `TRACE` level (numeric value 10, below debug)
 - Add `FATAL` level (numeric value 60, above error)
 - Maintain existing `DEBUG`, `INFO`, `WARN`, `ERROR` levels
 
 **B. Correlation IDs**
+
 - Auto-generate unique correlation ID on first logger creation
 - Propagate correlation ID through child loggers
 - Allow manual correlation ID override via `correlationId` binding
 - Format: UUID v4 string
 
 **C. Component Filtering**
+
 - Add `component` binding for categorization (already exists as `context`)
 - Enable log filtering based on component/context field
 - Support wildcard patterns for component matching
 
 **D. CLI Integration**
+
 - Add `--log-level` option accepting: trace, debug, info, warn, error, fatal
 - Support environment variable `HACKY_LOG_LEVEL`
 - Validate log level value and default to `info`
 
 **E. Backward Compatibility**
+
 - All existing logger usage continues to work
 - Existing tests continue to pass
 - No breaking changes to Logger interface
@@ -92,6 +100,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: Yes - this PRP provides:
+
 - Exact current logger implementation with line numbers
 - Pino documentation links for all features
 - Test patterns from existing logger tests
@@ -186,10 +195,10 @@ tests/unit/logger-enhancements.test.ts   # New tests for enhanced features
 syncPino({
   customLevels: {
     trace: 10,
-    fatal: 60
+    fatal: 60,
   },
-  level: 'trace'  // Must match key in customLevels
-})
+  level: 'trace', // Must match key in customLevels
+});
 
 // CRITICAL: Pino's createRequire with top-level await is ES module specific
 // The current logger uses this pattern - must preserve it:
@@ -223,21 +232,21 @@ syncPino = pinoRequire.default ?? pinoRequire;
 ```typescript
 // Enhanced LogLevel enum with new levels
 export enum LogLevel {
-  TRACE = 'trace',   // NEW: Most verbose level
+  TRACE = 'trace', // NEW: Most verbose level
   DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
   ERROR = 'error',
-  FATAL = 'fatal',   // NEW: System-critical errors
+  FATAL = 'fatal', // NEW: System-critical errors
 }
 
 // Enhanced LoggerConfig interface
 export interface LoggerConfig {
-  level?: LogLevel;           // Now includes trace, fatal
+  level?: LogLevel; // Now includes trace, fatal
   machineReadable?: boolean;
   verbose?: boolean;
-  correlationId?: string;     // NEW: Manual correlation ID override
-  component?: string;         // NEW: Explicit component labeling
+  correlationId?: string; // NEW: Manual correlation ID override
+  component?: string; // NEW: Explicit component labeling
 }
 
 // Pino level mapping for custom levels
@@ -361,7 +370,7 @@ export function getLogger(context: string, options?: LoggerConfig): Logger {
     ...config,
     base: {
       context,
-      correlationId,  // Add to base fields
+      correlationId, // Add to base fields
     },
   });
 
@@ -402,13 +411,16 @@ function wrapPinoLogger(pinoLogger: any): Logger {
 // Pattern 5: CLI option with choices and environment variable
 // In src/cli/index.ts around line 252:
 program
-  .option('--log-level <level>', 'Log level (trace, debug, info, warn, error, fatal)')
+  .option(
+    '--log-level <level>',
+    'Log level (trace, debug, info, warn, error, fatal)'
+  )
   .addOption(
     program
       .createOption('--log-level <level>', 'Minimum log level')
       .choices(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
       .default(process.env.HACKY_LOG_LEVEL || 'info')
-  )
+  );
 
 // Validation in parseCLIArgs():
 const logLevel = String(options.logLevel || 'info').toLowerCase();

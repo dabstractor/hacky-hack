@@ -327,26 +327,31 @@ No new data models needed - design document uses existing models:
 
 ```typescript
 // Existing models (from src/core/models.ts)
-type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed';
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed';
 
 interface Subtask {
   id: string;
   title: string;
   status: Status;
-  dependencies: string[];  // Subtask IDs that must Complete first
+  dependencies: string[]; // Subtask IDs that must Complete first
 }
 
 // New configuration for parallel execution (to be added in P3.M1.T1.S3)
 interface ParallelismConfig {
   enabled: boolean;
-  maxConcurrency: number;  // Pool size (default: 3)
-  prpGenerationLimit: number;  // Separate limit for PRP generation (default: 3)
+  maxConcurrency: number; // Pool size (default: 3)
+  prpGenerationLimit: number; // Separate limit for PRP generation (default: 3)
 }
 ```
 
 ### Implementation Tasks (Ordered by Dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE plan/003_b3d3efdaf0ed/architecture/parallel-execution-design.md with header
   - IMPLEMENT: File header with Status, Last Updated, Version, Work Item
   - IMPLEMENT: Table of Contents with anchor links
@@ -527,11 +532,11 @@ Task 14: VALIDATE design document completeness
   - VERIFY: Design enables implementation in P3.M1.T1.S2
   - VERIFY: Integration points are specific with file paths
   - VERIFY: Testing strategy is comprehensive
-```
+````
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Detailed Pseudocode for Parallel Scheduler
 
 ```typescript
@@ -720,17 +725,20 @@ class Semaphore {
   }
 }
 ```
+````
 
 # Key Design Decisions
 
 ## 1. Two-Phase Parallelization
 
 **Phase 1: PRP Generation** (existing ResearchQueue)
+
 - Parallel with concurrency limit of 3 (configurable)
 - "Research ahead" pattern - generates PRPs before execution
 - Cache-aware - skips cached PRPs
 
 **Phase 2: Implementation Execution** (new ConcurrentTaskExecutor)
+
 - Parallel with configurable pool size (default: 3)
 - Dependency-aware - only executes subtasks with satisfied dependencies
 - Resource-aware - implements backpressure
@@ -827,6 +835,7 @@ graph LR
     C --> E[Release resources]
     E --> A
 ```
+
 ````
 
 ### Integration Points
@@ -1002,3 +1011,4 @@ echo "12. Verify Groundswell @Task decorator is referenced"
 - Don't skip dependency resolution documentation - core to parallel execution
 - Don't make pool size a magic number - document configuration options
 - Don't forget backpressure mechanism - resource exhaustion is a real risk
+````

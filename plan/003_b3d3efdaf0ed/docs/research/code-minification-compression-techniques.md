@@ -28,6 +28,7 @@ A comprehensive guide to JavaScript/TypeScript code minification, compression, a
 **NPM Package**: `terser`
 
 **Key Features**:
+
 - ES6+ syntax support
 - Advanced compression options
 - Source map generation
@@ -35,11 +36,13 @@ A comprehensive guide to JavaScript/TypeScript code minification, compression, a
 - Tree-shaking support
 
 **Installation**:
+
 ```bash
 npm install terser
 ```
 
 **Basic Usage**:
+
 ```typescript
 import { minify } from 'terser';
 
@@ -54,8 +57,8 @@ const result = await minify(code, {
   compress: true,
   mangle: true,
   format: {
-    comments: false
-  }
+    comments: false,
+  },
 });
 
 console.log(result.code);
@@ -63,6 +66,7 @@ console.log(result.code);
 ```
 
 **Advanced Options**:
+
 ```typescript
 const result = await minify(code, {
   compress: {
@@ -70,21 +74,21 @@ const result = await minify(code, {
     drop_console: true,
     drop_debugger: true,
     pure_funcs: ['console.log'],
-    passes: 3
+    passes: 3,
   },
   mangle: {
     properties: false,
     keep_fnames: false,
-    toplevel: false
+    toplevel: false,
   },
   format: {
     ascii_only: false,
     beautify: false,
     comments: false,
-    max_line_len: false
+    max_line_len: false,
   },
   sourceMap: true,
-  ecma: 2020
+  ecma: 2020,
 });
 ```
 
@@ -97,6 +101,7 @@ const result = await minify(code, {
 **NPM Package**: `esbuild`
 
 **Key Features**:
+
 - Blazing fast performance (10-100x faster than alternatives)
 - Built-in TypeScript support
 - Tree-shaking
@@ -104,11 +109,13 @@ const result = await minify(code, {
 - No configuration required
 
 **Installation**:
+
 ```bash
 npm install esbuild
 ```
 
 **Basic Usage**:
+
 ```typescript
 import * as esbuild from 'esbuild';
 
@@ -125,7 +132,7 @@ const result = await esbuild.transform(code, {
   minifyIdentifiers: true,
   minifySyntax: true,
   treeShaking: true,
-  format: 'esm'
+  format: 'esm',
 });
 
 console.log(result.code);
@@ -133,11 +140,13 @@ console.log(result.code);
 ```
 
 **CLI Usage**:
+
 ```bash
 esbuild src/index.ts --minify --bundle --outfile=dist/bundle.js
 ```
 
 **Advanced Build Configuration**:
+
 ```typescript
 await esbuild.build({
   entryPoints: ['src/index.ts'],
@@ -154,9 +163,9 @@ await esbuild.build({
   platform: 'node',
   external: ['*'], // Don't bundle node_modules
   define: {
-    'process.env.NODE_ENV': '"production"'
+    'process.env.NODE_ENV': '"production"',
   },
-  drop: ['console', 'debugger']
+  drop: ['console', 'debugger'],
 });
 ```
 
@@ -169,6 +178,7 @@ await esbuild.build({
 **NPM Package**: `@swc/core`
 
 **Key Features**:
+
 - Super-fast performance (Rust-based)
 - TypeScript support
 - JSX support
@@ -176,11 +186,13 @@ await esbuild.build({
 - Plugin system
 
 **Installation**:
+
 ```bash
 npm install @swc/core
 ```
 
 **Basic Usage**:
+
 ```typescript
 import { minify } from '@swc/core';
 
@@ -195,7 +207,7 @@ const result = await minify(code, {
   mangle: true,
   ecma: 2020,
   keepClassNames: false,
-  keepFnNames: false
+  keepFnNames: false,
 });
 
 console.log(result.code);
@@ -220,6 +232,7 @@ console.log(result.code);
 **NPM Package**: `@vercel/ncc`
 
 **Key Features**:
+
 - Single-file output
 - Zero configuration
 - TypeScript support
@@ -227,16 +240,19 @@ console.log(result.code);
 - Minimal overhead
 
 **Installation**:
+
 ```bash
 npm install @vercel/ncc -g
 ```
 
 **CLI Usage**:
+
 ```bash
 ncc build index.js -o dist
 ```
 
 **Programmatic Usage**:
+
 ```typescript
 import { ncc } from '@vercel/ncc';
 
@@ -245,7 +261,7 @@ const { code, map, assets } = await ncc('/path/to/entry.js', {
   sourceMap: true,
   assetBuilds: false,
   external: [],
-  quiet: true
+  quiet: true,
 });
 ```
 
@@ -262,11 +278,13 @@ const { code, map, assets } = await ncc('/path/to/entry.js', {
 **NPM Package**: `strip-comments`
 
 **Installation**:
+
 ```bash
 npm install strip-comments
 ```
 
 **Basic Usage**:
+
 ```typescript
 import strip from 'strip-comments';
 
@@ -280,10 +298,10 @@ const code = `
 `;
 
 const result = strip(code, {
-  line: true,   // Remove // comments
-  block: true,  // Remove /* */ comments
+  line: true, // Remove // comments
+  block: true, // Remove /* */ comments
   keepFirst: false,
-  preserveNewlines: false
+  preserveNewlines: false,
 });
 
 console.log(result);
@@ -335,8 +353,8 @@ export function removeBlankLines(code: string): string {
  */
 export function compressWhitespace(code: string): string {
   return code
-    .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
-    .replace(/\s*([{}();,:])\s*/g, '$1')  // Remove spaces around punctuation
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/\s*([{}();,:])\s*/g, '$1') // Remove spaces around punctuation
     .trim();
 }
 ```
@@ -357,7 +375,7 @@ import t from '@babel/types';
 export function removeCommentsAST(code: string): string {
   const ast = parser.parse(code, {
     sourceType: 'module',
-    plugins: ['typescript', 'jsx']
+    plugins: ['typescript', 'jsx'],
   });
 
   // Remove all comments
@@ -370,14 +388,14 @@ export function removeCommentsAST(code: string): string {
       if (path.node.trailingComments) {
         path.node.trailingComments = [];
       }
-    }
+    },
   });
 
   const output = generate(
     ast,
     {
       comments: false,
-      compact: false
+      compact: false,
     },
     code
   );
@@ -442,12 +460,24 @@ export function extractLastLines(code: string, lineCount: number): string {
 /**
  * Extract functions by name using regex
  */
-export function extractFunctionByName(code: string, functionName: string): string | null {
+export function extractFunctionByName(
+  code: string,
+  functionName: string
+): string | null {
   // Match function declarations and expressions
   const patterns = [
-    new RegExp(`function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`, 'g'),
-    new RegExp(`const\\s+${functionName}\\s*=\\s*(?:async\\s+)?\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\}`, 'g'),
-    new RegExp(`const\\s+${functionName}\\s*=\\s*(?:async\\s+)?function\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`, 'g')
+    new RegExp(
+      `function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`,
+      'g'
+    ),
+    new RegExp(
+      `const\\s+${functionName}\\s*=\\s*(?:async\\s+)?\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\}`,
+      'g'
+    ),
+    new RegExp(
+      `const\\s+${functionName}\\s*=\\s*(?:async\\s+)?function\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`,
+      'g'
+    ),
   ];
 
   for (const pattern of patterns) {
@@ -463,8 +493,14 @@ export function extractFunctionByName(code: string, functionName: string): strin
 /**
  * Extract class definition by name
  */
-export function extractClassByName(code: string, className: string): string | null {
-  const pattern = new RegExp(`class\\s+${className}\\s*(?:extends\\s+\\w+)?\\s*\\{[\\s\\S]*?\\n\\}`, 'g');
+export function extractClassByName(
+  code: string,
+  className: string
+): string | null {
+  const pattern = new RegExp(
+    `class\\s+${className}\\s*(?:extends\\s+\\w+)?\\s*\\{[\\s\\S]*?\\n\\}`,
+    'g'
+  );
   const match = pattern.exec(code);
   return match ? match[0] : null;
 }
@@ -477,7 +513,7 @@ export function extractImports(code: string): string[] {
     /import\s+{[^}]+}\s+from\s+['"][^'"]+['"]/g,
     /import\s+\w+\s+from\s+['"][^'"]+['"]/g,
     /import\s+\*\s+as\s+\w+\s+from\s+['"][^'"]+['"]/g,
-    /import\s+['"][^'"]+['"]/g
+    /import\s+['"][^'"]+['"]/g,
   ];
 
   const imports: string[] = [];
@@ -519,7 +555,11 @@ export function extractCodeBlocks(code: string): CodeSnippet[] {
     const line = lines[i];
 
     // Detect function/class start
-    if (/^\s*(function|class|const\s+\w+\s*=|(?:async\s+)?\w+\s*=\s*(?:async\s+)?\(.*\)\s*=>)/.test(line)) {
+    if (
+      /^\s*(function|class|const\s+\w+\s*=|(?:async\s+)?\w+\s*=\s*(?:async\s+)?\(.*\)\s*=>)/.test(
+        line
+      )
+    ) {
       inBlock = true;
       blockStartLine = i + 1;
       currentBlock = [line];
@@ -545,7 +585,7 @@ export function extractCodeBlocks(code: string): CodeSnippet[] {
           code: currentBlock.join('\n'),
           startLine: blockStartLine,
           endLine: i + 1,
-          language: 'typescript'
+          language: 'typescript',
         });
 
         inBlock = false;
@@ -571,18 +611,21 @@ export function extractCodeBlocks(code: string): CodeSnippet[] {
  */
 export function removeDeadCode(code: string): string {
   // Remove unused imports (basic heuristic)
-  code = code.replace(/^import\s+{[^}]+}\s+from\s+['"][^'"]+['"]\s*;?\s*$/gm, (match) => {
-    const imports = match.match(/\{([^}]+)\}/)?.[1];
-    if (!imports) return match;
+  code = code.replace(
+    /^import\s+{[^}]+}\s+from\s+['"][^'"]+['"]\s*;?\s*$/gm,
+    match => {
+      const imports = match.match(/\{([^}]+)\}/)?.[1];
+      if (!imports) return match;
 
-    const usedImports = imports.split(',').filter(imp => {
-      const name = imp.trim().split(' as ')[0].trim();
-      return code.includes(name);
-    });
+      const usedImports = imports.split(',').filter(imp => {
+        const name = imp.trim().split(' as ')[0].trim();
+        return code.includes(name);
+      });
 
-    if (usedImports.length === 0) return '';
-    return match.replace(/\{[^}]+\}/, `{ ${usedImports.join(', ')} }`);
-  });
+      if (usedImports.length === 0) return '';
+      return match.replace(/\{[^}]+\}/, `{ ${usedImports.join(', ')} }`);
+    }
+  );
 
   // Remove unreachable code (after return/throw)
   // This is a simplified version
@@ -657,7 +700,7 @@ export async function compressCode(
     removeComments = true,
     removeBlankLines = true,
     mangle = true,
-    compress = true
+    compress = true,
   } = options;
 
   let result = code;
@@ -678,8 +721,8 @@ export async function compressCode(
       compress: compress,
       mangle: mangle,
       format: {
-        comments: false
-      }
+        comments: false,
+      },
     });
 
     result = minified.code || result;
@@ -696,7 +739,7 @@ export async function lightweightCompress(code: string): Promise<string> {
     removeComments: true,
     removeBlankLines: true,
     mangle: false,
-    compress: false
+    compress: false,
   });
 }
 
@@ -708,7 +751,7 @@ export async function aggressiveCompress(code: string): Promise<string> {
     removeComments: true,
     removeBlankLines: true,
     mangle: true,
-    compress: true
+    compress: true,
   });
 }
 ```
@@ -773,7 +816,7 @@ export function truncateCode(
     keepTypes = true,
     keepSignatures = true,
     truncateMiddle = true,
-    ellipsis = '\n// ... (truncated)\n'
+    ellipsis = '\n// ... (truncated)\n',
   } = options;
 
   const lines = code.split('\n');
@@ -798,7 +841,9 @@ export function truncateCode(
       imports.push(line);
     } else if (/^(export\s+)?(interface|type|enum)\s+/.test(line)) {
       types.push(line);
-    } else if (/^(?:async\s+)?(?:function|const\s+\w+\s*=)\s*\w+\s*\(/.test(line)) {
+    } else if (
+      /^(?:async\s+)?(?:function|const\s+\w+\s*=)\s*\w+\s*\(/.test(line)
+    ) {
       signatures.push(line);
     } else {
       body.push(line);
@@ -911,7 +956,9 @@ function extractImportNames(code: string): string[] {
   const names: string[] = [];
   let match;
   while ((match = importPattern.exec(code)) !== null) {
-    const imports = match[1].split(',').map(s => s.trim().split(' as ')[0].trim());
+    const imports = match[1]
+      .split(',')
+      .map(s => s.trim().split(' as ')[0].trim());
     names.push(...imports);
   }
   return names;
@@ -923,9 +970,11 @@ function extractTypeDefinitions(code: string, typeNames: string[]): string[] {
 
   for (const line of lines) {
     for (const typeName of typeNames) {
-      if (new RegExp(`^(?:export\\s+)?(?:interface|type|enum)\\s+${typeName}`).test(
-        line
-      )) {
+      if (
+        new RegExp(
+          `^(?:export\\s+)?(?:interface|type|enum)\\s+${typeName}`
+        ).test(line)
+      ) {
         types.push(line);
       }
     }
@@ -993,7 +1042,7 @@ export function normalizeCodeForAI(
     normalizeSemicolons = true,
     sortImports = true,
     preserveTypeAnnotations = true,
-    maxLength = 10000
+    maxLength = 10000,
   } = options;
 
   let result = code;
@@ -1114,7 +1163,12 @@ export function createAISnippet(
     includeImports?: boolean;
   } = {}
 ): string {
-  const { description, focus, includeTypes = true, includeImports = true } = context;
+  const {
+    description,
+    focus,
+    includeTypes = true,
+    includeImports = true,
+  } = context;
 
   let snippet = '';
 
@@ -1128,7 +1182,7 @@ export function createAISnippet(
     removeComments: true,
     removeBlankLines: true,
     standardizeIndentation: true,
-    preserveTypeAnnotations: includeTypes
+    preserveTypeAnnotations: includeTypes,
   });
 
   // If focus specified, extract relevant code
@@ -1238,11 +1292,11 @@ export class MinificationService {
       format: {
         comments: !options.removeComments,
         ascii_only: false,
-        beautify: !options.compress
+        beautify: !options.compress,
       },
       ecma: 2020,
       keep_classnames: options.preserveTypes,
-      keep_fnames: options.preserveTypes
+      keep_fnames: options.preserveTypes,
     });
 
     if (result.error) {
@@ -1266,7 +1320,7 @@ export class MinificationService {
       minifySyntax: options.compress,
       treeShaking: true,
       format: 'esm',
-      target: 'es2020'
+      target: 'es2020',
     });
 
     return result.code;
@@ -1275,17 +1329,14 @@ export class MinificationService {
   /**
    * Strip-comments based minification
    */
-  private stripComments(
-    code: string,
-    options: MinificationOptions
-  ): string {
+  private stripComments(code: string, options: MinificationOptions): string {
     let result = code;
 
     if (options.removeComments) {
       result = strip(result, {
         line: true,
         block: true,
-        preserveNewlines: !options.removeBlankLines
+        preserveNewlines: !options.removeBlankLines,
       });
     }
 
@@ -1367,7 +1418,7 @@ export const minifyCommand = new Command('minify')
       removeBlankLines: options.blankLines === false,
       mangle: options.mangle,
       compress: options.compress,
-      preserveTypes: options.preserveTypes
+      preserveTypes: options.preserveTypes,
     });
 
     if (options.output) {
@@ -1392,7 +1443,10 @@ import { readFileSync, writeFileSync } from 'fs';
 /**
  * Minify a TypeScript file using esbuild
  */
-export async function minifyFile(inputPath: string, outputPath: string): Promise<void> {
+export async function minifyFile(
+  inputPath: string,
+  outputPath: string
+): Promise<void> {
   const code = readFileSync(inputPath, 'utf-8');
 
   const result = await esbuild.transform(code, {
@@ -1402,7 +1456,7 @@ export async function minifyFile(inputPath: string, outputPath: string): Promise
     minifyIdentifiers: true,
     minifySyntax: true,
     treeShaking: true,
-    format: 'esm'
+    format: 'esm',
   });
 
   writeFileSync(outputPath, result.code, 'utf-8');
@@ -1418,7 +1472,7 @@ export async function normalizeForAI(code: string): Promise<string> {
     minifyIdentifiers: false,
     minifySyntax: false,
     treeShaking: true,
-    format: 'esm'
+    format: 'esm',
   });
 
   return result.code;
@@ -1461,7 +1515,10 @@ export interface ProcessingOptions {
  * Comprehensive code processing utility
  */
 export class CodeProcessor {
-  async process(code: string, options: ProcessingOptions = {}): Promise<string> {
+  async process(
+    code: string,
+    options: ProcessingOptions = {}
+  ): Promise<string> {
     let result = code;
 
     // Step 1: Extraction
@@ -1491,7 +1548,10 @@ export class CodeProcessor {
     return result;
   }
 
-  private extractLineRange(code: string, range: { start: number; end: number }): string {
+  private extractLineRange(
+    code: string,
+    range: { start: number; end: number }
+  ): string {
     const lines = code.split('\n');
     return lines.slice(range.start - 1, range.end).join('\n');
   }
@@ -1514,7 +1574,10 @@ export class CodeProcessor {
     return match ? match[0] : code;
   }
 
-  private async optimizeForAI(code: string, maxTokens: number = 4000): Promise<string> {
+  private async optimizeForAI(
+    code: string,
+    maxTokens: number = 4000
+  ): Promise<string> {
     // Remove comments
     let result = code.replace(/\/\/.*$/gm, '');
     result = result.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -1526,7 +1589,7 @@ export class CodeProcessor {
     const transformed = await esbuild.transform(result, {
       minifyWhitespace: true,
       minifyIdentifiers: false,
-      minifySyntax: false
+      minifySyntax: false,
     });
 
     result = transformed.code;
@@ -1536,20 +1599,25 @@ export class CodeProcessor {
     if (result.length > maxChars) {
       const keep = Math.floor((maxChars - 50) / 2);
       result =
-        result.slice(0, keep) + '\n// ... (truncated) ...\n' + result.slice(-keep);
+        result.slice(0, keep) +
+        '\n// ... (truncated) ...\n' +
+        result.slice(-keep);
     }
 
     return result;
   }
 
-  private async minify(code: string, options: ProcessingOptions): Promise<string> {
+  private async minify(
+    code: string,
+    options: ProcessingOptions
+  ): Promise<string> {
     const result = await minify(code, {
       compress: true,
       mangle: options.mangle ?? false,
       format: {
         comments: false,
-        beautify: false
-      }
+        beautify: false,
+      },
     });
 
     return result.code || code;
@@ -1580,19 +1648,19 @@ export async function exampleUsage() {
   const aiOptimized = await processor.process(code, {
     forAI: true,
     maxTokens: 1000,
-    removeComments: true
+    removeComments: true,
   });
 
   // Fully minified
   const minified = await processor.process(code, {
     minify: true,
-    mangle: true
+    mangle: true,
   });
 
   // Extract specific function
   const extracted = await processor.process(code, {
     extractFunction: 'add',
-    format: 'readable'
+    format: 'readable',
   });
 
   console.log('AI Optimized:', aiOptimized);
@@ -1607,7 +1675,9 @@ export async function exampleUsage() {
 // Quick reference for common operations
 
 // 1. Remove comments
-const noComments = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+const noComments = code
+  .replace(/\/\/.*$/gm, '')
+  .replace(/\/\*[\s\S]*?\*\//g, '');
 
 // 2. Remove blank lines
 const noBlanks = code.replace(/^\s*[\r\n]/gm, '');
@@ -1642,7 +1712,10 @@ const imports = code.match(/^import\s+.*$/gm) || [];
 
 // 10. Extract function by name
 const extractFn = (code: string, name: string) => {
-  const regex = new RegExp(`function\\s+${name}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`, 'g');
+  const regex = new RegExp(
+    `function\\s+${name}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`,
+    'g'
+  );
   return regex.exec(code)?.[0];
 };
 ```
@@ -1651,13 +1724,13 @@ const extractFn = (code: string, name: string) => {
 
 ## Summary of Libraries
 
-| Library | Use Case | Speed | Output Size | Type Safety |
-|---------|----------|-------|-------------|-------------|
-| **Terser** | Advanced minification | Medium | Smallest | Preserved |
-| **esbuild** | Fast build + minify | Fastest | Small | Preserved |
-| **SWC** | Ultra-fast compilation | Fastest | Small | Preserved |
-| **strip-comments** | Comment removal only | Fastest | N/A | Preserved |
-| **@vercel/ncc** | Single-file bundling | Fast | Medium | Preserved |
+| Library            | Use Case               | Speed   | Output Size | Type Safety |
+| ------------------ | ---------------------- | ------- | ----------- | ----------- |
+| **Terser**         | Advanced minification  | Medium  | Smallest    | Preserved   |
+| **esbuild**        | Fast build + minify    | Fastest | Small       | Preserved   |
+| **SWC**            | Ultra-fast compilation | Fastest | Small       | Preserved   |
+| **strip-comments** | Comment removal only   | Fastest | N/A         | Preserved   |
+| **@vercel/ncc**    | Single-file bundling   | Fast    | Medium      | Preserved   |
 
 ## Recommendations
 
@@ -1676,6 +1749,7 @@ const extractFn = (code: string, name: string) => {
 ---
 
 **Sources:**
+
 - [Terser GitHub Repository](https://github.com/terser/terser)
 - [esbuild Documentation](https://esbuild.github.io/)
 - [SWC Documentation](https://swc.rs/)

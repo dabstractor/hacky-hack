@@ -7,11 +7,13 @@
 **Feature Goal**: Create a `prd artifacts` CLI command that provides convenient viewing, listing, and comparing of pipeline artifacts stored in session directories.
 
 **Deliverable**: Complete artifact viewer CLI command with three subcommands:
+
 - `prd artifacts list` - Lists all artifacts with metadata
 - `prd artifacts view <task-id>` - Displays specific artifact content with syntax highlighting
 - `prd artifacts diff <task1> <task2>` - Compares artifacts between tasks
 
 **Success Definition**:
+
 - `prd artifacts list` displays all artifacts in a formatted table with Task ID, artifact type, file path, and status
 - `prd artifacts view <task-id>` shows validation-results.json, execution-summary.md, and artifacts-list.json with syntax highlighting for JSON/MD
 - `prd artifacts diff <task1> <task2>` produces a unified diff with colored additions/deletions
@@ -24,12 +26,14 @@
 **Target User**: Developers and project managers using the PRD pipeline who need to inspect, validate, and compare implementation artifacts generated during pipeline execution.
 
 **Use Case**: When reviewing pipeline execution results, users need to:
+
 - See what artifacts were generated and where they are located
 - View the content of specific artifacts (validation results, execution summaries, file lists)
 - Compare artifacts between different tasks to understand changes
 - Quickly navigate to artifact files for deeper inspection
 
 **User Journey**:
+
 1. User runs `prd artifacts list` to see all available artifacts
 2. User identifies a task of interest and runs `prd artifacts view <task-id>` to see its artifacts
 3. User views validation results, execution summary, and created file list with syntax highlighting
@@ -37,6 +41,7 @@
 5. User uses the information to debug issues, validate implementation, or understand changes
 
 **Pain Points Addressed**:
+
 - Current artifact storage exists but no convenient viewer (noted in system_context.md)
 - Artifacts stored in session directory structure that's not easily discoverable
 - No syntax highlighting for JSON/MD artifact content
@@ -71,6 +76,7 @@ prd artifacts diff <task1> <task2> [--session <id>] [--output <format>]
 ### Output Examples
 
 **`prd artifacts list` (table format)**:
+
 ```
 ┌────────────────────┬─────────────────┬────────────────────────────────────────┬──────────┐
 │ Task ID            │ Artifact Type   │ Path                                   │ Status   │
@@ -83,6 +89,7 @@ prd artifacts diff <task1> <task2> [--session <id>] [--output <format>]
 ```
 
 **`prd artifacts view P1.M1.T1.S1`**:
+
 ```
 Artifacts for P1.M1.T1.S1: Environment Setup
 
@@ -112,6 +119,7 @@ execution-summary.md:
 ```
 
 **`prd artifacts diff P1.M1.T1.S1 P1.M1.T1.S2`**:
+
 ```
 Comparing artifacts: P1.M1.T1.S1 → P1.M1.T1.S2
 
@@ -147,6 +155,7 @@ Changes: +1 -0
 **"No Prior Knowledge" Test Validation**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and patterns for all new files
 - Complete command structure following existing patterns
 - Artifact storage structure with exact file locations
@@ -439,7 +448,9 @@ export interface ArtifactContent {
   /** Artifacts list (if exists) */
   artifactsList?: string[];
   /** Which files are present */
-  presentFiles: Array<'validation-results.json' | 'execution-summary.md' | 'artifacts-list.json'>;
+  presentFiles: Array<
+    'validation-results.json' | 'execution-summary.md' | 'artifacts-list.json'
+  >;
 }
 
 /**
@@ -504,7 +515,7 @@ export interface ArtifactsDiffOptions {
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE src/utils/display/syntax-highlighter.ts
   - IMPLEMENT: SyntaxHighlighter class with highlightJSON(), highlightMarkdown(), highlightCode()
   - PATTERN: Wrapper around cli-highlight library with NO_COLOR and TTY detection
@@ -631,7 +642,7 @@ Task 10: CREATE tests/integration/artifacts-command.test.ts
   - CLEANUP: Remove temp directories in afterEach
   - PATTERN: Follow tests/integration/inspect-command.test.ts structure
   - PLACEMENT: Integration tests directory
-```
+````
 
 ### Implementation Patterns & Key Details
 
@@ -655,7 +666,10 @@ export class SyntaxHighlighter {
   /**
    * Highlight JSON data with syntax colors
    */
-  highlightJSON(data: unknown, colorMode: 'auto' | 'always' | 'never' = 'auto'): string {
+  highlightJSON(
+    data: unknown,
+    colorMode: 'auto' | 'always' | 'never' = 'auto'
+  ): string {
     const json = JSON.stringify(data, null, 2);
     if (!this.shouldUseColor(colorMode)) {
       return json;
@@ -670,7 +684,10 @@ export class SyntaxHighlighter {
   /**
    * Highlight markdown content
    */
-  highlightMarkdown(content: string, colorMode: 'auto' | 'always' | 'never' = 'auto'): string {
+  highlightMarkdown(
+    content: string,
+    colorMode: 'auto' | 'always' | 'never' = 'auto'
+  ): string {
     if (!this.shouldUseColor(colorMode)) {
       return content;
     }
@@ -741,7 +758,7 @@ export class ArtifactDiffer {
     const diffLines: string[] = [];
 
     for (const change of changes) {
-      const lines = change.value.split('\n').filter((l) => l !== '');
+      const lines = change.value.split('\n').filter(l => l !== '');
 
       if (change.added) {
         additions += lines.length;
@@ -795,7 +812,11 @@ export class ArtifactDiffer {
 import { SessionManager } from '../session-manager.js';
 import { join } from 'node:path';
 import { promises as fs } from 'node:fs';
-import type { ArtifactMetadata, ArtifactContent, ArtifactsListOptions } from './types.js';
+import type {
+  ArtifactMetadata,
+  ArtifactContent,
+  ArtifactsListOptions,
+} from './types.js';
 import { SyntaxHighlighter } from '../../utils/display/syntax-highlighter.js';
 import { ArtifactDiffer } from '../../utils/artifact-differ.js';
 import Table from 'cli-table3';
@@ -816,7 +837,10 @@ export class ArtifactsCommand {
     this.#differ = new ArtifactDiffer();
   }
 
-  async execute(action: string, options: Record<string, unknown>): Promise<void> {
+  async execute(
+    action: string,
+    options: Record<string, unknown>
+  ): Promise<void> {
     try {
       switch (action) {
         case 'list':
@@ -834,7 +858,10 @@ export class ArtifactsCommand {
           process.exit(1);
       }
     } catch (error) {
-      console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+      console.error(
+        chalk.red('Error:'),
+        error instanceof Error ? error.message : error
+      );
       process.exit(1);
     }
   }
@@ -842,15 +869,21 @@ export class ArtifactsCommand {
   async #loadSession(sessionId?: string): Promise<SessionState> {
     if (sessionId) {
       const sessions = await this.#sessionManager.listSessions(this.#planDir);
-      const session = sessions.find((s) => s.metadata.hash === sessionId || s.metadata.id === sessionId);
+      const session = sessions.find(
+        s => s.metadata.hash === sessionId || s.metadata.id === sessionId
+      );
       if (!session) {
         throw new Error(`Session not found: ${sessionId}`);
       }
-      return this.#sessionManager.loadSession(join(this.#planDir, session.metadata.id + '_' + session.metadata.hash));
+      return this.#sessionManager.loadSession(
+        join(this.#planDir, session.metadata.id + '_' + session.metadata.hash)
+      );
     }
 
     // Find latest session
-    const latestPath = await this.#sessionManager.findLatestSession(this.#planDir);
+    const latestPath = await this.#sessionManager.findLatestSession(
+      this.#planDir
+    );
     if (!latestPath) {
       throw new Error('No sessions found');
     }
@@ -887,7 +920,11 @@ export class ArtifactsCommand {
       const taskStatus = task?.status || 'Unknown';
 
       // Check for each artifact file
-      const filenames = ['validation-results.json', 'execution-summary.md', 'artifacts-list.json'];
+      const filenames = [
+        'validation-results.json',
+        'execution-summary.md',
+        'artifacts-list.json',
+      ];
       const types: Record<string, string> = {
         'validation-results.json': 'validation',
         'execution-summary.md': 'summary',
@@ -920,7 +957,10 @@ export class ArtifactsCommand {
     return artifacts;
   }
 
-  #findTaskInBacklog(session: SessionState, taskId: string): { title: string; status: string } | null {
+  #findTaskInBacklog(
+    session: SessionState,
+    taskId: string
+  ): { title: string; status: string } | null {
     // Search through backlog for task
     for (const phase of session.taskRegistry.backlog.phases) {
       for (const milestone of phase.milestones) {
@@ -948,7 +988,11 @@ export class ArtifactsCommand {
     }
   }
 
-  #getArtifactPath(session: SessionState, taskId: string, filename: string): string {
+  #getArtifactPath(
+    session: SessionState,
+    taskId: string,
+    filename: string
+  ): string {
     const taskDir = taskId.replace(/\./g, '_');
     return join(session.metadata.path, 'artifacts', taskDir, filename);
   }
@@ -999,7 +1043,9 @@ export class ArtifactsCommand {
 
     for (const artifact of artifacts) {
       const statusIcon = this.#getStatusIcon(artifact.taskStatus);
-      const existsIndicator = artifact.exists ? chalk.green('✓') : chalk.gray('○');
+      const existsIndicator = artifact.exists
+        ? chalk.green('✓')
+        : chalk.gray('○');
 
       table.push([
         artifact.taskId,
@@ -1034,7 +1080,9 @@ export class ArtifactsCommand {
     if (options.output === 'json') {
       console.log(JSON.stringify(content, null, 2));
     } else {
-      console.log(this.#formatArtifactContent(content, options.color !== false));
+      console.log(
+        this.#formatArtifactContent(content, options.color !== false)
+      );
     }
   }
 
@@ -1052,7 +1100,11 @@ export class ArtifactsCommand {
     };
 
     // Load validation-results.json
-    const validationPath = this.#getArtifactPath(session, taskId, 'validation-results.json');
+    const validationPath = this.#getArtifactPath(
+      session,
+      taskId,
+      'validation-results.json'
+    );
     if (await this.#artifactExists(validationPath)) {
       const validationContent = await fs.readFile(validationPath, 'utf-8');
       content.validationResults = JSON.parse(validationContent);
@@ -1060,14 +1112,22 @@ export class ArtifactsCommand {
     }
 
     // Load execution-summary.md
-    const summaryPath = this.#getArtifactPath(session, taskId, 'execution-summary.md');
+    const summaryPath = this.#getArtifactPath(
+      session,
+      taskId,
+      'execution-summary.md'
+    );
     if (await this.#artifactExists(summaryPath)) {
       content.executionSummary = await fs.readFile(summaryPath, 'utf-8');
       content.presentFiles.push('execution-summary.md');
     }
 
     // Load artifacts-list.json
-    const listPath = this.#getArtifactPath(session, taskId, 'artifacts-list.json');
+    const listPath = this.#getArtifactPath(
+      session,
+      taskId,
+      'artifacts-list.json'
+    );
     if (await this.#artifactExists(listPath)) {
       const listContent = await fs.readFile(listPath, 'utf-8');
       content.artifactsList = JSON.parse(listContent);
@@ -1082,25 +1142,42 @@ export class ArtifactsCommand {
   #formatArtifactContent(content: ArtifactContent, color: boolean): string {
     const lines: string[] = [];
 
-    lines.push(chalk.bold(`\nArtifacts for ${content.taskId}: ${content.taskTitle}\n`));
+    lines.push(
+      chalk.bold(`\nArtifacts for ${content.taskId}: ${content.taskTitle}\n`)
+    );
     lines.push(chalk.gray('─'.repeat(80)));
 
     // Validation Results
     if (content.validationResults) {
       lines.push(chalk.bold('\nvalidation-results.json:'));
-      lines.push(this.#highlighter.highlightJSON(content.validationResults, color ? 'always' : 'never'));
+      lines.push(
+        this.#highlighter.highlightJSON(
+          content.validationResults,
+          color ? 'always' : 'never'
+        )
+      );
     }
 
     // Execution Summary
     if (content.executionSummary) {
       lines.push(chalk.bold('\nexecution-summary.md:'));
-      lines.push(this.#highlighter.highlightMarkdown(content.executionSummary, color ? 'always' : 'never'));
+      lines.push(
+        this.#highlighter.highlightMarkdown(
+          content.executionSummary,
+          color ? 'always' : 'never'
+        )
+      );
     }
 
     // Artifacts List
     if (content.artifactsList) {
       lines.push(chalk.bold('\nartifacts-list.json:'));
-      lines.push(this.#highlighter.highlightJSON(content.artifactsList, color ? 'always' : 'never'));
+      lines.push(
+        this.#highlighter.highlightJSON(
+          content.artifactsList,
+          color ? 'always' : 'never'
+        )
+      );
     }
 
     return lines.join('\n');
@@ -1113,11 +1190,15 @@ export class ArtifactsCommand {
     const content2 = await this.#loadArtifactForDiff(session, options.task2Id);
 
     if (!content1) {
-      console.log(chalk.yellow(`No artifacts found for task: ${options.task1Id}`));
+      console.log(
+        chalk.yellow(`No artifacts found for task: ${options.task1Id}`)
+      );
       return;
     }
     if (!content2) {
-      console.log(chalk.yellow(`No artifacts found for task: ${options.task2Id}`));
+      console.log(
+        chalk.yellow(`No artifacts found for task: ${options.task2Id}`)
+      );
       return;
     }
 
@@ -1170,7 +1251,9 @@ export class ArtifactsCommand {
     if (options.output === 'json') {
       console.log(JSON.stringify(diffResult, null, 2));
     } else {
-      console.log(this.#formatArtifactDiff(diffResult, options.color !== false));
+      console.log(
+        this.#formatArtifactDiff(diffResult, options.color !== false)
+      );
     }
   }
 
@@ -1184,7 +1267,9 @@ export class ArtifactsCommand {
   #formatArtifactDiff(diff: ArtifactDiff, color: boolean): string {
     const lines: string[] = [];
 
-    lines.push(chalk.bold(`\nComparing artifacts: ${diff.task1Id} → ${diff.task2Id}\n`));
+    lines.push(
+      chalk.bold(`\nComparing artifacts: ${diff.task1Id} → ${diff.task2Id}\n`)
+    );
 
     if (!diff.hasChanges) {
       lines.push(chalk.gray('No differences detected.'));

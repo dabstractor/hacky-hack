@@ -12,21 +12,21 @@ This document provides a condensed reference for implementing optimized monitori
 
 ### Standard Intervals by Metric Type
 
-| Metric Type | Interval | Use Case |
-|-------------|----------|----------|
-| **Critical Alerts** | 1-5 seconds | SLA violations, system failures |
-| **Performance** | 15-30 seconds | Response times, throughput, errors |
-| **Resources** | 30-60 seconds | CPU, memory, disk, network |
-| **Trends** | 60-300 seconds | Capacity planning, forecasting |
+| Metric Type         | Interval       | Use Case                           |
+| ------------------- | -------------- | ---------------------------------- |
+| **Critical Alerts** | 1-5 seconds    | SLA violations, system failures    |
+| **Performance**     | 15-30 seconds  | Response times, throughput, errors |
+| **Resources**       | 30-60 seconds  | CPU, memory, disk, network         |
+| **Trends**          | 60-300 seconds | Capacity planning, forecasting     |
 
 ### Configuration for PRP Runtime
 
 ```typescript
 const RECOMMENDED_INTERVALS = {
-  critical: 5000,    // 5s - when resources > 90%
-  warning: 15000,    // 15s - when resources > 70%
-  normal: 30000,     // 30s - default operating state
-  idle: 60000        // 60s - minimal resource usage
+  critical: 5000, // 5s - when resources > 90%
+  warning: 15000, // 15s - when resources > 70%
+  normal: 30000, // 30s - default operating state
+  idle: 60000, // 60s - minimal resource usage
 };
 ```
 
@@ -82,7 +82,7 @@ class LazyResourceMonitor {
 ```typescript
 class AdaptiveMonitor {
   private interval = 30000; // Start at 30s
-  private readonly MIN = 5000;   // 5s minimum
+  private readonly MIN = 5000; // 5s minimum
   private readonly MAX = 300000; // 5min maximum
 
   onThresholdBreached(): void {
@@ -99,18 +99,18 @@ class AdaptiveMonitor {
 
 ### Adaptation Rules
 
-| Condition | Action |
-|-----------|--------|
-| Usage > 90% or volatility > 20% | Set interval to 5s (MIN) |
-| Usage > 70% or volatility > 10% | Set interval to 15s |
-| Usage < 30% and stable | Gradually increase to 60s+ |
-| Normal operation | Maintain 30s interval |
+| Condition                       | Action                     |
+| ------------------------------- | -------------------------- |
+| Usage > 90% or volatility > 20% | Set interval to 5s (MIN)   |
+| Usage > 70% or volatility > 10% | Set interval to 15s        |
+| Usage < 30% and stable          | Gradually increase to 60s+ |
+| Normal operation                | Maintain 30s interval      |
 
 ### Hysteresis to Prevent Oscillation
 
 ```typescript
 // Use different thresholds for increasing vs decreasing
-const WARN_UP = 70;   // Activate at 70%
+const WARN_UP = 70; // Activate at 70%
 const WARN_DOWN = 60; // Deactivate at 60%
 
 if (usage > WARN_UP && !isActive) {
@@ -128,11 +128,11 @@ if (usage > WARN_UP && !isActive) {
 
 ### Target Budget
 
-| Resource | Budget | Allocation |
-|----------|--------|------------|
-| **CPU** | 5% | 2% collection, 1% aggregation, 2% transmission |
-| **Memory** | 50MB | 20MB buffers, 20MB cache, 10MB overhead |
-| **Network** | 100KB/s | 50KB/s telemetry, 50KB/s alerts |
+| Resource    | Budget  | Allocation                                     |
+| ----------- | ------- | ---------------------------------------------- |
+| **CPU**     | 5%      | 2% collection, 1% aggregation, 2% transmission |
+| **Memory**  | 50MB    | 20MB buffers, 20MB cache, 10MB overhead        |
+| **Network** | 100KB/s | 50KB/s telemetry, 50KB/s alerts                |
 
 ### Implementation Strategies
 
@@ -167,8 +167,8 @@ import { Worker } from 'worker_threads';
 // Don't block the event loop
 const monitorWorker = new Worker('./monitor.js', {
   resourceLimits: {
-    maxOldGenerationSizeMb: 16  // Limit monitor memory
-  }
+    maxOldGenerationSizeMb: 16, // Limit monitor memory
+  },
 });
 ```
 
@@ -319,31 +319,31 @@ if (process.env.ENABLE_PROFILING) {
 ```typescript
 const PRODUCTION_CONFIG = {
   // Sampling intervals
-  baseInterval: 30000,        // 30 seconds
-  minInterval: 5000,          // 5 seconds
-  maxInterval: 300000,        // 5 minutes
+  baseInterval: 30000, // 30 seconds
+  minInterval: 5000, // 5 seconds
+  maxInterval: 300000, // 5 minutes
 
   // Thresholds
-  warningThreshold: 70,       // 70%
-  criticalThreshold: 90,      // 90%
+  warningThreshold: 70, // 70%
+  criticalThreshold: 90, // 90%
 
   // Lazy evaluation
   enableLazyEval: true,
-  cacheTTL: 60000,            // 60 seconds
+  cacheTTL: 60000, // 60 seconds
 
   // Adaptive monitoring
   enableAdaptive: true,
-  hysteresisGap: 10,          // 10% gap between up/down
+  hysteresisGap: 10, // 10% gap between up/down
 
   // Overhead reduction
   enableBatching: true,
   batchSize: 100,
-  flushInterval: 30000,       // 30 seconds
-  sampleRate: 0.1,            // 10%
+  flushInterval: 30000, // 30 seconds
+  sampleRate: 0.1, // 10%
 
   // Resource limits
   maxMemoryMB: 50,
-  maxCPUPercent: 5
+  maxCPUPercent: 5,
 };
 ```
 
@@ -352,9 +352,9 @@ const PRODUCTION_CONFIG = {
 ```typescript
 const DEVELOPMENT_CONFIG = {
   ...PRODUCTION_CONFIG,
-  baseInterval: 5000,         // More frequent for debugging
-  enableLazyEval: false,      // Always monitor in dev
-  enableAdaptive: false,      // Consistent behavior
+  baseInterval: 5000, // More frequent for debugging
+  enableLazyEval: false, // Always monitor in dev
+  enableAdaptive: false, // Consistent behavior
 };
 ```
 
@@ -406,20 +406,20 @@ Need to monitor a resource?
 
 ### System Health
 
-| Metric | Interval | Threshold | Action |
-|--------|----------|-----------|--------|
-| Event Loop Lag | 5s | > 100ms | Alert |
-| Heap Used % | 30s | > 85% | Alert |
-| CPU Usage | 30s | > 90% | Alert |
-| Memory RSS | 30s | > 1GB | Alert |
+| Metric         | Interval | Threshold | Action |
+| -------------- | -------- | --------- | ------ |
+| Event Loop Lag | 5s       | > 100ms   | Alert  |
+| Heap Used %    | 30s      | > 85%     | Alert  |
+| CPU Usage      | 30s      | > 90%     | Alert  |
+| Memory RSS     | 30s      | > 1GB     | Alert  |
 
 ### Monitoring Health
 
-| Metric | Interval | Threshold | Action |
-|--------|----------|-----------|--------|
-| Monitor CPU % | 60s | > 5% | Reduce frequency |
-| Monitor Memory | 60s | > 50MB | Reduce cache size |
-| Monitor Lag | 30s | > 1s | Increase intervals |
+| Metric         | Interval | Threshold | Action             |
+| -------------- | -------- | --------- | ------------------ |
+| Monitor CPU %  | 60s      | > 5%      | Reduce frequency   |
+| Monitor Memory | 60s      | > 50MB    | Reduce cache size  |
+| Monitor Lag    | 30s      | > 1s      | Increase intervals |
 
 ---
 

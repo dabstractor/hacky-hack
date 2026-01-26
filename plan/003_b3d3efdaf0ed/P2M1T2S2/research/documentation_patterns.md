@@ -31,6 +31,7 @@ All documentation files follow this consistent header format:
 ```
 
 **Examples from existing docs:**
+
 - Status: Published (most common), Active Development, Complete
 - Version: 1.0.0 (common)
 - Last Updated: 2026-01-XX (follows project date)
@@ -44,6 +45,7 @@ All documentation files follow this consistent header format:
 ## Section Organization
 
 **Standard Structure:**
+
 1. Overview/Executive Summary (H2)
 2. Prerequisites/Requirements (H2)
 3. Quick Start/Getting Started (H2)
@@ -56,10 +58,11 @@ All documentation files follow this consistent header format:
 ## Table Formatting Patterns
 
 **Consistent table structure:**
+
 ```markdown
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `VAR_NAME` | Yes | - | Description |
+| Variable   | Required | Default | Description |
+| ---------- | -------- | ------- | ----------- |
+| `VAR_NAME` | Yes      | -       | Description |
 ```
 
 - Use pipe `|` tables with consistent alignment
@@ -70,7 +73,8 @@ All documentation files follow this consistent header format:
 ## Code Block Formatting
 
 **Bash commands:**
-```markdown
+
+````markdown
 ```bash
 # Comment explaining the command
 npm run dev -- --prd ./PRD.md
@@ -79,15 +83,18 @@ npm run dev -- --prd ./PRD.md
 # Expected:
 # ✓ src/core/session-manager.test.ts (5)
 ```
-```
+````
+
+````
 
 **TypeScript code:**
 ```markdown
 ```typescript
 // Code with comments
 await sessionManager.updateItemStatus('P1.M1.T1.S1', 'Complete');
-```
-```
+````
+
+````
 
 ## Diagram Styles (Mermaid)
 
@@ -98,9 +105,10 @@ The codebase extensively uses Mermaid diagrams for visualization.
 flowchart LR
     A[PRD.md] --> B[Architect Agent]
     B --> C[tasks.json]
-```
+````
 
 **State diagrams:**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Initializing
@@ -109,6 +117,7 @@ stateDiagram-v2
 ```
 
 **Sequence diagrams:**
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -121,6 +130,7 @@ sequenceDiagram
 ## Cross-Reference Link Patterns
 
 **Consistent linking style:**
+
 - **Internal links**: `[Document Title](./path/to/document.md)`
 - **External links**: `[URL](https://example.com)`
 - **Anchor links**: `[Section Title](#section-id)`
@@ -129,16 +139,19 @@ sequenceDiagram
 ## Special Formatting Conventions
 
 **Status badges:**
+
 ```markdown
 **Status**: Published | Draft | Review | Deprecated
 ```
 
 **Callout blocks:**
+
 ```markdown
 > CRITICAL: Never commit your `.env` file to version control.
 ```
 
 **Checklists:**
+
 ```markdown
 - [ ] All 4 validation levels completed successfully
 - [ ] All tests pass: `uv run pytest src/ -v`
@@ -149,6 +162,7 @@ sequenceDiagram
 **Guiding principle:** Progressive disclosure - start with quick start, then detailed guides, then advanced topics.
 
 **Common sections:**
+
 1. Quick Start - Minimal steps to get started
 2. Overview - What is it and why use it
 3. Prerequisites - What's needed to use it
@@ -175,6 +189,7 @@ sequenceDiagram
 ## Documentation Quality Indicators
 
 From existing docs:
+
 - Use of "Expected:" labels for command output
 - "What you see" / "Why it happens" / "How to fix" pattern for troubleshooting
 - Progressive complexity in examples

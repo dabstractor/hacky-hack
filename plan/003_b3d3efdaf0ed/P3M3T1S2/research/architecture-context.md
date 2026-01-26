@@ -122,6 +122,7 @@ Extend PRPGenerator or create CacheManager with:
 **File**: `src/cli/commands/cache.ts` (NEW)
 
 Create subcommands:
+
 - `prd cache stats` - Display cache statistics
 - `prd cache clean` - Remove expired entries
 - `prd cache clear` - Remove all cache entries
@@ -131,6 +132,7 @@ Create subcommands:
 **File**: `src/utils/cache-manager.ts` (NEW)
 
 Create a dedicated CacheManager class that:
+
 - Works with PRPGenerator cache structure
 - Provides statistics and cleanup methods
 - Integrates with session management
@@ -158,8 +160,9 @@ getCacheMetadataPath(taskId: string): string {
 ### Session Manager
 
 **Session path is available via:**
+
 ```typescript
-sessionManager.currentSession.metadata.path
+sessionManager.currentSession.metadata.path;
 ```
 
 This is the base path for cache directories.
@@ -169,6 +172,7 @@ This is the base path for cache directories.
 ### File Permissions
 
 Cache files are created with mode `0o644` (from line 332 of prp-generator.ts):
+
 ```typescript
 await writeFile(metadataPath, JSON.stringify(metadata, null, 2), {
   mode: 0o644,
@@ -185,11 +189,13 @@ await writeFile(metadataPath, JSON.stringify(metadata, null, 2), {
 ### Cache-Only Operations
 
 The CacheManager should ONLY operate on:
+
 - `prps/.cache/*.json` - Cache metadata files
 
 ### Environment Variable Naming
 
 Follow existing pattern:
+
 - Use `HACKY_` prefix for application-specific configuration
 - Example: `HACKY_CACHE_AUTO_CLEANUP` for auto-cleanup feature
 
@@ -248,12 +254,12 @@ async #isCacheRecent(filePath: string): Promise<boolean> {
 
 ## Summary
 
-| Aspect | P3.M3.T1.S1 (Previous) | P3.M3.T1.S2 (This Task) |
-|--------|----------------------|------------------------|
-| TTL Configuration | ✅ Configurable TTL | ❌ Not in scope |
-| Statistics | Basic hit/miss counters | Comprehensive stats |
-| CLI Commands | `--cache-ttl` option | `prd cache stats/clean/clear` |
-| CacheManager | ❌ None | ✅ Create new class |
-| Cleanup | ❌ None | ✅ Clean/clear commands |
-| Auto-cleanup | ❌ None | ✅ `--cache-prune` option |
-| Tests | TTL configuration tests | CacheManager tests |
+| Aspect            | P3.M3.T1.S1 (Previous)  | P3.M3.T1.S2 (This Task)       |
+| ----------------- | ----------------------- | ----------------------------- |
+| TTL Configuration | ✅ Configurable TTL     | ❌ Not in scope               |
+| Statistics        | Basic hit/miss counters | Comprehensive stats           |
+| CLI Commands      | `--cache-ttl` option    | `prd cache stats/clean/clear` |
+| CacheManager      | ❌ None                 | ✅ Create new class           |
+| Cleanup           | ❌ None                 | ✅ Clean/clear commands       |
+| Auto-cleanup      | ❌ None                 | ✅ `--cache-prune` option     |
+| Tests             | TTL configuration tests | CacheManager tests            |

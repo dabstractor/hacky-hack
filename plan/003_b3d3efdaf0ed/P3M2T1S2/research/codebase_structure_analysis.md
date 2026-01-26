@@ -61,7 +61,9 @@ hacky-hack/
 ### 2.1 Primary Integration Files
 
 #### src/core/task-orchestrator.ts
+
 **Reason**: Main integration point for retry functionality
+
 - **Changes needed**:
   - Import TaskRetryManager
   - Wrap subtask execution in retry logic
@@ -73,7 +75,9 @@ hacky-hack/
   - Status progression logic
 
 #### src/core/session-manager.ts
+
 **Reason**: Persist retry state across sessions
+
 - **Changes needed**:
   - Add retry metadata to session state
   - Store retry configuration and history
@@ -84,7 +88,9 @@ hacky-hack/
   - Session serialization/deserialization
 
 #### src/utils/retry.ts
+
 **Reason**: Leverage existing retry infrastructure
+
 - **Changes needed**:
   - May need specialized retry configurations for task execution
   - Integration with error classification system
@@ -95,7 +101,9 @@ hacky-hack/
   - Error code hierarchy
 
 #### src/utils/errors.ts
+
 **Reason**: Extend error classification for retry scenarios
+
 - **Changes needed**:
   - Add new error codes for retry-specific scenarios
   - Enhance error context with retry metadata
@@ -105,7 +113,9 @@ hacky-hack/
   - `PipelineErrorContext` interface (add retry fields)
 
 #### src/cli/index.ts
+
 **Reason**: Add CLI options for retry configuration
+
 - **Changes needed**:
   - Add retry-related CLI options (--max-retries, --retry-delay, etc.)
   - Validation of retry parameters
@@ -115,7 +125,9 @@ hacky-hack/
   - Validation logic for retry parameters
 
 #### src/workflows/prp-pipeline.ts
+
 **Reason**: Integrate retry at workflow level
+
 - **Changes needed**:
   - Pass retry configuration to TaskOrchestrator
   - Handle retry failures at workflow level
@@ -130,7 +142,9 @@ hacky-hack/
 ### 3.1 Core Implementation Files
 
 #### src/core/task-retry-manager.ts (NEW)
+
 **Purpose**: Central retry management system
+
 - **Features**:
   - Retry configuration management
   - Retry state persistence
@@ -144,7 +158,9 @@ hacky-hack/
   - `RetryResult` interface
 
 #### tests/unit/task-retry-manager.test.ts (NEW)
+
 **Purpose**: Comprehensive test coverage for retry functionality
+
 - **Test areas**:
   - Retry configuration validation
   - Exponential backoff calculations
@@ -161,24 +177,25 @@ hacky-hack/
 ## 4. Integration Points Details
 
 ### 4.1 TaskOrchestrator Integration
+
 ```typescript
 // In executeSubtask method:
 async executeSubtask(subtask: Subtask): Promise<void> {
   // ... existing code ...
-  
+
   try {
     // NEW: Wrap execution with retry manager
     const retryResult = await this.retryManager.executeWithRetry(
       async () => this.#prpRuntime.executeSubtask(subtask, this.#backlog),
       { taskId: subtask.id, maxAttempts: 3 }
     );
-    
+
     if (retryResult.success) {
       await this.setStatus(subtask.id, 'Complete', 'Implementation completed with retries');
     } else {
       await this.setStatus(
-        subtask.id, 
-        'Failed', 
+        subtask.id,
+        'Failed',
         `Execution failed after ${retryResult.attemptCount} attempts: ${retryResult.error}`
       );
     }
@@ -190,6 +207,7 @@ async executeSubtask(subtask: Subtask): Promise<void> {
 ```
 
 ### 4.2 SessionManager Integration
+
 ```typescript
 // Enhanced SessionState interface
 interface SessionState {
@@ -212,21 +230,23 @@ interface SessionState {
 ```
 
 ### 4.3 CLI Integration
+
 ```typescript
 // Enhanced CLIArgs interface
 interface CLIArgs {
   // ... existing fields ...
-  maxRetries?: number;          // Max retry attempts (default: 3)
-  retryDelay?: number;          // Base delay in ms (default: 1000)
-  maxRetryDelay?: number;      // Max delay cap in ms (default: 30000)
-  retryBackoff?: number;       // Exponential factor (default: 2)
-  enableRetry?: boolean;       // Enable/disable retry (default: true)
+  maxRetries?: number; // Max retry attempts (default: 3)
+  retryDelay?: number; // Base delay in ms (default: 1000)
+  maxRetryDelay?: number; // Max delay cap in ms (default: 30000)
+  retryBackoff?: number; // Exponential factor (default: 2)
+  enableRetry?: boolean; // Enable/disable retry (default: true)
 }
 ```
 
 ## 5. Visual Comparison
 
 ### Before Structure
+
 ```
 src/
 ├── core/
@@ -242,6 +262,7 @@ tests/unit/
 ```
 
 ### After Structure
+
 ```
 src/
 ├── core/
@@ -262,21 +283,25 @@ tests/unit/
 ## 6. Key Considerations
 
 ### 6.1 Backward Compatibility
+
 - Existing API should remain unchanged
 - Retry functionality should be opt-in via CLI flags
 - Default retry behavior should be conservative
 
 ### 6.2 Performance Impact
+
 - Retry state adds memory overhead
 - Exponential backoff should prevent system overload
 - Circuit breaker needed for cascading failures
 
 ### 6.3 Error Handling
+
 - Clear distinction between transient and permanent failures
 - Detailed logging of retry attempts
 - Graceful degradation when retry is disabled
 
 ### 6.4 Testing Strategy
+
 - Unit tests for retry logic in isolation
 - Integration tests with TaskOrchestrator
 - End-to-end tests with real failure scenarios
@@ -285,24 +310,28 @@ tests/unit/
 ## 7. Implementation Phases
 
 ### Phase 1: Core Retry Manager
+
 1. Create TaskRetryManager with basic retry logic
 2. Add configuration management
 3. Implement exponential backoff with jitter
 4. Create comprehensive unit tests
 
 ### Phase 2: TaskOrchestrator Integration
+
 1. Integrate retry manager into executeSubtask
 2. Add retry state tracking
 3. Enhanced error handling with retry context
 4. Update task-orchestrator tests
 
 ### Phase 3: Session Persistence
+
 1. Add retry metadata to session state
 2. Implement retry state serialization
 3. Add recovery logic for interrupted retries
 4. Update session-manager tests
 
 ### Phase 4: CLI and Workflow Integration
+
 1. Add retry CLI options
 2. Validate and document retry parameters
 3. Integrate with PRPPipeline workflow

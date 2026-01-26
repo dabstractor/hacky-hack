@@ -24,6 +24,7 @@
 **Docs**: https://zod.dev
 
 Zod is a TypeScript-first schema validation library that enables:
+
 - Static type inference
 - Runtime validation
 - Integration with LLM structured output
@@ -55,11 +56,13 @@ const CategorySchema = z.object({
 // Nested objects
 const AnalysisSchema = z.object({
   analysis: z.object({
-    issues: z.array(z.object({
-      line: z.number(),
-      message: z.string(),
-      severity: z.enum(['error', 'warning', 'info']),
-    })),
+    issues: z.array(
+      z.object({
+        line: z.number(),
+        message: z.string(),
+        severity: z.enum(['error', 'warning', 'info']),
+      })
+    ),
     summary: z.string(),
   }),
 });
@@ -78,7 +81,7 @@ const MilestoneSchema: z.ZodType<Milestone> = z.lazy(() =>
     title: z.string().min(1).max(200),
     status: StatusEnum,
     description: z.string().min(1),
-    tasks: z.array(z.lazy(() => TaskSchema)),  // Recursive reference
+    tasks: z.array(z.lazy(() => TaskSchema)), // Recursive reference
   })
 );
 ```
@@ -97,7 +100,8 @@ const ContextScopeSchema: z.ZodType<string> = z
     if (!value.startsWith(prefix)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
+        message:
+          'context_scope must start with "CONTRACT DEFINITION:" followed by a newline',
       });
       return;
     }
@@ -142,7 +146,7 @@ type LLMResponse = z.infer<typeof LLMSchema>;
 // Use with Groundswell
 const prompt = createPrompt({
   user: 'Generate a summary',
-  responseFormat: LLMSchema,  // Type-safe output
+  responseFormat: LLMSchema, // Type-safe output
 });
 
 const result = await agent.prompt(prompt);
@@ -167,9 +171,9 @@ try {
 const result = prompt.safeValidateResponse(parsed);
 
 if (result.success) {
-  console.log(result.data);  // Type: T
+  console.log(result.data); // Type: T
 } else {
-  console.log(result.error.issues);  // Validation errors
+  console.log(result.error.issues); // Validation errors
 }
 
 // Detailed error reporting
@@ -217,15 +221,15 @@ const result = await agent.prompt(prompt);
 
 ```typescript
 interface PromptConfig<T> {
-  user: string;                           // Required: user message
-  data?: Record<string, unknown>;         // Optional: structured data
-  responseFormat: z.ZodType<T>;           // Required: response schema
-  system?: string;                        // Optional: system prompt override
-  tools?: Tool[];                         // Optional: tools override
-  mcps?: MCPServer[];                     // Optional: MCPs override
-  skills?: Skill[];                       // Optional: skills override
-  hooks?: AgentHooks;                     // Optional: hooks override
-  enableReflection?: boolean;             // Optional: enable reflection
+  user: string; // Required: user message
+  data?: Record<string, unknown>; // Optional: structured data
+  responseFormat: z.ZodType<T>; // Required: response schema
+  system?: string; // Optional: system prompt override
+  tools?: Tool[]; // Optional: tools override
+  mcps?: MCPServer[]; // Optional: MCPs override
+  skills?: Skill[]; // Optional: skills override
+  hooks?: AgentHooks; // Optional: hooks override
+  enableReflection?: boolean; // Optional: enable reflection
 }
 ```
 
@@ -286,19 +290,19 @@ Groundswell follows a three-level override hierarchy:
 
 ```typescript
 const agent = createAgent({
-  system: 'Default system prompt',  // Agent-level
+  system: 'Default system prompt', // Agent-level
   model: 'claude-sonnet-4-20250514',
 });
 
 const prompt = createPrompt({
   user: 'Hello',
-  system: 'Override system prompt',  // Prompt-level (wins)
+  system: 'Override system prompt', // Prompt-level (wins)
   responseFormat: z.object({ response: z.string() }),
 });
 
 // Or override at execution time
 const result = await agent.prompt(prompt, {
-  model: 'claude-opus-4-5-20251101',  // Execution-level override
+  model: 'claude-opus-4-5-20251101', // Execution-level override
 });
 ```
 
@@ -413,18 +417,18 @@ const prompt = createPrompt({
         output: {
           bugs: [],
           complexity: 'low',
-          suggestions: ['Add input validation']
-        }
+          suggestions: ['Add input validation'],
+        },
       },
       {
         input: 'var x = eval(data);',
         output: {
           bugs: ['Use of eval() is a security risk'],
           complexity: 'high',
-          suggestions: ['Use JSON.parse() instead']
-        }
-      }
-    ]
+          suggestions: ['Use JSON.parse() instead'],
+        },
+      },
+    ],
   },
   responseFormat: AnalysisSchema,
 });
@@ -471,6 +475,7 @@ Example classifications:
 **Example**: `/home/dustin/projects/groundswell/examples/examples/09-reflection.ts`
 
 Reflection is a multi-level error recovery system that:
+
 1. Analyzes failed LLM responses
 2. Identifies validation errors
 3. Retries with corrective guidance
@@ -495,7 +500,7 @@ Then provide your final answer.
 ```typescript
 const prompt = createPrompt({
   user: 'Complex analysis task',
-  enableReflection: true,  // Auto-retry on validation failure
+  enableReflection: true, // Auto-retry on validation failure
   responseFormat: StrictAnswerSchema,
 });
 
@@ -553,6 +558,7 @@ const result = await agent.reflect(prompt);
 ```
 
 **Behavior** (lines 175-252):
+
 - Step 1: Initial reasoning
 - Step 2: Self-correction (identifies potential bias)
 - Step 3: Revised approach with broader perspective
@@ -596,19 +602,21 @@ console.log(`  Retry delay: ${DEFAULT_REFLECTION_CONFIG.retryDelayMs}ms`);
 const customConfig = createReflectionConfig({
   enabled: true,
   maxAttempts: 5,
-  retryDelayMs: 200
+  retryDelayMs: 200,
 });
 ```
 
 ### 4.4 When to Use Reflection
 
 **Enable reflection for:**
+
 - Complex schema validation (nested objects, strict constraints)
 - Multi-step reasoning tasks
 - High-stakes outputs where accuracy is critical
 - Tasks with potential for hallucination
 
 **Disable reflection for:**
+
 - Simple classification tasks
 - High-volume, low-latency requirements
 - Idempotent operations where retry is wasteful
@@ -623,7 +631,7 @@ export function createBugHuntPrompt(testResults: string): Prompt<TestResults> {
     user: constructUserPrompt(testResults),
     system: BUG_HUNT_SYSTEM_PROMPT,
     responseFormat: TestResultsSchema,
-    enableReflection: true,  // Enable for thorough analysis reliability
+    enableReflection: true, // Enable for thorough analysis reliability
   });
 }
 ```
@@ -639,7 +647,7 @@ export function createDeltaAnalysisPrompt(
     user: constructUserPrompt(oldPRD, newPRD),
     system: DELTA_ANALYSIS_SYSTEM_PROMPT,
     responseFormat: DeltaAnalysisSchema,
-    enableReflection: true,  // Enable for complex delta analysis reliability
+    enableReflection: true, // Enable for complex delta analysis reliability
   });
 }
 ```
@@ -693,7 +701,7 @@ export function createArchitectPrompt(prdContent: string): Prompt<Backlog> {
   return createPrompt({
     user: prdContent,
     system: TASK_BREAKDOWN_PROMPT,
-    responseFormat: BacklogSchema,  // Type: z.ZodType<Backlog>
+    responseFormat: BacklogSchema, // Type: z.ZodType<Backlog>
     enableReflection: true,
   });
   // Return type is Prompt<Backlog>, fully typed
@@ -775,10 +783,10 @@ const result = await agent.prompt(prompt);
 
 // Type-safe handling with discriminator
 if (result.type === 'success') {
-  console.log(result.data.summary);  // TypeScript knows this exists
+  console.log(result.data.summary); // TypeScript knows this exists
   console.log(result.data.score);
 } else {
-  console.log(result.error);  // TypeScript knows this is an error
+  console.log(result.error); // TypeScript knows this is an error
   console.log(result.details ?? 'No details');
 }
 ```
@@ -793,10 +801,12 @@ if (result.type === 'success') {
 // schemas.ts
 export const AnalysisSchema = z.object({
   summary: z.string(),
-  issues: z.array(z.object({
-    severity: z.enum(['low', 'medium', 'high']),
-    description: z.string(),
-  })),
+  issues: z.array(
+    z.object({
+      severity: z.enum(['low', 'medium', 'high']),
+      description: z.string(),
+    })
+  ),
 });
 
 export const ClassificationSchema = z.object({
@@ -868,6 +878,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### 6.1 JSON Schema Validation
 
 ✅ **DO:**
+
 - Define schemas first, then infer types with `z.infer<>`
 - Use `.min()`, `.max()`, `.regex()` for constraints
 - Use `z.lazy()` for recursive structures
@@ -876,6 +887,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 - Provide descriptive error messages
 
 ❌ **DON'T:**
+
 - Use `any` instead of proper Zod types
 - Skip validation for "simple" schemas
 - Use overly permissive types (e.g., `z.any()`)
@@ -884,6 +896,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### 6.2 Groundswell Framework
 
 ✅ **DO:**
+
 - Use `createPrompt()` for all prompts
 - Enable `enableReflection` for complex schemas
 - Use `withData()` for prompt variations
@@ -891,6 +904,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 - Define reusable schema libraries
 
 ❌ **DON'T:**
+
 - Mutate prompt objects (they're frozen)
 - Ignore reflection for nested objects
 - Put large examples in system prompt (use `data`)
@@ -899,6 +913,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### 6.3 Few-Shot Examples
 
 ✅ **DO:**
+
 - Include 2-4 realistic examples
 - Cover edge cases (empty arrays, null values)
 - Use the `data` property for examples
@@ -906,6 +921,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 - Maintain format consistency
 
 ❌ **DON'T:**
+
 - Use too many examples (>5)
 - Show unrealistic or toy examples
 - Mix inconsistent formats
@@ -914,6 +930,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### 6.4 Error Recovery
 
 ✅ **DO:**
+
 - Enable reflection for complex outputs
 - Configure max attempts appropriately
 - Log validation errors for debugging
@@ -921,6 +938,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 - Handle `ZodError` gracefully
 
 ❌ **DON'T:**
+
 - Leave reflection enabled for simple tasks
 - Ignore reflection logs
 - Set max attempts too low (<2) or too high (>5)
@@ -929,6 +947,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### 6.5 Type Safety
 
 ✅ **DO:**
+
 - Always infer types from schemas
 - Use discriminated unions for variant types
 - Create type-safe prompt factories
@@ -936,6 +955,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 - Use type guards for runtime checks
 
 ❌ **DON'T:**
+
 - Define types separately from schemas
 - Use type assertions (`as Type`)
 - Skip type inference for "convenience"
@@ -948,6 +968,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### Groundswell Framework
 
 **Local Documentation**: `/home/dustin/projects/groundswell/`
+
 - **README**: `/home/dustin/projects/groundswell/README.md`
   - Quick start guide
   - Core concepts
@@ -971,6 +992,7 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### Zod Documentation
 
 **Official**: https://zod.dev
+
 - **API Reference**: https://zod.dev/api
 - **GitHub**: https://github.com/colinhacks/zod
 - **Version**: 3.25.76 (installed in `node_modules/zod`)
@@ -978,12 +1000,14 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### Codebase Examples
 
 **Schema Definitions**: `/home/dustin/projects/hacky-hack/src/core/models.ts`
+
 - `BacklogSchema` (lines 709-711)
 - `PRPDocumentSchema` (lines 1295-1305)
 - `ContextScopeSchema` (lines 68-112) - Custom validation with `superRefine()`
 - `MilestoneSchema` (lines 522-535) - Recursive schema with `z.lazy()`
 
 **Prompt Factories**: `/home/dustin/projects/hacky-hack/src/agents/prompts/`
+
 - `architect-prompt.ts` - Task breakdown with `BacklogSchema`
 - `prp-blueprint-prompt.ts` - PRP generation with `PRPDocumentSchema`
 - `bug-hunt-prompt.ts` - QA testing with `TestResultsSchema`
@@ -992,10 +1016,12 @@ async analyzeText(input: string): Promise<TextAnalysis> {
 ### Additional Resources
 
 **Type Safety**:
+
 - TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/2/types-from-types.html
 - Discriminated Unions: https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
 
 **LLM Best Practices**:
+
 - Anthropic Prompt Engineering: https://docs.anthropic.com/claude/docs/prompt-engineering
 - OpenAI Structured Outputs: https://platform.openai.com/docs/guides/structured-outputs
 

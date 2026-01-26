@@ -20,6 +20,7 @@ CLI (src/cli/index.ts)
 ### 1. CLI Definition (`src/cli/index.ts`)
 
 **Lines 192-210**: CLI option definitions for similar options
+
 ```typescript
 .option(
   '--parallelism <n>',
@@ -34,15 +35,17 @@ CLI (src/cli/index.ts)
 ```
 
 **Lines 57-105**: CLIArgs interface definition
+
 ```typescript
 export interface CLIArgs {
-  parallelism: number | string;  // May be string from commander
+  parallelism: number | string; // May be string from commander
   researchConcurrency: number | string;
   // ...
 }
 ```
 
 **Lines 368-436**: Validation and conversion to number
+
 ```typescript
 // Validate parallelism
 const parallelism = parseInt(parallelismStr, 10);
@@ -50,12 +53,13 @@ if (isNaN(parallelism) || parallelism < 1 || parallelism > 10) {
   logger.error('--parallelism must be an integer between 1 and 10');
   process.exit(1);
 }
-options.parallelism = parallelism;  // Store validated number
+options.parallelism = parallelism; // Store validated number
 ```
 
 ### 2. Main Entry Point (`src/index.ts`)
 
 **Lines 202-215**: PRPPipeline instantiation with CLI args
+
 ```typescript
 const pipeline = new PRPPipeline(
   args.prd,
@@ -68,7 +72,7 @@ const pipeline = new PRPPipeline(
   args.monitorInterval,
   undefined, // planDir - use default
   args.progressMode ?? 'auto',
-  args.parallelism,        // Passed to PRPPipeline
+  args.parallelism, // Passed to PRPPipeline
   args.researchConcurrency
 );
 ```
@@ -76,6 +80,7 @@ const pipeline = new PRPPipeline(
 ### 3. PRPPipeline (`src/workflows/prp-pipeline.ts`)
 
 **Lines 235-239**: Private properties for config
+
 ```typescript
 /** Parallelism limit for concurrent subtask execution */
 readonly #parallelism: number = 2;
@@ -85,6 +90,7 @@ readonly #researchQueueConcurrency: number = 3;
 ```
 
 **Lines 261-274**: Constructor parameters
+
 ```typescript
 constructor(
   prdPath: string,
@@ -103,18 +109,20 @@ constructor(
 ```
 
 **Lines 294-295**: Store values
+
 ```typescript
 this.#parallelism = parallelism;
 this.#researchQueueConcurrency = researchQueueConcurrency;
 ```
 
 **Lines 468-473**: TaskOrchestrator instantiation in `initializeSession()`
+
 ```typescript
 this.taskOrchestrator = new TaskOrchestratorClass(
   this.sessionManager,
   this.#scope,
   this.#noCache,
-  this.#researchQueueConcurrency  // Only researchQueueConcurrency passed
+  this.#researchQueueConcurrency // Only researchQueueConcurrency passed
 );
 ```
 
@@ -123,6 +131,7 @@ this.taskOrchestrator = new TaskOrchestratorClass(
 ### 4. TaskOrchestrator (`src/core/task-orchestrator.ts`)
 
 **Lines 119-124**: Current constructor (from P3.M2.T1.S2 PRP)
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -207,9 +216,9 @@ const pipeline = new PRPPipeline(
   args.progressMode ?? 'auto',
   args.parallelism,
   args.researchConcurrency,
-  args.taskRetry,       // NEW
-  args.retryBackoff,    // NEW
-  args.noRetry          // NEW
+  args.taskRetry, // NEW
+  args.retryBackoff, // NEW
+  args.noRetry // NEW
 );
 ```
 
@@ -252,7 +261,7 @@ this.taskOrchestrator = new TaskOrchestratorClass(
   this.#scope,
   this.#noCache,
   this.#researchQueueConcurrency,
-  retryConfig  // NEW: Pass retry config
+  retryConfig // NEW: Pass retry config
 );
 ```
 

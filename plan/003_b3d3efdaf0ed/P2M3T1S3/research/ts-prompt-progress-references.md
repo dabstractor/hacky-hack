@@ -3,6 +3,7 @@
 ## Quick Reference Links
 
 ### cli-progress Library
+
 - **NPM**: https://www.npmjs.com/package/cli-progress
 - **GitHub**: https://github.com/npkgz/cli-progress
 - **Type Definitions**: https://www.npmjs.com/package/@types/cli-progress
@@ -10,6 +11,7 @@
 - **Multi-Bar Examples**: https://github.com/npkgz/cli-progress#multi-bar-mode
 
 ### Codebase References
+
 - **Existing ProgressTracker**: `/home/dustin/projects/hacky-hack/src/utils/progress.ts`
 - **ProgressTracker Tests**: `/home/dustin/projects/hacky-hack/tests/unit/utils/progress.test.ts`
 - **PRPPipeline (integration point)**: `/home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts` (lines 231, 753-761, 783, 790-795)
@@ -17,6 +19,7 @@
 - **CLI Options Pattern**: `/home/dustin/projects/hacky-hack/src/cli/index.ts` (lines 114-195)
 
 ### Installation Commands
+
 ```bash
 npm install cli-progress
 npm install @types/cli-progress --save-dev
@@ -25,14 +28,18 @@ npm install @types/cli-progress --save-dev
 ## Key Implementation Patterns from Codebase
 
 ### 1. ProgressTracker Pattern (existing)
+
 File: `src/utils/progress.ts`
+
 - Factory function: `progressTracker({ backlog, logInterval, barWidth })`
 - Methods: `recordStart()`, `recordComplete()`, `getProgress()`, `formatProgress()`, `getETA()`
 - Exponential smoothing for ETA (alpha=0.3)
 - Structured logging via Pino logger
 
 ### 2. CLI Option Pattern (to follow)
+
 File: `src/cli/index.ts`
+
 ```typescript
 .option('--progress-mode <mode>', 'Progress display mode')
   .choices(['auto', 'always', 'never'])
@@ -40,7 +47,9 @@ File: `src/cli/index.ts`
 ```
 
 ### 3. Test Pattern (to follow)
+
 File: `tests/unit/utils/progress.test.ts`
+
 - Use Vitest: `import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';`
 - Mock logger: `const logger = getLogger('ProgressTracker'); vi.spyOn(logger, 'info');`
 - Fake timers: `vi.useFakeTimers(); vi.advanceTimersByTime(10);`
@@ -49,11 +58,13 @@ File: `tests/unit/utils/progress.test.ts`
 ## Critical Implementation Details
 
 ### File: src/workflows/prp-pipeline.ts
+
 - Line 231: `#progressTracker?: ProgressTracker;` - existing private field
 - Lines 753-761: ProgressTracker initialization in `executeBacklog()`
 - Lines 783, 790-795: Current progress logging (console-based)
 
 ### Integration Requirements
+
 1. Install cli-progress dependency
 2. Create ProgressDisplay class alongside existing ProgressTracker
 3. Add --progress-mode CLI option (auto, always, never)
@@ -75,9 +86,14 @@ class SingleBar {
 
 // MultiBar for hierarchical progress
 class MultiBar {
-  create(total: number, start: number, payload?: any, barOptions?: Options): SingleBar;
+  create(
+    total: number,
+    start: number,
+    payload?: any,
+    barOptions?: Options
+  ): SingleBar;
   remove(bar: SingleBar): boolean;
-  log(data: string): void;  // CRITICAL: newline required!
+  log(data: string): void; // CRITICAL: newline required!
   stop(): void;
 }
 

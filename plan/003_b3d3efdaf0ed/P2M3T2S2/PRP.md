@@ -9,6 +9,7 @@
 **Deliverable**: Enhanced error report generation at `src/utils/error-reporter.ts` with comprehensive error reporting capabilities, including `ErrorReportBuilder` class, `TimelineTracker` class, `ImpactAnalyzer` class, `RecommendationEngine` class, and `ResumeCommandBuilder` class.
 
 **Success Definition**:
+
 - ERROR_REPORT.md is generated with error timeline showing chronological occurrence
 - Stack traces are presented with collapsed library frames and source context
 - Each error includes suggested fixes with exact commands
@@ -23,6 +24,7 @@
 **Target User**: Developers and project managers using the PRD pipeline who need to understand, diagnose, and recover from errors during pipeline execution.
 
 **Use Case**: When pipeline execution fails, users need to:
+
 - Understand when errors occurred in the execution timeline
 - See detailed error context including stack traces
 - Get actionable suggestions for fixing errors
@@ -30,6 +32,7 @@
 - Know exactly what commands to run to resume execution
 
 **User Journey**:
+
 1. Pipeline execution fails with error notification
 2. User reviews ERROR_REPORT.md in session directory
 3. User reads error timeline to understand chronology
@@ -40,6 +43,7 @@
 8. Pipeline resumes and completes successfully
 
 **Pain Points Addressed**:
+
 - Current error report lacks chronological context (no timeline)
 - Stack traces are truncated without source context
 - Generic recommendations don't provide specific actions
@@ -72,31 +76,32 @@
 
 ## Summary
 
-| Metric | Count |
-|--------|-------|
-| Total Tasks | 45 |
-| Completed | 12 |
-| Failed | 3 |
+| Metric       | Count |
+| ------------ | ----- |
+| Total Tasks  | 45    |
+| Completed    | 12    |
+| Failed       | 3     |
 | Success Rate | 26.7% |
 
 ## Error Timeline
+```
 
-```
-10:05:23  │  ✓  [P1.M1.T1.S1] Environment setup completed (2m 15s)
-10:15:47  │  ✗  [P1.M1.T1.S2] Type validation failed
-          │     Error: Expected string, got undefined
-          │     File: src/types/session.ts:45
-          │
-          │     ├─ 10:22:15  Retry #1 failed
-          │     ├─ 10:28:42  Retry #2 failed
-          │     └─ 10:35:18  Max retries exceeded
-          │
-          │     ⚠  Blocking: P1.M1.T1.S3, P1.M1.T2.S1 (waiting 15m)
-10:45:30  │  ✗  [P1.M2.T1.S1] Schema validation failed
-          │     Error: Invalid PRD schema
-          │     ⚠  Blocking: P1.M2.T2.S1, P1.M2.T3.S1
-11:00:00  │  ⏸  Pipeline paused
-```
+10:05:23 │ ✓ [P1.M1.T1.S1] Environment setup completed (2m 15s)
+10:15:47 │ ✗ [P1.M1.T1.S2] Type validation failed
+│ Error: Expected string, got undefined
+│ File: src/types/session.ts:45
+│
+│ ├─ 10:22:15 Retry #1 failed
+│ ├─ 10:28:42 Retry #2 failed
+│ └─ 10:35:18 Max retries exceeded
+│
+│ ⚠ Blocking: P1.M1.T1.S3, P1.M1.T2.S1 (waiting 15m)
+10:45:30 │ ✗ [P1.M2.T1.S1] Schema validation failed
+│ Error: Invalid PRD schema
+│ ⚠ Blocking: P1.M2.T2.S1, P1.M2.T3.S1
+11:00:00 │ ⏸ Pipeline paused
+
+````
 
 **Timeline Summary**:
 - First error at: 10:15:47 (35 minutes after start)
@@ -124,9 +129,10 @@ Context:
   sessionPath: "plan/003_b3d3efdaf0ed"
   taskId: "P1.M1.T1.S2"
   operation: "load_session"
-```
+````
 
 **Source Context**:
+
 ```typescript
 // src/types/session.ts:43-47
 43  export function validateSessionConfig(config: unknown): SessionConfig {
@@ -137,17 +143,21 @@ Context:
 ```
 
 **Affected Tasks**:
+
 - 🔴 **HIGH IMPACT**: 2 tasks blocked
   - `P1.M1.T1.S3` (Configuration loader) - Direct dependency
   - `P1.M1.T2.S1` (Type definitions) - Same milestone, depends on completion
 
 **Suggested Fixes**:
+
 1. **Verify session configuration file exists**:
+
    ```bash
    $ ls -la plan/003_b3d3efdaf0ed/config.json
    ```
 
 2. **Validate configuration file format**:
+
    ```bash
    $ cat plan/003_b3d3efdaf0ed/config.json | jq .
    ```
@@ -158,10 +168,12 @@ Context:
    ```
 
 **Documentation**:
+
 - Type Validation: https://hacky-hack.dev/docs/types/validation
 - Session Configuration: https://hacky-hack.dev/docs/sessions/config
 
 **Resume Commands**:
+
 ```bash
 # After fixing the issue, retry the failed task:
 $ npm run prp -- --task P1.M1.T1.S2 --retry
@@ -183,6 +195,7 @@ $ npm run prp -- --task P1.M1.T1.S2 --verbose
 **Failed At**: 2025-01-24T10:45:30.456Z
 
 **Error Details**:
+
 ```typescript
 Error: Invalid PRD schema
     at validatePRD (src/utils/prd-validator.ts:78:5)
@@ -198,17 +211,21 @@ Context:
 ```
 
 **Affected Tasks**:
+
 - 🟡 **MEDIUM IMPACT**: 2 tasks blocked
   - `P1.M2.T2.S1` (PRD parser) - Depends on valid schema
   - `P1.M2.T3.S1` (Documentation generator) - Needs parsed PRD
 
 **Suggested Fixes**:
+
 1. **Validate PRD structure**:
+
    ```bash
    $ npm run validate-prd
    ```
 
 2. **Check PRD template compliance**:
+
    ```bash
    $ npm run check-prd-template -- --fix
    ```
@@ -219,6 +236,7 @@ Context:
    ```
 
 **Resume Commands**:
+
 ```bash
 # After fixing the PRD:
 $ npm run prp -- --task P1.M2.T1.S1 --retry
@@ -228,28 +246,31 @@ $ npm run prp -- --task P1.M2.T1.S1 --retry
 
 ## Error Categories
 
-| Category | Count | Percentage |
-|----------|-------|------------|
-| **TaskError** | 2 | 66.7% |
-| **ValidationError** | 1 | 33.3% |
-| **AgentError** | 0 | 0% |
-| **SessionError** | 0 | 0% |
-| **Other** | 0 | 0% |
+| Category            | Count | Percentage |
+| ------------------- | ----- | ---------- |
+| **TaskError**       | 2     | 66.7%      |
+| **ValidationError** | 1     | 33.3%      |
+| **AgentError**      | 0     | 0%         |
+| **SessionError**    | 0     | 0%         |
+| **Other**           | 0     | 0%         |
 
 ## Impact Analysis
 
 **Critical Path Impact**: 🔴 HIGH
+
 - **Phase 1** blocked: 67% complete (2/3 milestones done)
 - **Phase 2** cannot start: Blocked by Phase 1 completion
 - **Estimated delay**: 30-45 minutes
 
 **Blocked Tasks Summary**:
+
 - Total blocked: 4 tasks
 - Direct dependencies: 2 tasks
 - Indirect dependencies: 2 tasks
 - Blocked milestones: 1 (P1.M2)
 
 **Recovery Priority**:
+
 1. **Fix P1.M1.T1.S2 first** - Blocks 2 tasks, high impact
 2. **Fix P1.M2.T1.S1 second** - Blocks 2 tasks, medium impact
 3. **Resume from P1.M1.T1.S2** after fix
@@ -269,7 +290,8 @@ $ npm run prp -- --task P1.M2.T1.S1 --retry
    ```
 
 **Report Location**: plan/003_b3d3efdaf0ed/ERROR_REPORT.md
-```
+
+````
 
 ### Success Criteria
 
@@ -383,7 +405,7 @@ $ npm run prp -- --task P1.M2.T1.S1 --retry
   why: Documents the session directory structure and artifact locations
   pattern: Sessions stored as plan/{sequence}_{hash}/ with ERROR_REPORT.md at root
   critical: ERROR_REPORT.md path: {sessionPath}/ERROR_REPORT.md
-```
+````
 
 ### Current Codebase Tree
 
@@ -528,7 +550,7 @@ import type {
   Task,
   Subtask,
   HierarchyItem,
-  Status
+  Status,
 } from '../../core/models.js';
 import type { TaskFailure } from '../../workflows/prp-pipeline.js';
 
@@ -881,7 +903,7 @@ Task 15: CREATE tests/integration/error-report-generation.test.ts
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // Pattern 1: Error Report Integration (src/workflows/prp-pipeline.ts)
 
 import { ErrorReportBuilder } from '../utils/errors/error-reporter.js';
@@ -1818,7 +1840,7 @@ ${this.#timelineTracker.formatTimeline('vertical')}
     return `${minutes}m`;
   }
 }
-```
+````
 
 ### Integration Points
 

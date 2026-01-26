@@ -1,9 +1,11 @@
 # Backup and Repair Patterns for State Validation
 
 ## Research Date
+
 2026-01-24
 
 ## Purpose
+
 Document backup and auto-repair patterns for implementing `prd validate-state`.
 
 ---
@@ -11,6 +13,7 @@ Document backup and auto-repair patterns for implementing `prd validate-state`.
 ## 1. Backup Before Repair Pattern
 
 ### Concept
+
 Create timestamped backup before modifying tasks.json to enable recovery.
 
 ### Implementation
@@ -20,8 +23,8 @@ import { copyFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 interface BackupOptions {
-  maxBackups?: number;  // Keep only N most recent backups
-  backupDir?: string;   // Custom backup directory
+  maxBackups?: number; // Keep only N most recent backups
+  backupDir?: string; // Custom backup directory
 }
 
 async function createBackup(
@@ -128,7 +131,7 @@ async function repairOrphanedDependencies(
 
   return {
     repaired: itemsRepaired > 0,
-    itemsRepaired
+    itemsRepaired,
   };
 }
 ```
@@ -185,7 +188,7 @@ async function repairCircularDependencies(
 
   return {
     repaired: itemsRepaired > 0,
-    itemsRepaired
+    itemsRepaired,
   };
 }
 ```
@@ -240,7 +243,7 @@ async function repairMissingFields(
 
   return {
     repaired: itemsRepaired > 0,
-    itemsRepaired
+    itemsRepaired,
   };
 }
 ```
@@ -271,7 +274,7 @@ async function autoRepairBacklog(
   // Create backup before any repairs
   if (options.createBackup !== false) {
     backupPath = await createBackup(tasksPath, {
-      maxBackups: options.maxBackups || 5
+      maxBackups: options.maxBackups || 5,
     });
   }
 
@@ -306,7 +309,7 @@ async function autoRepairBacklog(
   return {
     repaired: totalRepaired > 0,
     itemsRepaired: totalRepaired,
-    backupPath
+    backupPath,
   };
 }
 ```
@@ -323,23 +326,27 @@ async function promptForRepair(
 ): Promise<boolean> {
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     console.log('\n⚠️  State validation found issues:\n');
 
     if (validation.circularDeps) {
-      console.log(`  Circular dependencies: ${validation.circularDeps.join(' → ')}`);
+      console.log(
+        `  Circular dependencies: ${validation.circularDeps.join(' → ')}`
+      );
     }
     if (validation.orphanedDeps) {
       console.log(`  Orphaned dependencies: ${validation.orphanedDeps.length}`);
     }
     if (validation.statusInconsistencies) {
-      console.log(`  Status inconsistencies: ${validation.statusInconsistencies.length}`);
+      console.log(
+        `  Status inconsistencies: ${validation.statusInconsistencies.length}`
+      );
     }
 
-    rl.question('\nAttempt auto-repair? (y/N): ', (answer) => {
+    rl.question('\nAttempt auto-repair? (y/N): ', answer => {
       rl.close();
       resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
     });
@@ -489,7 +496,7 @@ describe('ValidateStateCommand', () => {
           title: 'Test Phase',
           status: 'Planned',
           milestones: [],
-          dependencies: ['P2']  // Circular
+          dependencies: ['P2'], // Circular
         },
         {
           type: 'Phase',
@@ -497,9 +504,9 @@ describe('ValidateStateCommand', () => {
           title: 'Test Phase 2',
           status: 'Planned',
           milestones: [],
-          dependencies: ['P1']  // Circular
-        }
-      ]
+          dependencies: ['P1'], // Circular
+        },
+      ],
     };
 
     // Write tasks.json
@@ -510,7 +517,7 @@ describe('ValidateStateCommand', () => {
     const command = new ValidateStateCommand();
     const result = await command.execute({
       sessionPath: testDir,
-      output: 'json'
+      output: 'json',
     });
 
     expect(result.isValid).toBe(false);
@@ -535,10 +542,12 @@ describe('ValidateStateCommand', () => {
 ## References
 
 ### External Resources
+
 - Node.js fs.promises documentation
 - Atomic write pattern: https://blog.heroku.com/better-file-writes-with-node
 - File locking: https://github.com/moxystudio/node-proper-lockfile
 
 ### Related Code
+
 - `src/core/session-utils.ts` - atomicWrite() pattern
 - `tests/unit/core/session-utils.test.ts` - test patterns

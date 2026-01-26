@@ -3,6 +3,7 @@
 ## 1. Error Class Hierarchy
 
 ### Base Class
+
 - **PipelineError** (abstract, lines 143-342)
   - All pipeline errors inherit from this base class
   - Contains common properties: `code`, `context`, `timestamp`
@@ -40,27 +41,32 @@
 ## 2. Error Codes
 
 ### Session Errors
+
 - `PIPELINE_SESSION_LOAD_FAILED`
 - `PIPELINE_SESSION_SAVE_FAILED`
 - `PIPELINE_SESSION_NOT_FOUND`
 
 ### Task Errors
+
 - `PIPELINE_TASK_EXECUTION_FAILED`
 - `PIPELINE_TASK_VALIDATION_FAILED`
 - `PIPELINE_TASK_NOT_FOUND`
 
 ### Agent Errors
+
 - `PIPELINE_AGENT_LLM_FAILED`
 - `PIPELINE_AGENT_TIMEOUT`
 - `PIPELINE_AGENT_PARSE_FAILED`
 
 ### Validation Errors
+
 - `PIPELINE_VALIDATION_INVALID_INPUT`
 - `PIPELINE_VALIDATION_MISSING_FIELD`
 - `PIPELINE_VALIDATION_SCHEMA_FAILED`
 - `PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY`
 
 ### Resource Errors
+
 - `PIPELINE_RESOURCE_LIMIT_EXCEEDED`
 
 ## 3. Error Classification Functions
@@ -191,21 +197,23 @@ export function isFatalError(
 ## 4. Transient Error Detection Patterns
 
 ### Node.js System Error Codes (lines 67-77)
+
 ```typescript
 const TRANSIENT_ERROR_CODES = new Set([
-  'ECONNRESET',     // Connection reset by peer
-  'ECONNREFUSED',   // Connection refused
-  'ETIMEDOUT',      // Connection timeout
-  'ENOTFOUND',      // DNS lookup failed
-  'EPIPE',          // Broken pipe
-  'EAI_AGAIN',      // DNS temporary failure
-  'EHOSTUNREACH',   // Host unreachable
-  'ENETUNREACH',   // Network unreachable
-  'ECONNABORTED',   // Connection aborted
+  'ECONNRESET', // Connection reset by peer
+  'ECONNREFUSED', // Connection refused
+  'ETIMEDOUT', // Connection timeout
+  'ENOTFOUND', // DNS lookup failed
+  'EPIPE', // Broken pipe
+  'EAI_AGAIN', // DNS temporary failure
+  'EHOSTUNREACH', // Host unreachable
+  'ENETUNREACH', // Network unreachable
+  'ECONNABORTED', // Connection aborted
 ]);
 ```
 
 ### HTTP Status Codes (lines 87-94)
+
 ```typescript
 const RETRYABLE_HTTP_STATUS_CODES = new Set([
   408, // Request Timeout
@@ -218,6 +226,7 @@ const RETRYABLE_HTTP_STATUS_CODES = new Set([
 ```
 
 ### Transient Message Patterns (lines 102-113)
+
 ```typescript
 const TRANSIENT_PATTERNS = [
   'timeout',
@@ -234,6 +243,7 @@ const TRANSIENT_PATTERNS = [
 ```
 
 ### Permanent Message Patterns (lines 122-130)
+
 ```typescript
 const PERMANENT_PATTERNS = [
   'validation failed',
@@ -249,8 +259,9 @@ const PERMANENT_PATTERNS = [
 ## 5. Error Usage Patterns
 
 ### ValidationError (Never Retry)
+
 - **Location**: Lines 445-471 in errors.ts
-- **Usage**: 
+- **Usage**:
   - SessionManager PRD validation (lines 260-268)
   - DependencyValidator circular dependencies
   - PRPExecutor validation gates
@@ -258,6 +269,7 @@ const PERMANENT_PATTERNS = [
 - **Classification**: Permanent (never retryable)
 
 ### AgentError (Retryable for specific codes)
+
 - **Location**: Lines 420-427 in errors.ts
 - **Usage**: LLM call failures (PRPGenerator, PRPExecutor, PRPRuntime)
 - **Retryable When**:
@@ -267,12 +279,14 @@ const PERMANENT_PATTERNS = [
   - `PIPELINE_AGENT_PARSE_FAILED` (lines 192-198 in retry.test.ts)
 
 ### TaskError (Always Retryable)
+
 - **Location**: Lines 396-403 in errors.ts
 - **Usage**: Task execution failures
 - **Classification**: Non-fatal (always retryable)
 - **Pattern**: Individual task failures don't halt pipeline
 
 ### SessionError (Context-dependent)
+
 - **Location**: Lines 362-380 in errors.ts
 - **Usage**: Session load/save operations
 - **Fatal When**:
@@ -282,19 +296,19 @@ const PERMANENT_PATTERNS = [
 
 ## 6. Error Classification Matrix for PRP
 
-| Error Type | Retryable | Reason | Special Cases |
-|------------|-----------|--------|---------------|
-| **ValidationError** | NO | Invalid input will always fail validation | `parse_prd` with `INVALID_INPUT` is fatal |
-| **AgentError** with `PIPELINE_AGENT_TIMEOUT` | YES | Temporary timeout, may resolve on retry | Gets exponential backoff |
-| **AgentError** with `PIPELINE_AGENT_LLM_FAILED` | YES | LLM API issues typically transient | Gets exponential backoff |
-| **AgentError** with `PIPELINE_AGENT_PARSE_FAILED` | NO | Parse errors indicate invalid output | Non-retryable |
-| **TaskError** | YES | Individual task failure, pipeline continues | All instances retryable |
-| **SessionError** with `LOAD_FAILED`/`SAVE_FAILED` | NO | Session state corruption | Fatal, halts pipeline |
-| **SessionError** (other codes) | YES | Session issues typically transient | Context-dependent |
-| **EnvironmentError** | NO | Configuration issues require manual fix | All instances fatal |
-| **Standard Error** (TypeError, etc.) | YES | Standard errors treated as transient | Unknown patterns retryable |
-| **Node.js System Errors** | YES/NO | Based on error code (see TRANSIENT_ERROR_CODES) | Network-related retryable |
-| **HTTP Errors** | YES/NO | Based on status code (see RETRYABLE_HTTP_STATUS_CODES) | 408/429/5xx retryable |
+| Error Type                                        | Retryable | Reason                                                 | Special Cases                             |
+| ------------------------------------------------- | --------- | ------------------------------------------------------ | ----------------------------------------- |
+| **ValidationError**                               | NO        | Invalid input will always fail validation              | `parse_prd` with `INVALID_INPUT` is fatal |
+| **AgentError** with `PIPELINE_AGENT_TIMEOUT`      | YES       | Temporary timeout, may resolve on retry                | Gets exponential backoff                  |
+| **AgentError** with `PIPELINE_AGENT_LLM_FAILED`   | YES       | LLM API issues typically transient                     | Gets exponential backoff                  |
+| **AgentError** with `PIPELINE_AGENT_PARSE_FAILED` | NO        | Parse errors indicate invalid output                   | Non-retryable                             |
+| **TaskError**                                     | YES       | Individual task failure, pipeline continues            | All instances retryable                   |
+| **SessionError** with `LOAD_FAILED`/`SAVE_FAILED` | NO        | Session state corruption                               | Fatal, halts pipeline                     |
+| **SessionError** (other codes)                    | YES       | Session issues typically transient                     | Context-dependent                         |
+| **EnvironmentError**                              | NO        | Configuration issues require manual fix                | All instances fatal                       |
+| **Standard Error** (TypeError, etc.)              | YES       | Standard errors treated as transient                   | Unknown patterns retryable                |
+| **Node.js System Errors**                         | YES/NO    | Based on error code (see TRANSIENT_ERROR_CODES)        | Network-related retryable                 |
+| **HTTP Errors**                                   | YES/NO    | Based on status code (see RETRYABLE_HTTP_STATUS_CODES) | 408/429/5xx retryable                     |
 
 ## 7. Key Findings for TaskRetryManager
 

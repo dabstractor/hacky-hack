@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive custom workflow development guide (`docs/CUSTOM_WORKFLOWS.md`) that documents how to extend the Groundswell Workflow class, use decorators (@Step, @Task, @ObservedState), implement workflow lifecycle, handle errors, and compose workflows.
 
 **Deliverable**: Documentation file `docs/CUSTOM_WORKFLOWS.md` containing:
+
 - Workflow architecture overview (Groundswell Workflow base class, decorators, lifecycle)
 - Step-by-step guide for extending Workflow class with complete examples
 - @Step decorator usage for method tracking and timing
@@ -25,6 +26,7 @@
 - Integration with PRP Pipeline workflow
 
 **Success Definition**:
+
 - A developer can create a new custom workflow type following the guide
 - The DeploymentWorkflow example is complete and can be implemented directly
 - All patterns reference actual code from `src/workflows/` with file paths
@@ -38,6 +40,7 @@
 ## User Persona
 
 **Target User**: Developer or contributor who needs to:
+
 - Extend the PRP Pipeline with custom workflow types
 - Understand the Groundswell Workflow class and decorators
 - Create domain-specific workflows (e.g., DeploymentWorkflow, BackupWorkflow)
@@ -45,6 +48,7 @@
 - Implement workflow error handling and recovery
 
 **Use Case**: User needs to understand:
+
 - How are workflows structured in this project?
 - How do I create a new workflow type like DeploymentWorkflow?
 - How do I use the @Step, @Task, and @ObservedState decorators?
@@ -53,6 +57,7 @@
 - How do I compose parent-child workflows?
 
 **User Journey**:
+
 1. User opens docs/CUSTOM_WORKFLOWS.md to understand workflow development
 2. User learns about Groundswell Workflow base class and decorators
 3. User studies the existing workflow implementations (PRPPipeline, BugHuntWorkflow, etc.)
@@ -63,6 +68,7 @@
 8. User can now create and integrate custom workflows effectively
 
 **Pain Points Addressed**:
+
 - "How do I create a new workflow type?" - Workflow creation step-by-step guide
 - "What's the Groundswell Workflow class?" - Workflow architecture section
 - "How do I use decorators?" - Decorator usage section with examples
@@ -109,6 +115,7 @@ Create docs/CUSTOM_WORKFLOWS.md with comprehensive custom workflow development d
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete Groundswell Workflow class research with decorator patterns
 - All workflow implementations from src/workflows/ (PRPPipeline, BugHuntWorkflow, FixCycleWorkflow, DeltaAnalysisWorkflow)
 - Decorator usage patterns (@Step, @Task, @ObservedState) with code examples
@@ -446,10 +453,11 @@ Task 14: VALIDATE documentation quality
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Documentation Style Guidelines (follow existing patterns)
 
 # Header Pattern
+
 > Brief one-sentence description
 
 **Status**: Published
@@ -457,10 +465,13 @@ Task 14: VALIDATE documentation quality
 **Version**: 1.0.0
 
 # Section Headers
+
 ## Section Name
+
 ### Subsection Name
 
 # Code Examples
+
 ```typescript
 // Include file path comment
 // src/workflows/example-workflow.ts
@@ -494,17 +505,21 @@ export class ExampleWorkflow extends Workflow {
   }
 }
 ```
+````
 
 # Cross-References
+
 See [PRPPipeline](../src/workflows/prp-pipeline.ts) for main workflow implementation.
 See [Custom Agent Development Guide](./CUSTOM_AGENTS.md) for agent creation patterns.
 
 # Tables
-| Workflow | Purpose | Phases | File |
-|----------|---------|--------|------|
-| PRPPipeline | Main orchestration | 6 | prp-pipeline.ts |
+
+| Workflow    | Purpose            | Phases | File            |
+| ----------- | ------------------ | ------ | --------------- |
+| PRPPipeline | Main orchestration | 6      | prp-pipeline.ts |
 
 # Diagrams (Mermaid)
+
 ```mermaid
 stateDiagram-v2
     [*] --> Idle: Workflow Created
@@ -514,6 +529,7 @@ stateDiagram-v2
 ```
 
 # Callouts
+
 > **Note**: Critical information uses blockquote format.
 
 **CRITICAL**: Use emphasis for critical implementation details.
@@ -525,9 +541,11 @@ stateDiagram-v2
 **NOTE**: Additional information for context.
 
 # External Links
+
 [Groundswell Framework](https://github.com/anthropics/groundswell)
 [Temporal Documentation](https://www.temporal.io/documentation)
-```
+
+````
 
 ### Integration Points
 
@@ -552,7 +570,7 @@ PARALLEL WORK CONSIDERATIONS:
   - CUSTOM_WORKFLOWS.md should reference these for context
   - Focus CUSTOM_WORKFLOWS.md on workflow implementation, not agent/tool details
   - Avoid duplicating agent or tool content
-```
+````
 
 ---
 

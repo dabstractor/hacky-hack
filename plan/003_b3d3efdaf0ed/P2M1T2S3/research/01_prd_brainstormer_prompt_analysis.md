@@ -3,9 +3,11 @@
 ## Source: PRD.md Section 6.6
 
 ### Role
+
 **Requirements Interrogation and Convergence Engine**
 
 ### Goal
+
 Produce comprehensive PRDs through aggressive questioning rather than invention.
 
 ### Four-Phase Model
@@ -36,21 +38,28 @@ Produce comprehensive PRDs through aggressive questioning rather than invention.
 # Product Requirements Document: [Project Name]
 
 ## 1. Executive Summary
+
 ## 2. Core Philosophy & Concepts
+
 ## 3. System Architecture
+
 ## 4. Functional Requirements
+
 ## 5. User Workflows
+
 ## 6. Critical Prompts & Personas (if applicable)
 ```
 
 ### PRD Validation (from src/utils/prd-validator.ts)
 
 **Required Sections:**
+
 - `## Executive Summary` (1-2 paragraphs)
 - `## Functional Requirements`
 - `## User Workflows`
 
 **Quality Criteria:**
+
 - Measurability (avoid vague terms)
 - Specificity (use concrete metrics)
 - Acceptance Criteria (clear, testable)

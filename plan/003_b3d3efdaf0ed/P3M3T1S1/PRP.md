@@ -12,6 +12,7 @@
 **Feature Goal**: Make PRP cache TTL (Time-To-Live) configurable via environment variable and CLI option with support for human-readable duration strings (e.g., "24h", "1d", "12h").
 
 **Deliverable**:
+
 1. Configurable cache TTL in `src/agents/prp-generator.ts` (constructor parameter)
 2. CLI option `--cache-ttl` in `src/cli/index.ts` with duration parsing
 3. Environment variable `HACKY_PRP_CACHE_TTL` support
@@ -19,6 +20,7 @@
 5. Tests in `tests/unit/prp-cache-ttl.test.ts`
 
 **Success Definition**:
+
 - PRP cache TTL is configurable (no longer hardcoded at 24 hours)
 - `--cache-ttl <duration>` CLI option accepts formats like "24h", "1d", "12h", "30m"
 - `HACKY_PRP_CACHE_TTL` environment variable provides default value
@@ -34,17 +36,20 @@
 **Target User**: Developer or operator using the PRD pipeline who needs to control PRP cache duration for different use cases.
 
 **Use Case**:
+
 - **Fast iteration**: Set short TTL (e.g., "30m") during active development to get fresh PRPs
 - **Long-term caching**: Set extended TTL (e.g., "7d") for stable codebases to reduce LLM calls
 - **CI/CD optimization**: Configure per-environment TTL (dev vs production)
 
 **User Journey**:
+
 1. User sets `HACKY_PRP_CACHE_TTL=12h` in environment
 2. Or uses CLI flag: `prd-pipeline --cache-ttl 6h`
 3. Pipeline generates PRPs with configured cache duration
 4. Cached PRPs expire after the configured TTL
 
 **Pain Points Addressed**:
+
 - **Fixed 24-hour TTL**: From `system_context.md` - "PRP cache TTL fixed at 24 hours. Not configurable for different use cases"
 - **No flexibility**: Can't adjust cache duration for development vs production
 - **Unnecessary LLM calls**: Either too frequent (short TTL needed) or stale PRPs (long TTL needed)
@@ -86,6 +91,7 @@ Make PRP cache TTL configurable with CLI option and environment variable support
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of PRPGenerator class and cache implementation
 - Existing CLI configuration patterns from `src/cli/index.ts`
 - Test patterns from `tests/unit/agents/prp-generator.test.ts`
@@ -262,8 +268,8 @@ if (parsed === undefined) {
 }
 
 // GOTCHA: "m" means minutes, not milliseconds
-ms('10m');   // 600000 (10 minutes)
-ms('10ms');  // 10 (10 milliseconds)
+ms('10m'); // 600000 (10 minutes)
+ms('10ms'); // 10 (10 milliseconds)
 
 // CRITICAL: Current CACHE_TTL_MS is readonly constant
 // File: src/agents/prp-generator.ts (line 151)
@@ -578,12 +584,11 @@ export class PRPGenerator {
 // File: src/cli/index.ts
 
 // Add to program options (around line 260, after --flush-retries)
-program
-  .option(
-    '--cache-ttl <duration>',
-    'PRP cache time-to-live (e.g., 24h, 1d, 12h, env: HACKY_PRP_CACHE_TTL)',
-    process.env.HACKY_PRP_CACHE_TTL ?? '24h'
-  )
+program.option(
+  '--cache-ttl <duration>',
+  'PRP cache time-to-live (e.g., 24h, 1d, 12h, env: HACKY_PRP_CACHE_TTL)',
+  process.env.HACKY_PRP_CACHE_TTL ?? '24h'
+);
 
 // ================================================================
 // PATTERN 4: TaskOrchestrator Parameter Passing
@@ -597,12 +602,11 @@ export class TaskOrchestrator {
   // ... existing code ...
 
   // Example method that creates PRPGenerator
-  async #createPRPGenerator(noCache: boolean, cacheTtlMs: number): Promise<PRPGenerator> {
-    return new PRPGenerator(
-      this.sessionManager,
-      noCache,
-      cacheTtlMs
-    );
+  async #createPRPGenerator(
+    noCache: boolean,
+    cacheTtlMs: number
+  ): Promise<PRPGenerator> {
+    return new PRPGenerator(this.sessionManager, noCache, cacheTtlMs);
   }
 }
 
@@ -669,7 +673,7 @@ describe('PRP Cache TTL Configuration', () => {
 
     // Mock stat to return file that's 2 hours old (expired)
     mockStat.mockResolvedValue({
-      mtimeMs: Date.now() - (2 * 60 * 60 * 1000), // 2 hours ago
+      mtimeMs: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
       isFile: () => true,
     } as any);
 
@@ -689,7 +693,7 @@ describe('PRP Cache TTL Configuration', () => {
 
     // Mock stat to return file that's 12 hours old (recent)
     mockStat.mockResolvedValue({
-      mtimeMs: Date.now() - (12 * 60 * 60 * 1000), // 12 hours ago
+      mtimeMs: Date.now() - 12 * 60 * 60 * 1000, // 12 hours ago
       isFile: () => true,
     } as any);
 
@@ -724,15 +728,9 @@ describe('CLI Cache TTL Duration Parsing', () => {
     });
   });
 
-  const invalidFormats = [
-    'invalid',
-    'abc',
-    '123',
-    '1x',
-    '',
-  ];
+  const invalidFormats = ['invalid', 'abc', '123', '1x', ''];
 
-  invalidFormats.forEach((input) => {
+  invalidFormats.forEach(input => {
     it(`should reject "${input}" as invalid format`, () => {
       const parsed = ms(input);
       expect(parsed).toBeUndefined();
@@ -957,6 +955,7 @@ ls -la plan/*/prps/.cache/
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete analysis of PRPGenerator cache implementation
 - Existing CLI configuration patterns are clear and consistent
 - `ms` library is already installed and well-documented
@@ -966,12 +965,14 @@ ls -la plan/*/prps/.cache/
 - Clear validation requirements
 
 **Risk Areas**:
+
 - Must check for `undefined` return from `ms()` (common pitfall)
 - Need to update all PRPGenerator call sites
 - Private property access in tests requires bracket notation
 - Cache expiration tests need careful mocking
 
 **Mitigation**:
+
 - Always check `ms() === undefined` before using result
 - Search for all `new PRPGenerator(` occurrences
 - Use `generator['#isCacheRecent']()` for testing private methods
@@ -982,6 +983,7 @@ ls -la plan/*/prps/.cache/
 **Document Version**: 1.0
 **Last Updated**: 2025-01-25
 **Related Documents**:
+
 - Duration Parsing Research: `plan/003_b3d3efdaf0ed/P3M3T1S1/research/duration-parsing-research.md`
 - Environment Variable Patterns: `plan/003_b3d3efdaf0ed/P3M3T1S1/research/env-var-patterns.md`
 - Codebase Analysis: `plan/003_b3d3efdaf0ed/P3M3T1S1/research/codebase-analysis.md`

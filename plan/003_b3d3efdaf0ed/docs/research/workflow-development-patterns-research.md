@@ -62,11 +62,13 @@ async run(): Promise<void> {
 ```
 
 **Use Cases:**
+
 - Build pipelines (compile → test → package)
 - Data processing (extract → transform → load)
 - Deployment workflows (validate → build → deploy)
 
 **Example from Codebase**: [`BugHuntWorkflow`](../src/workflows/bug-hunt-workflow.ts)
+
 ```typescript
 await this.analyzeScope();
 await this.creativeE2ETesting();
@@ -93,11 +95,13 @@ async run(): Promise<void> {
 ```
 
 **Use Cases:**
+
 - Mode-based execution (normal vs debug vs test)
 - Environment-specific logic (staging vs production)
 - Feature flags
 
 **Example from Codebase**: [`PRPPipeline.runQACycle()`](../src/workflows/prp-pipeline.ts)
+
 ```typescript
 if (this.mode === 'bug-hunt') {
   shouldRunQA = true;
@@ -137,11 +141,13 @@ async run(): Promise<void> {
 ```
 
 **Use Cases:**
+
 - Retry loops with backoff
 - Fix cycles (bug hunt → fix → retest)
 - Polling/waiting for external conditions
 
 **Example from Codebase**: [`FixCycleWorkflow`](../src/workflows/fix-cycle-workflow.ts)
+
 ```typescript
 while (this.iteration < this.maxIterations) {
   this.iteration++;
@@ -177,6 +183,7 @@ async run(): Promise<void> {
 ```
 
 **Use Cases:**
+
 - Independent data processing tasks
 - Parallel API calls
 - Concurrent test execution
@@ -213,6 +220,7 @@ async run(): Promise<AggregatedResult> {
 ```
 
 **Use Cases:**
+
 - Multi-source data aggregation
 - Gather results from distributed services
 - Merge multiple report outputs
@@ -233,6 +241,7 @@ async run(): Promise<void> {
 ```
 
 **Use Cases:**
+
 - ETL workflows
 - Data preprocessing pipelines
 - Code transformation workflows
@@ -260,18 +269,19 @@ export class MyWorkflow extends Workflow {
 ```
 
 **Key Insights:**
+
 - **No decorator needed** for public fields in Groundswell
 - Private fields (`#prefix`) are for internal state only
 - Automatic observability enables monitoring without boilerplate
 
 **Industry Comparison:**
 
-| Framework | Observable State Pattern |
-|-----------|-------------------------|
-| **Groundswell** | Public fields auto-tracked |
-| **Temporal** | Explicit state mutation |
-| **Prefect** | `@task` decorators with context |
-| **Airflow** | XCom for state passing |
+| Framework       | Observable State Pattern        |
+| --------------- | ------------------------------- |
+| **Groundswell** | Public fields auto-tracked      |
+| **Temporal**    | Explicit state mutation         |
+| **Prefect**     | `@task` decorators with context |
+| **Airflow**     | XCom for state passing          |
 
 ### 2. Immutable State Pattern
 
@@ -295,11 +305,13 @@ const nextState: WorkflowState = {
 ```
 
 **Benefits:**
+
 - Audit trail of all state changes
 - Easy rollback to previous state
 - Thread-safe state transitions
 
 **Use Cases:**
+
 - Session management (your codebase uses this)
 - Debugging state issues
 - State replay for recovery
@@ -326,13 +338,15 @@ function transition(from: WorkflowState, to: WorkflowState): boolean {
 ```
 
 **Example from Codebase**: [`PRPPipeline`](../src/workflows/prp-pipeline.ts)
+
 ```typescript
-this.setStatus('running');  // idle → running
+this.setStatus('running'); // idle → running
 // ... steps ...
-this.setStatus('completed');  // running → completed
+this.setStatus('completed'); // running → completed
 ```
 
 **Best Practices:**
+
 - Define valid transitions upfront
 - Log all state transitions
 - Validate transitions before applying
@@ -346,7 +360,10 @@ this.setStatus('completed');  // running → completed
 
 ```typescript
 class CheckpointManager {
-  async saveCheckpoint(workflowId: string, state: WorkflowState): Promise<void> {
+  async saveCheckpoint(
+    workflowId: string,
+    state: WorkflowState
+  ): Promise<void> {
     const checkpointPath = `checkpoints/${workflowId}/${Date.now()}.json`;
     await writeFile(checkpointPath, JSON.stringify(state));
   }
@@ -356,18 +373,23 @@ class CheckpointManager {
     const latest = checkpoints.sort().reverse()[0];
     if (!latest) return null;
 
-    const content = await readFile(`checkpoints/${workflowId}/${latest}`, 'utf-8');
+    const content = await readFile(
+      `checkpoints/${workflowId}/${latest}`,
+      'utf-8'
+    );
     return JSON.parse(content) as WorkflowState;
   }
 }
 ```
 
 **Use Cases:**
+
 - Long-running workflows
 - Resource limit graceful shutdown
 - Resume after system restart
 
 **Industry Examples:**
+
 - **Temporal**: Durable execution with automatic state persistence
 - **Airflow**: Task instance state stored in database
 - **Prefect**: State persisted in Prefect Cloud/Server
@@ -405,6 +427,7 @@ class EventStore {
 ```
 
 **Benefits:**
+
 - Complete audit trail
 - Temporal queries (what was state at time T?)
 - Easy debugging and replay
@@ -439,11 +462,13 @@ async someStep(): Promise<void> {
 ```
 
 **Fatal Errors (Abort Workflow):**
+
 - Configuration errors (missing required parameters)
 - System errors (file system, network)
 - Validation errors (invalid input)
 
 **Non-Fatal Errors (Track and Continue):**
+
 - Individual task failures (with `--continue-on-error`)
 - Transient failures (network timeouts)
 - Retryable operations
@@ -470,7 +495,7 @@ async function retryWithBackoff<T>(
       lastError = error as Error;
 
       if (attempt < maxAttempts) {
-        const delay = Math.pow(2, attempt) * 1000;  // 2s, 4s, 8s
+        const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -481,6 +506,7 @@ async function retryWithBackoff<T>(
 ```
 
 **Your Codebase Implementation**: [`src/utils/retry.ts`](../src/utils/retry.ts)
+
 ```typescript
 const result = await retryAgentPrompt(
   () => qaAgent.prompt(prompt) as Promise<DeltaAnalysis>,
@@ -489,6 +515,7 @@ const result = await retryAgentPrompt(
 ```
 
 **Retry Configuration:**
+
 - Max attempts: 3
 - Base delay: 1000ms
 - Backoff factor: 2 (exponential)
@@ -542,6 +569,7 @@ class CircuitBreaker {
 ```
 
 **Use Cases:**
+
 - External API calls
 - Database connections
 - Third-party service integrations
@@ -588,11 +616,13 @@ class SagaOrchestrator {
 ```
 
 **Use Cases:**
+
 - Distributed transactions
 - Multi-service workflows
 - Database migrations
 
 **Industry Examples:**
+
 - **Temporal**: SAGA pattern for long-running transactions
 - **AWS Step Functions**: Compensating transactions for rollback
 
@@ -615,12 +645,16 @@ class DeadLetterQueue {
       attempts: task.retryCount,
     };
 
-    await writeFile(`dead-letter-queue/${task.id}.json`, JSON.stringify(deadLetter));
+    await writeFile(
+      `dead-letter-queue/${task.id}.json`,
+      JSON.stringify(deadLetter)
+    );
   }
 }
 ```
 
 **Use Cases:**
+
 - Manual review of failed tasks
 - Retry after investigation
 - Analytics on failure patterns
@@ -646,12 +680,13 @@ async myStep(): Promise<void> {
 
 **Decorator Options:**
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `trackTiming` | `boolean` | `false` | Enable execution time tracking |
-| `name` | `string` | (auto) | Custom step name (defaults to method name) |
+| Option        | Type      | Default | Description                                |
+| ------------- | --------- | ------- | ------------------------------------------ |
+| `trackTiming` | `boolean` | `false` | Enable execution time tracking             |
+| `name`        | `string`  | (auto)  | Custom step name (defaults to method name) |
 
 **Example from Codebase**: [`BugHuntWorkflow`](../src/workflows/bug-hunt-workflow.ts)
+
 ```typescript
 @Step({ trackTiming: true })
 async analyzeScope(): Promise<void> {
@@ -661,6 +696,7 @@ async analyzeScope(): Promise<void> {
 ```
 
 **Timing Output:**
+
 ```
 [Step] analyzeScope completed in 2.3s
 [Step] creativeE2ETesting completed in 5.1s
@@ -698,6 +734,7 @@ function withHooks<T>(
 ```
 
 **Usage:**
+
 ```typescript
 @Step({ trackTiming: true })
 async processData(): Promise<void> {
@@ -729,13 +766,17 @@ async function withTimeout<T>(
   return Promise.race([
     fn(),
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
+      setTimeout(
+        () => reject(new Error(`Timeout after ${timeoutMs}ms`)),
+        timeoutMs
+      )
     ),
   ]);
 }
 ```
 
 **Usage:**
+
 ```typescript
 @Step({ trackTiming: true })
 async longRunningStep(): Promise<void> {
@@ -771,6 +812,7 @@ class StepProgress {
 ```
 
 **Usage:**
+
 ```typescript
 @Step({ trackTiming: true })
 async processBatch(): Promise<void> {
@@ -804,7 +846,10 @@ export class ParentWorkflow extends Workflow {
 }
 
 export class ChildWorkflow extends Workflow {
-  constructor(name: string, public parent: ParentWorkflow) {
+  constructor(
+    name: string,
+    public parent: ParentWorkflow
+  ) {
     super(name);
   }
 
@@ -816,11 +861,9 @@ export class ChildWorkflow extends Workflow {
 ```
 
 **Example from Codebase**: [`FixCycleWorkflow`](../src/workflows/fix-cycle-workflow.ts)
+
 ```typescript
-const bugHuntWorkflow = new BugHuntWorkflow(
-  this.prdContent,
-  completedTasks
-);
+const bugHuntWorkflow = new BugHuntWorkflow(this.prdContent, completedTasks);
 const results = await bugHuntWorkflow.run();
 ```
 
@@ -842,6 +885,7 @@ export class ParentWorkflow extends Workflow {
 ```
 
 **Benefits:**
+
 - Automatic tracking of child workflow lifecycle
 - Observability of parent-child relationships
 - Simplified child workflow instantiation
@@ -888,6 +932,7 @@ export class ChildWorkflow extends Workflow {
 ```
 
 **Use Cases:**
+
 - Aggregating results from multiple children
 - Shared error tracking
 - Coordinated progress reporting
@@ -918,6 +963,7 @@ export class OrchestratorWorkflow extends Workflow {
 ```
 
 **Industry Examples:**
+
 - **Temporal**: Child workflows for long-running subtasks
 - **AWS Step Functions**: Nested state machines
 - **Airflow**: SubDAGs (deprecated in favor of Task Groups)
@@ -982,6 +1028,7 @@ export class MyWorkflow extends Workflow {
 **Key Insight**: Your codebase uses this pattern extensively - no `@ObservedState` decorator needed!
 
 **Example from Codebase**: [`PRPPipeline`](../src/workflows/prp-pipeline.ts:144-177)
+
 ```typescript
 export class PRPPipeline extends Workflow {
   sessionManager!: SessionManager;
@@ -1020,6 +1067,7 @@ export class MyWorkflow extends Workflow {
 ```
 
 **Benefits:**
+
 - No manual state synchronization
 - Always reflects current state
 - TypeScript type safety
@@ -1051,7 +1099,12 @@ class EventEmitterWorkflow extends Workflow {
     const oldValue = (this as any)[fieldName];
     (this as any)[fieldName] = newValue;
 
-    const event = new StateChangeEvent(fieldName, oldValue, newValue, new Date());
+    const event = new StateChangeEvent(
+      fieldName,
+      oldValue,
+      newValue,
+      new Date()
+    );
     this.listeners.forEach(listener => listener(event));
   }
 }
@@ -1073,10 +1126,13 @@ class SnapshotWorkflow extends Workflow {
   captureSnapshot(): WorkflowSnapshot {
     const publicFields = Object.getOwnPropertyNames(this)
       .filter(key => !key.startsWith('#'))
-      .reduce((acc, key) => {
-        acc[key] = (this as any)[key];
-        return acc;
-      }, {} as Record<string, unknown>);
+      .reduce(
+        (acc, key) => {
+          acc[key] = (this as any)[key];
+          return acc;
+        },
+        {} as Record<string, unknown>
+      );
 
     return {
       timestamp: new Date(),
@@ -1087,6 +1143,7 @@ class SnapshotWorkflow extends Workflow {
 ```
 
 **Use Cases:**
+
 - Debugging state issues
 - Audit trail
 - Recovery checkpoints
@@ -1157,11 +1214,11 @@ describe('lifecycle', () => {
   it('should transition from idle to running to completed', async () => {
     const workflow = new MyWorkflow('test input');
 
-    expect(workflow.status).toBe('idle');  // Initial state
+    expect(workflow.status).toBe('idle'); // Initial state
 
     await workflow.run();
 
-    expect(workflow.status).toBe('completed');  // Final state
+    expect(workflow.status).toBe('completed'); // Final state
   });
 
   it('should transition from idle to running to failed on error', async () => {
@@ -1292,17 +1349,20 @@ describe('MyWorkflow with mocked agents', () => {
 ### Temporal.io Patterns
 
 **Key Concepts:**
+
 - **Durable Execution**: Workflow state persisted automatically
 - **Deterministic Workflow Code**: No non-deterministic operations (random, time, etc.)
 - **Activity Timeouts and Retries**: Built-in retry with exponential backoff
 
 **Best Practices from Temporal:**
+
 1. Keep workflows deterministic
 2. Use activities for non-deterministic operations
 3. Implement heartbeats for long-running activities
 4. Use child workflows for composition
 
 **Relevance to Your Codebase:**
+
 - Your `@Step` decorators provide timing tracking similar to Temporal activities
 - Your retry logic mirrors Temporal's retry policies
 - Consider adding heartbeat support for long-running steps
@@ -1310,17 +1370,20 @@ describe('MyWorkflow with mocked agents', () => {
 ### Apache Airflow Patterns
 
 **Key Concepts:**
+
 - **DAG (Directed Acyclic Graph)**: Workflow as dependency graph
 - **Task Groups**: Hierarchical organization of tasks
 - **XCom**: Cross-task communication for state passing
 
 **Best Practices from Airflow:**
+
 1. Design DAGs with clear start/end points
 2. Use task groups for organization
 3. Implement proper retry policies
 4. Monitor task duration and performance
 
 **Relevance to Your Codebase:**
+
 - Your PRP Pipeline is a DAG (Phases → Milestones → Tasks → Subtasks)
 - TaskOrchestrator manages dependency resolution
 - Consider adding XCom-like state passing between tasks
@@ -1328,18 +1391,21 @@ describe('MyWorkflow with mocked agents', () => {
 ### Prefect Patterns
 
 **Key Concepts:**
+
 - **@task Decorator**: Function-as-workflow
 - **Task Context**: Runtime context injection
 - **State Management**: Declarative state handling
 - **Caching**: Automatic task result caching
 
 **Best Practices from Prefect:**
+
 1. Use `@task` decorator for functional workflows
 2. Implement caching for expensive operations
 3. Use task context for logging and metadata
 4. Design for failure recovery
 
 **Relevance to Your Codebase:**
+
 - Your `@Step` decorator mirrors Prefect's `@task`
 - Your ResearchQueue implements caching similar to Prefect
 - Consider adding task context for additional metadata
@@ -1347,17 +1413,20 @@ describe('MyWorkflow with mocked agents', () => {
 ### AWS Step Functions Patterns
 
 **Key Concepts:**
+
 - **State Machine Definition**: JSON-based workflow definition
 - **Service Integration**: Direct AWS service calls
 - **Compensating Transactions**: Rollback on failure
 
 **Best Practices from Step Functions:**
+
 1. Keep state machines simple and readable
 2. Use service integrations when possible
 3. Implement proper error handling
 4. Monitor execution history
 
 **Relevance to Your Codebase:**
+
 - Your workflow patterns map well to Step Functions states
 - Consider adding JSON workflow definition support
 - Your error handling patterns align with Step Functions
@@ -1371,6 +1440,7 @@ describe('MyWorkflow with mocked agents', () => {
 **Definition**: Single workflow does everything.
 
 **Problem:**
+
 ```typescript
 class GodWorkflow extends Workflow {
   async run(): Promise<void> {
@@ -1388,6 +1458,7 @@ class GodWorkflow extends Workflow {
 ```
 
 **Solution**: Break into smaller, focused workflows:
+
 ```typescript
 class OrchestratorWorkflow extends Workflow {
   async run(): Promise<void> {
@@ -1403,17 +1474,19 @@ class OrchestratorWorkflow extends Workflow {
 **Definition**: State changes without logging or tracking.
 
 **Problem:**
+
 ```typescript
 class HiddenStateWorkflow extends Workflow {
   async run(): Promise<void> {
-    this.currentPhase = 'processing';  // No logging
+    this.currentPhase = 'processing'; // No logging
     await this.process();
-    this.currentPhase = 'complete';  // No logging
+    this.currentPhase = 'complete'; // No logging
   }
 }
 ```
 
 **Solution**: Always log state transitions:
+
 ```typescript
 class ObservableWorkflow extends Workflow {
   async run(): Promise<void> {
@@ -1431,10 +1504,11 @@ class ObservableWorkflow extends Workflow {
 **Definition**: Workflows tightly coupled to implementations.
 
 **Problem:**
+
 ```typescript
 class TightlyCoupledWorkflow extends Workflow {
   async run(): Promise<void> {
-    const db = new PostgreSQLDatabase('localhost', 5432);  // Hardcoded
+    const db = new PostgreSQLDatabase('localhost', 5432); // Hardcoded
     await db.connect();
     await db.query('SELECT * FROM users');
   }
@@ -1442,11 +1516,10 @@ class TightlyCoupledWorkflow extends Workflow {
 ```
 
 **Solution**: Inject dependencies:
+
 ```typescript
 class LooselyCoupledWorkflow extends Workflow {
-  constructor(
-    private database: Database
-  ) {
+  constructor(private database: Database) {
     super('LooselyCoupledWorkflow');
   }
 
@@ -1461,21 +1534,23 @@ class LooselyCoupledWorkflow extends Workflow {
 **Definition**: Steps run indefinitely without timeout.
 
 **Problem:**
+
 ```typescript
 class NoTimeoutWorkflow extends Workflow {
   async run(): Promise<void> {
-    await this.runForever();  // Might hang indefinitely
+    await this.runForever(); // Might hang indefinitely
   }
 }
 ```
 
 **Solution**: Always add timeouts:
+
 ```typescript
 class TimeoutWorkflow extends Workflow {
   async run(): Promise<void> {
     await withTimeout(
       () => this.runForever(),
-      30000  // 30 second timeout
+      30000 // 30 second timeout
     );
   }
 }
@@ -1488,53 +1563,63 @@ class TimeoutWorkflow extends Workflow {
 ### Official Documentation
 
 **Groundswell Framework**
+
 - Repository: https://github.com/anthropics/groundswell
 - Documentation: https://docs.anthropic.com/groundswell
 
 **Temporal.io**
+
 - Documentation: https://docs.temporal.io
 - Workflow Best Practices: https://docs.temporal.io/learn/workflows
 - Activity Retries: https://docs.temporal.io/learn/activity-retries
 - Child Workflows: https://docs.temporal.io/learn/workflows#child-workflows
 
 **Apache Airflow**
+
 - Documentation: https://airflow.apache.org/docs/
 - DAG Patterns: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html
 - Task Groups: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/task_groups.html
 
 **Prefect**
+
 - Documentation: https://docs.prefect.io/
 - Workflow Concepts: https://docs.prefect.io/concepts/workflows/
 - Task Caching: https://docs.prefect.io/concepts/caching/
 
 **AWS Step Functions**
+
 - Documentation: https://docs.aws.amazon.com/step-functions/
 - Best Practices: https://docs.aws.amazon.com/step-functions/latest/dg/best-practices.html
 
 ### Community Resources
 
 **Blog Posts**
+
 - "Workflow Design Patterns" by Temporal: https://temporal.io/blog/workflow-design-patterns
 - "Building Resilient Workflows" by Airbnb: https://medium.com/airbnb-engineering/building-resilient-workflows
 - "Workflow State Management" by Netflix: https://netflixtechblog.com/workflow-state-management
 
 **GitHub Repositories**
+
 - Temporal Python SDK: https://github.com/temporalio/sdk-python
 - Prefect: https://github.com/PrefectHQ/prefect
 - Apache Airflow: https://github.com/apache/airflow
 - Cadence (Uber): https://github.com/uber/cadence
 
 **Conference Talks**
+
 - "Workflow Orchestration at Scale" (QCon): https://www.qconferences.com/
 - "Building Durable Workflows" (Strange Loop): https://thestrangeloop.com/
 
 ### Testing Resources
 
 **Testing Patterns**
+
 - "Testing Workflow Systems" by Martin Fowler: https://martinfowler.com/articles/workflow-testing.html
 - "Unit Testing Async Code" (Vitest): https://vitest.dev/guide/testing-does-this-make-my-code-faster.html
 
 **Mock Frameworks**
+
 - Vitest Mocking: https://vitest.dev/guide/mocking.html
 - MSW (Mock Service Worker): https://mswjs.io/
 

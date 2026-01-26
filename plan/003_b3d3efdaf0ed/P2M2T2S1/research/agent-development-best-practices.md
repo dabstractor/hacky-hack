@@ -35,10 +35,10 @@
 export type AgentPersona = 'architect' | 'researcher' | 'coder' | 'qa';
 
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,   // Complex task breakdown needs more tokens
-  researcher: 4096,  // Codebase research
-  coder: 4096,       // Code implementation
-  qa: 4096,          // Validation and bug hunting
+  architect: 8192, // Complex task breakdown needs more tokens
+  researcher: 4096, // Codebase research
+  coder: 4096, // Code implementation
+  qa: 4096, // Validation and bug hunting
 } as const;
 ```
 
@@ -257,28 +257,28 @@ const WORKFLOW_STAGES: WorkflowStage[] = [
     agent: createArchitectAgent(),
     inputSchema: PRDSchema,
     outputSchema: BacklogSchema,
-    validation: (output) => output.backlog.length > 0,
+    validation: output => output.backlog.length > 0,
   },
   {
     name: 'prp-generation',
     agent: createResearcherAgent(),
     inputSchema: TaskSchema,
     outputSchema: PRPDocumentSchema,
-    validation: (output) => output.implementationSteps.length > 0,
+    validation: output => output.implementationSteps.length > 0,
   },
   {
     name: 'code-implementation',
     agent: createCoderAgent(),
     inputSchema: PRPDocumentSchema,
     outputSchema: CodeResultSchema,
-    validation: (output) => output.result === 'success',
+    validation: output => output.result === 'success',
   },
   {
     name: 'validation',
     agent: createQAAgent(),
     inputSchema: PRPDocumentSchema,
     outputSchema: ValidationResultSchema,
-    validation: (output) => output.allPassed === true,
+    validation: output => output.allPassed === true,
   },
 ];
 ```
@@ -353,7 +353,7 @@ class PRPPipeline {
 class MapReduceResearcher {
   async research(topics: string[]): Promise<AggregatedResearch> {
     // Map phase: Parallel research
-    const researchPromises = topics.map(async (topic) => {
+    const researchPromises = topics.map(async topic => {
       const agent = createResearcherAgent();
       return agent.prompt(createResearchPrompt(topic));
     });
@@ -568,17 +568,25 @@ export function createCodeReviewPrompt(
 ${context.fileContent}
 \`\`\`
 
-${context.diff ? `
+${
+  context.diff
+    ? `
 ## Changes to Review
 \`\`\`diff
 ${context.diff}
 \`\`\`
-` : ''}
+`
+    : ''
+}
 
-${context.prpContext ? `
+${
+  context.prpContext
+    ? `
 ## PRP Context
 ${context.prpContext}
-` : ''}
+`
+    : ''
+}
 
 Please review this code using the review framework defined in the system prompt.
 `;
@@ -607,28 +615,28 @@ Please review this code using the review framework defined in the system prompt.
 
 ```typescript
 // Good: Descriptive, lowercase with hyphens
-src/agents/agent-factory.ts
-src/agents/prompts/code-review-prompt.ts
-src/agents/reviewers/security-reviewer.ts
+src / agents / agent - factory.ts;
+src / agents / prompts / code - review - prompt.ts;
+src / agents / reviewers / security - reviewer.ts;
 
 // Bad: Vague, inconsistent casing
-src/agents/Agent.ts
-src/agents/codeReview.ts
-src/agents/SecurityReviewerClass.ts
+src / agents / Agent.ts;
+src / agents / codeReview.ts;
+src / agents / SecurityReviewerClass.ts;
 ```
 
 #### Class/Function Naming
 
 ```typescript
 // Good: Clear, descriptive, follows patterns
-export function createReviewerAgent(): Agent { }
-export class SecurityReviewer extends BaseReviewer { }
-export function createCodeReviewPrompt(): Prompt<CodeReview> { }
+export function createReviewerAgent(): Agent {}
+export class SecurityReviewer extends BaseReviewer {}
+export function createCodeReviewPrompt(): Prompt<CodeReview> {}
 
 // Bad: Unclear purpose
-export function makeAgent(): Agent { }
-export class Reviewer { }
-export function prompt(): Prompt { }
+export function makeAgent(): Agent {}
+export class Reviewer {}
+export function prompt(): Prompt {}
 ```
 
 #### Agent Instance Naming
@@ -692,12 +700,12 @@ export const prompt = `...`;
 #### Decision Matrix
 
 | Agent Type | Task Complexity | Input Size | Output Size | Recommended Max Tokens |
-|------------|----------------|------------|-------------|----------------------|
-| Architect  | High           | Medium     | Large       | 8,192                |
-| Researcher | Medium         | Large      | Medium      | 4,096                |
-| Coder      | Medium         | Medium     | Medium      | 4,096                |
-| QA         | Low-Medium     | Small      | Small       | 4,096                |
-| Reviewer   | Medium         | Medium     | Medium      | 6,144                |
+| ---------- | --------------- | ---------- | ----------- | ---------------------- |
+| Architect  | High            | Medium     | Large       | 8,192                  |
+| Researcher | Medium          | Large      | Medium      | 4,096                  |
+| Coder      | Medium          | Medium     | Medium      | 4,096                  |
+| QA         | Low-Medium      | Small      | Small       | 4,096                  |
+| Reviewer   | Medium          | Medium     | Medium      | 6,144                  |
 
 **Implementation Example:**
 
@@ -723,7 +731,7 @@ function calculateTokenLimit(
   const inputAllowance = Math.min(inputSize * 0.5, 4096); // Cap at 4K for input
 
   return Math.floor(
-    (baseTokens[taskComplexity] * outputMultiplier[outputSize]) + inputAllowance
+    baseTokens[taskComplexity] * outputMultiplier[outputSize] + inputAllowance
   );
 }
 
@@ -980,7 +988,8 @@ export function createArchitectAgent(): Agent {
 
 const bashTool: Tool = {
   name: 'execute_bash',
-  description: 'Execute shell commands with optional working directory and timeout.',
+  description:
+    'Execute shell commands with optional working directory and timeout.',
   input_schema: {
     type: 'object',
     properties: {
@@ -1084,10 +1093,26 @@ export class FilesystemMCP extends MCPHandler {
     });
 
     // Register multiple tool executors
-    this.registerToolExecutor('filesystem', 'file_read', readFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'file_write', writeFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'glob_files', globFiles as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'grep_search', grepSearch as ToolExecutor);
+    this.registerToolExecutor(
+      'filesystem',
+      'file_read',
+      readFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'file_write',
+      writeFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'glob_files',
+      globFiles as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'grep_search',
+      grepSearch as ToolExecutor
+    );
   }
 }
 ```
@@ -1116,15 +1141,16 @@ async function executeBashCommand(
   const { command, cwd, timeout = DEFAULT_TIMEOUT } = input;
 
   // Validate working directory exists
-  const workingDir = typeof cwd === 'string'
-    ? (() => {
-        const absoluteCwd = resolve(cwd);
-        if (!existsSync(absoluteCwd)) {
-          throw new Error(`Working directory does not exist: ${absoluteCwd}`);
-        }
-        return realpathSync(absoluteCwd); // Resolve symlinks
-      })()
-    : undefined;
+  const workingDir =
+    typeof cwd === 'string'
+      ? (() => {
+          const absoluteCwd = resolve(cwd);
+          if (!existsSync(absoluteCwd)) {
+            throw new Error(`Working directory does not exist: ${absoluteCwd}`);
+          }
+          return realpathSync(absoluteCwd); // Resolve symlinks
+        })()
+      : undefined;
 
   // Parse command to prevent injection
   const args = command.split(' ');
@@ -1315,10 +1341,7 @@ class AgentFactory {
   private static registry = new Map<AgentPersona, AgentConstructor>();
   private static instances = new Map<AgentPersona, Agent>();
 
-  static register(
-    persona: AgentPersona,
-    constructor: AgentConstructor
-  ): void {
+  static register(persona: AgentPersona, constructor: AgentConstructor): void {
     this.registry.set(persona, constructor);
   }
 
@@ -1603,10 +1626,7 @@ interface ServiceIdentifier<T> {
 class ServiceContainer {
   private services = new Map<symbol, unknown>();
 
-  register<T>(
-    identifier: ServiceIdentifier<T>,
-    factory: () => T
-  ): void {
+  register<T>(identifier: ServiceIdentifier<T>, factory: () => T): void {
     this.services.set(identifier.symbol, factory());
   }
 
@@ -1691,7 +1711,7 @@ describe('agents/agent-factory', () => {
 
     it.each(['architect', 'researcher', 'coder', 'qa'] as AgentPersona[])(
       'should return valid config for %s persona',
-      (persona) => {
+      persona => {
         const config = createBaseConfig(persona);
 
         expect(config).toHaveProperty('name');
@@ -1707,7 +1727,12 @@ describe('agents/agent-factory', () => {
     });
 
     it('should enable cache and reflection for all personas', () => {
-      const personas: AgentPersona[] = ['architect', 'researcher', 'coder', 'qa'];
+      const personas: AgentPersona[] = [
+        'architect',
+        'researcher',
+        'coder',
+        'qa',
+      ];
       const configs = personas.map(p => createBaseConfig(p));
 
       configs.forEach(config => {
@@ -1777,8 +1802,8 @@ Add PostgreSQL database support with Prisma ORM.
     // Verify research was conducted
     expect(result.backlog).toBeDefined();
     // Check that subtasks reference architecture research
-    const hasContextScope = result.backlog.some(
-      task => task.context_scope?.includes('RESEARCH NOTE')
+    const hasContextScope = result.backlog.some(task =>
+      task.context_scope?.includes('RESEARCH NOTE')
     );
     expect(hasContextScope).toBe(true);
   });
@@ -2118,7 +2143,8 @@ configureEnvironment(); // Map AUTH_TOKEN → API_KEY
 const config = {
   env: {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
-    ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com',
+    ANTHROPIC_BASE_URL:
+      process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com',
   },
 };
 ```
@@ -2214,9 +2240,7 @@ type BashToolInput = z.infer<typeof BashToolInputSchema>;
 type BashToolResult = z.infer<typeof BashToolResultSchema>;
 
 // Tool executor with validation
-async function executeBashCommand(
-  input: unknown
-): Promise<BashToolResult> {
+async function executeBashCommand(input: unknown): Promise<BashToolResult> {
   // Validate input
   const validated = BashToolInputSchema.parse(input);
 
@@ -2425,10 +2449,10 @@ const result = await architect.execute({
 
 ```typescript
 // Factory functions for agent creation
-export function createArchitectAgent(): Agent
-export function createResearcherAgent(): Agent
-export function createCoderAgent(): Agent
-export function createQAAgent(): Agent
+export function createArchitectAgent(): Agent;
+export function createResearcherAgent(): Agent;
+export function createCoderAgent(): Agent;
+export function createQAAgent(): Agent;
 ```
 
 #### System Prompts
@@ -2445,6 +2469,7 @@ export const BUG_HUNT_PROMPT = `...`;
 #### MCP Tools
 
 **Files:**
+
 - `/home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts`
 - `/home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.ts`
 - `/home/dustin/projects/hacky-hack/src/tools/git-mcp.ts`
@@ -2456,7 +2481,7 @@ export const BUG_HUNT_PROMPT = `...`;
 ```typescript
 // Sequential agent orchestration
 class PRPPipeline {
-  async execute(prdPath: string): Promise<void>
+  async execute(prdPath: string): Promise<void>;
 }
 ```
 

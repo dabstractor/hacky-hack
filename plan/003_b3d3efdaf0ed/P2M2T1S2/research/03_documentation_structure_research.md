@@ -4,21 +4,21 @@
 
 ### Main Documentation Directory (`/docs/`)
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `INSTALLATION.md` | Setup and installation guide | Published |
-| `CONFIGURATION.md` | Environment variables reference | Published |
+| File               | Purpose                              | Status    |
+| ------------------ | ------------------------------------ | --------- |
+| `INSTALLATION.md`  | Setup and installation guide         | Published |
+| `CONFIGURATION.md` | Environment variables reference      | Published |
 | `CLI_REFERENCE.md` | Command-line interface documentation | Published |
-| `WORKFLOWS.md` | Pipeline workflow documentation | Published |
-| `user-guide.md` | Comprehensive user guide | Published |
+| `WORKFLOWS.md`     | Pipeline workflow documentation      | Published |
+| `user-guide.md`    | Comprehensive user guide             | Published |
 
 ### API Documentation (`/docs/api/`)
 
-| File | Purpose |
-|------|---------|
-| `index.html` | TypeDoc generated API docs |
+| File                    | Purpose                                |
+| ----------------------- | -------------------------------------- |
+| `index.html`            | TypeDoc generated API docs             |
 | `media/architecture.md` | Complete system architecture reference |
-| `media/PROMPTS.md` | System prompts reference |
+| `media/PROMPTS.md`      | System prompts reference               |
 
 ### Research Documentation (`/docs/research/`)
 
@@ -39,6 +39,7 @@ Collection of technical research documents including best practices.
 ```
 
 **Status Values**:
+
 - `Published` - Stable, production-ready
 - `Draft` - Work in progress
 - `Review` - Under review
@@ -60,6 +61,7 @@ Collection of technical research documents including best practices.
 ```
 
 **TOC Organization Principles**:
+
 1. Start with Quick Reference (essential info)
 2. Logical nesting (subsections indented)
 3. Alphabetical within subsections when appropriate
@@ -71,11 +73,17 @@ Collection of technical research documents including best practices.
 
 ```markdown
 ## Quick Reference
+
 ## Overview
+
 ## Commands
+
 ## Configuration
+
 ## Examples
+
 ## Troubleshooting
+
 ## See Also
 ```
 
@@ -83,8 +91,11 @@ Collection of technical research documents including best practices.
 
 ```markdown
 ## Main Section (##)
+
 ### Subsection (###)
+
 #### Detailed Topic (####)
+
 ##### Rare - Only for very detailed breakdowns (#####)
 ```
 
@@ -95,39 +106,42 @@ Collection of technical research documents including best practices.
 
 Essential commands/tables for quick lookup:
 
-| Command/Option | Description |
-| -------------- | ----------- |
-| `command` | Brief description |
+| Command/Option | Description       |
+| -------------- | ----------------- |
+| `command`      | Brief description |
 ```
 
 ## Code Block Patterns
 
 ### Language Tags
 
-| Tag | Usage |
-|-----|-------|
-| `bash` | Shell commands |
-| `typescript` | TypeScript code |
-| `javascript` | JavaScript code |
-| `json` | JSON data |
-| `yaml` | YAML configuration |
-| `markdown` | Markdown examples |
-| `mermaid` | Diagrams |
+| Tag          | Usage              |
+| ------------ | ------------------ |
+| `bash`       | Shell commands     |
+| `typescript` | TypeScript code    |
+| `javascript` | JavaScript code    |
+| `json`       | JSON data          |
+| `yaml`       | YAML configuration |
+| `markdown`   | Markdown examples  |
+| `mermaid`    | Diagrams           |
 
 ### Code Block with Title
 
-```markdown
+````markdown
 **Basic Command:**
 
 ```bash
 npm run dev -- --prd ./PRD.md
 ```
+````
 
 This command:
+
 - Point 1
 - Point 2
 - Point 3
-```
+
+````
 
 ### Comment Styles
 
@@ -140,9 +154,10 @@ npm run dev -- --prd ./PRD.md
 # explanation
 # of steps
 npm install
-```
+````
 
 **TypeScript comments**:
+
 ```typescript
 // Single-line explanations
 const x = 1;
@@ -163,6 +178,7 @@ function example() {}
 ```
 
 **Table Guidelines**:
+
 - Use consistent alignment
 - Include column headers
 - Use `---` separator row
@@ -204,6 +220,7 @@ Related: [Custom Rules](./custom-rules.md)
 ```
 
 **Cross-Referencing Rules**:
+
 1. Group related links together
 2. Use descriptive link text (not "click here")
 3. Include file paths in parentheses after link
@@ -213,13 +230,15 @@ Related: [Custom Rules](./custom-rules.md)
 
 ### Mermaid Flowchart
 
-```markdown
+````markdown
 ```mermaid
 flowchart TD
     Start([Start]) --> Process[Process]
     Process --> End([End])
 ```
-```
+````
+
+````
 
 ### Mermaid State Diagram
 
@@ -229,8 +248,9 @@ stateDiagram-v2
     [*] --> Idle
     Idle --> Running
     Running --> Complete
-```
-```
+````
+
+````
 
 ### Mermaid Sequence Diagram
 
@@ -241,19 +261,23 @@ sequenceDiagram
     participant System
     User->>System: Request
     System-->>User: Response
-```
-```
+````
+
+````
 
 ### ASCII Art Directory Structure
 
 ```markdown
-```
+````
+
 project/
 ├── src/
-│   ├── core/
-│   └── utils/
+│ ├── core/
+│ └── utils/
 └── tests/
+
 ```
+
 ```
 
 ### Diagram Integration
@@ -332,7 +356,7 @@ Content
 
 ## Troubleshooting Structure
 
-```markdown
+````markdown
 ## Troubleshooting
 
 ### Common Issues
@@ -345,6 +369,7 @@ Content
 $ command
 Error output here
 ```
+````
 
 **Why it happens:**
 
@@ -356,7 +381,8 @@ Explanation of cause.
 # Solution commands
 solution here
 ```
-```
+
+````
 
 ## Example Structure
 
@@ -369,7 +395,7 @@ solution here
 
 ```bash
 command
-```
+````
 
 ### Advanced Scenarios
 
@@ -386,7 +412,8 @@ complex command with flags
 1. Step 1
 2. Step 2
 3. Step 3
-```
+
+````
 
 ## Tone and Style
 
@@ -460,7 +487,7 @@ Based on these patterns, the document should follow:
 
 ## Quick Reference
 [...]
-```
+````
 
 ## Documentation Quality Checklist
 

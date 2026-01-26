@@ -80,7 +80,7 @@ class MCPHandler {
 
 ```typescript
 const toolSchema: Tool = {
-  name: 'tool_name',           // Required: snake_case identifier
+  name: 'tool_name', // Required: snake_case identifier
   description: 'Clear description of what the tool does and when to use it',
   input_schema: {
     type: 'object',
@@ -96,7 +96,7 @@ const toolSchema: Tool = {
         default: false,
       },
     },
-    required: ['requiredParam'],  // Array of required property names
+    required: ['requiredParam'], // Array of required property names
   },
 };
 ```
@@ -167,7 +167,8 @@ const toolSchema: Tool = {
 // File: /home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.ts
 const fileReadTool: Tool = {
   name: 'file_read',
-  description: 'Read file contents with optional encoding. Returns file content as string or error message.',
+  description:
+    'Read file contents with optional encoding. Returns file content as string or error message.',
   input_schema: {
     type: 'object',
     properties: {
@@ -192,13 +193,15 @@ const fileReadTool: Tool = {
 // File: /home/dustin/projects/hacky-hack/src/tools/git-mcp.ts
 const gitCommitTool: Tool = {
   name: 'git_commit',
-  description: 'Create a git commit with staged changes. Requires a commit message and returns the commit hash on success. Supports --allow-empty for creating commits without changes.',
+  description:
+    'Create a git commit with staged changes. Requires a commit message and returns the commit hash on success. Supports --allow-empty for creating commits without changes.',
   input_schema: {
     type: 'object',
     properties: {
       path: {
         type: 'string',
-        description: 'Path to git repository (optional, defaults to current directory)',
+        description:
+          'Path to git repository (optional, defaults to current directory)',
       },
       message: {
         type: 'string',
@@ -220,7 +223,8 @@ const gitCommitTool: Tool = {
 // File: /home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts
 const bashTool: Tool = {
   name: 'execute_bash',
-  description: 'Execute shell commands with optional working directory and timeout. Returns stdout, stderr, exit code, and success status. Commands are executed safely using spawn() without shell interpretation.',
+  description:
+    'Execute shell commands with optional working directory and timeout. Returns stdout, stderr, exit code, and success status. Commands are executed safely using spawn() without shell interpretation.',
   input_schema: {
     type: 'object',
     properties: {
@@ -405,7 +409,9 @@ interface ToolResult {
 async function readFile(input: FileReadInput): Promise<FileReadResult> {
   try {
     const safePath = resolve(input.path);
-    const content = await fs.readFile(safePath, { encoding: input.encoding || 'utf-8' });
+    const content = await fs.readFile(safePath, {
+      encoding: input.encoding || 'utf-8',
+    });
     return { success: true, content };
   } catch (error) {
     const errno = (error as NodeJS.ErrnoException).code;
@@ -451,7 +457,8 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
     if (status.files.length === 0 && !input.allowEmpty) {
       return {
         success: false,
-        error: 'No changes staged for commit. Use git_add to stage files first.',
+        error:
+          'No changes staged for commit. Use git_add to stage files first.',
       };
     }
 
@@ -466,7 +473,8 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
     if (msg.includes('nothing to commit')) {
       return {
         success: false,
-        error: 'No changes staged for commit. Use git_add to stage files first.',
+        error:
+          'No changes staged for commit. Use git_add to stage files first.',
       };
     }
     if (msg.includes('merge conflict')) {
@@ -483,19 +491,22 @@ async function gitCommit(input: GitCommitInput): Promise<GitCommitResult> {
 #### Pattern 3: Async Error Handling with Cleanup
 
 ```typescript
-async function executeBashCommand(input: BashToolInput): Promise<BashToolResult> {
+async function executeBashCommand(
+  input: BashToolInput
+): Promise<BashToolResult> {
   const { command, cwd, timeout = DEFAULT_TIMEOUT } = input;
 
   // Validate working directory
-  const workingDir = typeof cwd === 'string'
-    ? (() => {
-        const absoluteCwd = resolve(cwd);
-        if (!existsSync(absoluteCwd)) {
-          throw new Error(`Working directory does not exist: ${absoluteCwd}`);
-        }
-        return realpathSync(absoluteCwd);
-      })()
-    : undefined;
+  const workingDir =
+    typeof cwd === 'string'
+      ? (() => {
+          const absoluteCwd = resolve(cwd);
+          if (!existsSync(absoluteCwd)) {
+            throw new Error(`Working directory does not exist: ${absoluteCwd}`);
+          }
+          return realpathSync(absoluteCwd);
+        })()
+      : undefined;
 
   let child: ChildProcess;
 
@@ -573,14 +584,14 @@ async function executeBashCommand(input: BashToolInput): Promise<BashToolResult>
 
 ### 4.3 Common Error Codes
 
-| Error Code | Description | Example Usage |
-|------------|-------------|---------------|
-| `ENOENT` | Entity not found | File or directory does not exist |
-| `EACCES` | Permission denied | Insufficient permissions |
-| `EISDIR` | Is a directory | Path is directory, not file |
-| `ENOTDIR` | Not a directory | Path component not a directory |
-| `EEXIST` | File exists | Directory/file already exists |
-| `EINVAL` | Invalid argument | Invalid input parameter |
+| Error Code | Description       | Example Usage                    |
+| ---------- | ----------------- | -------------------------------- |
+| `ENOENT`   | Entity not found  | File or directory does not exist |
+| `EACCES`   | Permission denied | Insufficient permissions         |
+| `EISDIR`   | Is a directory    | Path is directory, not file      |
+| `ENOTDIR`  | Not a directory   | Path component not a directory   |
+| `EEXIST`   | File exists       | Directory/file already exists    |
+| `EINVAL`   | Invalid argument  | Invalid input parameter          |
 
 ### 4.4 Error Message Best Practices
 
@@ -591,9 +602,18 @@ return { success: false, error: 'Error occurred' };
 
 // ✅ GOOD: Specific, actionable error messages
 return { success: false, error: `File not found: ${path}` };
-return { success: false, error: `Permission denied: ${path}. Check file permissions.` };
-return { success: false, error: `Invalid timeout: ${timeout}. Must be between 1000-300000ms.` };
-return { success: false, error: `Not a git repository: ${repoPath}. Initialize with 'git init'.` };
+return {
+  success: false,
+  error: `Permission denied: ${path}. Check file permissions.`,
+};
+return {
+  success: false,
+  error: `Invalid timeout: ${timeout}. Must be between 1000-300000ms.`,
+};
+return {
+  success: false,
+  error: `Not a git repository: ${repoPath}. Initialize with 'git init'.`,
+};
 ```
 
 ---
@@ -677,9 +697,7 @@ async function grepSearch(input: GrepSearchInput): Promise<GrepSearchResult> {
 ### 5.3 Executor Type Definition
 
 ```typescript
-type ToolExecutor = (
-  input: unknown
-) => Promise<ToolResult>;
+type ToolExecutor = (input: unknown) => Promise<ToolResult>;
 
 // Cast your executor to ToolExecutor when registering
 this.registerToolExecutor(
@@ -851,8 +869,16 @@ export class FilesystemMCP extends MCPHandler {
       transport: this.transport,
       tools: this.tools,
     });
-    this.registerToolExecutor('filesystem', 'file_read', readFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'file_write', writeFile as ToolExecutor);
+    this.registerToolExecutor(
+      'filesystem',
+      'file_read',
+      readFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'file_write',
+      writeFile as ToolExecutor
+    );
   }
 }
 
@@ -992,8 +1018,8 @@ async function gitAdd(input: GitAddInput): Promise<GitAddResult> {
 ```typescript
 // Enforce timeout limits
 const DEFAULT_TIMEOUT = 30000; // 30 seconds
-const MIN_TIMEOUT = 1000;       // 1 second
-const MAX_TIMEOUT = 300000;     // 5 minutes
+const MIN_TIMEOUT = 1000; // 1 second
+const MAX_TIMEOUT = 300000; // 5 minutes
 
 async function executeWithTimeout(input: ToolInput): Promise<ToolResult> {
   const timeout = Math.min(
@@ -1126,7 +1152,9 @@ const listDirectoryTool: Tool = {
   },
 };
 
-async function listDirectory(input: ListDirectoryInput): Promise<ListDirectoryResult> {
+async function listDirectory(
+  input: ListDirectoryInput
+): Promise<ListDirectoryResult> {
   try {
     const safePath = resolve(input.path);
 
@@ -1213,12 +1241,17 @@ const databaseQueryTool: Tool = {
   },
 };
 
-async function databaseQuery(input: DatabaseQueryInput): Promise<DatabaseQueryResult> {
+async function databaseQuery(
+  input: DatabaseQueryInput
+): Promise<DatabaseQueryResult> {
   try {
     const safePath = resolve(input.databasePath);
 
     if (!existsSync(safePath)) {
-      return { success: false, error: `Database not found: ${input.databasePath}` };
+      return {
+        success: false,
+        error: `Database not found: ${input.databasePath}`,
+      };
     }
 
     // Security: Only allow SELECT queries
@@ -1313,7 +1346,9 @@ const httpRequestTool: Tool = {
   },
 };
 
-async function httpRequest(input: HttpRequestInput): Promise<HttpRequestResult> {
+async function httpRequest(
+  input: HttpRequestInput
+): Promise<HttpRequestResult> {
   return new Promise((resolve, reject) => {
     const url = new URL(input.url);
     const client = url.protocol === 'https:' ? https : http;
@@ -1325,10 +1360,10 @@ async function httpRequest(input: HttpRequestInput): Promise<HttpRequestResult> 
       timeout,
     };
 
-    const req = client.request(input.url, options, (res) => {
+    const req = client.request(input.url, options, res => {
       let data = '';
 
-      res.on('data', (chunk) => {
+      res.on('data', chunk => {
         data += chunk;
       });
 
@@ -1342,7 +1377,7 @@ async function httpRequest(input: HttpRequestInput): Promise<HttpRequestResult> 
       });
     });
 
-    req.on('error', (error) => {
+    req.on('error', error => {
       resolve({
         success: false,
         error: error.message,
@@ -1412,7 +1447,9 @@ const codeAnalysisTool: Tool = {
   },
 };
 
-async function codeAnalysis(input: CodeAnalysisInput): Promise<CodeAnalysisResult> {
+async function codeAnalysis(
+  input: CodeAnalysisInput
+): Promise<CodeAnalysisResult> {
   try {
     const safePath = resolve(input.path);
 
@@ -1677,7 +1714,11 @@ export class CustomMCP extends MCPHandler {
       transport: this.transport,
       tools: this.tools,
     });
-    this.registerToolExecutor('custom', 'tool_name', executeTool as ToolExecutor);
+    this.registerToolExecutor(
+      'custom',
+      'tool_name',
+      executeTool as ToolExecutor
+    );
   }
 }
 
@@ -1697,22 +1738,26 @@ export { toolSchema, executeTool };
 ## Resources and References
 
 ### Official MCP Documentation
+
 - **MCP Specification:** https://spec.modelcontextprotocol.io/specification/
 - **Tools Guide:** https://spec.modelcontextprotocol.io/specification/tools/
 - **TypeScript SDK:** https://github.com/modelcontextprotocol/typescript-sdk
 - **Official Servers:** https://github.com/modelcontextprotocol/servers
 
 ### Groundswell Framework
+
 - **Repository:** https://github.com/groundswell-ai/groundswell
 - **Local Path:** `~/projects/groundswell`
 
 ### Codebase Examples
+
 - **BashMCP:** `/home/dustin/projects/hacky-hack/src/tools/bash-mcp.ts`
 - **FilesystemMCP:** `/home/dustin/projects/hacky-hack/src/tools/filesystem-mcp.ts`
 - **GitMCP:** `/home/dustin/projects/hacky-hack/src/tools/git-mcp.ts`
 - **Agent Factory:** `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts`
 
 ### Test Examples
+
 - **Bash Tests:** `/home/dustin/projects/hacky-hack/tests/unit/tools/bash-mcp.test.ts`
 - **Filesystem Tests:** `/home/dustin/projects/hacky-hack/tests/unit/tools/filesystem-mcp.test.ts`
 - **MCP Integration:** `/home/dustin/projects/hacky-hack/tests/integration/groundswell/mcp.test.ts`

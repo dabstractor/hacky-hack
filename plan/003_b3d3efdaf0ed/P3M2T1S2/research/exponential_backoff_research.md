@@ -52,11 +52,13 @@ function calculateDelay(
 ### 1.2 Exact Formula Used
 
 **Formula:**
+
 ```
 delay = floor(min(baseDelay × backoffFactor^attempt, maxDelay) + (exponentialDelay × jitterFactor × random()))
 ```
 
 **Where:**
+
 - `attempt` is 0-indexed (0, 1, 2, 3, 4)
 - `random()` returns a value in [0, 1)
 - `jitter` is **positive-only** (never subtracts from base delay)
@@ -66,6 +68,7 @@ delay = floor(min(baseDelay × backoffFactor^attempt, maxDelay) + (exponentialDe
 **Type:** Positive Jitter (not Full Jitter, Decorrelated, or Equal Jitter)
 
 **Characteristics:**
+
 - Jitter is always >= 0 (adds to delay, never subtracts)
 - Range: [exponentialDelay, exponentialDelay + (exponentialDelay × jitterFactor)]
 - With `jitterFactor = 0.1`: delay ranges from [exponentialDelay, exponentialDelay × 1.1]
@@ -73,7 +76,7 @@ delay = floor(min(baseDelay × backoffFactor^attempt, maxDelay) + (exponentialDe
 **Example with baseDelay=1000, backoffFactor=2, jitterFactor=0.1:**
 
 | Attempt | Exponential Delay | Jitter Range | Final Delay Range |
-|---------|-------------------|--------------|-------------------|
+| ------- | ----------------- | ------------ | ----------------- |
 | 0       | 1000ms            | +0 to 100ms  | 1000-1100ms       |
 | 1       | 2000ms            | +0 to 200ms  | 2000-2200ms       |
 | 2       | 4000ms            | +0 to 400ms  | 4000-4400ms       |
@@ -111,9 +114,9 @@ const AGENT_RETRY_CONFIG = {
 
 ```typescript
 const MCP_RETRY_CONFIG = {
-  maxAttempts: 2,      // Fewer retries for tools
-  baseDelay: 500,       // Shorter initial delay
-  maxDelay: 5000,       // Lower cap for tools
+  maxAttempts: 2, // Fewer retries for tools
+  baseDelay: 500, // Shorter initial delay
+  maxDelay: 5000, // Lower cap for tools
   backoffFactor: 2,
   jitterFactor: 0.1,
 };
@@ -134,25 +137,31 @@ const MCP_RETRY_CONFIG = {
 2. **Three Jitter Strategies:**
 
    **a) Full Jitter (Recommended by AWS):**
+
    ```
    sleep = random_between(0, min(cap, base * 2^attempt))
    ```
+
    - Most effective at preventing synchronization
    - Can result in very short delays initially
    - AWS recommends this for most use cases
 
    **b) Equal Jitter:**
+
    ```
    sleep = (base * 2^attempt) / 2 + random_between(0, (base * 2^attempt) / 2)
    ```
+
    - Guarantees minimum delay
    - Less effective at preventing synchronization
    - Useful when you want to ensure minimum backoff
 
    **c) Decorrelated Jitter:**
+
    ```
    sleep = random_between(base, cap, previous_sleep * 3)
    ```
+
    - Adaptive based on previous sleep
    - Good for long-running retry scenarios
    - More complex to implement
@@ -204,7 +213,7 @@ const MCP_RETRY_CONFIG = {
 2. **Configuration Guidelines:**
 
    | Operation Type | Base Delay | Max Delay | Max Retries |
-   |----------------|------------|-----------|-------------|
+   | -------------- | ---------- | --------- | ----------- |
    | API Calls      | 1s         | 30-60s    | 3-5         |
    | Database       | 100ms      | 5s        | 3           |
    | Storage        | 500ms      | 10s       | 3           |
@@ -217,12 +226,12 @@ const MCP_RETRY_CONFIG = {
 
 ### 2.4 Comparison of Jitter Strategies
 
-| Strategy | Formula | Pros | Cons | Best For |
-|----------|---------|------|------|----------|
-| **Positive Jitter** | delay + (delay × factor × random()) | Simple, minimum guaranteed | Less effective at decorrelation | Current implementation |
-| **Full Jitter** | random(0, delay) | Best at preventing thundering herd | Can have very short delays | High-concurrency scenarios |
-| **Equal Jitter** | delay/2 + random(0, delay/2) | Balanced approach | Still allows some synchronization | General purpose |
-| **Decorrelated Jitter** | random(base, previous × 3) | Adaptive, good for long retries | Complex, stateful | Long-running operations |
+| Strategy                | Formula                             | Pros                               | Cons                              | Best For                   |
+| ----------------------- | ----------------------------------- | ---------------------------------- | --------------------------------- | -------------------------- |
+| **Positive Jitter**     | delay + (delay × factor × random()) | Simple, minimum guaranteed         | Less effective at decorrelation   | Current implementation     |
+| **Full Jitter**         | random(0, delay)                    | Best at preventing thundering herd | Can have very short delays        | High-concurrency scenarios |
+| **Equal Jitter**        | delay/2 + random(0, delay/2)        | Balanced approach                  | Still allows some synchronization | General purpose            |
+| **Decorrelated Jitter** | random(base, previous × 3)          | Adaptive, good for long retries    | Complex, stateful                 | Long-running operations    |
 
 ---
 
@@ -232,14 +241,14 @@ const MCP_RETRY_CONFIG = {
 
 **Recommended by Operation Type:**
 
-| Operation Type | Recommended | Current | Notes |
-|----------------|-------------|---------|-------|
-| **LLM API Calls** | 1000-2000ms | 1000ms | Good default, accounts for API latency |
-| **MCP Tools** | 200-500ms | 500ms | Appropriate for fast local operations |
-| **HTTP APIs** | 500-1000ms | - | Standard for web service calls |
-| **Database** | 100-200ms | - | Fast retries for connection issues |
-| **File Operations** | 100ms | - | Local I/O is fast |
-| **Message Queues** | 200-500ms | - | Balance between throughput and retry |
+| Operation Type      | Recommended | Current | Notes                                  |
+| ------------------- | ----------- | ------- | -------------------------------------- |
+| **LLM API Calls**   | 1000-2000ms | 1000ms  | Good default, accounts for API latency |
+| **MCP Tools**       | 200-500ms   | 500ms   | Appropriate for fast local operations  |
+| **HTTP APIs**       | 500-1000ms  | -       | Standard for web service calls         |
+| **Database**        | 100-200ms   | -       | Fast retries for connection issues     |
+| **File Operations** | 100ms       | -       | Local I/O is fast                      |
+| **Message Queues**  | 200-500ms   | -       | Balance between throughput and retry   |
 
 **Recommendation:** Keep current values for agents and MCP tools.
 
@@ -247,20 +256,22 @@ const MCP_RETRY_CONFIG = {
 
 **Recommended by Operation Type:**
 
-| Operation Type | Recommended | Current | Notes |
-|----------------|-------------|---------|-------|
-| **LLM API Calls** | 30-60s | 30s | Appropriate for API rate limits |
-| **MCP Tools** | 5-10s | 5s | Good for local tool execution |
-| **HTTP APIs** | 30-60s | - | Standard cap |
-| **Database** | 5-10s | - | Don't wait too long for DB |
-| **User-Facing** | 5-10s | - | Users won't wait longer |
+| Operation Type    | Recommended | Current | Notes                           |
+| ----------------- | ----------- | ------- | ------------------------------- |
+| **LLM API Calls** | 30-60s      | 30s     | Appropriate for API rate limits |
+| **MCP Tools**     | 5-10s       | 5s      | Good for local tool execution   |
+| **HTTP APIs**     | 30-60s      | -       | Standard cap                    |
+| **Database**      | 5-10s       | -       | Don't wait too long for DB      |
+| **User-Facing**   | 5-10s       | -       | Users won't wait longer         |
 
 **Formula for max delay:**
+
 ```
 maxDelay = baseDelay × (backoffFactor ^ (maxAttempts - 2))
 ```
 
 With current config (baseDelay=1000, backoffFactor=2, maxAttempts=3):
+
 - Attempt 0: 1000ms
 - Attempt 1: 2000ms
 - Attempt 2: Would be 4000ms, but maxAttempts is reached
@@ -271,12 +282,12 @@ With current config (baseDelay=1000, backoffFactor=2, maxAttempts=3):
 
 **Common Values:**
 
-| Multiplier | Use Case | Example Delays (base=1000) |
-|------------|----------|---------------------------|
-| **1.5** | Conservative | 1000, 1500, 2250, 3375... |
-| **2.0** | Standard (recommended) | 1000, 2000, 4000, 8000... |
-| **2.5** | Aggressive | 1000, 2500, 6250, 15625... |
-| **3.0** | Very aggressive | 1000, 3000, 9000, 27000... |
+| Multiplier | Use Case               | Example Delays (base=1000) |
+| ---------- | ---------------------- | -------------------------- |
+| **1.5**    | Conservative           | 1000, 1500, 2250, 3375...  |
+| **2.0**    | Standard (recommended) | 1000, 2000, 4000, 8000...  |
+| **2.5**    | Aggressive             | 1000, 2500, 6250, 15625... |
+| **3.0**    | Very aggressive        | 1000, 3000, 9000, 27000... |
 
 **Recommendation:** Keep current value of 2.0 (industry standard).
 
@@ -284,15 +295,16 @@ With current config (baseDelay=1000, backoffFactor=2, maxAttempts=3):
 
 **Comparison:**
 
-| Factor | Range (for 1000ms) | Effect |
-|--------|-------------------|--------|
-| **0.0** | 1000-1000ms | No jitter (bad for concurrency) |
-| **0.1** | 1000-1100ms | Minimal variance (current) |
-| **0.2** | 1000-1200ms | Moderate variance |
-| **0.5** | 1000-1500ms | High variance |
-| **1.0** | 1000-2000ms | Maximum variance |
+| Factor  | Range (for 1000ms) | Effect                          |
+| ------- | ------------------ | ------------------------------- |
+| **0.0** | 1000-1000ms        | No jitter (bad for concurrency) |
+| **0.1** | 1000-1100ms        | Minimal variance (current)      |
+| **0.2** | 1000-1200ms        | Moderate variance               |
+| **0.5** | 1000-1500ms        | High variance                   |
+| **1.0** | 1000-2000ms        | Maximum variance                |
 
 **Industry Recommendations:**
+
 - AWS: Full Jitter (0 to full delay)
 - Google: 0.1-0.3
 - Azure: 0.1-0.2
@@ -304,20 +316,21 @@ With current config (baseDelay=1000, backoffFactor=2, maxAttempts=3):
 
 **Recommended Strategy:**
 
-| Error Type | Recommended Retries | Rationale |
-|------------|-------------------|-----------|
-| **Network timeout** | 3-5 | Temporary connectivity issues |
-| **429 Rate limit** | 1-3 | Respect server limits |
-| **5xx Server error** | 3-5 | Server may recover quickly |
-| **503 Service unavailable** | 5-10 | Service restarting |
-| **LLM API timeout** | 2-3 | API may be overloaded |
-| **Database connection** | 3-5 | Connection pool issues |
-| **File lock** | 5-10 | Wait for lock release |
-| **Validation error** | 0 | Never retry (permanent) |
-| **Authentication** | 0 | Never retry (permanent) |
-| **Not found (404)** | 0 | Never retry (permanent) |
+| Error Type                  | Recommended Retries | Rationale                     |
+| --------------------------- | ------------------- | ----------------------------- |
+| **Network timeout**         | 3-5                 | Temporary connectivity issues |
+| **429 Rate limit**          | 1-3                 | Respect server limits         |
+| **5xx Server error**        | 3-5                 | Server may recover quickly    |
+| **503 Service unavailable** | 5-10                | Service restarting            |
+| **LLM API timeout**         | 2-3                 | API may be overloaded         |
+| **Database connection**     | 3-5                 | Connection pool issues        |
+| **File lock**               | 5-10                | Wait for lock release         |
+| **Validation error**        | 0                   | Never retry (permanent)       |
+| **Authentication**          | 0                   | Never retry (permanent)       |
+| **Not found (404)**         | 0                   | Never retry (permanent)       |
 
 **Current Implementation:**
+
 - Default: 3 attempts ✓
 - Agent LLM: 3 attempts ✓
 - MCP Tools: 2 attempts ✓
@@ -426,24 +439,29 @@ function compareJitterStrategies() {
   const maxDelay = 30000;
   const attempts = 5;
 
-  console.log('Attempt | Positive Jitter | Full Jitter | Equal Jitter | Decorrelated');
-  console.log('--------|-----------------|-------------|--------------|---------------');
+  console.log(
+    'Attempt | Positive Jitter | Full Jitter | Equal Jitter | Decorrelated'
+  );
+  console.log(
+    '--------|-----------------|-------------|--------------|---------------'
+  );
 
   let previousDelay = baseDelay;
   for (let i = 0; i < attempts; i++) {
     const expDelay = Math.min(baseDelay * Math.pow(2, i), maxDelay);
 
-    const positive = Math.floor(expDelay + (expDelay * 0.1 * Math.random()));
+    const positive = Math.floor(expDelay + expDelay * 0.1 * Math.random());
     const full = Math.floor(Math.random() * expDelay);
-    const equal = Math.floor((expDelay / 2) + (Math.random() * expDelay / 2));
+    const equal = Math.floor(expDelay / 2 + (Math.random() * expDelay) / 2);
     const decorrelated = Math.floor(
-      baseDelay + Math.random() * (Math.min(maxDelay, previousDelay * 3) - baseDelay)
+      baseDelay +
+        Math.random() * (Math.min(maxDelay, previousDelay * 3) - baseDelay)
     );
 
     console.log(
       `${i.toString().padStart(7)} | ${positive.toString().padStart(15)} | ` +
-      `${full.toString().padStart(11)} | ${equal.toString().padStart(12)} | ` +
-      `${decorrelated.toString().padStart(13)}`
+        `${full.toString().padStart(11)} | ${equal.toString().padStart(12)} | ` +
+        `${decorrelated.toString().padStart(13)}`
     );
 
     previousDelay = decorrelated;
@@ -467,15 +485,15 @@ function compareJitterStrategies() {
  * Circuit breaker state machine
  */
 enum CircuitState {
-  CLOSED = 'CLOSED',      // Normal operation
-  OPEN = 'OPEN',          // Failing, stop retrying
-  HALF_OPEN = 'HALF_OPEN' // Testing if service recovered
+  CLOSED = 'CLOSED', // Normal operation
+  OPEN = 'OPEN', // Failing, stop retrying
+  HALF_OPEN = 'HALF_OPEN', // Testing if service recovered
 }
 
 interface CircuitBreakerOptions {
-  failureThreshold: number;  // Failures before opening
-  resetTimeout: number;      // ms before attempting recovery
-  monitoringPeriod: number;  // ms to consider for failures
+  failureThreshold: number; // Failures before opening
+  resetTimeout: number; // ms before attempting recovery
+  monitoringPeriod: number; // ms to consider for failures
 }
 
 class CircuitBreaker {
@@ -534,10 +552,7 @@ async function retryWithCircuitBreaker<T>(
 ): Promise<T> {
   const breaker = new CircuitBreaker(circuitOptions);
 
-  return retry(
-    () => breaker.execute(fn),
-    retryOptions
-  );
+  return retry(() => breaker.execute(fn), retryOptions);
 }
 ```
 
@@ -569,6 +584,7 @@ function goodDelay(attempt: number) {
 **Problem:** Max delay too high, causing poor user experience.
 
 **Solution:**
+
 - Set reasonable maxDelay based on operation type
 - Use circuit breakers for persistent failures
 - Provide user feedback for long-running operations
@@ -582,8 +598,8 @@ const goodConfig = {
   maxDelay: 30000, // 30 seconds
   circuitBreaker: {
     failureThreshold: 5,
-    resetTimeout: 60000 // 1 minute
-  }
+    resetTimeout: 60000, // 1 minute
+  },
 };
 ```
 
@@ -649,10 +665,10 @@ const universalConfig = { baseDelay: 1000 };
 
 // GOOD: Operation-specific delays
 const configs = {
-  llm: { baseDelay: 1000 },      // 1s for API calls
-  database: { baseDelay: 100 },   // 100ms for DB
-  file: { baseDelay: 50 },        // 50ms for file I/O
-  tool: { baseDelay: 500 }        // 500ms for MCP tools
+  llm: { baseDelay: 1000 }, // 1s for API calls
+  database: { baseDelay: 100 }, // 100ms for DB
+  file: { baseDelay: 50 }, // 50ms for file I/O
+  tool: { baseDelay: 500 }, // 500ms for MCP tools
 };
 ```
 
@@ -686,13 +702,16 @@ await retry(fn, { maxAttempts: 3 });
 await retry(fn, {
   maxAttempts: 3,
   onRetry: (attempt, error, delay) => {
-    logger.warn({
-      operation: 'agent.prompt',
-      attempt,
-      delayMs: delay,
-      error: error.message
-    }, `Retry attempt ${attempt} after ${delay}ms`);
-  }
+    logger.warn(
+      {
+        operation: 'agent.prompt',
+        attempt,
+        delayMs: delay,
+        error: error.message,
+      },
+      `Retry attempt ${attempt} after ${delay}ms`
+    );
+  },
 });
 ```
 
@@ -758,6 +777,7 @@ await retry(fn, {
 ### 7.1 Keep Current Strengths
 
 ✅ **Positive Aspects:**
+
 - Clean separation of retry logic
 - Good transient error detection
 - Type-safe generic implementation
@@ -860,7 +880,7 @@ export async function retryWithCircuitBreaker<T>(
 **Configuration:** baseDelay=1000, maxDelay=30000, backoffFactor=2, jitterFactor=0.1
 
 | Retry # | Attempt Index | Exponential Delay | Min Delay | Max Delay |
-|---------|---------------|-------------------|-----------|-----------|
+| ------- | ------------- | ----------------- | --------- | --------- |
 | 1       | 0             | 1,000ms           | 1,000ms   | 1,100ms   |
 | 2       | 1             | 2,000ms           | 2,000ms   | 2,200ms   |
 | 3       | 2             | 4,000ms           | 4,000ms   | 4,400ms   |
@@ -871,7 +891,7 @@ export async function retryWithCircuitBreaker<T>(
 **Configuration:** baseDelay=500, maxDelay=5000, backoffFactor=2, jitterFactor=0.1 (MCP Tools)
 
 | Retry # | Attempt Index | Exponential Delay | Min Delay | Max Delay |
-|---------|---------------|-------------------|-----------|-----------|
+| ------- | ------------- | ----------------- | --------- | --------- |
 | 1       | 0             | 500ms             | 500ms     | 550ms     |
 | 2       | 1             | 1,000ms           | 1,000ms   | 1,100ms   |
 | 3       | 2             | 2,000ms           | 2,000ms   | 2,200ms   |
@@ -881,12 +901,14 @@ export async function retryWithCircuitBreaker<T>(
 ### Time to Success Scenarios
 
 **Scenario 1: Success on 2nd attempt (1 retry)**
+
 - Attempt 0: Failure (instant)
 - Delay: ~1000ms
 - Attempt 1: Success
 - **Total time: ~1 second**
 
 **Scenario 2: Success on 3rd attempt (2 retries)**
+
 - Attempt 0: Failure (instant)
 - Delay: ~1000ms
 - Attempt 1: Failure
@@ -895,6 +917,7 @@ export async function retryWithCircuitBreaker<T>(
 - **Total time: ~3 seconds**
 
 **Scenario 3: Success on 4th attempt (3 retries)**
+
 - Attempt 0: Failure (instant)
 - Delay: ~1000ms
 - Attempt 1: Failure
@@ -905,6 +928,7 @@ export async function retryWithCircuitBreaker<T>(
 - **Total time: ~7 seconds**
 
 **Scenario 4: All retries exhausted (3 attempts total)**
+
 - Attempt 0: Failure (instant)
 - Delay: ~1000ms
 - Attempt 1: Failure

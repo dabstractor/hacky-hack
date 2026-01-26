@@ -4,6 +4,7 @@
 **Focus:** CLI error message formatting, structure, and presentation
 
 ## Table of Contents
+
 1. [Core Principles](#core-principles)
 2. [Error Message Structure](#error-message-structure)
 3. [Real-World Examples](#real-world-examples)
@@ -15,12 +16,14 @@
 ## Core Principles
 
 ### 1. **Actionability Over Technical Detail**
+
 - **What went wrong** (clear, plain language)
 - **Why it matters** (context)
 - **How to fix it** (specific actions)
 - **Where to learn more** (documentation links)
 
 ### 2. **Hierarchy of Information**
+
 ```
 [ERROR CATEGORY] Brief one-line summary
 ├── Context: What was being attempted
@@ -30,6 +33,7 @@
 ```
 
 ### 3. **Consistent Formatting Patterns**
+
 - Use prefixes for severity: `ERROR:`, `WARN:`, `INFO:`, `FATAL:`
 - Structured sections with clear visual separators
 - Code/command examples in distinct formatting
@@ -118,6 +122,7 @@ $ kubectl get pods -v=6
 ```
 
 **Key Patterns:**
+
 - Error type in parentheses: `(NotFound)`
 - Resource name in quotes: `"nonexistent"`
 - Suggests `--help` flag
@@ -143,6 +148,7 @@ to the resource is denied.
 ```
 
 **Key Patterns:**
+
 - Full error path (socket, HTTP endpoint)
 - Clear action: "repository does not exist or may require 'docker login'"
 - Always references help command
@@ -169,6 +175,7 @@ logging output above.
 ```
 
 **Key Patterns:**
+
 - Error codes for programmatic parsing: `ELIFECYCLE`
 - Exit status codes
 - Full command that failed
@@ -199,6 +206,7 @@ hint: Switching branches is permanent.
 ```
 
 **Key Patterns:**
+
 - `fatal:` prefix for critical errors
 - Exact command to run provided
 - Alternative commands suggested via `hint:`
@@ -225,6 +233,7 @@ Unable to locate credentials. You can configure credentials by running
 ```
 
 **Key Patterns:**
+
 - Error code in parentheses: `(NoSuchBucket)`
 - Operation name: `ListObjectsV2`
 - Clear credential configuration instruction
@@ -239,18 +248,18 @@ Unable to locate credentials. You can configure credentials by running
 ```javascript
 const colors = {
   // Severity
-  error: chalk.red,           // Errors, failures
-  warning: chalk.yellow,      // Warnings, cautions
-  success: chalk.green,       // Success, completions
-  info: chalk.blue,           // Informational messages
-  debug: chalk.gray,          // Debug details
+  error: chalk.red, // Errors, failures
+  warning: chalk.yellow, // Warnings, cautions
+  success: chalk.green, // Success, completions
+  info: chalk.blue, // Informational messages
+  debug: chalk.gray, // Debug details
 
   // UI Elements
-  heading: chalk.bold.cyan,   // Section headers
-  code: chalk.gray.bgWhite,   // Code blocks
+  heading: chalk.bold.cyan, // Section headers
+  code: chalk.gray.bgWhite, // Code blocks
   link: chalk.underline.blue, // URLs
-  emphasis: chalk.bold,       // Important text
-  dim: chalk.dim,             // Secondary info
+  emphasis: chalk.bold, // Important text
+  dim: chalk.dim, // Secondary info
 };
 ```
 
@@ -353,8 +362,8 @@ class ErrorBuilder {
 
   suggest(...suggestions: string[]) {
     this.error.suggestions = [
-      ...this.error.suggestions || [],
-      ...suggestions
+      ...(this.error.suggestions || []),
+      ...suggestions,
     ];
     return this;
   }
@@ -393,7 +402,7 @@ export class ErrorFormatter {
     // Header with code
     lines.push(
       chalk.red.bold(`[${error.code}] `) +
-      chalk.red(`${error.category}: ${error.message}`)
+        chalk.red(`${error.category}: ${error.message}`)
     );
 
     // Context section
@@ -410,7 +419,7 @@ export class ErrorFormatter {
     if (error.docs) {
       lines.push(
         chalk.yellow('Documentation:\n') +
-        chalk.blue.underline(`  ${error.docs}`)
+          chalk.blue.underline(`  ${error.docs}`)
       );
     }
 
@@ -424,7 +433,9 @@ export class ErrorFormatter {
     });
 
     if (typeof content === 'object') {
-      for (const [key, value] of Object.entries(content as Record<string, unknown>)) {
+      for (const [key, value] of Object.entries(
+        content as Record<string, unknown>
+      )) {
         table.push([chalk.yellow(key), String(value)]);
       }
     } else if (Array.isArray(content)) {
@@ -438,10 +449,21 @@ export class ErrorFormatter {
 }
 
 const minimalChars = {
-  top: '', 'top-mid': '', 'top-left': '', 'top-right': '',
-  bottom: '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
-  left: '', 'left-mid': '', mid: '', 'mid-mid': '',
-  right: '', 'right-mid': '', middle: ' '
+  top: '',
+  'top-mid': '',
+  'top-left': '',
+  'top-right': '',
+  bottom: '',
+  'bottom-mid': '',
+  'bottom-left': '',
+  'bottom-right': '',
+  left: '',
+  'left-mid': '',
+  mid: '',
+  'mid-mid': '',
+  right: '',
+  'right-mid': '',
+  middle: ' ',
 };
 ```
 
@@ -475,18 +497,18 @@ class ErrorFormatter {
   }
 
   private formatBasic(error: CliError): string {
-    return chalk.red.bold(`[${error.code}] `) +
-           chalk.red(`${error.category}: ${error.message}`);
+    return (
+      chalk.red.bold(`[${error.code}] `) +
+      chalk.red(`${error.category}: ${error.message}`)
+    );
   }
 
   private formatContext(context: Record<string, unknown>): string {
-    return chalk.yellow('Context:') + '\n' +
-           JSON.stringify(context, null, 2);
+    return chalk.yellow('Context:') + '\n' + JSON.stringify(context, null, 2);
   }
 
   private formatStack(stack: string): string {
-    return chalk.gray('Stack Trace:') + '\n' +
-           chalk.dim(stack);
+    return chalk.gray('Stack Trace:') + '\n' + chalk.dim(stack);
   }
 }
 ```
@@ -496,6 +518,7 @@ class ErrorFormatter {
 ## Best Practices Summary
 
 ### DO:
+
 - Start with the most important information
 - Use plain language first, technical details second
 - Provide exact commands to fix issues
@@ -506,6 +529,7 @@ class ErrorFormatter {
 - Show what was attempted, not just what failed
 
 ### DON'T:
+
 - Bury the lead (error message should be first)
 - Use jargon without explanation
 - Show raw stack traces by default
@@ -526,6 +550,7 @@ class ErrorFormatter {
 - **AWS CLI Guidelines**: https://github.com/aws/aws-cli
 
 ### Related Libraries
+
 - `chalk` - Terminal string styling
 - `cli-table3` - Unicode table formatting
 - `ora` - Terminal spinners

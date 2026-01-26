@@ -8,17 +8,18 @@ This document summarizes all Groundswell usage patterns found in the hacky-hack 
 
 ### Workflow Classes Found
 
-| File | Class | Purpose |
-|------|-------|---------|
-| `/src/workflows/prp-pipeline.ts` | `PRPPipeline` | Main pipeline orchestration |
-| `/src/workflows/bug-hunt-workflow.ts` | `BugHuntWorkflow` | QA bug testing workflow |
-| `/src/workflows/delta-analysis-workflow.ts` | `DeltaAnalysisWorkflow` | PRD comparison workflow |
-| `/src/workflows/fix-cycle-workflow.ts` | `FixCycleWorkflow` | Bug fix iteration workflow |
-| `/src/workflows/hello-world.ts` | `HelloWorldWorkflow` | Example workflow |
+| File                                        | Class                   | Purpose                     |
+| ------------------------------------------- | ----------------------- | --------------------------- |
+| `/src/workflows/prp-pipeline.ts`            | `PRPPipeline`           | Main pipeline orchestration |
+| `/src/workflows/bug-hunt-workflow.ts`       | `BugHuntWorkflow`       | QA bug testing workflow     |
+| `/src/workflows/delta-analysis-workflow.ts` | `DeltaAnalysisWorkflow` | PRD comparison workflow     |
+| `/src/workflows/fix-cycle-workflow.ts`      | `FixCycleWorkflow`      | Bug fix iteration workflow  |
+| `/src/workflows/hello-world.ts`             | `HelloWorldWorkflow`    | Example workflow            |
 
 ### Constructor Patterns
 
 **Pattern 1: Simple Constructor with Validation**
+
 ```typescript
 // File: /src/workflows/bug-hunt-workflow.ts:76-86
 constructor(prdContent: string, completedTasks: Task[]) {
@@ -40,6 +41,7 @@ constructor(prdContent: string, completedTasks: Task[]) {
 ```
 
 **Pattern 2: Dependency Injection**
+
 ```typescript
 // File: /src/workflows/fix-cycle-workflow.ts:100-116
 constructor(
@@ -62,6 +64,7 @@ constructor(
 ```
 
 **Pattern 3: Complex Configuration**
+
 ```typescript
 // File: /src/workflows/prp-pipeline.ts:250-305
 constructor(
@@ -311,6 +314,7 @@ expect(child.parent).toBe(parent);
 **File**: `/src/agents/agent-factory.ts`
 
 **Persona Token Limits**:
+
 ```typescript
 const PERSONA_TOKEN_LIMITS = {
   architect: 8192,
@@ -321,6 +325,7 @@ const PERSONA_TOKEN_LIMITS = {
 ```
 
 **Base Configuration Builder**:
+
 ```typescript
 export function createBaseConfig(persona: AgentPersona): AgentConfig {
   const model = getModel('sonnet'); // All use GLM-4.7
@@ -331,8 +336,8 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
     name,
     system,
     model,
-    enableCache: true,        // Caching enabled
-    enableReflection: true,   // Reflection enabled
+    enableCache: true, // Caching enabled
+    enableReflection: true, // Reflection enabled
     maxTokens: PERSONA_TOKEN_LIMITS[persona],
     env: {
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
@@ -343,6 +348,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
 ```
 
 **Architect Agent**:
+
 ```typescript
 // File: /src/agents/agent-factory.ts:195-204
 export function createArchitectAgent(): Agent {
@@ -357,6 +363,7 @@ export function createArchitectAgent(): Agent {
 ```
 
 **Researcher Agent**:
+
 ```typescript
 // File: /src/agents/agent-factory.ts:223-235
 export function createResearcherAgent(): Agent {
@@ -371,6 +378,7 @@ export function createResearcherAgent(): Agent {
 ```
 
 **Coder Agent**:
+
 ```typescript
 // File: /src/agents/agent-factory.ts:254-263
 export function createCoderAgent(): Agent {
@@ -385,6 +393,7 @@ export function createCoderAgent(): Agent {
 ```
 
 **QA Agent**:
+
 ```typescript
 // File: /src/agents/agent-factory.ts:282-291
 export function createQAAgent(): Agent {
@@ -456,7 +465,12 @@ const bashTool: Tool = {
     properties: {
       command: { type: 'string', description: 'The shell command to execute' },
       cwd: { type: 'string', description: 'Working directory...' },
-      timeout: { type: 'number', description: 'Timeout in milliseconds...', minimum: 1000, maximum: 300000 },
+      timeout: {
+        type: 'number',
+        description: 'Timeout in milliseconds...',
+        minimum: 1000,
+        maximum: 300000,
+      },
     },
     required: ['command'],
   },
@@ -487,10 +501,26 @@ export class FilesystemMCP extends MCPHandler {
     });
 
     // Register multiple tool executors
-    this.registerToolExecutor('filesystem', 'file_read', readFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'file_write', writeFile as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'glob_files', globFiles as ToolExecutor);
-    this.registerToolExecutor('filesystem', 'grep_search', grepSearch as ToolExecutor);
+    this.registerToolExecutor(
+      'filesystem',
+      'file_read',
+      readFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'file_write',
+      writeFile as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'glob_files',
+      globFiles as ToolExecutor
+    );
+    this.registerToolExecutor(
+      'filesystem',
+      'grep_search',
+      grepSearch as ToolExecutor
+    );
   }
 }
 ```
@@ -518,16 +548,17 @@ export function createBugHuntPrompt(
 
 All agent prompts have `enableReflection: true`:
 
-| Prompt | File | Purpose |
-|--------|------|---------|
-| `createArchitectPrompt` | `/src/agents/prompts/architect-prompt.ts:51-67` | Task breakdown |
-| `createPRPBlueprintPrompt` | `/src/agents/prompts/prp-blueprint-prompt.ts:255-270` | PRP generation |
-| `createBugHuntPrompt` | `/src/agents/prompts/bug-hunt-prompt.ts:127-142` | Bug testing |
+| Prompt                      | File                                                   | Purpose        |
+| --------------------------- | ------------------------------------------------------ | -------------- |
+| `createArchitectPrompt`     | `/src/agents/prompts/architect-prompt.ts:51-67`        | Task breakdown |
+| `createPRPBlueprintPrompt`  | `/src/agents/prompts/prp-blueprint-prompt.ts:255-270`  | PRP generation |
+| `createBugHuntPrompt`       | `/src/agents/prompts/bug-hunt-prompt.ts:127-142`       | Bug testing    |
 | `createDeltaAnalysisPrompt` | `/src/agents/prompts/delta-analysis-prompt.ts:128-143` | PRD comparison |
 
 ### Zod Schema Patterns
 
 **Custom Validation**:
+
 ```typescript
 // File: /src/core/models.ts:30
 export const ContextScopeSchema: z.ZodType<string> = z
@@ -545,6 +576,7 @@ export const ContextScopeSchema: z.ZodType<string> = z
 ```
 
 **Schema Parsing**:
+
 ```typescript
 // Runtime validation
 return PRPDocumentSchema.parse(metadata.prp);
@@ -642,7 +674,7 @@ export async function retryAgentPrompt<T>(
   context: { agentType: string; operation: string }
 ): Promise<T> {
   return retry(agentPromptFn, {
-    ...AGENT_RETRY_CONFIG,  // maxAttempts: 3, baseDelay: 1000ms
+    ...AGENT_RETRY_CONFIG, // maxAttempts: 3, baseDelay: 1000ms
     onRetry: createDefaultOnRetry(`${context.agentType}.${context.operation}`),
   });
 }
@@ -652,7 +684,9 @@ export async function retryAgentPrompt<T>(
 
 ```typescript
 // File: /src/utils/retry.ts:597-605
-const AGENT_RETRY_CONFIG: Required<Omit<RetryOptions, 'isRetryable' | 'onRetry'>> = {
+const AGENT_RETRY_CONFIG: Required<
+  Omit<RetryOptions, 'isRetryable' | 'onRetry'>
+> = {
   maxAttempts: 3,
   baseDelay: 1000,
   maxDelay: 30000,
@@ -680,18 +714,18 @@ const _result = await retryAgentPrompt(
 
 ```typescript
 // File: /src/utils/logger.ts
-export function getLogger(context: string, options?: LoggerConfig): Logger
-export function clearLoggerCache(): void
+export function getLogger(context: string, options?: LoggerConfig): Logger;
+export function clearLoggerCache(): void;
 ```
 
 ### Logger Locations
 
-| Location | Usage |
-|----------|-------|
-| `/src/index.ts:109` | App logger |
+| Location                          | Usage               |
+| --------------------------------- | ------------------- |
+| `/src/index.ts:109`               | App logger          |
 | `/src/agents/agent-factory.ts:46` | AgentFactory logger |
-| `/src/agents/prp-executor.ts:198` | PRPExecutor logger |
-| `/src/core/task-patcher.ts:26` | TaskPatcher logger |
+| `/src/agents/prp-executor.ts:198` | PRPExecutor logger  |
+| `/src/core/task-patcher.ts:26`    | TaskPatcher logger  |
 
 ### Observer Pattern (Tests Only)
 
@@ -831,13 +865,13 @@ while (await this.taskOrchestrator.processNextItem()) {
 
 ## Key Differences from Groundswell Documentation
 
-| Feature | Groundswell Docs | Codebase Usage |
-|---------|------------------|----------------|
-| `@ObservedState` | Decorator for state | Public fields (not used) |
-| `@Task` | Decorator for children | Direct instantiation (not used) |
-| `defaultCache` | Built-in LLM cache | Custom filesystem cache |
-| `executeWithReflection` | Reflection wrapper | Custom retry wrapper |
-| `INTROSPECTION_TOOLS` | 6 navigation tools | Not used in production |
+| Feature                 | Groundswell Docs       | Codebase Usage                  |
+| ----------------------- | ---------------------- | ------------------------------- |
+| `@ObservedState`        | Decorator for state    | Public fields (not used)        |
+| `@Task`                 | Decorator for children | Direct instantiation (not used) |
+| `defaultCache`          | Built-in LLM cache     | Custom filesystem cache         |
+| `executeWithReflection` | Reflection wrapper     | Custom retry wrapper            |
+| `INTROSPECTION_TOOLS`   | 6 navigation tools     | Not used in production          |
 
 ## Reasons for Differences
 

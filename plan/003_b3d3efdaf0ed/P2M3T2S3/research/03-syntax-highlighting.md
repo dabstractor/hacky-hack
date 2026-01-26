@@ -5,6 +5,7 @@
 ## Recommended Libraries
 
 ### Primary: cli-highlight
+
 - **Package**: `cli-highlight`
 - **npm**: https://www.npmjs.com/package/cli-highlight
 - **Description**: Dedicated CLI syntax highlighting library
@@ -12,6 +13,7 @@
 - **Install**: `npm install cli-highlight`
 
 ### For JSON: json-colorizer
+
 - **Package**: `json-colorizer`
 - **npm**: https://www.npmjs.com/package/json-colorizer
 - **Description**: Simple, focused JSON coloring
@@ -19,55 +21,61 @@
 - **Install**: `npm install json-colorizer`
 
 ### Foundation: chalk (already installed)
+
 - **Package**: `chalk@^5.6.2` (already in project)
 - **Usage**: Terminal string styling, colored output
 
 ## Code Examples
 
 ### JSON Highlighting with cli-highlight
+
 ```typescript
 import { highlight } from 'cli-highlight';
 
 const jsonData = {
-  name: "Example",
+  name: 'Example',
   value: 42,
-  nested: { key: "value" }
+  nested: { key: 'value' },
 };
 
 const highlightedJson = highlight(JSON.stringify(jsonData, null, 2), {
   language: 'json',
-  theme: 'monokai' // or 'github', 'atom-one-dark', etc.
+  theme: 'monokai', // or 'github', 'atom-one-dark', etc.
 });
 
 console.log(highlightedJson);
 ```
 
 ### JSON Highlighting with json-colorizer
+
 ```typescript
 import colorize from 'json-colorizer';
 
-const jsonData = { name: "Example", value: 42 };
+const jsonData = { name: 'Example', value: 42 };
 
-console.log(colorize(JSON.stringify(jsonData, null, 2), {
-  colors: {
-    STRING_KEY: 'blue.bold',
-    STRING_LITERAL: 'green',
-    NUMBER_LITERAL: 'yellow',
-    BOOLEAN_LITERAL: 'magenta',
-    NULL_LITERAL: 'red'
-  }
-}));
+console.log(
+  colorize(JSON.stringify(jsonData, null, 2), {
+    colors: {
+      STRING_KEY: 'blue.bold',
+      STRING_LITERAL: 'green',
+      NUMBER_LITERAL: 'yellow',
+      BOOLEAN_LITERAL: 'magenta',
+      NULL_LITERAL: 'red',
+    },
+  })
+);
 ```
 
 ### Markdown Highlighting with cli-highlight
+
 ```typescript
 import { highlight } from 'cli-highlight';
 
-const markdownContent = "# Title\n\nThis is **bold** text.";
+const markdownContent = '# Title\n\nThis is **bold** text.';
 
 const highlightedMd = highlight(markdownContent, {
   language: 'markdown',
-  theme: 'github'
+  theme: 'github',
 });
 
 console.log(highlightedMd);
@@ -76,6 +84,7 @@ console.log(highlightedMd);
 ## Best Practices
 
 ### Color Accessibility
+
 - Use high contrast colors
 - Support light and dark terminal themes
 - Consider color blindness
@@ -83,11 +92,13 @@ console.log(highlightedMd);
 - Provide `--color` flags (auto/always/never)
 
 ### Performance
+
 - Cache parsed syntax for repeated output
 - Use lazy evaluation for large documents
 - Implement streaming for very large files
 
 ### Complete Output Formatter Example
+
 ```typescript
 import chalk from 'chalk';
 import { highlight } from 'cli-highlight';
@@ -107,7 +118,7 @@ export class OutputFormatter {
 
     return highlight(json, {
       language: 'json',
-      theme: 'monokai'
+      theme: 'monokai',
     });
   }
 
@@ -116,7 +127,7 @@ export class OutputFormatter {
 
     return highlight(markdown, {
       language: 'markdown',
-      theme: 'github'
+      theme: 'github',
     });
   }
 }
@@ -125,6 +136,7 @@ export class OutputFormatter {
 ## Terminal Color Scheme
 
 Following existing patterns in `src/utils/display/status-colors.ts`:
+
 - **Green**: Success, additions
 - **Red**: Errors, deletions
 - **Cyan/Blue**: Headers, info

@@ -12,6 +12,7 @@
 **Feature Goal**: Add automatic retry mechanism to `SessionManager.flushUpdates()` for handling transient file I/O failures during batch write operations, with exponential backoff, error classification, and fallback preservation to recovery file when all retries are exhausted.
 
 **Deliverable**:
+
 1. Enhanced `SessionManager.flushUpdates()` method with automatic retry loop
 2. File I/O error classification for retryable vs non-retryable errors
 3. Recovery file preservation (`tasks.json.failed`) when all retries fail
@@ -19,6 +20,7 @@
 5. `tests/unit/core/flush-retry.test.ts` - Unit tests for flush retry scenarios
 
 **Success Definition**:
+
 - `flushUpdates()` automatically retries on transient file I/O errors (EBUSY, EAGAIN, EIO, ENFILE)
 - Retry attempts use exponential backoff with jitter (100ms base, 2s max, factor 2)
 - Each retry attempt is logged with attempt number, delay, and error context
@@ -36,6 +38,7 @@
 **Use Case**: When batch write operations fail due to transient file system issues (e.g., file locked, temporary I/O error), the system should automatically retry with exponential backoff before failing. If all retries fail, pending updates should be preserved to a recovery file for manual recovery.
 
 **User Journey**:
+
 1. Pipeline executes multiple status updates batched in memory
 2. `flushUpdates()` called to persist batched changes
 3. First write attempt fails with EBUSY (file locked)
@@ -47,6 +50,7 @@
 9. Developer can manually recover from recovery file if needed
 
 **Pain Points Addressed**:
+
 - **No automatic retry**: Current implementation requires manual retry on flush failure
 - **Lost pending updates**: If process crashes after flush failure, in-memory updates are lost
 - **No recovery mechanism**: No way to recover pending updates when all retries fail
@@ -91,6 +95,7 @@ Implement automatic retry mechanism for batch write operations with the followin
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of current `SessionManager.flushUpdates()` implementation
 - Existing retry infrastructure in `src/utils/retry.ts`
 - Atomic write pattern from `src/core/session-utils.ts`
@@ -1046,6 +1051,7 @@ npm run dev -- --prd PRD.md --flush-retries 11  # Should fail
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete analysis of existing SessionManager.flushUpdates() implementation
 - Existing retry infrastructure in src/utils/retry.ts is well-designed
 - Clear patterns from existing --task-retry CLI option
@@ -1055,12 +1061,14 @@ npm run dev -- --prd PRD.md --flush-retries 11  # Should fail
 - Specific file paths, class names, and method signatures provided
 
 **Risk Areas**:
+
 - Integration with PRPPipeline requires careful parameter passing
 - Error classification must be accurate (retryable vs non-retryable)
 - Recovery file format must be future-proof (version field)
 - Timing tests require fake timers setup
 
 **Mitigation**:
+
 - Clear task breakdown with dependency ordering
 - Exact error code lists from external research
 - Recovery file uses version field for migration
@@ -1070,16 +1078,16 @@ npm run dev -- --prd PRD.md --flush-retries 11  # Should fail
 
 ## Appendix: Error Code Reference
 
-| Error Code | Description | Retryable | Reason |
-|------------|-------------|-----------|--------|
-| EBUSY | Resource busy or locked | Yes | Lock may be released |
-| EAGAIN | Resource temporarily unavailable | Yes | May become available |
-| EIO | I/O error | Yes | Transient disk/controller issue |
-| ENFILE | System file table full | Yes | File descriptors may free up |
-| ENOSPC | No space left on device | No | User must free space |
-| ENOENT | File or directory not found | No | Create file first |
-| EACCES | Permission denied | No | Fix permissions |
-| EMFILE | Too many open files | No | Application bug |
+| Error Code | Description                      | Retryable | Reason                          |
+| ---------- | -------------------------------- | --------- | ------------------------------- |
+| EBUSY      | Resource busy or locked          | Yes       | Lock may be released            |
+| EAGAIN     | Resource temporarily unavailable | Yes       | May become available            |
+| EIO        | I/O error                        | Yes       | Transient disk/controller issue |
+| ENFILE     | System file table full           | Yes       | File descriptors may free up    |
+| ENOSPC     | No space left on device          | No        | User must free space            |
+| ENOENT     | File or directory not found      | No        | Create file first               |
+| EACCES     | Permission denied                | No        | Fix permissions                 |
+| EMFILE     | Too many open files              | No        | Application bug                 |
 
 ---
 
@@ -1087,23 +1095,23 @@ npm run dev -- --prd PRD.md --flush-retries 11  # Should fail
 
 For `--flush-retries 3` (default):
 
-| Attempt | Delay Formula | Delay (ms) | Cumulative (ms) |
-|---------|---------------|------------|-----------------|
-| 1 | Immediate | 0 | 0 |
-| 2 | 100 * 2^(2-1) = 100 | ~100 | ~100 |
-| 3 | 100 * 2^(3-1) = 200 | ~200 | ~300 |
+| Attempt | Delay Formula        | Delay (ms) | Cumulative (ms) |
+| ------- | -------------------- | ---------- | --------------- |
+| 1       | Immediate            | 0          | 0               |
+| 2       | 100 \* 2^(2-1) = 100 | ~100       | ~100            |
+| 3       | 100 \* 2^(3-1) = 200 | ~200       | ~300            |
 
 Total time for 3 retries: ~300ms (with jitter: ~285-315ms)
 
 For `--flush-retries 5`:
 
-| Attempt | Delay Formula | Delay (ms) | Cumulative (ms) |
-|---------|---------------|------------|-----------------|
-| 1 | Immediate | 0 | 0 |
-| 2 | 100 * 2^(2-1) = 100 | ~100 | ~100 |
-| 3 | 100 * 2^(3-1) = 200 | ~200 | ~300 |
-| 4 | 100 * 2^(4-1) = 400 | ~400 | ~700 |
-| 5 | 100 * 2^(5-1) = 800 | ~800 | ~1500 |
+| Attempt | Delay Formula        | Delay (ms) | Cumulative (ms) |
+| ------- | -------------------- | ---------- | --------------- |
+| 1       | Immediate            | 0          | 0               |
+| 2       | 100 \* 2^(2-1) = 100 | ~100       | ~100            |
+| 3       | 100 \* 2^(3-1) = 200 | ~200       | ~300            |
+| 4       | 100 \* 2^(4-1) = 400 | ~400       | ~700            |
+| 5       | 100 \* 2^(5-1) = 800 | ~800       | ~1500           |
 
 Total time for 5 retries: ~1500ms (capped at 2s max)
 
@@ -1112,6 +1120,7 @@ Total time for 5 retries: ~1500ms (capped at 2s max)
 **Document Version**: 1.0
 **Last Updated**: 2026-01-24
 **Related Documents**:
+
 - Codebase Analysis: `plan/003_b3d3efdaf0ed/P3M2T2S2/research/codebase-analysis-summary.md`
 - External Research: `plan/003_b3d3efdaf0ed/P3M2T2S2/research/external-retry-best-practices.md`
 - Checkpoint Mechanism PRP: `plan/003_b3d3efdaf0ed/P3M2T2S1/PRP.md` (parallel work)

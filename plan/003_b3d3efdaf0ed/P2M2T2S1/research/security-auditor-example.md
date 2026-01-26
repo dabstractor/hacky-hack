@@ -290,7 +290,7 @@ Do NOT output the report to the conversation. The file itself is the output.
 
 Create the prompt generator module:
 
-```typescript
+````typescript
 /**
  * Security audit prompt generator module
  *
@@ -489,13 +489,13 @@ function getScanTypeDescription(
   };
   return descriptions[type] || 'Custom security check';
 }
-```
+````
 
 ### 3. Security Scanner MCP Tool (src/tools/security-scanner-mcp.ts)
 
 Create the security scanning MCP tool:
 
-```typescript
+````typescript
 /**
  * Security Scanner MCP Tool Module
  *
@@ -1326,43 +1326,48 @@ export {
   comprehensiveScanTool,
   SECURITY_PATTERNS,
 };
-```
+````
 
 ### 4. Agent Factory Extension (src/agents/agent-factory.ts)
 
 Add to the existing agent-factory.ts file:
 
-```typescript
+````typescript
 // Add to imports at top of file
 import {
   TASK_BREAKDOWN_PROMPT,
   PRP_BLUEPRINT_PROMPT,
   PRP_BUILDER_PROMPT,
   BUG_HUNT_PROMPT,
-  SECURITY_AUDIT_PROMPT,  // NEW
+  SECURITY_AUDIT_PROMPT, // NEW
 } from './prompts.js';
 
 import { BashMCP } from '../tools/bash-mcp.js';
 import { FilesystemMCP } from '../tools/filesystem-mcp.js';
 import { GitMCP } from '../tools/git-mcp.js';
-import { SecurityScannerMCP } from '../tools/security-scanner-mcp.js';  // NEW
+import { SecurityScannerMCP } from '../tools/security-scanner-mcp.js'; // NEW
 
 // Add to singleton MCP server instances section (around line 56)
 const BASH_MCP = new BashMCP();
 const FILESYSTEM_MCP = new FilesystemMCP();
 const GIT_MCP = new GitMCP();
-const SECURITY_SCANNER_MCP = new SecurityScannerMCP();  // NEW
+const SECURITY_SCANNER_MCP = new SecurityScannerMCP(); // NEW
 
 // Update MCP_TOOLS array (around line 68)
 const MCP_TOOLS: MCPServer[] = [
   BASH_MCP,
   FILESYSTEM_MCP,
   GIT_MCP,
-  SECURITY_SCANNER_MCP,  // NEW
+  SECURITY_SCANNER_MCP, // NEW
 ];
 
 // Update AgentPersona type (around line 80)
-export type AgentPersona = 'architect' | 'researcher' | 'coder' | 'qa' | 'security';  // Added 'security'
+export type AgentPersona =
+  | 'architect'
+  | 'researcher'
+  | 'coder'
+  | 'qa'
+  | 'security'; // Added 'security'
 
 // Update PERSONA_TOKEN_LIMITS (around line 118)
 const PERSONA_TOKEN_LIMITS = {
@@ -1370,7 +1375,7 @@ const PERSONA_TOKEN_LIMITS = {
   researcher: 4096,
   coder: 4096,
   qa: 4096,
-  security: 6144,  // NEW: Security analysis needs medium token limit
+  security: 6144, // NEW: Security analysis needs medium token limit
 } as const;
 
 // Add new agent factory function (after createQAAgent function, around line 291)
@@ -1403,16 +1408,13 @@ export function createSecurityAuditorAgent(): Agent {
     system: SECURITY_AUDIT_PROMPT,
     mcps: MCP_TOOLS,
   };
-  logger.debug(
-    { persona: 'security', model: config.model },
-    'Creating agent'
-  );
+  logger.debug({ persona: 'security', model: config.model }, 'Creating agent');
   return createAgent(config);
 }
 
 // Update MCP_TOOLS export to include the new MCP (around line 296)
-export { MCP_TOOLS, SECURITY_SCANNER_MCP };  // Added SECURITY_SCANNER_MCP
-```
+export { MCP_TOOLS, SECURITY_SCANNER_MCP }; // Added SECURITY_SCANNER_MCP
+````
 
 ### 5. Data Models (src/core/models.ts)
 
@@ -1432,7 +1434,15 @@ import { z } from 'zod';
 export const SecurityFindingSchema = z.object({
   id: z.string().regex(/^SEC-\d{3,}$/),
   severity: z.enum(['critical', 'high', 'medium', 'low']),
-  category: z.enum(['secrets', 'sqli', 'xss', 'crypto', 'auth', 'config', 'deps']),
+  category: z.enum([
+    'secrets',
+    'sqli',
+    'xss',
+    'crypto',
+    'auth',
+    'config',
+    'deps',
+  ]),
   title: z.string().min(1),
   description: z.string().min(1),
   location: z.object({
@@ -1457,7 +1467,10 @@ export const SecurityFindingSchema = z.object({
  * Statistics aggregated from security scan findings.
  */
 export const SecurityReportStatisticsSchema = z.object({
-  byCategory: z.record(z.enum(['secrets', 'sqli', 'xss', 'crypto', 'auth', 'config', 'deps']), z.number().int().min(0)),
+  byCategory: z.record(
+    z.enum(['secrets', 'sqli', 'xss', 'crypto', 'auth', 'config', 'deps']),
+    z.number().int().min(0)
+  ),
   bySeverity: z.object({
     critical: z.number().int().min(0),
     high: z.number().int().min(0),
@@ -1511,8 +1524,12 @@ export const SecurityReportSchema = z.object({
 
 // Type exports
 export type SecurityFinding = z.infer<typeof SecurityFindingSchema>;
-export type SecurityReportStatistics = z.infer<typeof SecurityReportStatisticsSchema>;
-export type SecurityReportMetadata = z.infer<typeof SecurityReportMetadataSchema>;
+export type SecurityReportStatistics = z.infer<
+  typeof SecurityReportStatisticsSchema
+>;
+export type SecurityReportMetadata = z.infer<
+  typeof SecurityReportMetadataSchema
+>;
 export type SecurityReportSummary = z.infer<typeof SecurityReportSummarySchema>;
 export type SecurityReport = z.infer<typeof SecurityReportSchema>;
 ```
@@ -1576,7 +1593,7 @@ export async function securityGate(
 
   const prompt = createSecurityAuditPrompt({
     targetDirectory: workspacePath,
-    minSeverity: 'medium',  // Fail on medium or higher
+    minSeverity: 'medium', // Fail on medium or higher
   });
 
   const report = await auditor.prompt(prompt);
@@ -1704,7 +1721,9 @@ const secretsResult = await scanner.scan_secrets({
   exclude: ['node_modules/**'],
 });
 
-console.log(`Found ${secretsResult.statistics?.critical || 0} critical secrets`);
+console.log(
+  `Found ${secretsResult.statistics?.critical || 0} critical secrets`
+);
 
 // Comprehensive scan
 const fullResult = await scanner.comprehensive_security_scan({
@@ -1835,9 +1854,9 @@ describe('SecurityScannerMCP', () => {
       minSeverity: 'high',
     });
 
-    expect(result.findings?.every(f =>
-      ['critical', 'high'].includes(f.severity)
-    )).toBe(true);
+    expect(
+      result.findings?.every(f => ['critical', 'high'].includes(f.severity))
+    ).toBe(true);
   });
 });
 ```

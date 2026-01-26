@@ -43,23 +43,23 @@ Retry strategies are fundamental to building resilient distributed systems and A
 
 #### Retryable Errors (Transient)
 
-| Error Category | HTTP Status | Error Codes | Examples |
-|----------------|-------------|-------------|----------|
-| **Network Issues** | - | `ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `ENOTFOUND`, `EPIPE`, `EAI_AGAIN` | Connection reset, DNS failure, timeout |
-| **Rate Limiting** | 429 | `RATE_LIMIT_EXCEEDED`, `TOO_MANY_REQUESTS` | API quota exceeded |
-| **Server Errors** | 500, 502, 503, 504 | `INTERNAL_ERROR`, `BAD_GATEWAY`, `SERVICE_UNAVAILABLE`, `GATEWAY_TIMEOUT` | Server overload, restart, maintenance |
-| **Timeout Errors** | 408, 504 | `REQUEST_TIMEOUT`, `OPERATION_TIMEOUT` | Request took too long |
-| **LLM-Specific** | - | `LLM_TIMEOUT`, `LLM_OVERLOADED`, `STREAMING_INTERRUPTED` | Model unavailable, context window issues |
+| Error Category     | HTTP Status        | Error Codes                                                                  | Examples                                 |
+| ------------------ | ------------------ | ---------------------------------------------------------------------------- | ---------------------------------------- |
+| **Network Issues** | -                  | `ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `ENOTFOUND`, `EPIPE`, `EAI_AGAIN` | Connection reset, DNS failure, timeout   |
+| **Rate Limiting**  | 429                | `RATE_LIMIT_EXCEEDED`, `TOO_MANY_REQUESTS`                                   | API quota exceeded                       |
+| **Server Errors**  | 500, 502, 503, 504 | `INTERNAL_ERROR`, `BAD_GATEWAY`, `SERVICE_UNAVAILABLE`, `GATEWAY_TIMEOUT`    | Server overload, restart, maintenance    |
+| **Timeout Errors** | 408, 504           | `REQUEST_TIMEOUT`, `OPERATION_TIMEOUT`                                       | Request took too long                    |
+| **LLM-Specific**   | -                  | `LLM_TIMEOUT`, `LLM_OVERLOADED`, `STREAMING_INTERRUPTED`                     | Model unavailable, context window issues |
 
 #### Non-Retryable Errors (Permanent)
 
-| Error Category | HTTP Status | Error Codes | Examples |
-|----------------|-------------|-------------|----------|
-| **Client Errors** | 400, 401, 403, 404 | `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND` | Invalid input, authentication failed |
-| **Validation Errors** | 422 | `VALIDATION_FAILED`, `INVALID_INPUT`, `SCHEMA_VIOLATION` | Malformed data, schema mismatch |
-| **Resource Conflicts** | 409 | `CONFLICT`, `DUPLICATE`, `ALREADY_EXISTS` | Duplicate resource, version conflict |
-| **Quota Exceeded** | - | `QUOTA_EXCEEDED`, `LIMIT_REACHED` (non-rate-limit) | Storage full, monthly budget exceeded |
-| **Parsing Errors** | - | `PARSE_ERROR`, `INVALID_RESPONSE` | Malformed response, schema violation |
+| Error Category         | HTTP Status        | Error Codes                                              | Examples                              |
+| ---------------------- | ------------------ | -------------------------------------------------------- | ------------------------------------- |
+| **Client Errors**      | 400, 401, 403, 404 | `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`  | Invalid input, authentication failed  |
+| **Validation Errors**  | 422                | `VALIDATION_FAILED`, `INVALID_INPUT`, `SCHEMA_VIOLATION` | Malformed data, schema mismatch       |
+| **Resource Conflicts** | 409                | `CONFLICT`, `DUPLICATE`, `ALREADY_EXISTS`                | Duplicate resource, version conflict  |
+| **Quota Exceeded**     | -                  | `QUOTA_EXCEEDED`, `LIMIT_REACHED` (non-rate-limit)       | Storage full, monthly budget exceeded |
+| **Parsing Errors**     | -                  | `PARSE_ERROR`, `INVALID_RESPONSE`                        | Malformed response, schema violation  |
 
 ### 1.2 Error Classification Decision Matrix
 
@@ -112,22 +112,35 @@ interface RetryableError extends Error {
 }
 
 const TRANSIENT_ERROR_CODES = new Set([
-  'ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND',
-  'EPIPE', 'EAI_AGAIN', 'EHOSTUNREACH', 'ENETUNREACH', 'ECONNABORTED',
+  'ECONNRESET',
+  'ECONNREFUSED',
+  'ETIMEDOUT',
+  'ENOTFOUND',
+  'EPIPE',
+  'EAI_AGAIN',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'ECONNABORTED',
 ]);
 
-const RETRYABLE_HTTP_STATUS_CODES = new Set([
-  408, 429, 500, 502, 503, 504,
-]);
+const RETRYABLE_HTTP_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
 const TRANSIENT_PATTERNS = [
-  'timeout', 'network error', 'temporarily unavailable',
-  'service unavailable', 'connection reset', 'rate limit',
+  'timeout',
+  'network error',
+  'temporarily unavailable',
+  'service unavailable',
+  'connection reset',
+  'rate limit',
 ];
 
 const PERMANENT_PATTERNS = [
-  'validation failed', 'invalid input', 'unauthorized',
-  'forbidden', 'not found', 'authentication failed',
+  'validation failed',
+  'invalid input',
+  'unauthorized',
+  'forbidden',
+  'not found',
+  'authentication failed',
 ];
 
 export function isTransientError(error: unknown): boolean {
@@ -137,8 +150,10 @@ export function isTransientError(error: unknown): boolean {
 
   // Check PipelineError codes
   if (isPipelineError(err)) {
-    return err.code === ErrorCodes.PIPELINE_AGENT_TIMEOUT ||
-           err.code === ErrorCodes.PIPELINE_AGENT_LLM_FAILED;
+    return (
+      err.code === ErrorCodes.PIPELINE_AGENT_TIMEOUT ||
+      err.code === ErrorCodes.PIPELINE_AGENT_LLM_FAILED
+    );
   }
 
   // Check ValidationError (never retryable)
@@ -150,8 +165,10 @@ export function isTransientError(error: unknown): boolean {
   }
 
   // Check HTTP status codes
-  if (typeof err.response?.status === 'number' &&
-      RETRYABLE_HTTP_STATUS_CODES.has(err.response.status)) {
+  if (
+    typeof err.response?.status === 'number' &&
+    RETRYABLE_HTTP_STATUS_CODES.has(err.response.status)
+  ) {
     return true;
   }
 
@@ -184,13 +201,13 @@ export function isPermanentError(error: unknown): boolean {
 
 ### 2.1 Backoff Strategies Comparison
 
-| Strategy | Formula | Pros | Cons | Best For |
-|----------|---------|------|------|----------|
-| **Fixed Delay** | `delay = baseDelay` | Simple, predictable | Thundering herd, no adaptation | Rarely used |
-| **Linear Backoff** | `delay = baseDelay * attempt` | Better than fixed | Still can cause thundering herd | Simple retry scenarios |
-| **Exponential Backoff** | `delay = baseDelay * 2^attempt` | Exponential spacing, service recovery time | Can synchronize retry storms | Most cases |
-| **Exponential with Jitter** | `delay = baseDelay * 2^attempt ± random` | Prevents thundering herd | Slightly more complex | **Production systems** |
-| **Decorrelated Jitter** | `delay = random(baseDelay, prevDelay * 3)` | Excellent spread, adaptive | Harder to tune | High-scale systems |
+| Strategy                    | Formula                                    | Pros                                       | Cons                            | Best For               |
+| --------------------------- | ------------------------------------------ | ------------------------------------------ | ------------------------------- | ---------------------- |
+| **Fixed Delay**             | `delay = baseDelay`                        | Simple, predictable                        | Thundering herd, no adaptation  | Rarely used            |
+| **Linear Backoff**          | `delay = baseDelay * attempt`              | Better than fixed                          | Still can cause thundering herd | Simple retry scenarios |
+| **Exponential Backoff**     | `delay = baseDelay * 2^attempt`            | Exponential spacing, service recovery time | Can synchronize retry storms    | Most cases             |
+| **Exponential with Jitter** | `delay = baseDelay * 2^attempt ± random`   | Prevents thundering herd                   | Slightly more complex           | **Production systems** |
+| **Decorrelated Jitter**     | `delay = random(baseDelay, prevDelay * 3)` | Excellent spread, adaptive                 | Harder to tune                  | High-scale systems     |
 
 ### 2.2 Jitter Algorithms
 
@@ -250,15 +267,15 @@ delay = min(baseDelay, random(0, prevDelay * 3))
 
 ### 2.3 Recommended Backoff Configuration by Use Case
 
-| Use Case | Base Delay | Max Delay | Backoff Factor | Jitter | Max Attempts |
-|----------|------------|-----------|----------------|--------|--------------|
-| **LLM API Calls** | 1000ms | 30000ms | 2 | 0.1 (10%) | 3-5 |
-| **MCP Tool Execution** | 500ms | 5000ms | 2 | 0.1 | 2-3 |
-| **Database Queries** | 100ms | 1000ms | 2 | 0.2 | 3 |
-| **HTTP API Calls** | 500ms | 10000ms | 2 | 0.15 | 3-4 |
-| **Message Queue Consumers** | 100ms | 60000ms | 2 | 0.2 | 5-10 |
-| **File System Operations** | 50ms | 1000ms | 2 | 0.1 | 2-3 |
-| **Critical Infrastructure** | 2000ms | 120000ms | 2.5 | 0.1 | 5 |
+| Use Case                    | Base Delay | Max Delay | Backoff Factor | Jitter    | Max Attempts |
+| --------------------------- | ---------- | --------- | -------------- | --------- | ------------ |
+| **LLM API Calls**           | 1000ms     | 30000ms   | 2              | 0.1 (10%) | 3-5          |
+| **MCP Tool Execution**      | 500ms      | 5000ms    | 2              | 0.1       | 2-3          |
+| **Database Queries**        | 100ms      | 1000ms    | 2              | 0.2       | 3            |
+| **HTTP API Calls**          | 500ms      | 10000ms   | 2              | 0.15      | 3-4          |
+| **Message Queue Consumers** | 100ms      | 60000ms   | 2              | 0.2       | 5-10         |
+| **File System Operations**  | 50ms       | 1000ms    | 2              | 0.1       | 2-3          |
+| **Critical Infrastructure** | 2000ms     | 120000ms  | 2.5            | 0.1       | 5            |
 
 ---
 
@@ -284,14 +301,14 @@ Total: 18000ms (18 seconds)
 
 ### 3.2 Max Attempts by Use Case
 
-| Use Case | Recommended Max | Total Time Estimate (approx) | Rationale |
-|----------|-----------------|------------------------------|-----------|
-| **User-Facing Interactive** | 2-3 | 10-20s | User experience priority |
-| **LLM Agent Operations** | 3-5 | 30-60s | High value, slow operations |
-| **Batch Processing** | 5-10 | 1-5 min | Can tolerate longer delays |
-| **Critical Infrastructure** | 5-7 | 2-10 min | Success worth waiting |
-| **Non-Critical Background** | 1-2 | 5-10s | Fast fail preferred |
-| **Streaming Operations** | 2-3 | 15-30s | Connection continuity |
+| Use Case                    | Recommended Max | Total Time Estimate (approx) | Rationale                   |
+| --------------------------- | --------------- | ---------------------------- | --------------------------- |
+| **User-Facing Interactive** | 2-3             | 10-20s                       | User experience priority    |
+| **LLM Agent Operations**    | 3-5             | 30-60s                       | High value, slow operations |
+| **Batch Processing**        | 5-10            | 1-5 min                      | Can tolerate longer delays  |
+| **Critical Infrastructure** | 5-7             | 2-10 min                     | Success worth waiting       |
+| **Non-Critical Background** | 1-2             | 5-10s                        | Fast fail preferred         |
+| **Streaming Operations**    | 2-3             | 15-30s                       | Connection continuity       |
 
 ### 3.3 Adaptive Retry Limits
 
@@ -331,13 +348,13 @@ function getMaxAttemptsForOperation(operation: string): number {
 
 ### 4.1 State Preservation Strategies
 
-| Strategy | Description | Complexity | Use Case |
-|----------|-------------|------------|----------|
-| **In-Memory State** | Keep state in variables during retry loop | Low | Short-lived retries, single process |
-| **Checkpoint Files** | Write state to disk after each attempt | Medium | Long-running operations, crash recovery |
-| **Database State** | Persist state in database table | High | Distributed systems, multi-process |
-| **Message Queue** | Use message ACK/NACK for state | High | Event-driven architectures |
-| **Immutable Logs** | Append-only log for state reconstruction | Medium | Event sourcing systems |
+| Strategy             | Description                               | Complexity | Use Case                                |
+| -------------------- | ----------------------------------------- | ---------- | --------------------------------------- |
+| **In-Memory State**  | Keep state in variables during retry loop | Low        | Short-lived retries, single process     |
+| **Checkpoint Files** | Write state to disk after each attempt    | Medium     | Long-running operations, crash recovery |
+| **Database State**   | Persist state in database table           | High       | Distributed systems, multi-process      |
+| **Message Queue**    | Use message ACK/NACK for state            | High       | Event-driven architectures              |
+| **Immutable Logs**   | Append-only log for state reconstruction  | Medium     | Event sourcing systems                  |
 
 ### 4.2 Checkpointing Implementation
 
@@ -359,7 +376,7 @@ class RetryWithCheckpoint<T> {
     options: RetryOptions
   ): Promise<T> {
     // Load existing state if available
-    this.state = await this.loadCheckpoint() || {
+    this.state = (await this.loadCheckpoint()) || {
       attempt: 0,
       timestamp: new Date(),
     };
@@ -411,7 +428,7 @@ class RetryWithCheckpoint<T> {
 const agentRetry = new RetryWithCheckpoint<AgentResult>();
 
 const result = await agentRetry.execute(
-  async (state) => {
+  async state => {
     // Resume from partial result if available
     if (state.partialResult) {
       console.log('Resuming from checkpoint:', state.partialResult);
@@ -479,14 +496,14 @@ const idempotencyKey = crypto
 
 ### 5.1 Notification Levels by Retry Status
 
-| Retry State | Notification Level | User Action Required | Message Pattern |
-|-------------|-------------------|---------------------|-----------------|
-| **First Attempt** | None | No | (silent) |
-| **Retry 1** | Info | No | "Temporary issue, retrying..." |
-| **Retry 2** | Warning | No | "Still experiencing issues, retrying..." |
-| **Retry 3+** | Warning | Monitor | "Multiple retries attempted, please wait..." |
-| **Max Attempts Reached** | Error | Yes | "Operation failed after N attempts. Please retry later or contact support." |
-| **Permanent Error** | Error | Yes | "Operation failed: [specific reason]. Please fix and retry." |
+| Retry State              | Notification Level | User Action Required | Message Pattern                                                             |
+| ------------------------ | ------------------ | -------------------- | --------------------------------------------------------------------------- |
+| **First Attempt**        | None               | No                   | (silent)                                                                    |
+| **Retry 1**              | Info               | No                   | "Temporary issue, retrying..."                                              |
+| **Retry 2**              | Warning            | No                   | "Still experiencing issues, retrying..."                                    |
+| **Retry 3+**             | Warning            | Monitor              | "Multiple retries attempted, please wait..."                                |
+| **Max Attempts Reached** | Error              | Yes                  | "Operation failed after N attempts. Please retry later or contact support." |
+| **Permanent Error**      | Error              | Yes                  | "Operation failed: [specific reason]. Please fix and retry."                |
 
 ### 5.2 Progress Communication Patterns
 
@@ -503,7 +520,7 @@ class ConsoleRetryNotifier implements RetryNotifier {
     const progress = Math.round((attempt / maxAttempts) * 100);
     console.warn(
       `⚠️  Retry ${attempt}/${maxAttempts} (${progress}%) - ` +
-      `waiting ${delay}ms...`
+        `waiting ${delay}ms...`
     );
   }
 
@@ -531,46 +548,52 @@ class LoggerRetryNotifier implements RetryNotifier {
   }
 
   onRetry(attempt: number, maxAttempts: number, delay: number): void {
-    this.logger.warn({
-      operation: this.operationName,
-      attempt,
-      maxAttempts,
-      delayMs: delay,
-      event: 'retry_attempt',
-    }, `Retrying ${this.operationName} (attempt ${attempt}/${maxAttempts})`);
+    this.logger.warn(
+      {
+        operation: this.operationName,
+        attempt,
+        maxAttempts,
+        delayMs: delay,
+        event: 'retry_attempt',
+      },
+      `Retrying ${this.operationName} (attempt ${attempt}/${maxAttempts})`
+    );
   }
 
   onSuccess(attempt: number): void {
-    this.logger.info({
-      operation: this.operationName,
-      attempt,
-      event: 'retry_success',
-    }, `Operation ${this.operationName} succeeded on attempt ${attempt + 1}`);
+    this.logger.info(
+      {
+        operation: this.operationName,
+        attempt,
+        event: 'retry_success',
+      },
+      `Operation ${this.operationName} succeeded on attempt ${attempt + 1}`
+    );
   }
 
   onFailure(attempt: number, error: Error): void {
-    this.logger.error({
-      operation: this.operationName,
-      attempt,
-      errorName: error.constructor.name,
-      errorMessage: error.message,
-      event: 'retry_failed',
-    }, `Operation ${this.operationName} failed after ${attempt + 1} attempts`);
+    this.logger.error(
+      {
+        operation: this.operationName,
+        attempt,
+        errorName: error.constructor.name,
+        errorMessage: error.message,
+        event: 'retry_failed',
+      },
+      `Operation ${this.operationName} failed after ${attempt + 1} attempts`
+    );
   }
 }
 
 // Usage
 const consoleNotifier = new ConsoleRetryNotifier();
 
-await retry(
-  () => agent.prompt(prompt),
-  {
-    maxAttempts: 5,
-    onRetry: (attempt, error, delay) => {
-      consoleNotifier.onRetry(attempt, 5, delay);
-    }
-  }
-);
+await retry(() => agent.prompt(prompt), {
+  maxAttempts: 5,
+  onRetry: (attempt, error, delay) => {
+    consoleNotifier.onRetry(attempt, 5, delay);
+  },
+});
 ```
 
 ### 5.3 Progressive Disclosure Pattern
@@ -662,12 +685,15 @@ interface FailureRecord {
 
 class FailureTracker {
   private failures: Map<string, FailureRecord[]> = new Map();
-  private metrics: Map<string, {
-    total: number;
-    retryable: number;
-    permanent: number;
-    resolved: number;
-  }> = new Map();
+  private metrics: Map<
+    string,
+    {
+      total: number;
+      retryable: number;
+      permanent: number;
+      resolved: number;
+    }
+  > = new Map();
 
   recordFailure(
     operation: string,
@@ -761,13 +787,15 @@ await retry(
   },
   {
     maxAttempts: 5,
-    isRetryable: (error) => {
+    isRetryable: error => {
       // Check circuit breaker
-      if (failureTracker.shouldTriggerCircuitBreaker('Agent.researcher.generate')) {
+      if (
+        failureTracker.shouldTriggerCircuitBreaker('Agent.researcher.generate')
+      ) {
         return false; // Don't retry if circuit is open
       }
       return isTransientError(error);
-    }
+    },
   }
 );
 ```
@@ -776,9 +804,9 @@ await retry(
 
 ```typescript
 enum CircuitState {
-  CLOSED = 'CLOSED',    // Normal operation
-  OPEN = 'OPEN',        // Failing, reject requests
-  HALF_OPEN = 'HALF_OPEN' // Testing if service recovered
+  CLOSED = 'CLOSED', // Normal operation
+  OPEN = 'OPEN', // Failing, reject requests
+  HALF_OPEN = 'HALF_OPEN', // Testing if service recovered
 }
 
 class CircuitBreaker {
@@ -805,7 +833,7 @@ class CircuitBreaker {
       } else {
         throw new Error(
           `Circuit breaker is OPEN for ${operationName}. ` +
-          `Rejecting request.`
+            `Rejecting request.`
         );
       }
     }
@@ -855,10 +883,11 @@ class CircuitBreaker {
 const circuitBreaker = new CircuitBreaker(5, 60000, 3);
 
 await retry(
-  () => circuitBreaker.execute(
-    () => agent.prompt(prompt),
-    'Agent.researcher.generate'
-  ),
+  () =>
+    circuitBreaker.execute(
+      () => agent.prompt(prompt),
+      'Agent.researcher.generate'
+    ),
   { maxAttempts: 5 }
 );
 ```
@@ -874,6 +903,7 @@ await retry(
 **Source:** [AWS Architecture Blog - Exponential Backoff and Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)
 
 **Key Recommendations:**
+
 1. **Always use jitter** with exponential backoff to prevent client synchronization
 2. **Full jitter** is recommended for most use cases: `sleep(random(0, min(cap, base * 2^attempt)))`
 3. **Base delay**: Start with 50-200ms for API calls
@@ -881,6 +911,7 @@ await retry(
 5. **Max attempts**: 3-5 for user-facing, up to 10 for background jobs
 
 **AWS SDK Default Configuration:**
+
 ```javascript
 {
   maxRetries: 3,
@@ -894,6 +925,7 @@ await retry(
 **Source:** [Google Cloud - Error Handling](https://cloud.google.com/iam/docs/request-trial#automatic-retry-strategies)
 
 **Key Recommendations:**
+
 1. **Retry on specific status codes**: 408, 429, 500, 502, 503, 504
 2. **Use truncated exponential backoff**: Cap the maximum delay
 3. **Implement idempotent operations** for safe retries
@@ -901,6 +933,7 @@ await retry(
 5. **Diversify retry strategies** by operation type
 
 **Recommended Backoff:**
+
 ```python
 delay = min(base_delay * (2 ** attempt) + random_uniform(0, 1000), max_delay)
 ```
@@ -910,6 +943,7 @@ delay = min(base_delay * (2 ** attempt) + random_uniform(0, 1000), max_delay)
 **Source:** [Azure - Retry Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry)
 
 **Key Recommendations:**
+
 1. **Identify transient faults**: Most errors are transient (40-60%)
 2. **Use exponential backoff with jitter**: Standard pattern for most services
 3. **Avoid retry patterns for non-transient faults**: Validation errors, auth failures
@@ -917,6 +951,7 @@ delay = min(base_delay * (2 ** attempt) + random_uniform(0, 1000), max_delay)
 5. **Log all retry attempts**: For monitoring and analysis
 
 **Azure SDK Retry Policy:**
+
 ```csharp
 var retryPolicy = new RetryPolicy(
   new ExponentialBackoffRetryStrategy(
@@ -933,6 +968,7 @@ var retryPolicy = new RetryPolicy(
 #### OpenAI API Best Practices
 
 **Recommendations for LLM APIs:**
+
 1. **Handle rate limiting gracefully**: 429 responses include Retry-After header
 2. **Implement exponential backoff**: Start with 1-2 seconds for rate limits
 3. **Max retries**: 3-5 for completion APIs, 2-3 for streaming
@@ -940,6 +976,7 @@ var retryPolicy = new RetryPolicy(
 5. **Streaming interruptions**: Retry with continuation for long generations
 
 **Example Retry Configuration:**
+
 ```typescript
 const openaiRetryConfig = {
   maxAttempts: 5,
@@ -955,6 +992,7 @@ const openaiRetryConfig = {
 #### Anthropic Claude Best Practices
 
 **Recommendations:**
+
 1. **Respect rate limits**: Monitor headers for quota information
 2. **Handle streaming timeouts**: Implement reconnection logic
 3. **Idempotent requests**: Use request IDs for deduplication
@@ -1114,7 +1152,8 @@ describe('Retry Strategy', () => {
   it('should retry on transient errors', async () => {
     const attempts: number[] = [];
 
-    const operation = jest.fn()
+    const operation = jest
+      .fn()
       .mockRejectedValueOnce(new Error('ECONNRESET'))
       .mockRejectedValueOnce(new Error('ECONNRESET'))
       .mockResolvedValueOnce('success');
@@ -1129,23 +1168,21 @@ describe('Retry Strategy', () => {
   });
 
   it('should not retry on permanent errors', async () => {
-    const operation = jest.fn()
+    const operation = jest
+      .fn()
       .mockRejectedValue(new ValidationError('Invalid input'));
 
-    await expect(
-      retry(operation, { maxAttempts: 3 })
-    ).rejects.toThrow('Invalid input');
+    await expect(retry(operation, { maxAttempts: 3 })).rejects.toThrow(
+      'Invalid input'
+    );
 
     expect(operation).toHaveBeenCalledTimes(1);
   });
 
   it('should respect max attempts', async () => {
-    const operation = jest.fn()
-      .mockRejectedValue(new Error('ECONNRESET'));
+    const operation = jest.fn().mockRejectedValue(new Error('ECONNRESET'));
 
-    await expect(
-      retry(operation, { maxAttempts: 2 })
-    ).rejects.toThrow();
+    await expect(retry(operation, { maxAttempts: 2 })).rejects.toThrow();
 
     expect(operation).toHaveBeenCalledTimes(2);
   });
@@ -1153,16 +1190,13 @@ describe('Retry Strategy', () => {
   it('should calculate exponential backoff correctly', async () => {
     const delays: number[] = [];
 
-    await retry(
-      () => Promise.reject(new Error('ECONNRESET')),
-      {
-        maxAttempts: 5,
-        baseDelay: 1000,
-        onRetry: (attempt, error, delay) => {
-          delays.push(delay);
-        }
-      }
-    );
+    await retry(() => Promise.reject(new Error('ECONNRESET')), {
+      maxAttempts: 5,
+      baseDelay: 1000,
+      onRetry: (attempt, error, delay) => {
+        delays.push(delay);
+      },
+    });
 
     // With baseDelay=1000, backoffFactor=2, jitterFactor=0.1:
     // Attempt 1: 1000-1100ms
@@ -1181,13 +1215,10 @@ describe('Retry Strategy', () => {
   it('should call onRetry callback', async () => {
     const retryCallback = jest.fn();
 
-    await retry(
-      () => Promise.reject(new Error('ECONNRESET')),
-      {
-        maxAttempts: 3,
-        onRetry: retryCallback,
-      }
-    ).catch(() => {});
+    await retry(() => Promise.reject(new Error('ECONNRESET')), {
+      maxAttempts: 3,
+      onRetry: retryCallback,
+    }).catch(() => {});
 
     expect(retryCallback).toHaveBeenCalledTimes(2);
     expect(retryCallback).toHaveBeenCalledWith(
@@ -1244,7 +1275,7 @@ describe('Retry Integration Tests', () => {
     const server = createServer((req, res) => {
       res.writeHead(429, {
         'Content-Type': 'text/plain',
-        'Retry-After': '2'
+        'Retry-After': '2',
       });
       res.end('Rate Limited');
     });
@@ -1284,16 +1315,15 @@ describe('Retry Integration Tests', () => {
 describe('Retry Chaos Testing', () => {
   it('should handle random transient failures', async () => {
     const operation = jest.fn(async () => {
-      if (Math.random() < 0.3) { // 30% failure rate
+      if (Math.random() < 0.3) {
+        // 30% failure rate
         throw new Error('ECONNRESET');
       }
       return 'success';
     });
 
     const results = await Promise.all(
-      Array.from({ length: 100 }, () =>
-        retry(operation, { maxAttempts: 5 })
-      )
+      Array.from({ length: 100 }, () => retry(operation, { maxAttempts: 5 }))
     );
 
     const successRate = results.filter(r => r === 'success').length / 100;
@@ -1302,7 +1332,8 @@ describe('Retry Chaos Testing', () => {
 
   it('should not retry on permanent failures', async () => {
     const operation = jest.fn(async () => {
-      if (Math.random() < 0.1) { // 10% permanent failure rate
+      if (Math.random() < 0.1) {
+        // 10% permanent failure rate
         throw new ValidationError('Invalid');
       }
       return 'success';
@@ -1332,7 +1363,8 @@ describe('Retry Chaos Testing', () => {
 ```typescript
 describe('Retry Performance Tests', () => {
   it('should complete within expected time', async () => {
-    const operation = jest.fn()
+    const operation = jest
+      .fn()
       .mockRejectedValueOnce(new Error('ECONNRESET'))
       .mockRejectedValueOnce(new Error('ECONNRESET'))
       .mockResolvedValue('success');
@@ -1364,9 +1396,7 @@ describe('Retry Performance Tests', () => {
     const startTime = Date.now();
 
     await Promise.all(
-      Array.from({ length: 100 }, () =>
-        retry(operation, { maxAttempts: 3 })
-      )
+      Array.from({ length: 100 }, () => retry(operation, { maxAttempts: 3 }))
     );
 
     const elapsed = Date.now() - startTime;
@@ -1383,16 +1413,16 @@ describe('Retry Performance Tests', () => {
 
 ### 10.1 Retry Strategy Selection Matrix
 
-| Scenario | Retry Strategy | Max Attempts | Backoff | Jitter | Special Considerations |
-|----------|----------------|--------------|---------|--------|------------------------|
-| **User-Facing API** | Exponential + Jitter | 2-3 | 1-2s base, 10s max | 10-15% | Fast fail, prioritize UX |
-| **Internal Service** | Exponential + Full Jitter | 3-5 | 500ms base, 30s max | 10% | Balance speed and resilience |
-| **LLM Generation** | Exponential + Jitter + Circuit Breaker | 3-5 | 1s base, 60s max | 10% | Handle rate limits, streaming |
-| **Database Query** | Exponential + Jitter | 3 | 100ms base, 1s max | 20% | Connection pooling awareness |
-| **Message Queue** | Exponential + Decorrelated Jitter | 5-10 | 100ms base, 60s max | 20% | Dead letter queue on max |
-| **File Operations** | Linear or Fixed | 2-3 | 50-100ms | 10% | Fast retries for local I/O |
-| **Webhook Delivery** | Exponential + Jitter | 5-7 | 1s base, 1h max | 15% | Very long max for retries |
-| **Batch Processing** | Exponential + Circuit Breaker | 5-10 | 2s base, 5min max | 10% | Checkpointing required |
+| Scenario             | Retry Strategy                         | Max Attempts | Backoff             | Jitter | Special Considerations        |
+| -------------------- | -------------------------------------- | ------------ | ------------------- | ------ | ----------------------------- |
+| **User-Facing API**  | Exponential + Jitter                   | 2-3          | 1-2s base, 10s max  | 10-15% | Fast fail, prioritize UX      |
+| **Internal Service** | Exponential + Full Jitter              | 3-5          | 500ms base, 30s max | 10%    | Balance speed and resilience  |
+| **LLM Generation**   | Exponential + Jitter + Circuit Breaker | 3-5          | 1s base, 60s max    | 10%    | Handle rate limits, streaming |
+| **Database Query**   | Exponential + Jitter                   | 3            | 100ms base, 1s max  | 20%    | Connection pooling awareness  |
+| **Message Queue**    | Exponential + Decorrelated Jitter      | 5-10         | 100ms base, 60s max | 20%    | Dead letter queue on max      |
+| **File Operations**  | Linear or Fixed                        | 2-3          | 50-100ms            | 10%    | Fast retries for local I/O    |
+| **Webhook Delivery** | Exponential + Jitter                   | 5-7          | 1s base, 1h max     | 15%    | Very long max for retries     |
+| **Batch Processing** | Exponential + Circuit Breaker          | 5-10         | 2s base, 5min max   | 10%    | Checkpointing required        |
 
 ### 10.2 Error Handling Decision Tree
 
@@ -1630,21 +1660,25 @@ FUNCTION retry_idempotent(operation, options):
 ### 12.1 Official Documentation
 
 #### AWS
+
 - [AWS Architecture Blog - Exponential Backoff and Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)
 - [AWS SDK for JavaScript - Retry Configuration](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/modules/retry-strategy.html)
 - [Amazon API Gateway - Error Handling](https://docs.aws.amazon.com/apigateway/latest/developerguide/handle-errors.html)
 
 #### Google Cloud
+
 - [Google Cloud - IAM Request Retry](https://cloud.google.com/iam/docs/request-trial)
 - [Google Cloud Client Libraries - Error Handling](https://cloud.google.com/apis/design/errors)
 - [Google Cloud Architecture - Retrying Failed Requests](https://cloud.google.com/architecture/retrying-failed-requests)
 
 #### Microsoft Azure
+
 - [Azure Architecture - Retry Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry)
 - [Azure SDK - Retry Policy Configuration](https://learn.microsoft.com/en-us/azure/azure-sdk/policies)
 - [Azure Service Bus - Retry Guidelines](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions)
 
 #### API Providers
+
 - [OpenAI API - Rate Limits](https://platform.openai.com/docs/guides/rate-limits)
 - [Anthropic Claude - API Reference](https://docs.anthropic.com/claude/reference/errors)
 - [Stripe API - Error Handling](https://stripe.com/docs/error-handling)
@@ -1652,24 +1686,29 @@ FUNCTION retry_idempotent(operation, options):
 ### 12.2 Production Libraries
 
 #### Python
+
 - [Tenacity - General-Purpose Retry Library](https://github.com/jd/tenacity)
 - [Backoff - Backoff Utilities](https://github.com/litl/backoff)
 - [Resilience - Resilience Patterns](https://github.com/kamilkisiela/resilience)
 
 #### JavaScript/TypeScript
+
 - [Retry - Simple Retry Utility](https://github.com/tim-kos/node-retry)
 - [Async Retry - Promise-Based Retry](https://github.com/softonic/async-retry)
 - [Axios Retry - Axios Interceptor](https://github.com/softonic/axios-retry)
 
 #### .NET
+
 - [Polly - Resilience and Transient Fault Handling](https://github.com/App-vNext/Polly)
 - [Resilience - .NET Core Resilience](https://github.com/App-vNext/Polly.Extensions)
 
 #### Go
+
 - [Retry - Go Retry Library](https://github.com/avast/retry-go)
 - [Circuit - Circuit Breaker for Go](https://github.com/rubyist/circuitbreaker)
 
 #### Rust
+
 - [Retry - Retry Operations in Rust](https://docs.rs/retry/)
 - [Backoff - Backoff Utilities](https://docs.rs/backoff/)
 
@@ -1708,6 +1747,7 @@ FUNCTION retry_idempotent(operation, options):
 **Current Implementation:** `/home/dustin/projects/hacky-hack/src/utils/retry.ts`
 
 **Strengths:**
+
 - ✅ Comprehensive error classification
 - ✅ Exponential backoff with jitter
 - ✅ Integration with error hierarchy
@@ -1715,6 +1755,7 @@ FUNCTION retry_idempotent(operation, options):
 - ✅ Type-safe implementation
 
 **Recommended Enhancements:**
+
 - ⚠️ Circuit breaker integration
 - ⚠️ Idempotency key support
 - ⚠️ Checkpoint/state persistence
@@ -1790,4 +1831,4 @@ if (isTransientError(error)) {
 
 ---
 
-*This research document provides comprehensive guidance for implementing retry strategies in distributed systems and AI agent pipelines. It synthesizes industry best practices, academic research, and production implementations to deliver actionable recommendations.*
+_This research document provides comprehensive guidance for implementing retry strategies in distributed systems and AI agent pipelines. It synthesizes industry best practices, academic research, and production implementations to deliver actionable recommendations._

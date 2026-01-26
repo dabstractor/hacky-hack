@@ -10,6 +10,7 @@
 ### Zod Validation
 
 **Official Documentation**
+
 - **Zod Homepage**: https://zod.dev/
   - Main documentation with all features and examples
 - **GitHub Repository**: https://github.com/colinhacks/zod
@@ -22,6 +23,7 @@
   - Recursive types, transforms, and complex schemas
 
 **Key Articles**
+
 - https://www.builder.io/blog/zod-safe-type-validation-in-typescript
 - https://blog.logrocket.com/zod-typescript-schema-validation/
 - https://kentcdodds.com/blog/how-to-write-validations-in-your-code
@@ -29,12 +31,14 @@
 ### JSON Schema Validation
 
 **Official Resources**
+
 - **JSON Schema Specification**: https://json-schema.org/
 - **Understanding JSON Schema**: https://json-schema.org/understanding-json-schema/
   - Learn JSON Schema from basics to advanced
 - **Validation Best Practices**: https://json-schema.org/learn/
 
 **Tools**
+
 - **Ajv Validator**: https://github.com/ajv-validator/ajv
   - Fast JSON Schema validator for JavaScript
 - **json-schema-to-ts**: https://github.com/ThomasAribart/json-schema-to-ts
@@ -43,6 +47,7 @@
 ### Graph Algorithms for Dependencies
 
 **Algorithm References**
+
 - **Topological Sorting**: https://en.wikipedia.org/wiki/Topological_sorting
   - Khan's algorithm for DAG validation
 - **DFS Cycle Detection**: https://en.wikipedia.org/wiki/Cycle_(graph_theory)#Cycle_detection
@@ -51,6 +56,7 @@
   - DAG properties and algorithms
 
 **StackOverflow Discussions**
+
 - Detect cycles in directed graph:
   - https://stackoverflow.com/questions/10825449/detecting-cycles-in-directed-graph
 - DFS cycle detection in JavaScript:
@@ -61,6 +67,7 @@
 ### File System and Data Integrity
 
 **Node.js Documentation**
+
 - **fs.promises API**: https://nodejs.org/api/fs.html#fspromises-api
   - Async file system operations
 - **Atomic Rename**: https://nodejs.org/api/fs.html#fsrenameoldpath-newpath-callback
@@ -69,11 +76,13 @@
   - Managing concurrent file access
 
 **Best Practices**
+
 - **Atomic Writes Guide**: https://blog.heroku.com/better-file-writes-with-node
 - **Node.js Security**: https://nodejs.org/en/knowledge/file-system/security/
 - **File System Patterns**: https://www.kernel.org/doc/html/latest/filesystems/
 
 **File Locking Libraries**
+
 - **proper-lockfile**: https://github.com/moxystudio/node-proper-lockfile
   - Cross-platform file locking
 - **lockfile**: https://github.com/npm/lockfile
@@ -82,6 +91,7 @@
 ### State Management Patterns
 
 **State Machine Design**
+
 - **Statecharts**: https://statecharts.dev/
   - Hierarchical state machines
 - **XState Library**: https://github.com/statelyai/xstate
@@ -89,6 +99,7 @@
 - **State Management Patterns**: https://www.patternsforcloud.org/state-management
 
 **Task/Workflow Systems**
+
 - **Redux State Management**: https://github.com/reduxjs/redux
   - Predictable state container patterns
 - **Workflow Engines**: https://github.com/temporalio/sdk-typescript
@@ -359,11 +370,13 @@ public getBlockingDependencies(subtask: Subtask): Subtask[] {
 ## Testing Resources
 
 **Property-Based Testing**
+
 - **fast-check**: https://github.com/dubzzz/fast-check
   - Generate test cases automatically
 - **Property Testing Guide**: https://prop-testing.com/
 
 **Validation Testing**
+
 - **Vitest Assertions**: https://vitest.dev/guide/assertion.html
 - **Testing Library**: https://testing-library.com/docs/
 
@@ -372,14 +385,17 @@ public getBlockingDependencies(subtask: Subtask): Subtask[] {
 ## Additional Reading
 
 **Error Handling**
+
 - https://martinfowler.com/articles/replaceThrowWithNotification.html
 - https://www.joyent.com/node-js/production/design/errors
 
 **Data Integrity**
+
 - https://www.postgresql.org/docs/current/ddl-constraints.html
 - https://en.wikipedia.org/wiki/ACID
 
 **Type Safety**
+
 - https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html
 - https://effect.website/docs/guides/validation/
 

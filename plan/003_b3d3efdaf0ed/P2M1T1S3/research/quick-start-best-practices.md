@@ -16,59 +16,72 @@
 ## Core Principles
 
 ### 1. First Success Quickly
+
 - Get users to "Hello World" in under 5 minutes
 - Instant gratification with visible results
 - One clear path to success (no options initially)
 
 ### 2. Progressive Disclosure
+
 - Start minimal, reveal complexity later
 - Use the 80/20 rule: Show 20% that solves 80% of problems
 - Link to detailed docs for advanced use
 
 ### 3. Task-Oriented
+
 - Focus on what users want to accomplish
 - Use active voice ("Click", "Run", "Create")
 - Clear verbs and direct instructions
 
 ### 4. Error-Proof
+
 - Anticipate common mistakes
 - Include troubleshooting tips
 - Show expected outputs
 
 ### 5. Copy-Paste Ready
+
 - Complete, executable code blocks
 - No placeholder values that require editing
 - All context included
 
 ## Recommended Structure
 
-```markdown
+````markdown
 # Quick Start: [Tool Name]
 
 > Get running in under 5 minutes
 
 ## Prerequisites
+
 - List exact requirements with versions
 - Include check commands
 
 ## Installation
+
 1. Clone repository
 2. Install dependencies
 3. Configure environment
 
 ## First Run
+
 ```bash
 # Your first successful command
 ```
+````
 
 ## Expected Output
+
 Show what success looks like
 
 ## What Happened?
+
 Brief explanation of the flow
 
 ## Next Steps
+
 Links to deeper documentation
+
 ```
 
 ## Length Guidelines
@@ -99,3 +112,4 @@ Quick starts should follow the happy path:
 1. Install → 2. Configure → 3. Run → 4. See Results
 
 No branching, no options, no complex decisions.
+```

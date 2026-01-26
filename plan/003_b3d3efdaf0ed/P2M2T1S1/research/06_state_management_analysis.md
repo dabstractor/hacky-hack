@@ -3,11 +3,14 @@
 ## Session Directory Structure
 
 ### Naming Convention
+
 **Pattern**: `{sequence}_{hash}/`
+
 - **Sequence**: 3-digit zero-padded (001, 002, 003)
 - **Hash**: First 12 chars of SHA-256
 
 ### Example Sessions
+
 ```
 plan/
 ├── 001_14b9dc2a33c7/    # Initial session
@@ -16,6 +19,7 @@ plan/
 ```
 
 ### Required Files Per Session
+
 - `tasks.json` - Complete task hierarchy
 - `prd_snapshot.md` - PRD at session start
 - `delta_prd.md` - Changes summary (delta only)
@@ -26,6 +30,7 @@ plan/
 ## tasks.json Structure
 
 ### 4-Level Hierarchy
+
 ```json
 {
   "backlog": [
@@ -68,6 +73,7 @@ plan/
 ```
 
 ### Key Features
+
 - Immutable readonly properties
 - Status tracking at all levels
 - Dependency management
@@ -76,15 +82,18 @@ plan/
 ## PRD Hash-Based Change Detection
 
 ### Hash Computation
+
 ```typescript
 const crypto = require('crypto');
-const hash = crypto.createHash('sha256')
+const hash = crypto
+  .createHash('sha256')
   .update(prdContent)
   .digest('hex')
   .substring(0, 12);
 ```
 
 ### Change Detection
+
 - Hash change → New delta session
 - No hash change → Resume existing
 - Case-sensitive, deterministic
@@ -92,6 +101,7 @@ const hash = crypto.createHash('sha256')
 ## Delta Session Creation
 
 ### Delta Session Workflow
+
 1. Detect PRD changes (hash comparison)
 2. Create new delta session
 3. Compute PRD diff
@@ -99,6 +109,7 @@ const hash = crypto.createHash('sha256')
 5. Write delta_from.txt
 
 ### Linkage Mechanism
+
 - `delta_from.txt` contains parent path
 - Example: `plan/002_1e734971e481`
 - Enables change impact analysis
@@ -106,11 +117,13 @@ const hash = crypto.createHash('sha256')
 ## State Persistence Patterns
 
 ### File System Operations
+
 - Atomic writes (temp + rename)
 - Custom SessionFileError
 - JSON schema validation
 
 ### Persistence Hierarchy
+
 1. **Session metadata** - Hash, sequence, timestamps
 2. **Task hierarchy** - Complete JSON with status
 3. **PRD snapshots** - Historical versions
@@ -118,6 +131,7 @@ const hash = crypto.createHash('sha256')
 5. **Artifacts** - Generated documents
 
 ### Key Utilities
+
 - `hashPRD()` - Compute PRD hash
 - `createSessionDirectory()` - Create directories
 - `readTasksJSON()` - Load hierarchy
@@ -126,12 +140,14 @@ const hash = crypto.createHash('sha256')
 ## State Recovery
 
 ### Capabilities
+
 - Resume from any point
 - Delta sessions minimize re-execution
 - Protected files prevent overwrites
 - Session history provides audit trail
 
 ### Protected Files
+
 - `tasks.json` - NEVER DELETE
 - `prd_snapshot.md` - NEVER DELETE
 - `delta_from.txt` - NEVER DELETE (if exists)

@@ -2,30 +2,32 @@
 
 ## Files to Modify
 
-| File | Lines | Change |
-|------|-------|--------|
-| `src/cli/index.ts` | ~56-95 | Add `parallelism: number` to CLIArgs interface |
-| `src/cli/index.ts` | ~168 | Add `.option('--parallelism <n>', ...)` |
-| `src/cli/index.ts` | ~307 | Add validation logic with resource warnings |
-| `src/index.ts` | ~198-212 | Pass `args.parallelism` to PRPPipeline |
-| `src/workflows/prp-pipeline.ts` | ~230 | Add `#parallelism` private field |
-| `src/workflows/prp-pipeline.ts` | ~250-260 | Add `parallelism` parameter to constructor |
-| `src/workflows/prp-pipeline.ts` | Find | Pass to `executeParallel()` call |
+| File                            | Lines    | Change                                         |
+| ------------------------------- | -------- | ---------------------------------------------- |
+| `src/cli/index.ts`              | ~56-95   | Add `parallelism: number` to CLIArgs interface |
+| `src/cli/index.ts`              | ~168     | Add `.option('--parallelism <n>', ...)`        |
+| `src/cli/index.ts`              | ~307     | Add validation logic with resource warnings    |
+| `src/index.ts`                  | ~198-212 | Pass `args.parallelism` to PRPPipeline         |
+| `src/workflows/prp-pipeline.ts` | ~230     | Add `#parallelism` private field               |
+| `src/workflows/prp-pipeline.ts` | ~250-260 | Add `parallelism` parameter to constructor     |
+| `src/workflows/prp-pipeline.ts` | Find     | Pass to `executeParallel()` call               |
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
+| File                                           | Purpose                          |
+| ---------------------------------------------- | -------------------------------- |
 | `tests/integration/parallelism-option.test.ts` | Integration tests for CLI option |
 
 ## Key Code Patterns
 
 ### CLI Option Definition
+
 ```typescript
 .option('--parallelism <n>', 'Max concurrent subtasks (1-10, default: 2)', '2')
 ```
 
 ### Validation Pattern
+
 ```typescript
 const num = parseInt(value, 10);
 if (isNaN(num) || num < 1 || num > 10) {
@@ -35,6 +37,7 @@ if (isNaN(num) || num < 1 || num > 10) {
 ```
 
 ### Resource Warning Pattern
+
 ```typescript
 import * as os from 'node:os';
 
@@ -47,14 +50,14 @@ if (num > cpuCores) {
 
 ## Test Cases
 
-| Test | Input | Expected |
-|------|-------|----------|
-| Default | (no flag) | 2 |
-| Minimum | `--parallelism 1` | 1 |
-| Maximum | `--parallelism 10` | 10 |
-| Too low | `--parallelism 0` | Error |
-| Too high | `--parallelism 11` | Error |
-| Invalid | `--parallelism abc` | Error |
+| Test        | Input                        | Expected      |
+| ----------- | ---------------------------- | ------------- |
+| Default     | (no flag)                    | 2             |
+| Minimum     | `--parallelism 1`            | 1             |
+| Maximum     | `--parallelism 10`           | 10            |
+| Too low     | `--parallelism 0`            | Error         |
+| Too high    | `--parallelism 11`           | Error         |
+| Invalid     | `--parallelism abc`          | Error         |
 | CPU warning | `--parallelism 16` (8 cores) | Warning shown |
 
 ## Validation Commands

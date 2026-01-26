@@ -11,6 +11,7 @@ Documentation of existing integration test patterns for CLI options in the hacky
 **Purpose**: Tests the `--parallelism` CLI option
 
 **Test Structure**:
+
 ```typescript
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseCLIArgs } from '../../src/cli/index.js';
@@ -40,7 +41,14 @@ describe('CLI Parallelism Option', () => {
 
   describe('validation', () => {
     it('should accept valid parallelism value', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--parallelism', '5'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--parallelism',
+        '5',
+      ];
       const args = parseCLIArgs();
 
       if (isCLIArgs(args)) {
@@ -49,7 +57,14 @@ describe('CLI Parallelism Option', () => {
     });
 
     it('should reject parallelism of 0 (below minimum)', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--parallelism', '0'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--parallelism',
+        '0',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
       expect(mockLogger.error).toHaveBeenCalledWith(
         '--parallelism must be an integer between 1 and 10'
@@ -57,12 +72,26 @@ describe('CLI Parallelism Option', () => {
     });
 
     it('should reject parallelism of 11 (above maximum)', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--parallelism', '11'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--parallelism',
+        '11',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
     });
 
     it('should reject non-numeric parallelism', () => {
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--parallelism', 'abc'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--parallelism',
+        'abc',
+      ];
       expect(() => parseCLIArgs()).toThrow('process.exit(1)');
     });
   });
@@ -85,7 +114,14 @@ describe('CLI Parallelism Option', () => {
         freemem: vi.fn(() => 16 * 1024 * 1024 * 1024),
       }));
 
-      process.argv = ['node', 'cli.js', '--prd', 'PRD.md', '--parallelism', '8'];
+      process.argv = [
+        'node',
+        'cli.js',
+        '--prd',
+        'PRD.md',
+        '--parallelism',
+        '8',
+      ];
       parseCLIArgs();
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -101,6 +137,7 @@ describe('CLI Parallelism Option', () => {
 Similar structure to parallelism tests, but for `--research-concurrency` option with environment variable support.
 
 **Key Difference**: Tests environment variable fallback
+
 ```typescript
 it('should use environment variable when CLI option not specified', () => {
   process.env.RESEARCH_QUEUE_CONCURRENCY = '5';
@@ -119,6 +156,7 @@ it('should use environment variable when CLI option not specified', () => {
 ## Mock Patterns
 
 ### Process.argv Manipulation
+
 ```typescript
 let originalArgv: string[];
 
@@ -137,6 +175,7 @@ it('should parse option', () => {
 ```
 
 ### Process.exit Mocking
+
 ```typescript
 const mockExit = vi.fn((code: number) => {
   throw new Error(`process.exit(${code})`);
@@ -148,6 +187,7 @@ expect(() => parseCLIArgs()).toThrow('process.exit(1)');
 ```
 
 ### Logger Mocking
+
 ```typescript
 const { mockLogger } = vi.hoisted(() => ({
   mockLogger: {
@@ -167,10 +207,11 @@ expect(mockLogger.error).toHaveBeenCalledWith('--option must be valid');
 ```
 
 ### File System Mocking
+
 ```typescript
 vi.mock('node:fs', async () => ({
   existsSync: vi.fn(() => true),
-  readFileSync: vi.fn((path) => {
+  readFileSync: vi.fn(path => {
     if (path.includes('tasks.json')) {
       return JSON.stringify({ backlog: createTestBacklog().backlog });
     }
@@ -180,6 +221,7 @@ vi.mock('node:fs', async () => ({
 ```
 
 ### OS Resource Mocking
+
 ```typescript
 vi.mock('node:os', () => ({
   cpus: vi.fn(() => Array(8).fill({ model: 'Test CPU', speed: 1000 })),
@@ -192,6 +234,7 @@ vi.mock('node:os', () => ({
 **File naming**: `{option}-option.test.ts` or `{command}-command.test.ts`
 
 **Test description patterns**:
+
 - `"should accept valid {option} value"`
 - `"should reject {option} of {value} ({reason})"`
 - `"should use default value of {default} when not specified"`
@@ -256,7 +299,9 @@ describe('CLI Retry Options', () => {
     it('should accept 0 to disable retry');
 
     // Environment variable tests
-    it('should use HACKY_TASK_RETRY_MAX_ATTEMPTS when CLI option not specified');
+    it(
+      'should use HACKY_TASK_RETRY_MAX_ATTEMPTS when CLI option not specified'
+    );
     it('should prefer CLI option over environment variable');
   });
 

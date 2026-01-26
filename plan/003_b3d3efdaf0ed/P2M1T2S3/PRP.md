@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive PRD best practices guide (`docs/PRD_BEST_PRACTICES.md`) that covers PRD structure, writing clear requirements, defining testable success criteria, avoiding contradictions and ambiguity, using PRD Brainstormer for requirements gathering, and annotated examples
 
 **Deliverable**: Documentation file `docs/PRD_BEST_PRACTICES.md` containing:
+
 - PRD structure and essential sections
 - Writing clear, testable requirements guidelines
 - Defining success criteria and acceptance criteria
@@ -22,6 +23,7 @@
 - Common pitfalls and how to avoid them
 
 **Success Definition**:
+
 - A user can write a complete, testable PRD following this guide
 - All essential PRD sections are documented with examples
 - Clear guidelines for writing requirements with acceptance criteria
@@ -32,6 +34,7 @@
 ## User Persona
 
 **Target User**: Product manager, technical writer, or developer who needs to:
+
 - Write comprehensive PRDs for the PRP Pipeline
 - Understand what makes a good PRD
 - Learn how to use the PRD Brainstormer agent
@@ -39,6 +42,7 @@
 - Create testable, unambiguous requirements
 
 **Use Case**: User needs to write a PRD that will be processed by the PRP Pipeline. They need to understand:
+
 - What sections to include in their PRD
 - How to write clear, testable requirements
 - How to define success criteria
@@ -47,6 +51,7 @@
 - What good PRDs look like
 
 **User Journey**:
+
 1. User opens PRD_BEST_PRACTICES.md to learn PRD writing
 2. User reads PRD structure section to understand required sections
 3. User studies writing clear requirements guidelines
@@ -57,6 +62,7 @@
 8. User optionally uses PRD Brainstormer for requirements gathering
 
 **Pain Points Addressed**:
+
 - "What sections should I include in my PRD?" - PRD structure with examples
 - "How do I write testable requirements?" - Clear requirements guidelines with templates
 - "What makes a good requirement?" - Good vs bad examples
@@ -100,6 +106,7 @@ Create docs/PRD_BEST_PRACTICES.md with comprehensive PRD writing guidelines:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Exact PRD structure from the main PRD.md
 - PRD Brainstormer prompt details from PRD.md Section 6.6
 - PRD fixture examples from tests/fixtures/simple-prd.ts
@@ -448,8 +455,9 @@ Task 11: VALIDATE - Review against success criteria
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 <!-- Header Pattern (from INSTALLATION.md) -->
+
 # PRD Best Practices
 
 > Comprehensive guide for writing effective Product Requirements Documents (PRDs) for the PRP Pipeline. This document covers PRD structure, writing clear requirements, defining success criteria, avoiding pitfalls, and using PRD Brainstormer.
@@ -461,11 +469,13 @@ Task 11: VALIDATE - Review against success criteria
 ---
 
 <!-- Overview Pattern -->
+
 ## Overview
 
 A Product Requirements Document (PRD) is a **complete specification** of what needs to be built. The PRP Pipeline processes PRDs autonomously to generate working code, so **PRD quality directly affects implementation success**.
 
 This guide covers:
+
 - PRD structure and essential sections
 - Writing clear, testable requirements
 - Defining success criteria and acceptance criteria
@@ -477,6 +487,7 @@ This guide covers:
 ---
 
 <!-- PRD Structure Section Pattern -->
+
 ## PRD Structure and Sections
 
 A comprehensive PRD includes the following sections:
@@ -486,11 +497,13 @@ A comprehensive PRD includes the following sections:
 **Purpose**: High-level overview of the product (1-2 paragraphs)
 
 **Content**:
+
 - What the product does
 - Primary goals and success metrics
 - Target audience
 
 **Example**:
+
 ```markdown
 ## 1. Executive Summary
 
@@ -498,23 +511,25 @@ The **PRP (Product Requirement Prompt) Pipeline** is an agentic software develop
 
 Unlike standard "coding agents" that drift and lose context, this pipeline uses a **structured, phase-based architecture**. It breaks large projects into atomic units, generates highly context-aware "Product Requirement Prompts" (PRPs) for every single task, and enforces rigorous validation loops.
 ```
+````
 
 ---
 
 <!-- Writing Clear Requirements Pattern -->
+
 ## Writing Clear Requirements
 
 ### SMART Criteria
 
 Every requirement should be:
 
-| Criterion | Description | Example |
-|-----------|-------------|---------|
-| **Specific** | Clear and unambiguous | "Users can log in with email and password" |
-| **Measurable** | Quantifiable outcomes | "Login responds in <200ms for 95% of requests" |
-| **Achievable** | Realistic given constraints | "Support 1,000 concurrent users" |
-| **Relevant** | Aligned with business goals | "Reduces support tickets by 30%" |
-| **Time-bound** | Clear timeline | "Available in Q2 2026" |
+| Criterion      | Description                 | Example                                        |
+| -------------- | --------------------------- | ---------------------------------------------- |
+| **Specific**   | Clear and unambiguous       | "Users can log in with email and password"     |
+| **Measurable** | Quantifiable outcomes       | "Login responds in <200ms for 95% of requests" |
+| **Achievable** | Realistic given constraints | "Support 1,000 concurrent users"               |
+| **Relevant**   | Aligned with business goals | "Reduces support tickets by 30%"               |
+| **Time-bound** | Clear timeline              | "Available in Q2 2026"                         |
 
 ### User Story Template
 
@@ -526,6 +541,7 @@ Every requirement should be:
 **So that** [benefit/value]
 
 **Acceptance Criteria:**
+
 - [ ] Given [context], when [action], then [outcome]
 - [ ] [specific criterion 2]
 - [ ] [specific criterion 3]
@@ -536,27 +552,28 @@ Every requirement should be:
 
 ### Avoiding Ambiguous Language
 
-| Avoid | Use Instead |
-|-------|-------------|
-| "fast" | "responds in <200ms for 95% of requests" |
-| "user-friendly" | "requires <3 clicks to complete task" |
-| "scalable" | "handles 10,000 concurrent users" |
-| "soon" | "within 5 seconds" |
-| "good performance" | "<100ms response time (p95)" |
+| Avoid              | Use Instead                              |
+| ------------------ | ---------------------------------------- |
+| "fast"             | "responds in <200ms for 95% of requests" |
+| "user-friendly"    | "requires <3 clicks to complete task"    |
+| "scalable"         | "handles 10,000 concurrent users"        |
+| "soon"             | "within 5 seconds"                       |
+| "good performance" | "<100ms response time (p95)"             |
 
 ---
 
 <!-- Success Criteria Pattern -->
+
 ## Defining Success Criteria and Acceptance Criteria
 
 ### Product-Level Success Criteria
 
-| Category | Metrics | Example |
-|----------|---------|---------|
-| **Business** | Revenue, conversion, retention | "Increase conversion by 15%" |
-| **Engagement** | DAU/MAU, session length | "Average session >5 minutes" |
-| **UX** | Task completion, error rate | "95% task completion rate" |
-| **Support** | Ticket volume, resolution | "Reduce tickets by 30%" |
+| Category       | Metrics                        | Example                      |
+| -------------- | ------------------------------ | ---------------------------- |
+| **Business**   | Revenue, conversion, retention | "Increase conversion by 15%" |
+| **Engagement** | DAU/MAU, session length        | "Average session >5 minutes" |
+| **UX**         | Task completion, error rate    | "95% task completion rate"   |
+| **Support**    | Ticket volume, resolution      | "Reduce tickets by 30%"      |
 
 ### Story-Level Acceptance Criteria
 
@@ -564,6 +581,7 @@ Every requirement should be:
 #### P1.M1.T1: User Authentication
 
 **Acceptance Criteria:**
+
 - [ ] Users can register with email and password
 - [ ] Email validation requires @ symbol and domain
 - [ ] Password must be at least 8 characters with 1 uppercase, 1 number
@@ -586,6 +604,7 @@ Every requirement should be:
 ---
 
 <!-- PRD Brainstormer Pattern -->
+
 ## Using PRD Brainstormer
 
 > **Note**: PRD Brainstormer is planned for **Phase 3, Milestone 5 (P3.M5)**. This section describes how it will work when implemented.
@@ -619,6 +638,7 @@ Every requirement should be:
 ---
 
 <!-- Example PRDs Pattern -->
+
 ## Example PRDs with Annotations
 
 ### Minimal PRD Example (from tests/fixtures/simple-prd.ts)
@@ -650,6 +670,7 @@ Create a simple hello world function.
 
 **context_scope**:
 CONTRACT DEFINITION:
+
 1. RESEARCH NOTE: Simple function implementation
 2. INPUT: None
 3. LOGIC: Create src/hello.ts with function hello() that returns "Hello, World!"
@@ -657,6 +678,7 @@ CONTRACT DEFINITION:
 ```
 
 **Annotations**:
+
 - Clear title and description
 - Hierarchical structure (Phase > Milestone > Task > Subtask)
 - Each subtask has story points, dependencies, status
@@ -665,24 +687,26 @@ CONTRACT DEFINITION:
 ---
 
 <!-- Common Pitfalls Pattern -->
+
 ## Common Pitfalls and How to Avoid Them
 
-| Pitfall | Problem | Solution | Example |
-|---------|---------|----------|---------|
-| **Ambiguity and Vagueness** | "Make it fast" | Use specific metrics | "responds in <200ms" |
-| **Over-Specification** | "Use React for frontend" | Focus on WHAT, not HOW | "Supports modern browsers" |
-| **Under-Specification** | Missing edge cases | Cover all scenarios | Include error handling |
-| **Contradictions** | "Always respond instantly" and "Must validate" | Review for conflicts | "Respond in <5s after validation" |
-| **Ignoring the "Why"** | Requirements without context | Include problem statement | "Reduces support load" |
-| **Unrealistic Timelines** | "Build in 2 weeks" | Break into phases | "Phase 1: MVP in 6 weeks" |
-| **No Stakeholder Alignment** | Different understandings | Collaborative writing | Shared review process |
-| **Ignoring NFRs** | Forgetting performance | Include NFRs section | "Handles 10k concurrent users" |
-| **Not Defining "Done"** | Unclear completion | Definition of Done | DoD checklist |
-| **Never Updating** | PRD becomes stale | Living document | Version control, changelog |
+| Pitfall                      | Problem                                        | Solution                  | Example                           |
+| ---------------------------- | ---------------------------------------------- | ------------------------- | --------------------------------- |
+| **Ambiguity and Vagueness**  | "Make it fast"                                 | Use specific metrics      | "responds in <200ms"              |
+| **Over-Specification**       | "Use React for frontend"                       | Focus on WHAT, not HOW    | "Supports modern browsers"        |
+| **Under-Specification**      | Missing edge cases                             | Cover all scenarios       | Include error handling            |
+| **Contradictions**           | "Always respond instantly" and "Must validate" | Review for conflicts      | "Respond in <5s after validation" |
+| **Ignoring the "Why"**       | Requirements without context                   | Include problem statement | "Reduces support load"            |
+| **Unrealistic Timelines**    | "Build in 2 weeks"                             | Break into phases         | "Phase 1: MVP in 6 weeks"         |
+| **No Stakeholder Alignment** | Different understandings                       | Collaborative writing     | Shared review process             |
+| **Ignoring NFRs**            | Forgetting performance                         | Include NFRs section      | "Handles 10k concurrent users"    |
+| **Not Defining "Done"**      | Unclear completion                             | Definition of Done        | DoD checklist                     |
+| **Never Updating**           | PRD becomes stale                              | Living document           | Version control, changelog        |
 
 ---
 
 <!-- See Also Pattern -->
+
 ## See Also
 
 - **[README.md](../README.md)** - Project overview and architecture
@@ -692,7 +716,8 @@ CONTRACT DEFINITION:
 - **[Workflows](./WORKFLOWS.md)** - Pipeline workflow documentation
 - **[User Guide](./user-guide.md)** - Advanced usage patterns
 - **[PRD.md](../PRD.md)** - Example of a comprehensive PRD
-```
+
+````
 
 ### Integration Points
 
@@ -726,13 +751,13 @@ PRD.md:
   - reference: "For an example of a comprehensive PRD, see [PRD.md](../PRD.md)"
   - placement: Example PRDs section
   - context: Real-world PRD that defines the pipeline itself
-```
+````
 
 ## Validation Loop
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
-```bash
+````bash
 # Check markdown syntax
 npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 
@@ -748,7 +773,7 @@ npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 # Check that table columns are aligned and pipes are correct
 
 # Expected: Zero formatting errors, all links valid, tables aligned
-```
+````
 
 ### Level 2: Link Validation (Connectivity)
 
@@ -774,7 +799,7 @@ done
 
 ### Level 3: Content Validation (Completeness)
 
-```bash
+````bash
 # Manual content review checklist
 - [ ] All PRD sections documented (Executive Summary, Functional Requirements, etc.)
 - [ ] Writing clear requirements section present with SMART criteria
@@ -794,7 +819,7 @@ grep -c "^## " docs/PRD_BEST_PRACTICES.md  # Should count all top-level sections
 grep -c "^```" docs/PRD_BEST_PRACTICES.md  # Should count all code blocks
 
 # Expected: All content validation checks pass
-```
+````
 
 ### Level 4: Usability Validation (User Experience)
 
@@ -824,7 +849,7 @@ grep -c "^```" docs/PRD_BEST_PRACTICES.md  # Should count all code blocks
 - [ ] File created at docs/PRD_BEST_PRACTICES.md
 - [ ] Document header follows pattern (Status, Last Updated, Version)
 - [ ] Table of Contents with all sections and anchors
-- [ ] All code blocks have syntax highlighting (```bash, ```typescript, etc.)
+- [ ] All code blocks have syntax highlighting (`bash, `typescript, etc.)
 - [ ] All internal links use correct relative paths (./, ../)
 - [ ] All external links are valid URLs
 - [ ] Markdown syntax is valid (tables, lists, code blocks)

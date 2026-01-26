@@ -3,6 +3,7 @@
 ## Existing Documentation Patterns in hacky-hack
 
 ### README.md (Project Root)
+
 - **Status Badge**: CI, Coverage, npm version
 - **What is PRP Pipeline**: Brief description with Mermaid diagram
 - **Quick Start**: Prerequisites table, Installation, First Run
@@ -14,6 +15,7 @@
 - **Project Structure**: Tree view of codebase
 
 ### docs/INSTALLATION.md (P2.M1.T1.S1 Output)
+
 - **Document Header**: Status, Last Updated, Version
 - **Table of Contents**: Auto-generated with anchor links
 - **Quick Start**: 5-minute setup checklist
@@ -26,6 +28,7 @@
 - **Next Steps**: Links to related docs
 
 ### docs/CONFIGURATION.md (P2.M1.T1.S2 Output - Parallel)
+
 - **Document Header**: Status, Last Updated, Version
 - **Quick Reference**: Table of required variables only
 - **Environment Variables**: Detailed sections with tables
@@ -38,6 +41,7 @@
 - **See Also**: Cross-references to related docs
 
 ### docs/user-guide.md
+
 - **Introduction**: Brief description with link to README
 - **Table of Contents**: Comprehensive, multi-level
 - **Numbered Sections**: 1. Writing PRDs, 2. Session Management, etc.
@@ -53,37 +57,47 @@
 ## Formatting Patterns
 
 ### Heading Hierarchy
+
 ```markdown
 # Main Title (H1)
+
 ## Section (H2)
+
 ### Subsection (H3)
+
 #### Sub-subsection (H4 - rarely used)
 ```
 
 ### Code Blocks
+
 ```bash
 # Language tag required
 npm run dev -- --prd ./PRD.md
 ```
 
 ### Tables
+
 | Column 1 | Column 2 | Column 3 |
-|----------|----------|----------|
+| -------- | -------- | -------- |
 | Data     | Data     | Data     |
 
 ### Callout Quotes
+
 > Brief description and purpose
 
 ### Horizontal Rules
-***
+
+---
 
 ### Links
+
 - **Absolute**: `https://github.com/...`
 - **Relative sibling**: `[Link](./other-file.md)`
 - **Relative parent**: `[Link](../README.md)`
 - **Section anchor**: `[Link](#section-name)`
 
 ### Emphasis
+
 - **Bold**: `**text**` or `__text__`
 - **Italic**: `*text*` or `_text_`
 - **Code**: `` `text` ``
@@ -110,23 +124,28 @@ npm run dev -- --prd ./PRD.md
 ## Table of Contents
 
 ## Section 1: Overview
+
 - High-level introduction
 - Why this matters
 
 ## Section 2: Detailed Content
+
 - Step-by-step instructions
 - Code examples
 - Tables and diagrams
 
 ## Section 3: Examples
+
 - Real-world usage
 - Expected outputs
 
 ## Section 4: Troubleshooting
+
 - Common issues
 - Solutions
 
 ## Section 5: Next Steps / See Also
+
 - Links to related docs
 - Further reading
 ```
@@ -134,6 +153,7 @@ npm run dev -- --prd ./PRD.md
 ## Diagram Patterns
 
 ### Mermaid Flowcharts
+
 ```mermaid
 flowchart LR
     A[Step 1] --> B[Step 2]
@@ -143,6 +163,7 @@ flowchart LR
 ```
 
 ### Mermaid State Diagrams
+
 ```mermaid
 stateDiagram-v2
     [*] --> State1

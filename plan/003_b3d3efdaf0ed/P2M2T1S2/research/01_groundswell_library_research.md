@@ -5,6 +5,7 @@
 **Local Path**: `~/projects/groundswell/`
 
 **Official Documentation**:
+
 - README.md: https://github.com/groundswell-ai/groundswell (main reference)
 - docs/workflow.md - Hierarchical task orchestration
 - docs/agent.md - LLM execution with caching and reflection
@@ -15,35 +16,42 @@
 ## Key Exports and API
 
 ### Core Classes
+
 - `Workflow` - Hierarchical workflow orchestration engine
 - `Agent` - Lightweight wrapper around Anthropic SDK
 - `Prompt` - Immutable value objects for LLM prompts
 - `MCPHandler` - Model Context Protocol tool handler
 
 ### Factory Functions
+
 - `createWorkflow()` - Functional workflow creation
 - `createAgent()` - Agent factory
 - `createPrompt()` - Prompt factory with Zod schema validation
 
 ### Decorators
+
 - `@Step` - Lifecycle events and timing tracking
 - `@Task` - Child workflow spawning
 - `@ObservedState` - State snapshot field marking
 
 ### Caching
+
 - `LLMCache` - LLM response cache class
 - `defaultCache` - Default cache instance
 - `generateCacheKey` - Deterministic SHA-256 cache key generation
 
 ### Reflection
+
 - `ReflectionManager` - Error recovery with retry
 - `executeWithReflection` - Reflection execution wrapper
 
 ### Introspection
+
 - `INTROSPECTION_TOOLS` - 6 tools for workflow hierarchy navigation
 - `handleInspectCurrentNode`, etc. - Individual tool handlers
 
 ### Debugging
+
 - `WorkflowTreeDebugger` - Tree visualization and debugging
 - `Observable` - Observer pattern interfaces
 
@@ -52,17 +60,19 @@
 **Purpose**: Emit lifecycle events and track step execution timing
 
 **Configuration Options**:
+
 ```typescript
 interface StepOptions {
-  name?: string;           // Custom step name (default: method name)
-  trackTiming?: boolean;   // Include duration in events (default: true)
+  name?: string; // Custom step name (default: method name)
+  trackTiming?: boolean; // Include duration in events (default: true)
   snapshotState?: boolean; // Capture state snapshot (default: false)
-  logStart?: boolean;      // Log at step start (default: false)
-  logFinish?: boolean;     // Log at step end (default: false)
+  logStart?: boolean; // Log at step start (default: false)
+  logFinish?: boolean; // Log at step end (default: false)
 }
 ```
 
 **Example**:
+
 ```typescript
 @Step({ trackTiming: true, snapshotState: true })
 async processData(): Promise<void> {
@@ -75,19 +85,22 @@ async processData(): Promise<void> {
 **Purpose**: Spawn and manage child workflows with automatic attachment
 
 **Configuration Options**:
+
 ```typescript
 interface TaskOptions {
-  name?: string;       // Custom task name (default: method name)
+  name?: string; // Custom task name (default: method name)
   concurrent?: boolean; // Run returned workflows in parallel (default: false)
 }
 ```
 
 **Behavior**:
+
 - Workflow objects automatically attached as children
 - Non-workflow objects silently skipped (lenient validation)
 - Duck-typing: any object with `id` property treated as workflow-like
 
 **Example**:
+
 ```typescript
 @Task({ concurrent: true })
 async createWorkers(): Promise<WorkerWorkflow[]> {
@@ -103,14 +116,16 @@ async createWorkers(): Promise<WorkerWorkflow[]> {
 **Purpose**: Mark fields for inclusion in state snapshots
 
 **Configuration Options**:
+
 ```typescript
 interface ObservedStateOptions {
-  hidden?: boolean;  // Exclude from snapshots entirely
-  redact?: boolean;  // Show as '***' in snapshots
+  hidden?: boolean; // Exclude from snapshots entirely
+  redact?: boolean; // Show as '***' in snapshots
 }
 ```
 
 **Example**:
+
 ```typescript
 @ObservedState()
 progress: number = 0;
@@ -125,6 +140,7 @@ internalState = {};
 ## Workflow Class
 
 **Constructor Patterns**:
+
 ```typescript
 // Simple
 class MyWorkflow extends Workflow {
@@ -151,6 +167,7 @@ class ChildWorkflow extends Workflow {
 ```
 
 **Key Methods**:
+
 - `run()` - Main execution method
 - `setStatus(status)` - Set workflow status
 - `attachChild(child)` - Manually attach child workflow
@@ -163,6 +180,7 @@ class ChildWorkflow extends Workflow {
 ## Agent Creation
 
 **Factory Function**:
+
 ```typescript
 import { createAgent } from 'groundswell';
 
@@ -174,11 +192,12 @@ const agent = createAgent({
   enableReflection: true,
   maxTokens: 4096,
   temperature: 0.7,
-  tools: [],           // Optional: direct tools
-  mcps: [],            // Optional: MCP servers
-  skills: [],          // Optional: skills to load
-  hooks: {},           // Optional: lifecycle hooks
-  env: {               // Optional: environment variables
+  tools: [], // Optional: direct tools
+  mcps: [], // Optional: MCP servers
+  skills: [], // Optional: skills to load
+  hooks: {}, // Optional: lifecycle hooks
+  env: {
+    // Optional: environment variables
     ANTHROPIC_API_KEY: 'key',
   },
 });
@@ -189,6 +208,7 @@ const agent = createAgent({
 ## Prompt Creation
 
 **Factory Function**:
+
 ```typescript
 import { createPrompt } from 'groundswell';
 import { z } from 'zod';
@@ -209,6 +229,7 @@ const prompt = createPrompt({
 ```
 
 **Key Features**:
+
 - Immutable (frozen on creation)
 - Type-safe via Zod schema inference
 - Data injection via XML-like formatting
@@ -217,6 +238,7 @@ const prompt = createPrompt({
 ## MCP Tool Registration
 
 **MCPHandler Pattern**:
+
 ```typescript
 import { MCPHandler } from 'groundswell';
 
@@ -235,7 +257,7 @@ class MyMCP extends MCPHandler {
     });
 
     // Register tool executor
-    this.registerToolExecutor('my-mcp', 'my_tool', async (input) => {
+    this.registerToolExecutor('my-mcp', 'my_tool', async input => {
       return { result: 'success' };
     });
   }
@@ -243,6 +265,7 @@ class MyMCP extends MCPHandler {
 ```
 
 **Tool Schema**:
+
 ```typescript
 const tool = {
   name: 'my_tool',
@@ -262,6 +285,7 @@ const tool = {
 ## Caching System
 
 **Enable Caching**:
+
 ```typescript
 import { defaultCache } from 'groundswell';
 
@@ -279,6 +303,7 @@ const metrics = defaultCache.metrics();
 ```
 
 **Cache Key Components**:
+
 - User message
 - Data payload
 - System prompt
@@ -290,17 +315,19 @@ const metrics = defaultCache.metrics();
 - Response format schema
 
 **Manual Cache Operations**:
+
 ```typescript
 await defaultCache.set(key, value, { ttl: 3600000, prefix: 'agent1' });
 const value = await defaultCache.get(key);
-await defaultCache.bust(key);           // Remove specific key
+await defaultCache.bust(key); // Remove specific key
 await defaultCache.bustPrefix('agent1'); // Remove all with prefix
-await defaultCache.clear();              // Clear all
+await defaultCache.clear(); // Clear all
 ```
 
 ## Reflection (Error Recovery)
 
 **Enable Reflection**:
+
 ```typescript
 const agent = createAgent({ enableReflection: true });
 
@@ -318,6 +345,7 @@ const result = await agent.prompt(prompt, {
 ```
 
 **Reflection Prefix** (added to system prompt):
+
 ```
 Before answering, reflect on your reasoning step by step.
 Consider alternative approaches and potential errors.
@@ -327,6 +355,7 @@ Then provide your final answer.
 ## Observability Features
 
 **WorkflowTreeDebugger**:
+
 ```typescript
 import { WorkflowTreeDebugger } from 'groundswell';
 
@@ -353,11 +382,12 @@ const node = debugger_.getNode(workflowId);
 
 // Subscribe to events
 debugger_.events.subscribe({
-  next: (event) => console.log(event.type),
+  next: event => console.log(event.type),
 });
 ```
 
 **Observer Pattern**:
+
 ```typescript
 const observer = {
   onLog(entry: LogEntry): void {
@@ -395,15 +425,18 @@ workflow.addObserver(observer);
 **Current Version**: 0.0.3 (actively developed)
 
 **Requirements**:
+
 - Node.js 18+
 - TypeScript 5.2+
 
 **Installation**:
+
 ```bash
 npm install groundswell
 ```
 
 **Local Development** (for this project):
+
 ```bash
 # In groundswell project
 cd ~/projects/groundswell
@@ -415,10 +448,12 @@ npm link groundswell
 ```
 
 **Vitest Path Alias** (vitest.config.ts):
+
 ```typescript
 resolve: {
   alias: {
-    groundswell: new URL('../groundswell/dist/index.js', import.meta.url).pathname
+    groundswell: new URL('../groundswell/dist/index.js', import.meta.url)
+      .pathname;
   }
 }
 ```

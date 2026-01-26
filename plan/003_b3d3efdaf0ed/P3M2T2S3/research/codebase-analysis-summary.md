@@ -1,9 +1,11 @@
 # Codebase Analysis Summary: State Validation Tools
 
 ## Research Date
+
 2026-01-24
 
 ## Purpose
+
 Analyze the codebase to find existing patterns for implementing a `prd validate-state` CLI command.
 
 ---
@@ -13,6 +15,7 @@ Analyze the codebase to find existing patterns for implementing a `prd validate-
 ### File: `src/core/models.ts`
 
 **Status Enum** (lines 137-144)
+
 ```typescript
 export type Status =
   | 'Planned'
@@ -25,11 +28,13 @@ export type Status =
 ```
 
 **Item Type Enum** (line 186)
+
 ```typescript
 export type ItemType = 'Phase' | 'Milestone' | 'Task' | 'Subtask';
 ```
 
 **Backlog Interface** (lines 671-683)
+
 ```typescript
 export interface Backlog {
   readonly backlog: Phase[];
@@ -38,6 +43,7 @@ export interface Backlog {
 ```
 
 **Hierarchy Interfaces:**
+
 - `Subtask` (lines 233-295): `dependencies: string[]`, `context_scope`, `story_points`
 - `Task` (lines 370-406): `subtasks: Subtask[]`, `dependencies: string[]`
 - `Milestone` (lines 465-500): `tasks: Task[]`, `dependencies: string[]`
@@ -52,6 +58,7 @@ export interface Backlog {
 ### File: `src/core/models.ts`
 
 **Existing Schemas:**
+
 - `BacklogSchema` (lines 711-713)
 - `PhaseSchema` (lines 621-630)
 - `MilestoneSchema` (lines 524-538)
@@ -61,6 +68,7 @@ export interface Backlog {
 - `ItemTypeEnum` (line 203)
 
 **Schema Usage Pattern:**
+
 ```typescript
 // From src/core/session-utils.ts (line 502)
 const validated = BacklogSchema.parse(parsed);
@@ -73,22 +81,29 @@ const validated = BacklogSchema.parse(parsed);
 ### File: `src/cli/index.ts`
 
 **Commander.js Pattern** (lines 187-188)
+
 ```typescript
 program
   .name('prp-pipeline')
-  .description('PRD to PRP Pipeline - Automated software development')
+  .description('PRD to PRP Pipeline - Automated software development');
 ```
 
 **Existing Subcommands:**
+
 - `inspect` (lines 262-278)
 - `artifacts` (lines 287-315)
 
 **Subcommand Template Pattern:**
+
 ```typescript
 program
   .command('inspect')
   .description('Inspect pipeline state and session details')
-  .option('-o, --output <format>', 'Output format (table, json, yaml, tree)', 'table')
+  .option(
+    '-o, --output <format>',
+    'Output format (table, json, yaml, tree)',
+    'table'
+  )
   .action(async options => {
     const inspectCommand = new InspectCommand();
     await inspectCommand.execute(options);
@@ -97,6 +112,7 @@ program
 ```
 
 **CLI Options Pattern:**
+
 ```typescript
 export interface CLIArgs {
   prd: string;
@@ -115,6 +131,7 @@ export interface CLIArgs {
 ### File: `src/core/session-manager.ts`
 
 **Load Backlog** (line 557)
+
 ```typescript
 async loadSession(prdPath: string, sessionPath?: string): Promise<Session>
 ```
@@ -122,6 +139,7 @@ async loadSession(prdPath: string, sessionPath?: string): Promise<Session>
 ### File: `src/core/session-utils.ts`
 
 **Read with Validation** (lines 489-531)
+
 ```typescript
 export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
   const tasksPath = resolve(sessionPath, 'tasks.json');
@@ -133,12 +151,13 @@ export async function readTasksJSON(sessionPath: string): Promise<Backlog> {
 ```
 
 **Atomic Write** (lines 98-180)
+
 ```typescript
 export async function atomicWrite(
   path: string,
   content: string,
   options?: { mode?: number }
-): Promise<void>
+): Promise<void>;
 ```
 
 ---
@@ -148,11 +167,12 @@ export async function atomicWrite(
 ### File: `src/core/dependency-validator.ts`
 
 **Circular Dependency Detection** (line 32)
+
 ```typescript
 export function detectCircularDeps(
   items: readonly HierarchicalItem[],
   itemType: ItemType
-): void
+): void;
 ```
 
 **Pattern:** DFS with three-color marking (WHITE=0, GRAY=1, BLACK=2)
@@ -160,6 +180,7 @@ export function detectCircularDeps(
 ### File: `src/utils/errors.ts`
 
 **Error Hierarchy:**
+
 - `PipelineError` (base class)
 - `SessionError` - File operations
 - `TaskError` - Task execution
@@ -167,6 +188,7 @@ export function detectCircularDeps(
 - `ValidationError` - Input validation
 
 **Error Code Pattern:**
+
 ```typescript
 PIPELINE_{DOMAIN}_{ACTION}_{OUTCOME}
 ```
@@ -178,6 +200,7 @@ PIPELINE_{DOMAIN}_{ACTION}_{OUTCOME}
 ### File: `src/core/task-utils.ts`
 
 **Useful Functions:**
+
 - `findItem(backlog, itemId)` (line 90) - Find item by ID
 - `getDependencies(item, backlog)` (line 131) - Get flattened dependencies
 - `filterByStatus(backlog, status)` (line 205) - Filter by status
@@ -190,6 +213,7 @@ PIPELINE_{DOMAIN}_{ACTION}_{OUTCOME}
 ### File: `tests/unit/core/session-utils.test.ts`
 
 **SessionFileError Test Pattern:**
+
 ```typescript
 describe('SessionFileError', () => {
   it('should create error with path, operation, and code', () => {
@@ -203,6 +227,7 @@ describe('SessionFileError', () => {
 ```
 
 **Mock Pattern:**
+
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks();
@@ -214,12 +239,14 @@ beforeEach(() => {
 ## 8. Integration Points for validate-state Command
 
 ### Required Files:
+
 1. **NEW**: `src/cli/commands/validate-state.ts` - Main command class
 2. **MODIFY**: `src/cli/index.ts` - Register the command
 3. **NEW**: `src/core/state-validator.ts` - Validation logic
 4. **NEW**: `tests/integration/validate-state.test.ts` - Tests
 
 ### Dependencies to Reuse:
+
 - `BacklogSchema` from `src/core/models.ts`
 - `readTasksJSON()` from `src/core/session-utils.ts`
 - `atomicWrite()` from `src/core/session-utils.ts`
@@ -227,6 +254,7 @@ beforeEach(() => {
 - `ValidationError` from `src/utils/errors.ts`
 
 ### Command Registration Location:
+
 After line 278 in `src/cli/index.ts` (after `inspect` command)
 
 ---
@@ -234,6 +262,7 @@ After line 278 in `src/cli/index.ts` (after `inspect` command)
 ## 9. Key Implementation Patterns
 
 ### Command Class Structure:
+
 ```typescript
 export class ValidateStateCommand {
   async execute(options: ValidateStateOptions): Promise<void> {
@@ -246,6 +275,7 @@ export class ValidateStateCommand {
 ```
 
 ### Validation Results Structure:
+
 ```typescript
 interface ValidationResult {
   isValid: boolean;
@@ -256,6 +286,7 @@ interface ValidationResult {
 ```
 
 ### Backup Before Repair:
+
 ```typescript
 // Create backup before auto-repair
 const backupPath = `${sessionPath}/tasks.json.backup.${Date.now()}`;
@@ -266,12 +297,12 @@ await copyFile(tasksPath, backupPath);
 
 ## 10. Files to Reference in PRP
 
-| File | Purpose | Key Lines |
-|------|---------|-----------|
-| `src/core/models.ts` | Task types, Zod schemas | 137-144, 233-295, 671-683 |
-| `src/core/session-utils.ts` | Read/write tasks.json | 98-180, 489-531 |
-| `src/core/dependency-validator.ts` | Circular dep detection | 32+ |
-| `src/core/task-utils.ts` | Task traversal utilities | 90, 131, 169, 205 |
-| `src/cli/index.ts` | Command registration | 187-315, 476-520 |
-| `src/utils/errors.ts` | Error classes | 58-89, 100+ |
-| `tests/unit/core/session-utils.test.ts` | Test patterns | Full file |
+| File                                    | Purpose                  | Key Lines                 |
+| --------------------------------------- | ------------------------ | ------------------------- |
+| `src/core/models.ts`                    | Task types, Zod schemas  | 137-144, 233-295, 671-683 |
+| `src/core/session-utils.ts`             | Read/write tasks.json    | 98-180, 489-531           |
+| `src/core/dependency-validator.ts`      | Circular dep detection   | 32+                       |
+| `src/core/task-utils.ts`                | Task traversal utilities | 90, 131, 169, 205         |
+| `src/cli/index.ts`                      | Command registration     | 187-315, 476-520          |
+| `src/utils/errors.ts`                   | Error classes            | 58-89, 100+               |
+| `tests/unit/core/session-utils.test.ts` | Test patterns            | Full file                 |

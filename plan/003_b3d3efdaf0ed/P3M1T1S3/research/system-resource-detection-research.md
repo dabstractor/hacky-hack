@@ -25,13 +25,13 @@ console.log(`Number of logical CPU cores: ${cpuCores}`);
 
 ```typescript
 // System memory (bytes)
-const totalMemory = os.totalmem();   // Total system memory
-const freeMemory = os.freemem();     // Free system memory
+const totalMemory = os.totalmem(); // Total system memory
+const freeMemory = os.freemem(); // Free system memory
 const usedMemory = totalMemory - freeMemory;
 
 // Convert to GB
-const totalGB = totalMemory / (1024 ** 3);
-const freeGB = freeMemory / (1024 ** 3);
+const totalGB = totalMemory / 1024 ** 3;
+const freeGB = freeMemory / 1024 ** 3;
 ```
 
 ### Process Memory (for backpressure)
@@ -56,7 +56,7 @@ export function calculateDefaultParallelism(): {
   totalMemoryGB: number;
 } {
   const cpuCores = os.cpus().length;
-  const totalMemoryGB = os.totalmem() / (1024 ** 3);
+  const totalMemoryGB = os.totalmem() / 1024 ** 3;
 
   // Conservative defaults: leave headroom for system processes
   const cpuBasedLimit = Math.max(1, cpuCores - 1); // Reserve 1 core
@@ -76,9 +76,7 @@ export function calculateDefaultParallelism(): {
 ## Resource Validation Pattern
 
 ```typescript
-export function validateParallelismConfig(
-  parallelism: number
-): {
+export function validateParallelismConfig(parallelism: number): {
   valid: boolean;
   warnings: string[];
   recommendations: string[];
@@ -92,7 +90,7 @@ export function validateParallelismConfig(
   if (parallelism > systemInfo.cpuCores) {
     warnings.push(
       `Parallelism (${parallelism}) exceeds CPU cores (${systemInfo.cpuCores}). ` +
-      `This may cause context switching overhead.`
+        `This may cause context switching overhead.`
     );
     recommendations.push(
       `Consider setting parallelism to ${systemInfo.recommendedConcurrency} or less.`
@@ -101,15 +99,13 @@ export function validateParallelismConfig(
 
   // Warning: Memory constraints
   const estimatedMemoryMB = parallelism * 500; // 500MB per worker
-  const availableMemoryGB = (os.freemem() / (1024 ** 3)).toFixed(1);
+  const availableMemoryGB = (os.freemem() / 1024 ** 3).toFixed(1);
 
   if (estimatedMemoryMB > parseFloat(availableMemoryGB) * 1024) {
     warnings.push(
       `Estimated memory usage (${estimatedMemoryMB}MB) may exceed available memory (${availableMemoryGB}GB).`
     );
-    recommendations.push(
-      `Reduce parallelism or increase system memory.`
-    );
+    recommendations.push(`Reduce parallelism or increase system memory.`);
   }
 
   return {
@@ -122,17 +118,18 @@ export function validateParallelismConfig(
 
 ## Industry Best Practices
 
-| Scenario | Formula | Example (8-core, 16GB) |
-|----------|---------|------------------------|
-| CPU-bound tasks | `cpuCores - 1` | 7 |
-| I/O-bound tasks | `cpuCores × 2-4` | 16-24 |
-| Mixed workload | `cpuCores` | 8 |
-| Low-memory system | `min(cpuCores, memoryGB / 2)` | 4 |
-| CI environment | `2` (fixed) | 2 |
+| Scenario          | Formula                       | Example (8-core, 16GB) |
+| ----------------- | ----------------------------- | ---------------------- |
+| CPU-bound tasks   | `cpuCores - 1`                | 7                      |
+| I/O-bound tasks   | `cpuCores × 2-4`              | 16-24                  |
+| Mixed workload    | `cpuCores`                    | 8                      |
+| Low-memory system | `min(cpuCores, memoryGB / 2)` | 4                      |
+| CI environment    | `2` (fixed)                   | 2                      |
 
 ## Missing from Current Codebase
 
 **Status:** The codebase has:
+
 - Memory monitoring (`process.memoryUsage()`)
 - File handle monitoring (macOS-specific)
 - **Missing:** CPU core detection via `os.cpus()`
@@ -162,7 +159,7 @@ function displayResourceWarnings(
   }
 
   // Memory warning
-  const freeMemoryGB = (os.freemem() / (1024 ** 3)).toFixed(1);
+  const freeMemoryGB = (os.freemem() / 1024 ** 3).toFixed(1);
   if (parallelism > parseFloat(freeMemoryGB)) {
     warnings.push(
       `⚠️  Warning: High parallelism may exhaust memory (${freeMemoryGB}GB free)`

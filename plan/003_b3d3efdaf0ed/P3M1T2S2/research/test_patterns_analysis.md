@@ -23,12 +23,15 @@
 ### Test Patterns for Constructor Parameters
 
 #### Constructor Testing Pattern
+
 ```typescript
 describe('constructor', () => {
   it('should store sessionManager as readonly property', () => {
     // SETUP: Create mock session manager with active session
     const currentSession = {
-      metadata: { /* session data */ },
+      metadata: {
+        /* session data */
+      },
       prdSnapshot: '# Test PRD',
       taskRegistry: createTestBacklog([]),
       currentItemId: null,
@@ -69,6 +72,7 @@ describe('constructor', () => {
 ### How to Test Different Concurrency Levels
 
 #### 1. Testing maxSize Limit
+
 ```typescript
 it('should process up to maxSize tasks concurrently', async () => {
   // SETUP: Create mock with concurrency tracking
@@ -98,6 +102,7 @@ it('should process up to maxSize tasks concurrently', async () => {
 ```
 
 #### 2. Testing Serial vs Parallel Execution
+
 ```typescript
 it('should only run maxSize tasks simultaneously', async () => {
   // SETUP: Track active operations
@@ -131,6 +136,7 @@ it('should only run maxSize tasks simultaneously', async () => {
 ### Mocking Patterns for Testing
 
 #### 1. Module Mocking Setup
+
 ```typescript
 // Mock the prp-generator module
 vi.mock('../../../src/agents/prp-generator.js', () => ({
@@ -145,6 +151,7 @@ const MockPRPGenerator = PRPGenerator as any;
 ```
 
 #### 2. Mocked Implementation with Different Behaviors
+
 ```typescript
 // Basic mock
 mockGenerate.mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
@@ -163,6 +170,7 @@ mockGenerate.mockImplementation(async (task: Subtask) => {
 ```
 
 #### 3. Concurrency Tracking Helper
+
 ```typescript
 function trackConcurrency() {
   const state = { active: 0, max: 0, startOrder: [] as string[] };
@@ -184,11 +192,13 @@ function trackConcurrency() {
 ### Naming Conventions for Test Files
 
 #### File Structure
+
 - Unit tests: `tests/unit/[category]/[filename].test.ts`
 - Integration tests: `tests/integration/[category]/[filename].test.ts`
 - Manual tests: `tests/manual/[filename].test.ts`
 
 #### Test Naming Patterns
+
 1. **Constructor Tests**:
    - `should store [property] as readonly property`
    - `should set [parameter] from constructor parameter`

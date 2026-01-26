@@ -218,6 +218,7 @@ async loadEntry<T>(taskId: string): Promise<T | null> {
 ## Implementation Checklist
 
 ### Statistics Tracking
+
 - [ ] Track cache hits and misses
 - [ ] Calculate hit ratio percentage
 - [ ] Track evictions by reason (expired, capacity, manual, error)
@@ -228,6 +229,7 @@ async loadEntry<T>(taskId: string): Promise<T | null> {
 - [ ] Track last cleanup timestamp
 
 ### Cleanup Functionality
+
 - [ ] Implement TTL-based expiration check
 - [ ] Implement atomic file delete pattern
 - [ ] Handle errors gracefully during cleanup
@@ -236,6 +238,7 @@ async loadEntry<T>(taskId: string): Promise<T | null> {
 - [ ] Reset statistics after clear
 
 ### Safety and Reliability
+
 - [ ] Use atomic rename-then-unlink pattern
 - [ ] Continue cleanup on individual file failures
 - [ ] Log all operations and errors
@@ -243,6 +246,7 @@ async loadEntry<T>(taskId: string): Promise<T | null> {
 - [ ] Handle corrupted cache files gracefully
 
 ### Monitoring and Reporting
+
 - [ ] Provide statistics interface
 - [ ] Log cleanup operations
 - [ ] Report cleanup results (removed, failed)

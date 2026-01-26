@@ -30,6 +30,7 @@ P3: Phase 3: Performance & Reliability Enhancements
 ### P3.M1.T1.S1 (Design Document - Complete)
 
 **Key Design Decisions:**
+
 - Conservative default (2-3) for safety
 - Range limit 1-10 to prevent resource exhaustion
 - Semaphore pattern for concurrency control
@@ -55,6 +56,7 @@ public async executeParallel(config: ParallelismConfig): Promise<void>
 ```
 
 **Default Values from Tests:**
+
 - maxConcurrency: 3
 - prpGenerationLimit: 3
 - resourceThreshold: 0.8
@@ -64,11 +66,13 @@ public async executeParallel(config: ParallelismConfig): Promise<void>
 ### 1. CLI Parser (`src/cli/index.ts`)
 
 **Add after line 168 (after `--max-duration`):**
+
 ```typescript
 .option('--parallelism <n>', 'Max concurrent subtasks (1-10, default: 2)', '2')
 ```
 
 **Add validation after line 307 (after maxDuration validation):**
+
 ```typescript
 // Validate parallelism
 if (options.parallelism !== undefined) {
@@ -82,6 +86,7 @@ if (options.parallelism !== undefined) {
 ```
 
 **Add to CLIArgs interface (after line 94):**
+
 ```typescript
 /** Max concurrent subtasks (1-10) */
 parallelism: number;
@@ -90,6 +95,7 @@ parallelism: number;
 ### 2. Main Entry (`src/index.ts`)
 
 **Pass to PRPPipeline (around line 198-212):**
+
 ```typescript
 const pipeline = new PRPPipeline(
   args.prd,
@@ -101,13 +107,14 @@ const pipeline = new PRPPipeline(
   args.maxDuration,
   undefined,
   args.progressMode ?? 'auto',
-  args.parallelism  // NEW
+  args.parallelism // NEW
 );
 ```
 
 ### 3. PRPPipeline (`src/workflows/prp-pipeline.ts`)
 
 **Add to constructor (after line 259):**
+
 ```typescript
 constructor(
   // ... existing params
@@ -120,18 +127,20 @@ constructor(
 ```
 
 **Store as private field (around line 230):**
+
 ```typescript
 readonly #parallelism: number = 2;
 ```
 
 **Pass to TaskOrchestrator when calling executeParallel():**
+
 ```typescript
 // Find where executeParallel() is called
 await this.#taskOrchestrator.executeParallel({
   enabled: true,
   maxConcurrency: this.#parallelism,
   prpGenerationLimit: 3,
-  resourceThreshold: 0.8
+  resourceThreshold: 0.8,
 });
 ```
 
@@ -148,6 +157,7 @@ await this.#taskOrchestrator.executeParallel({
 **New test file:** `tests/integration/parallelism-option.test.ts`
 
 **Test coverage:**
+
 1. Default value (2)
 2. Custom values (1, 5, 10)
 3. Range validation (rejects 0, 11)

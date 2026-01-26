@@ -78,13 +78,13 @@ PRP_PIPELINE_TASK_CONCURRENCY=2
 
 #### Alternatives Considered
 
-| Option | Pros | Cons | Recommendation |
-|--------|------|------|----------------|
-| `RESEARCH_QUEUE_CONCURRENCY` | Clear, descriptive, follows conventions | Longer | ✅ **RECOMMENDED** |
-| `QUEUE_CONCURRENCY` | Shorter | Ambiguous (which queue?) | ⚠️ Use with app prefix |
-| `MAX_CONCURRENT_PRP` | Describes behavior | Doesn't indicate component | ❌ Avoid |
-| `PARALLELISM` | Common term | Ambiguous - parallelism vs concurrency | ❌ Avoid |
-| `WORKERS` | Familiar to CLI users | Implies threads/workers specifically | ⚠️ Acceptable for CLI, not env vars |
+| Option                       | Pros                                    | Cons                                   | Recommendation                      |
+| ---------------------------- | --------------------------------------- | -------------------------------------- | ----------------------------------- |
+| `RESEARCH_QUEUE_CONCURRENCY` | Clear, descriptive, follows conventions | Longer                                 | ✅ **RECOMMENDED**                  |
+| `QUEUE_CONCURRENCY`          | Shorter                                 | Ambiguous (which queue?)               | ⚠️ Use with app prefix              |
+| `MAX_CONCURRENT_PRP`         | Describes behavior                      | Doesn't indicate component             | ❌ Avoid                            |
+| `PARALLELISM`                | Common term                             | Ambiguous - parallelism vs concurrency | ❌ Avoid                            |
+| `WORKERS`                    | Familiar to CLI users                   | Implies threads/workers specifically   | ⚠️ Acceptable for CLI, not env vars |
 
 ### Environment Variable Best Practices
 
@@ -115,7 +115,11 @@ const researchQueueConcurrency = parseInt(
   10
 );
 
-if (isNaN(researchQueueConcurrency) || researchQueueConcurrency < 1 || researchQueueConcurrency > 20) {
+if (
+  isNaN(researchQueueConcurrency) ||
+  researchQueueConcurrency < 1 ||
+  researchQueueConcurrency > 20
+) {
   throw new Error(
     'RESEARCH_QUEUE_CONCURRENCY must be an integer between 1 and 20'
   );
@@ -150,14 +154,14 @@ Based on analysis of popular CLI tools (Jest, Webpack, ESLint) and [Commander.js
 
 #### Option Naming Analysis
 
-| Tool | Flag | Pattern | Notes |
-|------|------|---------|-------|
-| **Jest** | `--maxWorkers <n>` | `max-` prefix + camelCase | Clear, explicit |
-| **Jest** | `--max-workers <n>` | kebab-case variant | Alternative format |
-| **Webpack** | `--parallelism` | kebab-case | Simple boolean flag |
-| **ESLint** | `--max-warnings <n>` | `max-` prefix | Limit-based pattern |
-| **Vitest** | `--threads <n>` | Descriptive noun | Thread-based parallelism |
-| **TypeScript** | `--maxNodeModuleJsDepth` | camelCase | Official TypeScript style |
+| Tool           | Flag                     | Pattern                   | Notes                     |
+| -------------- | ------------------------ | ------------------------- | ------------------------- |
+| **Jest**       | `--maxWorkers <n>`       | `max-` prefix + camelCase | Clear, explicit           |
+| **Jest**       | `--max-workers <n>`      | kebab-case variant        | Alternative format        |
+| **Webpack**    | `--parallelism`          | kebab-case                | Simple boolean flag       |
+| **ESLint**     | `--max-warnings <n>`     | `max-` prefix             | Limit-based pattern       |
+| **Vitest**     | `--threads <n>`          | Descriptive noun          | Thread-based parallelism  |
+| **TypeScript** | `--maxNodeModuleJsDepth` | camelCase                 | Official TypeScript style |
 
 **Current Codebase Pattern**: `src/cli/index.ts:193-195` uses `--parallelism <n>`
 
@@ -190,8 +194,16 @@ Based on analysis of popular CLI tools (Jest, Webpack, ESLint) and [Commander.js
 
 ```typescript
 program
-  .option('--parallelism <n>', 'Max concurrent subtasks (1-10, default: 2)', '2')
-  .option('--parallelism-prp <n>', 'Max concurrent PRP generations (1-20, default: 3)', '3');
+  .option(
+    '--parallelism <n>',
+    'Max concurrent subtasks (1-10, default: 2)',
+    '2'
+  )
+  .option(
+    '--parallelism-prp <n>',
+    'Max concurrent PRP generations (1-20, default: 3)',
+    '3'
+  );
 
 // Validation (as shown in src/cli/index.ts:354-364)
 const parallelism = parseInt(options.parallelism, 10);
@@ -220,16 +232,17 @@ if (isNaN(parallelism) || parallelism < 1 || parallelism > 10) {
 
 Based on analysis of [Jest](https://jestjs.io/docs/configuration#maxworkers-number) (default: CPU cores - 1), [Webpack](https://webpack.js.org/configuration/other-options/#parallelism-) (default: os.cpus().length), and workload characteristics:
 
-| Component | Default | Range | Rationale |
-|-----------|---------|-------|-----------|
-| **ResearchQueue (PRP Generation)** | `3` | 1-20 | LLM API calls (high latency, low CPU) |
-| **Task Executor (Implementation)** | `2` | 1-10 | Mixed I/O and CPU operations |
+| Component                          | Default | Range | Rationale                             |
+| ---------------------------------- | ------- | ----- | ------------------------------------- |
+| **ResearchQueue (PRP Generation)** | `3`     | 1-20  | LLM API calls (high latency, low CPU) |
+| **Task Executor (Implementation)** | `2`     | 1-10  | Mixed I/O and CPU operations          |
 
 ### Rationale for Defaults
 
 #### ResearchQueue: Default 3 (Range 1-20)
 
 **Why 3?**
+
 1. **Current Implementation**: `src/core/research-queue.ts:92` already uses `maxSize: number = 3`
 2. **LLM API Profile**: High latency (seconds), low CPU usage
 3. **Rate Limit Considerations**: Prevents overwhelming API
@@ -237,6 +250,7 @@ Based on analysis of [Jest](https://jestjs.io/docs/configuration#maxworkers-numb
 5. **Empirical Testing**: Existing codebase tested with 3 concurrent operations
 
 **Why Range 1-20?**
+
 - **Lower Bound (1)**: Sequential execution for debugging
 - **Upper Bound (20)**: LLM calls are I/O-bound; higher concurrency benefits speed
 - **Practical Limit**: Beyond 20, diminishing returns due to API rate limits
@@ -255,6 +269,7 @@ constructor(
 #### Task Executor: Default 2 (Range 1-10)
 
 **Why 2?**
+
 1. **CPU-Bound Operations**: Compilation, test execution, file processing
 2. **Context Switching**: Avoid excessive overhead
 3. **Memory Constraints**: Each worker maintains task state
@@ -262,6 +277,7 @@ constructor(
 5. **Scalability**: Users can increase based on their system resources
 
 **Why Range 1-10?**
+
 - **Lower Bound (1)**: Sequential execution for debugging or resource-constrained environments
 - **Upper Bound (10)**: Practical limit for most systems
   - Beyond 10, CPU context switching overhead increases
@@ -280,21 +296,21 @@ const cpuCores = os.cpus().length;
 const defaultTaskConcurrency = Math.max(1, Math.min(cpuCores - 1, 4));
 
 // Or use fixed defaults for predictability
-const defaultTaskConcurrency = 2;  // ✅ Recommended: simpler, more predictable
+const defaultTaskConcurrency = 2; // ✅ Recommended: simpler, more predictable
 ```
 
 **Recommendation**: Use fixed defaults (not system-aware) for predictability and reproducibility across machines.
 
 ### Comparison with Popular Tools
 
-| Tool | Default Concurrency | Rationale |
-|------|---------------------|-----------|
-| **Jest** | `os.cpus().length - 1` | CPU-bound test execution |
-| **Webpack** | `os.cpus().length` | Build process optimization |
-| **ESLint** | N/A (sequential) | Fast enough sequentially |
-| **Vitest** | `os.cpus().length` | Similar to Jest |
-| **TypeScript Compiler** | `os.cpus().length` | Parallel parsing/type-checking |
-| **Our Recommendation** | `2-3` (fixed) | Mixed workload, cross-platform consistency |
+| Tool                    | Default Concurrency    | Rationale                                  |
+| ----------------------- | ---------------------- | ------------------------------------------ |
+| **Jest**                | `os.cpus().length - 1` | CPU-bound test execution                   |
+| **Webpack**             | `os.cpus().length`     | Build process optimization                 |
+| **ESLint**              | N/A (sequential)       | Fast enough sequentially                   |
+| **Vitest**              | `os.cpus().length`     | Similar to Jest                            |
+| **TypeScript Compiler** | `os.cpus().length`     | Parallel parsing/type-checking             |
+| **Our Recommendation**  | `2-3` (fixed)          | Mixed workload, cross-platform consistency |
 
 ---
 
@@ -306,7 +322,7 @@ const defaultTaskConcurrency = 2;  // ✅ Recommended: simpler, more predictable
 
 #### Documentation Template
 
-```markdown
+````markdown
 ### Concurrency Configuration
 
 #### `--parallelism <n>` (default: 2, range: 1-10)
@@ -314,16 +330,19 @@ const defaultTaskConcurrency = 2;  // ✅ Recommended: simpler, more predictable
 Controls the maximum number of subtasks executed concurrently.
 
 **Trade-offs**:
+
 - **Higher concurrency (5-10)**: Faster execution but increased memory usage and CPU overhead
 - **Lower concurrency (1-2)**: Slower execution but reduced resource consumption
 - **Recommended**: 2 for most systems, 3-5 for powerful workstations, 1 for CI/CD environments
 
 **When to adjust**:
+
 - **Increase to 3-5**: If you have abundant CPU cores (>8) and memory (>16GB)
 - **Decrease to 1**: If experiencing memory errors or on resource-constrained systems
 - **Use default (2)**: For typical development environments
 
 **Example scenarios**:
+
 ```bash
 # Fast execution on powerful machine
 hack --parallelism 5
@@ -334,7 +353,9 @@ hack --parallelism 1
 # Balanced for development
 hack --parallelism 2  # default
 ```
-```
+````
+
+````
 
 #### Environmental Considerations
 
@@ -352,7 +373,7 @@ hack --parallelism 2  # default
 - Concurrency > CPU cores may cause context switching overhead
 - Concurrency > 5 may exhaust file handles on macOS (limit: 10240)
 - Monitor memory usage with `--monitor-interval 10000`
-```
+````
 
 ### Performance Benchmarks Template
 
@@ -361,15 +382,16 @@ hack --parallelism 2  # default
 
 Test environment: 1688 subtasks, Intel i7-12700K (12 cores), 32GB RAM
 
-| Concurrency | Execution Time | Speedup vs Sequential | Memory Peak |
-|-------------|----------------|----------------------|-------------|
-| 1 (sequential) | 14m 32s | 1.0x | 1.2GB |
-| 2 (default) | 8m 15s | 1.76x | 1.8GB |
-| 3 | 6m 45s | 2.15x | 2.4GB |
-| 5 | 5m 30s | 2.64x | 3.8GB |
-| 10 | 5m 12s | 2.80x | 6.2GB |
+| Concurrency    | Execution Time | Speedup vs Sequential | Memory Peak |
+| -------------- | -------------- | --------------------- | ----------- |
+| 1 (sequential) | 14m 32s        | 1.0x                  | 1.2GB       |
+| 2 (default)    | 8m 15s         | 1.76x                 | 1.8GB       |
+| 3              | 6m 45s         | 2.15x                 | 2.4GB       |
+| 5              | 5m 30s         | 2.64x                 | 3.8GB       |
+| 10             | 5m 12s         | 2.80x                 | 6.2GB       |
 
 **Analysis**:
+
 - Diminishing returns beyond 5 concurrent workers
 - Memory usage grows ~600MB per worker
 - Recommended: 2-3 for balanced performance
@@ -451,7 +473,7 @@ export class ResearchQueue {
     noCache: boolean = false
   ) {
     this.maxSize = maxSize;
-    this.limit = pLimit(maxSize);  // ✅ Use p-limit for cleaner code
+    this.limit = pLimit(maxSize); // ✅ Use p-limit for cleaner code
     this.#prpGenerator = new PRPGenerator(sessionManager, noCache);
   }
 
@@ -488,6 +510,7 @@ export class ResearchQueue {
 ```
 
 **Benefits of p-limit**:
+
 - Simpler API (no manual queue management)
 - Well-tested (battletested by thousands of projects)
 - Active maintenance
@@ -496,13 +519,13 @@ export class ResearchQueue {
 
 ### p-limit vs Custom Implementation
 
-| Aspect | Custom Semaphore | p-limit | Recommendation |
-|--------|------------------|---------|----------------|
-| **Code Complexity** | Higher (lines 57-197) | Lower | ✅ p-limit |
-| **Control** | Full control | Limited abstraction | ⚠️ Custom for advanced features |
-| **Maintenance** | Self-maintained | Community-maintained | ✅ p-limit |
-| **Testing** | Must test thoroughly | Already tested | ✅ p-limit |
-| **Debugging** | More transparent | Less transparent | ⚠️ Custom for debugging |
+| Aspect              | Custom Semaphore      | p-limit              | Recommendation                  |
+| ------------------- | --------------------- | -------------------- | ------------------------------- |
+| **Code Complexity** | Higher (lines 57-197) | Lower                | ✅ p-limit                      |
+| **Control**         | Full control          | Limited abstraction  | ⚠️ Custom for advanced features |
+| **Maintenance**     | Self-maintained       | Community-maintained | ✅ p-limit                      |
+| **Testing**         | Must test thoroughly  | Already tested       | ✅ p-limit                      |
+| **Debugging**       | More transparent      | Less transparent     | ⚠️ Custom for debugging         |
 
 **Recommendation**: Consider p-limit for future implementations, but keep current custom implementation for ResearchQueue (it's working well and provides better observability).
 
@@ -515,6 +538,7 @@ export class ResearchQueue {
 **Documentation**: [Jest maxWorkers](https://jestjs.io/docs/configuration#maxworkers-number)
 
 **Pattern**:
+
 ```bash
 # CLI flag
 jest --maxWorkers=4
@@ -531,6 +555,7 @@ JEST_MAX_WORKERS=4 jest
 **Default**: `os.cpus().length - 1`
 
 **Key Insights**:
+
 - Uses `max-` prefix for clarity
 - Supports both CLI flag and config file
 - Environment variable fallback with `JEST_` prefix
@@ -541,6 +566,7 @@ JEST_MAX_WORKERS=4 jest
 **Documentation**: [Webpack parallelism](https://webpack.js.org/configuration/other-options/#parallelism-)
 
 **Pattern**:
+
 ```bash
 # CLI flag
 webpack --parallelism
@@ -554,6 +580,7 @@ module.exports = {
 **Default**: `os.cpus().length` (in webpack 5+)
 
 **Key Insights**:
+
 - Uses simple `parallelism` name
 - Boolean flag for on/off (in older versions)
 - Number for specific concurrency limit
@@ -564,6 +591,7 @@ module.exports = {
 **Pattern**: ESLint runs sequentially by default.
 
 **Alternatives**:
+
 - `eslint-parallel`: Third-party package
 - `fast-eslint`: Parallel execution wrapper
 
@@ -572,6 +600,7 @@ module.exports = {
 ### Vitest: threads Option
 
 **Pattern**:
+
 ```bash
 # CLI flag
 vitest --threads=4
@@ -587,6 +616,7 @@ export default {
 ```
 
 **Key Insights**:
+
 - Uses `threads` terminology (thread-based parallelism)
 - Supports `minThreads` and `maxThreads` range
 - Boolean `threads` flag for enable/disable
@@ -594,6 +624,7 @@ export default {
 ### TypeScript Compiler: tsc
 
 **Pattern**:
+
 ```bash
 # Not configurable via CLI
 # Uses os.cpus().length internally for parallel parsing
@@ -680,39 +711,22 @@ function loadParallelismConfig(): ParallelismConfig {
       10
     ),
     enabled: process.env.PARALLELISM_ENABLED !== 'false',
-    resourceThreshold: parseFloat(
-      process.env.RESOURCE_THRESHOLD ?? '0.8'
-    ),
+    resourceThreshold: parseFloat(process.env.RESOURCE_THRESHOLD ?? '0.8'),
     resourceWarnings: process.env.RESOURCE_WARNINGS_ENABLED !== 'false',
   };
 }
 
 function validateParallelismConfig(config: ParallelismConfig): void {
-  if (
-    config.prpGenerationLimit < 1 ||
-    config.prpGenerationLimit > 20
-  ) {
-    throw new Error(
-      'RESEARCH_QUEUE_CONCURRENCY must be between 1 and 20'
-    );
+  if (config.prpGenerationLimit < 1 || config.prpGenerationLimit > 20) {
+    throw new Error('RESEARCH_QUEUE_CONCURRENCY must be between 1 and 20');
   }
 
-  if (
-    config.taskExecutorLimit < 1 ||
-    config.taskExecutorLimit > 10
-  ) {
-    throw new Error(
-      'TASK_EXECUTOR_CONCURRENCY must be between 1 and 10'
-    );
+  if (config.taskExecutorLimit < 1 || config.taskExecutorLimit > 10) {
+    throw new Error('TASK_EXECUTOR_CONCURRENCY must be between 1 and 10');
   }
 
-  if (
-    config.resourceThreshold < 0 ||
-    config.resourceThreshold > 1
-  ) {
-    throw new Error(
-      'RESOURCE_THRESHOLD must be between 0 and 1'
-    );
+  if (config.resourceThreshold < 0 || config.resourceThreshold > 1) {
+    throw new Error('RESOURCE_THRESHOLD must be between 0 and 1');
   }
 }
 ```
@@ -720,16 +734,19 @@ function validateParallelismConfig(config: ParallelismConfig): void {
 ### Configuration Priority (Precedence)
 
 1. **CLI flags** (highest priority)
+
    ```bash
    hack --parallelism 5 --parallelism-prp 10
    ```
 
 2. **Environment variables**
+
    ```bash
    TASK_EXECUTOR_CONCURRENCY=5 RESEARCH_QUEUE_CONCURRENCY=10 hack
    ```
 
 3. **Config file** (if implemented in future)
+
    ```json
    {
      "parallelism": {
@@ -741,8 +758,8 @@ function validateParallelismConfig(config: ParallelismConfig): void {
 
 4. **Default values** (lowest priority)
    ```typescript
-   parallelism: 2
-   parallelismPrp: 3
+   parallelism: 2;
+   parallelismPrp: 3;
    ```
 
 ---
@@ -817,9 +834,7 @@ function validateParallelismOption(
   const parsed = typeof value === 'string' ? parseInt(value, 10) : value;
 
   if (isNaN(parsed) || parsed < min || parsed > max) {
-    logger.error(
-      `--${name} must be an integer between ${min} and ${max}`
-    );
+    logger.error(`--${name} must be an integer between ${min} and ${max}`);
     process.exit(1);
   }
 
@@ -904,14 +919,14 @@ describe('Parallelism Environment Variables', () => {
   });
 
   it('should validate range for task executor', () => {
-    process.env.TASK_EXECUTOR_CONCURRENCY = '15';  // Invalid (> 10)
+    process.env.TASK_EXECUTOR_CONCURRENCY = '15'; // Invalid (> 10)
     expect(() => loadParallelismConfig()).toThrow(
       'TASK_EXECUTOR_CONCURRENCY must be between 1 and 10'
     );
   });
 
   it('should validate range for PRP generation', () => {
-    process.env.RESEARCH_QUEUE_CONCURRENCY = '25';  // Invalid (> 20)
+    process.env.RESEARCH_QUEUE_CONCURRENCY = '25'; // Invalid (> 20)
     expect(() => loadParallelismConfig()).toThrow(
       'RESEARCH_QUEUE_CONCURRENCY must be between 1 and 20'
     );
@@ -939,7 +954,7 @@ describe('Parallelism CLI Options', () => {
 
   it('should warn when parallelism exceeds CPU cores', () => {
     const loggerWarnSpy = vi.spyOn(logger, 'warn');
-    parseCLIArgs(['--parallelism', '16']);  // Assuming 8 CPU cores
+    parseCLIArgs(['--parallelism', '16']); // Assuming 8 CPU cores
     expect(loggerWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('exceeds CPU cores')
     );
@@ -990,6 +1005,7 @@ describe('Parallelism Behavior', () => {
 **File**: `src/cli/index.ts`
 
 **Change**:
+
 ```typescript
 .option(
   '--parallelism-prp <n>',
@@ -1003,6 +1019,7 @@ describe('Parallelism Behavior', () => {
 **File**: `.env.example`
 
 **Add**:
+
 ```bash
 # Concurrency Configuration
 RESEARCH_QUEUE_CONCURRENCY=3
@@ -1023,11 +1040,11 @@ TASK_EXECUTOR_CONCURRENCY=2
 
 ### Configuration Summary
 
-| Component | CLI Flag | Environment Variable | Default | Range | Current Status |
-|-----------|----------|---------------------|---------|-------|----------------|
-| **Task Execution** | `--parallelism <n>` | `TASK_EXECUTOR_CONCURRENCY` | 2 | 1-10 | ✅ Implemented |
-| **PRP Generation** | `--parallelism-prp <n>` | `RESEARCH_QUEUE_CONCURRENCY` | 3 | 1-20 | ⚠️ Needs CLI flag |
-| **Enable/Disable** | `--no-parallelism` | `PARALLELISM_ENABLED` | true | boolean | ⚠️ Future enhancement |
+| Component          | CLI Flag                | Environment Variable         | Default | Range   | Current Status        |
+| ------------------ | ----------------------- | ---------------------------- | ------- | ------- | --------------------- |
+| **Task Execution** | `--parallelism <n>`     | `TASK_EXECUTOR_CONCURRENCY`  | 2       | 1-10    | ✅ Implemented        |
+| **PRP Generation** | `--parallelism-prp <n>` | `RESEARCH_QUEUE_CONCURRENCY` | 3       | 1-20    | ⚠️ Needs CLI flag     |
+| **Enable/Disable** | `--no-parallelism`      | `PARALLELISM_ENABLED`        | true    | boolean | ⚠️ Future enhancement |
 
 ### Testing Checklist
 

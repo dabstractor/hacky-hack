@@ -15,17 +15,20 @@ This document summarizes external research on token optimization, code compressi
 **Why**: Fast BPE tokenizer for OpenAI models
 
 **Key Features**:
+
 - Supports GPT-4, GPT-3.5, and other OpenAI models
 - Pure JavaScript implementation
 - Accurate token counting for prompt engineering
 
 **Installation**:
+
 ```bash
 npm install tiktoken
 npm install --save-dev @types/tiktoken
 ```
 
 **Usage Example**:
+
 ```typescript
 import { encoding_for_model } from 'tiktoken';
 
@@ -39,6 +42,7 @@ encoding.free();
 ```
 
 **Critical Notes**:
+
 - Uses GPT-4 tokenizer (cl100k_base encoding)
 - GLM-4 tokenizer may differ slightly
 - Use as approximation, validate with actual API usage
@@ -54,16 +58,19 @@ encoding.free();
 **Why**: Lightweight alternative to tiktoken
 
 **Key Features**:
+
 - No dependencies
 - Smaller bundle size
 - Same accuracy as tiktoken
 
 **Installation**:
+
 ```bash
 npm install gpt-tokenizer
 ```
 
 **Usage Example**:
+
 ```typescript
 import { encode } from 'gpt-tokenizer';
 
@@ -85,6 +92,7 @@ console.log(`Token count: ${tokens.length}`);
 **Why**: Already in devDependencies, no new dependencies
 
 **Key Features**:
+
 - Extremely fast (10-100x faster than alternatives)
 - TypeScript support
 - Tree shaking
@@ -93,6 +101,7 @@ console.log(`Token count: ${tokens.length}`);
 **API Documentation**: https://esbuild.github.io/api/#transform-api
 
 **Usage for Code Compression**:
+
 ```typescript
 import { transformSync } from 'esbuild';
 
@@ -106,7 +115,7 @@ function hello(name) {
 const result = transformSync(code, {
   minifyIdentifiers: true,
   minifyWhitespace: true,
-  minifySyntax: false,  // Preserve syntax for AI readability
+  minifySyntax: false, // Preserve syntax for AI readability
 });
 
 console.log(result.code);
@@ -114,6 +123,7 @@ console.log(result.code);
 ```
 
 **Options for PRP Compression**:
+
 - `minifyWhitespace`: Remove extra whitespace
 - `minifyIdentifiers`: Shorten variable names (use carefully)
 - `minifySyntax`: Compress syntax (may reduce readability)
@@ -129,17 +139,20 @@ console.log(result.code);
 **Why**: Advanced minification with comment preservation
 
 **Key Features**:
+
 - Comment preservation options
 - Source map support
 - Dead code elimination
 
 **Installation**:
+
 ```bash
 npm install terser
 npm install --save-dev @types/terser
 ```
 
 **Usage Example**:
+
 ```typescript
 import { minify } from 'terser';
 
@@ -155,10 +168,10 @@ const result = await minify(code, {
     drop_console: false,
     dead_code: true,
   },
-  mangle: false,  // Don't mangle for AI readability
+  mangle: false, // Don't mangle for AI readability
   format: {
-    comments: /^!/g,  // Preserve important comments
-    beautify: false,  // Compress output
+    comments: /^!/g, // Preserve important comments
+    beautify: false, // Compress output
   },
 });
 
@@ -178,11 +191,13 @@ console.log(result.code);
 **Why**: Focused on comment removal, no code transformation
 
 **Installation**:
+
 ```bash
 npm install strip-comments
 ```
 
 **Usage Example**:
+
 ```typescript
 import strip from 'strip-comments';
 
@@ -195,8 +210,8 @@ function example() {
 `;
 
 const stripped = strip(code, {
-  silent: true,  // Don't warn about missing closures
-  preserveNewlines: false,  // Remove extra newlines
+  silent: true, // Don't warn about missing closures
+  preserveNewlines: false, // Remove extra newlines
 });
 
 console.log(stripped);
@@ -213,18 +228,23 @@ console.log(stripped);
 **Source**: https://platform.openai.com/docs/guides/embeddings/what-are-embeddings
 
 **Key Insights**:
+
 - Use semantic similarity to rank context relevance
 - Rerank by importance before including in prompt
 - Remove redundant information
 
 **Implementation Pattern**:
+
 ```typescript
 interface ContextSection {
   content: string;
   relevanceScore: number;
 }
 
-function optimizeContext(sections: ContextSection[], tokenLimit: number): string {
+function optimizeContext(
+  sections: ContextSection[],
+  tokenLimit: number
+): string {
   // Sort by relevance
   const sorted = sections.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
@@ -251,11 +271,13 @@ function optimizeContext(sections: ContextSection[], tokenLimit: number): string
 **Source**: https://arxiv.org/abs/2305.14314 (LHAM: Long ContextHierarchical Attention for Memory)
 
 **Key Insights**:
+
 - Cache common context (architecture docs) separately
 - Share parent context across sibling PRPs
 - Only include task-specific context
 
 **Implementation Pattern**:
+
 ```typescript
 class HierarchicalCache {
   private parentContextCache = new Map<string, string>();
@@ -292,11 +314,13 @@ class HierarchicalCache {
 **Source**: https://kaiju.dev/blog/posts/llm-token-optimization
 
 **Key Insights**:
+
 - Store only changes from previous version
 - Reuse unchanged context
 - 40-60% savings for incremental updates
 
 **Implementation Pattern**:
+
 ```typescript
 interface DeltaContext {
   baseContext: string;
@@ -331,11 +355,13 @@ function applyDelta(base: string, changes: ContextChange[]): string {
 **Source**: https://lilianweng.github.io/posts/2023-01-10-inference-optimization/
 
 **Key Techniques**:
+
 1. Remove duplicate instructions
 2. Consolidate similar examples
 3. Use placeholders for repeated patterns
 
 **Example**:
+
 ```typescript
 // Before (redundant)
 const prompt = `
@@ -361,6 +387,7 @@ Constraints: Concise, clear, accurate
 **Key Pattern**: Replace large code blocks with references
 
 **Example**:
+
 ```typescript
 // Before (inline content)
 const context = `
@@ -381,6 +408,7 @@ Key functions:
 ```
 
 **Benefits**:
+
 - 80-90% size reduction for large files
 - Easier to maintain
 - Agent can read specific lines as needed
@@ -394,6 +422,7 @@ Key functions:
 **Key Pattern**: Use templates for repeated structures
 
 **Example**:
+
 ```typescript
 // Define templates
 const templates = {
@@ -432,22 +461,25 @@ ${gates.map(g => templates.validationGate(g.level, g.command)).join('\n')}
 
 **Compressed Markdown Patterns**:
 
-| Original | Compressed | Savings |
-|----------|-----------|---------|
-| `**bold**` | `*bold*` | 1 char |
+| Original     | Compressed   | Savings |
+| ------------ | ------------ | ------- |
+| `**bold**`   | `*bold*`     | 1 char  |
 | `` `code` `` | `` `code` `` | 0 chars |
-| `### Header` | `## Header` | 1 char |
+| `### Header` | `## Header`  | 1 char  |
 
 **Implementation**:
+
 ```typescript
 function compressMarkdown(md: string): string {
-  return md
-    // Replace ### with ## where possible
-    .replace(/^###\s+/gm, '## ')
-    // Use * instead of ** for bold
-    .replace(/\*\*(.*?)\*\*/g, '*$1*')
-    // Remove blank lines between list items
-    .replace(/\n\n- /g, '\n- ');
+  return (
+    md
+      // Replace ### with ## where possible
+      .replace(/^###\s+/gm, '## ')
+      // Use * instead of ** for bold
+      .replace(/\*\*(.*?)\*\*/g, '*$1*')
+      // Remove blank lines between list items
+      .replace(/\n\n- /g, '\n- ')
+  );
 }
 ```
 
@@ -473,15 +505,18 @@ function compressMarkdown(md: string): string {
 ```
 
 **Implementation**:
+
 ```typescript
 function compressYAML(yaml: string): string {
-  return yaml
-    // Convert block format to inline where safe
-    .replace(/- url: (.+)\n  why: (.+)/g, '- {$1, reason: $2}')
-    // Remove quotes when not needed
-    .replace(/'([^']+)'/g, '$1')
-    // Use flow notation for short objects
-    .replace(/\n  ([^:]+): ([^\n]+)\n/g, ' {$1: $2}\n');
+  return (
+    yaml
+      // Convert block format to inline where safe
+      .replace(/- url: (.+)\n  why: (.+)/g, '- {$1, reason: $2}')
+      // Remove quotes when not needed
+      .replace(/'([^']+)'/g, '$1')
+      // Use flow notation for short objects
+      .replace(/\n  ([^:]+): ([^\n]+)\n/g, ' {$1: $2}\n')
+  );
 }
 ```
 
@@ -495,16 +530,17 @@ function compressYAML(yaml: string): string {
 
 **Recommended Allocation for 4096 Token Limit**:
 
-| Section | Tokens | Percentage |
-|---------|--------|------------|
-| System Prompt | 500 | 12% |
-| Goal & Context | 800 | 20% |
-| Implementation Tasks | 1200 | 29% |
-| Validation Gates | 400 | 10% |
-| Examples | 800 | 20% |
-| Buffer | 396 | 9% |
+| Section              | Tokens | Percentage |
+| -------------------- | ------ | ---------- |
+| System Prompt        | 500    | 12%        |
+| Goal & Context       | 800    | 20%        |
+| Implementation Tasks | 1200   | 29%        |
+| Validation Gates     | 400    | 10%        |
+| Examples             | 800    | 20%        |
+| Buffer               | 396    | 9%         |
 
 **Implementation**:
+
 ```typescript
 interface TokenBudget {
   system: number;
@@ -515,7 +551,10 @@ interface TokenBudget {
   buffer: number;
 }
 
-function enforceTokenBudget(prp: PRPDocument, budget: TokenBudget): PRPDocument {
+function enforceTokenBudget(
+  prp: PRPDocument,
+  budget: TokenBudget
+): PRPDocument {
   const systemTokens = countTokens(prp.systemPrompt);
   const goalTokens = countTokens(prp.goal);
   const implTokens = countTokens(prp.implementationSteps.join('\n'));
@@ -538,12 +577,14 @@ function enforceTokenBudget(prp: PRPDocument, budget: TokenBudget): PRPDocument 
 **Strategy**: Truncate less important sections first
 
 **Priority Order** (truncate first):
+
 1. Examples and references
 2. Detailed explanations
 3. Implementation details
 4. Goal and context (never truncate)
 
 **Implementation**:
+
 ```typescript
 function progressiveTruncate(prp: PRPDocument, limit: number): PRPDocument {
   const totalTokens = countTokens(PRPToString(prp));
@@ -579,38 +620,38 @@ function progressiveTruncate(prp: PRPDocument, limit: number): PRPDocument {
 
 ### Token Counting & Optimization
 
-| Topic | URL | Section |
-|-------|-----|---------|
-| Tiktoken Documentation | https://github.com/openai/tiktoken | Usage Examples |
-| GPT Tokenizer | https://github.com/hughtrimble/gpt-tokenizer | API Reference |
-| OpenAI Tokenizer | https://platform.openai.com/tokenizer | Live Demo |
-| Token Optimization Guide | https://kaiju.dev/blog/posts/llm-token-optimization | All Sections |
-| Inference Optimization | https://lilianweng.github.io/posts/2023-01-10-inference-optimization/ | Context Compression |
+| Topic                    | URL                                                                   | Section             |
+| ------------------------ | --------------------------------------------------------------------- | ------------------- |
+| Tiktoken Documentation   | https://github.com/openai/tiktoken                                    | Usage Examples      |
+| GPT Tokenizer            | https://github.com/hughtrimble/gpt-tokenizer                          | API Reference       |
+| OpenAI Tokenizer         | https://platform.openai.com/tokenizer                                 | Live Demo           |
+| Token Optimization Guide | https://kaiju.dev/blog/posts/llm-token-optimization                   | All Sections        |
+| Inference Optimization   | https://lilianweng.github.io/posts/2023-01-10-inference-optimization/ | Context Compression |
 
 ### Code Minification
 
-| Library | URL | Section |
-|---------|-----|---------|
-| esbuild API | https://esbuild.github.io/api/#transform | Transform Options |
-| Terser Documentation | https://terser.org/docs/api-reference/ | Minify Options |
-| strip-comments | https://github.com/jonschlinkert/strip-comments | API Reference |
-| SWC Documentation | https://swc.rs/docs/usage/core/minify | Minify API |
+| Library              | URL                                             | Section           |
+| -------------------- | ----------------------------------------------- | ----------------- |
+| esbuild API          | https://esbuild.github.io/api/#transform        | Transform Options |
+| Terser Documentation | https://terser.org/docs/api-reference/          | Minify Options    |
+| strip-comments       | https://github.com/jonschlinkert/strip-comments | API Reference     |
+| SWC Documentation    | https://swc.rs/docs/usage/core/minify           | Minify API        |
 
 ### Prompt Engineering
 
-| Topic | URL | Section |
-|-------|-----|---------|
-| Prompt Engineering Guide | https://github.com/promptslab/Prompt-Engineering-Guide | Compression Techniques |
-| PromptFlow | https://github.com/microsoft/promptflow | Template Usage |
-| LlamaIndex Context | https://docs.llamaindex.ai/en/stable/examples/optimization | Context Compression |
+| Topic                    | URL                                                        | Section                |
+| ------------------------ | ---------------------------------------------------------- | ---------------------- |
+| Prompt Engineering Guide | https://github.com/promptslab/Prompt-Engineering-Guide     | Compression Techniques |
+| PromptFlow               | https://github.com/microsoft/promptflow                    | Template Usage         |
+| LlamaIndex Context       | https://docs.llamaindex.ai/en/stable/examples/optimization | Context Compression    |
 
 ### Academic Papers
 
-| Paper | URL | Topic |
-|-------|-----|-------|
-| LHAM | https://arxiv.org/abs/2305.14314 | Hierarchical Context |
-| Token Limiting | https://arxiv.org/abs/2308.05855 | Context Management |
-| Delta Encoding | https://arxiv.org/abs/2305.14251 | Incremental Updates |
+| Paper          | URL                              | Topic                |
+| -------------- | -------------------------------- | -------------------- |
+| LHAM           | https://arxiv.org/abs/2305.14314 | Hierarchical Context |
+| Token Limiting | https://arxiv.org/abs/2308.05855 | Context Management   |
+| Delta Encoding | https://arxiv.org/abs/2305.14251 | Incremental Updates  |
 
 ---
 
@@ -668,23 +709,23 @@ function progressiveTruncate(prp: PRPDocument, limit: number): PRPDocument {
 
 ### Token Reduction
 
-| Optimization | Token Savings | Implementation Effort |
-|--------------|---------------|---------------------|
-| Parent context truncation | 10-15% | Low |
-| Code snippet compression | 15-20% | Medium |
-| File references | 20-30% | Low |
-| Hierarchical caching | 20-30% | High |
-| Delta encoding | 40-60% | Medium |
-| Combined | **50-70%** | Medium-High |
+| Optimization              | Token Savings | Implementation Effort |
+| ------------------------- | ------------- | --------------------- |
+| Parent context truncation | 10-15%        | Low                   |
+| Code snippet compression  | 15-20%        | Medium                |
+| File references           | 20-30%        | Low                   |
+| Hierarchical caching      | 20-30%        | High                  |
+| Delta encoding            | 40-60%        | Medium                |
+| Combined                  | **50-70%**    | Medium-High           |
 
 ### Cost Impact
 
-| Metric | Current | Optimized | Savings |
-|--------|---------|-----------|---------|
-| Monthly API Cost | $180 | $90 | $90 |
-| Annual API Cost | $2,160 | $1,080 | $1,080 |
-| Avg PRP Tokens | 3,200 | 1,600 | 1,600 |
-| PRP Size | 32KB | 12KB | 20KB |
+| Metric           | Current | Optimized | Savings |
+| ---------------- | ------- | --------- | ------- |
+| Monthly API Cost | $180    | $90       | $90     |
+| Annual API Cost  | $2,160  | $1,080    | $1,080  |
+| Avg PRP Tokens   | 3,200   | 1,600     | 1,600   |
+| PRP Size         | 32KB    | 12KB      | 20KB    |
 
 ---
 
@@ -699,6 +740,7 @@ External research reveals:
 5. **Progressive truncation** maintains quality while reducing size
 
 **Recommended Approach**:
+
 - Start with tiktoken + basic compression (Week 1)
 - Add hierarchical caching (Week 2)
 - Implement delta encoding (Week 3)

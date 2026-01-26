@@ -11,6 +11,7 @@
 **Recommendation**: **Use Groundswell's built-in reflection system** rather than implementing custom retry logic.
 
 **Justification**:
+
 - Groundswell provides a comprehensive, production-ready reflection system with intelligent retry capabilities
 - The system supports both heuristic-based and agent-powered reflection analysis
 - Built-in retry limits, delay configuration, and non-retryable error detection
@@ -162,25 +163,31 @@ When no agent is provided, `ReflectionManager` uses rule-based heuristics:
 
 ```typescript
 // Rate limit and quota errors
-if (message.includes('rate limit') ||
-    message.includes('quota exceeded') ||
-    message.includes('429')) {
+if (
+  message.includes('rate limit') ||
+  message.includes('quota exceeded') ||
+  message.includes('429')
+) {
   return { shouldRetry: false, reason: 'Non-retryable error: rate limit' };
 }
 
 // Authentication errors
-if (message.includes('authentication') ||
-    message.includes('unauthorized') ||
-    message.includes('401') ||
-    message.includes('403') ||
-    message.includes('invalid api key')) {
+if (
+  message.includes('authentication') ||
+  message.includes('unauthorized') ||
+  message.includes('401') ||
+  message.includes('403') ||
+  message.includes('invalid api key')
+) {
   return { shouldRetry: false, reason: 'Non-retryable error: auth' };
 }
 
 // Network errors (should use exponential backoff instead)
-if (message.includes('econnrefused') ||
-    message.includes('etimedout') ||
-    message.includes('network')) {
+if (
+  message.includes('econnrefused') ||
+  message.includes('etimedout') ||
+  message.includes('network')
+) {
   return { shouldRetry: false, reason: 'Non-retryable error: network' };
 }
 ```
@@ -189,13 +196,15 @@ if (message.includes('econnrefused') ||
 
 ```typescript
 // Validation/parsing errors
-if (errorMessage.includes('validation') ||
-    errorMessage.includes('parse') ||
-    errorMessage.includes('schema') ||
-    errorMessage.includes('json')) {
+if (
+  errorMessage.includes('validation') ||
+  errorMessage.includes('parse') ||
+  errorMessage.includes('schema') ||
+  errorMessage.includes('json')
+) {
   return {
     shouldRetry: true,
-    reason: 'Validation/parsing error detected - retry may succeed'
+    reason: 'Validation/parsing error detected - retry may succeed',
   };
 }
 
@@ -203,9 +212,10 @@ if (errorMessage.includes('validation') ||
 if (errorMessage.includes('timeout')) {
   return {
     shouldRetry: context.attemptNumber < 2,
-    reason: context.attemptNumber < 2
-      ? 'Timeout error - retry once'
-      : 'Timeout error - too many attempts'
+    reason:
+      context.attemptNumber < 2
+        ? 'Timeout error - retry once'
+        : 'Timeout error - too many attempts',
   };
 }
 
@@ -215,7 +225,7 @@ return {
   shouldRetry,
   reason: shouldRetry
     ? `Attempt ${context.attemptNumber} failed - retrying`
-    : `Max attempts (${this.config.maxAttempts}) reached`
+    : `Max attempts (${this.config.maxAttempts}) reached`,
 };
 ```
 
@@ -259,6 +269,7 @@ Respond with JSON:
 ```
 
 **Key Capabilities**:
+
 - Intelligent analysis of error context
 - Suggests prompt revisions for retry
 - Learns from previous attempts
@@ -275,13 +286,14 @@ import { createAgent, createPrompt } from 'groundswell';
 
 const agent = createAgent({
   name: 'ReflectiveAgent',
-  enableReflection: true,  // Enable at agent level
+  enableReflection: true, // Enable at agent level
 });
 
 const result = await agent.prompt(prompt);
 ```
 
 **What it does**: Prepends reflection prefix to system prompt:
+
 ```
 Before answering, reflect on your reasoning step by step.
 Consider alternative approaches and potential errors.
@@ -293,7 +305,7 @@ Then provide your final answer.
 ```typescript
 const prompt = createPrompt({
   user: 'Complex question',
-  enableReflection: true,  // Enable at prompt level
+  enableReflection: true, // Enable at prompt level
   responseFormat: schema,
 });
 
@@ -308,11 +320,11 @@ import { createWorkflow } from 'groundswell';
 const workflow = createWorkflow(
   {
     name: 'DataPipeline',
-    enableReflection: true,  // Enable at workflow level
+    enableReflection: true, // Enable at workflow level
     maxReflectionAttempts: 3,
-    reflectionRetryDelayMs: 1000
+    reflectionRetryDelayMs: 1000,
   },
-  async (ctx) => {
+  async ctx => {
     const result = await ctx.step('process', async () => {
       return processData();
     });
@@ -330,7 +342,7 @@ import { ReflectionManager, executeWithReflection } from 'groundswell';
 const reflection = new ReflectionManager({
   enabled: true,
   maxAttempts: 3,
-  retryDelayMs: 1000
+  retryDelayMs: 1000,
 });
 
 // Use with executeWithReflection helper
@@ -344,7 +356,7 @@ const result = await executeWithReflection(
     failedNode: currentNode,
     error,
     attemptNumber: attempt,
-    previousAttempts: history
+    previousAttempts: history,
   })
 );
 ```
@@ -355,7 +367,11 @@ const result = await executeWithReflection(
 export async function executeWithReflection<T>(
   fn: () => Promise<T>,
   reflection: ReflectionManager,
-  createContext: (error: Error, attempt: number, history: ReflectionEntry[]) => ReflectionContext
+  createContext: (
+    error: Error,
+    attempt: number,
+    history: ReflectionEntry[]
+  ) => ReflectionContext
 ): Promise<T> {
   let lastError: Error | null = null;
   const maxAttempts = reflection.getMaxAttempts();
@@ -424,7 +440,7 @@ export function createBaseConfig(persona: AgentPersona): AgentConfig {
     system,
     model,
     enableCache: true,
-    enableReflection: true,  // ✅ Already enabled!
+    enableReflection: true, // ✅ Already enabled!
     maxTokens: PERSONA_TOKEN_LIMITS[persona],
     env: {
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
@@ -448,7 +464,10 @@ class Agent {
    * @param overrides Optional overrides for this execution
    * @returns AgentResponse containing validated response or error
    */
-  reflect<T>(prompt: Prompt<T>, overrides?: PromptOverrides): Promise<AgentResponse<T>>;
+  reflect<T>(
+    prompt: Prompt<T>,
+    overrides?: PromptOverrides
+  ): Promise<AgentResponse<T>>;
 }
 ```
 
@@ -460,18 +479,18 @@ class Agent {
 
 ### 6.1 Feature Comparison
 
-| Feature | Groundswell Reflection | Custom Retry Implementation |
-|---------|----------------------|----------------------------|
-| **Retry Limits** | ✅ Configurable `maxAttempts` | ❌ Must implement |
-| **Delay Configuration** | ✅ `retryDelayMs` | ❌ Must implement |
-| **Non-Retryable Detection** | ✅ Built-in heuristics | ❌ Must implement |
-| **L-Powered Analysis** | ✅ Optional agent mode | ❌ Must implement |
-| **History Tracking** | ✅ Automatic | ❌ Must implement |
-| **Event Emission** | ✅ Workflow integration | ❌ Must implement |
-| **Prompt Revision** | ✅ Suggests changes | ❌ Must implement |
-| **Observability** | ✅ Full history | ❌ Must implement |
-| **Testing** | ✅ Unit tests included | ❌ Must write |
-| **Maintenance** | ✅ Library updates | 🔴 Ongoing maintenance |
+| Feature                     | Groundswell Reflection        | Custom Retry Implementation |
+| --------------------------- | ----------------------------- | --------------------------- |
+| **Retry Limits**            | ✅ Configurable `maxAttempts` | ❌ Must implement           |
+| **Delay Configuration**     | ✅ `retryDelayMs`             | ❌ Must implement           |
+| **Non-Retryable Detection** | ✅ Built-in heuristics        | ❌ Must implement           |
+| **L-Powered Analysis**      | ✅ Optional agent mode        | ❌ Must implement           |
+| **History Tracking**        | ✅ Automatic                  | ❌ Must implement           |
+| **Event Emission**          | ✅ Workflow integration       | ❌ Must implement           |
+| **Prompt Revision**         | ✅ Suggests changes           | ❌ Must implement           |
+| **Observability**           | ✅ Full history               | ❌ Must implement           |
+| **Testing**                 | ✅ Unit tests included        | ❌ Must write               |
+| **Maintenance**             | ✅ Library updates            | 🔴 Ongoing maintenance      |
 
 ### 6.2 Code Complexity Comparison
 
@@ -479,8 +498,8 @@ class Agent {
 
 ```typescript
 // Simple: Already configured in agent factory
-const agent = createArchitectAgent();  // enableReflection: true
-const result = await agent.reflect(prompt);  // Automatic retry with analysis
+const agent = createArchitectAgent(); // enableReflection: true
+const result = await agent.reflect(prompt); // Automatic retry with analysis
 ```
 
 **Lines of Code**: ~2
@@ -522,36 +541,34 @@ async function executeWithRetry<T>(
 
 function isNonRetryable(error: Error): boolean {
   const msg = error.message.toLowerCase();
-  return msg.includes('rate limit') ||
-         msg.includes('authentication') ||
-         msg.includes('401') ||
-         msg.includes('403');
+  return (
+    msg.includes('rate limit') ||
+    msg.includes('authentication') ||
+    msg.includes('401') ||
+    msg.includes('403')
+  );
 }
 
 // Usage
-const result = await executeWithRetry(
-  () => agent.prompt(prompt),
-  3,
-  1000
-);
+const result = await executeWithRetry(() => agent.prompt(prompt), 3, 1000);
 ```
 
 **Lines of Code**: ~40
 
 ### 6.3 Capability Comparison
 
-| Capability | Groundswell | Custom |
-|------------|------------|--------|
-| Basic retry | ✅ | ✅ |
-| Retry limits | ✅ | ✅ |
-| Delay between retries | ✅ | ✅ |
-| Non-retryable error detection | ✅ | ⚠️ Manual |
-| L-powered error analysis | ✅ | ❌ |
-| Prompt revision suggestions | ✅ | ❌ |
-| History tracking | ✅ | ⚠️ Manual |
-| Event emission | ✅ | ❌ |
-| Workflow integration | ✅ | ❌ |
-| Observable debugging | ✅ | ❌ |
+| Capability                    | Groundswell | Custom    |
+| ----------------------------- | ----------- | --------- |
+| Basic retry                   | ✅          | ✅        |
+| Retry limits                  | ✅          | ✅        |
+| Delay between retries         | ✅          | ✅        |
+| Non-retryable error detection | ✅          | ⚠️ Manual |
+| L-powered error analysis      | ✅          | ❌        |
+| Prompt revision suggestions   | ✅          | ❌        |
+| History tracking              | ✅          | ⚠️ Manual |
+| Event emission                | ✅          | ❌        |
+| Workflow integration          | ✅          | ❌        |
+| Observable debugging          | ✅          | ❌        |
 
 ---
 
@@ -562,6 +579,7 @@ const result = await executeWithRetry(
 **✅ Use Groundswell's built-in reflection system**
 
 **Rationale**:
+
 1. **Already Enabled**: All agents have `enableReflection: true` in their configuration
 2. **Production-Ready**: Includes comprehensive error handling, history tracking, and observability
 3. **Intelligent**: Both heuristic and L-powered analysis modes
@@ -585,6 +603,7 @@ const result = await agent.reflect(prompt);
 ```
 
 **When to Use**:
+
 - Simple retry scenarios
 - Standard error handling needs
 - Agent-level configuration sufficient
@@ -598,7 +617,7 @@ import { ReflectionManager, executeWithReflection } from 'groundswell';
 const reflection = new ReflectionManager({
   enabled: true,
   maxAttempts: 3,
-  retryDelayMs: 2000  // 2 second delay
+  retryDelayMs: 2000, // 2 second delay
 });
 
 // Execute with reflection
@@ -610,12 +629,13 @@ const result = await executeWithReflection(
     failedNode: currentNode,
     error,
     attemptNumber: attempt,
-    previousAttempts: history
+    previousAttempts: history,
   })
 );
 ```
 
 **When to Use**:
+
 - Custom retry limits needed
 - Specific delay requirements
 - Integration with custom workflows
@@ -627,13 +647,14 @@ const result = await executeWithReflection(
 // Create reflection agent for intelligent analysis
 const reflectionAgent = createAgent({
   name: 'ReflectionAgent',
-  system: 'You are an error analysis expert. Analyze errors and recommend retry strategies.'
+  system:
+    'You are an error analysis expert. Analyze errors and recommend retry strategies.',
 });
 
 // Create ReflectionManager with agent
 const reflection = new ReflectionManager(
   { enabled: true, maxAttempts: 3 },
-  reflectionAgent  // Pass agent for L-powered analysis
+  reflectionAgent // Pass agent for L-powered analysis
 );
 
 // Use with executeWithReflection
@@ -645,6 +666,7 @@ const result = await executeWithReflection(
 ```
 
 **When to Use**:
+
 - Complex error scenarios
 - Need intelligent error analysis
 - Want prompt revision suggestions
@@ -724,8 +746,8 @@ export async function generateDeltaPRD(
   // Custom reflection configuration for delta generation
   const reflection = new ReflectionManager({
     enabled: true,
-    maxAttempts: 5,  // More attempts for delta generation
-    retryDelayMs: 3000  // 3 second delay
+    maxAttempts: 5, // More attempts for delta generation
+    retryDelayMs: 3000, // 3 second delay
   });
 
   return await executeWithReflection(
@@ -745,7 +767,7 @@ export async function generateDeltaPRD(
       failedNode: { id: 'delta-prd-gen', name: 'Delta PRD Generation' },
       error,
       attemptNumber: attempt,
-      previousAttempts: history
+      previousAttempts: history,
     })
   );
 }
@@ -775,7 +797,7 @@ Focus on:
 - Type system issues
 - Compilation failures
 - Test failures`,
-  enableCache: true
+  enableCache: true,
 });
 
 export async function executePRPWithReflection(prp: PRP): Promise<void> {
@@ -786,9 +808,9 @@ export async function executePRPWithReflection(prp: PRP): Promise<void> {
     {
       enabled: true,
       maxAttempts: 3,
-      retryDelayMs: 2000
+      retryDelayMs: 2000,
     },
-    reflectionAgent  // Agent-powered analysis
+    reflectionAgent // Agent-powered analysis
   );
 
   await executeWithReflection(
@@ -808,7 +830,7 @@ export async function executePRPWithReflection(prp: PRP): Promise<void> {
       failedNode: { id: prp.id, name: prp.title },
       error,
       attemptNumber: attempt,
-      previousAttempts: history
+      previousAttempts: history,
     })
   );
 }
@@ -823,6 +845,7 @@ export async function executePRPWithReflection(prp: PRP): Promise<void> {
 **Action**: Replace `agent.prompt()` with `agent.reflect()` in critical paths
 
 **Locations**:
+
 - `src/agents/prp-generator.ts` - PRP generation
 - `src/agents/prp-executor.ts` - PRP execution
 - `src/workflows/delta-analysis-workflow.ts` - Delta PRD generation
@@ -830,6 +853,7 @@ export async function executePRPWithReflection(prp: PRP): Promise<void> {
 **Impact**: Low - Reflection already configured, just change method call
 
 **Example**:
+
 ```typescript
 // Before
 const result = await agent.prompt(prompt);
@@ -847,6 +871,7 @@ const result = response.data;
 **Action**: Use `ReflectionManager` for workflows needing custom retry limits
 
 **Locations**:
+
 - Workflow classes with specific retry requirements
 - Long-running operations (delta analysis, fix cycles)
 
@@ -857,6 +882,7 @@ const result = response.data;
 **Action**: Create specialized reflection agents for complex error scenarios
 
 **Locations**:
+
 - Code generation workflows
 - Test execution workflows
 - Bug fix workflows
@@ -877,7 +903,7 @@ describe('Reflection Configuration', () => {
   it('should respect max attempts limit', async () => {
     const reflection = new ReflectionManager({
       enabled: true,
-      maxAttempts: 2
+      maxAttempts: 2,
     });
 
     expect(reflection.getMaxAttempts()).toBe(2);
@@ -886,7 +912,7 @@ describe('Reflection Configuration', () => {
   it('should detect non-retryable errors', async () => {
     const reflection = new ReflectionManager({
       enabled: true,
-      maxAttempts: 3
+      maxAttempts: 3,
     });
 
     const context = {
@@ -894,7 +920,7 @@ describe('Reflection Configuration', () => {
       failedNode: { id: 'test', name: 'Test' },
       error: new Error('rate limit exceeded'),
       attemptNumber: 1,
-      previousAttempts: []
+      previousAttempts: [],
     };
 
     const result = await reflection.reflect(context);
@@ -934,13 +960,13 @@ describe('Agent Reflection Integration', () => {
 ```typescript
 const reflection = new ReflectionManager({
   enabled: true,
-  maxAttempts: 3
+  maxAttempts: 3,
 });
 
 // After execution
 const history = reflection.getReflectionHistory();
 
-history.forEach((entry) => {
+history.forEach(entry => {
   console.log(`[${entry.level}] ${entry.reason}`);
   console.log(`  Resolution: ${entry.resolution}`);
   console.log(`  Success: ${entry.success}`);
@@ -951,7 +977,7 @@ history.forEach((entry) => {
 ### 11.2 Event Emission
 
 ```typescript
-reflection.setEventEmitter((event) => {
+reflection.setEventEmitter(event => {
   if (event.type === 'reflectionStart') {
     logger.info(`Reflection started for ${event.node.name}`);
   } else if (event.type === 'reflectionEnd') {
@@ -1033,11 +1059,13 @@ reflection.setEventEmitter((event) => {
 ### 13.1 Groundswell Documentation
 
 **Official Repository**:
+
 - URL: https://github.com/groundswell-ai/groundswell
 - Version: 0.0.4
 - Installation: `file:.yalc/groundswell` (local development)
 
 **Core Documentation**:
+
 - `/home/dustin/projects/groundswell/README.md` - Main README
 - `/home/dustin/projects/groundswell/docs/agent.md` - Agent documentation
 - `/home/dustin/projects/groundswell/docs/workflow.md` - Workflow documentation
@@ -1046,40 +1074,50 @@ reflection.setEventEmitter((event) => {
 ### 13.2 Source Code
 
 **Reflection Implementation**:
+
 - `/home/dustin/projects/groundswell/src/reflection/reflection.ts` - Full implementation
 - `/home/dustin/projects/groundswell/src/types/reflection.ts` - Type definitions
 
 **Type Definitions**:
+
 - `/home/dustin/projects/hacky-hack/node_modules/groundswell/dist/reflection/reflection.d.ts`
 - `/home/dustin/projects/hacky-hack/node_modules/groundswell/dist/types/reflection.d.ts`
 - `/home/dustin/projects/hacky-hack/node_modules/groundswell/dist/core/agent.d.ts`
 
 **Tests**:
+
 - `/home/dustin/projects/hacky-hack/node_modules/groundswell/dist/__tests__/unit/reflection.test.js`
 
 ### 13.3 Current Codebase Usage
 
 **Agent Configuration**:
+
 - `/home/dustin/projects/hacky-hack/src/agents/agent-factory.ts` - Agent factory with reflection enabled
 
 **Existing Patterns**:
+
 - `/home/dustin/projects/hacky-hack/docs/CUSTOM_AGENTS.md` - Agent development guide
 - `/home/dustin/projects/hacky-hack/docs/TESTING.md` - Testing patterns
 
 ### 13.4 Key Code Examples
 
 **Agent Reflection Method**:
+
 ```typescript
 // From: node_modules/groundswell/dist/core/agent.d.ts
 class Agent {
   /**
    * Execute a prompt with reflection capabilities
    */
-  reflect<T>(prompt: Prompt<T>, overrides?: PromptOverrides): Promise<AgentResponse<T>>;
+  reflect<T>(
+    prompt: Prompt<T>,
+    overrides?: PromptOverrides
+  ): Promise<AgentResponse<T>>;
 }
 ```
 
 **Reflection Manager Constructor**:
+
 ```typescript
 // From: node_modules/groundswell/dist/reflection/reflection.d.ts
 class ReflectionManager implements ReflectionAPI {
@@ -1088,12 +1126,17 @@ class ReflectionManager implements ReflectionAPI {
 ```
 
 **Execute With Reflection Helper**:
+
 ```typescript
 // From: node_modules/groundswell/dist/reflection/reflection.d.ts
 export declare function executeWithReflection<T>(
   fn: () => Promise<T>,
   reflection: ReflectionManager,
-  createContext: (error: Error, attempt: number, history: ReflectionEntry[]) => ReflectionContext
+  createContext: (
+    error: Error,
+    attempt: number,
+    history: ReflectionEntry[]
+  ) => ReflectionContext
 ): Promise<T>;
 ```
 
@@ -1112,12 +1155,14 @@ Groundswell's reflection system provides a comprehensive, production-ready solut
 **Recommendation**: Use Groundswell's built-in reflection system rather than implementing custom retry logic. The system is already configured in the codebase (`enableReflection: true` in all agents) and provides superior capabilities compared to custom implementations.
 
 **Next Steps**:
+
 1. Replace `agent.prompt()` with `agent.reflect()` in critical error-prone paths
 2. Add `ReflectionManager` for workflows requiring custom retry limits
 3. Monitor reflection history to identify common failure patterns
 4. Consider agent-powered reflection for complex error scenarios
 
 **Estimated Implementation Effort**:
+
 - Phase 1 (Basic reflection): 1-2 hours
 - Phase 2 (ReflectionManager): 2-4 hours
 - Phase 3 (Agent-powered): 4-8 hours (optional)

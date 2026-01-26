@@ -23,7 +23,11 @@ encoder.free();
 ```typescript
 // In extractParentContext()
 const maxLevels = 2; // Only include 2 most recent parents
-for (let i = parts.length - 2; i >= Math.max(0, parts.length - 1 - maxLevels); i--) {
+for (
+  let i = parts.length - 2;
+  i >= Math.max(0, parts.length - 1 - maxLevels);
+  i--
+) {
   // extract context
 }
 ```
@@ -53,7 +57,8 @@ function compressWhitespace(markdown: string): string {
 ```typescript
 const maxDeps = 5;
 const depDisplay = deps.slice(0, maxDeps);
-const moreDeps = deps.length > maxDeps ? ` (+${deps.length - maxDeps} more)` : '';
+const moreDeps =
+  deps.length > maxDeps ? ` (+${deps.length - maxDeps} more)` : '';
 ```
 
 ---
@@ -62,11 +67,11 @@ const moreDeps = deps.length > maxDeps ? ` (+${deps.length - maxDeps} more)` : '
 
 ### GPT-4 Context Windows
 
-| Model | Context Window | Safe Limit | Recommended |
-|-------|---------------|------------|-------------|
-| GPT-4 | 8,192 tokens | 6,000 | 5,000 |
-| GPT-4-32K | 32,768 tokens | 25,000 | 20,000 |
-| GPT-4 Turbo | 128,000 tokens | 100,000 | 80,000 |
+| Model       | Context Window | Safe Limit | Recommended |
+| ----------- | -------------- | ---------- | ----------- |
+| GPT-4       | 8,192 tokens   | 6,000      | 5,000       |
+| GPT-4-32K   | 32,768 tokens  | 25,000     | 20,000      |
+| GPT-4 Turbo | 128,000 tokens | 100,000    | 80,000      |
 
 ### Token Allocation Strategy
 
@@ -86,30 +91,30 @@ Total Safe Budget:  ~5,000-7,000 tokens
 
 ### Text Compression
 
-| Technique | Savings | Trade-off |
-|-----------|---------|-----------|
-| Remove stop words | 10-15% | Readability |
-| Truncate sentences | 20-40% | Completeness |
-| First sentence only | 30-50% | Detail loss |
-| Keyword extraction | 40-60% | Nuance loss |
+| Technique           | Savings | Trade-off    |
+| ------------------- | ------- | ------------ |
+| Remove stop words   | 10-15%  | Readability  |
+| Truncate sentences  | 20-40%  | Completeness |
+| First sentence only | 30-50%  | Detail loss  |
+| Keyword extraction  | 40-60%  | Nuance loss  |
 
 ### Code Compression
 
-| Technique | Savings | Trade-off |
-|-----------|---------|-----------|
-| Remove comments | 10-20% | Documentation |
-| Remove whitespace | 5-10% | Formatting |
-| Shorten identifiers | 5-15% | Clarity |
-| Template-based | 30-50% | Context |
+| Technique           | Savings | Trade-off     |
+| ------------------- | ------- | ------------- |
+| Remove comments     | 10-20%  | Documentation |
+| Remove whitespace   | 5-10%   | Formatting    |
+| Shorten identifiers | 5-15%   | Clarity       |
+| Template-based      | 30-50%  | Context       |
 
 ### Markdown Compression
 
-| Element | Original | Compressed | Savings |
-|---------|----------|------------|---------|
-| Headers | `## Implementation Steps` | `## Steps` | 40% |
-| Links | `[Title](https://long-url.com/path)` | `Title: long-url.com` | 50% |
-| Lists | `1. First item` | `• First item` | 20% |
-| Bold | `**important text**` | `important text` | 2 chars |
+| Element | Original                             | Compressed            | Savings |
+| ------- | ------------------------------------ | --------------------- | ------- |
+| Headers | `## Implementation Steps`            | `## Steps`            | 40%     |
+| Links   | `[Title](https://long-url.com/path)` | `Title: long-url.com` | 50%     |
+| Lists   | `1. First item`                      | `• First item`        | 20%     |
+| Bold    | `**important text**`                 | `important text`      | 2 chars |
 
 ---
 
@@ -130,12 +135,12 @@ const cacheKey = `prp:${taskId}:${hash(entireBacklog)}`;
 
 ### TTL Recommendations
 
-| Content Type | TTL | Reasoning |
-|--------------|-----|-----------|
-| PRP content | 24-48 hours | Tasks rarely change |
-| Parent context | 7 days | Hierarchies stable |
-| System prompts | 30 days | Rarely changes |
-| Codebase info | 1-4 hours | Files change often |
+| Content Type   | TTL         | Reasoning           |
+| -------------- | ----------- | ------------------- |
+| PRP content    | 24-48 hours | Tasks rarely change |
+| Parent context | 7 days      | Hierarchies stable  |
+| System prompts | 30 days     | Rarely changes      |
+| Codebase info  | 1-4 hours   | Files change often  |
 
 ### Cache Eviction
 
@@ -157,11 +162,14 @@ evictEntriesUntilTotalTokensBelow(maxTokens);
 ### Pattern 1: Conditional Context Inclusion
 
 ```typescript
-function buildPrompt(task: Task, options: {
-  includeParentContext?: boolean;
-  includeDependencies?: boolean;
-  includeCodebaseInfo?: boolean;
-}): string {
+function buildPrompt(
+  task: Task,
+  options: {
+    includeParentContext?: boolean;
+    includeDependencies?: boolean;
+    includeCodebaseInfo?: boolean;
+  }
+): string {
   let prompt = `Task: ${task.title}`;
 
   if (options.includeParentContext) {
@@ -251,14 +259,17 @@ const ALERTS = {
 ### Logging Pattern
 
 ```typescript
-logger.info({
-  taskId: task.id,
-  inputTokens,
-  outputTokens,
-  totalTokens: inputTokens + outputTokens,
-  cacheHit: cached !== null,
-  compressionRatio: originalTokens / compressedTokens,
-}, 'PRP generation metrics');
+logger.info(
+  {
+    taskId: task.id,
+    inputTokens,
+    outputTokens,
+    totalTokens: inputTokens + outputTokens,
+    cacheHit: cached !== null,
+    compressionRatio: originalTokens / compressedTokens,
+  },
+  'PRP generation metrics'
+);
 ```
 
 ---
@@ -323,23 +334,25 @@ export function compressContext(
 
 ```typescript
 export function minifyMarkdown(markdown: string): string {
-  return markdown
-    // Remove comments
-    .replace(/<!--[\s\S]*?-->/g, '')
-    // Remove multiple blank lines
-    .replace(/\n{3,}/g, '\n\n')
-    // Remove trailing whitespace
-    .replace(/[ \t]+$/gm, '')
-    // Compress headers (keep first 3 words)
-    .replace(/^(#{1,6}) (.+)/gm, (_, hashes, header) => {
-      const words = header.split(' ').slice(0, 3).join(' ');
-      return `${hashes} ${words}`;
-    })
-    // Shorten links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
-      const shortUrl = url.replace(/^https?:\/\/(?:www\.)?/, '');
-      return `${text}: ${shortUrl}`;
-    });
+  return (
+    markdown
+      // Remove comments
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // Remove multiple blank lines
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove trailing whitespace
+      .replace(/[ \t]+$/gm, '')
+      // Compress headers (keep first 3 words)
+      .replace(/^(#{1,6}) (.+)/gm, (_, hashes, header) => {
+        const words = header.split(' ').slice(0, 3).join(' ');
+        return `${hashes} ${words}`;
+      })
+      // Shorten links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+        const shortUrl = url.replace(/^https?:\/\/(?:www\.)?/, '');
+        return `${text}: ${shortUrl}`;
+      })
+  );
 }
 ```
 
@@ -370,14 +383,17 @@ export function minifyMarkdown(markdown: string): string {
 ## 🎓 Learning Resources
 
 ### Token Counting
+
 - **OpenAI Tiktoken:** https://github.com/openai/tiktoken
 - **Tokenizer Playground:** https://platform.openai.com/tokenizer
 
 ### Prompt Engineering
+
 - **OpenAI Guide:** https://platform.openai.com/docs/guides/prompt-engineering
 - **Anthropic Library:** https://docs.anthropic.com/claude/prompt-library
 
 ### Caching Strategies
+
 - **Redis Best Practices:** https://redis.io/docs/manual/patterns/caching/
 - **Semantic Caching Paper:** https://arxiv.org/abs/2206.10389
 
@@ -388,6 +404,7 @@ export function minifyMarkdown(markdown: string): string {
 ### Problem: High Token Count
 
 **Diagnosis:**
+
 ```typescript
 const tokens = encoder.count(prompt.user);
 console.log(`User prompt: ${tokens} tokens`);
@@ -403,6 +420,7 @@ console.table(sections);
 ```
 
 **Solutions:**
+
 1. Enable context compression (reduce maxLevels, truncate descriptions)
 2. Limit dependencies shown (maxDependencies: 5)
 3. Remove non-essential sections
@@ -411,6 +429,7 @@ console.table(sections);
 ### Problem: Low Cache Hit Rate
 
 **Diagnosis:**
+
 ```typescript
 const stats = await cacheManager.getStats();
 console.log(`Hit rate: ${stats.hitRatio}%`);
@@ -422,6 +441,7 @@ console.log(`Average age: ${average(ages)}ms`);
 ```
 
 **Solutions:**
+
 1. Increase cache TTL (24h → 48h)
 2. Review cache key logic (include only relevant fields)
 3. Implement hierarchical caching (share parent context)
@@ -430,6 +450,7 @@ console.log(`Average age: ${average(ages)}ms`);
 ### Problem: Quality Degradation
 
 **Diagnosis:**
+
 ```typescript
 // Compare PRP quality before/after
 const baselinePRP = await generateWithBaseline(task);
@@ -440,6 +461,7 @@ console.log(`Quality delta: ${qualityDiff}`);
 ```
 
 **Solutions:**
+
 1. Reduce compression aggressiveness
 2. Add quality gate (reject if quality drops below threshold)
 3. Use selective compression (compress only safe sections)

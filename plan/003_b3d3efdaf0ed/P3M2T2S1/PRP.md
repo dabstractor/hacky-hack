@@ -12,11 +12,13 @@
 **Feature Goal**: Implement a checkpoint mechanism that saves execution state at critical points during PRP execution, allowing resumption from the last saved state if the pipeline is interrupted (e.g., system crash, user cancellation, timeout).
 
 **Deliverable**:
+
 1. `src/core/checkpoint-manager.ts` - CheckpointManager class with save, restore, list, and cleanup capabilities
 2. Integration in PRPExecutor to create checkpoints at key execution points
 3. `tests/unit/core/checkpoint-manager.test.ts` - Unit tests for checkpoint functionality
 
 **Success Definition**:
+
 - CheckpointManager class exists with all required methods (saveCheckpoint, restoreCheckpoint, listCheckpoints, cleanup)
 - Checkpoints are saved to `artifacts/{taskId}/checkpoints.json` using atomic write pattern
 - PRPExecutor creates checkpoints: (a) before starting PRP, (b) after Coder Agent response, (c) after each validation gate
@@ -34,6 +36,7 @@
 **Use Case**: When long-running agent calls (Architect, Researcher, Coder, QA) are interrupted due to system crashes, user cancellation, or timeouts, the system should be able to resume from the last checkpoint rather than starting from the beginning.
 
 **User Journey**:
+
 1. Pipeline executes a long-running subtask (e.g., large codebase analysis)
 2. Checkpoint is saved before agent execution starts
 3. System is interrupted (crash, SIGINT, timeout)
@@ -42,6 +45,7 @@
 6. Task completes successfully without losing previous progress
 
 **Pain Points Addressed**:
+
 - **Lost progress on interruption**: Long agent calls can take minutes; interruption loses all progress
 - **No resume capability**: Must restart entire task from beginning after interruption
 - **Poor observability**: No visibility into what state a task was in when interrupted
@@ -84,6 +88,7 @@ Implement a checkpoint mechanism with the following behavior:
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of existing SessionManager and state persistence patterns
 - Complete PRPExecutor flow analysis with specific line numbers for integration points
 - Existing atomic write pattern from session-utils.ts
@@ -114,8 +119,8 @@ Implement a checkpoint mechanism with the following behavior:
   why: Main execution flow where checkpoints will be created
   pattern:
     - execute() method (lines 238-322) - main execution flow
-    - #runValidationGates() (lines 335-396) - sequential validation
-    - #fixAndRetry() (lines 411-458) - fix attempt pattern
+    -  #runValidationGates() (lines 335-396) - sequential validation
+    -  #fixAndRetry() (lines 411-458) - fix attempt pattern
   gotcha:
     - Coder Agent execution is the long-running operation needing checkpoints
     - Validation gates run sequentially - checkpoint after each gate
@@ -363,7 +368,15 @@ interface CheckpointExecutionState {
   prpPath: string;
 
   /** Current execution stage */
-  stage: 'pre-execution' | 'coder-response' | 'validation-gate-1' | 'validation-gate-2' | 'validation-gate-3' | 'validation-gate-4' | 'complete' | 'failed';
+  stage:
+    | 'pre-execution'
+    | 'coder-response'
+    | 'validation-gate-1'
+    | 'validation-gate-2'
+    | 'validation-gate-3'
+    | 'validation-gate-4'
+    | 'complete'
+    | 'failed';
 
   /** Coder Agent response (if stage is post-coder) */
   coderResponse?: string;
@@ -453,20 +466,24 @@ const CheckpointExecutionStateSchema = z.object({
     'failed',
   ]),
   coderResponse: z.string().optional(),
-  coderResult: z.object({
-    result: z.enum(['success', 'error', 'issue']),
-    message: z.string(),
-  }).optional(),
-  validationResults: z.array(z.object({
-    level: z.number().int().min(1).max(4),
-    description: z.string(),
-    success: z.boolean(),
-    command: z.string().nullable(),
-    stdout: z.string(),
-    stderr: z.string(),
-    exitCode: z.number().nullable(),
-    skipped: z.boolean(),
-  })),
+  coderResult: z
+    .object({
+      result: z.enum(['success', 'error', 'issue']),
+      message: z.string(),
+    })
+    .optional(),
+  validationResults: z.array(
+    z.object({
+      level: z.number().int().min(1).max(4),
+      description: z.string(),
+      success: z.boolean(),
+      command: z.string().nullable(),
+      stdout: z.string(),
+      stderr: z.string(),
+      exitCode: z.number().nullable(),
+      skipped: z.boolean(),
+    })
+  ),
   fixAttempt: z.number().int().min(0).optional(),
   timestamp: z.date(),
 });
@@ -480,11 +497,13 @@ const CheckpointDataSchema = z.object({
   label: z.string(),
   state: CheckpointExecutionStateSchema,
   createdAt: z.date(),
-  error: z.object({
-    message: z.string(),
-    code: z.string().optional(),
-    stack: z.string().optional(),
-  }).optional(),
+  error: z
+    .object({
+      message: z.string(),
+      code: z.string().optional(),
+      stack: z.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -625,9 +644,15 @@ import type { Logger } from '../utils/logger.js';
 import type { ValidationGateResult } from './models.js';
 
 // Zod Schemas (defined above)
-const CheckpointExecutionStateSchema = z.object({ /* ... */ });
-const CheckpointDataSchema = z.object({ /* ... */ });
-const CheckpointFileSchema = z.object({ /* ... */ });
+const CheckpointExecutionStateSchema = z.object({
+  /* ... */
+});
+const CheckpointDataSchema = z.object({
+  /* ... */
+});
+const CheckpointFileSchema = z.object({
+  /* ... */
+});
 
 /**
  * Checkpoint Manager for long-running task state persistence
@@ -675,11 +700,13 @@ export class CheckpointManager {
       label,
       state,
       createdAt: timestamp,
-      error: error ? {
-        message: error.message,
-        code: (error as { code?: string }).code,
-        stack: error.stack,
-      } : undefined,
+      error: error
+        ? {
+            message: error.message,
+            code: (error as { code?: string }).code,
+            stack: error.stack,
+          }
+        : undefined,
     };
 
     // Validate checkpoint data
@@ -717,12 +744,15 @@ export class CheckpointManager {
     // Save using atomic write
     await atomicWrite(checkpointPath, JSON.stringify(checkpointFile, null, 2));
 
-    this.#logger.info({
-      taskId,
-      checkpointId,
-      stage: state.stage,
-      label,
-    }, `Checkpoint saved: ${label}`);
+    this.#logger.info(
+      {
+        taskId,
+        checkpointId,
+        stage: state.stage,
+        label,
+      },
+      `Checkpoint saved: ${label}`
+    );
 
     return checkpointId;
   }
@@ -743,17 +773,22 @@ export class CheckpointManager {
     const taskId = match[1];
 
     const checkpointFile = await this.#loadCheckpointFile(taskId);
-    const checkpoint = checkpointFile.checkpoints.find(c => c.id === checkpointId);
+    const checkpoint = checkpointFile.checkpoints.find(
+      c => c.id === checkpointId
+    );
 
     if (!checkpoint) {
       throw new Error(`Checkpoint not found: ${checkpointId}`);
     }
 
-    this.#logger.info({
-      checkpointId,
-      taskId,
-      stage: checkpoint.state.stage,
-    }, `Checkpoint restored: ${checkpoint.label}`);
+    this.#logger.info(
+      {
+        checkpointId,
+        taskId,
+        stage: checkpoint.state.stage,
+      },
+      `Checkpoint restored: ${checkpoint.label}`
+    );
 
     return checkpoint;
   }
@@ -785,8 +820,8 @@ export class CheckpointManager {
   async listCheckpoints(taskId: string): Promise<CheckpointData[]> {
     try {
       const checkpointFile = await this.#loadCheckpointFile(taskId);
-      return [...checkpointFile.checkpoints].sort((a, b) =>
-        a.createdAt.getTime() - b.createdAt.getTime()
+      return [...checkpointFile.checkpoints].sort(
+        (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
       );
     } catch {
       return [];
@@ -819,11 +854,14 @@ export class CheckpointManager {
 
     await atomicWrite(checkpointPath, JSON.stringify(checkpointFile, null, 2));
 
-    this.#logger.info({
-      taskId,
-      removedCount: checkpointFile.checkpoints.length - retainCount,
-      retained: retainCount,
-    }, 'Checkpoints cleaned up');
+    this.#logger.info(
+      {
+        taskId,
+        removedCount: checkpointFile.checkpoints.length - retainCount,
+        retained: retainCount,
+      },
+      'Checkpoints cleaned up'
+    );
   }
 
   /**
@@ -839,7 +877,9 @@ export class CheckpointManager {
     const taskId = match[1];
 
     const checkpointFile = await this.#loadCheckpointFile(taskId);
-    const index = checkpointFile.checkpoints.findIndex(c => c.id === checkpointId);
+    const index = checkpointFile.checkpoints.findIndex(
+      c => c.id === checkpointId
+    );
 
     if (index === -1) {
       throw new Error(`Checkpoint not found: ${checkpointId}`);
@@ -909,7 +949,12 @@ const DEFAULT_CHECKPOINT_CONFIG: CheckpointConfig = {
 };
 
 // Export types
-export type { CheckpointData, CheckpointExecutionState, CheckpointFile, CheckpointConfig };
+export type {
+  CheckpointData,
+  CheckpointExecutionState,
+  CheckpointFile,
+  CheckpointConfig,
+};
 ```
 
 ### Integration Points
@@ -1101,6 +1146,7 @@ cat plan/*/artifacts/P1.M1.T1.S1/checkpoints.json | jq .
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete analysis of existing patterns (SessionManager, PRPExecutor, TaskRetryManager)
 - Atomic write pattern already available in session-utils.ts
 - Clear integration points identified with specific line numbers
@@ -1109,11 +1155,13 @@ cat plan/*/artifacts/P1.M1.T1.S1/checkpoints.json | jq .
 - Comprehensive research on checkpoint mechanisms
 
 **Risk Areas**:
+
 - Integration with PRPExecutor requires careful modification of existing flow
 - Checkpoint restoration logic needs to handle all execution stages
 - Concurrent checkpoint operations (if parallel execution)
 
 **Mitigation**:
+
 - Clear task breakdown with dependency ordering
 - Minimal modifications to existing PRPExecutor flow
 - Checkpoint operations are independent per task
@@ -1123,22 +1171,23 @@ cat plan/*/artifacts/P1.M1.T1.S1/checkpoints.json | jq .
 
 ## Appendix: Checkpoint Stage Reference
 
-| Stage | Description | When Created |
-|-------|-------------|--------------|
-| `pre-execution` | Before Coder Agent execution | Start of execute() method |
-| `coder-response` | After Coder Agent completes | After parseCoderResult() |
-| `validation-gate-1` | After Level 1 validation | After gate 1 passes |
-| `validation-gate-2` | After Level 2 validation | After gate 2 passes |
-| `validation-gate-3` | After Level 3 validation | After gate 3 passes |
-| `validation-gate-4` | After Level 4 validation | After gate 4 passes |
-| `complete` | Task completed successfully | Final checkpoint before return |
-| `failed` | Task failed | In catch block |
+| Stage               | Description                  | When Created                   |
+| ------------------- | ---------------------------- | ------------------------------ |
+| `pre-execution`     | Before Coder Agent execution | Start of execute() method      |
+| `coder-response`    | After Coder Agent completes  | After parseCoderResult()       |
+| `validation-gate-1` | After Level 1 validation     | After gate 1 passes            |
+| `validation-gate-2` | After Level 2 validation     | After gate 2 passes            |
+| `validation-gate-3` | After Level 3 validation     | After gate 3 passes            |
+| `validation-gate-4` | After Level 4 validation     | After gate 4 passes            |
+| `complete`          | Task completed successfully  | Final checkpoint before return |
+| `failed`            | Task failed                  | In catch block                 |
 
 ---
 
 **Document Version**: 1.0
 **Last Updated**: 2026-01-24
 **Related Documents**:
+
 - Codebase Analysis: `plan/003_b3d3efdaf0ed/P3M2T2S1/research/codebase-analysis-summary.md`
 - Retry Strategy Design: `plan/003_b3d3efdaf0ed/docs/retry-strategy-design.md`
 - TaskRetryManager PRP: `plan/003_b3d3efdaf0ed/P3M2T1S2/PRP.md`

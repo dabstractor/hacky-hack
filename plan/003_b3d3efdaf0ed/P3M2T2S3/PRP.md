@@ -12,12 +12,14 @@
 **Feature Goal**: Add a `prd validate-state` CLI command that validates tasks.json against Zod schemas, detects orphaned dependencies, detects circular dependencies, validates parent-child status consistency, and offers auto-repair with backup creation.
 
 **Deliverable**:
+
 1. `prd validate-state` CLI command in `src/cli/commands/validate-state.ts`
 2. State validation functions in `src/core/state-validator.ts`
 3. Backup and auto-repair functionality for common issues
 4. Integration tests in `tests/integration/validate-state.test.ts`
 
 **Success Definition**:
+
 - `prd validate-state` loads and validates tasks.json against Zod BacklogSchema
 - Detects orphaned dependencies (deps to non-existent tasks)
 - Detects circular dependencies using DFS three-color algorithm
@@ -36,12 +38,14 @@
 **Target User**: Developer or operator managing PRD pipeline sessions who needs to diagnose and repair corrupted task state.
 
 **Use Case**: When tasks.json becomes corrupted (e.g., manual edits, failed writes, merge conflicts), the user needs to:
+
 1. Detect what's wrong with the state
 2. Understand the impact of the issues
 3. Optionally auto-repair common problems
 4. Get a backup before any modifications
 
 **User Journey**:
+
 1. User runs `prd validate-state` to check current session state
 2. System loads tasks.json and runs all validation checks
 3. Validation results are displayed with clear error/warning messages
@@ -50,6 +54,7 @@
 6. Re-validation confirms repairs were successful
 
 **Pain Points Addressed**:
+
 - **No validation tools**: From system_context.md - "No state validation tools exist. Corrupted tasks.json could block pipeline."
 - **Manual debugging**: Currently must manually inspect JSON to find issues
 - **Risk of data loss**: No backup before manual repairs
@@ -97,6 +102,7 @@ Implement a `prd validate-state` CLI command with comprehensive validation and r
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of existing CLI command patterns (`src/cli/commands/inspect.ts`)
 - Existing Zod schemas for validation (`src/core/models.ts`)
 - Existing circular dependency detection (`src/core/dependency-validator.ts`)
@@ -608,13 +614,17 @@ export function validateSchema(backlog: Backlog): ZodError[] {
     if (error instanceof ZodError) {
       return [error];
     }
-    return [{
-      issues: [{
-        code: 'custom',
-        path: [],
-        message: `Unexpected error: ${error}`
-      }]
-    } as ZodError];
+    return [
+      {
+        issues: [
+          {
+            code: 'custom',
+            path: [],
+            message: `Unexpected error: ${error}`,
+          },
+        ],
+      } as ZodError,
+    ];
   }
 }
 
@@ -629,7 +639,9 @@ export function validateSchema(backlog: Backlog): ZodError[] {
  * @param backlog - Backlog to validate
  * @returns Array of orphaned dependencies
  */
-export function detectOrphanedDependencies(backlog: Backlog): OrphanedDependency[] {
+export function detectOrphanedDependencies(
+  backlog: Backlog
+): OrphanedDependency[] {
   const orphans: OrphanedDependency[] = [];
 
   // Collect all valid task IDs
@@ -650,7 +662,7 @@ export function detectOrphanedDependencies(backlog: Backlog): OrphanedDependency
         orphans.push({
           taskId: item.id,
           missingTaskId: depId,
-          severity: 'error'
+          severity: 'error',
         });
       }
     }
@@ -700,7 +712,9 @@ export function buildFullDependencyGraph(backlog: Backlog): DependencyGraph {
  * @param backlog - Backlog to validate
  * @returns Array of circular dependencies
  */
-export function detectCircularDependenciesAll(backlog: Backlog): CircularDependency[] {
+export function detectCircularDependenciesAll(
+  backlog: Backlog
+): CircularDependency[] {
   const graph = buildFullDependencyGraph(backlog);
   const cycles: CircularDependency[] = [];
 
@@ -749,7 +763,7 @@ export function detectCircularDependenciesAll(backlog: Backlog): CircularDepende
           cycle,
           cycleString: cycle.join(' → '),
           length: cycle.length - 1,
-          severity: 'error'
+          severity: 'error',
         });
       }
     }
@@ -771,7 +785,9 @@ export function detectCircularDependenciesAll(backlog: Backlog): CircularDepende
  * @param backlog - Backlog to validate
  * @returns Array of status inconsistencies
  */
-export function validateStatusConsistency(backlog: Backlog): StatusInconsistency[] {
+export function validateStatusConsistency(
+  backlog: Backlog
+): StatusInconsistency[] {
   const inconsistencies: StatusInconsistency[] = [];
 
   const checkChildren = (
@@ -788,7 +804,7 @@ export function validateStatusConsistency(backlog: Backlog): StatusInconsistency
           childId: child.id,
           parentStatus,
           childStatus: child.status,
-          severity: 'warning'
+          severity: 'warning',
         });
       }
 
@@ -990,7 +1006,7 @@ export function repairCircularDependencies(
 export function validateBacklogState(backlog: Backlog): StateValidationResult {
   const result: StateValidationResult = {
     isValid: true,
-    summary: { totalErrors: 0, totalWarnings: 0 }
+    summary: { totalErrors: 0, totalWarnings: 0 },
   };
 
   // Schema validation
@@ -998,7 +1014,8 @@ export function validateBacklogState(backlog: Backlog): StateValidationResult {
   if (result.schemaErrors.length > 0) {
     result.isValid = false;
     result.summary.totalErrors += result.schemaErrors.reduce(
-      (sum, e) => sum + e.issues.length, 0
+      (sum, e) => sum + e.issues.length,
+      0
     );
   }
 
@@ -1046,21 +1063,25 @@ export async function repairBacklog(
     repairs: {
       orphanedDependencies: 0,
       circularDependencies: 0,
-      missingFields: 0
-    }
+      missingFields: 0,
+    },
   };
 
   // Repair orphaned dependencies
   if (validation.orphanedDependencies) {
-    result.repairs.orphanedDependencies =
-      repairOrphanedDependencies(backlog, validation.orphanedDependencies);
+    result.repairs.orphanedDependencies = repairOrphanedDependencies(
+      backlog,
+      validation.orphanedDependencies
+    );
     result.itemsRepaired += result.repairs.orphanedDependencies;
   }
 
   // Repair circular dependencies
   if (validation.circularDependencies) {
-    result.repairs.circularDependencies =
-      repairCircularDependencies(backlog, validation.circularDependencies);
+    result.repairs.circularDependencies = repairCircularDependencies(
+      backlog,
+      validation.circularDependencies
+    );
     result.itemsRepaired += result.repairs.circularDependencies;
   }
 
@@ -1078,7 +1099,7 @@ import type { SessionState } from '../../core/models.js';
 import {
   validateBacklogState,
   repairBacklog,
-  createBackup
+  createBackup,
 } from '../../core/state-validator.js';
 import { writeTasksJSON } from '../../core/session-utils.js';
 import { resolve } from 'node:path';
@@ -1102,10 +1123,7 @@ export class ValidateStateCommand {
     const sessionState = await this.#loadSession(options);
 
     // Run validations
-    const validation = this.#runValidations(
-      sessionState.taskRegistry,
-      options
-    );
+    const validation = this.#runValidations(sessionState.taskRegistry, options);
 
     // Output results
     this.#outputResults(validation, options);
@@ -1116,8 +1134,9 @@ export class ValidateStateCommand {
     }
 
     // Handle repair
-    const shouldRepair = options.autoRepair ||
-      (process.stdin.isTTY && await this.#promptForRepair(validation));
+    const shouldRepair =
+      options.autoRepair ||
+      (process.stdin.isTTY && (await this.#promptForRepair(validation)));
 
     if (shouldRepair) {
       // Create backup
@@ -1136,7 +1155,9 @@ export class ValidateStateCommand {
       );
 
       if (repairResult.repaired) {
-        console.log(chalk.green(`✓ Repaired ${repairResult.itemsRepaired} items`));
+        console.log(
+          chalk.green(`✓ Repaired ${repairResult.itemsRepaired} items`)
+        );
         if (backupPath) {
           console.log(chalk.gray(`  Backup: ${backupPath}`));
         }
@@ -1212,18 +1233,24 @@ export class ValidateStateCommand {
   ): string {
     const lines: string[] = [];
 
-    lines.push(chalk.bold.cyan('\n═════════════════════════════════════════════════════'));
+    lines.push(
+      chalk.bold.cyan('\n═════════════════════════════════════════════════════')
+    );
     lines.push(chalk.bold.cyan('  State Validation Results'));
-    lines.push(chalk.bold.cyan('═════════════════════════════════════════════════════\n'));
+    lines.push(
+      chalk.bold.cyan('═════════════════════════════════════════════════════\n')
+    );
 
     // Status
-    const statusIcon = validation.isValid
-      ? chalk.green('✓')
-      : chalk.red('✗');
+    const statusIcon = validation.isValid ? chalk.green('✓') : chalk.red('✗');
     const statusText = validation.isValid ? 'Valid' : 'Invalid';
     lines.push(`Status: ${statusIcon} ${statusText}`);
-    lines.push(`Errors: ${chalk.red(validation.summary.totalErrors.toString())}`);
-    lines.push(`Warnings: ${chalk.yellow(validation.summary.totalWarnings.toString())}`);
+    lines.push(
+      `Errors: ${chalk.red(validation.summary.totalErrors.toString())}`
+    );
+    lines.push(
+      `Warnings: ${chalk.yellow(validation.summary.totalWarnings.toString())}`
+    );
     lines.push('');
 
     // Schema errors
@@ -1231,23 +1258,35 @@ export class ValidateStateCommand {
       lines.push(chalk.bold.red('Schema Errors:'));
       for (const error of validation.schemaErrors) {
         for (const issue of error.issues) {
-          lines.push(chalk.red(`  ✗ ${issue.path.join('.')}: ${issue.message}`));
+          lines.push(
+            chalk.red(`  ✗ ${issue.path.join('.')}: ${issue.message}`)
+          );
         }
       }
       lines.push('');
     }
 
     // Orphaned dependencies
-    if (validation.orphanedDependencies && validation.orphanedDependencies.length > 0) {
+    if (
+      validation.orphanedDependencies &&
+      validation.orphanedDependencies.length > 0
+    ) {
       lines.push(chalk.bold.red('Orphaned Dependencies:'));
       for (const orphan of validation.orphanedDependencies) {
-        lines.push(chalk.red(`  ✗ ${orphan.taskId} depends on non-existent ${orphan.missingTaskId}`));
+        lines.push(
+          chalk.red(
+            `  ✗ ${orphan.taskId} depends on non-existent ${orphan.missingTaskId}`
+          )
+        );
       }
       lines.push('');
     }
 
     // Circular dependencies
-    if (validation.circularDependencies && validation.circularDependencies.length > 0) {
+    if (
+      validation.circularDependencies &&
+      validation.circularDependencies.length > 0
+    ) {
       lines.push(chalk.bold.red('Circular Dependencies:'));
       for (const cycle of validation.circularDependencies) {
         lines.push(chalk.red(`  ✗ ${cycle.cycleString}`));
@@ -1256,10 +1295,17 @@ export class ValidateStateCommand {
     }
 
     // Status inconsistencies
-    if (validation.statusInconsistencies && validation.statusInconsistencies.length > 0) {
+    if (
+      validation.statusInconsistencies &&
+      validation.statusInconsistencies.length > 0
+    ) {
       lines.push(chalk.bold.yellow('Status Inconsistencies:'));
       for (const inc of validation.statusInconsistencies) {
-        lines.push(chalk.yellow(`  ⚠ ${inc.parentId} is Complete but ${inc.childId} is ${inc.childStatus}`));
+        lines.push(
+          chalk.yellow(
+            `  ⚠ ${inc.parentId} is Complete but ${inc.childId} is ${inc.childStatus}`
+          )
+        );
       }
       lines.push('');
     }
@@ -1272,7 +1318,7 @@ export class ValidateStateCommand {
   ): Promise<boolean> {
     const rl = createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
 
     const question = (prompt: string): Promise<string> =>
@@ -1311,7 +1357,7 @@ program
       autoRepair: options.autoRepair || false,
       backup: options.backup !== false,
       maxBackups: parseInt(options.maxBackups || '5', 10),
-      session: options.session
+      session: options.session,
     });
     process.exit(0);
   });
@@ -1518,6 +1564,7 @@ prd validate-state
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete analysis of existing CLI command patterns (InspectCommand)
 - Existing Zod schemas are comprehensive
 - Existing circular dependency algorithm is production-ready
@@ -1527,12 +1574,14 @@ prd validate-state
 - Specific file paths, line numbers, and code patterns provided
 
 **Risk Areas**:
+
 - Full dependency graph must include ALL hierarchy levels (not just subtasks)
 - Auto-repair logic must be conservative and safe
 - Backup file naming must use consistent format
 - Interactive prompt must handle non-TTY environments
 
 **Mitigation**:
+
 - Build full dependency graph from all hierarchy levels
 - Only auto-repair when outcome is certain (orphaned deps, circular deps)
 - Use ISO timestamp format with character replacement
@@ -1543,6 +1592,7 @@ prd validate-state
 **Document Version**: 1.0
 **Last Updated**: 2026-01-24
 **Related Documents**:
+
 - Codebase Analysis: `plan/003_b3d3efdaf0ed/P3M2T2S3/research/codebase-analysis-summary.md`
 - Circular Dependency Algorithms: `plan/003_b3d3efdaf0ed/P3M2T2S3/research/circular-dependency-algorithms.md`
 - Backup and Repair Patterns: `plan/003_b3d3efdaf0ed/P3M2T2S3/research/backup-and-repair-patterns.md`

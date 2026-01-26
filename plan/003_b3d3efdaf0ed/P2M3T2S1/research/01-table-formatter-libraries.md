@@ -19,21 +19,21 @@
 
 ## Library Comparison
 
-| Feature | cli-table3 | table | tty-table | console.table |
-|---------|-----------|-------|-----------|---------------|
-| TypeScript Support | ✓ (via @types) | ✓ | ✓ | ✓ (native) |
-| Custom Borders | ✓ | ✓ | ✓ | ✗ |
-| Word Wrap | ✓ | ✓ | ✓ | ✗ |
-| Colors | Via chalk | Built-in | Built-in | ✗ |
-| Column Alignment | ✓ | ✓ | ✓ | ✗ |
-| Auto-sizing | Limited | ✓ | ✓ | Limited |
-| Truncation | Manual | ✓ | ✓ | Manual |
-| Merge Cells | ✓ | ✓ | ✓ | ✗ |
-| Stream Output | ✗ | ✗ | ✓ | ✓ |
-| Bundle Size | Small | Medium | Large | Zero (built-in) |
-| Maintenance | Stable | Active | Active | Native |
-| Weekly Downloads | 1.2M | 500K | 100K | N/A |
-| **Recommended** | **Yes** | **Yes** | Maybe | For simple cases |
+| Feature            | cli-table3     | table    | tty-table | console.table    |
+| ------------------ | -------------- | -------- | --------- | ---------------- |
+| TypeScript Support | ✓ (via @types) | ✓        | ✓         | ✓ (native)       |
+| Custom Borders     | ✓              | ✓        | ✓         | ✗                |
+| Word Wrap          | ✓              | ✓        | ✓         | ✗                |
+| Colors             | Via chalk      | Built-in | Built-in  | ✗                |
+| Column Alignment   | ✓              | ✓        | ✓         | ✗                |
+| Auto-sizing        | Limited        | ✓        | ✓         | Limited          |
+| Truncation         | Manual         | ✓        | ✓         | Manual           |
+| Merge Cells        | ✓              | ✓        | ✓         | ✗                |
+| Stream Output      | ✗              | ✗        | ✓         | ✓                |
+| Bundle Size        | Small          | Medium   | Large     | Zero (built-in)  |
+| Maintenance        | Stable         | Active   | Active    | Native           |
+| Weekly Downloads   | 1.2M           | 500K     | 100K      | N/A              |
+| **Recommended**    | **Yes**        | **Yes**  | Maybe     | For simple cases |
 
 ---
 
@@ -119,6 +119,7 @@ console.log(table.toString());
 ```
 
 **Output:**
+
 ```
 ┌────────────────────┬───────────────────────────────┬─────────────────┐
 │ ID                 │ Name                          │ Status          │
@@ -160,6 +161,7 @@ console.log(minimalTable.toString());
 ```
 
 **Output:**
+
 ```
 ID      Name     Status
 P1M1T1  Task 1   Complete
@@ -172,24 +174,12 @@ import Table from 'cli-table3';
 import chalk from 'chalk';
 
 const table = new Table({
-  head: [
-    chalk.cyan('ID'),
-    chalk.cyan('Name'),
-    chalk.cyan('Status'),
-  ],
+  head: [chalk.cyan('ID'), chalk.cyan('Name'), chalk.cyan('Status')],
   colAligns: ['left', 'left', 'center'],
 });
 
-table.push([
-  'P1M1T1',
-  'Task 1',
-  chalk.green('Complete'),
-]);
-table.push([
-  'P1M1T2',
-  'Task 2',
-  chalk.yellow('In Progress'),
-]);
+table.push(['P1M1T1', 'Task 1', chalk.green('Complete')]);
+table.push(['P1M1T2', 'Task 2', chalk.yellow('In Progress')]);
 
 console.log(table.toString());
 ```
@@ -272,10 +262,7 @@ npm install table
 ### TypeScript Types
 
 ```typescript
-import {
-  table,
-  getBorderCharacters,
-} from 'table';
+import { table, getBorderCharacters } from 'table';
 
 interface TableConfig {
   columns?: {
@@ -393,7 +380,11 @@ console.log(output);
 ```typescript
 const data = [
   ['ID', 'Description', 'Status'],
-  ['P1M1T1', 'This is a very long description that should be truncated', 'Active'],
+  [
+    'P1M1T1',
+    'This is a very long description that should be truncated',
+    'Active',
+  ],
 ];
 
 const config = {
@@ -526,9 +517,7 @@ const columns = [
   { name: 'Status', key: 'status', color: 'yellow' },
 ];
 
-const rows = [
-  { id: 'P1M1T1', name: 'Task 1', status: 'Complete' },
-];
+const rows = [{ id: 'P1M1T1', name: 'Task 1', status: 'Complete' }];
 
 const options = {
   borderColor: 'blue',
@@ -574,11 +563,13 @@ console.table(tasks);
 ```
 
 **Pros:**
+
 - Zero dependencies
 - Built into Node.js
 - Simple to use
 
 **Cons:**
+
 - No customization
 - No borders
 - No control over output
@@ -634,11 +625,7 @@ function getStatusColor(status: Task['status']): string {
 
 function displayTasks(tasks: Task[]): void {
   const table = new Table({
-    head: [
-      chalk.cyan('ID'),
-      chalk.cyan('Title'),
-      chalk.cyan('Status'),
-    ],
+    head: [chalk.cyan('ID'), chalk.cyan('Title'), chalk.cyan('Status')],
     colWidths: [15, 50, 15],
     style: {
       head: [],
@@ -647,11 +634,7 @@ function displayTasks(tasks: Task[]): void {
   });
 
   tasks.forEach(task => {
-    table.push([
-      task.id,
-      task.title,
-      getStatusColor(task.status),
-    ]);
+    table.push([task.id, task.title, getStatusColor(task.status)]);
   });
 
   console.log(table.toString());
@@ -875,10 +858,7 @@ export interface TableColumn<T> {
   format?: (value: any, row: T) => string;
 }
 
-export function createTable<T>(
-  columns: TableColumn<T>[],
-  data: T[]
-): string {
+export function createTable<T>(columns: TableColumn<T>[], data: T[]): string {
   const table = new Table({
     head: columns.map(c => chalk.cyan(c.header)),
     colWidths: columns.map(c => c.width),
@@ -888,7 +868,9 @@ export function createTable<T>(
   data.forEach(row => {
     table.push(
       columns.map(col =>
-        col.format ? col.format((row as any)[col.header.toLowerCase()], row) : (row as any)[col.header.toLowerCase()]
+        col.format
+          ? col.format((row as any)[col.header.toLowerCase()], row)
+          : (row as any)[col.header.toLowerCase()]
       )
     );
   });

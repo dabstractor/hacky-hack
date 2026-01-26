@@ -49,11 +49,16 @@ program
 ### Existing Subcommand Examples
 
 **Inspect Command** (lines 280-306):
+
 ```typescript
 program
   .command('inspect')
   .description('Inspect pipeline state and session details')
-  .option('-o, --output <format>', 'Output format (table, json, yaml, tree)', 'table')
+  .option(
+    '-o, --output <format>',
+    'Output format (table, json, yaml, tree)',
+    'table'
+  )
   .option('--task <id>', 'Show detailed information for specific task')
   .option('-f, --file <path>', 'Override tasks.json file path')
   .option('--session <id>', 'Inspect specific session by hash')
@@ -70,6 +75,7 @@ program
 ```
 
 **Artifacts Command** (lines 309-333):
+
 ```typescript
 program
   .command('artifacts')
@@ -342,15 +348,15 @@ import { CacheCommand, type CacheOptions } from './commands/cache.js';
 
 ## 11. Key Patterns Summary
 
-| Pattern | Description |
-|---------|-------------|
-| **Class-based** | All commands are classes with execute() method |
-| **Private methods** | Use `#` prefix for private methods |
-| **Chalk for colors** | chalk for terminal coloring |
-| **Table formatting** | cli-table3 for table output |
-| **Session integration** | Commands work with SessionManager |
-| **Path resolution** | resolve() for absolute paths |
-| **Exit codes** | process.exit(0) success, process.exit(1) failure |
-| **Dry-run support** | Show what would be done |
-| **Force flag** | Bypass confirmation prompts |
-| **Multi-format output** | table and json formats |
+| Pattern                 | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| **Class-based**         | All commands are classes with execute() method   |
+| **Private methods**     | Use `#` prefix for private methods               |
+| **Chalk for colors**    | chalk for terminal coloring                      |
+| **Table formatting**    | cli-table3 for table output                      |
+| **Session integration** | Commands work with SessionManager                |
+| **Path resolution**     | resolve() for absolute paths                     |
+| **Exit codes**          | process.exit(0) success, process.exit(1) failure |
+| **Dry-run support**     | Show what would be done                          |
+| **Force flag**          | Bypass confirmation prompts                      |
+| **Multi-format output** | table and json formats                           |

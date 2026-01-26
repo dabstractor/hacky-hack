@@ -7,14 +7,16 @@
 **Feature Goal**: Implement a TaskRetryManager class that automatically retries failed subtasks due to transient errors (network issues, API rate limits, timeouts) while failing immediately on permanent errors (validation failures, authentication errors).
 
 **Deliverable**:
+
 1. `src/core/task-retry-manager.ts` - TaskRetryManager class with error classification, exponential backoff (1s -> 2s -> 4s -> 8s), artifact preservation, status updates to 'Retrying', and max retry limit (default 3)
 2. Integration in TaskOrchestrator.executeSubtask() method
 3. `tests/unit/task-retry-manager.test.ts` - Unit tests for retry logic
 
 **Success Definition**:
+
 - TaskRetryManager class exists at specified path with all required methods
 - Error classification uses existing `isTransientError()` and `isPermanentError()` from src/utils/retry.ts
-- Exponential backoff follows existing `calculateDelay()` formula (baseDelay * 2^attempt, capped at maxDelay, with jitter)
+- Exponential backoff follows existing `calculateDelay()` formula (baseDelay \* 2^attempt, capped at maxDelay, with jitter)
 - Artifacts from failed attempts are preserved (PRP cache, session state)
 - Task status updated to 'Retrying' during retry attempts
 - Retry attempts logged with context using existing logger
@@ -28,6 +30,7 @@
 **Use Case**: When a subtask fails due to transient errors (network issues, API rate limits, LLM timeouts), the system should automatically retry before marking the task as failed, reducing manual intervention.
 
 **User Journey**:
+
 1. Developer enables retry mechanism (default: enabled with 3 max attempts)
 2. Pipeline executes subtask normally
 3. If subtask fails with transient error:
@@ -41,6 +44,7 @@
    - Error logged with full context
 
 **Pain Points Addressed**:
+
 - **Frequent transient failures**: Network issues, API rate limits cause unnecessary task failures
 - **Manual intervention required**: Users must manually re-run failed tasks
 - **Poor observability**: No visibility into retry attempts
@@ -78,6 +82,7 @@ Implement TaskRetryManager class with the following behavior:
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of existing retry infrastructure (src/utils/retry.ts)
 - Complete error classification functions (isTransientError, isPermanentError)
 - TaskOrchestrator execution flow and integration points
@@ -291,7 +296,7 @@ const jitter = exponentialDelay * jitterFactor * Math.random();
 // Cannot directly modify subtask.status - must use SessionManager.updateItemStatus()
 export interface Subtask {
   readonly id: string;
-  readonly status: Status;  // Cannot assign directly
+  readonly status: Status; // Cannot assign directly
   // ...
 }
 
@@ -302,7 +307,7 @@ export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'    // NEW - Add this
+  | 'Retrying' // NEW - Add this
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -342,7 +347,7 @@ export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'    // NEW - Add this status
+  | 'Retrying' // NEW - Add this status
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -374,10 +379,10 @@ interface TaskRetryConfig {
 
 const DEFAULT_TASK_RETRY_CONFIG: TaskRetryConfig = {
   maxAttempts: 3,
-  baseDelay: 1000,    // 1 second
-  maxDelay: 30000,    // 30 seconds
-  backoffFactor: 2,   // Exponential
-  jitterFactor: 0.1,  // 10% variance
+  baseDelay: 1000, // 1 second
+  maxDelay: 30000, // 30 seconds
+  backoffFactor: 2, // Exponential
+  jitterFactor: 0.1, // 10% variance
   enabled: true,
 };
 ```
@@ -502,7 +507,12 @@ Task 6: INTEGRATION TEST - End-to-End Retry Flow (Optional)
 // ================================================================
 // File: src/core/task-retry-manager.ts
 
-import { isTransientError, isPermanentError, calculateDelay, sleep } from '../utils/retry.js';
+import {
+  isTransientError,
+  isPermanentError,
+  calculateDelay,
+  sleep,
+} from '../utils/retry.js';
 import { getLogger } from '../utils/logger.js';
 import type { Logger } from '../utils/logger.js';
 import type { Subtask, Status } from './models.js';
@@ -533,7 +543,10 @@ export class TaskRetryManager {
   readonly #config: TaskRetryConfig;
   readonly #sessionManager: SessionManager;
 
-  constructor(config: Partial<TaskRetryConfig> = {}, sessionManager: SessionManager) {
+  constructor(
+    config: Partial<TaskRetryConfig> = {},
+    sessionManager: SessionManager
+  ) {
     this.#logger = getLogger('TaskRetryManager');
     this.#sessionManager = sessionManager;
     this.#config = { ...DEFAULT_TASK_RETRY_CONFIG, ...config };
@@ -563,25 +576,30 @@ export class TaskRetryManager {
 
     for (let attempt = 0; attempt < this.#config.maxAttempts; attempt++) {
       try {
-        this.#logger.debug({
-          subtaskId: subtask.id,
-          attempt: attempt + 1,
-          maxAttempts: this.#config.maxAttempts,
-        }, `Executing subtask (attempt ${attempt + 1}/${this.#config.maxAttempts})`);
+        this.#logger.debug(
+          {
+            subtaskId: subtask.id,
+            attempt: attempt + 1,
+            maxAttempts: this.#config.maxAttempts,
+          },
+          `Executing subtask (attempt ${attempt + 1}/${this.#config.maxAttempts})`
+        );
 
         const result = await executeFn();
 
         // Success - log if we retried
         if (attempt > 0) {
-          this.#logger.info({
-            subtaskId: subtask.id,
-            totalAttempts: attempt + 1,
-            durationMs: Date.now() - retryState.firstAttemptAt!.getTime(),
-          }, `Subtask succeeded after ${attempt} retries`);
+          this.#logger.info(
+            {
+              subtaskId: subtask.id,
+              totalAttempts: attempt + 1,
+              durationMs: Date.now() - retryState.firstAttemptAt!.getTime(),
+            },
+            `Subtask succeeded after ${attempt} retries`
+          );
         }
 
         return result;
-
       } catch (error) {
         lastError = error as Error;
 
@@ -590,32 +608,41 @@ export class TaskRetryManager {
 
         // Permanent error - fail immediately
         if (errorType === 'permanent') {
-          this.#logger.error({
-            subtaskId: subtask.id,
-            error: lastError.message,
-            errorType,
-          }, `Subtask failed with permanent error: ${lastError.message}`);
+          this.#logger.error(
+            {
+              subtaskId: subtask.id,
+              error: lastError.message,
+              errorType,
+            },
+            `Subtask failed with permanent error: ${lastError.message}`
+          );
           throw lastError;
         }
 
         // Unknown error - treat as non-retryable (fail safe)
         if (errorType === 'unknown') {
-          this.#logger.warn({
-            subtaskId: subtask.id,
-            error: lastError.message,
-            errorType,
-          }, `Subtask failed with unknown error type: ${lastError.message}`);
+          this.#logger.warn(
+            {
+              subtaskId: subtask.id,
+              error: lastError.message,
+              errorType,
+            },
+            `Subtask failed with unknown error type: ${lastError.message}`
+          );
           throw lastError;
         }
 
         // Check if max attempts reached
         if (attempt >= this.#config.maxAttempts - 1) {
-          this.#logger.error({
-            subtaskId: subtask.id,
-            totalAttempts: attempt + 1,
-            maxAttempts: this.#config.maxAttempts,
-            finalError: lastError.message,
-          }, `Subtask failed after ${attempt + 1} attempts: ${lastError.message}`);
+          this.#logger.error(
+            {
+              subtaskId: subtask.id,
+              totalAttempts: attempt + 1,
+              maxAttempts: this.#config.maxAttempts,
+              finalError: lastError.message,
+            },
+            `Subtask failed after ${attempt + 1} attempts: ${lastError.message}`
+          );
           throw lastError;
         }
 
@@ -640,14 +667,17 @@ export class TaskRetryManager {
         await this.#sessionManager.flushUpdates();
 
         // Log retry attempt
-        this.#logger.info({
-          subtaskId: subtask.id,
-          attempt: retryState.retryAttempts,
-          maxAttempts: this.#config.maxAttempts,
-          delayMs: delay,
-          errorName: lastError.constructor.name,
-          errorCode: (lastError as { code?: string }).code,
-        }, `Retrying subtask ${subtask.id} (${retryState.retryAttempts}/${this.#config.maxAttempts}) after ${delay}ms`);
+        this.#logger.info(
+          {
+            subtaskId: subtask.id,
+            attempt: retryState.retryAttempts,
+            maxAttempts: this.#config.maxAttempts,
+            delayMs: delay,
+            errorName: lastError.constructor.name,
+            errorCode: (lastError as { code?: string }).code,
+          },
+          `Retrying subtask ${subtask.id} (${retryState.retryAttempts}/${this.#config.maxAttempts}) after ${delay}ms`
+        );
 
         // Wait before retry
         await sleep(delay);
@@ -702,7 +732,10 @@ const DEFAULT_TASK_RETRY_CONFIG: TaskRetryConfig = {
 // File: src/core/task-orchestrator.ts
 
 // In constructor:
-import { TaskRetryManager, type TaskRetryConfig } from './task-retry-manager.js';
+import {
+  TaskRetryManager,
+  type TaskRetryConfig,
+} from './task-retry-manager.js';
 
 export class TaskOrchestrator {
   // ... existing properties ...
@@ -713,7 +746,7 @@ export class TaskOrchestrator {
     scope?: Scope,
     noCache: boolean = false,
     researchQueueConcurrency: number = 3,
-    retryConfig?: Partial<TaskRetryConfig>  // NEW PARAMETER
+    retryConfig?: Partial<TaskRetryConfig> // NEW PARAMETER
   ) {
     // ... existing constructor code ...
 
@@ -726,30 +759,53 @@ export class TaskOrchestrator {
     // ... existing setup code ...
 
     // EXISTING: Set status to 'Implementing'
-    await this.setStatus(subtask.id, 'Implementing', `Starting implementation: ${subtask.title}`);
+    await this.setStatus(
+      subtask.id,
+      'Implementing',
+      `Starting implementation: ${subtask.title}`
+    );
 
     try {
       // NEW: Wrap execution in retry logic
-      const result = await this.#retryManager.executeWithRetry(subtask, async () => {
-        return await this.#prpRuntime.executeSubtask(subtask, this.#backlog);
-      });
+      const result = await this.#retryManager.executeWithRetry(
+        subtask,
+        async () => {
+          return await this.#prpRuntime.executeSubtask(subtask, this.#backlog);
+        }
+      );
 
       // EXISTING: Handle result
       if (result.success) {
-        await this.setStatus(subtask.id, 'Complete', 'Implementation completed successfully');
+        await this.setStatus(
+          subtask.id,
+          'Complete',
+          'Implementation completed successfully'
+        );
       } else {
-        await this.setStatus(subtask.id, 'Failed', result.error ?? 'Execution failed');
+        await this.setStatus(
+          subtask.id,
+          'Failed',
+          result.error ?? 'Execution failed'
+        );
       }
     } catch (error) {
       // EXISTING: Error already handled by retry manager
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      await this.setStatus(subtask.id, 'Failed', `Execution failed: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      await this.setStatus(
+        subtask.id,
+        'Failed',
+        `Execution failed: ${errorMessage}`
+      );
 
-      this.#logger.error({
-        subtaskId: subtask.id,
-        error: errorMessage,
-        ...(error instanceof Error && { stack: error.stack }),
-      }, 'Subtask execution failed');
+      this.#logger.error(
+        {
+          subtaskId: subtask.id,
+          error: errorMessage,
+          ...(error instanceof Error && { stack: error.stack }),
+        },
+        'Subtask execution failed'
+      );
 
       await this.sessionManager.flushUpdates();
       throw error;
@@ -766,7 +822,11 @@ export class TaskOrchestrator {
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TaskRetryManager } from '../../src/core/task-retry-manager.js';
-import { ValidationError, AgentError, ErrorCodes } from '../../src/utils/errors.js';
+import {
+  ValidationError,
+  AgentError,
+  ErrorCodes,
+} from '../../src/utils/errors.js';
 import type { Subtask } from '../../src/core/models.js';
 
 describe('TaskRetryManager', () => {
@@ -791,7 +851,8 @@ describe('TaskRetryManager', () => {
       status: 'Implementing',
       story_points: 2,
       dependencies: [],
-      context_scope: 'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: Test\n3. LOGIC: Test\n4. OUTPUT: Test',
+      context_scope:
+        'CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test\n2. INPUT: Test\n3. LOGIC: Test\n4. OUTPUT: Test',
     };
   });
 
@@ -813,7 +874,10 @@ describe('TaskRetryManager', () => {
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       // Execute all timers (delays)
       await vi.runAllTimersAsync();
@@ -832,13 +896,20 @@ describe('TaskRetryManager', () => {
       const executeFn = async () => {
         attempts++;
         if (attempts === 1) {
-          throw new AgentError('Agent timeout', ErrorCodes.PIPELINE_AGENT_TIMEOUT, {});
+          throw new AgentError(
+            'Agent timeout',
+            ErrorCodes.PIPELINE_AGENT_TIMEOUT,
+            {}
+          );
         }
         return { success: true };
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
-      const result = await retryManager.executeWithRetry(mockSubtask, executeFn);
+      const result = await retryManager.executeWithRetry(
+        mockSubtask,
+        executeFn
+      );
 
       await vi.runAllTimersAsync();
 
@@ -855,8 +926,9 @@ describe('TaskRetryManager', () => {
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Invalid input');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Invalid input');
 
       // Should not update status to Retrying
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
@@ -867,13 +939,18 @@ describe('TaskRetryManager', () => {
 
     it('should throw immediately for AgentError with PARSE_FAILED', async () => {
       const executeFn = async () => {
-        throw new AgentError('Parse failed', ErrorCodes.PIPELINE_AGENT_PARSE_FAILED, {});
+        throw new AgentError(
+          'Parse failed',
+          ErrorCodes.PIPELINE_AGENT_PARSE_FAILED,
+          {}
+        );
       };
 
       const retryManager = new TaskRetryManager({}, mockSessionManager);
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('Parse failed');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('Parse failed');
 
       expect(mockSessionManager.updateItemStatus).not.toHaveBeenCalled();
     });
@@ -889,10 +966,14 @@ describe('TaskRetryManager', () => {
         throw err;
       };
 
-      const retryManager = new TaskRetryManager({ maxAttempts: 2 }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { maxAttempts: 2 },
+        mockSessionManager
+      );
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('ETIMEDOUT');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('ETIMEDOUT');
 
       await vi.runAllTimersAsync();
 
@@ -904,12 +985,14 @@ describe('TaskRetryManager', () => {
   describe('exponential backoff', () => {
     it('should use exponential backoff between retries', async () => {
       const delays: number[] = [];
-      vi.spyOn(global, 'setTimeout').mockImplementation((callback: any, ms?: number) => {
-        if (ms !== undefined) {
-          delays.push(ms);
+      vi.spyOn(global, 'setTimeout').mockImplementation(
+        (callback: any, ms?: number) => {
+          if (ms !== undefined) {
+            delays.push(ms);
+          }
+          return setTimeout(callback as any, ms ?? 0);
         }
-        return setTimeout(callback as any, ms ?? 0);
-      });
+      );
 
       let attempts = 0;
       const executeFn = async () => {
@@ -922,12 +1005,15 @@ describe('TaskRetryManager', () => {
         return { success: true };
       };
 
-      const retryManager = new TaskRetryManager({
-        baseDelay: 1000,
-        maxDelay: 30000,
-        backoffFactor: 2,
-        jitterFactor: 0, // No jitter for predictable testing
-      }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        {
+          baseDelay: 1000,
+          maxDelay: 30000,
+          backoffFactor: 2,
+          jitterFactor: 0, // No jitter for predictable testing
+        },
+        mockSessionManager
+      );
 
       await retryManager.executeWithRetry(mockSubtask, executeFn);
 
@@ -947,10 +1033,14 @@ describe('TaskRetryManager', () => {
         throw err;
       };
 
-      const retryManager = new TaskRetryManager({ enabled: false }, mockSessionManager);
+      const retryManager = new TaskRetryManager(
+        { enabled: false },
+        mockSessionManager
+      );
 
-      await expect(retryManager.executeWithRetry(mockSubtask, executeFn))
-        .rejects.toThrow('ECONNRESET');
+      await expect(
+        retryManager.executeWithRetry(mockSubtask, executeFn)
+      ).rejects.toThrow('ECONNRESET');
 
       // Should only attempt once (no retries)
       expect(attempts).toBe(1);
@@ -1218,6 +1308,7 @@ rm test-retry-prd.md
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete design document exists from P3.M2.T1.S1 with error classification matrix and pseudocode
 - Existing retry infrastructure (src/utils/retry.ts) provides reusable functions
 - Error classification is comprehensive and well-tested
@@ -1226,11 +1317,13 @@ rm test-retry-prd.md
 - Parallel research provided comprehensive context on all aspects
 
 **Risk Areas**:
+
 - State persistence complexity (ensuring 'Retrying' status is properly persisted)
 - Integration with existing error handling flow (wrapping without breaking existing behavior)
 - Test complexity (mocking delays, tracking retry state)
 
 **Mitigation**:
+
 - Design document specifies exact integration points and code patterns
 - Existing retry utility functions are reused to minimize risk
 - Test patterns from existing retry tests are followed
@@ -1240,23 +1333,24 @@ rm test-retry-prd.md
 
 ## Appendix: Error Classification Quick Reference
 
-| Error Type | Retryable | Detection Method | Max Retries |
-|------------|-----------|------------------|-------------|
-| ValidationError | NO | isValidationError() | 0 (fail immediately) |
-| AgentError (TIMEOUT) | YES | errorCode === PIPELINE_AGENT_TIMEOUT | 3 |
-| AgentError (LLM_FAILED) | YES | errorCode === PIPELINE_AGENT_LLM_FAILED | 3 |
-| AgentError (PARSE_FAILED) | NO | errorCode === PIPELINE_AGENT_PARSE_FAILED | 0 |
-| Network errors (ECONNRESET, ETIMEDOUT, etc.) | YES | TRANSIENT_ERROR_CODES.has(err.code) | 3 |
-| HTTP 408 (Timeout) | YES | err.response.status === 408 | 3 |
-| HTTP 429 (Rate Limit) | YES | err.response.status === 429 | 5 (more for rate limits) |
-| HTTP 5xx (Server errors) | YES | err.response.status in [500, 502, 503, 504] | 3 |
-| HTTP 4xx (other) | NO | err.response.status in [400-407, 410-428, 430-499] | 0 |
-| Unknown errors | NO | Fallback (fail safe) | 0 |
+| Error Type                                   | Retryable | Detection Method                                   | Max Retries              |
+| -------------------------------------------- | --------- | -------------------------------------------------- | ------------------------ |
+| ValidationError                              | NO        | isValidationError()                                | 0 (fail immediately)     |
+| AgentError (TIMEOUT)                         | YES       | errorCode === PIPELINE_AGENT_TIMEOUT               | 3                        |
+| AgentError (LLM_FAILED)                      | YES       | errorCode === PIPELINE_AGENT_LLM_FAILED            | 3                        |
+| AgentError (PARSE_FAILED)                    | NO        | errorCode === PIPELINE_AGENT_PARSE_FAILED          | 0                        |
+| Network errors (ECONNRESET, ETIMEDOUT, etc.) | YES       | TRANSIENT_ERROR_CODES.has(err.code)                | 3                        |
+| HTTP 408 (Timeout)                           | YES       | err.response.status === 408                        | 3                        |
+| HTTP 429 (Rate Limit)                        | YES       | err.response.status === 429                        | 5 (more for rate limits) |
+| HTTP 5xx (Server errors)                     | YES       | err.response.status in [500, 502, 503, 504]        | 3                        |
+| HTTP 4xx (other)                             | NO        | err.response.status in [400-407, 410-428, 430-499] | 0                        |
+| Unknown errors                               | NO        | Fallback (fail safe)                               | 0                        |
 
 ---
 
 **Document Version**: 1.0
 **Last Updated**: 2026-01-24
 **Related Documents**:
+
 - Design Document: plan/003_b3d3efdaf0ed/docs/retry-strategy-design.md
 - Previous PRP: plan/003_b3d3efdaf0ed/P3M2T1S1/PRP.md (Retry Strategy Design)

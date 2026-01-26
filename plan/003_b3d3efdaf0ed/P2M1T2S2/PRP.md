@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive workflow documentation (`docs/WORKFLOWS.md`) that documents all four workflows (PRPPipeline, DeltaAnalysisWorkflow, BugHuntWorkflow, FixCycleWorkflow) with lifecycle diagrams, timing information, phase breakdowns, state machines, and integration points
 
 **Deliverable**: Documentation file `docs/WORKFLOWS.md` containing complete workflow documentation with:
+
 - Overview of all 4 workflows and their purposes
 - Main pipeline lifecycle (init → breakdown → execute → QA)
 - Delta session workflow (PRD change detection → patching → resume)
@@ -23,6 +24,7 @@
 - Cross-references to related documentation
 
 **Success Definition**:
+
 - A developer can understand the complete workflow architecture from this document
 - All 4 workflows are documented with their lifecycles and phases
 - Mermaid diagrams show workflow flows, state transitions, and component interactions
@@ -33,6 +35,7 @@
 ## User Persona
 
 **Target User**: Developer or technical user who needs to understand:
+
 - How the PRP Pipeline orchestrates the complete development workflow
 - How delta sessions handle PRD changes
 - How QA and bug hunting workflows find and fix bugs
@@ -40,6 +43,7 @@
 - The interaction between different workflow components
 
 **Use Case**: User needs to:
+
 - Understand the complete workflow architecture
 - Debug workflow execution issues
 - Understand how PRD changes are handled
@@ -47,6 +51,7 @@
 - Extend or modify existing workflows
 
 **User Journey**:
+
 1. User opens WORKFLOWS.md to understand workflow architecture
 2. User reads the overview to understand all 4 workflows
 3. User navigates to specific workflow sections for details
@@ -54,6 +59,7 @@
 5. User cross-references other docs for implementation details
 
 **Pain Points Addressed**:
+
 - "How does the pipeline actually work?" - Overview and lifecycle diagrams
 - "What happens when I change the PRD?" - Delta session workflow
 - "How are bugs found and fixed?" - Bug hunt and fix cycle workflows
@@ -97,6 +103,7 @@ Create docs/WORKFLOWS.md with complete workflow documentation:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Exact workflow file locations and class definitions from src/workflows/
 - Complete documentation formatting patterns from existing docs
 - Detailed workflow lifecycle information from codebase analysis
@@ -471,8 +478,9 @@ Task 12: VALIDATE - Review against success criteria
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 <!-- Header Pattern (from INSTALLATION.md) -->
+
 # Workflows
 
 > Complete guide to the PRP Pipeline workflow system, including all workflows, their lifecycles, phases, and integration points.
@@ -484,20 +492,22 @@ Task 12: VALIDATE - Review against success criteria
 ---
 
 <!-- Overview Pattern -->
+
 ## Overview
 
 The PRP Pipeline uses a **workflow orchestration system** built on Groundswell to manage the complete development lifecycle from PRD to working code. There are **four main workflows**:
 
-| Workflow | Purpose | Phases |
-| --- | --- | --- |
-| **PRPPipeline** | Main orchestration workflow | 6 phases (init, breakdown, delta, execute, QA, cleanup) |
-| **DeltaAnalysisWorkflow** | Handle PRD changes | 1 phase (semantic PRD comparison) |
-| **BugHuntWorkflow** | QA testing and bug finding | 4 phases (scope, creative E2E, adversarial, report) |
-| **FixCycleWorkflow** | Iterative bug fixing | 4 steps in a loop (create, execute, retest, check) |
+| Workflow                  | Purpose                     | Phases                                                  |
+| ------------------------- | --------------------------- | ------------------------------------------------------- |
+| **PRPPipeline**           | Main orchestration workflow | 6 phases (init, breakdown, delta, execute, QA, cleanup) |
+| **DeltaAnalysisWorkflow** | Handle PRD changes          | 1 phase (semantic PRD comparison)                       |
+| **BugHuntWorkflow**       | QA testing and bug finding  | 4 phases (scope, creative E2E, adversarial, report)     |
+| **FixCycleWorkflow**      | Iterative bug fixing        | 4 steps in a loop (create, execute, retest, check)      |
 
 ---
 
 <!-- Mermaid Flowchart Pattern for Workflow Lifecycle -->
+
 ## PRPPipeline (Main Workflow)
 
 ### Lifecycle Overview
@@ -527,10 +537,12 @@ flowchart TD
     style QA fill:#FFF5E1
     style Cleanup fill:#E1E1FF
 ```
+````
 
 ---
 
 <!-- Phase Documentation Pattern -->
+
 ### Phase 1: Session Initialization
 
 **Duration:** ~2-5 seconds
@@ -538,26 +550,31 @@ flowchart TD
 **Purpose:** Create a new session or load an existing one for resumption.
 
 **Entry Conditions:**
+
 - PRD file path provided
 - Plan directory exists or can be created
 - Configuration loaded
 
 **Process:**
+
 1. Generate unique session ID (timestamp-based)
 2. Create session directory structure (`plan/{session_hash}/`)
 3. Initialize session state (tasks.json, session state)
 4. Calculate PRD hash for change detection
 
 **Exit Conditions:**
+
 - Session directory created
 - Session state initialized
 - PRD hash calculated
 
 **Output:**
+
 - `plan/{session_hash}/tasks.json` - Task hierarchy
 - `plan/{session_hash}/session-state.json` - Current session state
 
 **Decorator Pattern:**
+
 ```typescript
 @Step({ trackTiming: true })
 async initializeSession(): Promise<SessionState> {
@@ -568,6 +585,7 @@ async initializeSession(): Promise<SessionState> {
 ---
 
 <!-- State Machine Pattern -->
+
 ### State Machine
 
 ```mermaid
@@ -588,32 +606,34 @@ stateDiagram-v2
 
 **State Transitions:**
 
-| Current State | Event | Next State | Action |
-|---|---|---|---|
-| `idle` | `run()` | `running` | Start phase execution |
-| `running` | Phase complete | `running` | Continue to next phase |
-| `running` | All phases complete | `completed` | Finalize and return result |
-| `running` | Fatal error | `failed` | Log error and cleanup |
+| Current State | Event               | Next State  | Action                     |
+| ------------- | ------------------- | ----------- | -------------------------- |
+| `idle`        | `run()`             | `running`   | Start phase execution      |
+| `running`     | Phase complete      | `running`   | Continue to next phase     |
+| `running`     | All phases complete | `completed` | Finalize and return result |
+| `running`     | Fatal error         | `failed`    | Log error and cleanup      |
 
 ---
 
 <!-- Timing Information Pattern -->
+
 ### Timing Specifications
 
-| Phase | Min Duration | Expected | Max Duration | Timeout |
-|---|---|---|---|---|
-| Session Initialization | 2s | 3s | 5s | 10s |
-| PRD Decomposition | 30s | 60s | 120s | 300s |
-| Delta Handling | 10s | 20s | 40s | 60s |
-| Backlog Execution | Variable | Variable | Variable | Configurable |
-| QA Cycle | 60s | 120s | 300s | 600s |
-| Cleanup | 1s | 2s | 5s | 10s |
+| Phase                  | Min Duration | Expected | Max Duration | Timeout      |
+| ---------------------- | ------------ | -------- | ------------ | ------------ |
+| Session Initialization | 2s           | 3s       | 5s           | 10s          |
+| PRD Decomposition      | 30s          | 60s      | 120s         | 300s         |
+| Delta Handling         | 10s          | 20s      | 40s          | 60s          |
+| Backlog Execution      | Variable     | Variable | Variable     | Configurable |
+| QA Cycle               | 60s          | 120s     | 300s         | 600s         |
+| Cleanup                | 1s           | 2s       | 5s           | 10s          |
 
 **Note:** The `@Step({ trackTiming: true })` decorator automatically tracks actual execution time for each phase.
 
 ---
 
 <!-- Sequence Diagram Pattern for Workflow Integration -->
+
 ## Workflow Integration
 
 ### Workflow Coordination
@@ -676,20 +696,22 @@ sequenceDiagram
 ---
 
 <!-- Prompt Mapping Pattern -->
+
 ### Prompt-to-Workflow Mapping
 
-| Prompt | Workflow Phase | Used By |
-|---|---|---|
-| `TASK_BREAKDOWN_PROMPT` | Phase 1: Task Breakdown | PRPPipeline.initializeSession() |
-| `PRP_CREATE_PROMPT` | Phase 2: PRP Generation | PRPPipeline.executeBacklog() |
-| `PRP_EXECUTE_PROMPT` | Phase 3: Implementation | PRPPipeline.executeBacklog() |
-| `BUG_FINDING_PROMPT` | Phase 4: Bug Hunt | BugHuntWorkflow |
-| `DELTA_PRD_GENERATION_PROMPT` | Delta Session | DeltaAnalysisWorkflow |
-| `VALIDATION_PROMPT` | QA Cycle | PRPPipeline.runQACycle() |
+| Prompt                        | Workflow Phase          | Used By                         |
+| ----------------------------- | ----------------------- | ------------------------------- |
+| `TASK_BREAKDOWN_PROMPT`       | Phase 1: Task Breakdown | PRPPipeline.initializeSession() |
+| `PRP_CREATE_PROMPT`           | Phase 2: PRP Generation | PRPPipeline.executeBacklog()    |
+| `PRP_EXECUTE_PROMPT`          | Phase 3: Implementation | PRPPipeline.executeBacklog()    |
+| `BUG_FINDING_PROMPT`          | Phase 4: Bug Hunt       | BugHuntWorkflow                 |
+| `DELTA_PRD_GENERATION_PROMPT` | Delta Session           | DeltaAnalysisWorkflow           |
+| `VALIDATION_PROMPT`           | QA Cycle                | PRPPipeline.runQACycle()        |
 
 ---
 
 <!-- See Also Pattern -->
+
 ## See Also
 
 - **[CLI Reference](./CLI_REFERENCE.md)** - Command-line interface for invoking workflows
@@ -699,7 +721,8 @@ sequenceDiagram
 - **[Quick Start Tutorial](./QUICKSTART.md)** - Get started in under 5 minutes
 - **[README](../README.md)** - Project overview and architecture
 - **[PROMPTS.md](../PROMPTS.md)** - Complete prompt definitions used by workflows
-```
+
+````
 
 ### Integration Points
 
@@ -733,13 +756,13 @@ README.md:
   - reference: "For project overview, see [README](../README.md)"
   - placement: See Also section
   - context: Architecture overview, not workflow details
-```
+````
 
 ## Validation Loop
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
-```bash
+````bash
 # Check markdown syntax
 npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 
@@ -756,11 +779,11 @@ npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 # Use https://mermaid.live/ to verify diagrams render correctly
 
 # Expected: Zero formatting errors, all links valid, all diagrams render
-```
+````
 
 ### Level 2: Content Validation (Completeness)
 
-```bash
+````bash
 # Manual content review checklist
 - [ ] All 4 workflows documented (PRPPipeline, DeltaAnalysisWorkflow, BugHuntWorkflow, FixCycleWorkflow)
 - [ ] PRPPipeline has all 6 phases documented (init, breakdown, delta, execute, QA, cleanup)
@@ -783,7 +806,7 @@ grep -c "##.*Workflow" docs/WORKFLOWS.md  # Should count all workflow sections
 grep -c "```mermaid" docs/WORKFLOWS.md  # Should count all diagrams
 
 # Expected: All content validation checks pass
-```
+````
 
 ### Level 3: Link Validation (Connectivity)
 
@@ -837,7 +860,7 @@ mmdc -i docs/WORKFLOWS.md -o /tmp/test.svg 2>&1 | head -20
 - [ ] File created at docs/WORKFLOWS.md
 - [ ] Document header follows pattern (Status, Last Updated, Version)
 - [ ] Table of Contents with all sections and anchors
-- [ ] All code blocks have syntax highlighting (```mermaid, ```bash)
+- [ ] All code blocks have syntax highlighting (`mermaid, `bash)
 - [ ] All internal links use correct relative paths (./, ../)
 - [ ] All external links are valid URLs
 - [ ] Markdown syntax is valid (tables, lists, code blocks)

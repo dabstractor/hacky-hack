@@ -11,21 +11,24 @@ This document summarizes the deep analysis of the hacky-hack codebase to identif
 **File Location**: `/home/dustin/projects/hacky-hack/src/agents/prp-generator.ts` (570 lines)
 
 **Key Classes**:
+
 - `PRPGenerator`: Main orchestrator for PRP generation
 - `PRPGenerationError`: Custom error for generation failures
 - `PRPFileError`: Custom error for file write failures
 
 **Cache Structure**:
+
 ```
 {sessionPath}/prps/{taskId}.md          # Markdown PRP file
 {sessionPath}/prps/.cache/{taskId}.json # Cache metadata
 ```
 
 **Cache Metadata Interface**:
+
 ```typescript
 export interface PRPCacheMetadata {
   readonly taskId: string;
-  readonly taskHash: string;      // SHA-256 of task inputs
+  readonly taskHash: string; // SHA-256 of task inputs
   readonly createdAt: number;
   readonly accessedAt: number;
   readonly version: string;
@@ -35,11 +38,11 @@ export interface PRPCacheMetadata {
 
 ### Compression Opportunities
 
-| Location | Current Behavior | Compression Opportunity |
-|----------|-----------------|------------------------|
-| `#formatPRPAsMarkdown()` | Full markdown with all content | Compress code blocks, truncate long sections |
-| `createPRPBlueprintPrompt()` | Full parent hierarchy injected | Limit to 2 levels, 100 chars each |
-| Cache metadata | No size tracking | Add originalSize, compressedSize, compressionRatio |
+| Location                     | Current Behavior               | Compression Opportunity                            |
+| ---------------------------- | ------------------------------ | -------------------------------------------------- |
+| `#formatPRPAsMarkdown()`     | Full markdown with all content | Compress code blocks, truncate long sections       |
+| `createPRPBlueprintPrompt()` | Full parent hierarchy injected | Limit to 2 levels, 100 chars each                  |
+| Cache metadata               | No size tracking               | Add originalSize, compressedSize, compressionRatio |
 
 ### Key Methods
 
@@ -64,16 +67,19 @@ export interface PRPCacheMetadata {
 ### Integration Points
 
 **Parameter Flow**:
+
 ```
 CLI → PRPPipeline → PRPRuntime → PRPGenerator
 ```
 
 **Current Parameters**:
+
 - `sessionManager: SessionManager`
 - `noCache: boolean`
 - `cacheTtlMs: number`
 
 **New Parameter Needed**:
+
 - `prpCompression: PRPCompressionLevel` ('off' | 'standard' | 'aggressive')
 
 ---
@@ -116,21 +122,24 @@ CLI → PRPPipeline → PRPRuntime → PRPGenerator
 **Required Changes**:
 
 1. **Add to CLIArgs interface**:
+
 ```typescript
 export interface CLIArgs {
   // ... existing fields
-  prpCompression?: string;  // 'off' | 'standard' | 'aggressive'
+  prpCompression?: string; // 'off' | 'standard' | 'aggressive'
 }
 ```
 
 2. **Add to ValidatedCLIArgs interface**:
+
 ```typescript
 export interface ValidatedCLIArgs extends Omit<CLIArgs, 'prpCompression'> {
-  prpCompression: 'off' | 'standard' | 'aggressive';  // Validated
+  prpCompression: 'off' | 'standard' | 'aggressive'; // Validated
 }
 ```
 
 3. **Add Commander.js option**:
+
 ```typescript
 .option(
   '--prp-compression <level>',
@@ -140,8 +149,11 @@ export interface ValidatedCLIArgs extends Omit<CLIArgs, 'prpCompression'> {
 ```
 
 4. **Add validation function**:
+
 ```typescript
-function validateCompressionLevel(level: string): 'off' | 'standard' | 'aggressive' {
+function validateCompressionLevel(
+  level: string
+): 'off' | 'standard' | 'aggressive' {
   const valid = ['off', 'standard', 'aggressive'];
   if (!valid.includes(level)) {
     logger.error(`Invalid compression level: ${level}`);
@@ -160,12 +172,14 @@ function validateCompressionLevel(level: string): 'off' | 'standard' | 'aggressi
 **Location**: `src/utils/cache-manager.ts`
 
 **Features**:
+
 - TTL-based expiration
 - SHA-256 hash-based change detection
 - Hit/miss metrics tracking
 - Atomic file operations
 
 **Cache Statistics Interface**:
+
 ```typescript
 interface CacheStatistics {
   cacheId: string;
@@ -184,18 +198,20 @@ interface CacheStatistics {
 ### Compression Integration
 
 **New Statistics Fields**:
+
 ```typescript
 interface CacheStatistics {
   // ... existing fields
-  totalTokens?: number;           // Total tokens across all PRPs
-  averageCompressionRatio?: number;  // Average compression ratio
-  compressedEntries?: number;     // Count of compressed PRPs
+  totalTokens?: number; // Total tokens across all PRPs
+  averageCompressionRatio?: number; // Average compression ratio
+  compressedEntries?: number; // Count of compressed PRPs
 }
 ```
 
 ### Cache Metadata Extension
 
 **Current PRPCacheMetadata** (from `src/core/models.ts`):
+
 ```typescript
 export interface PRPCacheMetadata {
   readonly taskId: string;
@@ -208,6 +224,7 @@ export interface PRPCacheMetadata {
 ```
 
 **Extended Version** (add all fields as optional for backward compatibility):
+
 ```typescript
 export interface PRPCacheMetadata {
   readonly taskId: string;
@@ -228,6 +245,7 @@ export interface PRPCacheMetadata {
 ```
 
 **Critical Pattern**: Use `??` operator when reading old cache entries:
+
 ```typescript
 const compressionRatio = metadata.compressionRatio ?? 1.0;
 ```
@@ -242,10 +260,10 @@ const compressionRatio = metadata.compressionRatio ?? 1.0;
 
 ```typescript
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Complex PRD analysis and task breakdown
+  architect: 8192, // Complex PRD analysis and task breakdown
   researcher: 4096, // PRP generation - PRIMARY TARGET
-  coder: 4096,      // PRP execution
-  qa: 4096,        // Bug hunting
+  coder: 4096, // PRP execution
+  qa: 4096, // Bug hunting
 } as const;
 ```
 
@@ -254,6 +272,7 @@ const PERSONA_TOKEN_LIMITS = {
 **Current**: No warnings when approaching limits
 
 **Proposed**: Log warning at 80% of limit
+
 ```typescript
 const tokenLimit = PERSONA_TOKEN_LIMITS.researcher;
 if (currentTokens > tokenLimit * 0.8) {
@@ -273,6 +292,7 @@ if (currentTokens > tokenLimit * 0.8) {
 **Location**: `tests/unit/agents/prp-generator.test.ts`
 
 **Test Structure**:
+
 ```typescript
 describe('PRPGenerator', () => {
   let mockSessionManager: SessionManager;
@@ -323,6 +343,7 @@ describe('PRPGenerator', () => {
 **Location**: `src/agents/prompts/prp-blueprint-prompt.ts`
 
 **Key Sections**:
+
 1. Header and Mission
 2. Research Process
 3. PRP Generation Process
@@ -338,12 +359,12 @@ describe('PRPGenerator', () => {
 
 ### Compression Opportunities
 
-| Section | Current Size | Compression Strategy |
-|---------|-------------|---------------------|
-| Validation Commands | ~200 chars | Replace with command templates |
-| Implementation Tasks | ~150 chars | Create task generator |
-| Documentation YAML | ~100 chars | Simplify to key-value pairs |
-| Parent Context | Variable | Limit to 2 levels, 100 chars each |
+| Section              | Current Size | Compression Strategy              |
+| -------------------- | ------------ | --------------------------------- |
+| Validation Commands  | ~200 chars   | Replace with command templates    |
+| Implementation Tasks | ~150 chars   | Create task generator             |
+| Documentation YAML   | ~100 chars   | Simplify to key-value pairs       |
+| Parent Context       | Variable     | Limit to 2 levels, 100 chars each |
 
 ---
 
@@ -377,15 +398,16 @@ extractLineRange(content: string, startLine: number, endLine: number): string {
 
 Replace large inline content (>500 chars) with file references:
 
-```typescript
+````typescript
 // Before (large inline content)
 ```file:src/services/database-service.ts
 [500+ lines of code]
-```
+````
 
 // After (file reference)
 See src/services/database-service.ts (1-500)
-```
+
+````
 
 ---
 
@@ -406,17 +428,19 @@ const result = transformSync(code, {
 });
 
 console.log(result.code);
-```
+````
 
 ### New Dependencies Needed
 
 **tiktoken** for token counting:
+
 ```bash
 npm install tiktoken
 npm install --save-dev @types/tiktoken
 ```
 
 **Usage**:
+
 ```typescript
 import { encoding_for_model } from 'tiktoken';
 
@@ -454,6 +478,7 @@ PRP Generation with compression
 ### Required Constructor Changes
 
 **PRPPipeline** (`src/workflows/prp-pipeline.ts`):
+
 ```typescript
 constructor(
   // ... existing parameters
@@ -465,6 +490,7 @@ constructor(
 ```
 
 **PRPRuntime** (`src/agents/prp-runtime.ts`):
+
 ```typescript
 constructor(
   orchestrator: TaskOrchestrator,
@@ -478,6 +504,7 @@ constructor(
 ```
 
 **PRPGenerator** (`src/agents/prp-generator.ts`):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -499,6 +526,7 @@ constructor(
 **Issue**: Old cache entries won't have compression fields
 
 **Solution**: Use optional fields with `??` defaults
+
 ```typescript
 const compressionRatio = metadata.compressionRatio ?? 1.0;
 ```
@@ -508,6 +536,7 @@ const compressionRatio = metadata.compressionRatio ?? 1.0;
 **Issue**: tiktoken uses GPT-4 tokenizer, not GLM-4
 
 **Solution**: Use as approximation, Groundswell API returns actual counts
+
 ```typescript
 // tiktoken for estimation
 const estimatedTokens = tokenCounter.countTokens(text);
@@ -521,6 +550,7 @@ const actualTokens = response.usage?.input_tokens ?? estimatedTokens;
 **Issue**: Compression must not break PRP template validation
 
 **Solution**: Only compress content within sections, preserve section headers
+
 ```typescript
 // Compress only section content, not headers
 const compressed = context.replace(
@@ -534,14 +564,13 @@ const compressed = context.replace(
 **Issue**: Validation commands must remain executable
 
 **Solution**: Don't compress validation commands, only compress context sections
+
 ```typescript
 // Don't compress this
-validationGates: [
-  { level: 1, command: 'npm run lint' }
-]
+validationGates: [{ level: 1, command: 'npm run lint' }];
 
 // Compress this instead
-context: '## Context\n[large compressed content]'
+context: '## Context\n[large compressed content]';
 ```
 
 ---
@@ -560,11 +589,13 @@ The codebase analysis reveals:
 **Confidence in Implementation**: 9/10
 
 All necessary patterns and infrastructure are in place. The main risks are:
+
 - Ensuring backward compatibility with old cache
 - Maintaining PRP template structure during compression
 - Accurate token counting across different models
 
 These are mitigated by:
+
 - Optional fields with `??` defaults
 - Comprehensive test coverage
 - Using tiktoken as approximation, Groundswell for actual counts

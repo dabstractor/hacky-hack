@@ -24,6 +24,7 @@
 Agent persona design is a critical discipline in multi-agent AI systems that defines how agents behave, communicate, and collaborate. Effective personas combine **role clarity**, **contextual awareness**, **constraint definition**, and **motivation alignment** to create reliable, predictable agent behavior.
 
 **Key Findings**:
+
 - Successful multi-agent systems use 3-7 specialized personas (not too few, not too many)
 - Persona consistency is maintained through structured system prompts with explicit constraints
 - Complementary personas follow cognitive diversity principles (creative ↔ critical, planner ↔ executor)
@@ -41,6 +42,7 @@ Agent persona design is a critical discipline in multi-agent AI systems that def
 An effective agent persona consists of five essential components:
 
 #### **1. Role Identity**
+
 The persona's professional identity and primary responsibility.
 
 ```typescript
@@ -55,15 +57,18 @@ export const TASK_BREAKDOWN_PROMPT = `
 ```
 
 **Best Practices**:
+
 - Use specific professional titles (not generic "assistant")
 - Define the expertise level (senior, principal, lead)
 - Specify the domain scope (software architecture, QA, research)
 - Include decision-making authority level
 
 #### **2. Expertise Domain**
+
 The knowledge domain and capabilities the persona can draw upon.
 
 **From Research Agent (PRP Blueprint)**:
+
 ```
 You are creating a PRP (Product Requirement Prompt) for this specific work item.
 
@@ -75,24 +80,27 @@ You are creating a PRP (Product Requirement Prompt) for this specific work item.
 ```
 
 **Expertise Dimensions**:
+
 - **Technical Skills**: Programming languages, frameworks, tools
 - **Domain Knowledge**: Industry-specific expertise (e.g., DevOps, security)
 - **Methodological Approach**: TDD, agile, architecture patterns
 - **Research Capabilities**: Documentation search, pattern matching, external research
 
 #### **3. Tone and Communication Style**
+
 How the persona expresses itself and interacts with users/other agents.
 
 **Observed Patterns**:
 
-| Persona | Tone | Characteristics |
-|---------|------|-----------------|
-| **Architect** | Authoritative, structured | Uses hierarchical language, precise terminology |
-| **Researcher** | Thorough, methodical | Explains reasoning, cites sources, detail-oriented |
-| **Coder** | Pragmatic, implementation-focused | Direct, code-centric, pattern-following |
-| **QA** | Creative, adversarial | Questioning, exploratory, bug-hunting mindset |
+| Persona        | Tone                              | Characteristics                                    |
+| -------------- | --------------------------------- | -------------------------------------------------- |
+| **Architect**  | Authoritative, structured         | Uses hierarchical language, precise terminology    |
+| **Researcher** | Thorough, methodical              | Explains reasoning, cites sources, detail-oriented |
+| **Coder**      | Pragmatic, implementation-focused | Direct, code-centric, pattern-following            |
+| **QA**         | Creative, adversarial             | Questioning, exploratory, bug-hunting mindset      |
 
 **Tone Implementation Example**:
+
 ```typescript
 // QA Agent - Creative, Adversarial Tone
 export const BUG_HUNT_PROMPT = `
@@ -107,6 +115,7 @@ Think like a user, then think like an adversary. Test the implementation:
 ```
 
 #### **4. Constraints and Boundaries**
+
 Explicit limitations on what the persona can and cannot do.
 
 **Critical Constraints from PRP Pipeline**:
@@ -133,6 +142,7 @@ Explicit limitations on what the persona can and cannot do.
 ```
 
 **Constraint Categories**:
+
 - **Process Constraints**: Workflow rules, step ordering, validation gates
 - **Scope Constraints**: What's in/out of scope for the persona
 - **Output Constraints**: Required format, structure, completeness criteria
@@ -140,6 +150,7 @@ Explicit limitations on what the persona can and cannot do.
 - **Quality Constraints**: Standards of work, validation requirements
 
 #### **5. Motivation and Success Criteria**
+
 What drives the persona and how it measures success.
 
 **Motivation Examples**:
@@ -164,6 +175,7 @@ issues that standard validation might have missed.
 ```
 
 **Success Metrics**:
+
 - **Architect**: Hierarchical decomposition completeness, feasibility validation
 - **Researcher**: PRP enabling one-pass implementation success
 - **Coder**: Code passing all 4 validation levels on first attempt
@@ -181,34 +193,35 @@ Effective multi-agent systems design personas that **complement** rather than **
 
 Pair personas with complementary cognitive styles:
 
-| Pairing | Pattern | Rationale |
-|---------|---------|-----------|
-| **Architect ↔ Coder** | Strategic ↔ Tactical | Architect plans, Coder executes |
-| **Researcher ↔ Executor** | Exploratory ↔ Implementational | Researcher discovers, Executor applies |
-| **Creative ↔ Critical** | Divergent ↔ Convergent | Creative generates, Critical evaluates |
-| **Planner ↔ Validator** | Forward-looking ↔ Backward-checking | Planner envisions, Validator verifies |
+| Pairing                   | Pattern                             | Rationale                              |
+| ------------------------- | ----------------------------------- | -------------------------------------- |
+| **Architect ↔ Coder**     | Strategic ↔ Tactical                | Architect plans, Coder executes        |
+| **Researcher ↔ Executor** | Exploratory ↔ Implementational      | Researcher discovers, Executor applies |
+| **Creative ↔ Critical**   | Divergent ↔ Convergent              | Creative generates, Critical evaluates |
+| **Planner ↔ Validator**   | Forward-looking ↔ Backward-checking | Planner envisions, Validator verifies  |
 
 **From PRP Pipeline**:
+
 ```typescript
 // Strategic-Tactical Pairing
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Higher limit for complex strategic reasoning
-  researcher: 4096,  // Medium for contextual research
-  coder: 4096,       // Medium for tactical implementation
-  qa: 4096,          // Medium for validation testing
+  architect: 8192, // Higher limit for complex strategic reasoning
+  researcher: 4096, // Medium for contextual research
+  coder: 4096, // Medium for tactical implementation
+  qa: 4096, // Medium for validation testing
 };
 ```
 
 #### **Complementary Capabilities Matrix**
 
-| Capability | Architect | Researcher | Coder | QA |
-|------------|-----------|------------|-------|-----|
-| **Strategic Planning** | ✓✓✓ | ✓ | ✓ | |
-| **Codebase Research** | ✓✓ | ✓✓✓ | ✓ | ✓✓ |
-| **Implementation** | | | ✓✓✓ | ✓ |
-| **Validation** | ✓ | ✓ | ✓✓ | ✓✓✓ |
-| **Documentation** | ✓✓ | ✓✓✓ | ✓ | ✓✓ |
-| **Pattern Recognition** | ✓✓✓ | ✓✓✓ | ✓✓ | ✓✓ |
+| Capability              | Architect | Researcher | Coder | QA  |
+| ----------------------- | --------- | ---------- | ----- | --- |
+| **Strategic Planning**  | ✓✓✓       | ✓          | ✓     |     |
+| **Codebase Research**   | ✓✓        | ✓✓✓        | ✓     | ✓✓  |
+| **Implementation**      |           |            | ✓✓✓   | ✓   |
+| **Validation**          | ✓         | ✓          | ✓✓    | ✓✓✓ |
+| **Documentation**       | ✓✓        | ✓✓✓        | ✓     | ✓✓  |
+| **Pattern Recognition** | ✓✓✓       | ✓✓✓        | ✓✓    | ✓✓  |
 
 **Legend**: ✓✓✓ = Primary, ✓✓ = Secondary, ✓ = Tertiary
 
@@ -238,12 +251,12 @@ Clear boundaries prevent duplicate work and ambiguity:
 
 **Industry Observation**: Successful systems use 3-7 specialized personas.
 
-| System | Persona Count | Rationale |
-|--------|--------------|-----------|
-| **PRP Pipeline** | 4 | Covers full SDLC without overlap |
-| **CrewAI** | 3-5 typical | Small focused teams for specific tasks |
-| **MetaGPT** | 7 | Full software company roles (PM, Architect, Engineer, QA, etc.) |
-| **AutoGPT** | 1 (autonomous) | Single agent with tool use for flexibility |
+| System           | Persona Count  | Rationale                                                       |
+| ---------------- | -------------- | --------------------------------------------------------------- |
+| **PRP Pipeline** | 4              | Covers full SDLC without overlap                                |
+| **CrewAI**       | 3-5 typical    | Small focused teams for specific tasks                          |
+| **MetaGPT**      | 7              | Full software company roles (PM, Architect, Engineer, QA, etc.) |
+| **AutoGPT**      | 1 (autonomous) | Single agent with tool use for flexibility                      |
 
 **Granularity Guidelines**:
 
@@ -273,32 +286,36 @@ Agents must communicate context effectively through handoffs.
 interface PRPDocument {
   // Context from Researcher to Coder
   goal: {
-    feature_goal: string;      // What to build
-    deliverable: string;        // Concrete artifact
+    feature_goal: string; // What to build
+    deliverable: string; // Concrete artifact
     success_definition: string; // Completion criteria
   };
 
   context: {
-    documentation: Array<{     // Research findings
+    documentation: Array<{
+      // Research findings
       url: string;
       why: string;
       critical: string;
     }>;
-    file_patterns: Array<{     // Codebase patterns to follow
+    file_patterns: Array<{
+      // Codebase patterns to follow
       file: string;
       pattern: string;
       gotcha: string;
     }>;
   };
 
-  implementation_tasks: Array<{ // Step-by-step instructions
+  implementation_tasks: Array<{
+    // Step-by-step instructions
     task: string;
     dependencies: string[];
     pattern: string;
     placement: string;
   }>;
 
-  validation_gates: {          // How to validate
+  validation_gates: {
+    // How to validate
     level_1_syntax: string[];
     level_2_unit: string[];
     level_3_integration: string[];
@@ -308,6 +325,7 @@ interface PRPDocument {
 ```
 
 **Handoff Quality Criteria**:
+
 - **Context Completeness**: All necessary information included
 - **Actionability**: Clear next steps for receiving agent
 - **Traceability**: References to source materials
@@ -337,13 +355,13 @@ Use GENERAL personas when:
 
 **Specialization Trade-offs**:
 
-| Aspect | Specialized | General |
-|--------|-------------|---------|
-| **Quality** | Higher (domain expertise) | Lower (generalist) |
-| **Token Usage** | Higher (more prompts) | Lower (single prompt) |
-| **Complexity** | Higher (coordination) | Lower (single agent) |
-| **Maintainability** | Lower (more to maintain) | Higher (single point) |
-| **Reliability** | Higher (validation at each step) | Lower (single point of failure) |
+| Aspect              | Specialized                      | General                         |
+| ------------------- | -------------------------------- | ------------------------------- |
+| **Quality**         | Higher (domain expertise)        | Lower (generalist)              |
+| **Token Usage**     | Higher (more prompts)            | Lower (single prompt)           |
+| **Complexity**      | Higher (coordination)            | Lower (single agent)            |
+| **Maintainability** | Lower (more to maintain)         | Higher (single point)           |
+| **Reliability**     | Higher (validation at each step) | Lower (single point of failure) |
 
 ### 3.2 Hybrid Approach: Specialized with Fallback
 
@@ -418,6 +436,7 @@ interface PRPDocument {
 ```
 
 **Context Bundle Best Practices**:
+
 - **Structured Format**: JSON/YAML for machine parsing
 - **Explicit References**: URLs, file paths, line numbers
 - **Actionability**: Clear instructions, not just information
@@ -468,6 +487,7 @@ PRPs enable working code on the first attempt through:
 ```
 
 **Handoff Prompt Elements**:
+
 - **Mission Statement**: Why this handoff exists
 - **Trust Indicators**: "Trust the PRP's context and guidance"
 - **Process Instructions**: Step-by-step execution guide
@@ -504,6 +524,7 @@ Write a structured bug report to \`./$BUG_RESULTS_FILE\`:
 ```
 
 **Feedback Loop Patterns**:
+
 - **Forward Flow**: Architect → Researcher → Coder → QA
 - **Backward Flow**: QA → Architect (for bugs requiring re-planning)
 - **Lateral Flow**: Coder ↔ Researcher (for clarification needs)
@@ -518,12 +539,14 @@ Write a structured bug report to \`./$BUG_RESULTS_FILE\`:
 **System**: 4-persona multi-agent system for autonomous software development
 
 **Personas**:
+
 1. **Architect Agent** (8192 tokens) - Lead Technical Architect & Project Synthesizer
 2. **Researcher Agent** (4096 tokens) - Context Curation Specialist
 3. **Coder Agent** (4096 tokens) - Implementation Specialist
 4. **QA Agent** (4096 tokens) - Creative Bug Hunter
 
 **Workflow**:
+
 ```
 PRD → [Architect] → tasks.json → [Researcher] → PRP → [Coder] → Code → [QA] → Bug Report
                 ↓                                                         ↓
@@ -533,6 +556,7 @@ PRD → [Architect] → tasks.json → [Researcher] → PRP → [Coder] → Code
 ```
 
 **Key Innovations**:
+
 - **Research-Driven Architecture**: Architect validates PRD through research before planning
 - **Context Scope Blinder**: Each subtask has strict context isolation instructions
 - **Implicit TDD**: Testing assumed in every subtask, not explicitly planned
@@ -540,12 +564,14 @@ PRD → [Architect] → tasks.json → [Researcher] → PRP → [Coder] → Code
 - **PRP as Handoff Protocol**: Structured context bundle between Researcher and Coder
 
 **Persona Communication**:
+
 - **Architect → Researcher**: Via `tasks.json` with `context_scope` field
 - **Researcher → Coder**: Via PRP document with comprehensive context
 - **Coder → QA**: Via completed code and git commits
 - **QA → Architect**: Via bug report triggering fix cycle
 
 **Sources**:
+
 - Implementation: `/home/dustin/projects/hacky-hack/src/agents/prompts.ts` (lines 33-979)
 - Architecture: `/home/dustin/projects/hacky-hack/docs/ARCHITECTURE.md` (Multi-Agent Architecture section)
 - Groundswell Integration: `/home/dustin/projects/hacky-hack/docs/GROUNDSWELL_GUIDE.md` (Agent System section)
@@ -581,12 +607,14 @@ writer = Agent(
 ```
 
 **Persona Components**:
+
 - **Role**: Professional title and position
 - **Goal**: Motivation and success criteria
 - **Backstory**: Context and expertise level
 - **Delegation**: Whether agent can delegate tasks
 
 **Crew Pattern**:
+
 ```python
 crew = Crew(
     agents=[researcher, writer],
@@ -596,12 +624,14 @@ crew = Crew(
 ```
 
 **Key Features**:
+
 - **Sequential Execution**: Tasks executed in order
 - **Agent Delegation**: Agents can delegate to each other
 - **Hierarchical Tasks**: Tasks can have subtasks
 - **Process Monitoring**: Built-in execution tracking
 
 **Sources**:
+
 - Documentation: https://docs.crewai.com/concepts/agents
 - GitHub: https://github.com/joaomdmoura/crewAI
 
@@ -629,6 +659,7 @@ agent = Agent(
 ```
 
 **Key Features**:
+
 - **Single Agent with Tool Use**: One persona, many tools
 - **Autonomous Planning**: Agent plans its own actions
 - **Memory System**: Long-term and working memory
@@ -636,12 +667,14 @@ agent = Agent(
 - **Tool-Based Extensibility**: Capabilities through tools
 
 **Persona Design**:
+
 - **Generalist**: Single agent handles all tasks
 - **Autonomous**: Minimal human intervention
 - **Self-Directed**: Agent decides next actions
 - **Tool-Enhanced**: Capabilities through tool use
 
 **Sources**:
+
 - GitHub: https://github.com/Significant-Gravitas/AutoGPT
 - Documentation: https://docs.agpt.co/
 
@@ -675,6 +708,7 @@ def baby_agi(objective, babyini_api_key):
 ```
 
 **Key Features**:
+
 - **Task-Driven**: Creates and manages task list
 - **Iterative**: Loop until objective complete
 - **Task Creation**: Generates new tasks from results
@@ -682,12 +716,14 @@ def baby_agi(objective, babyini_api_key):
 - **Context Management**: Maintains task history
 
 **Persona Design**:
+
 - **Task Manager**: Primary persona is task execution
 - **Creator**: Generates new tasks from results
 - **Prioritizer**: Orders tasks by importance
 - **Single-Persona**: Uses same model for all functions
 
 **Sources**:
+
 - GitHub: https://github.com/yoheinakajima/babyagi
 - Original Tweet: https://twitter.com/yoheinakajima/status/1645263461672525825
 
@@ -708,6 +744,7 @@ def baby_agi(objective, babyini_api_key):
 7. **Agent Interaction**: Coordinates between agents
 
 **Workflow**:
+
 ```
 User Idea → [Product Manager] → PRD
                           ↓
@@ -723,12 +760,14 @@ User Idea → [Product Manager] → PRD
 ```
 
 **Key Innovations**:
+
 - **Full Software Company**: Mirrors real development team
 - **SOPs (Standard Operating Procedures)**: Structured outputs
 - **Human-readable Outputs**: Documents, not just code
 - **Role Coordination**: Agents work in sequence with handoffs
 
 **Sources**:
+
 - GitHub: https://github.com/geekan/MetaGPT
 - Documentation: https://metagpt.gitbook.io/metagpt/
 
@@ -753,6 +792,7 @@ agent = create_react_agent(
 ```
 
 **Key Features**:
+
 - **Graph-Based**: Agents as nodes in a graph
 - **State Management**: Shared state between agents
 - **Cyclic Execution**: Can loop back to previous nodes
@@ -760,12 +800,14 @@ agent = create_react_agent(
 - **Persistence**: State can be saved and restored
 
 **Persona Design**:
+
 - **Node-Based**: Each agent is a graph node
 - **Stateful**: Agents share and modify state
 - **Message-Driven**: Communication through messages
 - **Flexible**: Any graph topology supported
 
 **Multi-Agent Pattern**:
+
 ```python
 from langgraph.graph import StateGraph
 
@@ -785,6 +827,7 @@ app = workflow.compile()
 ```
 
 **Sources**:
+
 - Documentation: https://langchain-ai.github.io/langgraph/
 - Multi-Agent Tutorial: https://langchain-ai.github.io/langgraph/tutorials/multi_agent/
 
@@ -940,7 +983,7 @@ interface BugReport {
 }
 
 // ❌ BAD: Unstructured Feedback
-"Something's not working. The code looks wrong. Fix it."
+("Something's not working. The code looks wrong. Fix it.");
 ```
 
 ### 6.4 Token Management Best Practices
@@ -950,10 +993,10 @@ interface BugReport {
 ```typescript
 // ✅ GOOD: Appropriate Token Limits
 const PERSONA_TOKEN_LIMITS = {
-  architect: 8192,  // Higher for complex reasoning
-  researcher: 4096,  // Medium for contextual work
-  coder: 4096,       // Medium for implementation
-  qa: 4096,          // Medium for validation
+  architect: 8192, // Higher for complex reasoning
+  researcher: 4096, // Medium for contextual work
+  coder: 4096, // Medium for implementation
+  qa: 4096, // Medium for validation
 };
 
 // Rationale:
@@ -992,17 +1035,20 @@ the instructions carefully. Double-check your work before proceeding."
 **Year**: 2023
 
 **Key Findings**:
+
 - **SOPs (Standard Operating Procedures)**: Structured outputs improve multi-agent coordination
 - **Role Specialization**: 7 specialized roles outperform generalist agents
 - **Human-Readable Artifacts**: Documents (PRD, design, tests) improve debugging
 - **Benchmark Results**: MetaGPT achieves 1.83x cost reduction and 5.6x success rate improvement over ChatDev
 
 **Persona Insights**:
+
 - Clear role definitions reduce ambiguity
 - Structured handoffs (documents) improve communication
 - Role diversity (PM, Architect, Engineer, QA) covers full SDLC
 
 **Source**:
+
 - arXiv: https://arxiv.org/abs/2308.07924
 - Code: https://github.com/geekan/MetaGPT
 
@@ -1015,17 +1061,20 @@ the instructions carefully. Double-check your work before proceeding."
 **Year**: 2023
 
 **Key Findings**:
+
 - **Role-Playing**: Two agents with assigned roles can collaborate autonomously
 - **Inception Prompting**: Explicit role assignment prevents infinite loops
 - **Specialized Roles**: "Python Programmer" + "Computing Domain Expert" outperform generalists
 - **Communication Protocol**: Agents communicate through structured messages
 
 **Persona Insights**:
+
 - Explicit role definitions enable autonomous collaboration
 - Complementary roles (programmer + domain expert) improve outcomes
 - Communication protocols prevent conversational loops
 
 **Source**:
+
 - arXiv: https://arxiv.org/abs/2303.17760
 - Website: https://www.camel-ai.org/
 
@@ -1038,17 +1087,20 @@ the instructions carefully. Double-check your work before proceeding."
 **Year**: 2024
 
 **Key Findings**:
+
 - **Instruction Design**: Well-designed prompts improve multi-agent coordination
 - **Elicitability**: Agents can be instructed to perform specific roles
 - **Collaboration Patterns**: Sequential, parallel, and hierarchical coordination
 - **Benchmarking**: AgentInstruct achieves state-of-the-art on multi-agent benchmarks
 
 **Persona Insights**:
+
 - Prompt engineering is critical for role enactment
 - Agents can be instructed to adopt specific personas
 - Collaboration patterns affect performance
 
 **Source**:
+
 - arXiv: https://arxiv.org/abs/2403.12881
 - Code: https://github.com/InternLM/AgentInstruct
 
@@ -1078,15 +1130,15 @@ the instructions carefully. Double-check your work before proceeding."
 
 ### 8.1 Framework Comparison Matrix
 
-| Framework | Persona Count | Specialization | Handoff Mechanism | Source |
-|-----------|--------------|----------------|-------------------|--------|
-| **PRP Pipeline** | 4 | High (SDLC roles) | PRP documents | `/home/dustin/projects/hacky-hack/src/agents/prompts.ts` |
-| **CrewAI** | 3-5 (configurable) | Medium (task-based) | Task delegation | https://docs.crewai.com/concepts/agents |
-| **MetaGPT** | 7 | High (full company) | SOP documents | https://github.com/geekan/MetaGPT |
-| **AutoGPT** | 1 | Low (generalist) | Tool use | https://github.com/Significant-Gravitas/AutoGPT |
-| **BabyAGI** | 1 | Low (task manager) | Task list | https://github.com/yoheinakajima/babyagi |
-| **LangGraph** | N/A (user-defined) | Variable | State/messages | https://langchain-ai.github.io/langgraph/ |
-| **ChatDev** | 2-3 | Medium (dev roles) | Chat messages | https://github.com/OpenBmb/ChatDev |
+| Framework        | Persona Count      | Specialization      | Handoff Mechanism | Source                                                   |
+| ---------------- | ------------------ | ------------------- | ----------------- | -------------------------------------------------------- |
+| **PRP Pipeline** | 4                  | High (SDLC roles)   | PRP documents     | `/home/dustin/projects/hacky-hack/src/agents/prompts.ts` |
+| **CrewAI**       | 3-5 (configurable) | Medium (task-based) | Task delegation   | https://docs.crewai.com/concepts/agents                  |
+| **MetaGPT**      | 7                  | High (full company) | SOP documents     | https://github.com/geekan/MetaGPT                        |
+| **AutoGPT**      | 1                  | Low (generalist)    | Tool use          | https://github.com/Significant-Gravitas/AutoGPT          |
+| **BabyAGI**      | 1                  | Low (task manager)  | Task list         | https://github.com/yoheinakajima/babyagi                 |
+| **LangGraph**    | N/A (user-defined) | Variable            | State/messages    | https://langchain-ai.github.io/langgraph/                |
+| **ChatDev**      | 2-3                | Medium (dev roles)  | Chat messages     | https://github.com/OpenBmb/ChatDev                       |
 
 ### 8.2 Industry Convergence Patterns
 
@@ -1100,12 +1152,12 @@ the instructions carefully. Double-check your work before proceeding."
 
 **Divergent Approaches**:
 
-| Aspect | PRP Pipeline | CrewAI | MetaGPT | AutoGPT |
-|--------|--------------|--------|---------|---------|
-| **Coordination** | Sequential with feedback | Delegation-based | Sequential pipeline | Autonomous |
-| **Handoffs** | PRP documents | Task delegation | SOP documents | Tool results |
-| **Memory** | Session-based | Conversation | Document-based | Long-term memory |
-| **Flexibility** | Medium (defined personas) | High (custom roles) | Low (fixed roles) | High (single agent) |
+| Aspect           | PRP Pipeline              | CrewAI              | MetaGPT             | AutoGPT             |
+| ---------------- | ------------------------- | ------------------- | ------------------- | ------------------- |
+| **Coordination** | Sequential with feedback  | Delegation-based    | Sequential pipeline | Autonomous          |
+| **Handoffs**     | PRP documents             | Task delegation     | SOP documents       | Tool results        |
+| **Memory**       | Session-based             | Conversation        | Document-based      | Long-term memory    |
+| **Flexibility**  | Medium (defined personas) | High (custom roles) | Low (fixed roles)   | High (single agent) |
 
 ---
 
@@ -1160,6 +1212,7 @@ export function createArchitectAgent(): Agent {
 ```
 
 **Pattern Benefits**:
+
 - **Consistency**: All agents created with same configuration
 - **Type Safety**: TypeScript ensures correct persona setup
 - **Extensibility**: Easy to add new personas
@@ -1196,6 +1249,7 @@ export function createPRPBlueprintPrompt(
 ```
 
 **Pattern Benefits**:
+
 - **Reusability**: Prompt generators used throughout codebase
 - **Type Safety**: Response format validated by Zod schema
 - **Context Injection**: Dynamic context based on task/backlog
@@ -1221,6 +1275,7 @@ const config = {
 ```
 
 **Pattern Benefits**:
+
 - **Tool Sharing**: All personas have access to same tools
 - **Consistency**: Uniform tool interface across agents
 - **Extensibility**: Easy to add new tools

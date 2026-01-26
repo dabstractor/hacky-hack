@@ -8,7 +8,7 @@
 vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
   return {
-    ...actual,  // Preserve ALL exports
+    ...actual, // Preserve ALL exports
     createAgent: vi.fn(),
     createPrompt: vi.fn(),
   };
@@ -55,7 +55,9 @@ if (USE_REAL_LLM) {
   expect(validation.success).toBe(true);
 } else {
   // MOCK: Return fixture data for fast, deterministic testing
-  const mockBacklog: Backlog = { /* fixture data */ };
+  const mockBacklog: Backlog = {
+    /* fixture data */
+  };
   vi.spyOn(architect, 'prompt').mockResolvedValue(mockBacklog);
 }
 ```

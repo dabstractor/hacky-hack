@@ -1,9 +1,11 @@
 # Circular Dependency Detection Algorithms
 
 ## Research Date
+
 2026-01-24
 
 ## Purpose
+
 Document circular dependency detection algorithms for implementing `prd validate-state`.
 
 ---
@@ -11,7 +13,9 @@ Document circular dependency detection algorithms for implementing `prd validate
 ## 1. Three-Color DFS Algorithm (Recommended)
 
 ### Concept
+
 Mark nodes during DFS traversal:
+
 - **WHITE** (0): Unvisited node
 - **GRAY** (1): Currently visiting (in recursion stack)
 - **BLACK** (2): Completely visited
@@ -22,13 +26,13 @@ Mark nodes during DFS traversal:
 
 ```typescript
 enum NodeColor {
-  WHITE = 0,  // Unvisited
-  GRAY = 1,   // In progress
-  BLACK = 2   // Completed
+  WHITE = 0, // Unvisited
+  GRAY = 1, // In progress
+  BLACK = 2, // Completed
 }
 
 interface DependencyGraph {
-  [taskId: string]: string[];  // taskId -> dependencies
+  [taskId: string]: string[]; // taskId -> dependencies
 }
 
 interface CycleDetectionResult {
@@ -70,12 +74,12 @@ function detectCircularDependencies(
   const dfs = (node: string): CycleDetectionResult => {
     color[node] = NodeColor.GRAY;
 
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       if (color[neighbor] === NodeColor.GRAY) {
         // Cycle detected
         return {
           hasCycle: true,
-          cycle: reconstructCycle(node, neighbor)
+          cycle: reconstructCycle(node, neighbor),
         };
       }
 
@@ -108,10 +112,12 @@ function detectCircularDependencies(
 ```
 
 ### Complexity
+
 - **Time**: O(V + E) - Each vertex and edge visited once
 - **Space**: O(V) - For color array, parent tracking, recursion stack
 
 ### Edge Cases
+
 1. **Disconnected graphs**: Must start DFS from all unvisited nodes
 2. **Self-loops**: Node depending on itself (A -> A)
 3. **Empty graph**: Return `{ hasCycle: false }`
@@ -122,6 +128,7 @@ function detectCircularDependencies(
 ## 2. Kahn's Algorithm (Topological Sort)
 
 ### Concept
+
 Repeatedly remove nodes with zero in-degree. If all nodes removed → DAG. If nodes remain → cycles.
 
 ### TypeScript Implementation
@@ -164,7 +171,7 @@ function kahnCycleDetection(graph: DependencyGraph): KahnResult {
     topologicalOrder.push(node);
 
     // Reduce in-degree for neighbors
-    for (const neighbor of (graph[node] || [])) {
+    for (const neighbor of graph[node] || []) {
       inDegree[neighbor]--;
       if (inDegree[neighbor] === 0) {
         queue.push(neighbor);
@@ -180,22 +187,24 @@ function kahnCycleDetection(graph: DependencyGraph): KahnResult {
       .filter(id => !topologicalOrder.includes(id));
     return {
       isDAG: false,
-      cycleNodes: Array.from(cycleNodes)
+      cycleNodes: Array.from(cycleNodes),
     };
   }
 
   return {
     isDAG: true,
-    topologicalOrder
+    topologicalOrder,
   };
 }
 ```
 
 ### Complexity
+
 - **Time**: O(V + E)
 - **Space**: O(V)
 
 ### Advantages
+
 - Non-recursive (no stack overflow)
 - Produces topological order
 - Good for large graphs
@@ -205,6 +214,7 @@ function kahnCycleDetection(graph: DependencyGraph): KahnResult {
 ## 3. Orphaned Dependency Detection
 
 ### Concept
+
 Find dependencies that reference non-existent tasks.
 
 ### TypeScript Implementation
@@ -231,7 +241,7 @@ function detectOrphanedDependencies(
 
   return {
     hasOrphans: orphans.length > 0,
-    orphans
+    orphans,
   };
 }
 ```
@@ -241,6 +251,7 @@ function detectOrphanedDependencies(
 ## 4. Status Consistency Validation
 
 ### Concept
+
 Parent tasks should not be Complete if children are incomplete.
 
 ### TypeScript Implementation
@@ -254,9 +265,7 @@ interface StatusConsistencyResult {
   }[];
 }
 
-function validateStatusConsistency(
-  backlog: Backlog
-): StatusConsistencyResult {
+function validateStatusConsistency(backlog: Backlog): StatusConsistencyResult {
   const inconsistencies: { itemId: string; issue: string }[] = [];
 
   for (const phase of backlog.backlog) {
@@ -266,7 +275,7 @@ function validateStatusConsistency(
         if (milestone.status !== 'Complete') {
           inconsistencies.push({
             itemId: phase.id,
-            issue: `Phase is Complete but milestone ${milestone.id} is ${milestone.status}`
+            issue: `Phase is Complete but milestone ${milestone.id} is ${milestone.status}`,
           });
         }
       }
@@ -279,7 +288,7 @@ function validateStatusConsistency(
           if (task.status !== 'Complete') {
             inconsistencies.push({
               itemId: milestone.id,
-              issue: `Milestone is Complete but task ${task.id} is ${task.status}`
+              issue: `Milestone is Complete but task ${task.id} is ${task.status}`,
             });
           }
         }
@@ -293,19 +302,19 @@ function validateStatusConsistency(
           for (const subtask of task.subtasks) {
             if (subtask.status !== 'Complete') {
               inconsistencies.push({
-                                        itemId: task.id,
-                issue: `Task is Complete but subtask ${subtask.id} is ${subtask.status}`
-                                      });
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
+                itemId: task.id,
+                issue: `Task is Complete but subtask ${subtask.id} is ${subtask.status}`,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
 
   return {
     isConsistent: inconsistencies.length === 0,
-    inconsistencies
+    inconsistencies,
   };
 }
 ```
@@ -384,12 +393,13 @@ function validateBacklogState(backlog: Backlog): StateValidationResult {
   const statusResult = validateStatusConsistency(backlog);
 
   return {
-    isValid: !cycleResult.hasCycle &&
-             !orphanResult.hasOrphans &&
-             statusResult.isConsistent,
+    isValid:
+      !cycleResult.hasCycle &&
+      !orphanResult.hasOrphans &&
+      statusResult.isConsistent,
     circularDeps: cycleResult.cycle,
     orphanedDeps: orphanResult.orphans,
-    statusInconsistencies: statusResult.inconsistencies
+    statusInconsistencies: statusResult.inconsistencies,
   };
 }
 ```
@@ -399,11 +409,13 @@ function validateBacklogState(backlog: Backlog): StateValidationResult {
 ## References
 
 ### External Resources
+
 - **Wikipedia**: Topological sorting, Cycle detection
 - **CLRS**: Chapter 22 - Graph algorithms
 - **StackOverflow**: Questions 10825449, 14982352 (DFS cycle detection)
 
 ### GitHub Repos
+
 - `palmerhq/madge` - JavaScript circular dependency detector
 - `sverweij/dependency-cruiser` - Comprehensive dependency analysis
 - `aackerman/circular-dependency-plugin` - Webpack plugin

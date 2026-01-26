@@ -6,9 +6,9 @@ This document captures the testing patterns used in the hacky-hack codebase for 
 
 ## Key Test Files
 
-| File | Purpose |
-|------|---------|
-| `tests/unit/agents/prp-generator.test.ts` | PRPGenerator cache functionality |
+| File                                           | Purpose                          |
+| ---------------------------------------------- | -------------------------------- |
+| `tests/unit/agents/prp-generator.test.ts`      | PRPGenerator cache functionality |
 | `tests/unit/agents/cache-verification.test.ts` | Groundswell agent cache behavior |
 
 ## Test File Structure and Conventions
@@ -62,7 +62,14 @@ vi.mock('node:fs/promises', () => ({
 }));
 
 // Import and cast mocked functions
-import { mkdir, writeFile, readFile, stat, readdir, unlink } from 'node:fs/promises';
+import {
+  mkdir,
+  writeFile,
+  readFile,
+  stat,
+  readdir,
+  unlink,
+} from 'node:fs/promises';
 const mockMkdir = vi.mocked(mkdir);
 const mockWriteFile = vi.mocked(writeFile);
 const mockReadFile = vi.mocked(readFile);
@@ -117,20 +124,21 @@ const createMockCacheMetadata = (
 });
 
 // Create mock session manager
-const createMockSessionManager = (sessionPath: string): SessionManager => ({
-  currentSession: {
-    metadata: {
-      id: '001_14b9dc2a33c7',
-      hash: '14b9dc2a33c7',
-      path: sessionPath,
-      createdAt: new Date(),
-      parentSession: null,
+const createMockSessionManager = (sessionPath: string): SessionManager =>
+  ({
+    currentSession: {
+      metadata: {
+        id: '001_14b9dc2a33c7',
+        hash: '14b9dc2a33c7',
+        path: sessionPath,
+        createdAt: new Date(),
+        parentSession: null,
+      },
+      prdSnapshot: '# PRD',
+      taskRegistry: { backlog: [] },
+      currentItemId: null,
     },
-    prdSnapshot: '# PRD',
-    taskRegistry: { backlog: [] },
-    currentItemId: null,
-  },
-} as SessionManager);
+  }) as SessionManager;
 ```
 
 ## Cache-Specific Testing Patterns
@@ -142,8 +150,13 @@ describe('Cache Statistics', () => {
   it('should record cache hit', async () => {
     // Arrange
     const manager = new CacheManager('/test/session/path');
-    mockReadFile.mockResolvedValue(JSON.stringify(createMockCacheMetadata('P1.M1.T1.S1', 1000)));
-    mockStat.mockResolvedValue({ mtimeMs: Date.now() - 1000, isFile: () => true } as any);
+    mockReadFile.mockResolvedValue(
+      JSON.stringify(createMockCacheMetadata('P1.M1.T1.S1', 1000))
+    );
+    mockStat.mockResolvedValue({
+      mtimeMs: Date.now() - 1000,
+      isFile: () => true,
+    } as any);
 
     // Act
     await manager.get('P1.M1.T1.S1');
@@ -177,7 +190,10 @@ describe('Cache Expiration', () => {
   it('should identify expired cache entries', async () => {
     // Arrange
     const manager = new CacheManager('/test/session/path', 24 * 60 * 60 * 1000); // 24h TTL
-    const expiredMetadata = createMockCacheMetadata('P1.M1.T1.S1', 25 * 60 * 60 * 1000); // 25h old
+    const expiredMetadata = createMockCacheMetadata(
+      'P1.M1.T1.S1',
+      25 * 60 * 60 * 1000
+    ); // 25h old
 
     mockReadFile.mockResolvedValue(JSON.stringify(expiredMetadata));
     mockStat.mockResolvedValue({
@@ -232,8 +248,12 @@ describe('Cache Cleanup', () => {
 
     // Assert
     expect(mockUnlink).toHaveBeenCalledTimes(2);
-    expect(mockUnlink).toHaveBeenCalledWith('/test/prps/.cache/P1_M1_T1_S1.json');
-    expect(mockUnlink).toHaveBeenCalledWith('/test/prps/.cache/P1_M1_T1_S2.json');
+    expect(mockUnlink).toHaveBeenCalledWith(
+      '/test/prps/.cache/P1_M1_T1_S1.json'
+    );
+    expect(mockUnlink).toHaveBeenCalledWith(
+      '/test/prps/.cache/P1_M1_T1_S2.json'
+    );
   });
 
   it('should handle unlink errors gracefully', async () => {
@@ -357,7 +377,9 @@ describe('Error Handling', () => {
     mockStat.mockRejectedValue(new Error('Unexpected error'));
 
     // Act & Assert
-    await expect(manager.isCacheRecent('P1.M1.T1.S1')).rejects.toThrow('Unexpected error');
+    await expect(manager.isCacheRecent('P1.M1.T1.S1')).rejects.toThrow(
+      'Unexpected error'
+    );
   });
 });
 ```
@@ -381,8 +403,13 @@ describe('Integration: Complete Cache Lifecycle', () => {
     expect(manager.getStats().misses).toBe(1);
 
     // Cache hit
-    mockReadFile.mockResolvedValue(JSON.stringify(createMockCacheMetadata('P1.M1.T1.S1', 1000)));
-    mockStat.mockResolvedValue({ mtimeMs: Date.now() - 1000, isFile: () => true } as any);
+    mockReadFile.mockResolvedValue(
+      JSON.stringify(createMockCacheMetadata('P1.M1.T1.S1', 1000))
+    );
+    mockStat.mockResolvedValue({
+      mtimeMs: Date.now() - 1000,
+      isFile: () => true,
+    } as any);
     await manager.get('P1.M1.T1.S1');
     expect(manager.getStats().hits).toBe(1);
 
@@ -400,7 +427,10 @@ describe('Performance', () => {
   it('should complete cleanup quickly for large cache', async () => {
     // Arrange
     const manager = new CacheManager('/test/session/path');
-    const largeCache = Array.from({ length: 1000 }, (_, i) => `P1_M1_T1_S${i}.json`);
+    const largeCache = Array.from(
+      { length: 1000 },
+      (_, i) => `P1_M1_T1_S${i}.json`
+    );
     mockReaddir.mockResolvedValue(largeCache);
     mockUnlink.mockResolvedValue(undefined);
 

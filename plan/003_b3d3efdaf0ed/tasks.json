@@ -748,7 +748,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T1.S1",
                   "title": "Add structured log levels and output formatting",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Current logging uses Pino (structured logging). Logger at src/utils/logger.ts. Log levels: info, warn, error. Already structured, but can be enhanced.\n2. INPUT: Logger implementation from src/utils/logger.ts, Pino configuration and options.\n3. LOGIC: Enhance logger to add: (a) configurable log levels (trace, debug, info, warn, error, fatal), (b) pretty-print mode for development, (c) JSON mode for production, (d) log correlation IDs for request tracking, (e) log filtering by component. Update logger configuration and add CLI option --log-level. Add unit tests for new features.\n4. OUTPUT: Enhanced logger at src/utils/logger.ts with new features, tests in tests/unit/logger-enhancements.test.ts."

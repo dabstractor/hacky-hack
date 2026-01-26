@@ -4,6 +4,7 @@
 **Focus:** How to generate resume commands, skip strategies, and next step guidance
 
 ## Table of Contents
+
 1. [Resume Command Patterns](#resume-command-patterns)
 2. [Skip and Continue Strategies](#skip-and-continue-strategies)
 3. [Recovery Workflows](#recovery-workflows)
@@ -108,12 +109,15 @@ interface SkipStrategy {
 }
 
 class SkipStrategyAnalyzer {
-  analyze(failedTask: string, context: {
-    taskType: string;
-    hasDependents: boolean;
-    isCritical: boolean;
-    canDefer: boolean;
-  }): SkipStrategy {
+  analyze(
+    failedTask: string,
+    context: {
+      taskType: string;
+      hasDependents: boolean;
+      isCritical: boolean;
+      canDefer: boolean;
+    }
+  ): SkipStrategy {
     // Critical tasks cannot be skipped
     if (context.isCritical) {
       return {
@@ -129,7 +133,7 @@ class SkipStrategyAnalyzer {
     if (context.hasDependents && !context.canDefer) {
       return {
         canSkip: false,
-        reason: 'Dependent tasks require this task\'s output',
+        reason: "Dependent tasks require this task's output",
         risks: ['Dependent tasks will fail'],
         mitigation: 'Fix the error or skip dependent tasks',
         resumeCommand: `hack retry --task ${failedTask}`,
@@ -241,10 +245,7 @@ $ hack resume --task P1.M1.T1.S1
 ### Example 1: Simple Resume
 
 ```typescript
-function generateResumeCommand(
-  failedTask: string,
-  sessionId: string
-): string {
+function generateResumeCommand(failedTask: string, sessionId: string): string {
   return `hack resume --session ${sessionId} --task ${failedTask}`;
 }
 
@@ -352,11 +353,7 @@ interface MultiTaskResumeOptions {
 function generateMultiTaskResumeCommand(
   options: MultiTaskResumeOptions
 ): string {
-  const parts = [
-    'hack',
-    'resume',
-    `--session ${options.sessionId}`,
-  ];
+  const parts = ['hack', 'resume', `--session ${options.sessionId}`];
 
   if (options.fromTask) {
     parts.push(`--from ${options.fromTask}`);
@@ -546,7 +543,8 @@ class SmartCommandGenerator {
 
       case 'dependency':
         if (context.suggestedFix) {
-          commands.primary = `npm install ${context.suggestedFix} && ` +
+          commands.primary =
+            `npm install ${context.suggestedFix} && ` +
             new ResumeCommandBuilder(context.sessionId)
               .task(context.failedTask)
               .build();
@@ -578,8 +576,7 @@ class SmartCommandGenerator {
           .task(context.failedTask)
           .withRetry()
           .build();
-        commands.explanation =
-          'Retry the task after resolving the error';
+        commands.explanation = 'Retry the task after resolving the error';
     }
 
     // Generate alternative commands
@@ -614,9 +611,7 @@ class SmartCommandGenerator {
     // Alternative 3: Retry from beginning of phase
     const phaseId = context.failedTask.split('.').slice(0, 1).join('.');
     alternatives.push(
-      new ResumeCommandBuilder(context.sessionId)
-        .task(phaseId)
-        .build()
+      new ResumeCommandBuilder(context.sessionId).task(phaseId).build()
     );
 
     // Alternative 4: Interactive mode
@@ -635,13 +630,11 @@ class SmartCommandGenerator {
 import chalk from 'chalk';
 
 class CommandSuggestionDisplay {
-  format(
-    commands: {
-      primary: string;
-      alternatives: string[];
-      explanation: string;
-    }
-  ): string {
+  format(commands: {
+    primary: string;
+    alternatives: string[];
+    explanation: string;
+  }): string {
     const lines: string[] = [];
 
     // Primary command
@@ -661,8 +654,7 @@ class CommandSuggestionDisplay {
 
       for (let i = 0; i < commands.alternatives.length; i++) {
         lines.push(
-          chalk.cyan(`  ${i + 1}. `) +
-          chalk.white(commands.alternatives[i])
+          chalk.cyan(`  ${i + 1}. `) + chalk.white(commands.alternatives[i])
         );
       }
       lines.push('');
@@ -674,13 +666,11 @@ class CommandSuggestionDisplay {
     return lines.join('\n');
   }
 
-  formatInteractive(
-    commands: {
-      primary: string;
-      alternatives: string[];
-      explanation: string;
-    }
-  ): string {
+  formatInteractive(commands: {
+    primary: string;
+    alternatives: string[];
+    explanation: string;
+  }): string {
     const lines: string[] = [];
 
     lines.push(chalk.bold.yellow('\nChoose an action:'));
@@ -688,14 +678,13 @@ class CommandSuggestionDisplay {
 
     lines.push(
       chalk.green('  [0] ') +
-      chalk.white('Run recommended command') +
-      chalk.dim(` (${commands.primary})`)
+        chalk.white('Run recommended command') +
+        chalk.dim(` (${commands.primary})`)
     );
 
     for (let i = 0; i < commands.alternatives.length; i++) {
       lines.push(
-        chalk.green(`  [${i + 1}] `) +
-        chalk.white(commands.alternatives[i])
+        chalk.green(`  [${i + 1}] `) + chalk.white(commands.alternatives[i])
       );
     }
 
@@ -720,17 +709,26 @@ class ErrorRecoveryDisplay {
     this.display = new CommandSuggestionDisplay();
   }
 
-  format(
-    errorContext: ErrorContext,
-    includeStackTrace = false
-  ): string {
+  format(errorContext: ErrorContext, includeStackTrace = false): string {
     const commands = this.commandGenerator.generateCommands(errorContext);
     const lines: string[] = [];
 
     // Error header
-    lines.push(chalk.bold.red('\n╔═══════════════════════════════════════════════════════════════╗'));
-    lines.push(chalk.bold.red('║ Pipeline Execution Paused                                          ║'));
-    lines.push(chalk.bold.red('╚═══════════════════════════════════════════════════════════════╝'));
+    lines.push(
+      chalk.bold.red(
+        '\n╔═══════════════════════════════════════════════════════════════╗'
+      )
+    );
+    lines.push(
+      chalk.bold.red(
+        '║ Pipeline Execution Paused                                          ║'
+      )
+    );
+    lines.push(
+      chalk.bold.red(
+        '╚═══════════════════════════════════════════════════════════════╝'
+      )
+    );
 
     // Error details
     lines.push('');
@@ -782,6 +780,7 @@ class ErrorRecoveryDisplay {
 ## Best Practices
 
 ### DO:
+
 - Provide exact, copy-pasteable commands
 - Show the primary recommendation first
 - Include alternative approaches
@@ -792,6 +791,7 @@ class ErrorRecoveryDisplay {
 - Include context in commands (what was fixed)
 
 ### DON'T:
+
 - Generate commands without validation
 - Skip warnings for destructive operations
 - Overwhelm with too many alternatives

@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive architecture overview document (`docs/ARCHITECTURE.md`) that explains the PRP Pipeline's high-level system design, including component diagrams, Groundswell framework usage, multi-agent architecture, state management, and task execution flow.
 
 **Deliverable**: Documentation file `docs/ARCHITECTURE.md` containing:
+
 - High-level system design with component diagram
 - Groundswell framework usage (decorators, workflows, agents)
 - Multi-agent architecture with roles
@@ -21,6 +22,7 @@
 - ASCII art diagrams and component interaction descriptions
 
 **Success Definition**:
+
 - A new developer can understand the PRP Pipeline architecture from this document
 - All four core processing engines are documented (Session Manager, Task Orchestrator, Agent Runtime, Pipeline Controller)
 - Groundswell framework integration is clearly explained
@@ -31,12 +33,14 @@
 ## User Persona
 
 **Target User**: Developer, architect, or technical contributor who needs to:
+
 - Understand the PRP Pipeline's architecture
 - Contribute to the codebase
 - Debug or extend the system
 - Understand how the four engines work together
 
 **Use Case**: User needs to understand:
+
 - What are the main components and how do they interact?
 - How does Groundswell framework power the pipeline?
 - What are the four agent personas and their roles?
@@ -44,6 +48,7 @@
 - How does the task hierarchy and execution flow work?
 
 **User Journey**:
+
 1. User opens docs/ARCHITECTURE.md to understand the system
 2. User reads the system overview and component diagram
 3. User studies the four core processing engines
@@ -53,6 +58,7 @@
 7. User has a complete mental model of the system
 
 **Pain Points Addressed**:
+
 - "What are the main components?" - System overview with diagram
 - "How do the components interact?" - Component interaction descriptions
 - "What's the Groundswell framework?" - Groundswell integration section
@@ -93,6 +99,7 @@ Create docs/ARCHITECTURE.md with comprehensive architecture overview:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete component architecture from codebase analysis
 - Groundswell framework integration details
 - Agent system patterns and roles
@@ -477,6 +484,7 @@ Task 10: VALIDATE - Review against success criteria
 
 ```markdown
 <!-- Header Pattern (from docs/api/media/architecture.md) -->
+
 # Architecture Overview
 
 > Comprehensive overview of the PRP Pipeline architecture...
@@ -488,6 +496,7 @@ Task 10: VALIDATE - Review against success criteria
 ---
 
 <!-- Table of Contents Pattern -->
+
 ## Table of Contents
 
 - [System Overview](#system-overview)
@@ -501,61 +510,66 @@ Task 10: VALIDATE - Review against success criteria
 ---
 
 <!-- Mermaid Diagram Pattern (from README.md) -->
+
 ## High-Level Architecture
 
 \`\`\`mermaid
 flowchart LR
-    A[PRD.md] --> B[Architect Agent]
-    B --> C[tasks.json<br/>Backlog]
-    C --> D[Task Orchestrator]
-    D --> E[Researcher Agent<br/>PRP Generator]
-    E --> F[Coder Agent<br/>PRP Executor]
-    F --> G[4-Level Validation]
-    G --> H{All Complete?}
-    H -->|No| D
-    H -->|Yes| I[QA Agent<br/>Bug Hunt]
+A[PRD.md] --> B[Architect Agent]
+B --> C[tasks.json<br/>Backlog]
+C --> D[Task Orchestrator]
+D --> E[Researcher Agent<br/>PRP Generator]
+E --> F[Coder Agent<br/>PRP Executor]
+F --> G[4-Level Validation]
+G --> H{All Complete?}
+H -->|No| D
+H -->|Yes| I[QA Agent<br/>Bug Hunt]
 \`\`\`
 
 <!-- ASCII Art Pattern (for directory structures) -->
+
 ## Session Directory Structure
 
 \`\`\`
 plan/
 ├── 001_14b9dc2a33c7/
-│   ├── prd_snapshot.md          # Original PRD content
-│   ├── tasks.json               # Task backlog registry
-│   └── parent_session.txt       # Parent reference (delta sessions)
+│ ├── prd_snapshot.md # Original PRD content
+│ ├── tasks.json # Task backlog registry
+│ └── parent_session.txt # Parent reference (delta sessions)
 ├── 002_a1b2c3d4e5f6/
-│   └── ...
+│ └── ...
 \`\`\`
 
 <!-- Table Formatting Pattern -->
+
 ## Agent Personas
 
-| Agent | Persona | Responsibility | Token Limit |
-|-------|---------|----------------|-------------|
-| **Architect** | System Designer | Generates task backlog from PRD | 8192 |
-| **Researcher** | Context Gatherer | Generates PRPs for subtasks | 4096 |
-| **Coder** | Implementation Expert | Executes PRPs to produce code | 4096 |
-| **QA** | Quality Assurance | Finds and fixes bugs | 4096 |
+| Agent          | Persona               | Responsibility                  | Token Limit |
+| -------------- | --------------------- | ------------------------------- | ----------- |
+| **Architect**  | System Designer       | Generates task backlog from PRD | 8192        |
+| **Researcher** | Context Gatherer      | Generates PRPs for subtasks     | 4096        |
+| **Coder**      | Implementation Expert | Executes PRPs to produce code   | 4096        |
+| **QA**         | Quality Assurance     | Finds and fixes bugs            | 4096        |
 
 <!-- Code Block Pattern -->
+
 ## Agent Creation
 
 \`\`\`typescript
 import { createAgent } from 'groundswell';
 
 function createArchitectAgent(): Agent {
-  return createAgent({
-    apiKey: process.env.ANTHROPIC_API_KEY!,
-    model: 'claude-opus-4-5-20251101',
-    systemPrompt: TASK_BREAKDOWN_PROMPT,
-    maxTokens: 8192
-  });
+return createAgent({
+apiKey: process.env.ANTHROPIC_API_KEY!,
+model: 'claude-opus-4-5-20251101',
+systemPrompt: TASK_BREAKDOWN_PROMPT,
+maxTokens: 8192
+});
 }
 \`\`\`
 
 <!-- Cross-Reference Pattern -->
+
 ## See Also
 
 - **[README.md](../README.md)** - Project overview and quick start
@@ -569,27 +583,27 @@ function createArchitectAgent(): Agent {
 
 ```yaml
 docs/api/media/architecture.md:
-  - reference: "For complete architecture details, see [Detailed Architecture](./api/media/architecture.md)"
+  - reference: 'For complete architecture details, see [Detailed Architecture](./api/media/architecture.md)'
   - assume: User wants deeper technical details after reading overview
   - link: All sections (processing engines, data flow, component architecture, etc.)
 
 README.md:
-  - reference: "For project overview and quick start, see [README.md](../README.md)"
+  - reference: 'For project overview and quick start, see [README.md](../README.md)'
   - placement: See Also section
   - context: High-level project information
 
 docs/CLI_REFERENCE.md:
-  - reference: "For CLI documentation, see [CLI Reference](./CLI_REFERENCE.md)"
+  - reference: 'For CLI documentation, see [CLI Reference](./CLI_REFERENCE.md)'
   - placement: See Also section
   - context: Command-line usage
 
 docs/WORKFLOWS.md:
-  - reference: "For workflow documentation, see [Workflows](./WORKFLOWS.md)"
+  - reference: 'For workflow documentation, see [Workflows](./WORKFLOWS.md)'
   - placement: See Also section
   - context: Detailed workflow explanations
 
 PROMPTS.md:
-  - reference: "For system prompts and PRP concepts, see [PROMPTS.md](../PROMPTS.md)"
+  - reference: 'For system prompts and PRP concepts, see [PROMPTS.md](../PROMPTS.md)'
   - placement: See Also section
   - context: Agent prompts and validation logic
 ```
@@ -598,7 +612,7 @@ PROMPTS.md:
 
 ### Level 1: File Existence and Syntax
 
-```bash
+````bash
 # Check that file was created
 ls -la docs/ARCHITECTURE.md
 
@@ -613,11 +627,11 @@ npx markdownlint docs/ARCHITECTURE.md 2>/dev/null || echo "Verify markdown synta
 - [ ] All internal anchors (#section-name) exist
 
 # Expected: File exists, valid markdown syntax
-```
+````
 
 ### Level 2: Content Completeness
 
-```bash
+````bash
 # Manual content review checklist
 - [ ] Document header follows pattern (Status, Last Updated, Version)
 - [ ] Table of Contents with all sections
@@ -637,7 +651,7 @@ grep -c "^## " docs/ARCHITECTURE.md  # Should be 7-10 top-level sections
 grep -c "^```mermaid" docs/ARCHITECTURE.md  # Should have 2-3 Mermaid diagrams
 
 # Expected: All content validation checks pass
-```
+````
 
 ### Level 3: Documentation Quality
 
@@ -688,7 +702,7 @@ grep -c "^```mermaid" docs/ARCHITECTURE.md  # Should have 2-3 Mermaid diagrams
 - [ ] File created at docs/ARCHITECTURE.md
 - [ ] Document header follows pattern (Status, Last Updated, Version)
 - [ ] Table of Contents with all sections and anchors
-- [ ] All code blocks have syntax highlighting (```typescript, ```bash, ```mermaid)
+- [ ] All code blocks have syntax highlighting (`typescript, `bash, ```mermaid)
 - [ ] All internal links use correct relative paths (./, ../)
 - [ ] All external links are valid URLs
 - [ ] Markdown syntax is valid (tables, lists, code blocks)

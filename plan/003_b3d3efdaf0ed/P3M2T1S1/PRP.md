@@ -7,6 +7,7 @@
 **Feature Goal**: Create a comprehensive design document that defines the task retry strategy for automatic retry of failed tasks due to transient errors (network issues, API rate limits, timeouts) while failing immediately on permanent errors (validation failures, authentication errors).
 
 **Deliverable**: Design document `plan/003_b3d3efdaf0ed/architecture/retry-strategy-design.md` containing:
+
 - Error classification matrix (retryable vs non-retryable errors)
 - Retry configuration (max attempts, exponential backoff)
 - State preservation strategy between retries
@@ -15,6 +16,7 @@
 - Decision matrix and pseudocode
 
 **Success Definition**:
+
 - Design document exists at specified path with all required sections
 - Error classification matrix covers all common error types
 - Retry configuration includes specific values for max attempts, delays, and backoff
@@ -30,6 +32,7 @@
 **Target User**: System architect / backend developer implementing the retry mechanism (P3.M2.T1.S2 implementation phase)
 
 **Use Case**: The developer needs a complete specification of:
+
 - Which errors to retry vs fail immediately
 - How many times to retry and with what delays
 - How to preserve state between retries
@@ -37,6 +40,7 @@
 - How to integrate with existing failure tracking
 
 **User Journey**:
+
 1. Developer reads design document to understand requirements
 2. Developer identifies integration points in existing codebase
 3. Developer implements retry logic using specified configuration
@@ -44,6 +48,7 @@
 5. Developer validates against success criteria in design document
 
 **Pain Points Addressed**:
+
 - **Unclear error classification**: Clear matrix defines retryable vs non-retryable
 - **Missing retry strategy**: Specific configuration values provided
 - **State management**: Clear approach for preserving retry state
@@ -82,6 +87,7 @@ Create a design document that specifies:
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of existing retry patterns from fix cycle
 - Complete TaskOrchestrator error handling flow
 - Complete PRPPipeline failure tracking system
@@ -536,6 +542,7 @@ Follow this structure for the design document:
    - External URLs
 
 Appendices:
+
 - A: Configuration matrix
 - B: Error codes reference
 ```
@@ -546,17 +553,17 @@ Appendices:
 DESIGN INTEGRATION:
   - output: plan/003_b3d3efdaf0ed/architecture/retry-strategy-design.md
   - references:
-    - src/utils/retry.ts (existing retry utility)
-    - src/core/task-orchestrator.ts (future integration point)
-    - src/workflows/prp-pipeline.ts (failure tracking)
-    - src/workflows/fix-cycle-workflow.ts (retry pattern reference)
+      - src/utils/retry.ts (existing retry utility)
+      - src/core/task-orchestrator.ts (future integration point)
+      - src/workflows/prp-pipeline.ts (failure tracking)
+      - src/workflows/fix-cycle-workflow.ts (retry pattern reference)
 
 RESEARCH INTEGRATION:
   - inputs:
-    - plan/003_b3d3efdaf0ed/P3M2T1S1/research/fix_cycle_retry_analysis.md
-    - plan/003_b3d3efdaf0ed/P3M2T1S1/research/task_orchestrator_error_analysis.md
-    - plan/003_b3d3efdaf0ed/P3M2T1S1/research/prp_pipeline_task_execution_analysis.md
-    - plan/003_b3d3efdaf0ed/P3M2T1S1/research/retry_strategy_research.md
+      - plan/003_b3d3efdaf0ed/P3M2T1S1/research/fix_cycle_retry_analysis.md
+      - plan/003_b3d3efdaf0ed/P3M2T1S1/research/task_orchestrator_error_analysis.md
+      - plan/003_b3d3efdaf0ed/P3M2T1S1/research/prp_pipeline_task_execution_analysis.md
+      - plan/003_b3d3efdaf0ed/P3M2T1S1/research/retry_strategy_research.md
 
 EXTERNAL REFERENCES:
   - AWS: https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
@@ -741,6 +748,7 @@ done
 **Confidence Score**: 9/10 for one-pass implementation success in P3.M2.T1.S2
 
 **Rationale**:
+
 - Design document provides complete specification
 - All error types classified with specific retry counts
 - Configuration values are specified (not TBD)
@@ -749,11 +757,13 @@ done
 - Testing strategy is comprehensive
 
 **Risk Areas**:
+
 - State persistence complexity (retry state schema extension)
 - Integration with existing SessionManager batch writes
 - Parallel execution retry isolation (if concurrent tasks retry)
 
 **Mitigation**:
+
 - Design document includes specific schema extensions
 - SessionManager integration clearly specified
 - Parallel retry state isolation addressed in design

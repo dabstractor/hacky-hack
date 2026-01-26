@@ -13,6 +13,7 @@
 **Feature Goal**: Create a comprehensive custom agent development guide (`docs/CUSTOM_AGENTS.md`) that documents how to create new agent types, define agent roles and system prompts, configure model selection and token limits, register custom MCP tools, and add agents to the factory.
 
 **Deliverable**: Documentation file `docs/CUSTOM_AGENTS.md` containing:
+
 - Agent architecture overview (AgentFactory, Groundswell integration, four built-in agents)
 - Step-by-step guide for creating new agent types with complete examples
 - System prompt engineering patterns and persona definition
@@ -24,6 +25,7 @@
 - Integration with PRP Pipeline workflow
 
 **Success Definition**:
+
 - A developer can create a new custom agent type following the guide
 - The SecurityAuditor example is complete and can be implemented directly
 - All patterns reference actual code from the codebase with file paths
@@ -35,6 +37,7 @@
 ## User Persona
 
 **Target User**: Developer or contributor who needs to:
+
 - Extend the PRP Pipeline with custom agent types
 - Understand the agent factory pattern and agent creation
 - Create domain-specific agents (e.g., SecurityAuditor, PerformanceOptimizer)
@@ -42,6 +45,7 @@
 - Integrate new agents into the PRP Pipeline workflow
 
 **Use Case**: User needs to understand:
+
 - How are agents structured in this project?
 - How do I create a new agent type like SecurityAuditor?
 - How do I define agent personas and system prompts?
@@ -50,6 +54,7 @@
 - How do I integrate the agent into the pipeline?
 
 **User Journey**:
+
 1. User opens docs/CUSTOM_AGENTS.md to understand agent development
 2. User learns about agent architecture and the four built-in agents
 3. User studies the system prompt engineering patterns
@@ -60,6 +65,7 @@
 8. User can now create and integrate custom agents effectively
 
 **Pain Points Addressed**:
+
 - "How do I create a new agent type?" - Agent creation step-by-step guide
 - "What's the agent factory pattern?" - Agent factory architecture section
 - "How do I write an agent persona?" - System prompt engineering section
@@ -105,6 +111,7 @@ Create docs/CUSTOM_AGENTS.md with comprehensive custom agent development documen
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Complete agent-factory.ts implementation with all four personas
 - All system prompts from PROMPTS.md and prompts.ts
 - MCP tool patterns from bash-mcp.ts, filesystem-mcp.ts, git-mcp.ts
@@ -418,10 +425,11 @@ Task 12: VALIDATE documentation quality
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 # Documentation Style Guidelines (follow existing patterns)
 
 # Header Pattern
+
 > Brief one-sentence description
 
 **Status**: Published
@@ -429,10 +437,13 @@ Task 12: VALIDATE documentation quality
 **Version**: 1.0.0
 
 # Section Headers
+
 ## Section Name
+
 ### Subsection Name
 
 # Code Examples
+
 ```typescript
 // Include file path comment
 // src/agents/agent-factory.ts
@@ -447,17 +458,21 @@ export function createArchitectAgent(): Agent {
   return createAgent(config);
 }
 ```
+````
 
 # Cross-References
+
 See [Agent Factory](../src/agents/agent-factory.ts) for implementation details.
 See [Prompt Engineering Guide](./PROMPT_ENGINEERING.md) for prompt design patterns.
 
 # Tables
-| Agent | System Prompt | Token Limit | Purpose |
-|-------|--------------|-------------|---------|
-| Architect | TASK_BREAKDOWN_PROMPT | 8192 | PRD analysis |
+
+| Agent     | System Prompt         | Token Limit | Purpose      |
+| --------- | --------------------- | ----------- | ------------ |
+| Architect | TASK_BREAKDOWN_PROMPT | 8192        | PRD analysis |
 
 # Diagrams (Mermaid)
+
 ```mermaid
 graph TD
     Factory[AgentFactory] --> Generator[Prompt Generator]
@@ -466,6 +481,7 @@ graph TD
 ```
 
 # Callouts
+
 > **Note**: Critical information uses blockquote format.
 
 **CRITICAL**: Use emphasis for critical implementation details.
@@ -475,8 +491,10 @@ graph TD
 **PATTERN**: Show repeating patterns in code.
 
 # External Links
+
 [Groundswell Framework](https://github.com/anthropics/groundswell)
-```
+
+````
 
 ### Integration Points
 
@@ -501,7 +519,7 @@ PARALLEL WORK CONSIDERATIONS:
   - CUSTOM_AGENTS.md should reference PROMPT_ENGINEERING.md for prompt details
   - Focus CUSTOM_AGENTS.md on agent implementation, not prompt design
   - Avoid duplicating prompt engineering content
-```
+````
 
 ---
 

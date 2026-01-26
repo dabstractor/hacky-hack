@@ -1,6 +1,6 @@
 # Test Documentation Best Practices Research
 
-*Research conducted: 2026-01-23*
+_Research conducted: 2026-01-23_
 
 ## Executive Summary
 
@@ -13,13 +13,16 @@ This document compiles best practices for writing test documentation and test ex
 ### 1.1 Essential Elements of Test Documentation
 
 **Structure Template:**
-```markdown
+
+````markdown
 ## [Test Suite/Feature Name]
 
 ### Purpose
+
 Brief description of what is being tested and why it matters.
 
 ### Prerequisites
+
 - Environment setup requirements
 - Dependencies needed
 - Configuration steps
@@ -27,6 +30,7 @@ Brief description of what is being tested and why it matters.
 ### Test Examples
 
 #### Test: [Descriptive Test Name]
+
 **Scenario:** What condition is being tested
 **Expected:** What should happen
 
@@ -40,9 +44,11 @@ const result = functionUnderTest(input);
 // Assert: Verify the expected outcome
 expect(result).toBe(expected);
 ```
+````
 
 **Notes:** Edge cases, limitations, or important considerations
-```
+
+````
 
 ### 1.2 Documentation Hierarchy
 
@@ -97,7 +103,7 @@ test('user registration with existing email returns error', async () => {
   const users = await getAllUsers();
   expect(users).toHaveLength(1);
 });
-```
+````
 
 ---
 
@@ -179,6 +185,7 @@ test('calculateDiscount returns correct percentage', () => {
 ```
 
 **Benefits:**
+
 - Clear visual separation
 - Easy to scan
 - Standardized structure
@@ -193,6 +200,7 @@ test('calculateDiscount returns correct percentage', () => {
 **Focus:** Testing individual functions/components in isolation
 
 **Pattern:**
+
 ```javascript
 describe('ComponentName', () => {
   describe('methodName', () => {
@@ -212,6 +220,7 @@ describe('ComponentName', () => {
 ```
 
 **Key Documentation Points:**
+
 - What the function does
 - Input/output contracts
 - Edge cases covered
@@ -223,6 +232,7 @@ describe('ComponentName', () => {
 **Focus:** Testing interactions between components/modules
 
 **Pattern:**
+
 ```javascript
 describe('User Service Integration', () => {
   // Setup: Database connection, test containers
@@ -250,6 +260,7 @@ describe('User Service Integration', () => {
 ```
 
 **Key Documentation Points:**
+
 - What components are being integrated
 - External dependencies (databases, APIs)
 - Setup/teardown requirements
@@ -261,6 +272,7 @@ describe('User Service Integration', () => {
 **Focus:** Testing complete user workflows
 
 **Pattern:**
+
 ```javascript
 describe('User Registration E2E', () => {
   test('new user can register, verify email, and login', async () => {
@@ -295,6 +307,7 @@ describe('User Registration E2E', () => {
 ```
 
 **Key Documentation Points:**
+
 - Complete user journey being tested
 - Page/screen navigation flow
 - User interactions performed
@@ -309,18 +322,20 @@ describe('User Registration E2E', () => {
 ### 4.1 Vitest Documentation Patterns
 
 **Key Sources:**
+
 - https://vitest.dev/guide/
 - https://vitest.dev/guide/features.html
 
 **Best Practices Observed:**
 
 1. **Quick Start with Minimal Example**
+
 ```javascript
-import { assert, test } from 'vitest'
+import { assert, test } from 'vitest';
 
 test('suite', () => {
-  assert.equal(Math.sqrt(4), 2)
-})
+  assert.equal(Math.sqrt(4), 2);
+});
 ```
 
 2. **Feature-Based Organization**
@@ -339,6 +354,7 @@ test('suite', () => {
    - Highlight breaking changes
 
 **Documentation Structure:**
+
 ```
 - Guide (getting started, features, config)
 - API (complete reference)
@@ -349,6 +365,7 @@ test('suite', () => {
 ### 4.2 Testing Library Documentation Patterns
 
 **Key Sources:**
+
 - https://testing-library.com/docs/react-testing-library/intro/
 - https://testing-library.com/docs/dom-testing-library/cheatsheet/
 
@@ -360,6 +377,7 @@ test('suite', () => {
    - Anti-patterns section
 
 2. **Problem-Solution Format**
+
 ```javascript
 // Problem: How to test if element exists
 const button = screen.getByRole('button'); // Throws if not found
@@ -387,6 +405,7 @@ const button = await screen.findByRole('button'); // Waits for element
    - Better alternatives
 
 **Core Principles Documented:**
+
 - Test behavior, not implementation
 - Queries reflect user perspective (role, text, label)
 - Accessibility-first approach
@@ -397,6 +416,7 @@ const button = await screen.findByRole('button'); // Waits for element
 **Common Patterns:**
 
 1. **Descriptive Test Names**
+
 ```javascript
 test('should throw ValidationError when email is invalid', () => {});
 test('should return user object when credentials are correct', () => {});
@@ -404,6 +424,7 @@ test('should retry 3 times when API rate limit is hit', () => {});
 ```
 
 2. **Clear Test Organization**
+
 ```javascript
 describe('AuthService', () => {
   describe('login', () => {
@@ -421,6 +442,7 @@ describe('AuthService', () => {
 ```
 
 3. **Setup/Teardown Documentation**
+
 ```javascript
 describe('DatabaseTests', () => {
   // Setup: Create fresh database for each test
@@ -439,11 +461,12 @@ describe('DatabaseTests', () => {
 ```
 
 4. **Mocking Examples**
+
 ```javascript
 test('should call external API with correct params', async () => {
   // Mock the external API call
   const mockFetch = vi.fn().mockResolvedValue({
-    json: async () => ({ data: 'response' })
+    json: async () => ({ data: 'response' }),
   });
   global.fetch = mockFetch;
 
@@ -455,7 +478,7 @@ test('should call external API with correct params', async () => {
     'https://api.example.com/endpoint',
     expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ param: 'value' })
+      body: JSON.stringify({ param: 'value' }),
     })
   );
 });
@@ -495,6 +518,7 @@ test('should call external API with correct params', async () => {
 ### 5.2 Code Example Anti-Patterns
 
 **Avoid:**
+
 ```javascript
 // BAD: Unclear test purpose
 test('test1', () => {
@@ -517,6 +541,7 @@ test('uses the calculateTotal method', () => {
 ```
 
 **Prefer:**
+
 ```javascript
 // GOOD: Clear test purpose
 test('should add two positive numbers', () => {
@@ -551,16 +576,18 @@ test('should display total price after processing order', () => {
 **When to Add Annotations:**
 
 1. **Complex Setup**
+
 ```javascript
 // Setup: Create a user with premium subscription
 // This tests the discount eligibility logic for premium members
 const premiumUser = await createTestUser({
   subscription: 'PREMIUM',
-  memberSince: new Date('2023-01-01')
+  memberSince: new Date('2023-01-01'),
 });
 ```
 
 2. **Non-Obvious Assertions**
+
 ```javascript
 // Assert: Verify that discount is applied to base price only
 // Shipping and tax should not be discounted
@@ -570,6 +597,7 @@ expect(order.tax).toBe(9); // Tax calculated after discount
 ```
 
 3. **Test-Specific Configuration**
+
 ```javascript
 // Use fake timers to control time-dependent behavior
 // This test verifies expiration logic without waiting 24 hours
@@ -578,17 +606,19 @@ vi.setSystemTime(new Date('2024-01-01'));
 ```
 
 4. **Mock Justification**
+
 ```javascript
 // Mock external API to avoid rate limiting during tests
 // Return fixed response to test error handling logic
 vi.mock('axios', () => ({
-  post: vi.fn().mockRejectedValue(new Error('Network error'))
+  post: vi.fn().mockRejectedValue(new Error('Network error')),
 }));
 ```
 
 ### 6.2 Comment Styles
 
 **Block Comments for Sections:**
+
 ```javascript
 test('user profile update flow', async () => {
   // ============================================================
@@ -601,7 +631,7 @@ test('user profile update flow', async () => {
   // ============================================================
   const response = await updateProfile(session.userId, {
     name: 'New Name',
-    bio: 'Updated bio'
+    bio: 'Updated bio',
   });
 
   // ============================================================
@@ -614,31 +644,38 @@ test('user profile update flow', async () => {
 ```
 
 **Inline Comments for Complex Logic:**
+
 ```javascript
 // Calculate age from birth date, accounting for leap years
 // Using date difference rather than simple year subtraction
-const age = new Date().getFullYear() - birthDate.getFullYear() -
-  (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear())) ? 1 : 0);
+const age =
+  new Date().getFullYear() -
+  birthDate.getFullYear() -
+  (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear()))
+    ? 1
+    : 0);
 ```
 
 ### 6.3 Test Data Documentation
 
 **Explicit Data Definition:**
+
 ```javascript
 // Test data representing typical user scenario
 // Values chosen to test boundary conditions
 const testUserData = {
-  age: 18,                    // Minimum age for registration
-  email: 'test@example.com',  // Valid email format
-  username: 'user123',        // Meets minimum length requirement
+  age: 18, // Minimum age for registration
+  email: 'test@example.com', // Valid email format
+  username: 'user123', // Meets minimum length requirement
   preferences: {
-    newsletter: true,         // Test opt-in flow
-    notifications: false      // Test opt-out default
-  }
+    newsletter: true, // Test opt-in flow
+    notifications: false, // Test opt-out default
+  },
 };
 ```
 
 **Factory Pattern for Reusable Data:**
+
 ```javascript
 // Factory function for creating test users
 // Allows overriding specific fields while using sensible defaults
@@ -647,7 +684,7 @@ const createTestUser = (overrides = {}) => ({
   name: faker.person.fullName(),
   email: faker.internet.email(),
   createdAt: new Date(),
-  ...overrides // Allow test-specific overrides
+  ...overrides, // Allow test-specific overrides
 });
 
 // Usage
@@ -664,26 +701,31 @@ test('should handle users with empty names', () => {
 ### 7.1 Notable Examples
 
 **1. React**
+
 - Repository: https://github.com/facebook/react
 - What to study: Component testing patterns, concurrent rendering tests
 - Location: `/packages/react/src/__tests__/`
 
 **2. Django**
+
 - Repository: https://github.com/django/django
 - Documentation: https://docs.djangoproject.com/en/stable/topics/testing/
 - What to study: Integration test organization, test utilities
 
 **3. Vitest**
+
 - Repository: https://github.com/vitest-dev/vitest
 - What to study: Self-testing implementation, fixture design
 - Location: `/test/` directory
 
 **4. Testing Library**
+
 - Repository: https://github.com/testing-library/react-testing-library
 - What to study: Real-world component examples, query patterns
 - Documentation: https://testing-library.com/docs/
 
 **5. pytest**
+
 - Repository: https://github.com/pytest-dev/pytest
 - Documentation: https://docs.pytest.org/
 - What to study: Fixture design, parametrized tests, plugin architecture
@@ -719,6 +761,7 @@ When studying these projects:
 ### 8.1 Test Documentation Checklist
 
 **For Each Test Suite:**
+
 - [ ] Clear purpose statement
 - [ ] Prerequisites documented
 - [ ] Setup/teardown instructions
@@ -726,6 +769,7 @@ When studying these projects:
 - [ ] Running instructions
 
 **For Each Test:**
+
 - [ ] Descriptive name following convention
 - [ ] Clear scenario documentation
 - [ ] Expected behavior documented
@@ -733,6 +777,7 @@ When studying these projects:
 - [ ] Dependencies/mocks explained
 
 **For Code Examples:**
+
 - [ ] Follow AAA pattern (Arrange-Act-Assert)
 - [ ] Inline comments for complex logic
 - [ ] Test data explained
@@ -742,6 +787,7 @@ When studying these projects:
 ### 8.2 Quality Indicators
 
 **Effective Test Documentation:**
+
 - ✅ New developers can understand quickly
 - ✅ Tests can be run without asking questions
 - ✅ Intent is clear from test names
@@ -749,6 +795,7 @@ When studying these projects:
 - ✅ Edge cases are explicit
 
 **Ineffective Test Documentation:**
+
 - ❌ Requires oral explanation
 - ❌ Test names are generic (test1, test2)
 - ❌ No context for magic values
@@ -762,18 +809,21 @@ When studying these projects:
 ### 9.1 Official Documentation
 
 **Vitest:**
+
 - Website: https://vitest.dev
 - Guide: https://vitest.dev/guide/
 - Features: https://vitest.dev/guide/features.html
 - API: https://vitest.dev/api/
 
 **Testing Library:**
+
 - Website: https://testing-library.com
 - React: https://testing-library.com/docs/react-testing-library/intro/
 - DOM: https://testing-library.com/docs/dom-testing-library/intro/
 - Cheatsheet: https://testing-library.com/docs/dom-testing-library/cheatsheet/
 
 **Jest:**
+
 - Website: https://jestjs.io
 - Getting Started: https://jestjs.io/docs/getting-started
 - Async Testing: https://jestjs.io/docs/asynchronous
@@ -782,11 +832,13 @@ When studying these projects:
 ### 9.2 Best Practice Articles
 
 **Testing Principles:**
+
 - Testing Library's Guiding Principles: https://testing-library.com/docs/guiding-principles/
 - Kent C. Dodds on Testing: https://kentcdodds.com/blog/common-mistakes-with-react-testing-library-tests
 - "The Testing Trophy" by Kent C. Dodds: https://kentcdodds.com/blog/the-testing-trophy-and-testing-classifications
 
 **Test Documentation:**
+
 - Google's Testing Blog: https://testing.googleblog.com/
 - Martin Fowler's Testing Articles: https://martinfowler.com/testing/
 - "Write Tests. Not Too Many. Mostly Integration." by Guillermo Rauch: https://rauchg.com/2021/4-hierarchical-testing/
@@ -794,6 +846,7 @@ When studying these projects:
 ### 9.3 Open Source Examples
 
 **GitHub Repositories to Study:**
+
 - React: https://github.com/facebook/react/tree/main/packages/react/src/__tests__
 - Vitest: https://github.com/vitest-dev/vitest/tree/main/test
 - Django: https://github.com/django/django/tree/main/tests
@@ -803,6 +856,7 @@ When studying these projects:
 ### 9.4 Books and Guides
 
 **Recommended Reading:**
+
 - "Test-Driven Development with Python" by Harry Percival
 - "Working Effectively with Legacy Code" by Michael Feathers
 - "Growing Object-Oriented Software, Guided by Tests" by Steve Freeman
@@ -870,6 +924,7 @@ When studying these projects:
 Effective test documentation is crucial for maintainable test suites. The best practices outlined above emphasize clarity, context, and consistency. By following patterns established by leading testing frameworks and open-source projects, you can create documentation that helps developers write better tests faster.
 
 **Key Resources to Bookmark:**
+
 - Vitest Guide: https://vitest.dev/guide/
 - Testing Library Docs: https://testing-library.com/docs/
 - Testing Library Cheatsheet: https://testing-library.com/docs/dom-testing-library/cheatsheet/
@@ -877,5 +932,5 @@ Effective test documentation is crucial for maintainable test suites. The best p
 
 ---
 
-*Last Updated: 2026-01-23*
-*Next Review: 2026-07-23*
+_Last Updated: 2026-01-23_
+_Next Review: 2026-07-23_

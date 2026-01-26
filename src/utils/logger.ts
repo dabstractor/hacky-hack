@@ -8,7 +8,9 @@
  * context-aware loggers, and configurable output modes (pretty/JSON).
  *
  * Features:
- * - Log levels: DEBUG, INFO, WARN, ERROR
+ * - Log levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
+ * - Correlation ID support for request tracking across components
+ * - Component-level log filtering
  * - Sensitive data redaction (API keys, tokens, passwords)
  * - Context-aware loggers with consistent prefixes
  * - Pretty-printed output for development (colored, human-readable)
@@ -33,19 +35,38 @@
  * // Sensitive data is auto-redacted
  * logger.info({ apiKey: 'sk-1234567890', userId: 'abc' }, 'API call');
  * // Output: {"apiKey":"[REDACTED]","userId":"abc",...}
+ *
+ * // Using trace level for fine-grained debugging
+ * logger.trace('Entering function with args', { arg1: 'value1' });
+ *
+ * // Using fatal level for system-critical errors
+ * logger.fatal('Database connection lost - system cannot operate');
  * ```
  */
+
+import { randomUUID } from 'node:crypto';
 
 // ===== TYPES =====
 
 /**
  * Log levels enum matching pino standard levels
+ *
+ * @remarks
+ * Includes all standard Pino levels plus custom TRACE and FATAL levels:
+ * - TRACE (10): Most verbose level for fine-grained debugging
+ * - DEBUG (20): Debug-level messages
+ * - INFO (30): Informational messages (default)
+ * - WARN (40): Warning messages for non-critical issues
+ * - ERROR (50): Error messages for failures and exceptions
+ * - FATAL (60): Fatal errors indicating system-critical failures
  */
 export enum LogLevel {
+  TRACE = 'trace',
   DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
   ERROR = 'error',
+  FATAL = 'fatal',
 }
 
 /**
@@ -53,6 +74,10 @@ export enum LogLevel {
  * Mirrors pino's Logger interface with type safety
  */
 export interface Logger {
+  /** Log at trace level - most verbose, only shown when log-level is trace */
+  trace(msg: string, ...args: unknown[]): void;
+  trace(obj: unknown, msg?: string, ...args: unknown[]): void;
+
   /** Log at debug level - only shown when --verbose is enabled */
   debug(msg: string, ...args: unknown[]): void;
   debug(obj: unknown, msg?: string, ...args: unknown[]): void;
@@ -69,6 +94,10 @@ export interface Logger {
   error(msg: string, ...args: unknown[]): void;
   error(obj: unknown, msg?: string, ...args: unknown[]): void;
 
+  /** Log at fatal level - for system-critical failures */
+  fatal(msg: string, ...args: unknown[]): void;
+  fatal(obj: unknown, msg?: string, ...args: unknown[]): void;
+
   /** Create a child logger with additional context */
   child(bindings: Record<string, unknown>): Logger;
 }
@@ -83,6 +112,10 @@ export interface LoggerConfig {
   machineReadable?: boolean;
   /** Enable debug-level logging (alias for level: 'debug') */
   verbose?: boolean;
+  /** Manual correlation ID override (auto-generated if not provided) */
+  correlationId?: string;
+  /** Explicit component labeling for categorization */
+  component?: string;
 }
 
 // ===== CONSTANTS =====
@@ -140,6 +173,24 @@ const REDACT_PATHS: readonly string[] = [
  * Redaction censor value
  */
 const REDACT_CENSOR = '[REDACTED]';
+
+/**
+ * Pino level mapping for custom levels
+ *
+ * @remarks
+ * Maps log level names to numeric values following Pino's conventions.
+ * Used for customLevels configuration in pino().
+ *
+ * Numeric values determine filtering priority - higher numbers = more severe.
+ */
+const PINO_LEVELS = {
+  trace: 10,
+  debug: 20,
+  info: 30,
+  warn: 40,
+  error: 50,
+  fatal: 60,
+} as const;
 
 // ===== PRIVATE STATE =====
 
@@ -208,7 +259,20 @@ let syncStdTime: any = null;
  */
 function getCacheKey(context: string, options?: LoggerConfig): string {
   const opts = options ?? {};
-  return `${context}|${opts.level ?? 'info'}|${opts.machineReadable ?? false}|${opts.verbose ?? false}`;
+  return `${context}|${opts.level ?? 'info'}|${opts.machineReadable ?? false}|${opts.verbose ?? false}|${opts.correlationId ?? 'auto'}|${opts.component ?? 'none'}`;
+}
+
+/**
+ * Generates a unique correlation ID for request tracking
+ *
+ * @returns UUID v4 string
+ *
+ * @remarks
+ * Uses Node.js crypto.randomUUID() for fast, secure UUID generation.
+ * Correlation IDs link related log entries across different components.
+ */
+function generateCorrelationId(): string {
+  return randomUUID();
 }
 
 /**
@@ -227,6 +291,8 @@ function createLoggerConfig(options: LoggerConfig = {}): any {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const baseConfig: any = {
+    // Define custom levels with Pino numeric values
+    customLevels: PINO_LEVELS,
     // Set log level based on verbose flag or explicit level
     level: verbose ? LogLevel.DEBUG : level,
     // Configure redaction
@@ -255,7 +321,7 @@ function createLoggerConfig(options: LoggerConfig = {}): any {
           colorize: true,
           translateTime: 'HH:MM:ss',
           ignore: 'pid,hostname',
-          messageFormat: '[{context}] {msg}', // Add context prefix
+          messageFormat: '[{correlationId}] [{context}] {msg}', // Add correlationId and context prefix
           singleLine: false,
         },
       },
@@ -277,10 +343,18 @@ function createLoggerConfig(options: LoggerConfig = {}): any {
  * - log(obj: unknown, msg?: string): void
  *
  * This wrapper provides a consistent interface that matches our Logger type.
+ * Child loggers automatically inherit the parent's correlation ID via pino's bindings mechanism.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function wrapPinoLogger(pinoLogger: any): Logger {
   return {
+    trace: (msgOrObj: unknown, msg?: string, ...args: unknown[]) => {
+      if (typeof msgOrObj === 'string') {
+        pinoLogger.trace(msgOrObj, ...args);
+      } else {
+        pinoLogger.trace(msgOrObj, msg, ...args);
+      }
+    },
     debug: (msgOrObj: unknown, msg?: string, ...args: unknown[]) => {
       if (typeof msgOrObj === 'string') {
         pinoLogger.debug(msgOrObj, ...args);
@@ -309,7 +383,15 @@ function wrapPinoLogger(pinoLogger: any): Logger {
         pinoLogger.error(msgOrObj, msg, ...args);
       }
     },
+    fatal: (msgOrObj: unknown, msg?: string, ...args: unknown[]) => {
+      if (typeof msgOrObj === 'string') {
+        pinoLogger.fatal(msgOrObj, ...args);
+      } else {
+        pinoLogger.fatal(msgOrObj, msg, ...args);
+      }
+    },
     child: (bindings: Record<string, unknown>) => {
+      // Child loggers automatically inherit parent's correlation ID via pino
       const childPino = pinoLogger.child(bindings);
       return wrapPinoLogger(childPino);
     },
@@ -330,6 +412,9 @@ function wrapPinoLogger(pinoLogger: any): Logger {
  * Loggers are cached by context and options combination.
  *
  * The context is included in all log entries for filtering and tracing.
+ * A correlation ID is automatically generated and included in all log entries
+ * for distributed tracing. Child loggers automatically inherit the parent's
+ * correlation ID.
  *
  * @example
  * ```typescript
@@ -341,6 +426,12 @@ function wrapPinoLogger(pinoLogger: any): Logger {
  *
  * // Machine-readable JSON output
  * const jsonLogger = getLogger('MyComponent', { machineReadable: true });
+ *
+ * // With custom correlation ID for request tracking
+ * const logger = getLogger('MyComponent', { correlationId: 'req-12345' });
+ *
+ * // With custom log level
+ * const traceLogger = getLogger('MyComponent', { level: LogLevel.TRACE });
  * ```
  */
 export function getLogger(context: string, options?: LoggerConfig): Logger {
@@ -351,13 +442,17 @@ export function getLogger(context: string, options?: LoggerConfig): Logger {
     return cached;
   }
 
+  // Auto-generate correlation ID if not provided
+  const correlationId = options?.correlationId || generateCorrelationId();
+
   // Create new logger
   const config = createLoggerConfig(options);
   const pinoLogger = syncPino({
     ...config,
-    // Add context as default field
+    // Add context and correlationId as base fields
     base: {
       context,
+      correlationId,
     },
   });
 

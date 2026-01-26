@@ -36,31 +36,32 @@ This research synthesizes industry best practices and existing codebase patterns
 
 ### 1.1 Retryable File System Errors
 
-| Error Code | Name | Retry Strategy | Max Retries | Backoff Start | Rationale |
-|------------|------|----------------|-------------|---------------|-----------|
-| **EBUSY** | Resource busy | **Retry with backoff** | 3 | 50-100ms | File locked by another process, typically releases quickly |
-| **EAGAIN** | Resource temporarily unavailable | **Retry with backoff** | 3 | 50-100ms | Non-blocking I/O would block, retry usually succeeds |
-| **EIO** | I/O error | **Retry with backoff** | 2 | 100-200ms | Transient disk or controller issue |
-| **ENFILE** | System-wide file table full | **Retry once** | 1 | 500ms | Wait for file descriptor to free up |
-| **EMFILE** | Process file descriptor limit | **Fail-fast** | 0 | - | Application bug - closing files won't help |
-| **ECONNRESET** | Network file system connection reset | **Retry with backoff** | 3 | 200-500ms | NFS/SMB transient network issue |
+| Error Code     | Name                                 | Retry Strategy         | Max Retries | Backoff Start | Rationale                                                  |
+| -------------- | ------------------------------------ | ---------------------- | ----------- | ------------- | ---------------------------------------------------------- |
+| **EBUSY**      | Resource busy                        | **Retry with backoff** | 3           | 50-100ms      | File locked by another process, typically releases quickly |
+| **EAGAIN**     | Resource temporarily unavailable     | **Retry with backoff** | 3           | 50-100ms      | Non-blocking I/O would block, retry usually succeeds       |
+| **EIO**        | I/O error                            | **Retry with backoff** | 2           | 100-200ms     | Transient disk or controller issue                         |
+| **ENFILE**     | System-wide file table full          | **Retry once**         | 1           | 500ms         | Wait for file descriptor to free up                        |
+| **EMFILE**     | Process file descriptor limit        | **Fail-fast**          | 0           | -             | Application bug - closing files won't help                 |
+| **ECONNRESET** | Network file system connection reset | **Retry with backoff** | 3           | 200-500ms     | NFS/SMB transient network issue                            |
 
 ### 1.2 Non-Retryable File System Errors (Fail-Fast)
 
-| Error Code | Name | Action | User Action Required |
-|------------|------|--------|---------------------|
-| **ENOSPC** | No space left on device | **Fail-fast** | Yes - Free disk space |
-| **ENOENT** | No such file or directory | **Fail-fast** | Yes - Create file/directory |
-| **EACCES** | Permission denied | **Fail-fast** | Yes - Fix permissions |
-| **EROFS** | Read-only filesystem | **Fail-fast** | Yes - Remount as writable |
-| **EISDIR** | Is a directory | **Fail-fast** | No - Code bug, fix path |
-| **ENOTDIR** | Not a directory | **Fail-fast** | No - Code bug, fix path |
-| **EEXIST** | File exists (with O_CREAT\|O_EXCL) | **Fail-fast** | No - Use unique names |
-| **EXDEV** | Cross-device link | **Fail-fast** | No - Design issue, same filesystem required |
+| Error Code  | Name                               | Action        | User Action Required                        |
+| ----------- | ---------------------------------- | ------------- | ------------------------------------------- |
+| **ENOSPC**  | No space left on device            | **Fail-fast** | Yes - Free disk space                       |
+| **ENOENT**  | No such file or directory          | **Fail-fast** | Yes - Create file/directory                 |
+| **EACCES**  | Permission denied                  | **Fail-fast** | Yes - Fix permissions                       |
+| **EROFS**   | Read-only filesystem               | **Fail-fast** | Yes - Remount as writable                   |
+| **EISDIR**  | Is a directory                     | **Fail-fast** | No - Code bug, fix path                     |
+| **ENOTDIR** | Not a directory                    | **Fail-fast** | No - Code bug, fix path                     |
+| **EEXIST**  | File exists (with O_CREAT\|O_EXCL) | **Fail-fast** | No - Use unique names                       |
+| **EXDEV**   | Cross-device link                  | **Fail-fast** | No - Design issue, same filesystem required |
 
 ### 1.3 Special Case: ENOSPC (No Space Left)
 
 **Why Fail-Fast?**
+
 - Disk space won't magically appear during retry
 - Retrying wastes time and I/O resources
 - User intervention required
@@ -70,7 +71,7 @@ This research synthesizes industry best practices and existing codebase patterns
 // ENOSPC handling pattern
 if (error.code === 'ENOSPC') {
   // Try automatic cleanup once
-  if (attempt === 0 && await cleanupTempFiles(directory)) {
+  if (attempt === 0 && (await cleanupTempFiles(directory))) {
     return retry(); // Single retry after cleanup
   }
   // Fail-fast - user must free space
@@ -87,42 +88,43 @@ if (error.code === 'ENOSPC') {
 ```typescript
 interface FileIORetryConfig {
   maxAttempts: number;
-  baseDelay: number;      // milliseconds
-  maxDelay: number;       // milliseconds
+  baseDelay: number; // milliseconds
+  maxDelay: number; // milliseconds
   backoffFactor: number;
   jitterFactor: number;
 }
 
 const FILE_IO_RETRY_CONFIG: FileIORetryConfig = {
   maxAttempts: 3,
-  baseDelay: 100,        // Start with 100ms (much faster than network)
-  maxDelay: 2000,        // Cap at 2 seconds (file I/O is local)
+  baseDelay: 100, // Start with 100ms (much faster than network)
+  maxDelay: 2000, // Cap at 2 seconds (file I/O is local)
   backoffFactor: 2,
-  jitterFactor: 0.1,     // 10% variance
+  jitterFactor: 0.1, // 10% variance
 };
 ```
 
 ### 2.2 Delay Timeline for File I/O
 
-| Attempt | Delay Range | Total Time (approx) | Rationale |
-|---------|-------------|---------------------|-----------|
-| 0 (initial) | 0 ms | 0 ms | Immediate first attempt |
-| 1 (retry 1) | 100-110 ms | 100 ms | Very short - file locks usually clear quickly |
-| 2 (retry 2) | 200-220 ms | 310 ms | Still short - most transient issues resolve |
-| 3 (retry 3) | 400-440 ms | 750 ms | Uncommon to reach this point |
-| Total | - | **< 1 second** | File I/O retry is fast |
+| Attempt     | Delay Range | Total Time (approx) | Rationale                                     |
+| ----------- | ----------- | ------------------- | --------------------------------------------- |
+| 0 (initial) | 0 ms        | 0 ms                | Immediate first attempt                       |
+| 1 (retry 1) | 100-110 ms  | 100 ms              | Very short - file locks usually clear quickly |
+| 2 (retry 2) | 200-220 ms  | 310 ms              | Still short - most transient issues resolve   |
+| 3 (retry 3) | 400-440 ms  | 750 ms              | Uncommon to reach this point                  |
+| Total       | -           | **< 1 second**      | File I/O retry is fast                        |
 
 ### 2.3 Comparison with Network Retry Configurations
 
-| Parameter | File I/O | LLM API | HTTP API | Database |
-|-----------|----------|---------|----------|----------|
-| maxAttempts | 2-3 | 3-5 | 3-4 | 3 |
-| baseDelay | 100ms | 1000ms | 500ms | 100ms |
-| maxDelay | 2000ms | 30000ms | 10000ms | 1000ms |
-| backoffFactor | 2 | 2 | 2 | 2 |
-| jitterFactor | 0.1 | 0.1 | 0.15 | 0.2 |
+| Parameter     | File I/O | LLM API | HTTP API | Database |
+| ------------- | -------- | ------- | -------- | -------- |
+| maxAttempts   | 2-3      | 3-5     | 3-4      | 3        |
+| baseDelay     | 100ms    | 1000ms  | 500ms    | 100ms    |
+| maxDelay      | 2000ms   | 30000ms | 10000ms  | 1000ms   |
+| backoffFactor | 2        | 2       | 2        | 2        |
+| jitterFactor  | 0.1      | 0.1     | 0.15     | 0.2      |
 
 **Key Insight:** File I/O retry is **10x faster** than LLM API retry because:
+
 - Local operations (no network latency)
 - File locks clear quickly (milliseconds)
 - Disk/controller issues are rare but transient
@@ -134,13 +136,37 @@ const FILE_IO_RETRY_CONFIG: FileIORetryConfig = {
 function getFileIORetryConfig(errorCode: string): FileIORetryConfig {
   switch (errorCode) {
     case 'EBUSY':
-      return { maxAttempts: 3, baseDelay: 50, maxDelay: 500, backoffFactor: 2, jitterFactor: 0.1 };
+      return {
+        maxAttempts: 3,
+        baseDelay: 50,
+        maxDelay: 500,
+        backoffFactor: 2,
+        jitterFactor: 0.1,
+      };
     case 'EAGAIN':
-      return { maxAttempts: 2, baseDelay: 50, maxDelay: 200, backoffFactor: 2, jitterFactor: 0.1 };
+      return {
+        maxAttempts: 2,
+        baseDelay: 50,
+        maxDelay: 200,
+        backoffFactor: 2,
+        jitterFactor: 0.1,
+      };
     case 'EIO':
-      return { maxAttempts: 2, baseDelay: 200, maxDelay: 1000, backoffFactor: 2, jitterFactor: 0.15 };
+      return {
+        maxAttempts: 2,
+        baseDelay: 200,
+        maxDelay: 1000,
+        backoffFactor: 2,
+        jitterFactor: 0.15,
+      };
     case 'ENFILE':
-      return { maxAttempts: 1, baseDelay: 500, maxDelay: 500, backoffFactor: 1, jitterFactor: 0 };
+      return {
+        maxAttempts: 1,
+        baseDelay: 500,
+        maxDelay: 500,
+        backoffFactor: 1,
+        jitterFactor: 0,
+      };
     default:
       return FILE_IO_RETRY_CONFIG;
   }
@@ -214,7 +240,7 @@ class SessionManager {
             updates: Array.from(this.#pendingUpdates.entries()),
             originalError: error.message,
             fallbackError: fallbackError.message,
-            altError: altError.message
+            altError: altError.message,
           },
           'CRITICAL: Pending updates could not be persisted. Updates remain in memory only.'
         );
@@ -224,28 +250,24 @@ class SessionManager {
 
   #getFallbackPath(): string {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    return resolve(
-      this.sessionDir,
-      `tasks-pending-${timestamp}.json`
-    );
+    return resolve(this.sessionDir, `tasks-pending-${timestamp}.json`);
   }
 
   #getAlternativeFallbackPath(): string {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp';
-    return resolve(
-      homeDir,
-      `.hacky-hack-pending-updates-${timestamp}.json`
-    );
+    return resolve(homeDir, `.hacky-hack-pending-updates-${timestamp}.json`);
   }
 
   #shouldPreserveOnFailure(error: unknown): boolean {
     // Preserve on transient errors that might be temporary
     const err = error as NodeJS.ErrnoException;
-    return err?.code === 'EBUSY' ||
-           err?.code === 'EAGAIN' ||
-           err?.code === 'EIO' ||
-           err?.code === 'ENFILE';
+    return (
+      err?.code === 'EBUSY' ||
+      err?.code === 'EAGAIN' ||
+      err?.code === 'EIO' ||
+      err?.code === 'ENFILE'
+    );
   }
 }
 ```
@@ -353,7 +375,10 @@ flushUpdates() fails after all retries
 **File:** `/home/dustin/projects/hacky-hack/src/core/session-utils.ts` (lines 85-179)
 
 ```typescript
-export async function atomicWrite(targetPath: string, data: string): Promise<void> {
+export async function atomicWrite(
+  targetPath: string,
+  data: string
+): Promise<void> {
   const tempPath = resolve(
     dirname(targetPath),
     `.${basename(targetPath)}.${randomBytes(8).toString('hex')}.tmp`
@@ -378,6 +403,7 @@ export async function atomicWrite(targetPath: string, data: string): Promise<voi
 ```
 
 **Current Issues:**
+
 - ❌ No retry logic for transient failures
 - ❌ No distinction between retryable and non-retryable errors
 - ❌ No preservation of partial state on failure
@@ -417,7 +443,6 @@ export async function atomicWriteWithRetry(
       await cleanupTempFiles(tempPaths.slice(0, -1));
 
       return; // Success
-
     } catch (error) {
       lastError = error;
       const err = error as NodeJS.ErrnoException;
@@ -458,7 +483,7 @@ export async function atomicWriteWithRetry(
           maxAttempts,
           delayMs: delay,
           errorCode: err.code,
-          errorMessage: err.message
+          errorMessage: err.message,
         },
         `Retrying atomic write after ${delay}ms`
       );
@@ -476,37 +501,36 @@ function isFileIORetryableError(code: string | undefined): boolean {
   if (!code) return false;
 
   return [
-    'EBUSY',   // Resource busy - retry with backoff
-    'EAGAIN',  // Try again - retry immediately
-    'EIO',     // I/O error - retry with backoff
-    'ENFILE',  // File table full - retry once with delay
+    'EBUSY', // Resource busy - retry with backoff
+    'EAGAIN', // Try again - retry immediately
+    'EIO', // I/O error - retry with backoff
+    'ENFILE', // File table full - retry once with delay
   ].includes(code);
 }
 
 function calculateFileIODelay(attempt: number, errorCode: string): number {
-  const baseDelay = {
-    'EBUSY': 50,
-    'EAGAIN': 50,
-    'EIO': 200,
-    'ENFILE': 500,
-  }[errorCode] ?? 100;
+  const baseDelay =
+    {
+      EBUSY: 50,
+      EAGAIN: 50,
+      EIO: 200,
+      ENFILE: 500,
+    }[errorCode] ?? 100;
 
-  const maxDelay = {
-    'EBUSY': 500,
-    'EAGAIN': 200,
-    'EIO': 1000,
-    'ENFILE': 500,
-  }[errorCode] ?? 2000;
+  const maxDelay =
+    {
+      EBUSY: 500,
+      EAGAIN: 200,
+      EIO: 1000,
+      ENFILE: 500,
+    }[errorCode] ?? 2000;
 
-  return Math.min(
-    baseDelay * Math.pow(2, attempt),
-    maxDelay
-  );
+  return Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
 }
 
 async function cleanupTempFiles(tempPaths: string[]): Promise<void> {
   await Promise.allSettled(
-    tempPaths.map(async (tempPath) => {
+    tempPaths.map(async tempPath => {
       try {
         await unlink(tempPath);
       } catch {
@@ -516,7 +540,10 @@ async function cleanupTempFiles(tempPaths: string[]): Promise<void> {
   );
 }
 
-async function preserveWriteData(targetPath: string, data: string): Promise<void> {
+async function preserveWriteData(
+  targetPath: string,
+  data: string
+): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const fallbackPath = resolve(
     dirname(targetPath),
@@ -562,14 +589,10 @@ class SessionManager {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         // Use atomic write with retry
-        await atomicWriteWithRetry(
-          targetPath,
-          serialized,
-          {
-            maxAttempts: 1, // Retry at this level, not inside atomicWrite
-            preserveOnFailure
-          }
-        );
+        await atomicWriteWithRetry(targetPath, serialized, {
+          maxAttempts: 1, // Retry at this level, not inside atomicWrite
+          preserveOnFailure,
+        });
 
         // Success - clear pending updates
         const updateCount = this.#pendingUpdates.size;
@@ -582,7 +605,6 @@ class SessionManager {
         );
 
         return;
-
       } catch (error) {
         lastError = error;
         const err = error as SessionFileError;
@@ -660,6 +682,7 @@ HACKY_TASK_RETRY_MAX_ATTEMPTS=3
 ```
 
 **Naming Pattern:**
+
 - Prefix: `HACKY_` (consistent across project)
 - Subsystem: `FILE_IO_RETRY_` (specific to file I/O)
 - Parameter: `MAX_ATTEMPTS`, `BASE_DELAY`, `MAX_DELAY`, `ENABLED`
@@ -680,11 +703,21 @@ interface FileIORetryEnvConfig {
 
 export function loadFileIORetryConfig(): FileIORetryEnvConfig {
   // Load from environment with defaults
-  const maxAttempts = parseInt(process.env.HACKY_FILE_IO_RETRY_MAX_ATTEMPTS ?? '3', 10);
-  const baseDelay = parseInt(process.env.HACKY_FILE_IO_RETRY_BASE_DELAY ?? '100', 10);
-  const maxDelay = parseInt(process.env.HACKY_FILE_IO_RETRY_MAX_DELAY ?? '2000', 10);
+  const maxAttempts = parseInt(
+    process.env.HACKY_FILE_IO_RETRY_MAX_ATTEMPTS ?? '3',
+    10
+  );
+  const baseDelay = parseInt(
+    process.env.HACKY_FILE_IO_RETRY_BASE_DELAY ?? '100',
+    10
+  );
+  const maxDelay = parseInt(
+    process.env.HACKY_FILE_IO_RETRY_MAX_DELAY ?? '2000',
+    10
+  );
   const enabled = process.env.HACKY_FILE_IO_RETRY_ENABLED !== 'false';
-  const preserveOnFailure = process.env.HACKY_FILE_IO_PRESERVE_ON_FAILURE !== 'false';
+  const preserveOnFailure =
+    process.env.HACKY_FILE_IO_PRESERVE_ON_FAILURE !== 'false';
 
   // Validate
   const errors: string[] = [];
@@ -702,11 +735,15 @@ export function loadFileIORetryConfig(): FileIORetryEnvConfig {
   }
 
   if (baseDelay > maxDelay) {
-    errors.push('HACKY_FILE_IO_RETRY_BASE_DELAY must not exceed HACKY_FILE_IO_RETRY_MAX_DELAY');
+    errors.push(
+      'HACKY_FILE_IO_RETRY_BASE_DELAY must not exceed HACKY_FILE_IO_RETRY_MAX_DELAY'
+    );
   }
 
   if (errors.length > 0) {
-    throw new Error(`Invalid file I/O retry configuration:\n  - ${errors.join('\n  - ')}`);
+    throw new Error(
+      `Invalid file I/O retry configuration:\n  - ${errors.join('\n  - ')}`
+    );
   }
 
   return {
@@ -725,35 +762,50 @@ export function loadFileIORetryConfig(): FileIORetryEnvConfig {
 // src/cli/index.ts (following existing pattern from lines 354-386)
 
 program
-  .option('--file-io-retry-max-attempts <number>',
-          'Maximum retry attempts for file I/O operations (default: 3, env: HACKY_FILE_IO_RETRY_MAX_ATTEMPTS)',
-          parseInt)
-  .option('--file-io-retry-base-delay <ms>',
-          'Base delay before first file I/O retry in milliseconds (default: 100, env: HACKY_FILE_IO_RETRY_BASE_DELAY)',
-          parseInt)
-  .option('--file-io-retry-max-delay <ms>',
-          'Maximum delay cap for file I/O retry in milliseconds (default: 2000, env: HACKY_FILE_IO_RETRY_MAX_DELAY)',
-          parseInt)
-  .option('--file-io-retry-enabled <true|false>',
-          'Enable file I/O retry (default: true, env: HACKY_FILE_IO_RETRY_ENABLED)',
-          (value) => value !== 'false')
-  .option('--file-io-preserve-on-failure <true|false>',
-          'Preserve pending updates when file I/O fails (default: true, env: HACKY_FILE_IO_PRESERVE_ON_FAILURE)',
-          (value) => value !== 'false');
+  .option(
+    '--file-io-retry-max-attempts <number>',
+    'Maximum retry attempts for file I/O operations (default: 3, env: HACKY_FILE_IO_RETRY_MAX_ATTEMPTS)',
+    parseInt
+  )
+  .option(
+    '--file-io-retry-base-delay <ms>',
+    'Base delay before first file I/O retry in milliseconds (default: 100, env: HACKY_FILE_IO_RETRY_BASE_DELAY)',
+    parseInt
+  )
+  .option(
+    '--file-io-retry-max-delay <ms>',
+    'Maximum delay cap for file I/O retry in milliseconds (default: 2000, env: HACKY_FILE_IO_RETRY_MAX_DELAY)',
+    parseInt
+  )
+  .option(
+    '--file-io-retry-enabled <true|false>',
+    'Enable file I/O retry (default: true, env: HACKY_FILE_IO_RETRY_ENABLED)',
+    value => value !== 'false'
+  )
+  .option(
+    '--file-io-preserve-on-failure <true|false>',
+    'Preserve pending updates when file I/O fails (default: true, env: HACKY_FILE_IO_PRESERVE_ON_FAILURE)',
+    value => value !== 'false'
+  );
 
 // Priority: CLI flags > Environment variables > Hardcoded defaults
 function getFileIORetryConfigFromCLI(options): FileIORetryConfig {
   return {
-    maxAttempts: options.fileIoRetryMaxAttempts ??
-                parseInt(process.env.HACKY_FILE_IO_RETRY_MAX_ATTEMPTS ?? '3', 10),
-    baseDelay: options.fileIoRetryBaseDelay ??
-               parseInt(process.env.HACKY_FILE_IO_RETRY_BASE_DELAY ?? '100', 10),
-    maxDelay: options.fileIoRetryMaxDelay ??
-              parseInt(process.env.HACKY_FILE_IO_RETRY_MAX_DELAY ?? '2000', 10),
-    enabled: options.fileIoRetryEnabled ??
-             process.env.HACKY_FILE_IO_RETRY_ENABLED !== 'false',
-    preserveOnFailure: options.fileIoPreserveOnFailure ??
-                       process.env.HACKY_FILE_IO_PRESERVE_ON_FAILURE !== 'false',
+    maxAttempts:
+      options.fileIoRetryMaxAttempts ??
+      parseInt(process.env.HACKY_FILE_IO_RETRY_MAX_ATTEMPTS ?? '3', 10),
+    baseDelay:
+      options.fileIoRetryBaseDelay ??
+      parseInt(process.env.HACKY_FILE_IO_RETRY_BASE_DELAY ?? '100', 10),
+    maxDelay:
+      options.fileIoRetryMaxDelay ??
+      parseInt(process.env.HACKY_FILE_IO_RETRY_MAX_DELAY ?? '2000', 10),
+    enabled:
+      options.fileIoRetryEnabled ??
+      process.env.HACKY_FILE_IO_RETRY_ENABLED !== 'false',
+    preserveOnFailure:
+      options.fileIoPreserveOnFailure ??
+      process.env.HACKY_FILE_IO_PRESERVE_ON_FAILURE !== 'false',
   };
 }
 ```
@@ -789,7 +841,7 @@ Based on analysis of `/home/dustin/projects/hacky-hack/src/core/session-utils.ts
 
 **File:** `/home/dustin/projects/hacky-hack/src/utils/retry.ts`
 
-```typescript
+````typescript
 // Add to existing retry.ts (after line 725)
 
 /**
@@ -800,10 +852,10 @@ Based on analysis of `/home/dustin/projects/hacky-hack/src/core/session-utils.ts
  * than network operations. These errors typically resolve quickly.
  */
 const RETRYABLE_FILE_IO_CODES = new Set([
-  'EBUSY',   // Resource busy (file locked)
-  'EAGAIN',  // Resource temporarily unavailable
-  'EIO',     // I/O error (disk/controller transient issue)
-  'ENFILE',  // System file table full
+  'EBUSY', // Resource busy (file locked)
+  'EAGAIN', // Resource temporarily unavailable
+  'EIO', // I/O error (disk/controller transient issue)
+  'ENFILE', // System file table full
 ]);
 
 /**
@@ -815,10 +867,12 @@ const RETRYABLE_FILE_IO_CODES = new Set([
  * - File locks clear quickly (milliseconds)
  * - User expects instant feedback
  */
-const FILE_IO_RETRY_CONFIG: Required<Omit<RetryOptions, 'isRetryable' | 'onRetry'>> = {
+const FILE_IO_RETRY_CONFIG: Required<
+  Omit<RetryOptions, 'isRetryable' | 'onRetry'>
+> = {
   maxAttempts: 3,
-  baseDelay: 100,   // 100ms (10x faster than LLM API)
-  maxDelay: 2000,   // 2 seconds (much shorter than network)
+  baseDelay: 100, // 100ms (10x faster than LLM API)
+  maxDelay: 2000, // 2 seconds (much shorter than network)
   backoffFactor: 2,
   jitterFactor: 0.1,
 };
@@ -906,7 +960,7 @@ export async function retryFileIO<T>(
     },
   });
 }
-```
+````
 
 #### Recommendation 2: Enhanced atomicWrite Function
 
@@ -974,7 +1028,6 @@ export async function atomicWrite(
       },
       'Atomic write completed successfully with retry'
     );
-
   } catch (error) {
     const err = error as NodeJS.ErrnoException;
 
@@ -1024,7 +1077,10 @@ export async function atomicWrite(
  * On next SessionManager.initialize(), fallback files are detected
  * and recovery is attempted.
  */
-async function preserveWriteData(targetPath: string, data: string): Promise<void> {
+async function preserveWriteData(
+  targetPath: string,
+  data: string
+): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const fallbackPath = resolve(
     dirname(targetPath),
@@ -1654,16 +1710,18 @@ describe('SessionManager.flushUpdates() with retry', () => {
       vi.mocked(atomicWrite)
         .mockRejectedValueOnce({
           cause: { code: 'EBUSY' },
-          message: 'EBUSY: resource busy'
+          message: 'EBUSY: resource busy',
         })
         .mockRejectedValueOnce({
           cause: { code: 'EBUSY' },
-          message: 'EBUSY: resource busy'
+          message: 'EBUSY: resource busy',
         })
         .mockResolvedValueOnce();
 
       // Flush should succeed after retries
-      await expect(manager.flushUpdates({ maxAttempts: 3 })).resolves.not.toThrow();
+      await expect(
+        manager.flushUpdates({ maxAttempts: 3 })
+      ).resolves.not.toThrow();
 
       // Verify 3 attempts were made (1 initial + 2 retries)
       expect(atomicWrite).toHaveBeenCalledTimes(3);
@@ -1680,11 +1738,13 @@ describe('SessionManager.flushUpdates() with retry', () => {
       vi.mocked(atomicWrite)
         .mockRejectedValueOnce({
           cause: { code: 'EAGAIN' },
-          message: 'EAGAIN: resource temporarily unavailable'
+          message: 'EAGAIN: resource temporarily unavailable',
         })
         .mockResolvedValueOnce();
 
-      await expect(manager.flushUpdates({ maxAttempts: 3 })).resolves.not.toThrow();
+      await expect(
+        manager.flushUpdates({ maxAttempts: 3 })
+      ).resolves.not.toThrow();
 
       expect(atomicWrite).toHaveBeenCalledTimes(2);
       expect(manager['#pendingUpdates'].size).toBe(0);
@@ -1700,11 +1760,13 @@ describe('SessionManager.flushUpdates() with retry', () => {
       vi.mocked(atomicWrite)
         .mockRejectedValueOnce({
           cause: { code: 'EIO' },
-          message: 'EIO: I/O error'
+          message: 'EIO: I/O error',
         })
         .mockResolvedValueOnce();
 
-      await expect(manager.flushUpdates({ maxAttempts: 3 })).resolves.not.toThrow();
+      await expect(
+        manager.flushUpdates({ maxAttempts: 3 })
+      ).resolves.not.toThrow();
 
       expect(atomicWrite).toHaveBeenCalledTimes(2);
       expect(manager['#pendingUpdates'].size).toBe(0);
@@ -1721,17 +1783,19 @@ describe('SessionManager.flushUpdates() with retry', () => {
       // Mock atomicWrite to fail with ENOSPC
       const enospcError = {
         cause: { code: 'ENOSPC' },
-        message: 'ENOSPC: no space left on device'
+        message: 'ENOSPC: no space left on device',
       };
       vi.mocked(atomicWrite).mockRejectedValue(enospcError);
 
       // Mock preservePendingUpdates
-      const preserveSpy = vi.spyOn(manager as any, '#preservePendingUpdates')
+      const preserveSpy = vi
+        .spyOn(manager as any, '#preservePendingUpdates')
         .mockResolvedValue(undefined);
 
       // Flush should fail immediately
-      await expect(manager.flushUpdates({ maxAttempts: 3, preserveOnFailure: true }))
-        .rejects.toThrow('ENOSPC');
+      await expect(
+        manager.flushUpdates({ maxAttempts: 3, preserveOnFailure: true })
+      ).rejects.toThrow('ENOSPC');
 
       // Should NOT retry (only 1 attempt)
       expect(atomicWrite).toHaveBeenCalledTimes(1);
@@ -1750,13 +1814,14 @@ describe('SessionManager.flushUpdates() with retry', () => {
       // Mock atomicWrite to fail with EACCES
       const eaccesError = {
         cause: { code: 'EACCES' },
-        message: 'EACCES: permission denied'
+        message: 'EACCES: permission denied',
       };
       vi.mocked(atomicWrite).mockRejectedValue(eaccesError);
 
       // Flush should fail immediately
-      await expect(manager.flushUpdates({ maxAttempts: 3 }))
-        .rejects.toThrow('EACCES');
+      await expect(manager.flushUpdates({ maxAttempts: 3 })).rejects.toThrow(
+        'EACCES'
+      );
 
       // Should NOT retry
       expect(atomicWrite).toHaveBeenCalledTimes(1);
@@ -1774,19 +1839,22 @@ describe('SessionManager.flushUpdates() with retry', () => {
       // Mock atomicWrite to always fail with EBUSY
       const ebusyError = {
         cause: { code: 'EBUSY' },
-        message: 'EBUSY: resource busy'
+        message: 'EBUSY: resource busy',
       };
       vi.mocked(atomicWrite).mockRejectedValue(ebusyError);
 
       // Mock preservePendingUpdates to track call
-      const preserveSpy = vi.spyOn(manager as any, '#preservePendingUpdates')
+      const preserveSpy = vi
+        .spyOn(manager as any, '#preservePendingUpdates')
         .mockResolvedValue(undefined);
 
       // Flush should fail after all retries
-      await expect(manager.flushUpdates({
-        maxAttempts: 3,
-        preserveOnFailure: true
-      })).rejects.toThrow();
+      await expect(
+        manager.flushUpdates({
+          maxAttempts: 3,
+          preserveOnFailure: true,
+        })
+      ).rejects.toThrow();
 
       // Should have retried 3 times
       expect(atomicWrite).toHaveBeenCalledTimes(3);
@@ -1801,11 +1869,14 @@ describe('SessionManager.flushUpdates() with retry', () => {
     it('should recover pending updates from fallback file on initialize', async () => {
       // Create a fallback file
       const sessionDir = resolve(prdPath, '..', 'plan', '001_14b9dc2a33c7');
-      const fallbackFile = resolve(sessionDir, 'tasks-pending-2026-01-24T15-30-45-123Z.json');
+      const fallbackFile = resolve(
+        sessionDir,
+        'tasks-pending-2026-01-24T15-30-45-123Z.json'
+      );
 
       const pendingUpdates = [
         ['task-1', { status: 'Complete', message: 'Test' }],
-        ['task-2', { status: 'Implementing', message: 'In progress' }]
+        ['task-2', { status: 'Implementing', message: 'In progress' }],
       ];
 
       await writeFile(fallbackFile, JSON.stringify(pendingUpdates, null, 2));
@@ -1818,7 +1889,7 @@ describe('SessionManager.flushUpdates() with retry', () => {
       expect(manager['#pendingUpdates'].size).toBe(2);
       expect(manager['#pendingUpdates'].get('task-1')).toEqual({
         status: 'Complete',
-        message: 'Test'
+        message: 'Test',
       });
 
       // Fallback file should be cleaned up
@@ -1835,20 +1906,21 @@ describe('SessionManager.flushUpdates() with retry', () => {
 
       // Track delays
       const delays: number[] = [];
-      const sleepSpy = vi.spyOn(global, 'setTimeout').mockImplementation((callback, delay) => {
-        delays.push(delay);
-        return setTimeout(callback, 10); // Use short delay for tests
-      });
+      const sleepSpy = vi
+        .spyOn(global, 'setTimeout')
+        .mockImplementation((callback, delay) => {
+          delays.push(delay);
+          return setTimeout(callback, 10); // Use short delay for tests
+        });
 
       // Mock atomicWrite to always fail with EBUSY
       vi.mocked(atomicWrite).mockRejectedValue({
         cause: { code: 'EBUSY' },
-        message: 'EBUSY: resource busy'
+        message: 'EBUSY: resource busy',
       });
 
       // Flush should fail after retries
-      await expect(manager.flushUpdates({ maxAttempts: 3 }))
-        .rejects.toThrow();
+      await expect(manager.flushUpdates({ maxAttempts: 3 })).rejects.toThrow();
 
       // Verify delays: 100ms, 200ms (exponential backoff)
       expect(delays).toHaveLength(2);
@@ -1871,12 +1943,11 @@ describe('SessionManager.flushUpdates() with retry', () => {
       // Mock atomicWrite to always fail
       vi.mocked(atomicWrite).mockRejectedValue({
         cause: { code: 'EBUSY' },
-        message: 'EBUSY: resource busy'
+        message: 'EBUSY: resource busy',
       });
 
       // Flush should fail after retries
-      await expect(manager.flushUpdates({ maxAttempts: 3 }))
-        .rejects.toThrow();
+      await expect(manager.flushUpdates({ maxAttempts: 3 })).rejects.toThrow();
 
       const elapsed = Date.now() - startTime;
 
@@ -1893,24 +1964,24 @@ describe('SessionManager.flushUpdates() with retry', () => {
 
 ### Retryable File System Errors
 
-| Error | Retry? | Max Attempts | Base Delay | Max Delay | Rationale |
-|-------|--------|--------------|------------|-----------|-----------|
-| **EBUSY** | ✅ Yes | 3 | 50ms | 500ms | File lock clears quickly |
-| **EAGAIN** | ✅ Yes | 2 | 50ms | 200ms | Resource becomes available |
-| **EIO** | ✅ Yes | 2 | 200ms | 1000ms | Transient disk issue |
-| **ENFILE** | ✅ Yes | 1 | 500ms | 500ms | Wait for FD to free |
-| **ENOSPC** | ❌ No | 0 | - | - | User must free space |
-| **ENOENT** | ❌ No | 0 | - | - | Create file first |
-| **EACCES** | ❌ No | 0 | - | - | Fix permissions |
-| **EMFILE** | ❌ No | 0 | - | - | Application bug |
+| Error      | Retry? | Max Attempts | Base Delay | Max Delay | Rationale                  |
+| ---------- | ------ | ------------ | ---------- | --------- | -------------------------- |
+| **EBUSY**  | ✅ Yes | 3            | 50ms       | 500ms     | File lock clears quickly   |
+| **EAGAIN** | ✅ Yes | 2            | 50ms       | 200ms     | Resource becomes available |
+| **EIO**    | ✅ Yes | 2            | 200ms      | 1000ms    | Transient disk issue       |
+| **ENFILE** | ✅ Yes | 1            | 500ms      | 500ms     | Wait for FD to free        |
+| **ENOSPC** | ❌ No  | 0            | -          | -         | User must free space       |
+| **ENOENT** | ❌ No  | 0            | -          | -         | Create file first          |
+| **EACCES** | ❌ No  | 0            | -          | -         | Fix permissions            |
+| **EMFILE** | ❌ No  | 0            | -          | -         | Application bug            |
 
 ### File I/O Retry Configuration
 
 ```typescript
 const FILE_IO_RETRY_CONFIG = {
   maxAttempts: 3,
-  baseDelay: 100,    // 10x faster than network retry
-  maxDelay: 2000,    // 2 seconds (much shorter than network)
+  baseDelay: 100, // 10x faster than network retry
+  maxDelay: 2000, // 2 seconds (much shorter than network)
   backoffFactor: 2,
   jitterFactor: 0.1,
 };
@@ -1933,6 +2004,7 @@ const FILE_IO_RETRY_CONFIG = {
    ```
    tasks-pending-2026-01-24T15-30-45-123Z.json
    ```
+
    - ISO 8601 timestamp for uniqueness and sorting
    - Human-readable for debugging
    - Easy cleanup of old files

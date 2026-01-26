@@ -6,6 +6,7 @@
 ## MCP Official Resources
 
 ### 1. MCP Specification
+
 - **URL:** https://spec.modelcontextprotocol.io/specification/
 - **What:** Core protocol documentation for Model Context Protocol
 - **Key Concepts:**
@@ -15,6 +16,7 @@
   - Consistent execution patterns across tools
 
 ### 2. MCP Tools Guide
+
 - **URL:** https://spec.modelcontextprotocol.io/specification/tools/
 - **What:** Tool schema definitions and implementation guide
 - **Key Concepts:**
@@ -24,6 +26,7 @@
   - Return values must be serializable
 
 ### 3. TypeScript SDK
+
 - **URL:** https://github.com/modelcontextprotocol/typescript-sdk
 - **What:** Official TypeScript implementation of MCP
 - **Key Concepts:**
@@ -33,6 +36,7 @@
   - Transport types: 'inprocess' | 'stdio' | 'http'
 
 ### 4. Official MCP Servers
+
 - **URL:** https://github.com/modelcontextprotocol/servers
 - **What:** Reference implementations of MCP servers
 - **Key Examples:**
@@ -44,6 +48,7 @@
 ## Groundswell Framework Integration
 
 ### MCPHandler Pattern
+
 This codebase uses Groundswell's custom `MCPHandler` implementation (not FastMCP):
 
 ```typescript
@@ -67,6 +72,7 @@ export class CustomMCP extends MCPHandler {
 ```
 
 ### Key Differences from Standard MCP
+
 - **Base Class:** Uses `MCPHandler` instead of `FastMCP`
 - **Registration:** Constructor-based instead of decorator-based
 - **Transport:** Primarily uses `'inprocess'` for local execution
@@ -75,9 +81,10 @@ export class CustomMCP extends MCPHandler {
 ## Tool Schema Format
 
 ### Basic Structure
+
 ```typescript
 const toolSchema: Tool = {
-  name: 'tool_name',              // snake_case identifier
+  name: 'tool_name', // snake_case identifier
   description: 'Clear description',
   input_schema: {
     type: 'object',
@@ -91,6 +98,7 @@ const toolSchema: Tool = {
 ```
 
 ### JSON Schema Types
+
 - **string:** Text values with optional minLength, maxLength, pattern, enum
 - **number:** Numeric values with minimum, maximum, default
 - **boolean:** True/false values

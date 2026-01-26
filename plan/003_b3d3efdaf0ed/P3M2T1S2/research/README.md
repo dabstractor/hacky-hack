@@ -17,16 +17,19 @@ The current implementation in `/home/dustin/projects/hacky-hack/src/utils/retry.
 ### 2. Industry Best Practices
 
 **AWS (Amazon):**
+
 - Recommends **Full Jitter** as the best strategy
 - Formula: `random(0, min(cap, base × 2^attempt))`
 - Most effective at preventing thundering herd problem
 
 **Google Cloud:**
+
 - Retry: 408, 429, 500, 502, 503, 504
 - Never retry: 400, 401, 403, 404, other 4xx
 - Base delay: 1s, Max delay: 60s
 
 **Azure:**
+
 - Operation-specific configurations
 - API calls: 1s base, 30-60s max
 - Database: 100ms base, 5s max
@@ -34,22 +37,24 @@ The current implementation in `/home/dustin/projects/hacky-hack/src/utils/retry.
 
 ### 3. Jitter Strategy Comparison
 
-| Strategy | Formula | Best For |
-|----------|---------|----------|
-| **Positive** | delay + (delay × factor × random()) | Current use, low concurrency |
-| **Full** | random(0, delay) | High concurrency, AWS choice |
-| **Equal** | delay/2 + random(0, delay/2) | Balanced approach |
-| **Decorrelated** | random(base, previous × 3) | Long-running operations |
+| Strategy         | Formula                             | Best For                     |
+| ---------------- | ----------------------------------- | ---------------------------- |
+| **Positive**     | delay + (delay × factor × random()) | Current use, low concurrency |
+| **Full**         | random(0, delay)                    | High concurrency, AWS choice |
+| **Equal**        | delay/2 + random(0, delay/2)        | Balanced approach            |
+| **Decorrelated** | random(base, previous × 3)          | Long-running operations      |
 
 ### 4. Configuration Recommendations
 
 **Keep Current Values (They're Good):**
+
 - ✅ LLM calls: 1000ms base, 30s max, 3 attempts
 - ✅ MCP tools: 500ms base, 5s max, 2 attempts
 - ✅ Backoff factor: 2.0 (industry standard)
 - ✅ Max delay cap: Essential for preventing excessive waits
 
 **Consider Changes (Optional):**
+
 - Increase jitterFactor from 0.1 to 0.2 for better decorrelation
 - Add jitter strategy selection if high concurrency becomes an issue
 - Implement circuit breaker for persistent failures
@@ -67,6 +72,7 @@ The current implementation in `/home/dustin/projects/hacky-hack/src/utils/retry.
 ### 6. Implementation Examples Included
 
 The research document includes complete TypeScript examples for:
+
 - Full Jitter implementation
 - Decorrelated Jitter implementation
 - Equal Jitter implementation
@@ -78,11 +84,13 @@ The research document includes complete TypeScript examples for:
 **Short-term:** No changes needed - current implementation is solid
 
 **Medium-term (if needed):**
+
 - Add jitter strategy selection
 - Increase jitterFactor to 0.2
 - Add retry metrics monitoring
 
 **Long-term (monitor):**
+
 - Track retry success rates
 - Watch for thundering herd issues
 - Consider Full Jitter if synchronization emerges

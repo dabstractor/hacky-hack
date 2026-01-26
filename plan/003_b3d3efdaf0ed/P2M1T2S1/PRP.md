@@ -15,6 +15,7 @@
 **Deliverable**: Documentation file `docs/CLI_REFERENCE.md` containing complete CLI command documentation with command hierarchy, option tables, usage examples, exit codes, and error handling
 
 **Success Definition**:
+
 - A developer can find any CLI command/option documentation instantly
 - All 12 CLI options are documented with types, defaults, and descriptions
 - All 3 execution modes (normal, bug-hunt, validate) are explained with examples
@@ -28,6 +29,7 @@
 **Target User**: Developer using the PRP Pipeline who needs to look up CLI commands, options, or troubleshoot CLI-related issues
 
 **Use Case**: Developer needs to:
+
 - Find the correct CLI option for a specific task
 - Understand how to use scope execution
 - Debug CLI-related errors
@@ -35,6 +37,7 @@
 - Understand exit codes for scripting/automation
 
 **User Journey**:
+
 1. User opens CLI_REFERENCE.md to find a specific command or option
 2. User quickly locates the option in the Quick Reference table
 3. User reads the option description and sees usage examples
@@ -42,6 +45,7 @@
 5. If encountering an error, user checks Exit Codes or Error Handling sections
 
 **Pain Points Addressed**:
+
 - "What's the flag for verbose output again?" - Quick Reference table
 - "How do I run just one task?" - Scoped Execution section
 - "What does exit code 1 mean?" - Exit Codes section
@@ -82,6 +86,7 @@ Create docs/CLI_REFERENCE.md with complete CLI command documentation:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Yes** - This PRP provides:
+
 - Exact CLI option specifications from src/cli/index.ts
 - Complete documentation formatting patterns from existing docs
 - External research on CLI documentation best practices
@@ -247,25 +252,37 @@ Create docs/CLI_REFERENCE.md following established documentation patterns:
 ## Quick Reference
 
 ## Commands
+
 ### Pipeline Execution
+
 ### Scoped Execution
+
 ### Special Modes
 
 ## Options
+
 ### Required Options
+
 ### Execution Control
+
 ### Boolean Flags
+
 ### Limit Options
 
 ## Exit Codes
 
 ## Examples
+
 ### Basic Usage
+
 ### Advanced Scenarios
+
 ### Common Patterns
 
 ## Error Handling
+
 ### Common Errors
+
 ### Troubleshooting
 
 ## See Also
@@ -351,8 +368,9 @@ Task 9: VALIDATE - Review against success criteria
 
 ### Implementation Patterns & Key Details
 
-```markdown
+````markdown
 <!-- Header Pattern (from INSTALLATION.md) -->
+
 # CLI Reference
 
 > Complete reference for the PRP Pipeline command-line interface, including all available commands, options, execution modes, and usage examples.
@@ -364,20 +382,22 @@ Task 9: VALIDATE - Review against success criteria
 ---
 
 <!-- Quick Reference Table Pattern -->
+
 ## Quick Reference
 
 Essential commands for daily use:
 
-| Command                                     | Description                                        |
-| ------------------------------------------- | -------------------------------------------------- |
-| `npm run dev -- --prd ./PRD.md`             | Run full pipeline with default PRD                 |
-| `npm run dev -- --prd ./PRD.md --scope P1`   | Execute only Phase 1                               |
-| `npm run dev -- --prd ./PRD.md --continue`   | Resume from previous session                       |
-| `npm run dev -- --prd ./PRD.md --dry-run`    | Show plan without executing                        |
+| Command                                    | Description                        |
+| ------------------------------------------ | ---------------------------------- |
+| `npm run dev -- --prd ./PRD.md`            | Run full pipeline with default PRD |
+| `npm run dev -- --prd ./PRD.md --scope P1` | Execute only Phase 1               |
+| `npm run dev -- --prd ./PRD.md --continue` | Resume from previous session       |
+| `npm run dev -- --prd ./PRD.md --dry-run`  | Show plan without executing        |
 
 ---
 
 <!-- Options Table Pattern (from CONFIGURATION.md) -->
+
 ### Required Options
 
 | Option         | Type   | Default    | Description               |
@@ -386,10 +406,10 @@ Essential commands for daily use:
 
 ### Execution Control
 
-| Option            | Type   | Choices                          | Default  | Description                                                                 |
-| ----------------- | ------ | -------------------------------- | -------- | --------------------------------------------------------------------------- |
-| `--mode <mode>`   | string | `normal`, `bug-hunt`, `validate` | `normal` | Execution mode                                                              |
-| `--scope <scope>` | string | -                                | -        | Scope identifier (e.g., `P3.M4`, `P3.M4.T2`)                                  |
+| Option            | Type   | Choices                          | Default  | Description                                  |
+| ----------------- | ------ | -------------------------------- | -------- | -------------------------------------------- |
+| `--mode <mode>`   | string | `normal`, `bug-hunt`, `validate` | `normal` | Execution mode                               |
+| `--scope <scope>` | string | -                                | -        | Scope identifier (e.g., `P3.M4`, `P3.M4.T2`) |
 
 ### Boolean Flags
 
@@ -413,31 +433,33 @@ Essential commands for daily use:
 ---
 
 <!-- Scope Format Pattern -->
+
 ### Scope Format
 
 The `--scope` option accepts the following formats (case-sensitive):
 
-| Format    | Example      | Description                       |
-| --------- | ------------ | --------------------------------- |
-| Phase     | `P1`         | Execute all tasks in Phase 1      |
-| Milestone | `P1.M1`      | Execute all tasks in Milestone 1.1 |
-| Task      | `P1.M1.T1`   | Execute all subtasks in Task 1.1.1 |
-| Subtask   | `P1.M1.T1.S1`| Execute only subtask 1.1.1.1       |
-| All       | `all`        | Execute entire backlog (default)  |
+| Format    | Example       | Description                        |
+| --------- | ------------- | ---------------------------------- |
+| Phase     | `P1`          | Execute all tasks in Phase 1       |
+| Milestone | `P1.M1`       | Execute all tasks in Milestone 1.1 |
+| Task      | `P1.M1.T1`    | Execute all subtasks in Task 1.1.1 |
+| Subtask   | `P1.M1.T1.S1` | Execute only subtask 1.1.1.1       |
+| All       | `all`         | Execute entire backlog (default)   |
 
 **Important**: Scope format is case-sensitive. Use uppercase letters: `P1.M1`, not `p1.m1`.
 
 ---
 
 <!-- Exit Codes Pattern -->
+
 ## Exit Codes
 
-| Code | Name        | Description                          |
-| ---- | ----------- | ------------------------------------ |
-| 0    | SUCCESS     | Pipeline completed successfully       |
-| 1    | ERROR       | General error occurred                |
+| Code | Name             | Description                            |
+| ---- | ---------------- | -------------------------------------- |
+| 0    | SUCCESS          | Pipeline completed successfully        |
+| 1    | ERROR            | General error occurred                 |
 | 2    | VALIDATION_ERROR | PRD or configuration validation failed |
-| 130  | INTERRUPTED | Process interrupted by user (Ctrl+C)  |
+| 130  | INTERRUPTED      | Process interrupted by user (Ctrl+C)   |
 
 **Shell Script Example**:
 
@@ -454,10 +476,12 @@ else
   echo "Pipeline failed with exit code $EXIT_CODE"
 fi
 ```
+````
 
 ---
 
 <!-- Example Patterns -->
+
 ### Basic Usage
 
 ```bash
@@ -496,6 +520,7 @@ npm run dev -- --prd ./PRD.md --validate-prd
 ---
 
 <!-- Error Handling Pattern (from INSTALLATION.md) -->
+
 ## Error Handling
 
 ### Common Errors
@@ -503,6 +528,7 @@ npm run dev -- --prd ./PRD.md --validate-prd
 #### "PRD file not found"
 
 **What you see**:
+
 ```bash
 $ npm run dev -- --prd ./PRD.md
 Error: PRD file not found: ./PRD.md
@@ -512,6 +538,7 @@ Error: PRD file not found: ./PRD.md
 The PRD file path is incorrect or the file doesn't exist.
 
 **How to fix**:
+
 ```bash
 # Use absolute or relative path
 npm run dev -- --prd /full/path/to/PRD.md
@@ -524,6 +551,7 @@ ls PRD.md
 #### "Invalid scope format"
 
 **What you see**:
+
 ```bash
 $ npm run dev -- --prd ./PRD.md --scope p1.m1.t1.s1
 Error: Invalid scope "p1.m1.t1.s1"
@@ -534,6 +562,7 @@ Expected format: P1, P1.M1, P1.M1.T1, P1.M1.T1.S1, or all
 Scope format is case-sensitive. You must use uppercase P, M, T, S.
 
 **How to fix**:
+
 ```bash
 # Correct (uppercase)
 npm run dev -- --prd ./PRD.md --scope P1.M1.T1.S1
@@ -545,6 +574,7 @@ npm run dev -- --prd ./PRD.md --scope p1.m1.t1.s1  # Will fail
 ---
 
 <!-- See Also Pattern -->
+
 ## See Also
 
 - **[README.md](../README.md)** - Project overview and quick start
@@ -552,7 +582,8 @@ npm run dev -- --prd ./PRD.md --scope p1.m1.t1.s1  # Will fail
 - **[Configuration Reference](./CONFIGURATION.md)** - Environment variables and configuration options
 - **[Quick Start Tutorial](./QUICKSTART.md)** - Get started in under 5 minutes
 - **[User Guide](./user-guide.md)** - Advanced usage patterns and workflows
-```
+
+````
 
 ### Integration Points
 
@@ -581,13 +612,13 @@ README.md:
   - reference: "For project overview, see [README](../README.md)"
   - placement: See Also section
   - context: Architecture, not CLI details
-```
+````
 
 ## Validation Loop
 
 ### Level 1: Syntax & Style (Immediate Feedback)
 
-```bash
+````bash
 # Check markdown syntax
 npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 
@@ -599,7 +630,7 @@ npm run check-docs 2>/dev/null || echo "Verify markdown links are valid"
 - [ ] Document follows established formatting patterns
 
 # Expected: Zero formatting errors, all links valid
-```
+````
 
 ### Level 2: Content Validation (Completeness)
 

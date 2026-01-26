@@ -13,6 +13,7 @@
 **Feature Goal**: Implement `ConcurrentTaskExecutor` class at `src/core/concurrent-executor.ts` that executes subtasks concurrently while respecting dependency constraints, with configurable pool size, resource-aware backpressure, atomic state updates, and isolated error handling.
 
 **Deliverable**:
+
 1. `ConcurrentTaskExecutor` class at `src/core/concurrent-executor.ts` with:
    - Semaphore-based concurrency limiting (configurable pool size)
    - Dependency-aware executable subtask identification
@@ -31,6 +32,7 @@
 3. Integration in `TaskOrchestrator` to replace sequential `processNextItem()` loop
 
 **Success Definition**:
+
 - Subtasks with satisfied dependencies execute in parallel (up to pool size limit)
 - Concurrency limit is respected (max N concurrent operations)
 - Dependencies are respected (no task starts before deps complete)
@@ -44,6 +46,7 @@
 **Target User**: Developer implementing P3.M1.T1.S2 (Concurrent Task Executor) - the AI coding agent executing this PRP
 
 **Use Case**: User needs to:
+
 - Understand the `ConcurrentTaskExecutor` class structure and methods
 - Know how to implement semaphore-based concurrency limiting
 - Understand dependency-aware subtask identification
@@ -52,6 +55,7 @@
 - Write comprehensive tests for concurrent behavior
 
 **User Journey**:
+
 1. Read this PRP to understand the complete implementation spec
 2. Study the existing `ResearchQueue` pattern for reference (lines 57-197)
 3. Implement `ConcurrentTaskExecutor` class with all required methods
@@ -61,6 +65,7 @@
 7. Subtasks now execute in parallel with proper dependency resolution
 
 **Pain Points Addressed**:
+
 - "How do I limit concurrent operations?" - Semaphore pattern documented
 - "How do I identify executable subtasks?" - `getExecutableSubtasks()` algorithm provided
 - "How do I handle errors without blocking others?" - `Promise.allSettled()` pattern
@@ -342,38 +347,43 @@ No new data models needed - use existing models:
 
 ```typescript
 // Existing models (from src/core/models.ts)
-type Status = 'Planned' | 'Researching' | 'Implementing' | 'Complete' | 'Failed';
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Complete'
+  | 'Failed';
 
 interface Subtask {
   id: string;
   title: string;
   status: Status;
-  dependencies: string[];  // Subtask IDs that must Complete first
+  dependencies: string[]; // Subtask IDs that must Complete first
   // ... other fields
 }
 
 interface Backlog {
-  backlog: Phase[];  // Task hierarchy
+  backlog: Phase[]; // Task hierarchy
 }
 
 // New configuration for parallel execution
 interface ParallelismConfig {
   enabled: boolean;
-  maxConcurrency: number;  // Pool size (default: 3)
-  prpGenerationLimit: number;  // Separate limit for PRP generation (default: 3)
-  resourceThreshold: number;  // Backpressure threshold (default: 0.8)
+  maxConcurrency: number; // Pool size (default: 3)
+  prpGenerationLimit: number; // Separate limit for PRP generation (default: 3)
+  resourceThreshold: number; // Backpressure threshold (default: 0.8)
 }
 
 // Resource usage interface
 interface ResourceUsage {
-  memory: number;  // Heap usage ratio (0.0 to 1.0)
-  fileHandles: number;  // Open file handles count
+  memory: number; // Heap usage ratio (0.0 to 1.0)
+  fileHandles: number; // Open file handles count
 }
 ```
 
 ### Implementation Tasks (Ordered by Dependencies)
 
-```yaml
+````yaml
 Task 1: CREATE src/core/concurrent-executor.ts with ConcurrentTaskExecutor class skeleton
   - IMPLEMENT: Class with constructor accepting TaskOrchestrator, ParallelismConfig
   - IMPLEMENT: Private fields: semaphore, orchestrator, config, logger
@@ -578,7 +588,7 @@ Task 10: VALIDATE implementation
   - VERIFY: Linting passes (npm run lint)
   - VERIFY: Integration test passes (if applicable)
   - VERIFY: Manual testing with small task hierarchy
-```
+````
 
 ### Implementation Patterns & Key Details
 
@@ -760,7 +770,7 @@ public async executeParallel(config: ParallelismConfig): Promise<void> {
 
 ### Integration Points
 
-```yaml
+````yaml
 TASK_ORCHESTRATOR_INTEGRATION:
   - file: src/core/task-orchestrator.ts
   - integration: Add executeParallel() method alongside processNextItem()
@@ -809,7 +819,7 @@ LOGGER_INTEGRATION:
   - integration: Use getLogger() for parallel execution logging
   - pattern: this.#logger.warn(), this.#logger.error(), this.#logger.debug()
   - gotcha: Include context in log messages (subtaskId, error details)
-```
+````
 
 ---
 

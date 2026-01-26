@@ -22,6 +22,7 @@
 #### Core Principles
 
 **1. Schema Design for Task State Management**
+
 - Define strict, typed schemas for all state transitions
 - Use enum constraints for finite state values (e.g., "pending", "running", "completed", "failed")
 - Implement required fields for essential task metadata
@@ -29,6 +30,7 @@
 - Use UUID or similar for unique identifiers
 
 **2. Validation Layers**
+
 ```
 Input Validation → State Transition Validation → Storage Validation → Output Validation
 ```
@@ -36,6 +38,7 @@ Input Validation → State Transition Validation → Storage Validation → Outp
 **3. Common Schema Patterns**
 
 Task State Schema:
+
 ```json
 {
   "type": "object",
@@ -48,12 +51,26 @@ Task State Schema:
     },
     "state": {
       "type": "string",
-      "enum": ["pending", "running", "completed", "failed", "cancelled", "retrying"],
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "retrying"
+      ],
       "description": "Current task state"
     },
     "previousState": {
       "type": "string",
-      "enum": ["pending", "running", "completed", "failed", "cancelled", "retrying"],
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "retrying"
+      ],
       "description": "Previous state for transition tracking"
     },
     "createdAt": {
@@ -68,7 +85,7 @@ Task State Schema:
     },
     "dependencies": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": { "type": "string" },
       "description": "List of task IDs this task depends on"
     },
     "retryCount": {
@@ -81,11 +98,13 @@ Task State Schema:
 ```
 
 **4. State Machine Validation**
+
 - Define valid state transitions as a matrix
 - Implement guards to prevent invalid transitions
 - Track state transition history for debugging
 
 Valid Transition Matrix:
+
 ```
 pending → running
 running → completed | failed | retrying
@@ -100,6 +119,7 @@ cancelled → (terminal state)
 #### Common Validation Checks
 
 **1. Dependency Existence Check**
+
 - All dependency IDs must reference existing tasks
 - Detect dangling references (dependencies pointing to non-existent tasks)
 - Validate against current task store
@@ -107,20 +127,20 @@ cancelled → (terminal state)
 **2. Orphaned Dependency Detection**
 
 What are orphaned dependencies?
+
 - Tasks that depend on non-existent tasks
 - Tasks referenced as dependencies but don't exist
 - Broken references in the dependency chain
 
 Detection Algorithm:
+
 ```typescript
 function detectOrphanedDependencies(tasks: Task[]): OrphanReport {
   const taskIds = new Set(tasks.map(t => t.id));
   const orphans: Map<string, string[]> = new Map();
 
   for (const task of tasks) {
-    const missingDeps = task.dependencies.filter(
-      depId => !taskIds.has(depId)
-    );
+    const missingDeps = task.dependencies.filter(depId => !taskIds.has(depId));
 
     if (missingDeps.length > 0) {
       orphans.set(task.id, missingDeps);
@@ -134,11 +154,13 @@ function detectOrphanedDependencies(tasks: Task[]): OrphanReport {
 **3. Circular Dependency Detection**
 
 Circular dependencies occur when:
+
 - Task A depends on Task B
 - Task B depends on Task C
 - Task C depends on Task A (creates a cycle)
 
 Why detect them?
+
 - Create deadlocks in task execution
 - Make it impossible to determine execution order
 - Can cause infinite loops in dependency resolution
@@ -151,9 +173,9 @@ The most common and efficient approach using three-color marking:
 
 ```typescript
 enum NodeColor {
-  WHITE = 'white',   // Unvisited
-  GRAY = 'gray',     // Currently visiting (in recursion stack)
-  BLACK = 'black'    // Fully visited
+  WHITE = 'white', // Unvisited
+  GRAY = 'gray', // Currently visiting (in recursion stack)
+  BLACK = 'black', // Fully visited
 }
 
 function detectCyclicDependencies(tasks: Task[]): string[] | null {
@@ -280,6 +302,7 @@ function calculateInDegrees(
 **4. Transitive Dependency Validation**
 
 Validate that all transitive dependencies are valid:
+
 ```typescript
 function validateTransitiveDependencies(
   taskId: string,
@@ -301,7 +324,7 @@ function validateTransitiveDependencies(
     if (!tasks.has(depId)) {
       return {
         valid: false,
-        error: `Task ${taskId} depends on non-existent task ${depId}`
+        error: `Task ${taskId} depends on non-existent task ${depId}`,
       };
     }
 
@@ -315,14 +338,14 @@ function validateTransitiveDependencies(
 
 ### 1.3 Validation Patterns Summary
 
-| Validation Type | Purpose | Algorithm | Complexity |
-|----------------|---------|-----------|------------|
-| Schema Validation | Type and structure checking | JSON Schema validators | O(n) where n = doc size |
-| Dependency Existence | Find dangling references | Set lookup | O(n * d) where d = avg deps |
-| Orphan Detection | Find tasks with broken deps | Set difference | O(n * d) |
-| Circular Dependency | Detect cycles in dep graph | DFS 3-color marking | O(V + E) |
-| Topological Sort | Validate DAG structure | Kahn's algorithm | O(V + E) |
-| Transitive Validation | Validate entire dep tree | Recursive DFS | O(V + E) |
+| Validation Type       | Purpose                     | Algorithm              | Complexity                   |
+| --------------------- | --------------------------- | ---------------------- | ---------------------------- |
+| Schema Validation     | Type and structure checking | JSON Schema validators | O(n) where n = doc size      |
+| Dependency Existence  | Find dangling references    | Set lookup             | O(n \* d) where d = avg deps |
+| Orphan Detection      | Find tasks with broken deps | Set difference         | O(n \* d)                    |
+| Circular Dependency   | Detect cycles in dep graph  | DFS 3-color marking    | O(V + E)                     |
+| Topological Sort      | Validate DAG structure      | Kahn's algorithm       | O(V + E)                     |
+| Transitive Validation | Validate entire dep tree    | Recursive DFS          | O(V + E)                     |
 
 ---
 
@@ -344,7 +367,7 @@ const TaskStateSchema = z.enum([
   'completed',
   'failed',
   'cancelled',
-  'retrying'
+  'retrying',
 ]);
 
 // Base task schema
@@ -452,32 +475,35 @@ type Task = z.infer<typeof TaskSchema>;
 #### Using `.refine()` for Custom Validation
 
 ```typescript
-const TaskSchema = z.object({
-  id: z.string().uuid(),
-  state: TaskStateSchema,
-  previousState: TaskStateSchema.optional(),
-  dependencies: z.array(z.string().uuid()),
-  retryCount: z.number().int().min(0),
-}).refine(
-  (data) => {
-    // Validate state transitions
-    if (!data.previousState) return true;
-    return isValidTransition(data.previousState, data.state);
-  },
-  {
-    message: "Invalid state transition",
-    path: ['state'],
-  }
-).refine(
-  (data) => {
-    // Prevent self-dependencies
-    return !data.dependencies.includes(data.id);
-  },
-  {
-    message: "Task cannot depend on itself",
-    path: ['dependencies'],
-  }
-);
+const TaskSchema = z
+  .object({
+    id: z.string().uuid(),
+    state: TaskStateSchema,
+    previousState: TaskStateSchema.optional(),
+    dependencies: z.array(z.string().uuid()),
+    retryCount: z.number().int().min(0),
+  })
+  .refine(
+    data => {
+      // Validate state transitions
+      if (!data.previousState) return true;
+      return isValidTransition(data.previousState, data.state);
+    },
+    {
+      message: 'Invalid state transition',
+      path: ['state'],
+    }
+  )
+  .refine(
+    data => {
+      // Prevent self-dependencies
+      return !data.dependencies.includes(data.id);
+    },
+    {
+      message: 'Task cannot depend on itself',
+      path: ['dependencies'],
+    }
+  );
 
 function isValidTransition(from: string, to: string): boolean {
   const validTransitions: Record<string, string[]> = {
@@ -496,7 +522,7 @@ function isValidTransition(from: string, to: string): boolean {
 #### Custom Validators with `.transform()`
 
 ```typescript
-const TaskWithComputedFieldsSchema = TaskSchema.transform((data) => ({
+const TaskWithComputedFieldsSchema = TaskSchema.transform(data => ({
   ...data,
   canRetry: data.state === 'failed' && data.retryCount < 3,
   isTerminal: ['completed', 'cancelled'].includes(data.state),
@@ -508,19 +534,21 @@ type TaskWithComputedFields = z.infer<typeof TaskWithComputedFieldsSchema>;
 #### Async Custom Validators
 
 ```typescript
-const TaskSchema = z.object({
-  id: z.string().uuid(),
-  dependencies: z.array(z.string().uuid()),
-}).refine(
-  async (data) => {
-    // Async validation - check if dependencies exist in database
-    const tasks = await getTasksByIds(data.dependencies);
-    return tasks.length === data.dependencies.length;
-  },
-  {
-    message: "Some dependencies do not exist",
-  }
-);
+const TaskSchema = z
+  .object({
+    id: z.string().uuid(),
+    dependencies: z.array(z.string().uuid()),
+  })
+  .refine(
+    async data => {
+      // Async validation - check if dependencies exist in database
+      const tasks = await getTasksByIds(data.dependencies);
+      return tasks.length === data.dependencies.length;
+    },
+    {
+      message: 'Some dependencies do not exist',
+    }
+  );
 
 async function validateTask(task: unknown) {
   const result = await TaskSchema.safeParseAsync(task);
@@ -537,15 +565,24 @@ async function validateTask(task: unknown) {
 ```typescript
 const EnhancedTaskSchema = z.object({
   id: z.string().uuid({
-    errorMap: () => ({ message: "Task ID must be a valid UUID" }),
+    errorMap: () => ({ message: 'Task ID must be a valid UUID' }),
   }),
   state: TaskStateSchema,
-  dependencies: z.array(z.string().uuid()).min(0).max(100, {
-    errorMap: () => ({ message: "A task cannot have more than 100 dependencies" }),
-  }),
-  retryCount: z.number().int().min(0).max(10, {
-    errorMap: () => ({ message: "Retry count cannot exceed 10" }),
-  }),
+  dependencies: z
+    .array(z.string().uuid())
+    .min(0)
+    .max(100, {
+      errorMap: () => ({
+        message: 'A task cannot have more than 100 dependencies',
+      }),
+    }),
+  retryCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(10, {
+      errorMap: () => ({ message: 'Retry count cannot exceed 10' }),
+    }),
 });
 ```
 
@@ -558,7 +595,7 @@ function validateTask(data: unknown): Task | null {
   const result = TaskSchema.safeParse(data);
 
   if (!result.success) {
-    console.error("Validation errors:");
+    console.error('Validation errors:');
     for (const error of result.error.errors) {
       console.error(`  - ${error.path.join('.')}: ${error.message}`);
     }
@@ -573,7 +610,7 @@ function validateTask(data: unknown): Task | null {
 
 ```typescript
 function formatZodErrors(error: z.ZodError): FormattedError[] {
-  return error.errors.map((err) => ({
+  return error.errors.map(err => ({
     path: err.path.join('.') || 'root',
     message: err.message,
     code: err.code,
@@ -644,18 +681,21 @@ function validateTaskBatch(tasks: unknown[]): BatchValidationResult {
 ### 2.4 Zod Best Practices
 
 1. **Use `.passthrough()` for flexibility**
+
    ```typescript
    const FlexibleTaskSchema = TaskSchema.passthrough();
    // Allows additional properties without error
    ```
 
 2. **Use `.strict()` for validation**
+
    ```typescript
    const StrictTaskSchema = TaskSchema.strict();
    // Rejects additional properties
    ```
 
 3. **Reuse schemas with composition**
+
    ```typescript
    const BaseSchema = z.object({
      id: z.string().uuid(),
@@ -713,7 +753,6 @@ async function writeJsonAtomically<T>(
 
     // Ensure directory entry is flushed
     await fs.sync(dir);
-
   } catch (error) {
     // Clean up temp file on error
     try {
@@ -737,7 +776,10 @@ async function createBackup(filePath: string): Promise<void> {
   }
 }
 
-async function cleanupOldBackups(filePath: string, keep: number): Promise<void> {
+async function cleanupOldBackups(
+  filePath: string,
+  keep: number
+): Promise<void> {
   const dir = dirname(filePath);
   const basename = basename(filePath);
   const files = await fs.readdir(dir);
@@ -749,9 +791,7 @@ async function cleanupOldBackups(filePath: string, keep: number): Promise<void> 
 
   const toDelete = backups.slice(keep);
 
-  await Promise.all(
-    toDelete.map(f => fs.unlink(join(dir, f)))
-  );
+  await Promise.all(toDelete.map(f => fs.unlink(join(dir, f))));
 }
 ```
 
@@ -798,9 +838,7 @@ class BackupManager {
 
     const filesToDelete = new Set([...toDelete, ...tooOld]);
 
-    await Promise.all(
-      Array.from(filesToDelete).map(b => fs.unlink(b.path))
-    );
+    await Promise.all(Array.from(filesToDelete).map(b => fs.unlink(b.path)));
   }
 
   async restoreLatest(filePath: string): Promise<boolean> {
@@ -817,11 +855,13 @@ class BackupManager {
     return true;
   }
 
-  private async getBackupsForFile(filePath: string): Promise<Array<{path: string, stats: import('fs').Stats}>> {
+  private async getBackupsForFile(
+    filePath: string
+  ): Promise<Array<{ path: string; stats: import('fs').Stats }>> {
     const files = await fs.readdir(this.config.backupDir);
     const prefix = basename(filePath);
 
-    const backups: Array<{path: string, stats: import('fs').Stats}> = [];
+    const backups: Array<{ path: string; stats: import('fs').Stats }> = [];
 
     for (const file of files) {
       if (file.startsWith(prefix) && file.endsWith('.json')) {
@@ -863,7 +903,9 @@ class WriteAheadLog {
     this.logPath = join(dataDir, 'wal.json');
   }
 
-  async append(operation: Omit<WALOperation, 'timestamp' | 'checksum'>): Promise<void> {
+  async append(
+    operation: Omit<WALOperation, 'timestamp' | 'checksum'>
+  ): Promise<void> {
     const op: WALOperation = {
       ...operation,
       timestamp: Date.now(),
@@ -939,10 +981,7 @@ class WriteAheadLog {
   }
 
   private async persistLog(): Promise<void> {
-    await fs.writeFile(
-      this.logPath,
-      JSON.stringify(this.operations, null, 2)
-    );
+    await fs.writeFile(this.logPath, JSON.stringify(this.operations, null, 2));
   }
 
   private async clearLog(): Promise<void> {
@@ -1013,14 +1052,16 @@ function repairJson<T>(
       errors: [...errors, 'Repaired data still invalid'],
       repairs,
     };
-
   } catch (parseError) {
     // JSON syntax error - attempt fixing
     return attemptJsonSyntaxRepair(content, schema);
   }
 }
 
-function attemptRepair(data: any, issue: z.ZodIssue): {repaired: boolean, data: any, message: string} {
+function attemptRepair(
+  data: any,
+  issue: z.ZodIssue
+): { repaired: boolean; data: any; message: string } {
   const path = issue.path.join('.');
 
   // Repair missing required fields
@@ -1074,7 +1115,11 @@ function attemptRepair(data: any, issue: z.ZodIssue): {repaired: boolean, data: 
     if (issue.expected === 'string' && typeof issue.received === 'number') {
       return {
         repaired: true,
-        data: setNestedValue(data, issue.path, String(getNestedValue(data, issue.path))),
+        data: setNestedValue(
+          data,
+          issue.path,
+          String(getNestedValue(data, issue.path))
+        ),
         message: 'Converted number to string',
       };
     }
@@ -1224,13 +1269,13 @@ const taskMigrator = new SchemaMigrator();
 taskMigrator.registerMigration({
   version: 1,
   description: 'Initial version',
-  migrate: (data) => data,
+  migrate: data => data,
 });
 
 taskMigrator.registerMigration({
   version: 2,
   description: 'Add retryCount field',
-  migrate: (data) => ({
+  migrate: data => ({
     ...data,
     retryCount: data.retryCount ?? 0,
   }),
@@ -1239,7 +1284,7 @@ taskMigrator.registerMigration({
 taskMigrator.registerMigration({
   version: 3,
   description: 'Convert state to enum',
-  migrate: (data) => ({
+  migrate: data => ({
     ...data,
     state: normalizeState(data.state),
   }),
@@ -1253,6 +1298,7 @@ taskMigrator.registerMigration({
 **Problem**: Concurrent writes to state files can cause data loss.
 
 **Solution**: File locking and atomic writes:
+
 ```typescript
 import lockfile from 'proper-lockfile';
 
@@ -1272,6 +1318,7 @@ async function writeWithLock<T>(filePath: string, data: T): Promise<void> {
 **Problem**: State files become inconsistent after crashes or partial writes.
 
 **Solution**: Use checksums and validation:
+
 ```typescript
 interface ChecksummedData<T> {
   data: T;
@@ -1322,8 +1369,11 @@ async function readWithChecksum<T>(
 **Problem**: Tasks reference non-existent dependencies.
 
 **Solution**: Periodic cleanup and validation:
+
 ```typescript
-async function cleanupOrphanedTasks(taskStore: TaskStore): Promise<CleanupReport> {
+async function cleanupOrphanedTasks(
+  taskStore: TaskStore
+): Promise<CleanupReport> {
   const tasks = await taskStore.getAll();
   const validIds = new Set(tasks.map(t => t.id));
 
@@ -1425,7 +1475,9 @@ interface ValidationMetrics {
   lastValidationTime: Date;
 }
 
-async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> {
+async function runHealthCheck(
+  taskStore: TaskStore
+): Promise<ValidationMetrics> {
   const tasks = await taskStore.getAll();
 
   // Schema validation
@@ -1448,7 +1500,11 @@ async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> 
   };
 
   // Alert if issues detected
-  if (metrics.invalidTasks > 0 || metrics.orphanedTasks > 0 || metrics.circularDependencies > 0) {
+  if (
+    metrics.invalidTasks > 0 ||
+    metrics.orphanedTasks > 0 ||
+    metrics.circularDependencies > 0
+  ) {
     await sendAlert({
       level: 'warning',
       message: 'Task store validation issues detected',
@@ -1467,6 +1523,7 @@ async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> 
 ### Official Documentation
 
 **Zod Validation**
+
 - Official Docs: https://zod.dev/
 - GitHub Repository: https://github.com/colinhacks/zod
 - Error Handling: https://zod.dev/?id=error-handling
@@ -1474,28 +1531,33 @@ async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> 
 - Advanced Patterns: https://zod.dev/?id=advanced
 
 **JSON Schema**
+
 - Official Specification: https://json-schema.org/
 - Understanding JSON Schema: https://json-schema.org/understanding-json-schema/
 - Validation Best Practices: https://json-schema.org/learn/
 
 **Node.js File System**
+
 - fs.promises API: https://nodejs.org/api/fs.html#fspromises-api
 - Atomic Writes: https://nodejs.org/api/fs.html#fsrenameoldpath-newpath-callback
 
 ### Algorithms and Data Structures
 
 **Graph Algorithms**
+
 - Topological Sorting (Kahn's Algorithm): https://en.wikipedia.org/wiki/Topological_sorting
 - DFS-based Cycle Detection: https://en.wikipedia.org/wiki/Cycle_(graph_theory)#Cycle_detection
 - Directed Acyclic Graphs: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 
 **Dependency Management**
+
 - Dependency Resolution Algorithms: https://en.wikipedia.org/wiki/Dependency_resolution
 - Package Manager Algorithms: https://github.com/npm/npm/blob/latest/lib/install/deps.js
 
 ### Community Resources
 
 **StackOverflow - Circular Dependency Detection**
+
 - DFS Cycle Detection in JavaScript: https://stackoverflow.com/questions/14982352/
 - Detecting Cycles in Directed Graph: https://stackoverflow.com/questions/10825449/
 - Topological Sort Implementation: https://stackoverflow.com/questions/11192816/
@@ -1503,12 +1565,14 @@ async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> 
 **GitHub Repositories - Validation Patterns**
 
 **TypeScript/Node.js**
+
 - https://github.com/colinhacks/zod (Zod validation library)
 - https://github.com/ajv-validator/ajv (JSON Schema validator)
 - https://github.com/sindresorhus/ow (Argument validation)
 - https://github.com/jquense/yup (Schema validation)
 
 **Task/State Management**
+
 - https://github.com/facebook/draft-js (Rich text editor with state management)
 - https://github.com/reduxjs/redux (Predictable state container)
 - https://github.com/ag-grid/ag-grid (Data grid with complex state)
@@ -1516,16 +1580,19 @@ async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> 
 **Best Practice Articles**
 
 **General Validation**
+
 - https://kentcdodds.com/blog/how-to-write-validations-in-your-code
 - https://www.builder.io/blog/zod-safe-type-validation-in-typescript
 - https://blog.logrocket.com/zod-typescript-schema-validation/
 
 **File System Operations**
+
 - https://nodejs.org/en/knowledge/file-system/security/
 - https://blog.heroku.com/better-file-writes-with-node
 - https://www.kernel.org/doc/html/latest/filesystems/
 
 **Error Handling**
+
 - https://www.joyent.com/node-js/production/design/errors
 - https://martinfowler.com/articles/replaceThrowWithNotification.html
 - https://medium.com/@benastontweet/typescript-error-handling-4841b37f7526
@@ -1533,22 +1600,26 @@ async function runHealthCheck(taskStore: TaskStore): Promise<ValidationMetrics> 
 ### Testing Resources
 
 **Validation Testing**
+
 - https://vitest.dev/guide/assertion.html (Vitest assertions)
 - https://jestjs.io/docs/expect (Jest matchers)
 - https://testing-library.com/docs/ (Testing library principles)
 
 **Property-Based Testing**
+
 - https://github.com/dubzzz/fast-check (Property-based testing for JS/TS)
 - https://prop-testing.com/ (Property-based testing guide)
 
 ### Additional Reading
 
 **State Machine Design**
+
 - https://statecharts.dev/ (Statecharts and state machines)
 - https://github.com/statelyai/xstate (State machine library)
 - https://www.patternsforcloud.org/state-management (Cloud patterns)
 
 **Data Integrity**
+
 - https://www.postgresql.org/docs/current/ddl-constraints.html (Database constraints)
 - https://www.sqlite.org/lockingv3.html (File locking in SQLite)
 - https://en.wikipedia.org/wiki/ACID (Database transactions)
@@ -1568,6 +1639,7 @@ This research document provides comprehensive coverage of:
 All algorithms include TypeScript implementations ready for adaptation to your task management system. The reference URLs provide official documentation, community resources, and best practices for further reading.
 
 **Key Takeaways**:
+
 - Use Zod for runtime type validation with excellent TypeScript integration
 - Implement DFS-based cycle detection for O(V + E) performance
 - Always use atomic writes with temporary files for state persistence

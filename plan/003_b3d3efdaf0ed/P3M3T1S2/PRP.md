@@ -12,12 +12,14 @@
 **Feature Goal**: Add comprehensive cache statistics tracking and cleanup commands for the PRP cache system, including a new CacheManager class, CLI subcommands (`prd cache stats/clean/clear`), auto-prune on startup, and full test coverage.
 
 **Deliverable**:
+
 1. `CacheManager` class at `src/utils/cache-manager.ts` with statistics and cleanup methods
 2. CLI cache commands at `src/cli/commands/cache.ts` (stats, clean, clear)
 3. `--cache-prune` CLI option for automatic cleanup on startup
 4. Tests at `tests/unit/cache-manager.test.ts`
 
 **Success Definition**:
+
 - `prd cache stats` displays comprehensive cache statistics (hits, misses, evictions, size, hit ratio)
 - `prd cache clean` removes expired cache entries and reports results
 - `prd cache clear` removes all cache entries with confirmation
@@ -32,18 +34,21 @@
 **Target User**: Developer or operator using the PRD pipeline who needs visibility into cache performance and manual control over cache cleanup.
 
 **Use Case**:
+
 - **Cache visibility**: View cache statistics to understand hit/miss ratios and cache size
 - **Cache maintenance**: Clean up expired entries to free disk space
 - **Cache reset**: Clear all cache entries when needed (e.g., after significant code changes)
 - **Auto-cleanup**: Automatically prune expired entries on startup
 
 **User Journey**:
+
 1. User runs `prd cache stats` to see cache performance and size
 2. If cache is large or has many expired entries, user runs `prd cache clean`
 3. For complete cache reset, user runs `prd cache clear` (with confirmation)
 4. For automatic cleanup, user adds `--cache-prune` flag to pipeline startup
 
 **Pain Points Addressed**:
+
 - **No cache visibility**: From `system_context.md` - "Cache hit/miss tracking exists but no statistics reporting"
 - **No cleanup mechanism**: "No cleanup command for stale cache entries"
 - **Manual cleanup required**: No way to remove expired entries without manual file deletion
@@ -89,6 +94,7 @@ Add cache statistics tracking, cleanup commands, and auto-prune functionality to
 **Before writing this PRP, validate**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: YES - This PRP includes:
+
 - Complete analysis of PRPGenerator cache implementation with specific line numbers
 - Previous PRP (P3.M3.T1.S1) contract defining the cacheTtlMs parameter
 - Existing CLI command patterns from artifacts.ts and inspect.ts
@@ -690,7 +696,10 @@ export class CacheManager {
           taskId: entry.taskId,
           error: error instanceof Error ? error.message : String(error),
         });
-        this.#logger.warn({ taskId: entry.taskId, error }, 'Failed to remove expired entry');
+        this.#logger.warn(
+          { taskId: entry.taskId, error },
+          'Failed to remove expired entry'
+        );
       }
     }
 
@@ -730,7 +739,10 @@ export class CacheManager {
           taskId: entry.taskId,
           error: error instanceof Error ? error.message : String(error),
         });
-        this.#logger.warn({ taskId: entry.taskId, error }, 'Failed to remove entry');
+        this.#logger.warn(
+          { taskId: entry.taskId, error },
+          'Failed to remove entry'
+        );
       }
     }
 
@@ -778,7 +790,11 @@ export class CacheManager {
           entries.push({
             taskId,
             metadataPath,
-            prpPath: resolve(this.#sessionPath, 'prps', file.replace('.json', '.md')),
+            prpPath: resolve(
+              this.#sessionPath,
+              'prps',
+              file.replace('.json', '.md')
+            ),
             createdAt: metadata.createdAt,
             accessedAt: metadata.accessedAt,
             size: stat.size,
@@ -833,7 +849,11 @@ import { createInterface } from 'node:readline';
 import chalk from 'chalk';
 import Table from 'cli-table3';
 import { SessionManager } from '../../core/session-manager.js';
-import { CacheManager, type CacheStatistics, type CleanupResult } from '../../utils/cache-manager.js';
+import {
+  CacheManager,
+  type CacheStatistics,
+  type CleanupResult,
+} from '../../utils/cache-manager.js';
 import { getLogger } from '../../utils/logger.js';
 
 const logger = getLogger('CacheCommand');
@@ -875,7 +895,8 @@ export class CacheCommand {
           process.exit(1);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(chalk.red('Error:'), errorMessage);
       logger.error({ error }, 'Cache command failed');
       process.exit(1);
@@ -921,7 +942,9 @@ export class CacheCommand {
     const manager = new CacheManager(sessionState.metadata.path);
     const stats = await manager.getStats();
 
-    console.log(chalk.yellow(`About to remove ${stats.totalEntries} cache entries`));
+    console.log(
+      chalk.yellow(`About to remove ${stats.totalEntries} cache entries`)
+    );
 
     if (!options.force) {
       const answer = await this.#promptConfirmation('Continue? (y/N): ');
@@ -948,7 +971,9 @@ export class CacheCommand {
   async #loadSession(sessionId?: string) {
     if (sessionId) {
       const sessions = await SessionManager.listSessions(this.#planDir);
-      const session = sessions.find(s => s.hash.startsWith(sessionId) || s.id === sessionId);
+      const session = sessions.find(
+        s => s.hash.startsWith(sessionId) || s.id === sessionId
+      );
       if (!session) {
         throw new Error(`Session not found: ${sessionId}`);
       }
@@ -969,18 +994,35 @@ export class CacheCommand {
       head: [chalk.cyan('Metric'), chalk.cyan('Value')],
       colWidths: [30, 20],
       chars: {
-        top: '─', 'top-mid': '┬', 'top-left': '┌', 'top-right': '┐',
-        bottom: '─', 'bottom-mid': '┴', 'bottom-left': '└', 'bottom-right': '┘',
-        left: '│', 'left-mid': '├', mid: '─', 'mid-mid': '┼',
-        right: '│', 'right-mid': '┤', middle: '│',
+        top: '─',
+        'top-mid': '┬',
+        'top-left': '┌',
+        'top-right': '┐',
+        bottom: '─',
+        'bottom-mid': '┴',
+        'bottom-left': '└',
+        'bottom-right': '┘',
+        left: '│',
+        'left-mid': '├',
+        mid: '─',
+        'mid-mid': '┼',
+        right: '│',
+        'right-mid': '┤',
+        middle: '│',
       },
     });
 
     table.push(['Total Entries', stats.totalEntries.toString()]);
     table.push(['Total Size', this.#formatBytes(stats.totalBytes)]);
     table.push(['Expired Entries', stats.expiredEntries.toString()]);
-    table.push(['Oldest Entry', stats.oldestEntry ? this.#formatAge(stats.oldestEntry) : 'N/A']);
-    table.push(['Newest Entry', stats.newestEntry ? this.#formatAge(stats.newestEntry) : 'N/A']);
+    table.push([
+      'Oldest Entry',
+      stats.oldestEntry ? this.#formatAge(stats.oldestEntry) : 'N/A',
+    ]);
+    table.push([
+      'Newest Entry',
+      stats.newestEntry ? this.#formatAge(stats.newestEntry) : 'N/A',
+    ]);
 
     return '\n' + table.toString();
   }
@@ -995,7 +1037,8 @@ export class CacheCommand {
     const age = Date.now() - timestamp;
     if (age < 60 * 1000) return `${Math.floor(age / 1000)}s ago`;
     if (age < 60 * 60 * 1000) return `${Math.floor(age / (60 * 1000))}m ago`;
-    if (age < 24 * 60 * 60 * 1000) return `${Math.floor(age / (60 * 60 * 1000))}h ago`;
+    if (age < 24 * 60 * 60 * 1000)
+      return `${Math.floor(age / (60 * 60 * 1000))}h ago`;
     return `${Math.floor(age / (24 * 60 * 60 * 1000))}d ago`;
   }
 
@@ -1047,7 +1090,8 @@ program
       await cacheCommand.execute(action, options);
       process.exit(0);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       logger.error(`Cache command failed: ${errorMessage}`);
       process.exit(1);
     }
@@ -1257,7 +1301,7 @@ ls -la plan/*/prps/.cache/
 - **Don't** forget dry-run mode for clean and clear commands
 - **Don't** assume cache directory exists - handle ENOENT gracefully
 - **Don't** duplicate TTL configuration - P3.M3.T1.S1 already did this
-- **Don't** modify tasks.json, PRD.md, or prps/*.md files - only touch .cache/
+- **Don't** modify tasks.json, PRD.md, or prps/\*.md files - only touch .cache/
 - **Don't** use table formatting for JSON output mode
 - **Don't** forget to mock node:fs/promises in tests before imports
 - **Don't** use non-mocked fs operations in tests
@@ -1269,6 +1313,7 @@ ls -la plan/*/prps/.cache/
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Rationale**:
+
 - Complete analysis of existing cache implementation with specific line numbers
 - Previous PRP (P3.M3.T1.S1) contract clearly understood and respected
 - Clear CLI command patterns from artifacts.ts and inspect.ts
@@ -1279,12 +1324,14 @@ ls -la plan/*/prps/.cache/
 - Graceful error handling patterns
 
 **Risk Areas**:
+
 - Must use same cache path structure as PRPGenerator for consistency
 - Individual file failures must not stop entire cleanup operation
 - Confirmation prompt needed for clear command (safety)
 - Proper mock setup required for file system tests
 
 **Mitigation**:
+
 - Follow PRPGenerator's getCachePath/getCacheMetadataPath patterns exactly
 - Use try/catch around each file deletion, log errors, continue
 - Default to 'N' for confirmation prompt, require explicit 'y'
@@ -1295,6 +1342,7 @@ ls -la plan/*/prps/.cache/
 **Document Version**: 1.0
 **Last Updated**: 2025-01-25
 **Related Documents**:
+
 - Previous PRP (P3.M3.T1.S1): `plan/003_b3d3efdaf0ed/P3M3T1S1/PRP.md`
 - CLI Command Patterns: `plan/003_b3d3efdaf0ed/P3M3T1S2/research/cli-command-patterns.md`
 - Cache Testing Patterns: `plan/003_b3d3efdaf0ed/P3M3T1S2/research/cache-testing-patterns.md`

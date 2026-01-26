@@ -11,12 +11,14 @@
 **Feature Goal**: Create a real-time terminal-based visual progress display for pipeline execution that shows hierarchical progress (Phase/Milestone/Task/Subtask), current task information, estimated time remaining, and recent log entries.
 
 **Deliverable**:
+
 1. `ProgressDisplay` class at `src/utils/progress-display.ts` with cli-progress integration
 2. `--progress-mode` CLI option (auto/always/never) in `src/cli/index.ts`
 3. Integration with `PRPPipeline.executeBacklog()` for real-time updates
 4. Unit tests at `tests/unit/utils/progress-display.test.ts`
 
 **Success Definition**:
+
 - Progress bars update in real-time during pipeline execution
 - Four-level hierarchy (Phase/Milestone/Task/Subtask) is displayed
 - ETA calculation matches existing ProgressTracker accuracy
@@ -32,6 +34,7 @@
 **Use Case**: Developer executes `hack --prd PRD.md` and wants visual feedback on pipeline progress beyond log-based output
 
 **User Journey**:
+
 1. User runs pipeline: `hack --prd PRD.md`
 2. Progress display initializes (TTY detected in 'auto' mode)
 3. Multi-bar display shows:
@@ -43,6 +46,7 @@
 5. Display stops cleanly on completion or interruption
 
 **Pain Points Addressed**:
+
 - Currently progress is log-based only - no visual indication of progress
 - No ETA visibility during long-running pipelines
 - No quick way to see which specific task is currently executing
@@ -64,16 +68,20 @@
 ### User-Visible Behavior
 
 **Default (auto mode)**:
+
 - If terminal supports TTY: Show multi-bar progress display
 - If CI/CD (non-TTY): Fall back to existing log-based progress
 
 **Always mode**:
+
 - Force progress display even in CI/CD (log-based fallback)
 
 **Never mode**:
+
 - Disable progress display entirely (existing log output only)
 
 **Display Components**:
+
 1. Overall progress bar (total subtasks completed / total subtasks)
 2. Current task identifier and title (e.g., "P1.M1.T1.S1: Create model classes")
 3. Estimated time remaining (ETA)
@@ -99,6 +107,7 @@
 **"No Prior Knowledge" Test**: Would someone unfamiliar with this codebase have everything needed to implement this successfully?
 
 ✅ **YES** - This PRP includes:
+
 - Exact file paths and line numbers for integration points
 - Complete cli-progress library documentation with URLs
 - Existing codebase patterns to follow (ProgressTracker, CLI options, tests)
@@ -233,8 +242,8 @@ hacky-hack/
 ```typescript
 // CRITICAL: cli-progress MultiBar.log() ALWAYS requires newline
 // Gotcha: Forgetting '\n' will cause display corruption
-multiBar.log('Processing file...\n');  // CORRECT
-multiBar.log('Processing file...');    // WRONG - display breaks
+multiBar.log('Processing file...\n'); // CORRECT
+multiBar.log('Processing file...'); // WRONG - display breaks
 
 // CRITICAL: Always stop bars in finally block
 // Gotcha: If bar.stop() is not called, cursor remains hidden
@@ -242,13 +251,13 @@ try {
   bar.start(100, 0);
   // ... work ...
 } finally {
-  bar.stop();  // MUST be in finally for SIGINT safety
+  bar.stop(); // MUST be in finally for SIGINT safety
 }
 
 // CRITICAL: Use gracefulExit: true for production
 // Gotcha: Without gracefulExit, SIGINT/SIGTERM leave terminal in broken state
 const multiBar = new cliProgress.MultiBar({
-  gracefulExit: true,  // Restores cursor on signals
+  gracefulExit: true, // Restores cursor on signals
   hideCursor: true,
 });
 
@@ -275,14 +284,14 @@ if (process.stdout.isTTY) {
 
 // PATTERN: Test isolation with clearLoggerCache()
 beforeEach(() => {
-  clearLoggerCache();  // MUST call this for clean logger state
+  clearLoggerCache(); // MUST call this for clean logger state
 });
 
 // PATTERN: Fake timers for time-based tests
 vi.useFakeTimers();
 try {
   // ... test code ...
-  vi.advanceTimersByTime(100);  // Simulate 100ms passing
+  vi.advanceTimersByTime(100); // Simulate 100ms passing
 } finally {
   vi.useRealTimers();
 }
@@ -416,7 +425,7 @@ export class ProgressDisplay {
     this.#multiBar = new cliProgress.MultiBar({
       clearOnComplete: false,
       hideCursor: true,
-      gracefulExit: true,  // CRITICAL: Restore cursor on SIGINT/SIGTERM
+      gracefulExit: true, // CRITICAL: Restore cursor on SIGINT/SIGTERM
       format: ' {bar} | {percentage}% | {value}/{total} | ETA: {eta_formatted}',
       barsize: 40,
     });
@@ -438,11 +447,17 @@ export class ProgressDisplay {
   /**
    * Update display with current progress and task info
    */
-  update(completed: number, total: number, currentTask?: CurrentTaskInfo): void {
+  update(
+    completed: number,
+    total: number,
+    currentTask?: CurrentTaskInfo
+  ): void {
     if (!this.#isActive || !this.#overallBar) return;
 
     this.#overallBar.update(completed, {
-      name: currentTask ? `${currentTask.id}: ${currentTask.title}` : 'Overall Progress',
+      name: currentTask
+        ? `${currentTask.id}: ${currentTask.title}`
+        : 'Overall Progress',
     });
   }
 
@@ -502,7 +517,7 @@ export function parseCLIArgs(): CLIArgs {
       program
         .createOption('--progress-mode <mode>', 'Progress display mode')
         .choices(['auto', 'always', 'never'])
-        .default('auto') as any  // PATTERN: Cast to any for Commander.js type compatibility
+        .default('auto') as any // PATTERN: Cast to any for Commander.js type compatibility
     )
     .parse(process.argv);
 

@@ -5,6 +5,7 @@
 ## Recommended Libraries
 
 ### Primary: diff
+
 - **Package**: `diff`
 - **npm**: https://www.npmjs.com/package/diff
 - **Description**: Most popular JavaScript diff library
@@ -13,6 +14,7 @@
 - **Install**: `npm install diff`
 
 ### For JSON: jsondiffpatch
+
 - **Package**: `jsondiffpatch`
 - **npm**: https://www.npmjs.com/package/jsondiffpatch
 - **Description**: Specialized JSON diffing with patch support
@@ -21,6 +23,7 @@
 - **Install**: `npm install jsondiffpatch`
 
 ### Existing in Project: fast-diff
+
 - **Package**: `fast-diff` (already in dependencies via prettier-linter-helpers)
 - **Current Usage**: `src/core/prd-differ.ts` for PRD diffing
 - **Consideration**: Can extend usage for artifact diffing
@@ -28,11 +31,12 @@
 ## Code Examples
 
 ### Basic Text Diff with `diff` package
+
 ```typescript
 import * as diff from 'diff';
 
-const oldContent = "line 1\nline 2\nline 3";
-const newContent = "line 1\nline 2 modified\nline 3";
+const oldContent = 'line 1\nline 2\nline 3';
+const newContent = 'line 1\nline 2 modified\nline 3';
 
 const changes = diff.diffLines(oldContent, newContent);
 
@@ -48,6 +52,7 @@ for (const change of changes) {
 ```
 
 ### JSON Diff with `jsondiffpatch`
+
 ```typescript
 import * as jsondiffpatch from 'jsondiffpatch';
 
@@ -55,8 +60,8 @@ const differ = jsondiffpatch.create({
   objectHash: (obj: any) => obj.id || obj._id || JSON.stringify(obj),
 });
 
-const oldJSON = { name: "Test", value: 42 };
-const newJSON = { name: "Test", value: 43 };
+const oldJSON = { name: 'Test', value: 42 };
+const newJSON = { name: 'Test', value: 43 };
 
 const delta = differ.diff(oldJSON, newJSON);
 
@@ -66,6 +71,7 @@ console.log(formatter.format(delta, oldJSON));
 ```
 
 ### Unified Diff Format
+
 ```typescript
 import * as diff from 'diff';
 
@@ -84,18 +90,22 @@ console.log(patch);
 ## Terminal-Friendly Display
 
 ### Following Existing Patterns
+
 Use existing display utilities from `src/utils/display/`:
+
 - `cli-table3` for summary tables
 - `chalk` for colored output
 - Unicode box-drawing characters for structure
 
 ### Color Scheme (matches existing)
+
 - Green: Additions
 - Red: Deletions
 - Cyan: Headers
 - Gray: Context/unchanged
 
 ### Side-by-Side Diff Example
+
 ```typescript
 function formatSideBySideDiff(
   oldLines: string[],
@@ -107,8 +117,8 @@ function formatSideBySideDiff(
 
   output.push(
     chalk.cyan('OLD'.padEnd(halfWidth)) +
-    chalk.gray(' │ ') +
-    chalk.cyan('NEW'.padEnd(halfWidth))
+      chalk.gray(' │ ') +
+      chalk.cyan('NEW'.padEnd(halfWidth))
   );
 
   const maxLines = Math.max(oldLines.length, newLines.length);
@@ -121,7 +131,9 @@ function formatSideBySideDiff(
     const rightStr = newLine.padEnd(halfWidth);
 
     if (oldLine !== newLine) {
-      output.push(chalk.red(leftStr) + chalk.gray(' │ ') + chalk.green(rightStr));
+      output.push(
+        chalk.red(leftStr) + chalk.gray(' │ ') + chalk.green(rightStr)
+      );
     } else {
       output.push(leftStr + chalk.gray(' │ ') + rightStr);
     }
@@ -134,11 +146,13 @@ function formatSideBySideDiff(
 ## Performance Considerations
 
 ### Large Files
+
 - Use streaming for large artifacts
 - Detect binary files and skip
 - Limit context lines (default: 3)
 
 ### TTY Detection
+
 ```typescript
 function shouldUseColor(): boolean {
   return process.stdout.isTTY || !!process.env.FORCE_COLOR;
@@ -152,6 +166,7 @@ function getContextLines(): number {
 ## Integration with Existing Code
 
 ### Extend `src/core/prd-differ.ts` Pattern
+
 ```typescript
 // src/utils/artifact-differ.ts
 import fastDiff from 'fast-diff';
@@ -163,10 +178,7 @@ export function diffArtifacts(
   options: { color?: boolean } = {}
 ): string {
   const { color = true } = options;
-  const changes: Array<[-1 | 0 | 1, string]> = fastDiff(
-    oldContent,
-    newContent
-  );
+  const changes: Array<[-1 | 0 | 1, string]> = fastDiff(oldContent, newContent);
 
   const lines: string[] = [];
   for (const [type, text] of changes) {

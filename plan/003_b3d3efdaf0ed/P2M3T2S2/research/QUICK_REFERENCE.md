@@ -55,13 +55,13 @@ Resume Command:
 
 ```typescript
 class ErrorBuilder {
-  category(cat: string): this
-  code(code: string): this
-  message(msg: string): this
-  context(ctx: Record<string, unknown>): this
-  suggest(...suggestions: string[]): this
-  docs(url: string): this
-  build(): CliError
+  category(cat: string): this;
+  code(code: string): this;
+  message(msg: string): this;
+  context(ctx: Record<string, unknown>): this;
+  suggest(...suggestions: string[]): this;
+  docs(url: string): this;
+  build(): CliError;
 }
 ```
 
@@ -97,7 +97,7 @@ new ResumeCommandBuilder(sessionId)
   .task(taskId)
   .withRetry()
   .withContext('fix-applied')
-  .build()
+  .build();
 // Output: hack retry --session 003_xxx --task P1.M1.T1.S2 --context "fix-applied"
 ```
 
@@ -105,12 +105,12 @@ new ResumeCommandBuilder(sessionId)
 
 ```typescript
 const colors = {
-  error: chalk.red,           // Errors, failures
-  warning: chalk.yellow,      // Warnings, cautions
-  success: chalk.green,       // Success, completions
-  info: chalk.blue,           // Informational messages
-  debug: chalk.gray,          // Debug details
-  heading: chalk.bold.cyan,   // Section headers
+  error: chalk.red, // Errors, failures
+  warning: chalk.yellow, // Warnings, cautions
+  success: chalk.green, // Success, completions
+  info: chalk.blue, // Informational messages
+  debug: chalk.gray, // Debug details
+  heading: chalk.bold.cyan, // Section headers
   link: chalk.blue.underline, // URLs
 };
 
@@ -141,11 +141,11 @@ enum ErrorCategory {
 
 ```typescript
 enum ImpactLevel {
-  CRITICAL = 'critical',  // Blocks entire pipeline
-  HIGH = 'high',          // Blocks multiple phases
-  MEDIUM = 'medium',      // Blocks single phase
-  LOW = 'low',            // Blocks single task
-  NONE = 'none',          // No impact
+  CRITICAL = 'critical', // Blocks entire pipeline
+  HIGH = 'high', // Blocks multiple phases
+  MEDIUM = 'medium', // Blocks single phase
+  LOW = 'low', // Blocks single task
+  NONE = 'none', // No impact
 }
 ```
 
@@ -171,32 +171,39 @@ hack resume --session <ID> --interactive
 ## Key Implementation Classes
 
 ### 1. ErrorFormatter
+
 **Location**: `src/utils/errors/error-formatter.ts`
 **Purpose**: Format errors with consistent structure
 
 ### 2. TimelineTracker
+
 **Location**: `src/utils/errors/timeline-tracker.ts`
 **Purpose**: Track and display error chronology
 
 ### 3. ImpactAnalyzer
+
 **Location**: `src/utils/errors/impact-analyzer.ts`
 **Purpose**: Calculate error impact on tasks
 
 ### 4. DependencyGraph
+
 **Location**: `src/utils/errors/dependency-graph.ts`
 **Purpose**: Build and traverse task dependencies
 
 ### 5. RecommendationEngine
+
 **Location**: `src/utils/errors/recommendation-engine.ts`
 **Purpose**: Generate fix suggestions
 
 ### 6. ResumeCommandBuilder
+
 **Location**: `src/utils/errors/resume-command-builder.ts`
 **Purpose**: Build resume/skip commands
 
 ## Integration Points
 
 ### ERROR_REPORT.md Generation
+
 **File**: `src/workflows/prp-pipeline.ts`
 **Integration Point**: After error detection, before pause
 
@@ -213,6 +220,7 @@ await writeFile('ERROR_REPORT.md', errorReport);
 ```
 
 ### CLI Output
+
 **File**: `src/cli/commands/inspect.ts`
 **Integration Point**: Error inspection command
 
@@ -240,11 +248,13 @@ if (errors.length > 0) {
 ## Dependencies
 
 Already installed in hacky-hack:
+
 - `chalk` ^5.6.2 - Terminal colors
 - `cli-table3` ^0.6.5 - Table formatting
 - `cli-progress` ^3.12.0 - Progress bars
 
 Consider adding:
+
 - `figures` - Unicode symbols
 - `date-fns` - Date formatting
 - `ora` - Loading spinners
@@ -253,6 +263,7 @@ Consider adding:
 ## Common Patterns
 
 ### Error with Full Context
+
 ```typescript
 const error = new ErrorBuilder()
   .category(ErrorCategory.VALIDATION)
@@ -270,6 +281,7 @@ const error = new ErrorBuilder()
 ```
 
 ### Timeline Entry
+
 ```typescript
 timeline.add({
   timestamp: new Date(),
@@ -281,6 +293,7 @@ timeline.add({
 ```
 
 ### Resume Command
+
 ```typescript
 const resumeCmd = new ResumeCommandBuilder(sessionId)
   .task('P1.M1.T1.S2')
@@ -293,11 +306,13 @@ const resumeCmd = new ResumeCommandBuilder(sessionId)
 ## Quick Start
 
 1. **Install dependencies**
+
    ```bash
    npm install figures date-fns
    ```
 
 2. **Create error utilities directory**
+
    ```bash
    mkdir -p src/utils/errors
    ```
@@ -326,24 +341,29 @@ const resumeCmd = new ResumeCommandBuilder(sessionId)
 ## Troubleshooting
 
 ### Colors not showing
+
 - Check TTY detection: `process.stdout.isTTY`
 - Force colors: `FORCE_COLOR=1`
 
 ### Stack traces too long
+
 - Implement frame filtering (see doc 03)
 - Collapse library frames by default
 
 ### Resume commands invalid
+
 - Validate task IDs before generating
 - Test commands in dry-run mode
 
 ### Timeline out of order
+
 - Sort entries by timestamp before display
 - Use consistent time format (ISO 8601)
 
 ## References
 
 See individual research documents for detailed information:
+
 - **Doc 01**: Error formatting and structure
 - **Doc 02**: Timeline visualization
 - **Doc 03**: Stack trace handling

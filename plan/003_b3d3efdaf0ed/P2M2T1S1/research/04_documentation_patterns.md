@@ -23,6 +23,7 @@
 ```
 
 **Pattern**:
+
 - Hyphen-bullet format (`- [Text](#anchor)`)
 - Anchor links use lowercase with hyphens
 - Semicolons separate multi-word anchors
@@ -30,15 +31,18 @@
 ## Section Organization
 
 ### Primary Sections (H2)
+
 - Always followed by `---` separator
 - Begin with bold headings
 - Include anchor links
 
 ### Subsections (H3)
+
 - No separator
 - Indented under primary sections
 
 ### Code Examples
+
 ```typescript
 // Always with language identifier
 async processNextItem(): Promise<boolean> {
@@ -50,11 +54,12 @@ async processNextItem(): Promise<boolean> {
 
 ```markdown
 | Column One | Column Two | Column Three |
-|------------|------------|--------------|
+| ---------- | ---------- | ------------ |
 | **Bold**   | Normal     | Italic       |
 ```
 
 **Pattern**:
+
 - Pipes (`|`) for column separation
 - Header row with separator row (`---`)
 - Bold for emphasis
@@ -62,15 +67,17 @@ async processNextItem(): Promise<boolean> {
 ## Diagram Styles
 
 ### Mermaid Diagrams
+
 ```markdown
 \`\`\`mermaid
 flowchart LR
-    A[PRD.md] --> B[Architect Agent]
-    B --> C[tasks.json]
+A[PRD.md] --> B[Architect Agent]
+B --> C[tasks.json]
 \`\`\`
 ```
 
 ### ASCII Art (Directory Structures)
+
 ```
 plan/
 ├── 001_14b9dc2a33c7/
@@ -81,18 +88,21 @@ plan/
 ## Cross-Reference Linking
 
 ### Internal Links
+
 ```markdown
 **Location**: [`src/core/session-manager.ts`](../src/core/session-manager.md)
 ```
 
 **Pattern**:
+
 - Relative paths for internal links
 - Descriptive link text
 
 ### Navigation Links
+
 ```markdown
-| Module | Description | Link |
-|--------|-------------|------|
+| Module             | Description      | Link                     |
+| ------------------ | ---------------- | ------------------------ |
 | **SessionManager** | State management | [API](./api/classes/...) |
 ```
 
@@ -107,6 +117,7 @@ plan/
 
 ```markdown
 ---
+
 **Document Version**: 1.0.0
 **Last Modified**: 2026-01-23
 **Maintainer**: PRP Pipeline Team

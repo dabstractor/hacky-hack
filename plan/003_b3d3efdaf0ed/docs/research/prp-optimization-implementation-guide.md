@@ -148,11 +148,12 @@ function extractParentContext(
 
       // Truncate long descriptions
       if (description.length > maxDescriptionLength) {
-        description = description
-          .slice(0, maxDescriptionLength)
-          .split(' ')
-          .slice(0, -1)
-          .join(' ') + '...';
+        description =
+          description
+            .slice(0, maxDescriptionLength)
+            .split(' ')
+            .slice(0, -1)
+            .join(' ') + '...';
       }
 
       contexts.push(`${parent.type}: ${description}`);
@@ -164,6 +165,7 @@ function extractParentContext(
 ```
 
 **Usage:**
+
 ```typescript
 // In constructUserPrompt
 const parentContext = extractParentContext(task.id, backlog, {
@@ -187,28 +189,24 @@ function extractTaskContext(
     compressContext?: boolean;
   } = {}
 ): string {
-  const {
-    maxDependencies = 5,
-    compressContext = true,
-  } = options;
+  const { maxDependencies = 5, compressContext = true } = options;
 
   if (isSubtask(task)) {
     const deps = getDependencies(task, backlog);
 
     // Limit dependencies shown
     const depDisplay = deps.slice(0, maxDependencies);
-    const depIds =
-      depDisplay.map((d) => d.id).join(', ') || 'None';
-    const moreDeps = deps.length > maxDependencies
-      ? ` (+${deps.length - maxDependencies} more)`
-      : '';
+    const depIds = depDisplay.map(d => d.id).join(', ') || 'None';
+    const moreDeps =
+      deps.length > maxDependencies
+        ? ` (+${deps.length - maxDependencies} more)`
+        : '';
 
     // Compress context_scope
     let contextScope = task.context_scope;
     if (compressContext && contextScope.length > 200) {
       contextScope =
-        contextScope.slice(0, 200).split(' ').slice(0, -1).join(' ') +
-        '...';
+        contextScope.slice(0, 200).split(' ').slice(0, -1).join(' ') + '...';
     }
 
     return `Task: ${task.title}
@@ -293,7 +291,10 @@ export class PRPGenerator {
     this.#cacheMissesTokens += estimatedTokens;
 
     this.#cacheMisses++;
-    this.#logger.debug({ taskId: task.id, usedTokens: estimatedTokens }, 'PRP cache MISS');
+    this.#logger.debug(
+      { taskId: task.id, usedTokens: estimatedTokens },
+      'PRP cache MISS'
+    );
 
     // ... rest of generation ...
   }
@@ -379,7 +380,10 @@ export class HierarchicalCacheManager {
   }
 
   async #loadSharedContext(parentId: string): Promise<string | null> {
-    const cachePath = join(this.#sharedCacheDir, `${parentId.replace(/\./g, '_')}.json`);
+    const cachePath = join(
+      this.#sharedCacheDir,
+      `${parentId.replace(/\./g, '_')}.json`
+    );
 
     try {
       const content = await readFile(cachePath, 'utf-8');
@@ -397,7 +401,10 @@ export class HierarchicalCacheManager {
   }
 
   async #saveSharedContext(parentId: string, context: string): Promise<void> {
-    const cachePath = join(this.#sharedCacheDir, `${parentId.replace(/\./g, '_')}.json`);
+    const cachePath = join(
+      this.#sharedCacheDir,
+      `${parentId.replace(/\./g, '_')}.json`
+    );
 
     try {
       await mkdir(this.#sharedCacheDir, { recursive: true });
@@ -560,7 +567,7 @@ export function compressMarkdown(
   // Remove specified headers
   if (removeHeaders.length > 0) {
     const headerPattern = removeHeaders
-      .map((h) => `##+ ${h}\\n[\\s\\S]*?\\n\\n`)
+      .map(h => `##+ ${h}\\n[\\s\\S]*?\\n\\n`)
       .join('|');
     compressed = compressed.replace(new RegExp(headerPattern, 'g'), '');
   }
@@ -668,7 +675,7 @@ import type { SessionManager } from '../../core/session-manager.js';
 export const tokenStatsCommand = new Command('token-stats')
   .description('Show token usage statistics')
   .option('-s, --session <path>', 'Session path')
-  .action(async (options) => {
+  .action(async options => {
     console.log('\n=== Token Usage Statistics ===\n');
 
     // Get generator instance (you'll need to adapt this based on your setup)
@@ -678,10 +685,18 @@ export const tokenStatsCommand = new Command('token-stats')
 
     console.log(`Cache Hits: ${stats.hits}`);
     console.log(`Cache Misses: ${stats.misses}`);
-    console.log(`Hit Ratio: ${((stats.hits / (stats.hits + stats.misses)) * 100).toFixed(1)}%`);
-    console.log(`\nTokens Saved (Cache Hits): ${stats.savedTokens.toLocaleString()}`);
-    console.log(`Tokens Used (Cache Misses): ${stats.usedTokens.toLocaleString()}`);
-    console.log(`Total Tokens: ${(stats.savedTokens + stats.usedTokens).toLocaleString()}`);
+    console.log(
+      `Hit Ratio: ${((stats.hits / (stats.hits + stats.misses)) * 100).toFixed(1)}%`
+    );
+    console.log(
+      `\nTokens Saved (Cache Hits): ${stats.savedTokens.toLocaleString()}`
+    );
+    console.log(
+      `Tokens Used (Cache Misses): ${stats.usedTokens.toLocaleString()}`
+    );
+    console.log(
+      `Total Tokens: ${(stats.savedTokens + stats.usedTokens).toLocaleString()}`
+    );
     console.log(`Savings Ratio: ${stats.savingsRatio.toFixed(1)}%`);
 
     // Cost estimation (GPT-4 pricing: $0.03/1K input tokens)
@@ -691,12 +706,16 @@ export const tokenStatsCommand = new Command('token-stats')
     console.log('\n=== Cost Estimates ===');
     console.log(`Input Cost (Misses): $${inputCost.toFixed(2)}`);
     console.log(`Cost Saved (Hits): $${savedCost.toFixed(2)}`);
-    console.log(`Total Cost Without Cache: $${(inputCost + savedCost).toFixed(2)}`);
+    console.log(
+      `Total Cost Without Cache: $${(inputCost + savedCost).toFixed(2)}`
+    );
     console.log(`Actual Cost: $${inputCost.toFixed(2)}`);
 
     console.log('\n=== Optimization Recommendations ===');
     if (stats.savingsRatio < 30) {
-      console.log('⚠️  Low cache savings - consider increasing TTL or optimizing cache keys');
+      console.log(
+        '⚠️  Low cache savings - consider increasing TTL or optimizing cache keys'
+      );
     }
     if (stats.usedTokens / stats.misses > 3000) {
       console.log('⚠️  High average tokens - enable context compression');
@@ -783,7 +802,10 @@ describe('Token Counting', () => {
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { extractParentContext, extractTaskContext } from '../../../src/agents/prompts/prp-blueprint-prompt.js';
+import {
+  extractParentContext,
+  extractTaskContext,
+} from '../../../src/agents/prompts/prp-blueprint-prompt.js';
 
 describe('Context Compression', () => {
   it('should limit parent context levels', () => {
@@ -852,22 +874,17 @@ describe('Optimization Benchmarks', () => {
   });
 
   bench('Optimized: Compressed context (2 levels)', async () => {
-    const prompt = createPRPBlueprintPrompt(
-      task,
-      backlog,
-      undefined,
-      { maxLevels: 2 }
-    );
+    const prompt = createPRPBlueprintPrompt(task, backlog, undefined, {
+      maxLevels: 2,
+    });
     return generator.estimateTokens(prompt.user);
   });
 
   bench('Optimized: Compressed context + truncated descriptions', async () => {
-    const prompt = createPRPBlueprintPrompt(
-      task,
-      backlog,
-      undefined,
-      { maxLevels: 2, maxDescriptionLength: 100 }
-    );
+    const prompt = createPRPBlueprintPrompt(task, backlog, undefined, {
+      maxLevels: 2,
+      maxDescriptionLength: 100,
+    });
     return generator.estimateTokens(prompt.user);
   });
 });
@@ -908,6 +925,7 @@ function extractParentContext(
 ```
 
 Disable via environment:
+
 ```bash
 export ENABLE_PRP_OPTIMIZATIONS=false
 npm run pipeline
@@ -975,6 +993,7 @@ if (totalTokens > 7000) {
 5. **Week 5+:** Monitor metrics, iterate on optimizations
 
 **Success Metrics:**
+
 - 30% reduction in average tokens per PRP
 - 50% increase in cache hit ratio
 - No degradation in PRP quality

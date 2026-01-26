@@ -10,44 +10,44 @@
 
 ### 1.1 Core Configuration Variables
 
-| Variable | Purpose | File | Line |
-|----------|---------|------|------|
-| `ANTHROPIC_API_KEY` | API authentication key | `src/config/environment.ts` | ~ |
-| `ANTHROPIC_AUTH_TOKEN` | Shell authentication token | `src/config/environment.ts` | ~ |
-| `ANTHROPIC_BASE_URL` | API endpoint URL | `src/config/environment.ts` | ~ |
+| Variable               | Purpose                    | File                        | Line |
+| ---------------------- | -------------------------- | --------------------------- | ---- |
+| `ANTHROPIC_API_KEY`    | API authentication key     | `src/config/environment.ts` | ~    |
+| `ANTHROPIC_AUTH_TOKEN` | Shell authentication token | `src/config/environment.ts` | ~    |
+| `ANTHROPIC_BASE_URL`   | API endpoint URL           | `src/config/environment.ts` | ~    |
 
 ### 1.2 Model Override Variables
 
-| Variable | Purpose | File | Line |
-|----------|---------|------|------|
-| `ANTHROPIC_DEFAULT_OPUS_MODEL` | Override for opus tier model | `src/config/environment.ts` | ~ |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | Override for sonnet tier model | `src/config/environment.ts` | ~ |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | Override for haiku tier model | `src/config/environment.ts` | ~ |
+| Variable                         | Purpose                        | File                        | Line |
+| -------------------------------- | ------------------------------ | --------------------------- | ---- |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | Override for opus tier model   | `src/config/environment.ts` | ~    |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | Override for sonnet tier model | `src/config/environment.ts` | ~    |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | Override for haiku tier model  | `src/config/environment.ts` | ~    |
 
 ### 1.3 CLI Integration Variables
 
-| Variable | Purpose | File | Lines |
-|----------|---------|------|-------|
-| `RESEARCH_QUEUE_CONCURRENCY` | Used by `--research-concurrency` | `src/cli/index.ts` | 230-234 |
-| `HACKY_TASK_RETRY_MAX_ATTEMPTS` | Used by `--task-retry` | `src/cli/index.ts` | 235-239 |
-| `HACKY_FLUSH_RETRIES` | Used by `--flush-retries` | `src/cli/index.ts` | 245-249 |
+| Variable                        | Purpose                          | File               | Lines   |
+| ------------------------------- | -------------------------------- | ------------------ | ------- |
+| `RESEARCH_QUEUE_CONCURRENCY`    | Used by `--research-concurrency` | `src/cli/index.ts` | 230-234 |
+| `HACKY_TASK_RETRY_MAX_ATTEMPTS` | Used by `--task-retry`           | `src/cli/index.ts` | 235-239 |
+| `HACKY_FLUSH_RETRIES`           | Used by `--flush-retries`        | `src/cli/index.ts` | 245-249 |
 
 ### 1.4 File I/O Retry Variables
 
-| Variable | Purpose | File | Line |
-|----------|---------|------|------|
-| `HACKY_FILE_IO_RETRY_MAX_ATTEMPTS` | File I/O retry configuration | `src/utils/file-io.ts` | ~ |
-| `HACKY_FILE_IO_RETRY_BASE_DELAY` | File I/O retry base delay | `src/utils/file-io.ts` | ~ |
-| `HACKY_FILE_IO_RETRY_MAX_DELAY` | File I/O retry max delay | `src/utils/file-io.ts` | ~ |
-| `HACKY_FILE_IO_RETRY_ENABLED` | File I/O retry enable flag | `src/utils/file-io.ts` | ~ |
-| `HACKY_FILE_IO_PRESERVE_ON_FAILURE` | File I/O preserve on failure | `src/utils/file-io.ts` | ~ |
+| Variable                            | Purpose                      | File                   | Line |
+| ----------------------------------- | ---------------------------- | ---------------------- | ---- |
+| `HACKY_FILE_IO_RETRY_MAX_ATTEMPTS`  | File I/O retry configuration | `src/utils/file-io.ts` | ~    |
+| `HACKY_FILE_IO_RETRY_BASE_DELAY`    | File I/O retry base delay    | `src/utils/file-io.ts` | ~    |
+| `HACKY_FILE_IO_RETRY_MAX_DELAY`     | File I/O retry max delay     | `src/utils/file-io.ts` | ~    |
+| `HACKY_FILE_IO_RETRY_ENABLED`       | File I/O retry enable flag   | `src/utils/file-io.ts` | ~    |
+| `HACKY_FILE_IO_PRESERVE_ON_FAILURE` | File I/O preserve on failure | `src/utils/file-io.ts` | ~    |
 
 ### 1.5 Other Configuration Variables
 
-| Variable | Purpose | File | Line |
-|----------|---------|------|------|
-| `API_TIMEOUT_MS` | Request timeout in milliseconds | `src/config/api.ts` | ~ |
-| `NO_COLOR` | Disable colored terminal output | `src/utils/logger.ts` | ~ |
+| Variable         | Purpose                         | File                  | Line |
+| ---------------- | ------------------------------- | --------------------- | ---- |
+| `API_TIMEOUT_MS` | Request timeout in milliseconds | `src/config/api.ts`   | ~    |
+| `NO_COLOR`       | Disable colored terminal output | `src/utils/logger.ts` | ~    |
 
 ---
 
@@ -66,6 +66,7 @@
 **Pattern:** `ANTHROPIC_{CATEGORY}_{ITEM}`
 
 Examples:
+
 - `ANTHROPIC_AUTH_TOKEN` - Authentication
 - `ANTHROPIC_BASE_URL` - API configuration
 - `ANTHROPIC_DEFAULT_{MODEL}_MODEL` - Model overrides
@@ -77,6 +78,7 @@ Examples:
 **Pattern:** `HACKY_{SUBSYSTEM}_{FEATURE}_{SETTING}`
 
 Examples:
+
 - `HACKY_TASK_RETRY_MAX_ATTEMPTS` - Task retry configuration
 - `HACKY_FLUSH_RETRIES` - Flush retry configuration
 - `HACKY_FILE_IO_RETRY_*` - File I/O retry configuration
@@ -84,6 +86,7 @@ Examples:
 ### 2.4 Unprefixed Variables
 
 Some variables use no prefix for generic settings:
+
 - `RESEARCH_QUEUE_CONCURRENCY` - Research concurrency settings
 - `NO_COLOR` - Standard Unix convention for color control
 
@@ -245,7 +248,7 @@ options.flushRetries = flushRetries;
 
 ### 6.1 Environment Variable Name
 
-Following the HACKY_ namespace pattern:
+Following the HACKY\_ namespace pattern:
 
 ```
 HACKY_PRP_CACHE_TTL
@@ -304,13 +307,13 @@ export interface ValidatedCLIArgs extends CLIArgs {
 
 ## 7. File Locations Reference
 
-| Component | File Path | Lines |
-|-----------|-----------|-------|
-| CLI Options | `src/cli/index.ts` | 39-117 (types), 230-249 (options) |
-| Environment Config | `src/config/environment.ts` | ~ |
-| File I/O Config | `src/utils/file-io.ts` | ~ |
-| API Config | `src/config/api.ts` | ~ |
-| Logger Config | `src/utils/logger.ts` | ~ |
+| Component          | File Path                   | Lines                             |
+| ------------------ | --------------------------- | --------------------------------- |
+| CLI Options        | `src/cli/index.ts`          | 39-117 (types), 230-249 (options) |
+| Environment Config | `src/config/environment.ts` | ~                                 |
+| File I/O Config    | `src/utils/file-io.ts`      | ~                                 |
+| API Config         | `src/config/api.ts`         | ~                                 |
+| Logger Config      | `src/utils/logger.ts`       | ~                                 |
 
 ---
 

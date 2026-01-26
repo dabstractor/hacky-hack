@@ -24,6 +24,7 @@
 ### Production CLI Tools with Excellent Documentation
 
 #### 1. Docker CLI Reference
+
 - **URL:** https://docs.docker.com/engine/reference/commandline/cli/
 - **Key Features:**
   - Hierarchical command organization
@@ -33,6 +34,7 @@
   - Separate pages for each subcommand
 
 #### 2. kubectl (Kubernetes)
+
 - **URL:** https://kubernetes.io/docs/reference/kubectl/
 - **Key Features:**
   - Comprehensive cheat sheet
@@ -42,6 +44,7 @@
   - Output format options well-documented
 
 #### 3. GitHub CLI (gh)
+
 - **URL:** https://cli.github.com/manual/
 - **Key Features:**
   - Man page style documentation
@@ -51,6 +54,7 @@
   - Exit code documentation
 
 #### 4. Git Reference
+
 - **URL:** https://git-scm.com/docs
 - **Key Features:**
   - Traditional man page format
@@ -60,6 +64,7 @@
   - Discussion of edge cases
 
 #### 5. npm CLI
+
 - **URL:** https://docs.npmjs.com/cli/v10/commands
 - **Key Features:**
   - Alphabetically organized commands
@@ -69,6 +74,7 @@
   - Version-specific docs
 
 #### 6. AWS CLI
+
 - **URL:** https://docs.aws.amazon.com/cli/latest/reference/
 - **Key Features:**
   - Service-based organization
@@ -85,46 +91,55 @@
 
 All CLI documentation should follow a predictable pattern:
 
-```markdown
+````markdown
 ## command-name
 
 Brief one-line description of what the command does.
 
 ### Synopsis
+
 ```bash
 command-name [options] <required-argument> [optional-argument]
 ```
+````
 
 ### Description
+
 Detailed description of command behavior, use cases, and important notes.
 
 ### Options
+
 [Table of options]
 
 ### Examples
+
 [Real-world examples]
 
 ### See Also
+
 [Related commands]
+
 ```
 
 ### 2. Documentation Hierarchy
 
 ```
+
 CLI Root
 ├── Overview/Getting Started
 ├── Command Categories
-│   ├── Category 1 Commands
-│   │   ├── command-a
-│   │   ├── command-b
-│   │   └── command-c
-│   └── Category 2 Commands
-│       └── ...
+│ ├── Category 1 Commands
+│ │ ├── command-a
+│ │ ├── command-b
+│ │ └── command-c
+│ └── Category 2 Commands
+│ └── ...
 ├── Global Options
 ├── Configuration
 ├── Troubleshooting
 └── Exit Codes
-```
+
+````
 
 ### 3. Essential Elements for Each Command
 
@@ -238,15 +253,17 @@ CLI Root
 **Synopsis Syntax:**
 ```bash
 command-name [GLOBAL-OPTIONS] SUBCOMMAND [OPTIONS] <ARGUMENT>
-```
+````
 
 **Placeholders:**
+
 - `<FILE>` - Replace with actual filename
 - `<DIRECTORY>` - Replace with directory path
 - `<NAME>` - Replace with name/identifier
 - `[PATTERN]` - Optional pattern argument
 
 **Option Notation:**
+
 - `--option` - Long form
 - `-o` - Short form
 - `--option=<VALUE>` - Option with value
@@ -259,54 +276,60 @@ command-name [GLOBAL-OPTIONS] SUBCOMMAND [OPTIONS] <ARGUMENT>
 ### Options Table
 
 **Simple Options Table:**
+
 ```markdown
 ### Options
 
-| Option | Description |
-|--------|-------------|
-| `--help`, `-h` | Show help message |
-| `--verbose`, `-v` | Enable verbose output |
-| `--quiet`, `-q` | Suppress non-error output |
-| `--version` | Show version information |
+| Option            | Description               |
+| ----------------- | ------------------------- |
+| `--help`, `-h`    | Show help message         |
+| `--verbose`, `-v` | Enable verbose output     |
+| `--quiet`, `-q`   | Suppress non-error output |
+| `--version`       | Show version information  |
 ```
 
 **Detailed Options Table:**
+
 ```markdown
 ### Options
 
-| Option | Alias | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--config` | `-c` | path | `~/.config/app/config.yaml` | Path to configuration file |
-| `--output` | `-o` | format | `text` | Output format (text, json, yaml) |
-| `--timeout` | `-t` | seconds | `30` | Request timeout in seconds |
-| `--dry-run` | `-n` | flag | `false` | Show what would be done without making changes |
-| `--force` | `-f` | flag | `false` | Force operation, skip confirmations |
+| Option      | Alias | Type    | Default                     | Description                                    |
+| ----------- | ----- | ------- | --------------------------- | ---------------------------------------------- |
+| `--config`  | `-c`  | path    | `~/.config/app/config.yaml` | Path to configuration file                     |
+| `--output`  | `-o`  | format  | `text`                      | Output format (text, json, yaml)               |
+| `--timeout` | `-t`  | seconds | `30`                        | Request timeout in seconds                     |
+| `--dry-run` | `-n`  | flag    | `false`                     | Show what would be done without making changes |
+| `--force`   | `-f`  | flag    | `false`                     | Force operation, skip confirmations            |
 ```
 
 **Grouped Options Table:**
+
 ```markdown
 ### Options
 
 #### Output Options
-| Option | Description |
-|--------|-------------|
-| `--output`, `-o` | Output format (text, json, yaml) |
-| `--color` | Enable colored output (auto, always, never) |
-| `--quiet`, `-q` | Suppress all output except errors |
+
+| Option           | Description                                 |
+| ---------------- | ------------------------------------------- |
+| `--output`, `-o` | Output format (text, json, yaml)            |
+| `--color`        | Enable colored output (auto, always, never) |
+| `--quiet`, `-q`  | Suppress all output except errors           |
 
 #### Connection Options
-| Option | Description |
-|--------|-------------|
-| `--timeout` | Connection timeout in seconds |
-| `--retry` | Number of retry attempts |
-| `--keep-alive` | Enable connection keep-alive |
+
+| Option         | Description                   |
+| -------------- | ----------------------------- |
+| `--timeout`    | Connection timeout in seconds |
+| `--retry`      | Number of retry attempts      |
+| `--keep-alive` | Enable connection keep-alive  |
 
 #### Authentication Options
-| Option | Description |
-|--------|-------------|
-| `--token` | Authentication token |
+
+| Option      | Description                |
+| ----------- | -------------------------- |
+| `--token`   | Authentication token       |
 | `--api-key` | API key for authentication |
-| `--config` | Path to credentials file |
+| `--config`  | Path to credentials file   |
 ```
 
 ### Arguments Table
@@ -314,11 +337,11 @@ command-name [GLOBAL-OPTIONS] SUBCOMMAND [OPTIONS] <ARGUMENT>
 ```markdown
 ### Arguments
 
-| Argument | Type | Required | Description |
-|----------|------|----------|-------------|
-| `<source>` | path | Yes | Source file or directory path |
-| `<destination>` | path | Yes | Destination path |
-| `[pattern]` | glob | No | File pattern to match (e.g., `*.txt`) |
+| Argument        | Type | Required | Description                           |
+| --------------- | ---- | -------- | ------------------------------------- |
+| `<source>`      | path | Yes      | Source file or directory path         |
+| `<destination>` | path | Yes      | Destination path                      |
+| `[pattern]`     | glob | No       | File pattern to match (e.g., `*.txt`) |
 ```
 
 ### Subcommands Summary Table
@@ -326,15 +349,15 @@ command-name [GLOBAL-OPTIONS] SUBCOMMAND [OPTIONS] <ARGUMENT>
 ```markdown
 ### Available Subcommands
 
-| Subcommand | Description | Status |
-|------------|-------------|--------|
-| `list` | List all resources | Stable |
-| `get` | Get details of a specific resource | Stable |
-| `create` | Create a new resource | Stable |
-| `update` | Update an existing resource | Stable |
-| `delete` | Delete a resource | Stable |
-| `import` | Import resources from file | Beta |
-| `export` | Export resources to file | Beta |
+| Subcommand | Description                        | Status |
+| ---------- | ---------------------------------- | ------ |
+| `list`     | List all resources                 | Stable |
+| `get`      | Get details of a specific resource | Stable |
+| `create`   | Create a new resource              | Stable |
+| `update`   | Update an existing resource        | Stable |
+| `delete`   | Delete a resource                  | Stable |
+| `import`   | Import resources from file         | Beta   |
+| `export`   | Export resources to file           | Beta   |
 ```
 
 ### Environment Variables Table
@@ -342,12 +365,12 @@ command-name [GLOBAL-OPTIONS] SUBCOMMAND [OPTIONS] <ARGUMENT>
 ```markdown
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `APP_CONFIG_DIR` | Directory for configuration files | `~/.config/app` |
-| `APP_LOG_LEVEL` | Logging level (debug, info, warn, error) | `info` |
-| `API_TIMEOUT` | Request timeout in seconds | `30` |
-| `NO_COLOR` | Disable colored output when set | (empty) |
+| Variable         | Description                              | Default         |
+| ---------------- | ---------------------------------------- | --------------- |
+| `APP_CONFIG_DIR` | Directory for configuration files        | `~/.config/app` |
+| `APP_LOG_LEVEL`  | Logging level (debug, info, warn, error) | `info`          |
+| `API_TIMEOUT`    | Request timeout in seconds               | `30`            |
+| `NO_COLOR`       | Disable colored output when set          | (empty)         |
 ```
 
 ---
@@ -361,16 +384,16 @@ Most CLI tools follow these conventions:
 ```markdown
 ## Exit Codes
 
-| Code | Name | Description |
-|------|------|-------------|
-| 0 | SUCCESS | Command completed successfully |
-| 1 | GENERAL_ERROR | A general error occurred |
-| 2 | USAGE_ERROR | Invalid command usage or syntax |
-| 126 | COMMAND_NOT_EXECUTABLE | Command found but not executable |
-| 127 | COMMAND_NOT_FOUND | Command not found |
-| 128 | INVALID_EXIT_CODE | Exit code out of range |
-| 128+N | SIGNAL_EXIT | Process terminated by signal N |
-| 130 | INTERRUPTED | Process interrupted (Ctrl+C) |
+| Code  | Name                   | Description                      |
+| ----- | ---------------------- | -------------------------------- |
+| 0     | SUCCESS                | Command completed successfully   |
+| 1     | GENERAL_ERROR          | A general error occurred         |
+| 2     | USAGE_ERROR            | Invalid command usage or syntax  |
+| 126   | COMMAND_NOT_EXECUTABLE | Command found but not executable |
+| 127   | COMMAND_NOT_FOUND      | Command not found                |
+| 128   | INVALID_EXIT_CODE      | Exit code out of range           |
+| 128+N | SIGNAL_EXIT            | Process terminated by signal N   |
+| 130   | INTERRUPTED            | Process interrupted (Ctrl+C)     |
 ```
 
 ### Tool-Specific Exit Codes
@@ -378,19 +401,19 @@ Most CLI tools follow these conventions:
 ```markdown
 ## Exit Codes
 
-| Code | Description | Cause |
-|------|-------------|-------|
-| 0 | Success | Operation completed successfully |
-| 1 | General Error | An unspecified error occurred |
-| 2 | Usage Error | Invalid command syntax or options |
-| 3 | File Not Found | Specified file or directory does not exist |
-| 4 | Permission Denied | Insufficient permissions for operation |
-| 5 | Network Error | Network connection failed or timeout |
-| 6 | API Error | API request returned an error |
-| 7 | Validation Error | Input validation failed |
-| 8 | Conflict | Resource conflict or state mismatch |
-| 9 | Rate Limited | API rate limit exceeded |
-| 10 | Configuration Error | Invalid or missing configuration |
+| Code | Description         | Cause                                      |
+| ---- | ------------------- | ------------------------------------------ |
+| 0    | Success             | Operation completed successfully           |
+| 1    | General Error       | An unspecified error occurred              |
+| 2    | Usage Error         | Invalid command syntax or options          |
+| 3    | File Not Found      | Specified file or directory does not exist |
+| 4    | Permission Denied   | Insufficient permissions for operation     |
+| 5    | Network Error       | Network connection failed or timeout       |
+| 6    | API Error           | API request returned an error              |
+| 7    | Validation Error    | Input validation failed                    |
+| 8    | Conflict            | Resource conflict or state mismatch        |
+| 9    | Rate Limited        | API rate limit exceeded                    |
+| 10   | Configuration Error | Invalid or missing configuration           |
 ```
 
 ### Documenting Command-Specific Exits
@@ -400,11 +423,11 @@ Most CLI tools follow these conventions:
 
 This command returns the following exit codes in addition to the [standard exit codes](#exit-codes):
 
-| Code | Description | Example |
-|------|-------------|---------|
-| 20 | Resource Not Found | Resource `my-resource` does not exist |
-| 21 | Resource Exists | Cannot create: resource `my-resource` already exists |
-| 22 | Invalid State | Operation not valid in current resource state |
+| Code | Description        | Example                                              |
+| ---- | ------------------ | ---------------------------------------------------- |
+| 20   | Resource Not Found | Resource `my-resource` does not exist                |
+| 21   | Resource Exists    | Cannot create: resource `my-resource` already exists |
+| 22   | Invalid State      | Operation not valid in current resource state        |
 ```
 
 ### Best Practices for Exit Code Documentation
@@ -423,28 +446,33 @@ This command returns the following exit codes in addition to the [standard exit 
 ### Organizing Subcommands
 
 #### Category-Based Organization
+
 ```markdown
 # CLI Reference
 
 ## Container Commands
+
 - [docker run](commands/run.md) - Run a container
 - [docker start](commands/start.md) - Start one or more containers
 - [docker stop](commands/stop.md) - Stop one or more containers
 - [docker exec](commands/exec.md) - Execute a command in a running container
 
 ## Image Commands
+
 - [docker build](commands/build.md) - Build an image from Dockerfile
 - [docker pull](commands/pull.md) - Pull an image from registry
 - [docker push](commands/push.md) - Push an image to registry
 - [docker images](commands/images.md) - List images
 
 ## System Commands
+
 - [docker info](commands/info.md) - Display system-wide information
 - [docker version](commands/version.md) - Show version information
 - [docker system prune](commands/system-prune.md) - Remove unused data
 ```
 
 #### Hierarchy Documentation
+
 ```markdown
 ## command Category
 
@@ -459,26 +487,32 @@ Description of subcommand2...
 
 ### Subcommand Template
 
-```markdown
+````markdown
 ## parent-command subcommand-name
 
 Brief description of the subcommand.
 
 ### Usage
+
 ```bash
 parent-command subcommand-name [options] <arguments>
 ```
+````
 
 ### Description
+
 Detailed description of what the subcommand does within the context of the parent command.
 
 ### Options
+
 [Subcommand-specific options]
 
 ### Inherited Options
+
 This subcommand inherits all [global options](../global-options.md) from `parent-command`.
 
 ### Examples
+
 ```bash
 # Example 1: Basic usage
 parent-command subcommand-name argument
@@ -491,9 +525,11 @@ parent-command subcommand-name --verbose --format json argument | jq .
 ```
 
 ### See Also
+
 - [parent-command](./parent-command.md) - Parent command documentation
 - [parent-command other-subcommand](./other-subcommand.md) - Related subcommand
-```
+
+````
 
 ### Grouped Subcommands
 
@@ -518,7 +554,7 @@ Open configuration file in editor.
 ---
 
 See [Configuration Guide](../guides/configuration.md) for more details on configuration management.
-```
+````
 
 ---
 
@@ -526,12 +562,13 @@ See [Configuration Guide](../guides/configuration.md) for more details on config
 
 ### Full Command Template
 
-```markdown
+````markdown
 # command-name
 
 Brief one-line description of what the command does.
 
 ## Contents
+
 - [Synopsis](#synopsis)
 - [Description](#description)
 - [Options](#options)
@@ -547,10 +584,12 @@ Brief one-line description of what the command does.
 ```bash
 command-name [options] <required-argument> [optional-argument]
 ```
+````
 
 ## Description
 
 Detailed description of the command. Explain:
+
 - What the command does
 - When to use it
 - Important constraints or behaviors
@@ -560,30 +599,32 @@ Include multiple paragraphs for complex commands.
 
 ## Options
 
-| Option | Alias | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--option-name` | `-o` | type | default | Description of the option |
-| `--another-option` | `-a` | flag | `false` | Description of flag option |
-| `--config-file` | `-c` | path | `~/.config/app/config.yaml` | Path to config file |
+| Option             | Alias | Type | Default                     | Description                |
+| ------------------ | ----- | ---- | --------------------------- | -------------------------- |
+| `--option-name`    | `-o`  | type | default                     | Description of the option  |
+| `--another-option` | `-a`  | flag | `false`                     | Description of flag option |
+| `--config-file`    | `-c`  | path | `~/.config/app/config.yaml` | Path to config file        |
 
 ### Option Details
 
 **`--option-name`** / **`-o`**
+
 - Additional details about the option
 - Valid values: `value1`, `value2`, `value3`
 - This option can be specified multiple times
 
 **`--config-file`** / **`-c`**
+
 - Configuration file path
 - Supports environment variable expansion
 - See [Configuration](../configuration.md) for file format
 
 ## Arguments
 
-| Argument | Type | Required | Description |
-|----------|------|----------|-------------|
-| `<required-argument>` | string | Yes | Description of required argument |
-| `[optional-argument]` | string | No | Description of optional argument (default: value) |
+| Argument              | Type   | Required | Description                                       |
+| --------------------- | ------ | -------- | ------------------------------------------------- |
+| `<required-argument>` | string | Yes      | Description of required argument                  |
+| `[optional-argument]` | string | No       | Description of optional argument (default: value) |
 
 ## Examples
 
@@ -618,16 +659,19 @@ Use custom configuration with increased timeout, process output with jq.
 ### Common Patterns
 
 **Batch processing:**
+
 ```bash
 command-name --batch file1.txt file2.txt file3.txt
 ```
 
 **Pipe usage:**
+
 ```bash
 echo "input" | command-name --stdin
 ```
 
 **Output to file:**
+
 ```bash
 command-name --output file.txt input.txt
 ```
@@ -635,6 +679,7 @@ command-name --output file.txt input.txt
 ## Output
 
 ### Default Output Format
+
 ```
 Human-readable output format
 Key: Value
@@ -642,6 +687,7 @@ Another Key: Another Value
 ```
 
 ### JSON Format (`--format json`)
+
 ```json
 {
   "status": "success",
@@ -652,6 +698,7 @@ Another Key: Another Value
 ```
 
 ### Table Format (`--format table`)
+
 ```
 +------+-------+
 | ID   | Name  |
@@ -663,21 +710,21 @@ Another Key: Another Value
 
 ## Exit Codes
 
-| Code | Description |
-|------|-------------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Invalid usage |
-| 3 | File not found |
+| Code | Description    |
+| ---- | -------------- |
+| 0    | Success        |
+| 1    | General error  |
+| 2    | Invalid usage  |
+| 3    | File not found |
 
 See [Exit Codes](../exit-codes.md) for standard exit codes.
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `APP_CONFIG_DIR` | Override default configuration directory |
-| `APP_LOG_LEVEL` | Set logging level (debug, info, warn, error) |
+| Variable         | Description                                  |
+| ---------------- | -------------------------------------------- |
+| `APP_CONFIG_DIR` | Override default configuration directory     |
+| `APP_LOG_LEVEL`  | Set logging level (debug, info, warn, error) |
 
 ## See Also
 
@@ -689,7 +736,8 @@ See [Exit Codes](../exit-codes.md) for standard exit codes.
 
 **Version:** Added in v1.0.0
 **Status:** Stable
-```
+
+````
 
 ### Quick Reference Template
 
@@ -708,10 +756,11 @@ See [Exit Codes](../exit-codes.md) for standard exit codes.
 command-name value                    # Basic usage
 command-name --option value           # With option
 command-name -v --format json value   # Verbose JSON output
-```
+````
 
 **See:** [Full Documentation](./command-name.md)
-```
+
+````
 
 ### Command Category Overview Template
 
@@ -742,7 +791,7 @@ All commands in this category support these common options:
 
 - [Other Category](./other-category.md)
 - [Global Options](../global-options.md)
-```
+````
 
 ### Global Options Reference Template
 
@@ -753,67 +802,67 @@ These options are available for all commands.
 
 ## Options
 
-| Option | Alias | Description | Default |
-|--------|-------|-------------|---------|
-| `--help` | `-h` | Show help for command | - |
-| `--version` | `-V` | Show version information | - |
-| `--verbose` | `-v` | Increase verbosity (can be repeated) | `info` |
-| `--quiet` | `-q` | Decrease verbosity | `warn` |
-| `--config` | `-c` | Path to config file | `~/.config/app/config.yaml` |
-| `--no-color` | | Disable colored output | `false` |
-| `--output` | `-o` | Output format (text, json, yaml) | `text` |
+| Option       | Alias | Description                          | Default                     |
+| ------------ | ----- | ------------------------------------ | --------------------------- |
+| `--help`     | `-h`  | Show help for command                | -                           |
+| `--version`  | `-V`  | Show version information             | -                           |
+| `--verbose`  | `-v`  | Increase verbosity (can be repeated) | `info`                      |
+| `--quiet`    | `-q`  | Decrease verbosity                   | `warn`                      |
+| `--config`   | `-c`  | Path to config file                  | `~/.config/app/config.yaml` |
+| `--no-color` |       | Disable colored output               | `false`                     |
+| `--output`   | `-o`  | Output format (text, json, yaml)     | `text`                      |
 
 ## Environment Variables
 
 Global environment variables that affect all commands:
 
-| Variable | Description |
-|----------|-------------|
-| `APP_CONFIG_DIR` | Configuration directory path |
-| `APP_LOG_LEVEL` | Log level (debug, info, warn, error) |
-| `APP_NO_COLOR` | Set to disable colored output |
-| `APP_OUTPUT_FORMAT` | Default output format |
+| Variable            | Description                          |
+| ------------------- | ------------------------------------ |
+| `APP_CONFIG_DIR`    | Configuration directory path         |
+| `APP_LOG_LEVEL`     | Log level (debug, info, warn, error) |
+| `APP_NO_COLOR`      | Set to disable colored output        |
+| `APP_OUTPUT_FORMAT` | Default output format                |
 ```
 
 ### Exit Codes Reference Template
 
-```markdown
+````markdown
 # Exit Codes
 
 ## Standard Exit Codes
 
 The CLI uses standard exit codes:
 
-| Code | Name | Description |
-|------|------|-------------|
-| 0 | Success | Command completed successfully |
-| 1 | General Error | An unspecified error occurred |
-| 2 | Usage Error | Invalid command syntax or options |
+| Code | Name          | Description                       |
+| ---- | ------------- | --------------------------------- |
+| 0    | Success       | Command completed successfully    |
+| 1    | General Error | An unspecified error occurred     |
+| 2    | Usage Error   | Invalid command syntax or options |
 
 ## Command-Specific Exit Codes
 
-| Code | Category | Description |
-|------|----------|-------------|
-| 10-19 | File Errors | File system related errors |
-| 20-29 | Network Errors | Network connectivity issues |
-| 30-39 | API Errors | API request/response errors |
+| Code  | Category              | Description                               |
+| ----- | --------------------- | ----------------------------------------- |
+| 10-19 | File Errors           | File system related errors                |
+| 20-29 | Network Errors        | Network connectivity issues               |
+| 30-39 | API Errors            | API request/response errors               |
 | 40-49 | Authentication Errors | Authentication and authorization failures |
-| 50-59 | Configuration Errors | Invalid or missing configuration |
-| 60-69 | Validation Errors | Input validation failures |
+| 50-59 | Configuration Errors  | Invalid or missing configuration          |
+| 60-69 | Validation Errors     | Input validation failures                 |
 
 ### Detailed Codes
 
-| Code | Description | Resolution |
-|------|-------------|------------|
-| 10 | File not found | Check file path and permissions |
-| 11 | Permission denied | Run with appropriate permissions |
-| 12 | Directory not found | Create directory or check path |
-| 20 | Connection timeout | Check network connectivity |
-| 21 | DNS resolution failed | Verify hostname and DNS settings |
-| 22 | Connection refused | Service may be unavailable |
-| 30 | API rate limit exceeded | Wait and retry |
-| 31 | API authentication failed | Check credentials |
-| 32 | API error response | Check request parameters |
+| Code | Description               | Resolution                       |
+| ---- | ------------------------- | -------------------------------- |
+| 10   | File not found            | Check file path and permissions  |
+| 11   | Permission denied         | Run with appropriate permissions |
+| 12   | Directory not found       | Create directory or check path   |
+| 20   | Connection timeout        | Check network connectivity       |
+| 21   | DNS resolution failed     | Verify hostname and DNS settings |
+| 22   | Connection refused        | Service may be unavailable       |
+| 30   | API rate limit exceeded   | Wait and retry                   |
+| 31   | API authentication failed | Check credentials                |
+| 32   | API error response        | Check request parameters         |
 
 ## Handling Exit Codes
 
@@ -827,6 +876,7 @@ else
   echo "Failed with exit code $?"
 fi
 ```
+````
 
 ### With Error Messages
 
@@ -848,6 +898,7 @@ case $? in
   *) echo "Unknown error" ;;
 esac
 ```
+
 ```
 
 ---
@@ -939,3 +990,4 @@ esac
 **Document Version:** 1.0
 **Last Updated:** 2026-01-23
 **Next Review:** 2026-04-23
+```

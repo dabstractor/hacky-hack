@@ -41,6 +41,7 @@ This research document covers benchmarking frameworks, patterns, and best practi
    - Concurrent execution support
 
 3. **API Design**
+
    ```typescript
    import { Bench } from 'tinybench';
 
@@ -64,15 +65,15 @@ This research document covers benchmarking frameworks, patterns, and best practi
 
 ```typescript
 interface Options {
-  time?: number;              // Time per task (ms), default: 500
-  iterations?: number;        // Min iterations, default: 10
-  now?: () => number;         // Custom timing function
-  signal?: AbortSignal;       // For cancellation
-  throws?: boolean;           // Throw on errors
-  warmupTime?: number;        // Warmup time (ms), default: 100
-  warmupIterations?: number;  // Warmup iterations, default: 5
-  setup?: Hook;               // Before each task
-  teardown?: Hook;            // After each task
+  time?: number; // Time per task (ms), default: 500
+  iterations?: number; // Min iterations, default: 10
+  now?: () => number; // Custom timing function
+  signal?: AbortSignal; // For cancellation
+  throws?: boolean; // Throw on errors
+  warmupTime?: number; // Warmup time (ms), default: 100
+  warmupIterations?: number; // Warmup iterations, default: 5
+  setup?: Hook; // Before each task
+  teardown?: Hook; // After each task
 }
 ```
 
@@ -80,10 +81,10 @@ interface Options {
 
 ```typescript
 bench.add('task', fn, {
-  beforeAll: () => {},    // Once before iterations start
-  beforeEach: () => {},   // Before each iteration
-  afterEach: () => {},    // After each iteration
-  afterAll: () => {},     // Once after all iterations
+  beforeAll: () => {}, // Once before iterations start
+  beforeEach: () => {}, // Before each iteration
+  afterEach: () => {}, // After each iteration
+  afterAll: () => {}, // Once after all iterations
 });
 ```
 
@@ -93,11 +94,13 @@ bench.add('task', fn, {
 **Repository:** [https://github.com/bestiejs/benchmark.js](https://github.com/bestiejs/benchmark.js)
 
 **Pros:**
+
 - Industry standard, mature library
 - Excellent statistical analysis
 - Large community
 
 **Cons:**
+
 - Older callback-style API
 - Larger bundle size
 - Less TypeScript-friendly
@@ -157,7 +160,7 @@ import { MemoryMonitor } from '../src/utils/resource-monitor.js';
 
 const bench = new Bench({
   time: 1000,
-  setup: async (task) => {
+  setup: async task => {
     // Force GC before each task for fair comparison (if --expose-gc)
     if (global.gc) global.gc();
   },
@@ -190,13 +193,17 @@ bench
     const monitor = new ResourceMonitor();
     monitor.getStatus();
   })
-  .add('getStatus - warm instance', () => {
-    // Reuse instance
-  }, {
-    beforeAll: () => {
-      this.monitor = new ResourceMonitor();
+  .add(
+    'getStatus - warm instance',
+    () => {
+      // Reuse instance
+    },
+    {
+      beforeAll: () => {
+        this.monitor = new ResourceMonitor();
+      },
     }
-  });
+  );
 
 await bench.warmup();
 await bench.run();
@@ -209,6 +216,7 @@ await bench.run();
    - Use mock data for consistent comparisons
 
 2. **Account for Platform Differences**
+
    ```typescript
    bench
      .add('Linux - /proc/fs read', () => {
@@ -247,6 +255,7 @@ I/O operations (file system, network, database) require special consideration:
 #### Key Principles
 
 1. **Use Async Benchmarks**
+
    ```typescript
    bench
      .add('fs.readFile', async () => {
@@ -258,6 +267,7 @@ I/O operations (file system, network, database) require special consideration:
    ```
 
 2. **Control File Size**
+
    ```typescript
    const sizes = ['1KB', '10KB', '100KB', '1MB'];
 
@@ -280,7 +290,7 @@ import { readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 
 const bench = new Bench({
-  time: 2000,  // Longer for I/O (variable timing)
+  time: 2000, // Longer for I/O (variable timing)
   iterations: 50,
 });
 
@@ -325,6 +335,7 @@ CPU operations are more predictable and benefit from JIT optimization:
    - tinybench's `warmup()` handles this
 
 2. **Prevent Dead Code Elimination**
+
    ```typescript
    // BAD: V8 might optimize away
    bench.add('bad example', () => {
@@ -340,6 +351,7 @@ CPU operations are more predictable and benefit from JIT optimization:
    ```
 
 3. **Control Input Size**
+
    ```typescript
    const inputSizes = [10, 100, 1000, 10000];
 
@@ -372,7 +384,8 @@ function fibonacciMemoized(n: number, memo = new Map()): number {
   if (n <= 1) return n;
   if (memo.has(n)) return memo.get(n)!;
 
-  const result = fibonacciMemoized(n - 1, memo) + fibonacciMemoized(n - 2, memo);
+  const result =
+    fibonacciMemoized(n - 1, memo) + fibonacciMemoized(n - 2, memo);
   memo.set(n, result);
   return result;
 }
@@ -517,7 +530,10 @@ function createBenchmarkWithHitRate(hitRate: number) {
   const cacheMisses = totalRequests - cacheHits;
 
   const cachedKeys = Array.from({ length: cacheHits }, (_, i) => `cached-${i}`);
-  const uncachedKeys = Array.from({ length: cacheMisses }, (_, i) => `uncached-${i}`);
+  const uncachedKeys = Array.from(
+    { length: cacheMisses },
+    (_, i) => `uncached-${i}`
+  );
 
   // Pre-warm cache
   const cache = new Map();
@@ -535,7 +551,7 @@ function createBenchmarkWithHitRate(hitRate: number) {
           }
         });
       });
-    }
+    },
   };
 }
 
@@ -568,7 +584,8 @@ bench
   })
   .add('proactive invalidation (background refresh)', () => {
     // Simulated background refresh
-    if (Math.random() < 0.01) {  // 1% chance
+    if (Math.random() < 0.01) {
+      // 1% chance
       cache.set('key', fetchValue());
     }
     cache.get('key');
@@ -585,25 +602,25 @@ Tinybench provides comprehensive metrics:
 
 ```typescript
 interface TaskResult {
-  error?: unknown;           // Last error thrown
-  totalTime: number;         // Total time (ms)
-  min: number;               // Minimum sample time
-  max: number;               // Maximum sample time
-  hz: number;                // Operations per second
-  period: number;            // Time per operation (ms)
-  samples: number[];         // All sample times
-  mean: number;              // Average time
-  variance: number;          // Sample variance
-  sd: number;                // Standard deviation
-  sem: number;               // Standard error of mean
-  df: number;                // Degrees of freedom
-  critical: number;          // Critical value
-  moe: number;               // Margin of error
-  rme: number;               // Relative margin of error (%)
-  p75: number;               // 75th percentile
-  p99: number;               // 99th percentile
-  p995: number;              // 99.5th percentile
-  p999: number;              // 99.9th percentile
+  error?: unknown; // Last error thrown
+  totalTime: number; // Total time (ms)
+  min: number; // Minimum sample time
+  max: number; // Maximum sample time
+  hz: number; // Operations per second
+  period: number; // Time per operation (ms)
+  samples: number[]; // All sample times
+  mean: number; // Average time
+  variance: number; // Sample variance
+  sd: number; // Standard deviation
+  sem: number; // Standard error of mean
+  df: number; // Degrees of freedom
+  critical: number; // Critical value
+  moe: number; // Margin of error
+  rme: number; // Relative margin of error (%)
+  p75: number; // 75th percentile
+  p99: number; // 99th percentile
+  p995: number; // 99.5th percentile
+  p999: number; // 99.9th percentile
 }
 ```
 
@@ -611,28 +628,32 @@ interface TaskResult {
 
 ```typescript
 function calculateImprovement(baseline: TaskResult, optimized: TaskResult) {
-  const opsPerSecondImprovement = ((optimized.hz - baseline.hz) / baseline.hz) * 100;
-  const latencyImprovement = ((baseline.mean - optimized.mean) / baseline.mean) * 100;
+  const opsPerSecondImprovement =
+    ((optimized.hz - baseline.hz) / baseline.hz) * 100;
+  const latencyImprovement =
+    ((baseline.mean - optimized.mean) / baseline.mean) * 100;
 
   return {
     opsPerSecond: {
       baseline: baseline.hz.toFixed(0),
       optimized: optimized.hz.toFixed(0),
       improvement: opsPerSecondImprovement.toFixed(2) + '%',
-      speedup: (optimized.hz / baseline.hz).toFixed(2) + 'x'
+      speedup: (optimized.hz / baseline.hz).toFixed(2) + 'x',
     },
     latency: {
       baseline: baseline.mean.toFixed(4) + ' ms',
       optimized: optimized.mean.toFixed(4) + ' ms',
-      improvement: latencyImprovement.toFixed(2) + '%'
+      improvement: latencyImprovement.toFixed(2) + '%',
     },
     percentiles: {
       p99: {
         baseline: baseline.p99.toFixed(4) + ' ms',
         optimized: optimized.p99.toFixed(4) + ' ms',
-        improvement: ((baseline.p99 - optimized.p99) / baseline.p99 * 100).toFixed(2) + '%'
-      }
-    }
+        improvement:
+          (((baseline.p99 - optimized.p99) / baseline.p99) * 100).toFixed(2) +
+          '%',
+      },
+    },
   };
 }
 ```
@@ -659,7 +680,7 @@ console.table(bench.table());
 function generateMarkdownReport(bench: Bench): string {
   const results = bench.tasks.map(task => ({
     name: task.name,
-    result: task.result!
+    result: task.result!,
   }));
 
   const baseline = results[0];
@@ -704,20 +725,24 @@ console.log(generateMarkdownReport(bench));
 
 ```typescript
 function generateJSONReport(bench: Bench) {
-  return JSON.stringify({
-    timestamp: new Date().toISOString(),
-    environment: {
-      node: process.version,
-      platform: process.platform,
-      arch: process.arch,
-      cpu: os.cpus()[0].model,
-      memory: os.totalmem()
+  return JSON.stringify(
+    {
+      timestamp: new Date().toISOString(),
+      environment: {
+        node: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        cpu: os.cpus()[0].model,
+        memory: os.totalmem(),
+      },
+      results: bench.tasks.map(task => ({
+        name: task.name,
+        metrics: task.result,
+      })),
     },
-    results: bench.tasks.map(task => ({
-      name: task.name,
-      metrics: task.result
-    }))
-  }, null, 2);
+    null,
+    2
+  );
 }
 
 // Write to file for trend analysis
@@ -735,17 +760,22 @@ interface BenchmarkHistory {
   results: TaskResult[];
 }
 
-function compareBenchmarkRuns(current: BenchmarkHistory, previous: BenchmarkHistory) {
+function compareBenchmarkRuns(
+  current: BenchmarkHistory,
+  previous: BenchmarkHistory
+) {
   return current.results.map((currentResult, i) => {
     const previousResult = previous.results[i];
-    const change = ((currentResult.hz - previousResult.hz) / previousResult.hz) * 100;
+    const change =
+      ((currentResult.hz - previousResult.hz) / previousResult.hz) * 100;
 
     return {
       name: currentResult.name,
-      status: change > 5 ? '✅ Improved' : change < -5 ? '❌ Regressed' : '➡️ Stable',
+      status:
+        change > 5 ? '✅ Improved' : change < -5 ? '❌ Regressed' : '➡️ Stable',
       change: change.toFixed(2) + '%',
       previous: previousResult.hz.toFixed(0) + ' ops/sec',
-      current: currentResult.hz.toFixed(0) + ' ops/sec'
+      current: currentResult.hz.toFixed(0) + ' ops/sec',
     };
   });
 }
@@ -793,26 +823,31 @@ node --expose-gc -r tsx src/benchmarks/memory.bench.ts
 ## 7. Key Takeaways
 
 ### Framework Selection
+
 - **Use tinybench** for Vitest projects
 - Native TypeScript support, modern API, excellent statistical analysis
 - 7KB footprint with no dependencies
 
 ### Benchmark Patterns
+
 - **Always use warmup()** to account for V8 JIT compilation
 - **Use async/await** for I/O operations
 - **Prevent dead code elimination** by using results
 - **Isolate measurements** from setup/teardown
 
 ### I/O vs CPU
+
 - **I/O operations**: Longer time (2000ms+), fewer iterations, expect high variance
 - **CPU operations**: Standard time (500-1000ms), many iterations, expect low variance
 
 ### Cache Benchmarks
+
 - Measure **cold cache** (all misses), **warm cache** (mix), and **hot cache** (all hits)
 - Track **hit rates** at different percentages (0%, 25%, 50%, 75%, 90%, 100%)
 - Include **invalidation overhead** in benchmarks
 
 ### Reporting
+
 - Use **console.table()** for quick visual feedback
 - Generate **Markdown reports** for documentation
 - Export **JSON** for CI/CD trend analysis

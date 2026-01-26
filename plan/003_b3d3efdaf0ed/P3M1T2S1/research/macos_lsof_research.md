@@ -25,16 +25,19 @@ This research investigates optimization strategies for macOS file handle monitor
 ### 1.1 Current Implementation Performance
 
 **Command used:**
+
 ```bash
 lsof -p ${process.pid} | wc -l
 ```
 
 **Observed performance (Linux test, similar characteristics on macOS):**
+
 - Full `lsof -n -P`: ~3.082s real time (581,045 lines)
 - Single process with `wc -l`: ~0.5-2s on macOS
 - With timeout (current implementation): 5s timeout, returns 0 on failure
 
 **Performance bottlenecks:**
+
 1. **Network name resolution** - DNS lookups for network connections
 2. **Port name resolution** - `/etc/services` lookups
 3. **Kernel blocking operations** - `stat()`, `lstat()`, `readlink()` calls
@@ -43,16 +46,17 @@ lsof -p ${process.pid} | wc -l
 
 ### 1.2 Performance-Optimizing lsof Flags
 
-| Flag | Purpose | Performance Impact | Recommendation |
-|------|---------|-------------------|----------------|
-| `-n` | Skip network name resolution | **High** (20-40% faster) | **Always use** |
-| `-P` | Skip port name resolution | **Medium** (10-20% faster) | **Always use** |
-| `-b` | Avoid kernel blocking calls | **High** (30-50% faster) | Use when exact paths not needed |
-| `-F` | Parseable output (machine format) | **Low** (faster parsing) | Use for programmatic access |
-| `-a` | AND selection criteria | Variable | Use with `-p` for precision |
-| `-v` | Verbose output (no effect on speed) | None | Debug only |
+| Flag | Purpose                             | Performance Impact         | Recommendation                  |
+| ---- | ----------------------------------- | -------------------------- | ------------------------------- |
+| `-n` | Skip network name resolution        | **High** (20-40% faster)   | **Always use**                  |
+| `-P` | Skip port name resolution           | **Medium** (10-20% faster) | **Always use**                  |
+| `-b` | Avoid kernel blocking calls         | **High** (30-50% faster)   | Use when exact paths not needed |
+| `-F` | Parseable output (machine format)   | **Low** (faster parsing)   | Use for programmatic access     |
+| `-a` | AND selection criteria              | Variable                   | Use with `-p` for precision     |
+| `-v` | Verbose output (no effect on speed) | None                       | Debug only                      |
 
 **Optimized command for file handle counting:**
+
 ```bash
 # Fastest for counting (skip all name resolution)
 lsof -n -P -b -p $$ | wc -l
@@ -66,11 +70,13 @@ lsof -n -P -b -F n -p $$ | wc -l
 **macOS lsof version:** 4.99.5+ (included with macOS)
 
 **macOS-specific flags:**
+
 - No special macOS-only flags for performance
 - Standard BSD-style lsof behavior
 - May be slower than Linux due to XNU kernel differences
 
 **Known macOS performance issues:**
+
 1. **AFP/SMB file enumeration** - Slow on network mounts
 2. ** Spotlight integration** - May add metadata lookup overhead
 3. **Code signature verification** - Adds overhead for signed binaries
@@ -83,14 +89,15 @@ lsof -n -P -b -F n -p $$ | wc -l
 
 Based on file handle monitoring use cases:
 
-| Use Case | Recommended TTL | Rationale |
-|----------|----------------|-----------|
-| **Real-time monitoring** (< 1s intervals) | 500ms - 1s | Balance responsiveness with cache hit rate |
-| **Periodic checks** (5-30s intervals) | 5s - 10s | File handles change slowly during normal operation |
-| **Threshold warnings** (70-85% usage) | 10s - 30s | Ample time to react before hitting critical levels |
-| **Debugging/Development** | 0s (disabled) | Accuracy over performance |
+| Use Case                                  | Recommended TTL | Rationale                                          |
+| ----------------------------------------- | --------------- | -------------------------------------------------- |
+| **Real-time monitoring** (< 1s intervals) | 500ms - 1s      | Balance responsiveness with cache hit rate         |
+| **Periodic checks** (5-30s intervals)     | 5s - 10s        | File handles change slowly during normal operation |
+| **Threshold warnings** (70-85% usage)     | 10s - 30s       | Ample time to react before hitting critical levels |
+| **Debugging/Development**                 | 0s (disabled)   | Accuracy over performance                          |
 
 **Recommended default TTL for resource-monitor.ts:**
+
 ```typescript
 const DEFAULT_LSOF_CACHE_TTL_MS = 5000; // 5 seconds
 ```
@@ -100,6 +107,7 @@ const DEFAULT_LSOF_CACHE_TTL_MS = 5000; // 5 seconds
 #### 2.2.1 Time-Based Invalidation (TTL)
 
 **Simplest approach, suitable for most cases:**
+
 ```typescript
 class LsofCache {
   private cache: { value: number; timestamp: number } | null = null;
@@ -111,7 +119,7 @@ class LsofCache {
 
   get(): number {
     const now = Date.now();
-    if (this.cache && (now - this.cache.timestamp) < this.ttl) {
+    if (this.cache && now - this.cache.timestamp < this.ttl) {
       return this.cache.value;
     }
     // Cache miss - refresh
@@ -128,6 +136,7 @@ class LsofCache {
 #### 2.2.2 Delta-Based Invalidation
 
 **Invalidate when file handle count changes significantly:**
+
 ```typescript
 class DeltaLsofCache {
   private cache: { value: number; timestamp: number } | null = null;
@@ -156,6 +165,7 @@ class DeltaLsofCache {
 #### 2.2.3 Hybrid TTL + Event-Based Invalidation
 
 **Best of both worlds - TTL with manual invalidation:**
+
 ```typescript
 class HybridLsofCache {
   private cache: { value: number; timestamp: number } | null = null;
@@ -174,7 +184,7 @@ class HybridLsofCache {
 
   private isValid(): boolean {
     if (!this.cache) return false;
-    return (Date.now() - this.cache.timestamp) < this.ttl;
+    return Date.now() - this.cache.timestamp < this.ttl;
   }
 }
 
@@ -185,6 +195,7 @@ cache.invalidate(); // After opening/closing many files
 ### 2.3 Cache Key Design
 
 For different lsof queries:
+
 ```typescript
 interface CacheKey {
   pid: number;
@@ -199,6 +210,7 @@ const cacheKey = `lsof:${process.pid}:${flags.join(' ')}`;
 ### 2.4 Cache Warming
 
 **Warm cache on initialization to avoid first-call latency:**
+
 ```typescript
 class LsofCache {
   constructor() {
@@ -215,6 +227,7 @@ class LsofCache {
 ### 3.1 sysctl for System-Level Metrics
 
 **Available sysctl parameters (macOS):**
+
 ```bash
 # Get system-wide file handle limits
 sysctl kern.maxfiles
@@ -225,11 +238,13 @@ sysctl kern.num_files
 ```
 
 **Pros:**
+
 - Extremely fast (< 1ms)
 - No external process spawning
 - Built into kernel
 
 **Cons:**
+
 - System-wide only, not per-process
 - Doesn't provide file handle breakdown
 - Requires root for some parameters on older macOS versions
@@ -239,6 +254,7 @@ sysctl kern.num_files
 ### 3.2 /dev/fd Directory Reading
 
 **Approach:**
+
 ```bash
 ls /dev/fd | wc -l  # Current process only
 ls /proc/$$/fd | wc -l  # Linux only (not available on macOS)
@@ -247,10 +263,12 @@ ls /proc/$$/fd | wc -l  # Linux only (not available on macOS)
 **macOS status:** `/dev/fd` exists but is not a directory you can list for other processes
 
 **Pros:**
+
 - Fast for current process
 - No external commands
 
 **Cons:**
+
 - Only works for current process on macOS
 - Cannot monitor other processes
 - Not useful for cross-process monitoring
@@ -258,6 +276,7 @@ ls /proc/$$/fd | wc -l  # Linux only (not available on macOS)
 ### 3.3 libproc API (Native macOS Framework)
 
 **C/Native API:**
+
 ```c
 #include <libproc.h>
 
@@ -266,36 +285,43 @@ proc_pidinfo(pid, PROC_PIDLISTFDS, 0, &buffer, size);
 ```
 
 **Node.js binding options:**
+
 1. **node-libproc** - NAPI binding to libproc (if available)
 2. **Custom native addon** - Write your own FFI binding
 3. **ffi-napi** - Use Foreign Function Interface
 
 **Pros:**
+
 - Fast (direct kernel access)
 - Accurate (no parsing)
 - Per-process granularity
 
 **Cons:**
+
 - Requires native compilation
 - Platform-specific code
 - More complex than shell commands
 
 **Recommendation:** Consider if performance is critical and willing to maintain native code
 
-### 3.4 process._getActiveHandles() (Node.js Internal)
+### 3.4 process.\_getActiveHandles() (Node.js Internal)
 
 **Current implementation already uses this:**
+
 ```typescript
-const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
-  ._getActiveHandles?.();
+const handles = (
+  process as unknown as { _getActiveHandles?: () => unknown[] }
+)._getActiveHandles?.();
 ```
 
 **Pros:**
+
 - Fastest possible (in-memory)
 - No external process
 - Cross-platform
 
 **Cons:**
+
 - **Internal API** - May change or be removed
 - May not include all handle types
 - Documentation is limited
@@ -304,13 +330,13 @@ const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
 
 ### 3.5 Summary of Alternatives
 
-| Method | Speed | Accuracy | Complexity | Recommendation |
-|--------|-------|----------|------------|----------------|
-| `process._getActiveHandles()` | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Low | **Primary method** |
-| `lsof -n -P -b` | ⭐⭐ | ⭐⭐⭐⭐⭐ | Low | **Fallback** (with cache) |
-| libproc (native) | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | High | **Future consideration** |
-| sysctl | ⭐⭐⭐⭐⭐ | ⭐ | Low | System-wide only |
-| /dev/fd | ⭐⭐⭐⭐ | ⭐⭐ | Low | Current process only |
+| Method                        | Speed      | Accuracy   | Complexity | Recommendation            |
+| ----------------------------- | ---------- | ---------- | ---------- | ------------------------- |
+| `process._getActiveHandles()` | ⭐⭐⭐⭐⭐ | ⭐⭐⭐     | Low        | **Primary method**        |
+| `lsof -n -P -b`               | ⭐⭐       | ⭐⭐⭐⭐⭐ | Low        | **Fallback** (with cache) |
+| libproc (native)              | ⭐⭐⭐⭐   | ⭐⭐⭐⭐⭐ | High       | **Future consideration**  |
+| sysctl                        | ⭐⭐⭐⭐⭐ | ⭐         | Low        | System-wide only          |
+| /dev/fd                       | ⭐⭐⭐⭐   | ⭐⭐       | Low        | Current process only      |
 
 ---
 
@@ -319,6 +345,7 @@ const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
 ### 4.1 Generic Command Output Cache
 
 **Implementation using lru-cache:**
+
 ```typescript
 import LRU from 'lru-cache';
 
@@ -373,6 +400,7 @@ class CommandCache {
 ### 4.2 TypeScript Type Safety
 
 **Generic typed cache:**
+
 ```typescript
 class TypedCache<T> {
   private cache: Map<string, { value: T; expiresAt: number }>;
@@ -404,6 +432,7 @@ const lsofCache = new TypedCache<number>();
 ### 4.3 Error Handling and Fallbacks
 
 **Robust cache with error handling:**
+
 ```typescript
 class RobustLsofCache {
   private cache: { value: number; timestamp: number } | null = null;
@@ -419,7 +448,6 @@ class RobustLsofCache {
       const value = await this.fetchLsofCount();
       this.cache = { value, timestamp: Date.now() };
       return value;
-
     } catch (error) {
       // Fallback to stale cache on error
       if (this.cache) {
@@ -443,6 +471,7 @@ class RobustLsofCache {
 ### 4.4 Cache Metrics and Monitoring
 
 **Track cache effectiveness:**
+
 ```typescript
 interface CacheMetrics {
   hits: number;
@@ -470,7 +499,9 @@ class MonitoredCache {
   // Log metrics periodically
   logMetrics(): void {
     const { hits, misses, hitRate } = this.getMetrics();
-    console.log(`Cache: ${hits} hits, ${misses} misses, ${(hitRate * 100).toFixed(1)}% hit rate`);
+    console.log(
+      `Cache: ${hits} hits, ${misses} misses, ${(hitRate * 100).toFixed(1)}% hit rate`
+    );
   }
 }
 ```
@@ -478,6 +509,7 @@ class MonitoredCache {
 ### 4.5 Memory Management
 
 **Prevent cache from growing unbounded:**
+
 ```typescript
 class BoundedCache {
   private readonly maxSize = 100;
@@ -533,6 +565,7 @@ class FileHandleCache {
 ### 5.2 Optimized lsof Command for resource-monitor.ts
 
 **Current code (line 208-213):**
+
 ```typescript
 const result = execSync(`lsof -p ${process.pid} | wc -l`, {
   encoding: 'utf-8',
@@ -542,6 +575,7 @@ const result = execSync(`lsof -p ${process.pid} | wc -l`, {
 ```
 
 **Recommended optimization:**
+
 ```typescript
 const result = execSync(`lsof -n -P -b -p ${process.pid} 2>/dev/null | wc -l`, {
   encoding: 'utf-8',
@@ -555,6 +589,7 @@ const result = execSync(`lsof -n -P -b -p ${process.pid} 2>/dev/null | wc -l`, {
 ### 5.3 Cache Implementation Integration
 
 **Add to resource-monitor.ts:**
+
 ```typescript
 class FileHandleMonitor {
   private lsofCache: { value: number; timestamp: number } | null = null;
@@ -563,8 +598,9 @@ class FileHandleMonitor {
   getHandleCount(): number {
     // Try internal API first
     try {
-      const handles = (process as unknown as { _getActiveHandles?: () => unknown[] })
-        ._getActiveHandles?.();
+      const handles = (
+        process as unknown as { _getActiveHandles?: () => unknown[] }
+      )._getActiveHandles?.();
       if (handles && Array.isArray(handles)) {
         return handles.length;
       }
@@ -586,17 +622,23 @@ class FileHandleMonitor {
     } else if (platform === 'darwin') {
       // macOS: Use cached lsof
       const now = Date.now();
-      if (this.lsofCache && (now - this.lsofCache.timestamp) < this.LSOF_CACHE_TTL) {
+      if (
+        this.lsofCache &&
+        now - this.lsofCache.timestamp < this.LSOF_CACHE_TTL
+      ) {
         return this.lsofCache.value;
       }
 
       // Cache miss - fetch with optimized flags
       try {
-        const result = execSync(`lsof -n -P -b -p ${process.pid} 2>/dev/null | wc -l`, {
-          encoding: 'utf-8',
-          stdio: ['ignore', 'pipe', 'ignore'],
-          timeout: 3000,
-        });
+        const result = execSync(
+          `lsof -n -P -b -p ${process.pid} 2>/dev/null | wc -l`,
+          {
+            encoding: 'utf-8',
+            stdio: ['ignore', 'pipe', 'ignore'],
+            timeout: 3000,
+          }
+        );
         const count = parseInt(result.trim(), 10) - 1;
         this.lsofCache = { value: count, timestamp: now };
         return count;
@@ -621,6 +663,7 @@ class FileHandleMonitor {
 ### 6.1 Performance Benchmarks
 
 **Benchmark script:**
+
 ```typescript
 import { performance } from 'node:perf_hooks';
 
@@ -678,13 +721,13 @@ describe('LsofCache', () => {
 
 ### 7.1 File Handle Counting Methods
 
-| Method | API/Tool | Per-Process | Speed | Requires Native |
-|--------|----------|-------------|-------|-----------------|
-| Internal API | `process._getActiveHandles()` | ✅ | ⭐⭐⭐⭐⭐ | No |
-| lsof | Command-line | ✅ | ⭐⭐ | No |
-| libproc | `proc_pidinfo()` | ✅ | ⭐⭐⭐⭐ | Yes (C/N-API) |
-| sysctl | `kern.num_files` | ❌ (system-wide) | ⭐⭐⭐⭐⭐ | No |
-| /dev/fd | Filesystem | Current only | ⭐⭐⭐⭐ | No |
+| Method       | API/Tool                      | Per-Process      | Speed      | Requires Native |
+| ------------ | ----------------------------- | ---------------- | ---------- | --------------- |
+| Internal API | `process._getActiveHandles()` | ✅               | ⭐⭐⭐⭐⭐ | No              |
+| lsof         | Command-line                  | ✅               | ⭐⭐       | No              |
+| libproc      | `proc_pidinfo()`              | ✅               | ⭐⭐⭐⭐   | Yes (C/N-API)   |
+| sysctl       | `kern.num_files`              | ❌ (system-wide) | ⭐⭐⭐⭐⭐ | No              |
+| /dev/fd      | Filesystem                    | Current only     | ⭐⭐⭐⭐   | No              |
 
 ### 7.2 Recommended macOS Stack
 
@@ -709,15 +752,19 @@ async function getMacOSHandleCount(): Promise<number> {
 
 function fetchOptimizedLsof(): Promise<number> {
   return new Promise((resolve, reject) => {
-    exec('lsof -n -P -b -p ${process.pid} 2>/dev/null | wc -l', {
-      timeout: 3000,
-    }, (error, stdout) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(parseInt(stdout.trim(), 10) - 1);
+    exec(
+      'lsof -n -P -b -p ${process.pid} 2>/dev/null | wc -l',
+      {
+        timeout: 3000,
+      },
+      (error, stdout) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(parseInt(stdout.trim(), 10) - 1);
+        }
       }
-    });
+    );
   });
 }
 ```
@@ -751,19 +798,23 @@ function fetchOptimizedLsof(): Promise<number> {
 ## References
 
 ### Documentation
+
 - lsof manual page: `man lsof`
 - lsof FAQ: https://github.com/lsof-org/lsof/blob/master/00FAQ
 - macOS libproc: `<libproc.h>` header file
 
 ### Current Code
+
 - File: `/home/dustin/projects/hacky-hack/src/utils/resource-monitor.ts`
 - Lines 178-221: `FileHandleMonitor.getHandleCount()`
 - Lines 232-248: `FileHandleMonitor.getUlimit()`
 
 ### Related Files
+
 - `/home/dustin/projects/hacky-hack/node_modules/groundswell/dist/cache/cache.d.ts` - LRU cache implementation reference
 
 ### Performance Data
+
 - lsof version: 4.99.5
 - Test system: Linux 6.17.8-arch1-1 (similar performance on macOS)
 - Full system lsof: ~3s (581k lines)

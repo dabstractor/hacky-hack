@@ -163,6 +163,7 @@ Phase 1
 **Not available for Node.js**, but useful for pattern reference
 
 **Pattern:**
+
 ```python
 from treelib import Tree
 tree = Tree()
@@ -192,29 +193,31 @@ function renderTree(
 ): string {
   const { prefix = '', last = false } = options || {};
 
-  return nodes.map((node, index) => {
-    const isLast = index === nodes.length - 1;
-    const connector = isLast ? '└── ' : '├── ';
-    const childPrefix = isLast ? '    ' : '│   ';
+  return nodes
+    .map((node, index) => {
+      const isLast = index === nodes.length - 1;
+      const connector = isLast ? '└── ' : '├── ';
+      const childPrefix = isLast ? '    ' : '│   ';
 
-    let line = prefix + connector + node.name;
+      let line = prefix + connector + node.name;
 
-    if (node.status) {
-      line += ' ' + chalk.gray(`[${node.status}]`);
-    }
+      if (node.status) {
+        line += ' ' + chalk.gray(`[${node.status}]`);
+      }
 
-    let result = [line];
+      let result = [line];
 
-    if (node.children && node.children.length > 0) {
-      const childLines = renderTree(node.children, {
-        prefix: prefix + childPrefix,
-        last: isLast,
-      });
-      result = result.concat(childLines);
-    }
+      if (node.children && node.children.length > 0) {
+        const childLines = renderTree(node.children, {
+          prefix: prefix + childPrefix,
+          last: isLast,
+        });
+        result = result.concat(childLines);
+      }
 
-    return result.join('\n');
-  }).join('\n');
+      return result.join('\n');
+    })
+    .join('\n');
 }
 ```
 
@@ -227,10 +230,7 @@ const tree = require('cli-tree');
 
 const data = {
   name: 'root',
-  children: [
-    { name: 'child1' },
-    { name: 'child2' }
-  ]
+  children: [{ name: 'child1' }, { name: 'child2' }],
 };
 
 console.log.tree(data);
@@ -254,12 +254,12 @@ Simple ASCII tree generator:
 const tree = require('ascii-tree');
 
 const treeStr = tree.generate({
-  'root': {
-    'child1': null,
-    'child2': {
-      'grandchild': null
-    }
-  }
+  root: {
+    child1: null,
+    child2: {
+      grandchild: null,
+    },
+  },
 });
 
 console.log(treeStr);
@@ -311,27 +311,23 @@ const tree: TreeNode = {
         { name: 'cli.ts' },
         {
           name: 'utils',
-          children: [
-            { name: 'helpers.ts' },
-            { name: 'logger.ts' }
-          ]
-        }
-      ]
+          children: [{ name: 'helpers.ts' }, { name: 'logger.ts' }],
+        },
+      ],
     },
     {
       name: 'tests',
-      children: [
-        { name: 'test.ts' }
-      ]
+      children: [{ name: 'test.ts' }],
     },
-    { name: 'package.json' }
-  ]
+    { name: 'package.json' },
+  ],
 };
 
 console.log(renderTree(tree));
 ```
 
 **Output:**
+
 ```
 └── Project
     ├── src
@@ -376,7 +372,8 @@ function renderTaskTree(
 ): string {
   const connector = isLast ? '└── ' : '├── ';
   const icon = getStatusIcon(node.status);
-  const line = prefix + connector + icon + ' ' + chalk.bold(node.id) + ' ' + node.title;
+  const line =
+    prefix + connector + icon + ' ' + chalk.bold(node.id) + ' ' + node.title;
 
   let result = [line];
 
@@ -404,8 +401,8 @@ const taskTree: TaskNode = {
       status: 'Complete',
       children: [
         { id: 'P1M1T1', title: 'Task 1', status: 'Complete' },
-        { id: 'P1M1T2', title: 'Task 2', status: 'Complete' }
-      ]
+        { id: 'P1M1T2', title: 'Task 2', status: 'Complete' },
+      ],
     },
     {
       id: 'P1M2',
@@ -413,16 +410,17 @@ const taskTree: TaskNode = {
       status: 'In Progress',
       children: [
         { id: 'P1M2T1', title: 'Task 3', status: 'Complete' },
-        { id: 'P1M2T2', title: 'Task 4', status: 'In Progress' }
-      ]
-    }
-  ]
+        { id: 'P1M2T2', title: 'Task 4', status: 'In Progress' },
+      ],
+    },
+  ],
 };
 
 console.log(renderTaskTree(taskTree));
 ```
 
 **Output:**
+
 ```
 └── ◐ P1 Phase 1
     ├── ✓ P1M1 Milestone 1
@@ -449,9 +447,8 @@ function renderGitLog(commits: Commit[]): string {
   commits.forEach((commit, index) => {
     const isFirst = index === commits.length - 1;
     const connector = isFirst ? '└─' : '├─';
-    const branchInfo = commit.branches.length > 0
-      ? ` (${commit.branches.join(', ')})`
-      : '';
+    const branchInfo =
+      commit.branches.length > 0 ? ` (${commit.branches.join(', ')})` : '';
 
     let line = connector + ' ' + chalk.yellow(commit.hash) + branchInfo;
     line += ' ' + commit.message;
@@ -473,26 +470,27 @@ const commits: Commit[] = [
     hash: 'abc123',
     message: 'Add new feature',
     branches: ['HEAD', 'main'],
-    parents: ['def456']
+    parents: ['def456'],
   },
   {
     hash: 'def456',
     message: 'Fix bug',
     branches: [],
-    parents: ['ghi789']
+    parents: ['ghi789'],
   },
   {
     hash: 'ghi789',
     message: 'Initial commit',
     branches: [],
-    parents: []
-  }
+    parents: [],
+  },
 ];
 
 console.log(renderGitLog(commits));
 ```
 
 **Output:**
+
 ```
 ├─ abc123 (HEAD, main) Add new feature
 │
@@ -516,7 +514,8 @@ function renderDepTree(
   isLast: boolean = true
 ): string {
   const connector = isLast ? '└─┬' : '├─┬';
-  const line = prefix + connector + ' ' + chalk.cyan(node.name) + '@' + node.version;
+  const line =
+    prefix + connector + ' ' + chalk.cyan(node.name) + '@' + node.version;
 
   let result = [line];
 
@@ -543,21 +542,20 @@ const depTree: PackageNode = {
     {
       name: 'cli-progress',
       version: '3.12.0',
-      dependencies: [
-        { name: 'supports-color', version: '8.1.1' }
-      ]
+      dependencies: [{ name: 'supports-color', version: '8.1.1' }],
     },
     {
       name: 'commander',
-      version: '14.0.2'
-    }
-  ]
+      version: '14.0.2',
+    },
+  ],
 };
 
 console.log(renderDepTree(depTree));
 ```
 
 **Output:**
+
 ```
 └─┬ hacky-hack@0.1.0
   │
@@ -588,9 +586,7 @@ function renderCollapsibleTree(
 ): string {
   const hasChildren = node.children && node.children.length > 0;
   const connector = isLast ? '└── ' : '├── ';
-  const icon = hasChildren
-    ? (node.collapsed ? '+' : '-')
-    : ' ';
+  const icon = hasChildren ? (node.collapsed ? '+' : '-') : ' ';
 
   const line = prefix + connector + icon + ' ' + node.name;
   let result: string[] = [line];
@@ -793,7 +789,8 @@ export function renderTree(
     }
 
     const connector = isLast ? '└── ' : '├── ';
-    const status = showStatus && getStatus ? ` ${chalk.gray(getStatus(node))}` : '';
+    const status =
+      showStatus && getStatus ? ` ${chalk.gray(getStatus(node))}` : '';
     const name = formatNode ? formatNode(node) : node.name;
 
     let result: string[] = [prefix + connector + name + status];
@@ -820,15 +817,15 @@ export function renderFileTree(root: TreeNode): string {
 
 export function renderDependencyTree(root: TreeNode): string {
   return renderTree(root, {
-    formatNode: (node) => chalk.cyan(node.name),
+    formatNode: node => chalk.cyan(node.name),
   });
 }
 
 export function renderTaskTree(root: TreeNode): string {
   return renderTree(root, {
     showStatus: true,
-    getStatus: (node) => node.data?.status || '',
-    formatNode: (node) => chalk.bold(node.name),
+    getStatus: node => node.data?.status || '',
+    formatNode: node => chalk.bold(node.name),
   });
 }
 ```

@@ -12,6 +12,7 @@
 **File:** `src/agents/prp-generator.ts`
 
 **Key Properties:**
+
 ```typescript
 export class PRPGenerator {
   readonly #logger: Logger;
@@ -28,6 +29,7 @@ export class PRPGenerator {
 ```
 
 **Key Methods:**
+
 - `getCachePath(taskId: string): string` (lines 191-194)
 - `getCacheMetadataPath(taskId: string): string` (lines 206-209)
 - `#isCacheRecent(filePath: string): Promise<boolean>` (lines 263-272)
@@ -38,6 +40,7 @@ export class PRPGenerator {
 ### 1.2 Cache TTL Usage
 
 **Line 267:** Cache age check
+
 ```typescript
 const age = Date.now() - stats.mtimeMs;
 return age < this.CACHE_TTL_MS;
@@ -52,6 +55,7 @@ return age < this.CACHE_TTL_MS;
 **File:** `src/cli/index.ts`
 
 **Example: --research-concurrency (lines 230-234)**
+
 ```typescript
 .option(
   '--research-concurrency <n>',
@@ -61,13 +65,19 @@ return age < this.CACHE_TTL_MS;
 ```
 
 **Validation Pattern (lines 452-485)**
+
 ```typescript
-const researchConcurrencyStr = typeof options.researchConcurrency === 'string'
-  ? options.researchConcurrency
-  : String(options.researchConcurrency);
+const researchConcurrencyStr =
+  typeof options.researchConcurrency === 'string'
+    ? options.researchConcurrency
+    : String(options.researchConcurrency);
 const researchConcurrency = parseInt(researchConcurrencyStr, 10);
 
-if (isNaN(researchConcurrency) || researchConcurrency < 1 || researchConcurrency > 10) {
+if (
+  isNaN(researchConcurrency) ||
+  researchConcurrency < 1 ||
+  researchConcurrency > 10
+) {
   logger.error('--research-concurrency must be an integer between 1 and 10');
   process.exit(1);
 }
@@ -88,7 +98,10 @@ export interface CLIArgs {
   flushRetries?: number | string;
 }
 
-export interface ValidatedCLIArgs extends Omit<CLIArgs, 'researchConcurrency' | 'taskRetry' | 'retryBackoff' | 'flushRetries'> {
+export interface ValidatedCLIArgs extends Omit<
+  CLIArgs,
+  'researchConcurrency' | 'taskRetry' | 'retryBackoff' | 'flushRetries'
+> {
   researchConcurrency: number;
   taskRetry?: number;
   flushRetries?: number;
@@ -106,6 +119,7 @@ export interface ValidatedCLIArgs extends Omit<CLIArgs, 'researchConcurrency' | 
 **Key Test Patterns:**
 
 1. **Constructor tests** (lines 171-198)
+
 ```typescript
 describe('constructor', () => {
   it('should create PRPGenerator with session path', () => {
@@ -117,6 +131,7 @@ describe('constructor', () => {
 ```
 
 2. **Cache tests** (lines 467-635)
+
 ```typescript
 describe('cache', () => {
   it('should use cached PRP when hash matches and file is recent', async () => {
@@ -147,6 +162,7 @@ describe('cache', () => {
 ```
 
 3. **Mock patterns**
+
 ```typescript
 // Mock the node:fs/promises module
 vi.mock('node:fs/promises', () => ({
@@ -183,6 +199,7 @@ const prpGenerator = new PRPGenerator(
 ### 4.2 Constructor Modification Required
 
 Current constructor:
+
 ```typescript
 constructor(sessionManager: SessionManager, noCache: boolean = false) {
   this.#logger = getLogger('PRPGenerator');
@@ -193,6 +210,7 @@ constructor(sessionManager: SessionManager, noCache: boolean = false) {
 ```
 
 Needs to become:
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -216,6 +234,7 @@ constructor(
 **File:** `package.json`
 
 The `ms` library is **already installed** as a dependency:
+
 ```json
 {
   "dependencies": {
@@ -232,7 +251,7 @@ import ms from 'ms';
 
 // Usage
 const milliseconds = ms('24h'); // 86400000
-const milliseconds = ms('1d');  // 86400000
+const milliseconds = ms('1d'); // 86400000
 const milliseconds = ms('12h'); // 43200000
 ```
 
@@ -242,11 +261,11 @@ const milliseconds = ms('12h'); // 43200000
 
 ### 6.1 Files That Create PRPGenerator
 
-| File | Location | Context |
-|------|----------|---------|
-| `src/core/task-orchestrator.ts` | ~ | Creates PRPGenerator for PRP generation |
-| `tests/unit/agents/prp-generator.test.ts` | ~ | Test mocks |
-| `src/workflows/prp-pipeline.ts` | ~ | Pipeline orchestration |
+| File                                      | Location | Context                                 |
+| ----------------------------------------- | -------- | --------------------------------------- |
+| `src/core/task-orchestrator.ts`           | ~        | Creates PRPGenerator for PRP generation |
+| `tests/unit/agents/prp-generator.test.ts` | ~        | Test mocks                              |
+| `src/workflows/prp-pipeline.ts`           | ~        | Pipeline orchestration                  |
 
 ### 6.2 CLI Option Passing Flow
 
@@ -301,13 +320,13 @@ PRPGenerator (src/agents/prp-generator.ts)
 
 ## 8. Summary of Changes
 
-| File | Change Type | Lines Affected |
-|------|-------------|----------------|
-| `src/agents/prp-generator.ts` | Modify constructor, change constant to property | ~5 lines |
-| `src/cli/index.ts` | Add CLI option, validation, type definitions | ~30 lines |
-| `src/core/task-orchestrator.ts` | Add parameter passthrough | ~2 lines |
-| `src/workflows/prp-pipeline.ts` | Add parameter passthrough | ~2 lines |
-| `tests/unit/agents/prp-generator.test.ts` | Add TTL configuration tests | ~50 lines |
+| File                                      | Change Type                                     | Lines Affected |
+| ----------------------------------------- | ----------------------------------------------- | -------------- |
+| `src/agents/prp-generator.ts`             | Modify constructor, change constant to property | ~5 lines       |
+| `src/cli/index.ts`                        | Add CLI option, validation, type definitions    | ~30 lines      |
+| `src/core/task-orchestrator.ts`           | Add parameter passthrough                       | ~2 lines       |
+| `src/workflows/prp-pipeline.ts`           | Add parameter passthrough                       | ~2 lines       |
+| `tests/unit/agents/prp-generator.test.ts` | Add TTL configuration tests                     | ~50 lines      |
 
 ---
 
