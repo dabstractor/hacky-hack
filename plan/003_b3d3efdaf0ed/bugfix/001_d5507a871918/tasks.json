@@ -256,7 +256,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S3",
                   "title": "Call validateBugfixSession in FixCycleWorkflow constructor",
-                  "status": "Implementing",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S2"
