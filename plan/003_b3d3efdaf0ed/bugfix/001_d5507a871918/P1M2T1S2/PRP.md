@@ -545,7 +545,7 @@ cat $(mktemp -d)/test-bughunt-run-session/TEST_RESULTS.md | jq .
 - [ ] Code is self-documenting with clear variable names
 - [ ] No TODO comments or placeholder code
 
-***
+---
 
 ## Anti-Patterns to Avoid
 

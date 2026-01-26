@@ -1293,5 +1293,515 @@ describe('BugHuntWorkflow', () => {
       );
       expect(mockAtomicWrite).toHaveBeenCalled();
     });
+
+    // ========================================================================
+    // Enhancement Tests - Added for comprehensive coverage
+    // ========================================================================
+
+    describe('logging behavior - skip conditions', () => {
+      it('should log skip message when only minor bugs present', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          false,
+          [createTestBug('BUG-001', 'minor', 'Bug', 'Desc', 'Rep')],
+          'Found minor bugs',
+          ['Fix']
+        );
+        const logSpy = vi.spyOn((workflow as any).correlationLogger, 'info');
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY - skip message should be logged
+        expect(logSpy).toHaveBeenCalledWith(
+          '[BugHuntWorkflow] No critical or major bugs - skipping bug report write'
+        );
+        expect(mockAtomicWrite).not.toHaveBeenCalled();
+      });
+
+      it('should log skip message when only cosmetic bugs present', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          false,
+          [createTestBug('BUG-001', 'cosmetic', 'Bug', 'Desc', 'Rep')],
+          'Found cosmetic bugs',
+          ['Fix']
+        );
+        const logSpy = vi.spyOn((workflow as any).correlationLogger, 'info');
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY
+        expect(logSpy).toHaveBeenCalledWith(
+          '[BugHuntWorkflow] No critical or major bugs - skipping bug report write'
+        );
+        expect(mockAtomicWrite).not.toHaveBeenCalled();
+      });
+
+      it('should log skip message when bugs array is empty', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(false, [], 'No bugs found', []);
+        const logSpy = vi.spyOn((workflow as any).correlationLogger, 'info');
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY
+        expect(logSpy).toHaveBeenCalledWith(
+          '[BugHuntWorkflow] No critical or major bugs - skipping bug report write'
+        );
+        expect(mockAtomicWrite).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('input validation - non-string sessionPath', () => {
+      it('should throw if sessionPath is not a string', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport(null as any, testResults)
+        ).rejects.toThrow('sessionPath must be a non-empty string');
+
+        await expect(
+          workflow.writeBugReport(undefined as any, testResults)
+        ).rejects.toThrow('sessionPath must be a non-empty string');
+
+        await expect(
+          workflow.writeBugReport(123 as any, testResults)
+        ).rejects.toThrow('sessionPath must be a non-empty string');
+
+        await expect(
+          workflow.writeBugReport({} as any, testResults)
+        ).rejects.toThrow('sessionPath must be a non-empty string');
+      });
+    });
+
+    describe('path construction - relative paths', () => {
+      it('should handle relative paths correctly', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        const relativePath = 'relative/path/to/session';
+
+        // EXECUTE
+        await workflow.writeBugReport(relativePath, testResults);
+
+        // VERIFY - resolve() should convert to absolute path
+        expect(mockAtomicWrite).toHaveBeenCalledWith(
+          expect.stringContaining('relative/path/to/session/TEST_RESULTS.md'),
+          expect.any(String)
+        );
+      });
+
+      it('should handle paths with trailing slash', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        const sessionPath = '/path/to/session/';
+
+        // EXECUTE
+        await workflow.writeBugReport(sessionPath, testResults);
+
+        // VERIFY - resolve() normalizes the path
+        expect(mockAtomicWrite).toHaveBeenCalledWith(
+          expect.stringMatching(/\/path\/to\/session.*TEST_RESULTS\.md$/),
+          expect.any(String)
+        );
+      });
+
+      it('should handle paths with dot segments', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        const sessionPath = '/path/to/../session';
+
+        // EXECUTE
+        await workflow.writeBugReport(sessionPath, testResults);
+
+        // VERIFY - resolve() normalizes the path
+        expect(mockAtomicWrite).toHaveBeenCalledWith(
+          expect.stringMatching(/\/path\/session.*TEST_RESULTS\.md$/),
+          expect.any(String)
+        );
+      });
+    });
+
+    describe('atomic write pattern verification', () => {
+      it('should use atomicWrite utility for file operations', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        const sessionPath = '/path/to/session';
+
+        // EXECUTE
+        await workflow.writeBugReport(sessionPath, testResults);
+
+        // VERIFY - atomicWrite should be called (not direct fs operations)
+        expect(mockAtomicWrite).toHaveBeenCalledTimes(1);
+        expect(mockAtomicWrite).toHaveBeenCalledWith(
+          '/path/to/session/TEST_RESULTS.md',
+          JSON.stringify(testResults, null, 2)
+        );
+      });
+
+      it('should serialize TestResults with 2-space indentation', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY - content should be JSON with 2-space indentation
+        const expectedContent = JSON.stringify(testResults, null, 2);
+        expect(mockAtomicWrite).toHaveBeenCalledWith(
+          expect.any(String),
+          expectedContent
+        );
+
+        // Verify indentation - top-level properties use 2 spaces
+        expect(mockAtomicWrite.mock.calls[0][1]).toContain('  "hasBugs"');
+        expect(mockAtomicWrite.mock.calls[0][1]).toContain('  "bugs"');
+        expect(mockAtomicWrite.mock.calls[0][1]).not.toContain('    "hasBugs"'); // top-level not 4 spaces
+      });
+    });
+
+    describe('Zod schema validation - comprehensive tests', () => {
+      it('should throw when summary is missing', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const invalidResults = {
+          hasBugs: true,
+          bugs: [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          // summary is missing - required by schema
+          recommendations: [],
+        } as any;
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport('/path/to/session', invalidResults)
+        ).rejects.toThrow('Invalid TestResults provided to writeBugReport');
+      });
+
+      it('should throw when summary is empty string', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const invalidResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          '', // Empty summary violates Zod schema (nonEmpty)
+          []
+        );
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport('/path/to/session', invalidResults)
+        ).rejects.toThrow('Invalid TestResults provided to writeBugReport');
+      });
+
+      it('should throw when bugs array contains invalid bug structure', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        // Create an invalid bug - include severity but missing other required fields
+        // Must include 'critical' severity to reach validation code (after severity check)
+        const invalidResults = {
+          hasBugs: true,
+          bugs: [
+            {
+              severity: 'critical',
+              // Missing: id, title, description, reproduction
+            },
+          ] as any,
+          summary: 'Found bugs',
+          recommendations: [],
+        };
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport('/path/to/session', invalidResults)
+        ).rejects.toThrow('Invalid TestResults provided to writeBugReport');
+      });
+
+      it('should accept valid TestResults with all required fields', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const validResults = createTestResults(
+          true,
+          [
+            createTestBug(
+              'BUG-001',
+              'critical',
+              'Authentication Bug',
+              'Login fails with valid credentials',
+              '1. Go to login page\n2. Enter valid credentials\n3. Click login'
+            ),
+          ],
+          'Found 1 critical bug in authentication system',
+          ['Fix authentication service', 'Add unit tests for login flow']
+        );
+
+        // EXECUTE - should not throw
+        await workflow.writeBugReport('/path/to/session', validResults);
+
+        // VERIFY
+        expect(mockAtomicWrite).toHaveBeenCalled();
+      });
+    });
+
+    describe('error handling - comprehensive edge cases', () => {
+      it('should handle error when atomicWrite rejects with Error object', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        const writeError = new Error('ENOSPC: no space left on device');
+        mockAtomicWrite.mockRejectedValue(writeError);
+        const logSpy = vi.spyOn((workflow as any).correlationLogger, 'error');
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport('/path/to/session', testResults)
+        ).rejects.toThrow(
+          'Failed to write bug report to /path/to/session/TEST_RESULTS.md: ENOSPC: no space left on device'
+        );
+
+        expect(logSpy).toHaveBeenCalledWith(
+          '[BugHuntWorkflow] Failed to write bug report',
+          {
+            error: 'ENOSPC: no space left on device',
+            resultsPath: '/path/to/session/TEST_RESULTS.md',
+          }
+        );
+      });
+
+      it('should handle error when atomicWrite rejects with string', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        mockAtomicWrite.mockRejectedValue('String error message');
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport('/path/to/session', testResults)
+        ).rejects.toThrow(
+          'Failed to write bug report to /path/to/session/TEST_RESULTS.md: String error message'
+        );
+      });
+
+      it('should handle error when atomicWrite rejects with non-Error object', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          ['Fix']
+        );
+        mockAtomicWrite.mockRejectedValue({
+          code: 'EIO',
+          message: 'I/O error',
+        });
+
+        // EXECUTE & VERIFY
+        await expect(
+          workflow.writeBugReport('/path/to/session', testResults)
+        ).rejects.toThrow(
+          'Failed to write bug report to /path/to/session/TEST_RESULTS.md: [object Object]'
+        );
+      });
+    });
+
+    describe('edge cases', () => {
+      it('should handle empty recommendations array', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          [] // Empty recommendations is valid
+        );
+
+        // EXECUTE - should not throw
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY
+        expect(mockAtomicWrite).toHaveBeenCalled();
+        const content = mockAtomicWrite.mock.calls[0][1];
+        expect(content).toContain('"recommendations": []');
+      });
+
+      it('should handle special characters in summary', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs with special chars: <>&"\'\n\t\\', // Various special chars
+          ['Fix']
+        );
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY - special characters should be properly escaped in JSON
+        expect(mockAtomicWrite).toHaveBeenCalled();
+        const content = mockAtomicWrite.mock.calls[0][1];
+        expect(content).toContain('Found bugs with special chars');
+      });
+
+      it('should handle long summary text', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const longSummary = 'A'.repeat(10000); // Very long summary
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          longSummary,
+          ['Fix']
+        );
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY
+        expect(mockAtomicWrite).toHaveBeenCalled();
+        const content = mockAtomicWrite.mock.calls[0][1];
+        expect(content).toContain(longSummary);
+      });
+
+      it('should handle mixed severity bugs correctly', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [
+            createTestBug('BUG-001', 'critical', 'Critical Bug', 'Desc', 'Rep'),
+            createTestBug('BUG-002', 'major', 'Major Bug', 'Desc', 'Rep'),
+            createTestBug('BUG-003', 'minor', 'Minor Bug', 'Desc', 'Rep'),
+            createTestBug('BUG-004', 'cosmetic', 'Cosmetic Bug', 'Desc', 'Rep'),
+          ],
+          'Found bugs of all severities',
+          ['Fix all']
+        );
+
+        // EXECUTE - should write because has critical/major
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY
+        expect(mockAtomicWrite).toHaveBeenCalled();
+
+        // Verify bug count logging includes all bugs
+        const logSpy = vi.spyOn((workflow as any).correlationLogger, 'info');
+        await workflow.writeBugReport('/path/to/session', testResults);
+        expect(logSpy).toHaveBeenCalledWith(
+          '[BugHuntWorkflow] Writing bug report',
+          expect.objectContaining({
+            bugCount: 4,
+            criticalCount: 1,
+            majorCount: 1,
+          })
+        );
+      });
+
+      it('should handle unicode characters in bug data', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [
+            createTestBug(
+              'BUG-001',
+              'critical',
+              'Unicode Bug 🐛',
+              'Description with emoji: 🎉 🔥',
+              'Reproduction with unicode: café, naïve'
+            ),
+          ],
+          'Found unicode bugs',
+          ['修复', '修复问题'] // Chinese characters
+        );
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY - unicode should be preserved
+        expect(mockAtomicWrite).toHaveBeenCalled();
+        const content = mockAtomicWrite.mock.calls[0][1];
+        expect(content).toContain('🐛');
+        expect(content).toContain('修复');
+      });
+
+      it('should handle recommendations with special characters', async () => {
+        // SETUP
+        const workflow = new BugHuntWorkflow('PRD content', []);
+        const testResults = createTestResults(
+          true,
+          [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+          'Found bugs',
+          [
+            'Fix the authentication bug in /src/auth/login.ts:45',
+            'Add tests: npm run test:auth',
+            'See docs: https://docs.example.com/auth',
+          ]
+        );
+
+        // EXECUTE
+        await workflow.writeBugReport('/path/to/session', testResults);
+
+        // VERIFY
+        expect(mockAtomicWrite).toHaveBeenCalled();
+        const content = mockAtomicWrite.mock.calls[0][1];
+        expect(content).toContain('/src/auth/login.ts:45');
+        expect(content).toContain('npm run test:auth');
+        expect(content).toContain('https://docs.example.com/auth');
+      });
+    });
   });
 });

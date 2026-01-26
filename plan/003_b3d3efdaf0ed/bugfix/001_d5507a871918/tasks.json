@@ -118,7 +118,7 @@
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Refactor BugHuntWorkflow to Write Bug Report",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Add a writeBugReport() method to BugHuntWorkflow that writes TEST_RESULTS.md to disk when critical or major bugs are found.",
               "subtasks": [
                 {
@@ -145,7 +145,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
                   "title": "Add unit tests for writeBugReport method",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S2"
