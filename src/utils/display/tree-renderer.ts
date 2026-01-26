@@ -207,6 +207,7 @@ export function renderPendingTree(phases: Phase[], currentId?: string): string {
     'Planned',
     'Researching',
     'Implementing',
+    'Retrying',
     'Failed',
   ];
 

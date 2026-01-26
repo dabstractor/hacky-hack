@@ -355,6 +355,7 @@ export function formatStatusCounts(counts: Record<string, number>): string {
     Planned: chalk.gray,
     Researching: chalk.cyan,
     Implementing: chalk.blue,
+    Retrying: chalk.yellow,
     Complete: chalk.green,
     Failed: chalk.red,
     Obsolete: chalk.dim,
