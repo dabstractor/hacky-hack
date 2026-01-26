@@ -1,0 +1,373 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Phase 1: Critical Bug Fixes",
+      "status": "Ready",
+      "description": "Fix critical constructor signature mismatches, workflow timing issues, and missing validation logic that prevent core PRP Pipeline functionality from working correctly.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Milestone 1.1: Constructor Signature Fixes",
+          "status": "Planned",
+          "description": "Fix ResearchQueue and SessionManager constructor signature mismatches across all instantiation sites and tests.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Fix ResearchQueue Constructor Signature",
+              "status": "Planned",
+              "description": "Update TaskOrchestrator and all test files to use the correct ResearchQueue constructor signature with all 4 required parameters.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Update TaskOrchestrator ResearchQueue instantiation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: ResearchQueue constructor requires 4 parameters: (sessionManager, maxSize, noCache, cacheTtlMs). Current implementation at src/core/task-orchestrator.ts:161-166 only passes 3 parameters, missing cacheTtlMs. See architecture/001_codebase_audit.md §Research Objective 1.\n2. INPUT: Access TaskOrchestrator class at src/core/task-orchestrator.ts. Use existing class properties: this.sessionManager (SessionManager instance), this.config (contains concurrency settings).\n3. LOGIC: Update the ResearchQueue instantiation at line 161-166 to pass all 4 parameters: sessionManager (this.sessionManager), maxSize (concurrency from config), noCache (from config or false), cacheTtlMs (use default 24 * 60 * 60 * 1000 or from config). Maintain existing code style and error handling.\n4. OUTPUT: Updated TaskOrchestrator constructor that correctly instantiates ResearchQueue with all 4 parameters. No changes to method signatures or external interfaces."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Update ResearchQueue unit tests for full constructor signature",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: tests/unit/core/research-queue.test.ts currently calls new ResearchQueue(sessionManager, noCache) with only 2 parameters. Must be updated to pass all 4 parameters. See architecture/001_codebase_audit.md §Research Objective 1.\n2. INPUT: Test file at tests/unit/core/research-queue.test.ts. Mock sessionManager using existing test fixtures. Use test constants for maxSize (3), noCache (false), cacheTtlMs (24 * 60 * 60 * 1000).\n3. LOGIC: Update all test cases that instantiate ResearchQueue to use the full 4-parameter signature. For test 'should create PRPGenerator with sessionManager', add the missing maxSize and cacheTtlMs parameters. Ensure tests validate that cacheTtlMs parameter is correctly passed and used. Mock/fs patterns should remain unchanged.\n4. OUTPUT: Updated test suite where all ResearchQueue instantiations use the correct 4-parameter constructor. Tests should pass with the updated TaskOrchestrator implementation from S1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S3",
+                  "title": "Update ResearchQueue integration tests for constructor consistency",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: tests/integration/core/research-queue.test.ts may already use correct 4-parameter signature but must be verified for consistency with unit test changes. See architecture/001_codebase_audit.md §Research Objective 1.\n2. INPUT: Integration test file at tests/integration/core/research-queue.test.ts. Reference the updated unit test pattern from S2 for parameter ordering and values.\n3. LOGIC: Review all ResearchQueue instantiations in integration tests. If any use the old 2-parameter signature, update to match the 4-parameter signature used in unit tests. Ensure integration test scenarios cover cache TTL behavior, concurrent PRP generation limits, and no-cache flag functionality.\n4. OUTPUT: Integration test suite consistent with unit tests, using full 4-parameter ResearchQueue constructor. Integration tests should validate end-to-end behavior with correctly configured ResearchQueue."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Fix SessionManager Constructor Signature",
+              "status": "Planned",
+              "description": "Update all 23 test files that instantiate SessionManager to include the planDir parameter, aligning with the actual constructor signature.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Update SessionManager unit test constructor calls",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager constructor requires 3 parameters: (prdPath, planDir, flushRetries). Tests currently pass only 2 parameters: (prdPath, flushRetries). See architecture/001_codebase_audit.md §Research Objective 1. 23 test files need updating.\n2. INPUT: Primary test file at tests/unit/core/session-manager.test.ts. Use test fixtures for prdPath (mock PRD file path), planDir (use resolve('plan') or test temp directory), flushRetries (use 3 as default).\n3. LOGIC: Update all SessionManager constructor calls in tests/unit/core/session-manager.test.ts to include planDir as the second parameter. Pattern: new SessionManager(prdPath, resolve('plan'), flushRetries). For tests that don't care about planDir, use resolve('plan') as default value. Ensure test setup/teardown properly creates and cleans up plan directories.\n4. OUTPUT: Updated tests/unit/core/session-manager.test.ts where all SessionManager instantiations use the correct 3-parameter constructor. Tests should pass without constructor signature errors."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S2",
+                  "title": "Update SessionManager integration test constructor calls",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Multiple integration test files instantiate SessionManager with incorrect 2-parameter signature. Must align with the updated unit test pattern. See architecture/001_codebase_audit.md §Research Objective 1.\n2. INPUT: All integration test files under tests/integration/ that reference SessionManager. Search pattern: 'new SessionManager('. Use updated pattern from unit tests (S1) for consistency.\n3. LOGIC: Find all integration test files that instantiate SessionManager. Update each constructor call to include planDir parameter. Use consistent pattern: resolve('plan') for planDir, 3 for flushRetries. For integration tests that test plan directory functionality, use test-specific temp directories instead of 'plan'.\n4. OUTPUT: All integration test files updated to use correct 3-parameter SessionManager constructor. No constructor signature errors in integration test suite."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S3",
+                  "title": "Update session-state-batching test constructor calls",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: tests/unit/core/session-state-batching.test.ts specifically tests SessionManager state management and must use correct constructor signature. See architecture/001_codebase_audit.md §Research Objective 1.\n2. INPUT: Test file at tests/unit/core/session-state-batching.test.ts. This file tests flush behavior, so flushRetries parameter is particularly important.\n3. LOGIC: Update SessionManager constructor calls in session-state-batching.test.ts to include planDir parameter. Since this test focuses on state flushing, ensure flushRetries parameter is set appropriately for test scenarios (may need to test different values). Maintain test scenarios for batching, flush retries, and state persistence.\n4. OUTPUT: Updated session-state-batching tests with correct constructor signature. Tests should validate state batching and flush behavior with properly configured SessionManager."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S4",
+                  "title": "Verify TaskOrchestrator SessionManager usage",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskOrchestrator creates SessionManager at src/core/task-orchestrator.ts. Must verify it uses correct 3-parameter signature. See architecture/001_codebase_audit.md §Research Objective 1.\n2. INPUT: TaskOrchestrator source at src/core/task-orchestrator.ts. Search for SessionManager instantiation. Reference PRP Pipeline usage at src/workflows/prp-pipeline.ts:1768-1772 which uses correct 3-parameter signature.\n3. LOGIC: Locate TaskOrchestrator's SessionManager instantiation (likely in constructor or initialization). Verify it passes all 3 parameters: prdPath, planDir, flushRetries. If it's using the old 2-parameter signature, update to match the pattern used in PRP Pipeline. Ensure planDir is correctly propagated from configuration or constructor parameter.\n4. OUTPUT: TaskOrchestrator SessionManager instantiation verified or updated to use correct 3-parameter signature. Consistent with PRP Pipeline usage pattern."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Milestone 1.2: TEST_RESULTS.md Workflow Fix",
+          "status": "Planned",
+          "description": "Fix the TEST_RESULTS.md writing workflow so the bug report file is written immediately after BugHuntWorkflow completes, before FixCycleWorkflow attempts to read it.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Refactor BugHuntWorkflow to Write Bug Report",
+              "status": "Planned",
+              "description": "Add a writeBugReport() method to BugHuntWorkflow that writes TEST_RESULTS.md to disk when critical or major bugs are found.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Add writeBugReport method to BugHuntWorkflow",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: BugHuntWorkflow at src/workflows/bug-hunt-workflow.ts currently returns TestResults object but does not write to disk. PRD §4.4 requires TEST_RESULTS.md to be written when bugs found. See architecture/001_codebase_audit.md §Research Objective 2.\n2. INPUT: BugHuntWorkflow class at src/workflows/bug-hunt-workflow.ts. Existing generateReport() method returns TestResults object. Session manager provides session path for file location.\n3. LOGIC: Add public async writeBugReport(sessionPath: string, testResults: TestResults): Promise<void> method. Method should: check if testResults contains critical or major bugs (severity 'critical' or 'major'), construct file path as resolve(sessionPath, 'TEST_RESULTS.md'), write file using fs.writeFile with JSON.stringify(testResults, null, 2), use atomic write-then-rename pattern from architecture/002_external_dependencies.md §2.2 (write to temp file, then rename). Throw error if write fails.\n4. OUTPUT: BugHuntWorkflow with new writeBugReport() method that persists TEST_RESULTS.md when bugs are found. Method should be callable after generateReport() completes."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Update BugHuntWorkflow.run() to call writeBugReport",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: BugHuntWorkflow.run() should automatically write bug report when bugs are found, integrating the new writeBugReport method. See architecture/003_system_context.md §Bug 3.\n2. INPUT: BugHuntWorkflow.run() method at src/workflows/bug-hunt-workflow.ts. Existing implementation calls generateReport() and returns TestResults. Session path is available via injected dependency or constructor parameter.\n3. LOGIC: Modify run() method to: call generateReport() to get testResults, check if testResults has critical or major bugs, if yes: await this.writeBugReport(sessionPath, testResults), return testResults. Preserve existing return type and error handling. Add debug logging: 'Writing TEST_RESULTS.md to {sessionPath}' when bugs found.\n4. OUTPUT: BugHuntWorkflow.run() now writes TEST_RESULTS.md to disk before returning when bugs are found. Maintains backward compatibility (still returns TestResults)."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S3",
+                  "title": "Add unit tests for writeBugReport method",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: New writeBugReport functionality requires test coverage to ensure file is written correctly, atomically, and only when bugs found. See architecture/002_external_dependencies.md §5 for testing patterns.\n2. INPUT: Test file for BugHuntWorkflow (create if doesn't exist). Mock fs.writeFile, fs.rename, resolve. Use test fixtures for TestResults with various bug severities.\n3. LOGIC: Write test cases: 'should write TEST_RESULTS.md when critical bugs found' (mock writeFile, expect it called with correct path and content), 'should write TEST_RESULTS.md when major bugs found', 'should not write TEST_RESULTS.md when only minor bugs', 'should write file atomically using temp then rename' (verify temp file write then rename), 'should throw error if write fails'. Use vi.mock() for fs module. Clean up mock files in afterEach.\n4. OUTPUT: Test suite covering writeBugReport behavior including file writing, atomicity, and error conditions. Tests should pass with implementation from S2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Update FixCycleWorkflow to Read from File",
+              "status": "Planned",
+              "description": "Refactor FixCycleWorkflow to read TEST_RESULTS.md from disk instead of accepting in-memory TestResults object, ensuring proper workflow sequencing.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Update FixCycleWorkflow constructor to accept session path",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FixCycleWorkflow currently accepts TestResults in constructor at src/workflows/fix-cycle-workflow.ts. Should instead accept sessionPath and read TEST_RESULTS.md from disk. See architecture/003_system_context.md §Bug 3.\n2. INPUT: FixCycleWorkflow class at src/workflows/fix-cycle-workflow.ts. Current constructor signature: constructor(testResults, prdContent, taskOrchestrator, sessionManager). PRD and system context from architecture/003_system_context.md.\n3. LOGIC: Update constructor signature from (testResults: TestResults, ...) to (sessionPath: string, ...). Remove testResults parameter. Add sessionPath as first parameter. Store sessionPath as instance property this.sessionPath. Remove in-memory testResults storage. Preserve other constructor parameters: prdContent, taskOrchestrator, sessionManager.\n4. OUTPUT: FixCycleWorkflow constructor updated to accept sessionPath instead of TestResults. Constructor signature changed but class initialization logic preserved."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S2",
+                  "title": "Add loadBugReport method to FixCycleWorkflow",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FixCycleWorkflow needs to load TEST_RESULTS.md from disk to access bug reports. Should validate file existence and format before parsing. See architecture/002_external_dependencies.md §2.2 for file reading patterns.\n2. INPUT: FixCycleWorkflow class at src/workflows/fix-cycle-workflow.ts. Session path available as this.sessionPath from S1. fs/promises for file operations.\n3. LOGIC: Add private async loadBugReport(): Promise<TestResults> method. Method should: construct file path as resolve(this.sessionPath, 'TEST_RESULTS.md'), check if file exists using fs.access(), throw error if file doesn't exist with message 'TEST_RESULTS.md not found at {path}', read file using fs.readFile(), parse JSON using JSON.parse(), validate parsed object against TestResults schema (consider Zod validation if schema exists), return validated TestResults. Add error handling for JSON parse errors and validation failures.\n4. OUTPUT: FixCycleWorkflow.loadBugReport() method that reads and validates TEST_RESULTS.md from disk. Throws descriptive errors if file missing or invalid."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S3",
+                  "title": "Update FixCycleWorkflow.run() to call loadBugReport",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FixCycleWorkflow.run() currently uses in-memory testResults from constructor. Must call loadBugReport to get bug data from disk. See architecture/003_system_context.md §Bug 3.\n2. INPUT: FixCycleWorkflow.run() method at src/workflows/fix-cycle-workflow.ts. Existing logic uses this.testResults. New loadBugReport() method from S2.\n3. LOGIC: Modify run() method to: call const testResults = await this.loadBugReport() at start of method, replace all references to this.testResults with local testResults variable, preserve existing bug fix task generation logic, preserve existing error handling. Add debug logging: 'Loaded TEST_RESULTS.md from {this.sessionPath}' on successful load.\n4. OUTPUT: FixCycleWorkflow.run() now loads bug report from disk using loadBugReport(). Bug fix tasks generated based on file contents rather than in-memory object."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S4",
+                  "title": "Update PRP Pipeline to pass session path to FixCycleWorkflow",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRP Pipeline at src/workflows/prp-pipeline.ts:1214-1285 currently passes in-memory testResults to FixCycleWorkflow. Must update to pass session path after BugHuntWorkflow writes the file. See architecture/001_codebase_audit.md §Research Objective 2.\n2. INPUT: PRP Pipeline runQACycle() method at src/workflows/prp-pipeline.ts lines 1214-1285. Session path available via this.sessionManager.currentSession.metadata.path.\n3. LOGIC: Locate FixCycleWorkflow instantiation in runQACycle(). Remove testResults parameter from constructor call. Add sessionPath as first parameter: new FixCycleWorkflow(sessionPath, this.prdSnapshot, this.orchestrator, this.sessionManager). Ensure BugHuntWorkflow runs before FixCycleWorkflow so TEST_RESULTS.md exists when FixCycleWorkflow calls loadBugReport(). Remove the old TEST_RESULTS.md write code that happens after FixCycleWorkflow (lines after fix cycle run).\n4. OUTPUT: PRP Pipeline updated to pass session path to FixCycleWorkflow instead of in-memory testResults. TEST_RESULTS.md write happens in BugHuntWorkflow, not in PRP Pipeline after fix cycle."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S5",
+                  "title": "Add unit tests for FixCycleWorkflow file loading",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M2.T2.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FixCycleWorkflow now loads from disk, requiring new test coverage for file loading, missing file errors, and invalid file format handling. See architecture/002_external_dependencies.md §5.\n2. INPUT: FixCycleWorkflow test file. Mock fs.readFile, fs.access. Use test fixtures for valid TEST_RESULTS.md content.\n3. LOGIC: Write test cases: 'should load TEST_RESULTS.md from session path' (mock readFile with valid JSON, expect TestResults returned), 'should throw error if TEST_RESULTS.md missing' (mock access to throw ENOENT, expect error thrown), 'should throw error if TEST_RESULTS.md has invalid JSON' (mock readFile with invalid JSON, expect parse error), 'should validate TestResults schema' (mock readFile with invalid structure, expect validation error). Mock fs module using vi.mock(). Clean up in afterEach.\n4. OUTPUT: Test suite covering FixCycleWorkflow file loading behavior including success case, missing file, invalid JSON, and schema validation. Tests should pass with implementation from S3."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "Milestone 1.3: Session Validation Guards",
+          "status": "Planned",
+          "description": "Implement bugfix session path validation and nested execution guard to prevent operations in invalid contexts and protect against recursive pipeline execution.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Implement Bugfix Session Path Validation",
+              "status": "Planned",
+              "description": "Add validation to ensure bug fix tasks are only created within session directories that contain 'bugfix' in the path, as required by PRD §5.1.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Add validateBugfixSession function to core utilities",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD §5.1 requires validation that bug fix tasks only execute in bugfix sessions. No validation currently exists. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: Create new file at src/utils/validation/session-validation.ts or add to existing validation utilities. No dependencies yet - this is foundational validation logic.\n3. LOGIC: Export function validateBugfixSession(sessionPath: string): void. Function should: check if sessionPath includes 'bugfix' substring (use path.basename(sessionPath).includes('bugfix') or sessionPath.includes('/bugfix/') to match directory naming), if path does not include 'bugfix': throw BugfixSessionValidationError with message 'Bug fix tasks can only be executed within bugfix sessions. Invalid path: {sessionPath}', if path is valid: return undefined (no error). Add JSDoc explaining purpose and PRD reference.\n4. OUTPUT: New validation function validateBugfixSession that enforces bugfix session path requirements. Function throws descriptive error for invalid paths."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S2",
+                  "title": "Add BugfixSessionValidationError class",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need custom error class for bugfix session validation failures to distinguish from other errors. Follow existing error class patterns in codebase. See architecture/002_external_dependencies.md §4 for guard patterns.\n2. INPUT: Existing error classes in codebase (search for 'ValidationError' patterns). Validation function from S1 that needs error class.\n3. LOGIC: Create BugfixSessionValidationError class extending Error. Constructor should accept sessionPath: string parameter. Set error message to 'Bug fix tasks can only be executed within bugfix sessions. Invalid path: {sessionPath}'. Set error name to 'BugfixSessionValidationError'. Consider adding error code property for programmatic handling. Export class alongside validateBugfixSession function.\n4. OUTPUT: BugfixSessionValidationError error class for use in session validation. Error class provides clear, actionable error messages."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S3",
+                  "title": "Call validateBugfixSession in FixCycleWorkflow constructor",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FixCycleWorkflow is the entry point for bug fix tasks and should validate session context immediately. See architecture/003_system_context.md §Bug 4.\n2. INPUT: FixCycleWorkflow class at src/workflows/fix-cycle-workflow.ts. Constructor now accepts sessionPath from previous milestone P1.M2.T2. Validation function from S1.\n3. LOGIC: In FixCycleWorkflow constructor, after storing sessionPath, call validateBugfixSession(this.sessionPath). Wrap in try-catch to provide additional context if validation fails. Add debug logging before validation: 'Validating bugfix session path: {sessionPath}'. If validation passes, log: 'Bugfix session path validated'. If validation throws, re-throw with additional context about FixCycleWorkflow initialization.\n4. OUTPUT: FixCycleWorkflow constructor validates session path on initialization, preventing bug fix tasks from running in non-bugfix sessions. Validation happens before any bug fix work begins."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S4",
+                  "title": "Add unit tests for bugfix session validation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: New validation logic requires test coverage for valid bugfix paths, invalid paths, and edge cases. See architecture/002_external_dependencies.md §5.\n2. INPUT: Test file for session validation utilities. Mock any filesystem operations if needed. Use various session path strings for testing.\n3. LOGIC: Write test cases: 'should pass validation for valid bugfix session path' (path like '/plan/001_session/bugfix/', expect no error), 'should throw error for non-bugfix session path' (path like '/plan/001_session/main/', expect BugfixSessionValidationError), 'should throw error with descriptive message' (check error message content), 'should handle paths with bugfix in different positions' (test various valid bugfix path patterns). Use test.each() for multiple path variants.\n4. OUTPUT: Test suite covering validateBugfixSession behavior with valid paths, invalid paths, error messages, and edge cases. Tests should pass with implementation from S1-S2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M3.T2",
+              "title": "Implement Nested Execution Guard",
+              "status": "Planned",
+              "description": "Add PRP_PIPELINE_RUNNING environment variable guard to prevent recursive pipeline execution, with exceptions for legitimate bug fix session recursion.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S1",
+                  "title": "Add validateNestedExecution function",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD §9.2.5 requires PRP_PIPELINE_RUNNING guard to prevent nested execution. No guard currently implemented. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: Create in src/utils/validation/execution-guard.ts or add to session-validation.ts. Environment variables: process.env.PRP_PIPELINE_RUNNING, process.env.SKIP_BUG_FINDING.\n3. LOGIC: Export function validateNestedExecution(sessionPath: string): void. Function should: check if process.env.PRP_PIPELINE_RUNNING is set, if set: check if process.env.SKIP_BUG_FINDING === 'true' AND sessionPath.includes('bugfix'), if both conditions true (legitimate recursion): return without error, else: throw NestedExecutionError with message 'Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {process.env.PRP_PIPELINE_RUNNING}'. If PRP_PIPELINE_RUNNING not set: return without error (first execution).\n4. OUTPUT: Validation function that prevents recursive pipeline execution except for legitimate bug fix session recursion. Function checks environment variables and session path."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S2",
+                  "title": "Add NestedExecutionError class",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need custom error class for nested execution guard failures. Follow pattern from BugfixSessionValidationError. See architecture/002_external_dependencies.md §4.\n2. INPUT: Existing error class patterns. Validation function from S1 that needs error class.\n3. LOGIC: Create NestedExecutionError class extending Error. Constructor should accept runningPid: string parameter. Set error message to 'Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. Running PID: {runningPid}'. Set error name to 'NestedExecutionError'. Add error code property 'NESTED_EXECUTION' for programmatic handling. Include guidance in error message about setting SKIP_BUG_FINDING=true.\n4. OUTPUT: NestedExecutionError error class with clear messaging about nested execution and how to legitimate recurse."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S3",
+                  "title": "Call validateNestedExecution in PRP Pipeline entry point",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRP Pipeline entry point at src/workflows/prp-pipeline.ts or src/index.ts should call guard validation before any pipeline work begins. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: PRP Pipeline run() method or main execution entry point. Session path from sessionManager.currentSession.metadata.path. Validation function from S1.\n3. LOGIC: At the very beginning of PRP Pipeline run() method (before any other logic), call validateNestedExecution(sessionPath). Wrap in try-catch for error handling. Add debug logging: 'Checking for nested execution at {sessionPath}'. If validation passes, log: 'No nested execution detected, proceeding'. If validation throws, log error and re-throw to prevent execution.\n4. OUTPUT: PRP Pipeline validates against nested execution before starting any work. Guard prevents accidental recursive invocation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S4",
+                  "title": "Set PRP_PIPELINE_RUNNING environment variable",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: After validation passes, must set PRP_PIPELINE_RUNNING to current PID so nested executions can detect it. Must clear on exit. See architecture/002_external_dependencies.md §4.\n2. INPUT: PRP Pipeline run() method where validation was added in S3. Use process.pid for current process ID.\n3. LOGIC: After validateNestedExecution passes, set process.env.PRP_PIPELINE_RUNNING = process.pid.toString(). Add debug logging: 'Set PRP_PIPELINE_RUNNING={process.pid}'. Wrap PRP Pipeline run() method body in try-finally block. In finally block: if process.env.PRP_PIPELINE_RUNNING === process.pid.toString(): delete process.env.PRP_PIPELINE_RUNNING (clear only our own PID, not if another process set it). Log: 'Cleared PRP_PIPELINE_RUNNING'.\n4. OUTPUT: PRP Pipeline sets guard environment variable during execution and clears on exit, even if errors occur. Prevents infinite loops while allowing legitimate recursion."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S5",
+                  "title": "Add debug logging for guard context",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T2.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD §9.2.5 requires debug logging showing PLAN_DIR, SESSION_DIR, and SKIP_BUG_FINDING. Essential for troubleshooting guard issues. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: PRD requirements from architecture docs. Existing debug logging infrastructure in codebase. Session manager provides session metadata.\n3. LOGIC: In PRP Pipeline run() method, after validation passes, add debug log with: PLAN_DIR (from sessionManager.planDir or config), SESSION_DIR (from sessionManager.currentSession.metadata.path), SKIP_BUG_FINDING (process.env.SKIP_BUG_FINDING or 'false'), PRP_PIPELINE_RUNNING (process.env.PRP_PIPELINE_RUNNING or 'not set'). Use existing logger or console.debug with format: 'Guard Context: PLAN_DIR={planDir}, SESSION_DIR={sessionDir}, SKIP_BUG_FINDING={skipBugFinding}, PRP_PIPELINE_RUNNING={running}'. Only log if debug mode enabled.\n4. OUTPUT: Debug logging shows all guard-relevant context for troubleshooting. Logs appear when guard validation runs, helping diagnose recursion issues."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T2.S6",
+                  "title": "Add unit tests for nested execution guard",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M3.T2.S5"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Nested execution guard requires comprehensive testing including first execution, nested execution attempts, legitimate recursion, and environment cleanup. See architecture/002_external_dependencies.md §5.\n2. INPUT: Test file for execution guard validation. Mock process.env and process.pid. Test fixtures for various session paths.\n3. LOGIC: Write test cases: 'should allow first execution when PRP_PIPELINE_RUNNING not set' (env var undefined, expect no error), 'should throw error when nested execution without bugfix session' (set PRP_PIPELINE_RUNNING, call with main session path, expect NestedExecutionError), 'should allow nested execution for bugfix session with SKIP_BUG_FINDING=true' (set PRP_PIPELINE_RUNNING and SKIP_BUG_FINDING, call with bugfix path, expect no error), 'should throw error when SKIP_BUG_FINDING but non-bugfix path' (set env vars, call with main path, expect error), 'should include PID in error message' (check error content). Mock process.env using vi.stubEnv() or similar.\n4. OUTPUT: Test suite covering nested execution guard scenarios: first execution, nested execution blocked, legitimate bugfix recursion allowed, error messages accurate. Tests should pass with implementation from S1-S2."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M4",
+          "title": "Milestone 1.4: Status Management Verification",
+          "status": "Planned",
+          "description": "Verify StatusEnum includes 'Retrying' status and status transitions work correctly, ensuring retry logic is properly integrated.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M4.T1",
+              "title": "Verify StatusEnum Includes Retrying Status",
+              "status": "Planned",
+              "description": "Confirm that StatusEnum in src/core/models.ts includes the 'Retrying' status value and that it's properly integrated throughout the codebase.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T1.S1",
+                  "title": "Verify StatusEnum definition includes Retrying",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Bug report claims StatusEnum is missing 'Retrying', but codebase audit shows it may already be included. Must verify actual state. See architecture/001_codebase_audit.md §Research Objective 3.\n2. INPUT: src/core/models.ts file. StatusEnum and Status type definitions. Recent commit 63bed9c reference.\n3. LOGIC: Read src/core/models.ts and locate StatusEnum definition. Check if 'Retrying' is included in the enum values. Check if Status union type includes 'Retrying'. If missing: add 'Retrying' to StatusEnum Zod schema, add 'Retrying' to Status union type. If already present: verify it's correctly positioned in the status lifecycle (should be between 'Implementing' and 'Complete' or similar). Document findings.\n4. OUTPUT: StatusEnum verified to include 'Retrying' status or updated to include it. Status type union includes 'Retrying'. Document current state."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T1.S2",
+                  "title": "Verify status color and indicator mappings include Retrying",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M4.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Status display code should handle 'Retrying' with appropriate color (yellow) and indicator (circular arrow). See architecture/001_codebase_audit.md §Research Objective 3.\n2. INPUT: src/utils/display/status-colors.ts and similar files for status indicators. StatusEnum from S1.\n3. LOGIC: Locate status color mapping file. Check if 'Retrying' status has a color mapping (should be chalk.yellow for retry state). If missing: add colorMap['Retrying'] = chalk.yellow. Locate status indicator mapping file. Check if 'Retrying' has an indicator (should be '↻' circular arrow). If missing: add indicatorMap['Retrying'] = '↻'. Verify mappings match the pattern from commit 63bed9c.\n4. OUTPUT: Status color and indicator mappings include 'Retrying' with yellow color and circular arrow indicator. Display infrastructure supports retry status."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T1.S3",
+                  "title": "Verify TaskRetryManager uses Retrying status",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M4.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TaskRetryManager should set task status to 'Retrying' when initiating a retry. Verify integration between retry logic and status management. See architecture/001_codebase_audit.md §Research Objective 3.\n2. INPUT: TaskRetryManager class (likely in src/core/task-retry-manager.ts or similar). Status update mechanisms via SessionManager.\n3. LOGIC: Locate TaskRetryManager and find where it initiates task retries. Check if it updates task status to 'Retrying' when retry begins. Search for status update calls (sessionManager.updateTaskStatus or similar). If 'Retrying' status is not being set: add status update to 'Retrying' when retry is initiated. Ensure status transitions from 'Implementing' → 'Failed' → 'Retrying' → 'Implementing' work correctly.\n4. OUTPUT: TaskRetryManager correctly sets task status to 'Retrying' when initiating retries. Status lifecycle properly models retry behavior."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M4.T1.S4",
+                  "title": "Update status model unit tests",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M4.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: tests/unit/core/models.test.ts expects 7 status values including 'Retrying'. Tests may need updating based on verification from S1-S3. See Bug Report §Issue 3.\n2. INPUT: tests/unit/core/models.test.ts file. StatusEnum from S1. Test expectations from bug report.\n3. LOGIC: Run tests for StatusEnum and Status type. If tests fail because they expect 7 values but enum has 6: verify tests are correct (should expect 7). If 'Retrying' was added in S1, update tests to expect 7 values. Test 'should expose all enum values via options property' should pass. Test 'should document complete status lifecycle' should pass. Add specific test for 'Retrying' status inclusion if missing.\n4. OUTPUT: Status model unit tests pass with correct status count including 'Retrying'. Tests validate complete status lifecycle."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

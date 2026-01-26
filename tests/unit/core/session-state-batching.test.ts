@@ -48,6 +48,7 @@ vi.mock('node:fs', () => ({
 vi.mock('node:crypto', () => ({
   randomBytes: vi.fn(),
   createHash: vi.fn(),
+  randomUUID: vi.fn(),
 }));
 
 // Mock the session-utils module
@@ -88,6 +89,7 @@ vi.mock('../../../src/utils/task-utils.js', () => ({
 // Import mocked modules
 import { readFile, readdir } from 'node:fs/promises';
 import { statSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { PRDValidator } from '../../../src/utils/prd-validator.js';
 import { updateItemStatus as updateItemStatusUtil } from '../../../src/utils/task-utils.js';
 
@@ -99,6 +101,7 @@ const mockReadFile = vi.mocked(readFile);
 const mockReaddir = vi.mocked(readdir);
 const mockStatSync = vi.mocked(statSync);
 const mockRandomBytes = vi.mocked(randomBytes);
+const mockRandomUUID = vi.mocked(randomUUID);
 
 const mockHashPRD = vi.mocked(hashPRD);
 const mockCreateSessionDirectory = vi.mocked(createSessionDirectory);
@@ -368,6 +371,9 @@ describe('SessionManager Batching and Atomic State Updates', () => {
     (mockRandomBytes as any).mockReturnValue(
       Buffer.from('abc123def4567890', 'hex')
     );
+
+    // Set up deterministic UUID for correlation IDs
+    (mockRandomUUID as any).mockReturnValue('test-uuid-12345');
 
     // Default successful mock implementations
     mockWriteFile.mockResolvedValue(undefined);
