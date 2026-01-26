@@ -15,7 +15,7 @@
  * ```typescript
  * import { FixCycleWorkflow } from './workflows/fix-cycle-workflow.js';
  *
- * const workflow = new FixCycleWorkflow(testResults, prdContent, orchestrator, sessionManager);
+ * const workflow = new FixCycleWorkflow(sessionPath, prdContent, orchestrator, sessionManager);
  * const results = await workflow.run();
  * console.log(`Final bug count: ${results.bugs.length}`);
  * ```
@@ -53,8 +53,8 @@ export class FixCycleWorkflow extends Workflow {
   // Public State Fields
   // ========================================================================
 
-  /** Initial test results from BugHuntWorkflow */
-  testResults: TestResults;
+  /** Path to bugfix session directory for reading TEST_RESULTS.md */
+  sessionPath: string;
 
   /** Original PRD content for QA context */
   prdContent: string;
@@ -91,14 +91,14 @@ export class FixCycleWorkflow extends Workflow {
   /**
    * Creates a new FixCycleWorkflow instance
    *
-   * @param testResults - Initial test results from BugHuntWorkflow containing bug reports
+   * @param sessionPath - Path to bugfix session directory for reading TEST_RESULTS.md
    * @param prdContent - Original PRD content for QA context
    * @param taskOrchestrator - Task orchestrator for executing fix tasks
    * @param sessionManager - Session manager for state persistence
-   * @throws {Error} If testResults is missing bugs array
+   * @throws {Error} If sessionPath is not a valid non-empty string
    */
   constructor(
-    testResults: TestResults,
+    sessionPath: string,
     prdContent: string,
     taskOrchestrator: TaskOrchestrator,
     sessionManager: SessionManager
@@ -106,11 +106,11 @@ export class FixCycleWorkflow extends Workflow {
     super('FixCycleWorkflow');
 
     // Validate inputs
-    if (testResults.bugs.length === 0) {
-      throw new Error('FixCycleWorkflow requires testResults with bugs to fix');
+    if (typeof sessionPath !== 'string' || sessionPath.trim() === '') {
+      throw new Error('FixCycleWorkflow requires valid sessionPath');
     }
 
-    this.testResults = testResults;
+    this.sessionPath = sessionPath;
     this.prdContent = prdContent;
     this.taskOrchestrator = taskOrchestrator;
     this.sessionManager = sessionManager;
@@ -122,12 +122,12 @@ export class FixCycleWorkflow extends Workflow {
     });
 
     this.logger.info('[FixCycleWorkflow] Initialized', {
-      initialBugCount: testResults.bugs.length,
+      sessionPath: sessionPath,
       maxIterations: this.maxIterations,
     });
     this.correlationLogger.info('[FixCycleWorkflow] Initialized', {
       correlationId,
-      initialBugCount: testResults.bugs.length,
+      sessionPath: sessionPath,
       maxIterations: this.maxIterations,
     });
   }

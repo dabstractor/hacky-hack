@@ -165,7 +165,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Update FixCycleWorkflow constructor to accept session path",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FixCycleWorkflow currently accepts TestResults in constructor at src/workflows/fix-cycle-workflow.ts. Should instead accept sessionPath and read TEST_RESULTS.md from disk. See architecture/003_system_context.md §Bug 3.\n2. INPUT: FixCycleWorkflow class at src/workflows/fix-cycle-workflow.ts. Current constructor signature: constructor(testResults, prdContent, taskOrchestrator, sessionManager). PRD and system context from architecture/003_system_context.md.\n3. LOGIC: Update constructor signature from (testResults: TestResults, ...) to (sessionPath: string, ...). Remove testResults parameter. Add sessionPath as first parameter. Store sessionPath as instance property this.sessionPath. Remove in-memory testResults storage. Preserve other constructor parameters: prdContent, taskOrchestrator, sessionManager.\n4. OUTPUT: FixCycleWorkflow constructor updated to accept sessionPath instead of TestResults. Constructor signature changed but class initialization logic preserved."

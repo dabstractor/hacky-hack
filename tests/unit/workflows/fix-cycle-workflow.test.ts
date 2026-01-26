@@ -112,86 +112,72 @@ describe('FixCycleWorkflow', () => {
   });
 
   describe('constructor', () => {
-    it('should throw if testResults has no bugs', () => {
+    it('should throw if sessionPath is empty string', () => {
       // SETUP
-      const emptyResults: TestResults = {
-        hasBugs: false,
-        bugs: [],
-        summary: 'No bugs',
-        recommendations: [],
-      };
+      const orchestrator = createMockTaskOrchestrator();
+      const sessionManager = createMockSessionManager();
+
+      // EXECUTE & VERIFY
+      expect(() => {
+        new FixCycleWorkflow('', 'PRD content', orchestrator, sessionManager);
+      }).toThrow('requires valid sessionPath');
+    });
+
+    it('should throw if sessionPath is whitespace only', () => {
+      // SETUP
       const orchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
 
       // EXECUTE & VERIFY
       expect(() => {
         new FixCycleWorkflow(
-          emptyResults,
+          '   ',
           'PRD content',
           orchestrator,
           sessionManager
         );
-      }).toThrow('requires testResults with bugs to fix');
+      }).toThrow('requires valid sessionPath');
+    });
+
+    it('should accept valid non-empty sessionPath string', () => {
+      // SETUP
+      const orchestrator = createMockTaskOrchestrator();
+      const sessionManager = createMockSessionManager();
+
+      // EXECUTE & VERIFY - Should not throw
+      expect(() => {
+        new FixCycleWorkflow(
+          'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
+          'PRD content',
+          orchestrator,
+          sessionManager
+        );
+      }).not.toThrow();
     });
 
     it('should initialize with provided values', () => {
       // SETUP
-      const testResults: TestResults = {
-        hasBugs: true,
-        bugs: [
-          createTestBug(
-            'BUG-001',
-            'critical',
-            'Login bug',
-            'Critical login failure',
-            '1. Go to login\n2. Enter bad password'
-          ),
-        ],
-        summary: 'Found 1 critical bug',
-        recommendations: ['Fix login validation'],
-      };
+      const sessionPath = 'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918';
       const prdContent = '# PRD Content';
       const orchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
 
       // EXECUTE
       const workflow = new FixCycleWorkflow(
-        testResults,
+        sessionPath,
         prdContent,
         orchestrator,
         sessionManager
       );
 
       // VERIFY
-      expect(workflow.testResults).toEqual(testResults);
+      expect(workflow.sessionPath).toBe(sessionPath);
       expect(workflow.prdContent).toBe(prdContent);
       expect(workflow.taskOrchestrator).toBe(orchestrator);
       expect(workflow.sessionManager).toBe(sessionManager);
       expect(workflow.iteration).toBe(0);
       expect(workflow.maxIterations).toBe(3);
       expect(workflow.currentResults).toBeNull();
-    });
-
-    it('should accept testResults with empty bugs array only if hasBugs is false', () => {
-      // SETUP
-      const emptyResults: TestResults = {
-        hasBugs: false,
-        bugs: [],
-        summary: 'No bugs',
-        recommendations: [],
-      };
-      const orchestrator = createMockTaskOrchestrator();
-      const sessionManager = createMockSessionManager();
-
-      // EXECUTE & VERIFY - Should throw because bugs array is empty
-      expect(() => {
-        new FixCycleWorkflow(
-          emptyResults,
-          'PRD content',
-          orchestrator,
-          sessionManager
-        );
-      }).toThrow('requires testResults with bugs to fix');
     });
   });
 
@@ -224,7 +210,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -282,7 +268,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -321,7 +307,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -353,7 +339,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         mockOrchestrator,
         sessionManager
@@ -389,7 +375,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         mockOrchestrator,
         sessionManager
@@ -426,7 +412,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -462,7 +448,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -497,7 +483,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -532,7 +518,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -575,7 +561,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        initialResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -611,7 +597,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         orchestrator,
         sessionManager
@@ -672,7 +658,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         mockOrchestrator,
         sessionManager
@@ -727,7 +713,7 @@ describe('FixCycleWorkflow', () => {
       const sessionManager = createMockSessionManager();
 
       const workflow = new FixCycleWorkflow(
-        testResults,
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',
         'PRD content',
         mockOrchestrator,
         sessionManager
