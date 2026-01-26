@@ -38,6 +38,10 @@ import { getLogger } from '../utils/logger.js';
 import { TaskOrchestrator } from '../core/task-orchestrator.js';
 import { SessionManager } from '../core/session-manager.js';
 import { BugHuntWorkflow } from './bug-hunt-workflow.js';
+import {
+  validateBugfixSession,
+  BugfixSessionValidationError,
+} from '../utils/validation/session-validation.js';
 
 /**
  * Fix Cycle workflow class
@@ -103,6 +107,7 @@ export class FixCycleWorkflow extends Workflow {
    * @param taskOrchestrator - Task orchestrator for executing fix tasks
    * @param sessionManager - Session manager for state persistence
    * @throws {Error} If sessionPath is not a valid non-empty string
+   * @throws {BugfixSessionValidationError} If sessionPath is not a valid bugfix session
    */
   constructor(
     sessionPath: string,
@@ -121,6 +126,34 @@ export class FixCycleWorkflow extends Workflow {
     this.prdContent = prdContent;
     this.taskOrchestrator = taskOrchestrator;
     this.sessionManager = sessionManager;
+
+    // Validate bugfix session path
+    this.logger.debug(
+      `[FixCycleWorkflow] Validating bugfix session path: ${this.sessionPath}`
+    );
+
+    try {
+      validateBugfixSession(this.sessionPath);
+      this.logger.debug(
+        `[FixCycleWorkflow] Bugfix session path validated: ${this.sessionPath}`
+      );
+    } catch (error) {
+      if (error instanceof BugfixSessionValidationError) {
+        this.correlationLogger = getLogger('FixCycleWorkflow').child({
+          correlationId: 'init-failed',
+        });
+        this.correlationLogger.error(
+          { sessionPath: this.sessionPath, validationError: error.message },
+          '[FixCycleWorkflow] Bugfix session validation failed during initialization'
+        );
+        throw error;
+      }
+
+      // Defensive: Handle unexpected error types
+      throw new Error(
+        'FixCycleWorkflow initialization failed: validation error'
+      );
+    }
 
     // Create correlation logger with correlation ID
     const correlationId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

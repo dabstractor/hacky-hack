@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Critical Bug Fixes",
-      "status": "Complete",
+      "status": "Planned",
       "description": "Fix critical constructor signature mismatches, workflow timing issues, and missing validation logic that prevent core PRP Pipeline functionality from working correctly.",
       "milestones": [
         {
@@ -222,14 +222,14 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "Milestone 1.3: Session Validation Guards",
-          "status": "Complete",
+          "status": "Planned",
           "description": "Implement bugfix session path validation and nested execution guard to prevent operations in invalid contexts and protect against recursive pipeline execution.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Implement Bugfix Session Path Validation",
-              "status": "Complete",
+              "status": "Ready",
               "description": "Add validation to ensure bug fix tasks are only created within session directories that contain 'bugfix' in the path, as required by PRD §5.1.",
               "subtasks": [
                 {
@@ -256,7 +256,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S3",
                   "title": "Call validateBugfixSession in FixCycleWorkflow constructor",
-                  "status": "Failed",
+                  "status": "Implementing",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S2"
@@ -267,7 +267,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S4",
                   "title": "Add unit tests for bugfix session validation",
-                  "status": "Failed",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S3"
@@ -280,14 +280,14 @@
               "type": "Task",
               "id": "P1.M3.T2",
               "title": "Implement Nested Execution Guard",
-              "status": "Complete",
+              "status": "Planned",
               "description": "Add PRP_PIPELINE_RUNNING environment variable guard to prevent recursive pipeline execution, with exceptions for legitimate bug fix session recursion.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T2.S1",
                   "title": "Add validateNestedExecution function",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD §9.2.5 requires PRP_PIPELINE_RUNNING guard to prevent nested execution. No guard currently implemented. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: Create in src/utils/validation/execution-guard.ts or add to session-validation.ts. Environment variables: process.env.PRP_PIPELINE_RUNNING, process.env.SKIP_BUG_FINDING.\n3. LOGIC: Export function validateNestedExecution(sessionPath: string): void. Function should: check if process.env.PRP_PIPELINE_RUNNING is set, if set: check if process.env.SKIP_BUG_FINDING === 'true' AND sessionPath.includes('bugfix'), if both conditions true (legitimate recursion): return without error, else: throw NestedExecutionError with message 'Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {process.env.PRP_PIPELINE_RUNNING}'. If PRP_PIPELINE_RUNNING not set: return without error (first execution).\n4. OUTPUT: Validation function that prevents recursive pipeline execution except for legitimate bug fix session recursion. Function checks environment variables and session path."
@@ -296,7 +296,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S2",
                   "title": "Add NestedExecutionError class",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S1"
@@ -307,7 +307,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S3",
                   "title": "Call validateNestedExecution in PRP Pipeline entry point",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S2"
@@ -329,7 +329,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S5",
                   "title": "Add debug logging for guard context",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S4"
@@ -340,7 +340,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S6",
                   "title": "Add unit tests for nested execution guard",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M3.T2.S5"
@@ -355,21 +355,21 @@
           "type": "Milestone",
           "id": "P1.M4",
           "title": "Milestone 1.4: Status Management Verification",
-          "status": "Failed",
+          "status": "Planned",
           "description": "Verify StatusEnum includes 'Retrying' status and status transitions work correctly, ensuring retry logic is properly integrated.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M4.T1",
               "title": "Verify StatusEnum Includes Retrying Status",
-              "status": "Failed",
+              "status": "Planned",
               "description": "Confirm that StatusEnum in src/core/models.ts includes the 'Retrying' status value and that it's properly integrated throughout the codebase.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M4.T1.S1",
                   "title": "Verify StatusEnum definition includes Retrying",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Bug report claims StatusEnum is missing 'Retrying', but codebase audit shows it may already be included. Must verify actual state. See architecture/001_codebase_audit.md §Research Objective 3.\n2. INPUT: src/core/models.ts file. StatusEnum and Status type definitions. Recent commit 63bed9c reference.\n3. LOGIC: Read src/core/models.ts and locate StatusEnum definition. Check if 'Retrying' is included in the enum values. Check if Status union type includes 'Retrying'. If missing: add 'Retrying' to StatusEnum Zod schema, add 'Retrying' to Status union type. If already present: verify it's correctly positioned in the status lifecycle (should be between 'Implementing' and 'Complete' or similar). Document findings.\n4. OUTPUT: StatusEnum verified to include 'Retrying' status or updated to include it. Status type union includes 'Retrying'. Document current state."
@@ -378,7 +378,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S2",
                   "title": "Verify status color and indicator mappings include Retrying",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S1"
@@ -389,7 +389,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S3",
                   "title": "Verify TaskRetryManager uses Retrying status",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S2"
@@ -400,7 +400,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S4",
                   "title": "Update status model unit tests",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S3"
