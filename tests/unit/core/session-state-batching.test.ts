@@ -205,14 +205,20 @@ function _createMockBacklog(): Backlog {
 /**
  * Creates an initialized SessionManager for testing
  */
-async function createMockSessionManager(): Promise<SessionManager> {
+async function createMockSessionManager(
+  flushRetries: number = 3
+): Promise<SessionManager> {
   // Mock statSync for PRD file validation BEFORE creating SessionManager
   // (constructor validates PRD path synchronously)
   mockStatSync.mockReturnValue({
     isFile: () => true,
   } as any);
 
-  const manager = new SessionManager('/test/PRD.md', '/test/plan');
+  const manager = new SessionManager(
+    '/test/PRD.md',
+    '/test/plan',
+    flushRetries
+  );
 
   // Mock readFile for PRD content (PRDValidator reads the file)
   mockReadFile.mockResolvedValue(
