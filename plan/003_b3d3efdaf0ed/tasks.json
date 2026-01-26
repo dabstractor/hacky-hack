@@ -616,7 +616,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Milestone 2.2: Developer Documentation",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Create developer-facing documentation for architecture, extensibility, and contribution.",
           "tasks": [
             {
@@ -703,7 +703,7 @@
               "type": "Task",
               "id": "P2.M2.T3",
               "title": "Task 2.2.3: Testing Documentation",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Document testing strategies, writing tests, and achieving 100% coverage.",
               "subtasks": [
                 {
@@ -719,7 +719,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T3.S2",
                   "title": "Create test writing examples",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T3.S1"
