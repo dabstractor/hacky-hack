@@ -327,7 +327,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T3.S2",
                   "title": "Verify scope execution (--scope, --task flags)",
-                  "status": "Failed",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T3.S1"
@@ -520,7 +520,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Phase 2: Documentation & Observability",
-      "status": "Complete",
+      "status": "Planned",
       "description": "Create comprehensive documentation and observability features to support users and developers in understanding and debugging the pipeline.",
       "milestones": [
         {
@@ -616,7 +616,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Milestone 2.2: Developer Documentation",
-          "status": "Complete",
+          "status": "Planned",
           "description": "Create developer-facing documentation for architecture, extensibility, and contribution.",
           "tasks": [
             {
@@ -670,7 +670,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S1",
                   "title": "Create custom agent development guide",
-                  "status": "Failed",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Agents created via AgentFactory with createAgent(). Configuration: name, system prompt, model, cache, reflection, maxTokens, MCP tools. Four built-in agents: Architect, Researcher, Coder, QA.\n2. INPUT: Agent factory from src/agents/agent-factory.ts, existing agent implementations.\n3. LOGIC: Write custom agent guide in docs/CUSTOM_AGENTS.md that covers: (a) creating new agent types, (b) defining agent roles and system prompts, (c) configuring model selection and token limits, (d) registering custom MCP tools, (e) adding agents to factory. Include complete example of adding a new 'SecurityAuditor' agent.\n4. OUTPUT: Documentation file docs/CUSTOM_AGENTS.md with custom agent development tutorial."
@@ -703,7 +703,7 @@
               "type": "Task",
               "id": "P2.M2.T3",
               "title": "Task 2.2.3: Testing Documentation",
-              "status": "Complete",
+              "status": "Planned",
               "description": "Document testing strategies, writing tests, and achieving 100% coverage.",
               "subtasks": [
                 {
@@ -719,7 +719,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T3.S2",
                   "title": "Create test writing examples",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T3.S1"
@@ -734,21 +734,21 @@
           "type": "Milestone",
           "id": "P2.M3",
           "title": "Milestone 2.3: Observability Features",
-          "status": "Complete",
+          "status": "Planned",
           "description": "Add observability features for monitoring, debugging, and performance analysis.",
           "tasks": [
             {
               "type": "Task",
               "id": "P2.M3.T1",
               "title": "Task 2.3.1: Enhanced Logging and Metrics",
-              "status": "Complete",
+              "status": "Planned",
               "description": "Enhance logging with structured output and add performance metrics collection.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M3.T1.S1",
                   "title": "Add structured log levels and output formatting",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From system_context.md - Current logging uses Pino (structured logging). Logger at src/utils/logger.ts. Log levels: info, warn, error. Already structured, but can be enhanced.\n2. INPUT: Logger implementation from src/utils/logger.ts, Pino configuration and options.\n3. LOGIC: Enhance logger to add: (a) configurable log levels (trace, debug, info, warn, error, fatal), (b) pretty-print mode for development, (c) JSON mode for production, (d) log correlation IDs for request tracking, (e) log filtering by component. Update logger configuration and add CLI option --log-level. Add unit tests for new features.\n4. OUTPUT: Enhanced logger at src/utils/logger.ts with new features, tests in tests/unit/logger-enhancements.test.ts."
@@ -757,7 +757,7 @@
                   "type": "Subtask",
                   "id": "P2.M3.T1.S2",
                   "title": "Add performance metrics collection",
-                  "status": "Failed",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M3.T1.S1"
