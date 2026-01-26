@@ -1025,7 +1025,11 @@ describe('SessionManager', () => {
 
       // VERIFY
       expect(deltaSession.metadata.id).toBe('002_a3f8e9d12b4a');
-      expect(mockCreateSessionDirectory).toHaveBeenCalledWith('/new/PRD.md', 2, resolve('plan'));
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
+        '/new/PRD.md',
+        2,
+        resolve('plan')
+      );
     });
 
     it('should write parent_session.txt to new session directory', async () => {

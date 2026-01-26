@@ -14,19 +14,19 @@ This document analyzes the existing integration and unit test patterns in the co
 
 ### Core Component Integration Tests
 
-| File | Component | Pattern Focus |
-|------|-----------|---------------|
-| `/home/dustin/projects/hacky-hack/tests/integration/core/research-queue.test.ts` | ResearchQueue | Multi-parameter constructor, factory functions, mock assertions |
-| `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator.test.ts` | TaskOrchestrator | Constructor testing with SessionManager |
-| `/home/dustin/projects/hacky-hack/tests/integration/prp-generator-integration.test.ts` | PRPGenerator | Constructor validation, SessionManager integration |
+| File                                                                                   | Component        | Pattern Focus                                                   |
+| -------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------- |
+| `/home/dustin/projects/hacky-hack/tests/integration/core/research-queue.test.ts`       | ResearchQueue    | Multi-parameter constructor, factory functions, mock assertions |
+| `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator.test.ts`    | TaskOrchestrator | Constructor testing with SessionManager                         |
+| `/home/dustin/projects/hacky-hack/tests/integration/prp-generator-integration.test.ts` | PRPGenerator     | Constructor validation, SessionManager integration              |
 
 ### Agent Integration Tests
 
-| File | Component | Pattern Focus |
-|------|-----------|---------------|
-| `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts` | Agent Factory | Mock assertions for `createAgent`, `createPrompt` |
-| `/home/dustin/projects/hacky-hack/tests/integration/tools.test.ts` | MCP Tools | Mock factory functions, ChildProcess mocking |
-| `/home/dustin/projects/hacky-hack/tests/integration/forbidden-operations.test.ts` | Operations Enforcement | Test constants, mock factories |
+| File                                                                              | Component              | Pattern Focus                                     |
+| --------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------- |
+| `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts`               | Agent Factory          | Mock assertions for `createAgent`, `createPrompt` |
+| `/home/dustin/projects/hacky-hack/tests/integration/tools.test.ts`                | MCP Tools              | Mock factory functions, ChildProcess mocking      |
+| `/home/dustin/projects/hacky-hack/tests/integration/forbidden-operations.test.ts` | Operations Enforcement | Test constants, mock factories                    |
 
 ### Other Notable Integration Tests
 
@@ -38,7 +38,7 @@ This document analyzes the existing integration and unit test patterns in the co
 
 ## 2. Test Constant Patterns
 
-### Pattern 1: DEFAULT_ Constants (Unit Tests)
+### Pattern 1: DEFAULT\_ Constants (Unit Tests)
 
 **Location:** `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts` (lines 101-104)
 
@@ -50,6 +50,7 @@ const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 ```
 
 **Usage Pattern:**
+
 ```typescript
 const queue = new ResearchQueue(
   mockManager,
@@ -60,12 +61,13 @@ const queue = new ResearchQueue(
 ```
 
 **Purpose:**
+
 - Centralizes default parameter values for consistency
 - Makes tests self-documenting by showing expected defaults
 - Simplifies test updates when defaults change
 - Enables testing of non-default values by overriding specific constants
 
-### Pattern 2: TEST_ Constants (Integration Tests)
+### Pattern 2: TEST\_ Constants (Integration Tests)
 
 **Location:** `/home/dustin/projects/hacky-hack/tests/integration/artifacts-command.test.ts` (lines 29-59)
 
@@ -83,11 +85,12 @@ const TEST_ARTIFACTS_2 = {
 ```
 
 **Purpose:**
+
 - Provides reusable test data fixtures
 - Separates test data from test logic
 - Enables easy data variations (TEST_ARTIFACTS, TEST_ARTIFACTS_2)
 
-### Pattern 3: PROTECTED_ Constants (Domain-Specific)
+### Pattern 3: PROTECTED\_ Constants (Domain-Specific)
 
 **Location:** `/home/dustin/projects/hacky-hack/tests/integration/forbidden-operations.test.ts` (lines 115-149)
 
@@ -115,6 +118,7 @@ const FORBIDDEN_PIPELINE_COMMANDS = [
 ```
 
 **Purpose:**
+
 - Domain-specific constants for test scenarios
 - Uses `as const` for type safety
 - Groups related constants together
@@ -128,6 +132,7 @@ const TEMP_DIR_TEMPLATE = join(tmpdir(), 'orchestrator-test-XXXXXX');
 ```
 
 **Usage:**
+
 ```typescript
 function setupTestEnvironment(): {
   tempDir: string;
@@ -151,9 +156,13 @@ function setupTestEnvironment(): {
 describe('constructor', () => {
   it('should store sessionManager as readonly property', () => {
     // SETUP: Create mock session manager with active session
-    const currentSession = { /* ... */ };
+    const currentSession = {
+      /* ... */
+    };
     const mockManager = createMockSessionManager(currentSession);
-    const mockGenerate = vi.fn().mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+    const mockGenerate = vi
+      .fn()
+      .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
     MockPRPGenerator.mockImplementation(() => ({
       generate: mockGenerate,
     }));
@@ -172,14 +181,16 @@ describe('constructor', () => {
 
   it('should set maxSize from constructor parameter', () => {
     // SETUP
-    const currentSession = { /* ... */ };
+    const currentSession = {
+      /* ... */
+    };
     const mockManager = createMockSessionManager(currentSession);
     // ... mock setup
 
     // EXECUTE
     const queue = new ResearchQueue(
       mockManager,
-      5,  // Custom value
+      5, // Custom value
       DEFAULT_NO_CACHE,
       DEFAULT_CACHE_TTL_MS
     );
@@ -191,8 +202,9 @@ describe('constructor', () => {
 ```
 
 **Key Elements:**
+
 1. **Setup/Execute/Verify** pattern clearly marked with comments
-2. Uses DEFAULT_ constants for parameters not being tested
+2. Uses DEFAULT\_ constants for parameters not being tested
 3. Tests each parameter independently
 4. Tests boundary values (min/max concurrency)
 
@@ -213,6 +225,7 @@ it('should throw error when no active session', () => {
 ```
 
 **Key Elements:**
+
 - Tests error conditions in constructor
 - Uses `expect(() => ...).toThrow()` pattern
 - Validates exact error message
@@ -243,6 +256,7 @@ describe('constructor', () => {
 ```
 
 **Key Elements:**
+
 - Tests side effects of constructor (agent caching)
 - Validates that constructor parameters are correctly stored
 - Verifies initialization logic
@@ -278,8 +292,12 @@ const createTestPRPDocument = (taskId: string): PRPDocument => ({
   objective: `Test objective for ${taskId}`,
   context: '## Context\n\nTest context content.',
   implementationSteps: [`Step 1 for ${taskId}`, `Step 2 for ${taskId}`],
-  validationGates: [/* ... */],
-  successCriteria: [/* ... */],
+  validationGates: [
+    /* ... */
+  ],
+  successCriteria: [
+    /* ... */
+  ],
   references: [`src/test-${taskId}.ts`],
 });
 
@@ -297,6 +315,7 @@ const createMockSessionManager = (currentSession: any): SessionManager => {
 ```
 
 **Key Characteristics:**
+
 - Named `createTest*` or `createMock*` for clarity
 - Use default parameter values for optional fields
 - Return typed objects for type safety
@@ -350,6 +369,7 @@ function createMockChild(
 ```
 
 **Key Characteristics:**
+
 - Options object pattern for configuration
 - Destructuring with defaults
 - JSDoc for documentation
@@ -380,6 +400,7 @@ function parseToolResult(toolResult: any) {
 ```
 
 **Key Characteristics:**
+
 - Named with verb (parse, format, convert)
 - Provide reusable test logic
 - Handle edge cases gracefully
@@ -419,6 +440,7 @@ it('should create architect agent with TASK_BREAKDOWN_PROMPT', () => {
 ```
 
 **Key Elements:**
+
 - Uses `expect.objectContaining()` for partial matching
 - Verifies exact values for critical parameters
 - Can verify all parameters or subset
@@ -436,6 +458,7 @@ expect(mockGenerate).toHaveBeenCalledTimes(2);
 ```
 
 **Key Elements:**
+
 - Verifies exact parameter values passed
 - Uses `toHaveBeenCalledTimes()` for validation
 - Tests parameter forwarding through multiple layers
@@ -447,8 +470,7 @@ expect(mockGenerate).toHaveBeenCalledTimes(2);
 ```typescript
 // VERIFY: File was written to correct location
 const prpCall = mockWriteFile.mock.calls.find(
-  (call: any[]) =>
-    call[0] && call[0].toString().endsWith('P3_M3_T1_S1.md')
+  (call: any[]) => call[0] && call[0].toString().endsWith('P3_M3_T1_S1.md')
 );
 expect(prpCall).toBeDefined();
 expect(prpCall![1]).toContain('# PRP for P3.M3.T1.S1');
@@ -461,6 +483,7 @@ expect(mockMkdir).toHaveBeenCalledWith(join(sessionPath, 'prps'), {
 ```
 
 **Key Elements:**
+
 - Uses `mock.calls.find()` to locate specific calls
 - Validates multiple parameters (path, content, options)
 - Tests file system integration without real I/O
@@ -501,6 +524,7 @@ function createTestSubtask(
 ```
 
 **Key Elements:**
+
 - Uses `// ===...===` separators for major sections
 - Clear section labels
 - JSDoc for functions
@@ -537,6 +561,7 @@ vi.mock('../../../src/agents/prp-generator.js', () => ({
 ```
 
 **Key Elements:**
+
 - Uses `vi.hoisted()` for mock references
 - Explains WHY hoisting is required
 - Groups related mocks together
@@ -585,6 +610,7 @@ describe('ResearchQueue Integration Tests', () => {
 ```
 
 **Key Elements:**
+
 - Top-level describe with component name
 - `beforeEach`/`afterEach` for setup/teardown
 - Nested describe for feature groupings
@@ -621,6 +647,7 @@ describe('ResearchQueue Integration Tests', () => {
 ```
 
 **Key Elements:**
+
 - JSDoc comment block at file start
 - `@remarks` section explaining test approach
 - Bullet points listing what's tested
@@ -634,6 +661,7 @@ describe('ResearchQueue Integration Tests', () => {
 ### Example: ResearchQueue 4-Parameter Constructor
 
 **Context:** ResearchQueue constructor was updated to accept 4 parameters:
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -646,6 +674,7 @@ constructor(
 **Testing Approach:**
 
 1. **Added Test Constants** (`/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts`):
+
 ```typescript
 // Test constants for ResearchQueue constructor parameters
 const DEFAULT_MAX_SIZE = 3;
@@ -654,20 +683,24 @@ const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 ```
 
 2. **Updated All Constructor Calls** - From:
+
 ```typescript
-new ResearchQueue(mockSessionManager, 3)
+new ResearchQueue(mockSessionManager, 3);
 ```
+
 To:
+
 ```typescript
 new ResearchQueue(
   mockSessionManager,
   DEFAULT_MAX_SIZE,
   DEFAULT_NO_CACHE,
   DEFAULT_CACHE_TTL_MS
-)
+);
 ```
 
 3. **Added Parameter-Specific Tests**:
+
 ```typescript
 it('should set maxSize from constructor parameter', () => {
   const queue = new ResearchQueue(
@@ -683,6 +716,7 @@ it('should set maxSize from constructor parameter', () => {
 ### Example: PRPGenerator noCache/cacheTtlMs Parameters
 
 **Context:** PRPGenerator constructor was updated to accept optional cache parameters:
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -694,6 +728,7 @@ constructor(
 **Testing Approach:**
 
 1. **Added tests in separate file** (`/home/dustin/projects/hacky-hack/tests/unit/prp-cache-ttl.test.ts`):
+
 ```typescript
 describe('PRPGenerator cache TTL configuration', () => {
   it('should use default cache TTL when not specified', async () => {
@@ -710,6 +745,7 @@ describe('PRPGenerator cache TTL configuration', () => {
 ```
 
 2. **Updated existing tests** to pass default values:
+
 ```typescript
 // Before
 const generator = new PRPGenerator(mockSessionManager);
@@ -724,7 +760,8 @@ const generator = new PRPGenerator(mockSessionManager, false);
 
 ### For Testing Constructor Parameter Updates:
 
-1. **Define DEFAULT_ Constants** at the top of test files:
+1. **Define DEFAULT\_ Constants** at the top of test files:
+
    ```typescript
    const DEFAULT_PARAM_1 = value1;
    const DEFAULT_PARAM_2 = value2;
@@ -732,19 +769,26 @@ const generator = new PRPGenerator(mockSessionManager, false);
    ```
 
 2. **Update All Constructor Calls** to use the complete signature:
+
    ```typescript
    new ClassName(
      mockManager,
      DEFAULT_PARAM_1,
      DEFAULT_PARAM_2,
      DEFAULT_PARAM_3
-   )
+   );
    ```
 
 3. **Test Each Parameter Independently**:
+
    ```typescript
    it('should set param1 from constructor', () => {
-     const instance = new ClassName(mockManager, CUSTOM_VALUE_1, DEFAULT_PARAM_2, DEFAULT_PARAM_3);
+     const instance = new ClassName(
+       mockManager,
+       CUSTOM_VALUE_1,
+       DEFAULT_PARAM_2,
+       DEFAULT_PARAM_3
+     );
      expect(instance.param1).toBe(CUSTOM_VALUE_1);
    });
    ```
@@ -752,7 +796,12 @@ const generator = new PRPGenerator(mockSessionManager, false);
 4. **Test Boundary Values**:
    ```typescript
    it('should handle minimum value', () => {
-     const instance = new ClassName(mockManager, MIN_VALUE, DEFAULT_PARAM_2, DEFAULT_PARAM_3);
+     const instance = new ClassName(
+       mockManager,
+       MIN_VALUE,
+       DEFAULT_PARAM_2,
+       DEFAULT_PARAM_3
+     );
      expect(instance.param1).toBe(MIN_VALUE);
    });
    ```
@@ -760,6 +809,7 @@ const generator = new PRPGenerator(mockSessionManager, false);
 ### For Mock Assertions:
 
 1. **Use expect.objectContaining() for partial matches**:
+
    ```typescript
    expect(mockConstructor).toHaveBeenCalledWith(
      expect.objectContaining({
@@ -769,6 +819,7 @@ const generator = new PRPGenerator(mockSessionManager, false);
    ```
 
 2. **Verify exact parameters when critical**:
+
    ```typescript
    expect(mockConstructor).toHaveBeenCalledWith(
      sessionManager,
@@ -780,9 +831,7 @@ const generator = new PRPGenerator(mockSessionManager, false);
 
 3. **Use mock.calls.find() for specific call identification**:
    ```typescript
-   const call = mockFunction.mock.calls.find(
-     (call) => call[0] === targetValue
-   );
+   const call = mockFunction.mock.calls.find(call => call[0] === targetValue);
    expect(call).toBeDefined();
    ```
 
@@ -806,21 +855,25 @@ const generator = new PRPGenerator(mockSessionManager, false);
 ## 9. Specific Files for Reference
 
 ### For Constructor Testing:
+
 - `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts` - Multi-parameter constructor
 - `/home/dustin/projects/hacky-hack/tests/unit/agents/prp-generator.test.ts` - Optional parameters
 - `/home/dustin/projects/hacky-hack/tests/unit/prp-cache-ttl.test.ts` - Cache parameter testing
 
 ### For Mock Assertions:
+
 - `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts` - Constructor call assertions
 - `/home/dustin/projects/hacky-hack/tests/integration/core/research-queue.test.ts` - Parameter forwarding
 - `/home/dustin/projects/hacky-hack/tests/integration/prp-generator-integration.test.ts` - File operation assertions
 
 ### For Factory Functions:
+
 - `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts` - Test data factories
 - `/home/dustin/projects/hacky-hack/tests/integration/tools.test.ts` - Mock factories
 - `/home/dustin/projects/hacky-hack/tests/integration/forbidden-operations.test.ts` - Helper functions
 
 ### For Test Organization:
+
 - `/home/dustin/projects/hacky-hack/tests/integration/core/research-queue.test.ts` - Section organization
 - `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator.test.ts` - File structure
 - `/home/dustin/projects/hacky-hack/tests/integration/agents.test.ts` - Mock setup pattern
@@ -831,13 +884,14 @@ const generator = new PRPGenerator(mockSessionManager, false);
 
 The codebase demonstrates consistent patterns for:
 
-1. **Test Constants**: DEFAULT_, TEST_, and domain-specific constants with clear naming
-2. **Constructor Testing**: Setup/Execute/Verify pattern with DEFAULT_ constants for parameter forwarding
+1. **Test Constants**: DEFAULT*, TEST*, and domain-specific constants with clear naming
+2. **Constructor Testing**: Setup/Execute/Verify pattern with DEFAULT\_ constants for parameter forwarding
 3. **Factory Functions**: createTest*/createMock* naming with default parameters and typed returns
 4. **Mock Assertions**: expect.objectContaining() for partial matches, exact matching for critical params
 5. **Test Organization**: Visual separators, nested describe blocks, clear documentation
 
 When implementing the PRPGenerator 4-parameter constructor updates, follow the ResearchQueue pattern:
+
 - Define DEFAULT_NO_CACHE and DEFAULT_CACHE_TTL_MS constants
 - Update all 39 constructor calls to use the complete signature
 - Add tests for each new parameter independently

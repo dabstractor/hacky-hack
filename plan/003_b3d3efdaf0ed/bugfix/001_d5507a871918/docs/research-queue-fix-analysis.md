@@ -1,4 +1,5 @@
 # ResearchQueue Constructor Fix Analysis
+
 ## Patterns Applied to SessionManager Constructor Signature Fix
 
 **Analysis Date**: 2026-01-26
@@ -13,6 +14,7 @@
 The ResearchQueue constructor fix (commits 0961f36 and 59b2b32) provides a proven pattern for updating constructor signatures across test suites. This analysis extracts the reusable patterns and applies them to the SessionManager constructor fix.
 
 ### Key Findings
+
 - **Constructor Signature**: ResearchQueue evolved from 2 parameters to 4 parameters
 - **Test Updates**: 39 unit test instantiations + 22 integration test instantiations updated
 - **Pattern**: Test constants + consistent parameter ordering + mock assertion updates
@@ -23,24 +25,22 @@ The ResearchQueue constructor fix (commits 0961f36 and 59b2b32) provides a prove
 ## 1. ResearchQueue Constructor Signature Evolution
 
 ### Before (2-parameter signature)
+
 ```typescript
 // OLD: Tests used incomplete signature
-new ResearchQueue(sessionManager, maxSize)
-new ResearchQueue(sessionManager)
+new ResearchQueue(sessionManager, maxSize);
+new ResearchQueue(sessionManager);
 ```
 
 ### After (4-parameter signature)
+
 ```typescript
 // NEW: Complete signature with all parameters
-new ResearchQueue(
-  sessionManager,
-  maxSize,
-  noCache,
-  cacheTtlMs
-)
+new ResearchQueue(sessionManager, maxSize, noCache, cacheTtlMs);
 ```
 
 ### Actual Constructor Signature (src/core/research-queue.ts:94-99)
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -66,12 +66,14 @@ const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 ```
 
 **Benefits**:
+
 - Centralized default values
 - Easy to update if constructor defaults change
 - Self-documenting test code
 - Consistency across all test cases
 
 **Apply to SessionManager**:
+
 ```typescript
 // Test constants for SessionManager constructor parameters
 const DEFAULT_PRD_PATH = '/test/PRD.md';
@@ -86,11 +88,13 @@ const DEFAULT_FLUSH_RETRIES = 3;
 **Location**: `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts:135-142`
 
 **Before**:
+
 ```typescript
 const queue = new ResearchQueue(mockManager, 3);
 ```
 
 **After** (multi-line for readability):
+
 ```typescript
 const queue = new ResearchQueue(
   mockManager,
@@ -101,12 +105,14 @@ const queue = new ResearchQueue(
 ```
 
 **Benefits**:
+
 - Clear parameter-to-argument mapping
 - Easy to verify all parameters present
 - Consistent formatting across codebase
 - Reduces merge conflicts
 
 **Apply to SessionManager**:
+
 ```typescript
 // BEFORE (incorrect - 2 parameters)
 const manager = new SessionManager('/test/PRD.md');
@@ -126,11 +132,13 @@ const manager = new SessionManager(
 **Location**: `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts:273-280`
 
 **Before** (incomplete assertion):
+
 ```typescript
 expect(MockPRPGenerator).toHaveBeenCalledWith(mockManager, false, 86400000);
 ```
 
 **After** (complete assertion with constants):
+
 ```typescript
 expect(MockPRPGenerator).toHaveBeenCalledWith(
   mockManager,
@@ -140,12 +148,14 @@ expect(MockPRPGenerator).toHaveBeenCalledWith(
 ```
 
 **Benefits**:
+
 - Validates all parameters are passed correctly
 - Uses test constants for consistency
 - Catches parameter forwarding bugs
 - Documents expected behavior
 
 **Apply to SessionManager**:
+
 ```typescript
 // SessionManager doesn't forward parameters to mocks,
 // but tests should verify constructor parameters are stored correctly
@@ -166,13 +176,13 @@ describe('noCache parameter', () => {
     new ResearchQueue(
       mockManager,
       DEFAULT_MAX_SIZE,
-      true,  // Override default
+      true, // Override default
       DEFAULT_CACHE_TTL_MS
     );
 
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
-      true,  // Verify override passed through
+      true, // Verify override passed through
       DEFAULT_CACHE_TTL_MS
     );
   });
@@ -186,25 +196,27 @@ describe('cacheTtlMs parameter', () => {
       mockManager,
       DEFAULT_MAX_SIZE,
       DEFAULT_NO_CACHE,
-      customTtl  // Custom value
+      customTtl // Custom value
     );
 
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
       DEFAULT_NO_CACHE,
-      customTtl  // Verify custom value
+      customTtl // Verify custom value
     );
   });
 });
 ```
 
 **Benefits**:
+
 - Tests parameter override behavior
 - Validates parameter forwarding
 - Documents non-default usage patterns
 - Catches parameter ordering bugs
 
 **Apply to SessionManager**:
+
 ```typescript
 describe('planDir parameter', () => {
   it('should accept custom plan directory', () => {
@@ -244,25 +256,27 @@ describe('flushRetries parameter', () => {
 // Initialize ResearchQueue with configurable concurrency and cache TTL
 this.researchQueue = new ResearchQueue(
   this.sessionManager,
-  this.#researchQueueConcurrency,  // From config
-  this.#noCache,                    // From config
-  this.#cacheTtlMs                  // From config
+  this.#researchQueueConcurrency, // From config
+  this.#noCache, // From config
+  this.#cacheTtlMs // From config
 );
 ```
 
 **Key Pattern**:
+
 - Uses class properties for parameters
 - Parameters derived from configuration
 - All 4 parameters explicitly passed
 - Debug logging after initialization
 
 **Apply to SessionManager** (if TaskOrchestrator creates it):
+
 ```typescript
 // Verify TaskOrchestrator uses correct 3-parameter signature
 this.sessionManager = new SessionManager(
-  this.#prdPath,      // From configuration
-  this.#planDir,      // From configuration
-  this.#flushRetries  // From configuration
+  this.#prdPath, // From configuration
+  this.#planDir, // From configuration
+  this.#flushRetries // From configuration
 );
 ```
 
@@ -275,12 +289,14 @@ this.sessionManager = new SessionManager(
 ### Unit Test Updates (commit 0961f36)
 
 **Statistics**:
+
 - Files changed: 1 (`tests/unit/core/research-queue.test.ts`)
 - Lines added: 389
 - Instantiations updated: 39
 - New test suites added: 2 (noCache, cacheTtlMs)
 
 **Process**:
+
 1. Add test constants at top of file
 2. Update all `new ResearchQueue(...)` calls to use 4 parameters
 3. Update mock assertions to validate all parameters
@@ -290,12 +306,14 @@ this.sessionManager = new SessionManager(
 ### Integration Test Updates (commit 59b2b32)
 
 **Statistics**:
+
 - Files changed: 1 (`tests/integration/core/research-queue.test.ts`)
 - Lines added: 148
 - Instantiations updated: 22
 - New test scenarios: Cache TTL, concurrency limits, no-cache flag
 
 **Process**:
+
 1. Add same test constants as unit tests
 2. Update all instantiations with 4 parameters
 3. Add integration tests for parameter behavior
@@ -338,6 +356,7 @@ const manager = new SessionManager('/test/PRD.md', '/custom/plan');
 ```
 
 **Note**: Some tests DO use correct 3-parameter signature:
+
 ```typescript
 // CORRECT: 3-parameter usage (line 229)
 const manager = new SessionManager('/test/PRD.md', '/custom/plan');
@@ -365,12 +384,14 @@ const DEFAULT_FLUSH_RETRIES = 3;
 **Pattern**: Find all `new SessionManager(` and update to 3-parameter signature
 
 **Before** (various incorrect patterns):
+
 ```typescript
-const manager = new SessionManager('/test/PRD.md');                    // 1 param
-const manager = new SessionManager('/test/PRD.md', '/custom/plan');     // 2 params
+const manager = new SessionManager('/test/PRD.md'); // 1 param
+const manager = new SessionManager('/test/PRD.md', '/custom/plan'); // 2 params
 ```
 
 **After** (consistent 3-parameter pattern):
+
 ```typescript
 const manager = new SessionManager(
   DEFAULT_PRD_PATH,
@@ -382,20 +403,22 @@ const manager = new SessionManager(
 ### Step 3: Update Parameter Override Tests
 
 **For custom planDir**:
+
 ```typescript
 const manager = new SessionManager(
   DEFAULT_PRD_PATH,
-  '/custom/plan',      // Custom value
+  '/custom/plan', // Custom value
   DEFAULT_FLUSH_RETRIES
 );
 ```
 
 **For custom flushRetries**:
+
 ```typescript
 const manager = new SessionManager(
   DEFAULT_PRD_PATH,
   DEFAULT_PLAN_DIR,
-  5                    // Custom retry count
+  5 // Custom retry count
 );
 ```
 
@@ -419,10 +442,12 @@ expect(manager.planDir).toBe(resolve(DEFAULT_PLAN_DIR));
 Based on grep analysis, these files contain `new SessionManager(` instantiations:
 
 ### Unit Tests (1 file)
+
 1. `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts` - Primary unit tests
 2. `/home/dustin/projects/hacky-hack/tests/unit/core/session-state-batching.test.ts` - Batching tests
 
 ### Integration Tests (3+ files)
+
 1. `/home/dustin/projects/hacky-hack/tests/integration/core/session-manager.test.ts`
 2. `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator-runtime.test.ts`
 3. `/home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator.test.ts`
@@ -490,28 +515,33 @@ Based on grep analysis, these files contain `new SessionManager(` instantiations
 ## 9. Recommended Approach for SessionManager Fix
 
 ### Phase 1: Preparation (P1.M1.T2.S1)
+
 1. Add test constants to session-manager.test.ts
 2. Audit all constructor calls in the file
 3. Document current signatures vs. required signatures
 
 ### Phase 2: Unit Test Updates (P1.M1.T2.S1)
+
 1. Update all SessionManager instantiations to 3 parameters
 2. Use test constants for defaults
 3. Add parameter variation tests
 4. Verify all property assertions
 
 ### Phase 3: Integration Test Updates (P1.M1.T2.S2)
+
 1. Apply same pattern to integration tests
 2. Check for different mock patterns (vi.hoisted, etc.)
 3. Verify end-to-end behavior
 4. Test with real file system operations
 
 ### Phase 4: Specialized Test Updates (P1.M1.T2.S3)
+
 1. Update session-state-batching.test.ts
 2. Focus on flushRetries parameter behavior
 3. Verify batching logic with correct constructor
 
 ### Phase 5: Production Code Verification (P1.M1.T2.S4)
+
 1. Verify TaskOrchestrator SessionManager usage
 2. Verify PRP Pipeline SessionManager usage
 3. Check for other production instantiations
@@ -522,6 +552,7 @@ Based on grep analysis, these files contain `new SessionManager(` instantiations
 ## 10. Checklist for SessionManager Fix
 
 ### For Each Test File
+
 - [ ] Add test constants (DEFAULT_PRD_PATH, DEFAULT_PLAN_DIR, DEFAULT_FLUSH_RETRIES)
 - [ ] Find all `new SessionManager(` instantiations
 - [ ] Update to 3-parameter signature
@@ -531,6 +562,7 @@ Based on grep analysis, these files contain `new SessionManager(` instantiations
 - [ ] Run tests to verify no regressions
 
 ### For Production Code
+
 - [ ] Audit all SessionManager instantiations
 - [ ] Verify PRP Pipeline usage (already correct)
 - [ ] Verify TaskOrchestrator usage (if applicable)
@@ -538,6 +570,7 @@ Based on grep analysis, these files contain `new SessionManager(` instantiations
 - [ ] Ensure configuration parameters are passed correctly
 
 ### Validation
+
 - [ ] All tests pass: `npm test`
 - [ ] No TypeScript errors
 - [ ] No constructor signature mismatches
@@ -552,6 +585,7 @@ Based on grep analysis, these files contain `new SessionManager(` instantiations
 ### Example 1: Basic Unit Test Update
 
 **Before**:
+
 ```typescript
 it('should initialize session', () => {
   const manager = new SessionManager('/test/PRD.md');
@@ -560,6 +594,7 @@ it('should initialize session', () => {
 ```
 
 **After**:
+
 ```typescript
 it('should initialize session', () => {
   const manager = new SessionManager(
@@ -575,6 +610,7 @@ it('should initialize session', () => {
 ### Example 2: Custom Parameter Test
 
 **Before**:
+
 ```typescript
 it('should accept custom plan directory', () => {
   const manager = new SessionManager('/test/PRD.md', '/custom/plan');
@@ -583,6 +619,7 @@ it('should accept custom plan directory', () => {
 ```
 
 **After**:
+
 ```typescript
 it('should accept custom plan directory', () => {
   const manager = new SessionManager(
@@ -597,17 +634,15 @@ it('should accept custom plan directory', () => {
 ### Example 3: Integration Test with Mocks
 
 **Before**:
+
 ```typescript
 const manager = new SessionManager(prdPath, planDir);
 ```
 
 **After**:
+
 ```typescript
-const manager = new SessionManager(
-  prdPath,
-  planDir,
-  DEFAULT_FLUSH_RETRIES
-);
+const manager = new SessionManager(prdPath, planDir, DEFAULT_FLUSH_RETRIES);
 ```
 
 ---
@@ -615,6 +650,7 @@ const manager = new SessionManager(
 ## 12. References
 
 ### Commits to Study
+
 1. **0961f36** - ResearchQueue unit test updates
    - File: `tests/unit/core/research-queue.test.ts`
    - Lines changed: +389
@@ -630,12 +666,14 @@ const manager = new SessionManager(
    - Shows production code pattern
 
 ### Source Files to Reference
+
 1. `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` - Constructor definition
 2. `/home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts` - Correct usage pattern
 3. `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts` - Test pattern reference
 4. `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts` - Target file
 
 ### Documentation
+
 - Bug report: `/home/dustin/projects/hacky-hack/plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918/tasks.json`
 - P1.M1.T1.S2 PRP: ResearchQueue unit test fix strategy
 - P1.M1.T1.S3 PRP: ResearchQueue integration test fix strategy
@@ -657,6 +695,7 @@ By applying these patterns consistently across all 13 test files, the SessionMan
 ---
 
 **Next Steps**:
+
 1. Begin P1.M1.T2.S1 with session-manager.test.ts
 2. Apply test constants pattern
 3. Update all constructor instantiations

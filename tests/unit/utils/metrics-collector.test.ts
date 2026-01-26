@@ -135,7 +135,10 @@ describe('utils/metrics-collector', () => {
 
       collector.recordTaskTiming('P1.M1.T1.S1', 1000);
 
-      expect(spy).toHaveBeenCalledWith({ taskId: 'P1.M1.T1.S1', duration: 1000 });
+      expect(spy).toHaveBeenCalledWith({
+        taskId: 'P1.M1.T1.S1',
+        duration: 1000,
+      });
     });
 
     it('should ignore negative durations', () => {
@@ -421,7 +424,9 @@ describe('utils/metrics-collector', () => {
       const snapshot = collector.getSnapshot();
       expect(snapshot.customGauges['queue.size']).toBeDefined();
       expect(snapshot.customGauges['queue.size'].value).toBe(42);
-      expect(snapshot.customGauges['queue.size'].lastUpdated).toBeGreaterThan(0);
+      expect(snapshot.customGauges['queue.size'].lastUpdated).toBeGreaterThan(
+        0
+      );
     });
 
     it('should update gauge value', () => {
@@ -506,9 +511,9 @@ describe('utils/metrics-collector', () => {
 
       const snapshot = collector.getSnapshot();
       expect(snapshot.metadata.pipelineDuration).toBeGreaterThanOrEqual(5000);
-      expect(new Date(snapshot.metadata.collectedAt).getTime()).toBeGreaterThanOrEqual(
-        startTime
-      );
+      expect(
+        new Date(snapshot.metadata.collectedAt).getTime()
+      ).toBeGreaterThanOrEqual(startTime);
     });
   });
 
@@ -738,7 +743,9 @@ describe('utils/metrics-collector', () => {
       collector.recordTaskTiming('P1.M1.T1.S1', Number.MAX_SAFE_INTEGER);
 
       const snapshot = collector.getSnapshot();
-      expect(snapshot.taskTimings['P1.M1.T1.S1'].max).toBe(Number.MAX_SAFE_INTEGER);
+      expect(snapshot.taskTimings['P1.M1.T1.S1'].max).toBe(
+        Number.MAX_SAFE_INTEGER
+      );
     });
 
     it('should handle concurrent metric recording', () => {

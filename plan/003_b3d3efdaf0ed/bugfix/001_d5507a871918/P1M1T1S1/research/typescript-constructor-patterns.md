@@ -5,22 +5,26 @@
 ### Optional vs Default Parameters
 
 **Optional Parameters (`?`)**:
+
 ```typescript
 constructor(
   id: string,
   timeout?: number  // Can be undefined
 )
 ```
+
 - Use when parameter can be `undefined` and has no sensible default
 - Caller can omit or pass `undefined`
 
 **Default Parameters (`= value`)**:
+
 ```typescript
 constructor(
   id: string,
   timeout: number = 5000  // Defaults to 5000
 )
 ```
+
 - Use when you have a sensible default value
 - Caller can omit, and the default is used
 - **Preferred for backwards compatibility**
@@ -52,8 +56,8 @@ constructor(
 class Service {
   constructor(
     id: string,
-    timeout: number = 5000  // New parameter with default
-  )
+    timeout: number = 5000 // New parameter with default
+  );
 }
 // Old code still works: new Service('id123')
 // New code can use: new Service('id123', 10000)
@@ -64,8 +68,8 @@ class Service {
 class Service {
   constructor(
     id: string,
-    config?: Config  // New optional parameter
-  )
+    config?: Config // New optional parameter
+  );
 }
 // Old code still works: new Service('id123')
 // New code can use: new Service('id123', config)
@@ -78,8 +82,8 @@ class Service {
 class Service {
   constructor(
     id: string,
-    timeout: number  // Was: timeout: number = 5000
-  )
+    timeout: number // Was: timeout: number = 5000
+  );
 }
 // Old code breaks: new Service('id123')  // ERROR: Missing timeout
 ```
@@ -88,9 +92,9 @@ class Service {
 // Changing parameter order - BREAKING
 class Service {
   constructor(
-    timeout: number = 5000,  // Was: id: string
-    id: string               // Was: timeout: number
-  )
+    timeout: number = 5000, // Was: id: string
+    id: string // Was: timeout: number
+  );
 }
 // Old code breaks at runtime: new Service('id123')
 // Now 'id123' is passed to timeout (wrong type!)
@@ -104,7 +108,7 @@ class Service {
 describe('Constructor backwards compatibility', () => {
   it('should work with original parameters', () => {
     const service = new Service('id-123');
-    expect(service.timeout).toBe(5000);  // Default value used
+    expect(service.timeout).toBe(5000); // Default value used
   });
 
   it('should work with new parameters', () => {
@@ -114,7 +118,7 @@ describe('Constructor backwards compatibility', () => {
 
   it('should handle undefined for optional parameters', () => {
     const service = new Service('id-123', undefined);
-    expect(service.timeout).toBe(5000);  // Default value used
+    expect(service.timeout).toBe(5000); // Default value used
   });
 });
 ```
@@ -124,13 +128,11 @@ describe('Constructor backwards compatibility', () => {
 ```typescript
 describe('Constructor parameter validation', () => {
   it('should throw on invalid required parameter', () => {
-    expect(() => new Service(null))
-      .toThrow('id is required');
+    expect(() => new Service(null)).toThrow('id is required');
   });
 
   it('should validate parameter ranges', () => {
-    expect(() => new Service('id', -1))
-      .toThrow('timeout must be positive');
+    expect(() => new Service('id', -1)).toThrow('timeout must be positive');
   });
 });
 ```
@@ -162,12 +164,12 @@ constructor(
 ```typescript
 // WRONG: Changing parameter order breaks calling code
 class Service {
-  constructor(timeout: number, id: string)  // Order changed!
+  constructor(timeout: number, id: string); // Order changed!
 }
 
 // CORRECT: Keep parameter order stable
 class Service {
-  constructor(id: string, timeout: number = 5000)  // Stable order
+  constructor(id: string, timeout: number = 5000); // Stable order
 }
 ```
 
@@ -211,13 +213,14 @@ constructor(id: string, config: ServiceConfig = {}) {
 // tsconfig.json
 {
   "compilerOptions": {
-    "strict": true,  // Enables strict null checks
-    "noImplicitAny": true  // Error on implicit any types
+    "strict": true, // Enables strict null checks
+    "noImplicitAny": true // Error on implicit any types
   }
 }
 ```
 
 With `strict: true`, TypeScript catches:
+
 - Missing required parameters
 - Wrong parameter types
 - Invalid parameter order (type mismatch)
@@ -225,6 +228,7 @@ With `strict: true`, TypeScript catches:
 ### Runtime Errors
 
 Runtime errors can occur when:
+
 1. Using `any` types bypasses TypeScript checks
 2. Type assertions override TypeScript
 3. JavaScript code calls TypeScript without type checking
@@ -234,7 +238,7 @@ Runtime errors can occur when:
 class Service {
   constructor(id: string, timeout: number = 5000) {
     if (timeout < 0) {
-      throw new RangeError('timeout must be positive');  // Runtime validation
+      throw new RangeError('timeout must be positive'); // Runtime validation
     }
     this.timeout = timeout;
   }
@@ -256,11 +260,11 @@ class Service {
 
 ### Constructor Parameter Guidelines
 
-| Parameter Count | Approach |
-|----------------|----------|
-| 1-3 | Positional parameters |
-| 4-5 | Positional with defaults, or consider config object |
-| 6+ | Configuration object (recommended) |
+| Parameter Count | Approach                                            |
+| --------------- | --------------------------------------------------- |
+| 1-3             | Positional parameters                               |
+| 4-5             | Positional with defaults, or consider config object |
+| 6+              | Configuration object (recommended)                  |
 
 ### Testing Checklist
 
@@ -276,6 +280,7 @@ class Service {
 ### SessionManager Constructor
 
 **Current State** - Good pattern:
+
 ```typescript
 constructor(
   prdPath: string,
@@ -283,6 +288,7 @@ constructor(
   flushRetries: number = 3
 )
 ```
+
 - Required parameter first
 - Optional parameters with defaults
 - Clear parameter names
@@ -291,6 +297,7 @@ constructor(
 ### TaskOrchestrator Constructor
 
 **Current State** - Consider refactoring (7 parameters):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -304,6 +311,7 @@ constructor(
 ```
 
 **Suggested Refactoring**:
+
 ```typescript
 interface TaskOrchestratorConfig {
   scope?: Scope;
@@ -331,6 +339,7 @@ constructor(
 ### PRPRuntime Constructor
 
 **Current State** - Excellent:
+
 ```typescript
 constructor(
   orchestrator: TaskOrchestrator,
@@ -338,6 +347,7 @@ constructor(
   prpCompression: PRPCompressionLevel = 'standard'
 )
 ```
+
 - Required parameter first (orchestrator dependency)
 - Optional parameters with defaults
 - Simple and clear

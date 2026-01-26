@@ -125,7 +125,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Add writeBugReport method to BugHuntWorkflow",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: BugHuntWorkflow at src/workflows/bug-hunt-workflow.ts currently returns TestResults object but does not write to disk. PRD §4.4 requires TEST_RESULTS.md to be written when bugs found. See architecture/001_codebase_audit.md §Research Objective 2.\n2. INPUT: BugHuntWorkflow class at src/workflows/bug-hunt-workflow.ts. Existing generateReport() method returns TestResults object. Session manager provides session path for file location.\n3. LOGIC: Add public async writeBugReport(sessionPath: string, testResults: TestResults): Promise<void> method. Method should: check if testResults contains critical or major bugs (severity 'critical' or 'major'), construct file path as resolve(sessionPath, 'TEST_RESULTS.md'), write file using fs.writeFile with JSON.stringify(testResults, null, 2), use atomic write-then-rename pattern from architecture/002_external_dependencies.md §2.2 (write to temp file, then rename). Throw error if write fails.\n4. OUTPUT: BugHuntWorkflow with new writeBugReport() method that persists TEST_RESULTS.md when bugs are found. Method should be callable after generateReport() completes."

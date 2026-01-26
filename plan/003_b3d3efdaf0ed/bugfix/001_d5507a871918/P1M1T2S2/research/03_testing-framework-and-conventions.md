@@ -5,6 +5,7 @@
 The codebase uses **Vitest** as the testing framework.
 
 ### Essential Imports
+
 ```typescript
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 ```
@@ -12,6 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 ## Integration Test Patterns
 
 ### Mock Pattern for External Dependencies
+
 ```typescript
 // Mock at top level (hoisting required)
 vi.mock('groundswell', async () => {
@@ -28,6 +30,7 @@ import { createAgent, createPrompt } from 'groundswell';
 ```
 
 ### Mock Setup in beforeEach
+
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks(); // Critical for test isolation
@@ -42,6 +45,7 @@ beforeEach(() => {
 ## Temporary Directory Handling
 
 ### Pattern for Tests with Temp Directories
+
 ```typescript
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -67,6 +71,7 @@ describe('Integration Tests', () => {
 The `tests/fixtures/` directory contains reusable test data.
 
 ### Example: Simple PRD Fixture
+
 ```typescript
 // /tests/fixtures/simple-prd.ts
 export const mockSimplePRD = `
@@ -113,6 +118,7 @@ const createTestTask = (
 ## Integration Test Setup
 
 From `tests/setup.ts`:
+
 - Environment validation (ensures z.ai API endpoint)
 - Mock cleanup before each test
 - Promise rejection tracking

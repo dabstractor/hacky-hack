@@ -6,6 +6,7 @@
 This document contains complete, production-ready implementation examples for the patterns discussed in the research summary.
 
 ## Table of Contents
+
 1. [Complete MetricsCollector Implementation](#complete-metricscollector-implementation)
 2. [Token Usage Tracker with OpenAI Integration](#token-usage-tracker-with-openai-integration)
 3. [Cache Metrics with Decorator Pattern](#cache-metrics-with-decorator-pattern)
@@ -99,7 +100,7 @@ export class MetricsCollector extends EventEmitter {
 
     const current = this.counters.get(metricName) || {
       value: 0,
-      increments: 0
+      increments: 0,
     };
 
     // Adjust value based on sampling rate
@@ -107,14 +108,14 @@ export class MetricsCollector extends EventEmitter {
 
     this.counters.set(metricName, {
       value: current.value + adjustedValue,
-      increments: current.increments + 1
+      increments: current.increments + 1,
     });
 
     this.emit('counter', {
       metricName,
       value: adjustedValue,
       tags,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 
@@ -131,13 +132,13 @@ export class MetricsCollector extends EventEmitter {
   setGauge(metricName: string, value: number): void {
     this.gauges.set(metricName, {
       value,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     });
 
     this.emit('gauge', {
       metricName,
       value,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 
@@ -151,7 +152,7 @@ export class MetricsCollector extends EventEmitter {
       max: -Infinity,
       sum: 0,
       avg: 0,
-      values: []
+      values: [],
     };
 
     current.count++;
@@ -170,7 +171,7 @@ export class MetricsCollector extends EventEmitter {
     this.emit('timing', {
       metricName,
       durationMs,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 
@@ -203,7 +204,10 @@ export class MetricsCollector extends EventEmitter {
   /**
    * Get percentiles for a timing metric
    */
-  getPercentiles(metricName: string, percentiles: number[]): Record<number, number> {
+  getPercentiles(
+    metricName: string,
+    percentiles: number[]
+  ): Record<number, number> {
     const metric = this.timings.get(metricName);
 
     if (!metric || metric.values.length === 0) {
@@ -212,13 +216,16 @@ export class MetricsCollector extends EventEmitter {
 
     const sorted = [...metric.values].sort((a, b) => a - b);
 
-    return percentiles.reduce((acc, percentile) => {
-      const index = Math.ceil((percentile / 100) * sorted.length) - 1;
-      return {
-        ...acc,
-        [percentile]: sorted[Math.max(0, index)]
-      };
-    }, {} as Record<number, number>);
+    return percentiles.reduce(
+      (acc, percentile) => {
+        const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+        return {
+          ...acc,
+          [percentile]: sorted[Math.max(0, index)],
+        };
+      },
+      {} as Record<number, number>
+    );
   }
 
   /**
@@ -229,7 +236,7 @@ export class MetricsCollector extends EventEmitter {
       timestamp: new Date().toISOString(),
       counters: Object.fromEntries(this.counters),
       gauges: Object.fromEntries(this.gauges),
-      timings: Object.fromEntries(this.timings)
+      timings: Object.fromEntries(this.timings),
     };
   }
 
@@ -334,18 +341,22 @@ export class TokenUsageTracker {
       operation,
       usage,
       cost,
-      metadata
+      metadata,
     };
 
     this.requests.push(log);
     this.updateTotals(model, operation, usage);
   }
 
-  private updateTotals(model: string, operation: string, usage: TokenUsage): void {
+  private updateTotals(
+    model: string,
+    operation: string,
+    usage: TokenUsage
+  ): void {
     const modelTotals = this.totalsByModel.get(model) || {
       promptTokens: 0,
       completionTokens: 0,
-      totalTokens: 0
+      totalTokens: 0,
     };
 
     modelTotals.promptTokens += usage.promptTokens;
@@ -357,7 +368,7 @@ export class TokenUsageTracker {
     const opTotals = this.totalsByOperation.get(operation) || {
       promptTokens: 0,
       completionTokens: 0,
-      totalTokens: 0
+      totalTokens: 0,
     };
 
     opTotals.promptTokens += usage.promptTokens;
@@ -375,7 +386,8 @@ export class TokenUsageTracker {
     }
 
     const promptCost = (usage.promptTokens / 1000) * pricing.promptPricePer1k;
-    const completionCost = (usage.completionTokens / 1000) * pricing.completionPricePer1k;
+    const completionCost =
+      (usage.completionTokens / 1000) * pricing.completionPricePer1k;
 
     return promptCost + completionCost;
   }
@@ -392,7 +404,7 @@ export class TokenUsageTracker {
     let total: TokenUsage = {
       promptTokens: 0,
       completionTokens: 0,
-      totalTokens: 0
+      totalTokens: 0,
     };
 
     for (const usage of this.totalsByModel.values()) {
@@ -444,7 +456,7 @@ export class TokenUsageTracker {
       totalCost: this.getTotalCost(),
       costByModel: this.getCostByModel(),
       usageByModel: new Map(this.totalsByModel),
-      requestCount: this.requests.length
+      requestCount: this.requests.length,
     };
   }
 }
@@ -530,7 +542,7 @@ export class CacheMetricsCollector {
       totalRequests,
       hitRatePercentage: hitRate * 100,
       missRatePercentage: missRate * 100,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -554,13 +566,15 @@ export class CacheMetricsCollector {
   }
 
   private getOrCreateMetrics(cacheName: string): CacheMetrics {
-    return this.metrics.get(cacheName) || {
-      hits: 0,
-      misses: 0,
-      evictions: 0,
-      size: 0,
-      lastUpdated: new Date()
-    };
+    return (
+      this.metrics.get(cacheName) || {
+        hits: 0,
+        misses: 0,
+        evictions: 0,
+        size: 0,
+        lastUpdated: new Date(),
+      }
+    );
   }
 
   reset(cacheName: string): void {
@@ -626,7 +640,7 @@ export function createMonitoredCache<K, V>(
       }
 
       return value;
-    }
+    },
   });
 }
 
@@ -710,15 +724,15 @@ export class PerformanceMonitor {
   constructor(maxEntries: number = 1000) {
     this.maxEntries = maxEntries;
 
-    this.observer = new PerformanceObserver((list) => {
+    this.observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
 
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         this.entries.push({
           name: entry.name,
           duration: entry.duration,
           startTime: entry.startTime,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         if (this.entries.length > this.maxEntries) {
@@ -802,7 +816,7 @@ export class PerformanceMonitor {
       min: Math.min(...durations),
       max: Math.max(...durations),
       avg: this.getAverageDuration(name),
-      total: durations.reduce((sum, d) => sum + d, 0)
+      total: durations.reduce((sum, d) => sum + d, 0),
     };
   }
 
@@ -865,7 +879,7 @@ describe('MetricsCollector', () => {
       expect(listener).toHaveBeenCalledWith(
         expect.objectContaining({
           metricName: 'test.counter',
-          value: 5
+          value: 5,
         })
       );
     });
@@ -908,7 +922,7 @@ describe('MetricsCollector', () => {
       expect(listener).toHaveBeenCalledWith(
         expect.objectContaining({
           metricName: 'temperature',
-          value: 23.5
+          value: 23.5,
         })
       );
     });
@@ -950,7 +964,7 @@ describe('MetricsCollector', () => {
       expect(listener).toHaveBeenCalledWith(
         expect.objectContaining({
           metricName: 'operation',
-          durationMs: 100
+          durationMs: 100,
         })
       );
     });
@@ -1027,7 +1041,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   CacheMetricsCollector,
   createMonitoredCache,
-  MonitoredCache
+  MonitoredCache,
 } from '../../src/cache/MonitoredCache';
 
 describe('CacheMetricsCollector', () => {
@@ -1043,9 +1057,9 @@ describe('CacheMetricsCollector', () => {
     collector.recordMiss('my-cache');
 
     const stats = collector.getStats('my-cache');
-    expect(stats?.hitRate).toBe(2/3);
+    expect(stats?.hitRate).toBe(2 / 3);
     expect(stats?.hitRatePercentage).toBeCloseTo(66.67, 2);
-    expect(stats?.missRate).toBe(1/3);
+    expect(stats?.missRate).toBe(1 / 3);
     expect(stats?.totalRequests).toBe(3);
   });
 
@@ -1151,7 +1165,7 @@ import { MetricsCollector } from './src/metrics/collector/MetricsCollector';
 // Initialize collector
 const metrics = new MetricsCollector({
   maxSamples: 10000,
-  enablePercentiles: true
+  enablePercentiles: true,
 });
 
 // Counters
@@ -1181,7 +1195,9 @@ console.log(JSON.stringify(snapshot, null, 2));
 
 // Get percentiles
 const percentiles = metrics.getPercentiles('api.response.time', [50, 95, 99]);
-console.log(`P50: ${percentiles[50]}ms, P95: ${percentiles[95]}ms, P99: ${percentiles[99]}ms`);
+console.log(
+  `P50: ${percentiles[50]}ms, P95: ${percentiles[95]}ms, P99: ${percentiles[99]}ms`
+);
 ```
 
 ### Cache Monitoring
@@ -1189,7 +1205,7 @@ console.log(`P50: ${percentiles[50]}ms, P95: ${percentiles[95]}ms, P99: ${percen
 ```typescript
 import {
   CacheMetricsCollector,
-  MonitoredCache
+  MonitoredCache,
 } from './src/cache/MonitoredCache';
 
 // Initialize metrics collector
@@ -1218,9 +1234,11 @@ setInterval(() => {
 
 // Get history
 const history = cacheMetrics.getHistory('user-cache');
-console.log(`Average hit rate (last hour): ${
-  history.reduce((sum, s) => sum + s.hitRate, 0) / history.length
-}`);
+console.log(
+  `Average hit rate (last hour): ${
+    history.reduce((sum, s) => sum + s.hitRate, 0) / history.length
+  }`
+);
 ```
 
 ### Token Usage Tracking
@@ -1232,7 +1250,7 @@ import { TokenUsageTracker } from './src/tracking/TokenUsageTracker';
 const tokenTracker = new TokenUsageTracker();
 
 // Set custom pricing
-tokenTracker.setPricing('gpt-4-custom', 0.05, 0.10);
+tokenTracker.setPricing('gpt-4-custom', 0.05, 0.1);
 
 // Log API requests
 tokenTracker.logRequest(
@@ -1241,7 +1259,7 @@ tokenTracker.logRequest(
   {
     promptTokens: 100,
     completionTokens: 50,
-    totalTokens: 150
+    totalTokens: 150,
   },
   { userId: 'user123' }
 );
@@ -1289,7 +1307,10 @@ console.log(`Total measurements: ${entries.length}`);
 ```typescript
 import { MetricsCollector } from './src/metrics/collector/MetricsCollector';
 import { TokenUsageTracker } from './src/tracking/TokenUsageTracker';
-import { CacheMetricsCollector, MonitoredCache } from './src/cache/MonitoredCache';
+import {
+  CacheMetricsCollector,
+  MonitoredCache,
+} from './src/cache/MonitoredCache';
 import { MetricsWriter } from './src/writer/MetricsWriter';
 
 class ApplicationMetrics {
@@ -1304,7 +1325,7 @@ class ApplicationMetrics {
     this.cache = new CacheMetricsCollector();
     this.writer = new MetricsWriter({
       outputDir: dirname(outputPath),
-      fileName: basename(outputPath)
+      fileName: basename(outputPath),
     });
 
     this.setupPeriodicWrites();
@@ -1332,12 +1353,15 @@ class ApplicationMetrics {
 
     // Generate reports
     console.log('Token Usage Report:', this.tokens.generateReport());
-    console.log('Cache Performance:', Object.fromEntries(
-      Object.keys((this.cache as any).metrics).map(name => [
-        name,
-        this.cache.getStats(name)
-      ])
-    ));
+    console.log(
+      'Cache Performance:',
+      Object.fromEntries(
+        Object.keys((this.cache as any).metrics).map(name => [
+          name,
+          this.cache.getStats(name),
+        ])
+      )
+    );
   }
 }
 

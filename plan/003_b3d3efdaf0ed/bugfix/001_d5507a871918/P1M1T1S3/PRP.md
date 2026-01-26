@@ -7,6 +7,7 @@
 **Deliverable**: Updated integration test suite at `tests/integration/core/research-queue.test.ts` where all 22 ResearchQueue instantiations use the correct 4-parameter constructor, and tests cover cache TTL behavior, concurrent PRP generation limits, and no-cache flag functionality.
 
 **Success Definition**:
+
 - All 22 ResearchQueue instantiations use 4-parameter signature: `new ResearchQueue(sessionManager, maxSize, noCache, cacheTtlMs)`
 - Integration tests validate cache TTL behavior with different values
 - Integration tests validate concurrent PRP generation limits (maxSize parameter)
@@ -22,6 +23,7 @@
 **Integration**: The ResearchQueue is a critical component of the Four Core Processing Engines (PRD §5.1). Proper integration test coverage ensures the parallel PRP generation system works with correct concurrency limits, cache bypass, and TTL configuration when integrated with TaskOrchestrator.
 
 **Problems Solved**:
+
 - Bug 001_d5507a871918 from TEST_RESULTS.md identified that integration tests were using an incomplete 2-parameter constructor signature
 - Integration tests were not validating that cacheTtlMs parameter is correctly used
 - Missing integration test coverage for noCache=true and different cacheTtlMs configurations
@@ -32,6 +34,7 @@
 **User-Visible Behavior**: No direct user-visible behavior change. This is a test update ensuring correct validation of ResearchQueue constructor parameter handling in integration tests.
 
 **Technical Requirements**:
+
 1. Update all 22 ResearchQueue instantiations to use 4-parameter signature
 2. Add test constants for default parameter values
 3. Add integration tests for cache TTL behavior variations
@@ -59,6 +62,7 @@
 **Test**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: Yes - this PRP provides:
+
 - Complete list of all 22 ResearchQueue instantiations with line numbers and current signatures
 - Exact constructor signatures for ResearchQueue and PRPGenerator
 - Default values for all parameters (from S2 pattern)
@@ -268,6 +272,7 @@ plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918/P1M1T1S3/
 No new data models needed. This PRP updates existing integration test code.
 
 **Test Constants to Add** (at top of test file, after factory functions, before first describe block):
+
 ```typescript
 // Test constants for ResearchQueue constructor parameters
 const DEFAULT_MAX_SIZE = 3;
@@ -276,6 +281,7 @@ const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 ```
 
 **ResearchQueue Constructor Signature** (already exists):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -286,6 +292,7 @@ constructor(
 ```
 
 **PRPGenerator Constructor Signature** (already exists):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -511,10 +518,10 @@ Task 12: VERIFY INTEGRATION WITH S1 AND S2 IMPLEMENTATIONS
 // This is the CORRECT pattern to use throughout all integration tests
 
 const queue = new ResearchQueue(
-  mockSessionManager,         // Parameter 1: SessionManager instance
-  DEFAULT_MAX_SIZE,           // Parameter 2: Max concurrent tasks (default 3)
-  DEFAULT_NO_CACHE,           // Parameter 3: Cache bypass flag (default false)
-  DEFAULT_CACHE_TTL_MS        // Parameter 4: Cache TTL in ms (default 24h)
+  mockSessionManager, // Parameter 1: SessionManager instance
+  DEFAULT_MAX_SIZE, // Parameter 2: Max concurrent tasks (default 3)
+  DEFAULT_NO_CACHE, // Parameter 3: Cache bypass flag (default false)
+  DEFAULT_CACHE_TTL_MS // Parameter 4: Cache TTL in ms (default 24h)
 );
 
 // CRITICAL: Always use constants for default values
@@ -528,9 +535,9 @@ describe('maxSize parameter variations', () => {
   it('should handle maxSize of 5', () => {
     const queue = new ResearchQueue(
       mockSessionManager,
-      5,                         // Override maxSize
-      DEFAULT_NO_CACHE,          // Use default for noCache
-      DEFAULT_CACHE_TTL_MS       // Use default for cacheTtlMs
+      5, // Override maxSize
+      DEFAULT_NO_CACHE, // Use default for noCache
+      DEFAULT_CACHE_TTL_MS // Use default for cacheTtlMs
     );
     expect(queue.maxSize).toBe(5);
   });
@@ -538,9 +545,9 @@ describe('maxSize parameter variations', () => {
   it('should handle maxSize of 1 (serial processing)', () => {
     const queue = new ResearchQueue(
       mockSessionManager,
-      1,                         // Override maxSize to 1
-      DEFAULT_NO_CACHE,          // Use default for noCache
-      DEFAULT_CACHE_TTL_MS       // Use default for cacheTtlMs
+      1, // Override maxSize to 1
+      DEFAULT_NO_CACHE, // Use default for noCache
+      DEFAULT_CACHE_TTL_MS // Use default for cacheTtlMs
     );
     // Test serial processing behavior
   });
@@ -548,9 +555,9 @@ describe('maxSize parameter variations', () => {
   it('should handle maxSize of 0 (no processing)', () => {
     const queue = new ResearchQueue(
       mockSessionManager,
-      0,                         // Override maxSize to 0
-      DEFAULT_NO_CACHE,          // Use default for noCache
-      DEFAULT_CACHE_TTL_MS       // Use default for cacheTtlMs
+      0, // Override maxSize to 0
+      DEFAULT_NO_CACHE, // Use default for noCache
+      DEFAULT_CACHE_TTL_MS // Use default for cacheTtlMs
     );
     // Test that tasks remain queued
   });
@@ -563,7 +570,7 @@ describe('noCache parameter integration', () => {
     const queue = new ResearchQueue(
       mockSessionManager,
       DEFAULT_MAX_SIZE,
-      true,                      // Override noCache to true
+      true, // Override noCache to true
       DEFAULT_CACHE_TTL_MS
     );
     // Test cache bypass behavior
@@ -579,7 +586,7 @@ describe('cacheTtlMs parameter integration', () => {
       mockSessionManager,
       DEFAULT_MAX_SIZE,
       DEFAULT_NO_CACHE,
-      customTtl                  // Override cacheTtlMs
+      customTtl // Override cacheTtlMs
     );
     // Test custom TTL acceptance
   });
@@ -924,14 +931,14 @@ grep -n "describe.*cacheTtlMs" tests/integration/core/research-queue.test.ts
 
 ## Anti-Patterns to Avoid
 
-- ❌ Don't hardcode parameter values - use DEFAULT_* constants
+- ❌ Don't hardcode parameter values - use DEFAULT\_\* constants
 - ❌ Don't change the ResearchQueue constructor signature - it's already correct
 - ❌ Don't modify PRPGenerator constructor signature - not in scope
 - ❌ Don't skip validating parameter forwarding in integration tests
 - ❌ Don't break existing integration test scenarios - maintain all test coverage
 - ❌ Don't forget to add integration tests for noCache and cacheTtlMs variations
 - ❌ Don't change mock setup patterns (vi.hoisted, vi.mock) - keep existing infrastructure
-- ❌ Don't use different default values than S1/S2 - use 3, false, 24*60*60*1000
+- ❌ Don't use different default values than S1/S2 - use 3, false, 24*60*60\*1000
 - ❌ Don't mix up parameter order - must be (sessionManager, maxSize, noCache, cacheTtlMs)
 - ❌ Don't forget to import module in beforeEach - required for clean test isolation
 - ❌ Don't use synchronous imports for mocked modules - use dynamic import in beforeEach
@@ -943,6 +950,7 @@ grep -n "describe.*cacheTtlMs" tests/integration/core/research-queue.test.ts
 As of the S1 and S2 completion, TaskOrchestrator correctly passes all 4 parameters to ResearchQueue, and unit tests have been updated. However, the integration tests in `tests/integration/core/research-queue.test.ts` still use the old 2-parameter constructor signature. This PRP updates all 22 test instantiations to match the correct 4-parameter signature and adds integration test coverage for the new parameters.
 
 **Test Instantiation Summary**:
+
 - 22 total ResearchQueue instantiations need updating
 - Distribution by test category:
   - Concurrent Processing: 4 instantiations (lines 236, 281, 319, 349)
@@ -954,16 +962,19 @@ As of the S1 and S2 completion, TaskOrchestrator correctly passes all 4 paramete
   - Edge Cases: 4 instantiations (lines 948, 972, 991, and one more)
 
 **Parameter Forwarding Chain**:
+
 1. TaskOrchestrator → ResearchQueue: 4 parameters (sessionManager, maxSize, noCache, cacheTtlMs)
 2. ResearchQueue → PRPGenerator: 3 parameters (sessionManager, noCache, cacheTtlMs)
 3. PRPGenerator: 4 parameters total (sessionManager, noCache, cacheTtlMs, prpCompression='standard')
 
 **Integration Test vs Unit Test**:
+
 - Unit tests (S2) mock ResearchQueue and PRPGenerator
 - Integration tests use real ResearchQueue, only mock PRPGenerator and logger
 - This validates real queue behavior with concurrent processing, cache management, and error handling
 
 **Related Work Items**:
+
 - P1.M1.T1.S1: Complete - TaskOrchestrator ResearchQueue instantiation
 - P1.M1.T1.S2: Complete - Update ResearchQueue unit tests
 - P1.M1.T1.S3: This task - Update ResearchQueue integration tests

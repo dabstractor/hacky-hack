@@ -2001,6 +2001,7 @@ const FILE_IO_RETRY_CONFIG = {
    - Log warning with recovered count
 
 3. **Recovery file naming:**
+
    ```
    tasks-pending-2026-01-24T15-30-45-123Z.json
    ```

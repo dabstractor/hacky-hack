@@ -9,6 +9,7 @@
 **Deliverable**: Updated test file at `tests/unit/core/session-state-batching.test.ts` where all SessionManager instantiations use the correct 3-parameter constructor signature `(prdPath, planDir, flushRetries)`.
 
 **Success Definition**:
+
 - All SessionManager constructor calls include the `planDir` parameter (second position)
 - The `flushRetries` parameter is properly configured for test scenarios
 - All existing test scenarios (batching, flush retries, state persistence) remain functional
@@ -24,12 +25,14 @@
 **Use Case**: A developer needs to update test file constructor calls to match the corrected SessionManager signature as part of Milestone 1.1 (Constructor Signature Fixes)
 
 **User Journey**:
+
 1. Developer reads this PRP to understand required changes
 2. Developer follows implementation tasks to update constructor calls
 3. Developer runs validation commands to verify changes
 4. Developer commits the updated test file
 
 **Pain Points Addressed**:
+
 - Constructor signature mismatches causing test failures
 - Missing `planDir` parameter causing type errors
 - Tests not properly validating flush retry behavior
@@ -51,16 +54,19 @@
 Update the `tests/unit/core/session-state-batching.test.ts` file to use the correct SessionManager constructor signature with all 3 required parameters.
 
 ### Current State (Incorrect)
+
 ```typescript
 const manager = new SessionManager('/test/PRD.md', '/test/plan');
 ```
 
 ### Required State (Correct)
+
 ```typescript
 const manager = new SessionManager('/test/PRD.md', '/test/plan', 3);
 ```
 
 ### Success Criteria
+
 - [ ] `createMockSessionManager()` factory function updated to accept `flushRetries` parameter
 - [ ] Line 215 constructor call updated to include `flushRetries` parameter
 - [ ] All test scenarios maintain existing test coverage
@@ -74,6 +80,7 @@ const manager = new SessionManager('/test/PRD.md', '/test/plan', 3);
 ### Context Completeness Check
 
 ✅ **Passes "No Prior Knowledge" test**: A developer unfamiliar with the codebase can implement this successfully using only this PRP, as it includes:
+
 - Exact file paths and line numbers
 - Complete constructor signature with parameter types and defaults
 - Specific code examples of correct patterns to follow
@@ -217,6 +224,7 @@ tests/unit/core/
 No new data models are created in this task. The update involves modifying existing test code to use the correct SessionManager constructor signature.
 
 **Existing Models Referenced**:
+
 - `SessionManager` class from `src/core/session-manager.ts`
 - `Backlog` type from `src/core/models.ts` (used in test data)
 - Mock types from `vitest`
@@ -513,20 +521,24 @@ git diff tests/unit/core/session-state-batching.test.ts
 ### Completed Subtasks (Reference Patterns)
 
 **P1.M1.T2.S1** - Update SessionManager unit test constructor calls (Complete)
+
 - Updated `tests/unit/core/session-manager.test.ts`
 - Pattern: Added test constants, updated all constructor calls to 3-parameter signature
 
 **P1.M1.T2.S2** - Update SessionManager integration test constructor calls (Complete)
+
 - Updated all integration test files under `tests/integration/core/`
 - Pattern: Explicit parameter values: `new SessionManager(prdPath, planDir, 3)`
 
 **P1.M1.T1.S2** - Update ResearchQueue unit tests for full constructor signature (Complete)
+
 - Updated `tests/unit/core/research-queue.test.ts`
 - Pattern: Added test constants (DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS)
 
 ### Upcoming Subtasks (Dependencies)
 
 **P1.M1.T2.S4** - Verify TaskOrchestrator SessionManager usage (Pending)
+
 - Depends on this subtask (P1.M1.T2.S3) completing first
 - Will verify TaskOrchestrator uses correct 3-parameter signature
 
@@ -537,6 +549,7 @@ git diff tests/unit/core/session-state-batching.test.ts
 **One-Pass Implementation Success Likelihood**: **9/10**
 
 **Rationale**:
+
 - Clear file path and line number targets
 - Complete code examples showing before/after states
 - Reference implementations available in updated test files
@@ -545,6 +558,7 @@ git diff tests/unit/core/session-state-batching.test.ts
 - Minimal, focused change reduces complexity
 
 **Risk Mitigation**:
+
 - Only two lines need modification (function signature + constructor call)
 - Mock setup is isolated and must remain unchanged
 - All test scenarios remain functional (no behavior changes)

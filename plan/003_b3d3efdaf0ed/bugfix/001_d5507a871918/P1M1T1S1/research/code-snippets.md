@@ -99,6 +99,7 @@ constructor(
 ```
 
 **Called by ResearchQueue** (line 105):
+
 ```typescript
 this.#prpGenerator = new PRPGenerator(sessionManager, noCache, cacheTtlMs);
 ```
@@ -125,13 +126,13 @@ The `--cache-ttl` option uses the `ms` package for parsing:
 import ms from 'ms';
 
 // Examples:
-ms('30s')  // 30000
-ms('5m')   // 300000
-ms('1h')   // 3600000
-ms('12h')  // 43200000
-ms('1d')   // 86400000
-ms('24h')  // 86400000
-ms('1w')   // 604800000
+ms('30s'); // 30000
+ms('5m'); // 300000
+ms('1h'); // 3600000
+ms('12h'); // 43200000
+ms('1d'); // 86400000
+ms('24h'); // 86400000
+ms('1w'); // 604800000
 ```
 
 ## Test Patterns
@@ -157,9 +158,9 @@ describe('constructor', () => {
       currentItemId: null,
     };
     const mockManager = createMockSessionManager(currentSession);
-    const mockGenerate = vi.fn().mockResolvedValue(
-      createTestPRPDocument('P1.M1.T1.S1')
-    );
+    const mockGenerate = vi
+      .fn()
+      .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
     MockPRPGenerator.mockImplementation(() => ({
       generate: mockGenerate,
     }));
@@ -188,7 +189,7 @@ describe('constructor', () => {
     const queue = new ResearchQueue(mockManager);
 
     // VERIFY
-    expect(queue.maxSize).toBe(3);  // Default value
+    expect(queue.maxSize).toBe(3); // Default value
   });
 
   it('should create PRPGenerator with sessionManager', () => {
@@ -202,8 +203,8 @@ describe('constructor', () => {
     // The test assertion may need updating:
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
-      false,      // noCache default
-      24 * 60 * 60 * 1000  // cacheTtlMs default
+      false, // noCache default
+      24 * 60 * 60 * 1000 // cacheTtlMs default
     );
   });
 });
@@ -239,9 +240,9 @@ import { PRPGenerator } from '../../../src/agents/prp-generator.js';
 const MockPRPGenerator = PRPGenerator as any;
 
 // Use in tests
-const mockGenerate = vi.fn().mockResolvedValue(
-  createTestPRPDocument('P1.M1.T1.S1')
-);
+const mockGenerate = vi
+  .fn()
+  .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
 MockPRPGenerator.mockImplementation(() => ({
   generate: mockGenerate,
 }));
@@ -337,19 +338,19 @@ bb642bc feat: Implement PRP disk-based caching with CLI bypass and metrics track
 
 ### Default Values
 
-| Parameter | Default Value | Type | Description |
-|-----------|---------------|------|-------------|
-| `maxSize` | 3 | number | Max concurrent PRP generations |
-| `noCache` | false | boolean | Whether to bypass cache |
-| `cacheTtlMs` | 86400000 | number | Cache TTL in milliseconds (24 hours) |
-| `prpCompression` | 'standard' | string | PRP compression level |
+| Parameter        | Default Value | Type    | Description                          |
+| ---------------- | ------------- | ------- | ------------------------------------ |
+| `maxSize`        | 3             | number  | Max concurrent PRP generations       |
+| `noCache`        | false         | boolean | Whether to bypass cache              |
+| `cacheTtlMs`     | 86400000      | number  | Cache TTL in milliseconds (24 hours) |
+| `prpCompression` | 'standard'    | string  | PRP compression level                |
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `HACKY_PRP_CACHE_TTL` | PRP cache TTL duration | "24h" |
-| `HACKY_RESEARCH_CONCURRENCY` | Max concurrent research tasks | "3" |
+| Variable                     | Description                   | Default |
+| ---------------------------- | ----------------------------- | ------- |
+| `HACKY_PRP_CACHE_TTL`        | PRP cache TTL duration        | "24h"   |
+| `HACKY_RESEARCH_CONCURRENCY` | Max concurrent research tasks | "3"     |
 
 ## Common Errors and Solutions
 
@@ -379,17 +380,17 @@ this.researchQueue = new ResearchQueue(
 // WRONG: Wrong parameter order
 this.researchQueue = new ResearchQueue(
   this.sessionManager,
-  this.#cacheTtlMs,      // Wrong: should be 2nd
-  this.#researchQueueConcurrency,  // Wrong: should be 4th
+  this.#cacheTtlMs, // Wrong: should be 2nd
+  this.#researchQueueConcurrency, // Wrong: should be 4th
   this.#noCache
 );
 
 // CORRECT: Correct parameter order
 this.researchQueue = new ResearchQueue(
-  this.sessionManager,           // 1st: sessionManager
+  this.sessionManager, // 1st: sessionManager
   this.#researchQueueConcurrency, // 2nd: maxSize
-  this.#noCache,                 // 3rd: noCache
-  this.#cacheTtlMs              // 4th: cacheTtlMs
+  this.#noCache, // 3rd: noCache
+  this.#cacheTtlMs // 4th: cacheTtlMs
 );
 ```
 
@@ -449,10 +450,10 @@ cacheTtlMs                          →  cacheTtlMs
 
 ### File Locations
 
-| File | Lines | Description |
-|------|-------|-------------|
-| `src/core/task-orchestrator.ts` | 161-166 | ResearchQueue instantiation |
-| `src/core/research-queue.ts` | 94-106 | ResearchQueue constructor |
-| `src/agents/prp-generator.ts` | 194-199 | PRPGenerator constructor |
-| `tests/unit/core/research-queue.test.ts` | 268-280 | PRPGenerator mock test |
-| `src/cli/index.ts` | 50-80 | CLI option definitions |
+| File                                     | Lines   | Description                 |
+| ---------------------------------------- | ------- | --------------------------- |
+| `src/core/task-orchestrator.ts`          | 161-166 | ResearchQueue instantiation |
+| `src/core/research-queue.ts`             | 94-106  | ResearchQueue constructor   |
+| `src/agents/prp-generator.ts`            | 194-199 | PRPGenerator constructor    |
+| `tests/unit/core/research-queue.test.ts` | 268-280 | PRPGenerator mock test      |
+| `src/cli/index.ts`                       | 50-80   | CLI option definitions      |

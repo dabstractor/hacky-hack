@@ -15,16 +15,19 @@
 This task breakdown follows the **Research-First Architecture Validation** methodology:
 
 ### 1. Research Phase (Completed ✅)
+
 - **Agent 1**: Codebase audit - Mapped all constructor signatures, file paths, and workflow patterns
 - **Agent 2**: External dependencies - Researched TypeScript, Node.js, and testing best practices
 - **Synthesis**: Created unified system context document combining findings
 
 ### 2. Documentation Phase (Completed ✅)
+
 - Created `architecture/001_codebase_audit.md` - Detailed code analysis
 - Created `architecture/002_external_dependencies.md` - Best practices research
 - Created `architecture/003_system_context.md` - Unified architectural synthesis
 
 ### 3. Decomposition Phase (Completed ✅)
+
 - Created `tasks.json` with strict Phase → Milestone → Task → Subtask hierarchy
 - Each subtask includes detailed `context_scope` with research-backed implementation guidance
 - Subtasks sized at 0.5, 1, or 2 story points per constraints
@@ -60,6 +63,7 @@ Each subtask includes a **strict contract definition** in the `context_scope` fi
 
 ```markdown
 CONTRACT DEFINITION:
+
 1. RESEARCH NOTE: [Finding from architecture/ docs regarding this feature]
 2. INPUT: [Specific data structures, variables, files available]
 3. LOGIC: [Implementation instructions with PRD references]
@@ -67,6 +71,7 @@ CONTRACT DEFINITION:
 ```
 
 This pattern ensures:
+
 - ✅ Developers have research-backed guidance
 - ✅ Input/output contracts are explicit
 - ✅ No ambiguity about what to implement
@@ -77,21 +82,25 @@ This pattern ensures:
 ## Implementation Sequence
 
 ### Milestone 1.1: Constructor Signature Fixes (Priority 1)
+
 **Why First**: Constructor mismatches break all tests. Must fix before other work can be validated.
 **Dependencies**: None
 **Risk**: Low - straightforward parameter updates
 
 ### Milestone 1.2: TEST_RESULTS.md Workflow (Priority 1)
+
 **Why Second**: Core bug fix cycle is broken without this. Critical for end-to-end functionality.
 **Dependencies**: None (independent of constructor fixes)
 **Risk**: Medium - workflow refactoring affects multiple components
 
 ### Milestone 1.3: Session Validation Guards (Priority 2)
+
 **Why Third**: PRD requirements but system currently functions without them.
 **Dependencies**: None (can be done in parallel with 1.1 and 1.2)
 **Risk**: Medium - must not break legitimate bug fix sessions
 
 ### Milestone 1.4: Status Management (Priority 2)
+
 **Why Fourth**: Verification task - 'Retrying' status may already be implemented.
 **Dependencies**: None (independent verification)
 **Risk**: Low - mostly verification, minimal code changes
@@ -100,15 +109,16 @@ This pattern ensures:
 
 ## Story Point Distribution
 
-| Milestone | Subtasks | Story Points | Avg per Subtask |
-|-----------|----------|--------------|-----------------|
-| 1.1: Constructors | 7 | 10 | 1.43 |
-| 1.2: TEST_RESULTS.md | 8 | 11 | 1.38 |
-| 1.3: Session Guards | 10 | 12 | 1.20 |
-| 1.4: Status | 4 | 4 | 1.00 |
-| **TOTAL** | **34** | **42** | **1.29** |
+| Milestone            | Subtasks | Story Points | Avg per Subtask |
+| -------------------- | -------- | ------------ | --------------- |
+| 1.1: Constructors    | 7        | 10           | 1.43            |
+| 1.2: TEST_RESULTS.md | 8        | 11           | 1.38            |
+| 1.3: Session Guards  | 10       | 12           | 1.20            |
+| 1.4: Status          | 4        | 4            | 1.00            |
+| **TOTAL**            | **34**   | **42**       | **1.29**        |
 
 **Sizing Notes**:
+
 - Smallest subtask: 1 SP (atomic changes)
 - Largest subtask: 2 SP (multi-file updates with testing)
 - No subtasks exceed 2 SP per constraints
@@ -119,6 +129,7 @@ This pattern ensures:
 ## Critical Dependencies
 
 ### Cross-Milestone Dependencies
+
 All milestones are **independent** and can be worked in parallel, though recommended sequence is:
 
 1. **Milestone 1.1** first (unblocks test validation)
@@ -127,9 +138,11 @@ All milestones are **independent** and can be worked in parallel, though recomme
 4. **Milestone 1.4** fourth (verification)
 
 ### Intra-Milestone Dependencies
+
 Each milestone has internal dependencies that **must be respected**:
 
 **Example - Milestone 1.2**:
+
 - T1.S1 (Add writeBugReport) → T1.S2 (Call in run()) → T1.S3 (Test)
 - T2.S1 (Update constructor) → T2.S2 (Load from file) → T2.S3 (Update run()) → T2.S4 (Update Pipeline) → T2.S5 (Test)
 
@@ -138,6 +151,7 @@ Each milestone has internal dependencies that **must be respected**:
 ## Testing Strategy
 
 ### Implicit TDD Approach
+
 Per system prompt constraints, **every subtask implies TDD**:
 
 ```typescript
@@ -149,6 +163,7 @@ Per system prompt constraints, **every subtask implies TDD**:
 ```
 
 ### Test Types Covered
+
 - **Unit Tests**: Every component gets test updates
 - **Integration Tests**: Workflow integration validated
 - **Contract Tests**: Input/output contracts validated
@@ -184,6 +199,7 @@ Per system prompt constraints, **every subtask implies TDD**:
 **Milestone 1.4 Success**: Status lifecycle complete, all transitions work
 
 ### Overall Success
+
 - ✅ All 34 subtasks completed
 - ✅ Full test suite passes
 - ✅ No regressions introduced
@@ -195,16 +211,20 @@ Per system prompt constraints, **every subtask implies TDD**:
 ## Handoff to PRP Agents
 
 ### Available Documentation
+
 1. **architecture/001_codebase_audit.md** - Detailed codebase analysis with file paths and signatures
 2. **architecture/002_external_dependencies.md** - Best practices and implementation patterns
 3. **architecture/003_system_context.md** - Unified architectural synthesis
 
 ### Available Task Breakdown
+
 1. **tasks.json** - Complete hierarchy with context_scope for each subtask
 2. **BREAKDOWN_SUMMARY.md** - This document explaining the breakdown approach
 
 ### PRP Agent Responsibilities
+
 Each PRP (Product Requirement Prompt) agent should:
+
 1. Read the relevant architecture documentation
 2. Read the subtask's `context_scope` field
 3. Implement according to the contract definition
@@ -216,18 +236,22 @@ Each PRP (Product Requirement Prompt) agent should:
 ## Open Questions & Decisions Made
 
 ### Q1: Should we use parameter object pattern for constructors?
+
 **Decision**: No - not in scope for bug fixes. This is a future enhancement consideration.
 **Rationale**: Bug fixes should be minimal changes. Refactoring to parameter objects is beyond scope.
 
 ### Q2: Should we support old constructor signatures for backwards compatibility?
+
 **Decision**: No - this is internal code, we can update all call sites.
 **Rationale**: No external consumers depend on these constructors. Simpler to update all sites.
 
 ### Q3: Should TEST_RESULTS.md writing be synchronous or asynchronous?
+
 **Decision**: Asynchronous with atomic write-then-rename.
 **Rationale**: Prevents data corruption, follows Node.js best practices (see 002_external_dependencies.md §2.2).
 
 ### Q4: What if StatusEnum already includes 'Retrying'?
+
 **Decision**: Verify and document rather than assume. Subtask P1.M4.T1.S1 does the verification.
 **Rationale**: Bug report may be outdated. Must verify actual state before making changes.
 

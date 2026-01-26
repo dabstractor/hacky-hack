@@ -25,9 +25,9 @@ constructor(
 ```typescript
 // src/workflows/prp-pipeline.ts:1768-1772
 this.sessionManager = new SessionManagerClass(
-  this.#prdPath,      // ← Parameter 1: string (required)
-  this.#planDir,      // ← Parameter 2: string (optional)
-  this.#flushRetries  // ← Parameter 3: number (optional)
+  this.#prdPath, // ← Parameter 1: string (required)
+  this.#planDir, // ← Parameter 2: string (optional)
+  this.#flushRetries // ← Parameter 3: number (optional)
 );
 ```
 
@@ -40,13 +40,13 @@ CLI Args → PRPPipeline Constructor → PRPPipeline Fields
 
 ## File Locations
 
-| Component | File | Lines |
-|-----------|------|-------|
-| TaskOrchestrator | `src/core/task-orchestrator.ts` | 132-183 |
-| PRPPipeline instantiation | `src/workflows/prp-pipeline.ts` | 1768-1772 |
-| SessionManager constructor | `src/core/session-manager.ts` | 190-194 |
-| Unit tests | `tests/unit/core/task-orchestrator.test.ts` | - |
-| Integration tests | `tests/integration/core/task-orchestrator.test.js` | - |
+| Component                  | File                                               | Lines     |
+| -------------------------- | -------------------------------------------------- | --------- |
+| TaskOrchestrator           | `src/core/task-orchestrator.ts`                    | 132-183   |
+| PRPPipeline instantiation  | `src/workflows/prp-pipeline.ts`                    | 1768-1772 |
+| SessionManager constructor | `src/core/session-manager.ts`                      | 190-194   |
+| Unit tests                 | `tests/unit/core/task-orchestrator.test.ts`        | -         |
+| Integration tests          | `tests/integration/core/task-orchestrator.test.js` | -         |
 
 ## Verification Commands
 
@@ -67,6 +67,7 @@ sed -n '190,194p' src/core/session-manager.ts
 ## Test Patterns
 
 ### Unit Tests (Mock)
+
 ```typescript
 const mockSessionManager = {
   updateItemStatus: vi.fn(),
@@ -77,6 +78,7 @@ const orchestrator = new TaskOrchestrator(mockSessionManager);
 ```
 
 ### Integration Tests (Real)
+
 ```typescript
 const sessionManager = new SessionManager(prdPath, planDir);
 const orchestrator = new TaskOrchestrator(sessionManager);

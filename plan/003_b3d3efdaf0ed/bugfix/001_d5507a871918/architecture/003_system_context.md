@@ -70,6 +70,7 @@ PRP Pipeline.run()
 ### Bug 1: ResearchQueue Constructor Signature Mismatch
 
 **Current Implementation** (`src/core/research-queue.ts:94-106`):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -80,17 +81,18 @@ constructor(
 ```
 
 **Problematic Instantiation** (`src/core/task-orchestrator.ts:161-166`):
+
 ```typescript
 // CURRENT: Missing cacheTtlMs parameter
 this.researchQueue = new ResearchQueue(
   this.sessionManager,
-  concurrency,  // maxSize
+  concurrency, // maxSize
   noCache
   // Missing: cacheTtlMs
 );
 
 // TESTS: Only pass 2 parameters
-new ResearchQueue(sessionManager, noCache)
+new ResearchQueue(sessionManager, noCache);
 ```
 
 **Root Cause**: Constructor evolved to add `cacheTtlMs` but calling code and tests were not updated.
@@ -98,6 +100,7 @@ new ResearchQueue(sessionManager, noCache)
 **Impact**: Runtime failures when TaskOrchestrator tries to create ResearchQueue. Tests fail with argument count errors.
 
 **Fix Strategy**:
+
 1. Update TaskOrchestrator to pass all 4 parameters
 2. Update tests to use full constructor signature
 3. Consider parameter object pattern for future extensibility (see 002_external_dependencies.md §1.4)
@@ -107,6 +110,7 @@ new ResearchQueue(sessionManager, noCache)
 ### Bug 2: SessionManager Constructor Signature Inconsistency
 
 **Current Implementation** (`src/core/session-manager.ts:190-219`):
+
 ```typescript
 constructor(
   prdPath: string,
@@ -116,12 +120,13 @@ constructor(
 ```
 
 **Problematic Test Pattern** (23 test files):
+
 ```typescript
 // TESTS: Missing planDir parameter
-new SessionManager(prdPath, flushRetries)
+new SessionManager(prdPath, flushRetries);
 
 // EXPECTED: Should be
-new SessionManager(prdPath, planDir, flushRetries)
+new SessionManager(prdPath, planDir, flushRetries);
 ```
 
 **Root Cause**: `planDir` parameter was added with default value but tests were written before this change or without awareness of the new parameter.
@@ -129,6 +134,7 @@ new SessionManager(prdPath, planDir, flushRetries)
 **Impact**: All SessionManager tests fail. Tests cannot validate session state management.
 
 **Fix Strategy**:
+
 1. Update all 23 test files to include planDir parameter
 2. Use consistent pattern: `resolve('plan')` for tests
 3. Document constructor signature in test helpers
@@ -138,6 +144,7 @@ new SessionManager(prdPath, planDir, flushRetries)
 ### Bug 3: TEST_RESULTS.md Workflow Timing
 
 **Current Implementation** (`src/workflows/prp-pipeline.ts:1214-1285`):
+
 ```typescript
 async runQACycle() {
   // 1. Run BugHuntWorkflow
@@ -162,11 +169,13 @@ async runQACycle() {
 ```
 
 **Expected Flow** (per PRD §4.4):
+
 ```
 BugHuntWorkflow → Write TEST_RESULTS.md → FixCycleWorkflow reads file → Execute fixes
 ```
 
 **Actual Flow**:
+
 ```
 BugHuntWorkflow → FixCycleWorkflow (in-memory) → Write TEST_RESULTS.md (after fixes complete)
 ```
@@ -174,11 +183,13 @@ BugHuntWorkflow → FixCycleWorkflow (in-memory) → Write TEST_RESULTS.md (afte
 **Root Cause**: TEST_RESULTS.md was originally intended for persistence between runs, but FixCycleWorkflow was refactored to accept in-memory TestResults. The file write remained but moved to the wrong location.
 
 **Impact**:
+
 - Bugfix session directory is empty when tasks are generated
 - No persistent record of bugs found
 - Cannot resume bug fix sessions after interruption
 
 **Fix Strategy** (from 002_external_dependencies.md §2.2):
+
 1. Move TEST_RESULTS.md write to immediately after BugHuntWorkflow
 2. Add BugHuntWorkflow.writeBugReport() method for separation of concerns
 3. FixCycleWorkflow should read from file, not accept in-memory object
@@ -191,31 +202,32 @@ BugHuntWorkflow → FixCycleWorkflow (in-memory) → Write TEST_RESULTS.md (afte
 **Current Implementation**: None. No validation exists.
 
 **Expected Implementation** (per PRD §5.1):
+
 ```typescript
 // Should validate session path contains "bugfix"
 function validateBugfixSession(sessionPath: string): void {
   if (!sessionPath.includes('bugfix')) {
     throw new Error(
       `Bug fix tasks can only be executed within bugfix sessions. ` +
-      `Invalid path: ${sessionPath}`
+        `Invalid path: ${sessionPath}`
     );
   }
 }
 ```
 
 **Missing Nested Execution Guard** (per PRD §9.2.5):
+
 ```typescript
 // Should check PRP_PIPELINE_RUNNING environment variable
 function validateNestedExecution(sessionPath: string): void {
   if (process.env.PRP_PIPELINE_RUNNING) {
     const isValidRecursion =
-      process.env.SKIP_BUG_FINDING === 'true' &&
-      sessionPath.includes('bugfix');
+      process.env.SKIP_BUG_FINDING === 'true' && sessionPath.includes('bugfix');
 
     if (!isValidRecursion) {
       throw new Error(
         'Nested PRP Pipeline execution detected. ' +
-        'Only bug fix sessions can recurse.'
+          'Only bug fix sessions can recurse.'
       );
     }
   }
@@ -228,12 +240,14 @@ function validateNestedExecution(sessionPath: string): void {
 **Root Cause**: Guards were specified in PRD but never implemented.
 
 **Impact**:
+
 - Bug fix tasks could be created in wrong session directory
 - Corrupts main session state
 - No protection against recursive pipeline execution
 - Violates core PRD requirement
 
 **Fix Strategy** (from 002_external_dependencies.md §4):
+
 1. Add validation to FixCycleWorkflow constructor
 2. Implement nested execution guard in PRP Pipeline entry point
 3. Add debug logging with PLAN_DIR, SESSION_DIR, SKIP_BUG_FINDING
@@ -248,6 +262,7 @@ function validateNestedExecution(sessionPath: string): void {
 **Problem**: Constructor signatures evolve over time but calling code lags behind.
 
 **Solution**: Use parameter object pattern for complex constructors:
+
 ```typescript
 // Instead of:
 constructor(a, b, c, d, e, f)
@@ -271,6 +286,7 @@ constructor(options: Options)
 **Problem**: Determining when to write state to disk vs keep in memory.
 
 **Solution**: Follow the "write at state transitions" pattern:
+
 ```typescript
 // Write immediately when state changes
 async transitionTo(newState: State): Promise<void> {
@@ -288,6 +304,7 @@ async transitionTo(newState: State): Promise<void> {
 **Problem**: Preventing operations in wrong session context.
 
 **Solution**: Use session type guards and context validation:
+
 ```typescript
 type SessionType = 'main' | 'bugfix' | 'delta';
 
@@ -440,6 +457,7 @@ Each bug fix is complete when:
 ## Conclusion
 
 The PRP Pipeline implementation is fundamentally sound with strong architectural patterns. The 4 critical bugs are primarily due to:
+
 1. Constructor signature evolution without updating all call sites
 2. Workflow refactoring that left file operations in the wrong location
 3. Missing validation logic specified in PRD but never implemented

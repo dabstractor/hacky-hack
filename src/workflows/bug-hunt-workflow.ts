@@ -24,12 +24,15 @@
  */
 
 import { Workflow, Step } from 'groundswell';
+import { resolve } from 'node:path';
 import type { Task, TestResults } from '../core/models.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import { createQAAgent } from '../agents/agent-factory.js';
 import { createBugHuntPrompt } from '../agents/prompts/bug-hunt-prompt.js';
 import { retryAgentPrompt } from '../utils/retry.js';
+import { atomicWrite } from '../core/session-utils.js';
+import { TestResultsSchema } from '../core/models.js';
 
 /**
  * Bug Hunt workflow class
@@ -304,6 +307,80 @@ export class BugHuntWorkflow extends Workflow {
         }
       );
       throw new Error(`Bug report generation failed: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Writes bug report to TEST_RESULTS.md in session directory
+   *
+   * @param sessionPath - Absolute path to session directory
+   * @param testResults - Test results to persist
+   * @throws {Error} If sessionPath is invalid or write fails
+   * @remarks
+   * Only writes if critical or major bugs are present. Uses atomic
+   * write pattern to prevent corruption. Validates with Zod before writing.
+   */
+  public async writeBugReport(
+    sessionPath: string,
+    testResults: TestResults
+  ): Promise<void> {
+    // PATTERN: Input validation for sessionPath
+    if (typeof sessionPath !== 'string' || sessionPath.trim() === '') {
+      throw new Error('sessionPath must be a non-empty string');
+    }
+
+    // PATTERN: Severity checking - only write if critical or major bugs present
+    const hasCriticalOrMajor = testResults.bugs.some(
+      bug => bug.severity === 'critical' || bug.severity === 'major'
+    );
+
+    if (!hasCriticalOrMajor) {
+      this.correlationLogger.info(
+        '[BugHuntWorkflow] No critical or major bugs - skipping bug report write'
+      );
+      return;
+    }
+
+    // PATTERN: Zod validation before writing
+    try {
+      TestResultsSchema.parse(testResults);
+    } catch (error) {
+      throw new Error(
+        `Invalid TestResults provided to writeBugReport: ${error}`
+      );
+    }
+
+    // PATTERN: JSON serialization with 2-space indentation
+    const content = JSON.stringify(testResults, null, 2);
+
+    // PATTERN: Path construction with resolve()
+    const resultsPath = resolve(sessionPath, 'TEST_RESULTS.md');
+
+    // PATTERN: Atomic write with error handling
+    try {
+      this.correlationLogger.info('[BugHuntWorkflow] Writing bug report', {
+        resultsPath,
+        hasBugs: testResults.hasBugs,
+        bugCount: testResults.bugs.length,
+        criticalCount: testResults.bugs.filter(b => b.severity === 'critical')
+          .length,
+        majorCount: testResults.bugs.filter(b => b.severity === 'major').length,
+      });
+      await atomicWrite(resultsPath, content);
+      this.correlationLogger.info(
+        '[BugHuntWorkflow] Bug report written successfully',
+        { resultsPath }
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.correlationLogger.error(
+        '[BugHuntWorkflow] Failed to write bug report',
+        { error: errorMessage, resultsPath }
+      );
+      throw new Error(
+        `Failed to write bug report to ${resultsPath}: ${errorMessage}`
+      );
     }
   }
 

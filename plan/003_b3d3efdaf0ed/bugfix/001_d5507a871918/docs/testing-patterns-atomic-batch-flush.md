@@ -28,6 +28,7 @@ This document compiles testing patterns for atomic file write operations, batch 
 ### 1.1 The Pattern: Temp File + Rename
 
 Atomic file writes ensure data integrity by:
+
 1. Writing content to a temporary file
 2. Renaming temp file to target (atomic on same filesystem)
 3. Cleaning up temp file on error
@@ -177,6 +178,7 @@ it('should clean up temp file on rename failure', async () => {
 ### 2.1 The Pattern: In-Memory Batching
 
 Batching accumulates updates in memory:
+
 - Multiple updates batched (not written immediately)
 - Single atomic write on flush
 - Dirty flag tracks pending changes
@@ -340,6 +342,7 @@ it('should handle same item updated multiple times', async () => {
 ### 3.1 The Pattern: Exponential Backoff with Jitter
 
 Retry logic for transient failures:
+
 - Base delay × backoffFactor^attempt
 - Capped at maxDelay
 - Random jitter for thundering herd prevention
@@ -558,9 +561,7 @@ it('should throw immediately for ValidationError', async () => {
     throw new ValidationError('Invalid input', { field: 'taskId' });
   };
 
-  await expect(retry(fn, { maxAttempts: 5 })).rejects.toThrow(
-    'Invalid input'
-  );
+  await expect(retry(fn, { maxAttempts: 5 })).rejects.toThrow('Invalid input');
 });
 
 it('should throw immediately for 404 error', async () => {
@@ -690,11 +691,9 @@ describe('File System Operations', () => {
 
     await someFunctionThatWrites();
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      '/path/to/file.txt',
-      'content',
-      { mode: 0o644 }
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith('/path/to/file.txt', 'content', {
+      mode: 0o644,
+    });
   });
 });
 ```
@@ -962,9 +961,7 @@ it('should include ISO 8601 timestamp in recovery file', async () => {
 
   const beforeFlush = new Date().toISOString();
 
-  mockWriteTasksJSON.mockRejectedValue(
-    new Error('EIO: I/O error')
-  );
+  mockWriteTasksJSON.mockRejectedValue(new Error('EIO: I/O error'));
 
   const mockRecoveryWrite = vi.fn().mockResolvedValue(undefined);
 
@@ -1015,9 +1012,7 @@ it('should preserve pending updates in recovery file', async () => {
   await manager.updateItemStatus('P1.M1.T1.S2', 'Complete');
   await manager.updateItemStatus('P1.M1.T1.S3', 'Complete');
 
-  mockWriteTasksJSON.mockRejectedValue(
-    new Error('EIO: I/O error')
-  );
+  mockWriteTasksJSON.mockRejectedValue(new Error('EIO: I/O error'));
   const mockRecoveryWrite = vi.fn().mockResolvedValue(undefined);
 
   await expect(manager.flushUpdates()).rejects.toThrow();
@@ -1027,9 +1022,18 @@ it('should preserve pending updates in recovery file', async () => {
   expect(recoveryFile.pendingCount).toBe(3);
 
   // Verify backlog state
-  expect(recoveryFile.pendingUpdates.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe('Complete');
-  expect(recoveryFile.pendingUpdates.backlog[0].milestones[0].tasks[0].subtasks[1].status).toBe('Complete');
-  expect(recoveryFile.pendingUpdates.backlog[0].milestones[0].tasks[0].subtasks[2].status).toBe('Complete');
+  expect(
+    recoveryFile.pendingUpdates.backlog[0].milestones[0].tasks[0].subtasks[0]
+      .status
+  ).toBe('Complete');
+  expect(
+    recoveryFile.pendingUpdates.backlog[0].milestones[0].tasks[0].subtasks[1]
+      .status
+  ).toBe('Complete');
+  expect(
+    recoveryFile.pendingUpdates.backlog[0].milestones[0].tasks[0].subtasks[2]
+      .status
+  ).toBe('Complete');
 });
 ```
 
@@ -1039,23 +1043,23 @@ it('should preserve pending updates in recovery file', async () => {
 
 ### 7.1 Official Documentation
 
-| Resource | URL | Description |
-|----------|-----|-------------|
-| Vitest Documentation | https://vitest.dev/guide/ | Official Vitest testing framework guide |
-| Vitest Mocking | https://vitest.dev/api/#vi-mock | Mock functions and modules |
-| Vitest Fake Timers | https://vitest.dev/api/#vi-usefaketimers | Fake timers for time-based tests |
-| Node.js fs/promises | https://nodejs.org/api/fs.html#fspromises | Node.js file system promises API |
-| Node.js crypto | https://nodejs.org/api/crypto.html | Crypto module for random bytes |
+| Resource             | URL                                       | Description                             |
+| -------------------- | ----------------------------------------- | --------------------------------------- |
+| Vitest Documentation | https://vitest.dev/guide/                 | Official Vitest testing framework guide |
+| Vitest Mocking       | https://vitest.dev/api/#vi-mock           | Mock functions and modules              |
+| Vitest Fake Timers   | https://vitest.dev/api/#vi-usefaketimers  | Fake timers for time-based tests        |
+| Node.js fs/promises  | https://nodejs.org/api/fs.html#fspromises | Node.js file system promises API        |
+| Node.js crypto       | https://nodejs.org/api/crypto.html        | Crypto module for random bytes          |
 
 ### 7.2 Testing Patterns & Best Practices
 
-| Topic | Key Patterns |
-|-------|--------------|
-| **Atomic Writes** | Temp file + rename, cleanup on error, verify permissions |
-| **Batching** | Accumulate in memory, single flush, dirty flag tracking |
-| **Retry Logic** | Exponential backoff, jitter, transient vs permanent errors |
-| **Fake Timers** | vi.useFakeTimers(), vi.runAllTimersAsync(), delay tracking |
-| **FS Mocking** | vi.mock(), vi.mocked(), vi.spyOn(), call order verification |
+| Topic             | Key Patterns                                                |
+| ----------------- | ----------------------------------------------------------- |
+| **Atomic Writes** | Temp file + rename, cleanup on error, verify permissions    |
+| **Batching**      | Accumulate in memory, single flush, dirty flag tracking     |
+| **Retry Logic**   | Exponential backoff, jitter, transient vs permanent errors  |
+| **Fake Timers**   | vi.useFakeTimers(), vi.runAllTimersAsync(), delay tracking  |
+| **FS Mocking**    | vi.mock(), vi.mocked(), vi.spyOn(), call order verification |
 
 ### 7.3 Key Takeaways for SessionManager Tests
 
@@ -1092,13 +1096,13 @@ it('should preserve pending updates in recovery file', async () => {
 
 ### 7.4 Common Pitfalls to Avoid
 
-| Pitfall | Solution |
-|---------|----------|
-| Non-deterministic random values | Use deterministic mocks for randomBytes/UUID |
-| Flaky timer tests | Always use vi.useFakeTimers() and vi.runAllTimersAsync() |
-| Mock side effects | Clear mocks in beforeEach, use mockImplementation |
-| Call order issues | Track calls with arrays or use mock Implementation |
-| Missing cleanup | Restore mocks in afterEach, use vi.restoreAllMocks() |
+| Pitfall                         | Solution                                                 |
+| ------------------------------- | -------------------------------------------------------- |
+| Non-deterministic random values | Use deterministic mocks for randomBytes/UUID             |
+| Flaky timer tests               | Always use vi.useFakeTimers() and vi.runAllTimersAsync() |
+| Mock side effects               | Clear mocks in beforeEach, use mockImplementation        |
+| Call order issues               | Track calls with arrays or use mock Implementation       |
+| Missing cleanup                 | Restore mocks in afterEach, use vi.restoreAllMocks()     |
 
 ---
 

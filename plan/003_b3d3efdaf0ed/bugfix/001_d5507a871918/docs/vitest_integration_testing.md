@@ -23,14 +23,14 @@
 
 ### Core Documentation URLs
 
-| Resource | URL | Description |
-|----------|-----|-------------|
-| **Vitest Guide** | https://vitest.dev/guide/ | Main documentation with examples |
-| **API Reference** | https://vitest.dev/api/ | Complete API documentation |
-| **Mocking Guide** | https://vitest.dev/guide/mocking.html | vi.mock, vi.hoisted patterns |
-| **Testing Requirements** | https://vitest.dev/guide/testing-requirements.html | Test configuration and setup |
-| **Matchers** | https://vitest.dev/api/expect.html | Built-in assertion matchers |
-| **Mock Functions** | https://vitest.dev/api/vi.html | vi.fn(), vi.spyOn() reference |
+| Resource                 | URL                                                | Description                      |
+| ------------------------ | -------------------------------------------------- | -------------------------------- |
+| **Vitest Guide**         | https://vitest.dev/guide/                          | Main documentation with examples |
+| **API Reference**        | https://vitest.dev/api/                            | Complete API documentation       |
+| **Mocking Guide**        | https://vitest.dev/guide/mocking.html              | vi.mock, vi.hoisted patterns     |
+| **Testing Requirements** | https://vitest.dev/guide/testing-requirements.html | Test configuration and setup     |
+| **Matchers**             | https://vitest.dev/api/expect.html                 | Built-in assertion matchers      |
+| **Mock Functions**       | https://vitest.dev/api/vi.html                     | vi.fn(), vi.spyOn() reference    |
 
 ### Key Sections for Queue Testing
 
@@ -78,11 +78,13 @@ vi.mock('../../../src/agents/prp-generator.js', () => ({
 ```
 
 **Key Benefits:**
+
 - Mocks are available at import time
 - Shared mock state across tests
 - Real queue logic tested, mocked dependencies
 
 **Best Practices:**
+
 1. Define mock functions in `vi.hoisted()` to make them available before imports
 2. Use descriptive names like `mockLogger`, `mockGenerate`
 3. Reset mocks in `beforeEach()` to ensure test isolation
@@ -94,15 +96,17 @@ vi.mock('../../../src/agents/prp-generator.js', () => ({
 ```typescript
 // task-orchestrator.test.ts
 vi.mock('../../../src/utils/task-utils.js', async importOriginal => {
-  const actual = await importOriginal<typeof import('../../../src/utils/task-utils.js')>();
+  const actual =
+    await importOriginal<typeof import('../../../src/utils/task-utils.js')>();
   return {
-    ...actual,  // Preserve real implementations
-    getNextPendingItem: vi.fn(),  // Mock only what's needed
+    ...actual, // Preserve real implementations
+    getNextPendingItem: vi.fn(), // Mock only what's needed
   };
 });
 ```
 
 **Key Benefits:**
+
 - Keeps real implementations for most functions
 - Only mocks what's necessary for test control
 - Reduces mock maintenance overhead
@@ -131,6 +135,7 @@ describe('ResearchQueue Integration Tests', () => {
 ```
 
 **Key Benefits:**
+
 - Clean test isolation
 - Different mock behaviors per test suite
 - Prevents state leakage between tests
@@ -206,6 +211,7 @@ it('should process up to maxSize tasks concurrently', async () => {
 ```
 
 **Key Techniques:**
+
 - Use wrapper objects (`{ value: 0 }`) to track state across async operations
 - Delay mock operations with `setTimeout()` to simulate real work
 - Track `startOrder` to verify which tasks started first
@@ -245,11 +251,7 @@ it('should execute serially with concurrency=1', async () => {
   await queue.waitForPRP('P1.M1.T1.S3');
 
   // VERIFY: Tasks executed in order (serial processing)
-  expect(executionOrder).toEqual([
-    'P1.M1.T1.S1',
-    'P1.M1.T1.S2',
-    'P1.M1.T1.S3',
-  ]);
+  expect(executionOrder).toEqual(['P1.M1.T1.S1', 'P1.M1.T1.S2', 'P1.M1.T1.S3']);
 });
 ```
 
@@ -276,11 +278,7 @@ it('should only run maxSize tasks simultaneously', async () => {
 
   // Enqueue 5 tasks
   for (let i = 1; i <= 5; i++) {
-    const task = createTestSubtask(
-      `P1.M1.T1.S${i}`,
-      `Task ${i}`,
-      'Planned'
-    );
+    const task = createTestSubtask(`P1.M1.T1.S${i}`, `Task ${i}`, 'Planned');
     await queue.enqueue(task, backlog);
   }
 
@@ -403,9 +401,9 @@ describe('noCache parameter', () => {
   it('should forward noCache=true to PRPGenerator', () => {
     // SETUP
     const mockManager = createMockSessionManager(currentSession);
-    const mockGenerate = vi.fn().mockResolvedValue(
-      createTestPRPDocument('P1.M1.T1.S1')
-    );
+    const mockGenerate = vi
+      .fn()
+      .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
     MockPRPGenerator.mockImplementation(() => ({
       generate: mockGenerate,
     }));
@@ -414,14 +412,14 @@ describe('noCache parameter', () => {
     new ResearchQueue(
       mockManager,
       DEFAULT_MAX_SIZE,
-      true,  // noCache = true
+      true, // noCache = true
       DEFAULT_CACHE_TTL_MS
     );
 
     // VERIFY
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
-      true,  // noCache forwarded correctly
+      true, // noCache forwarded correctly
       DEFAULT_CACHE_TTL_MS
     );
   });
@@ -617,9 +615,9 @@ describe('ResearchQueue', () => {
     it('should use default maxSize of 3 when not specified', async () => {
       // SETUP
       const mockManager = createMockSessionManager(currentSession);
-      const mockGenerate = vi.fn().mockResolvedValue(
-        createTestPRPDocument('P1.M1.T1.S1')
-      );
+      const mockGenerate = vi
+        .fn()
+        .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
       MockPRPGenerator.mockImplementation(() => ({
         generate: mockGenerate,
       }));
@@ -640,6 +638,7 @@ describe('ResearchQueue', () => {
 ```
 
 **Benefits:**
+
 - Single source of truth for default values
 - Easy to update when defaults change
 - Self-documenting test intent
@@ -750,6 +749,7 @@ function createMockSession(): any {
 ```
 
 **Benefits:**
+
 - Reduces test boilerplate
 - Consistent test data structure
 - Easy to extend for specific test scenarios
@@ -809,9 +809,9 @@ it('should describe what the test verifies', async () => {
   // ==========================================================================
   // SETUP: Prepare test state, mocks, and data
   // ==========================================================================
-  const mockGenerate = vi.fn().mockResolvedValue(
-    createTestPRPDocument('P1.M1.T1.S1')
-  );
+  const mockGenerate = vi
+    .fn()
+    .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
   const queue = new ResearchQueue(mockSessionManager, 3);
   const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 

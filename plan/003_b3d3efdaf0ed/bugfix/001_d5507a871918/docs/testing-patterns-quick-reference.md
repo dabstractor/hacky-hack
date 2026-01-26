@@ -45,7 +45,9 @@ it('should batch updates in memory', async () => {
 
   // Track writes during batching
   let writeCount = 0;
-  mockWriteTasksJSON.mockImplementation(async () => { writeCount++; });
+  mockWriteTasksJSON.mockImplementation(async () => {
+    writeCount++;
+  });
 
   // Multiple updates
   await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -66,8 +68,12 @@ it('should batch updates in memory', async () => {
 ```typescript
 // Quick template for retry testing
 describe('with fake timers', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
-  afterEach(() => { vi.restoreAllMocks(); });
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   it('should retry with exponential backoff', async () => {
     const delays: number[] = [];
@@ -167,12 +173,12 @@ mockWriteTasksJSON
 ### Call Tracking
 
 ```typescript
-const calls: Array<{fn: string; args: unknown[]}> = [];
+const calls: Array<{ fn: string; args: unknown[] }> = [];
 mockWriteFile.mockImplementation(async (...args) => {
-  calls.push({fn: 'writeFile', args});
+  calls.push({ fn: 'writeFile', args });
 });
 mockRename.mockImplementation(async (...args) => {
-  calls.push({fn: 'rename', args});
+  calls.push({ fn: 'rename', args });
 });
 ```
 
@@ -200,7 +206,9 @@ const getWrittenBacklog = () => {
 };
 
 const backlog = getWrittenBacklog();
-expect(backlog.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe('Complete');
+expect(backlog.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe(
+  'Complete'
+);
 ```
 
 ### Verify Update Count
@@ -219,6 +227,7 @@ expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
 ## Test Checklist
 
 ### Atomic Write Tests
+
 - [ ] Temp file created before rename
 - [ ] Temp file follows naming pattern
 - [ ] File permissions are 0o644
@@ -227,6 +236,7 @@ expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
 - [ ] Cleanup attempted on both write and rename failure
 
 ### Batching Tests
+
 - [ ] Updates not written immediately
 - [ ] Single atomic write for multiple updates
 - [ ] Complete backlog state (not append)
@@ -235,6 +245,7 @@ expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
 - [ ] Same item updated multiple times
 
 ### Retry Tests
+
 - [ ] Transient errors trigger retry
 - [ ] Permanent errors thrown immediately
 - [ ] Exponential backoff used
@@ -244,6 +255,7 @@ expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
 - [ ] Dirty state preserved for retry
 
 ### State Management Tests
+
 - [ ] Dirty flag set after updates
 - [ ] Dirty flag reset after flush
 - [ ] Update count increments
@@ -251,6 +263,7 @@ expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
 - [ ] Large batches handled
 
 ### Recovery File Tests
+
 - [ ] Created after all retries exhausted
 - [ ] ISO 8601 timestamp included
 - [ ] Error context preserved (code, attempts)
@@ -274,9 +287,7 @@ expect(mockRename).toHaveBeenCalledWith(
   expect.stringContaining('tasks.json')
 );
 
-expect(mockUnlink).toHaveBeenCalledWith(
-  expect.stringContaining('.tmp')
-);
+expect(mockUnlink).toHaveBeenCalledWith(expect.stringContaining('.tmp'));
 
 // Batching
 expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
@@ -289,7 +300,9 @@ expect(delays[1]).toBe(200);
 
 // State
 expect(callOrder).toEqual(['writeFile', 'rename']);
-expect(writtenBacklog.backlog[0].milestones[0].tasks[0].subtasks[0].status).toBe('Complete');
+expect(
+  writtenBacklog.backlog[0].milestones[0].tasks[0].subtasks[0].status
+).toBe('Complete');
 ```
 
 ---

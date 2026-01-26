@@ -55,23 +55,25 @@ constructor(
 
 ### Parameter Details
 
-| Parameter | Type | Default | Purpose |
-|-----------|------|---------|---------|
-| `prdPath` | string | (required) | Path to PRD markdown file |
-| `planDir` | string | `resolve('plan')` | Plan directory for sessions |
-| `flushRetries` | number | `3` | Max retry attempts for I/O operations |
+| Parameter      | Type   | Default           | Purpose                               |
+| -------------- | ------ | ----------------- | ------------------------------------- |
+| `prdPath`      | string | (required)        | Path to PRD markdown file             |
+| `planDir`      | string | `resolve('plan')` | Plan directory for sessions           |
+| `flushRetries` | number | `3`               | Max retry attempts for I/O operations |
 
 ### Critical Issue
 
 **Current Test Pattern** (INCORRECT):
+
 ```typescript
-new SessionManager(prdPath, flushRetries)
+new SessionManager(prdPath, flushRetries);
 // This passes flushRetries to planDir parameter!
 ```
 
 **Correct Pattern**:
+
 ```typescript
-new SessionManager(prdPath, resolve('plan'), flushRetries)
+new SessionManager(prdPath, resolve('plan'), flushRetries);
 ```
 
 ---
@@ -81,6 +83,7 @@ new SessionManager(prdPath, resolve('plan'), flushRetries)
 ### Primary Test File
 
 **File**: `tests/unit/core/session-manager.test.ts`
+
 - **Size**: ~1000+ lines
 - **Constructor Calls**: ~200 instantiations
 - **Test Structure**: Vitest with comprehensive mocking
@@ -108,7 +111,9 @@ vi.mock('../../../src/core/session-utils.js', () => ({
   createSessionDirectory: vi.fn(),
   readTasksJSON: vi.fn(),
   writeTasksJSON: vi.fn(),
-  SessionFileError: class extends Error { /* ... */ },
+  SessionFileError: class extends Error {
+    /* ... */
+  },
 }));
 ```
 
@@ -136,22 +141,22 @@ beforeEach(() => {
 
 ### Unit Tests (Primary Focus for P1.M1.T2.S1)
 
-| File | Constructor Calls | Priority |
-|------|-------------------|----------|
-| `tests/unit/core/session-manager.test.ts` | ~200 | **HIGH** (P1.M1.T2.S1) |
-| `tests/unit/core/session-state-batching.test.ts` | 1 | **MEDIUM** (P1.M1.T2.S3) |
+| File                                             | Constructor Calls | Priority                 |
+| ------------------------------------------------ | ----------------- | ------------------------ |
+| `tests/unit/core/session-manager.test.ts`        | ~200              | **HIGH** (P1.M1.T2.S1)   |
+| `tests/unit/core/session-state-batching.test.ts` | 1                 | **MEDIUM** (P1.M1.T2.S3) |
 
 ### Integration Tests (Future Subtasks)
 
-| File | Constructor Calls | Priority |
-|------|-------------------|----------|
-| `tests/integration/session-structure.test.ts` | 5 | P1.M1.T2.S2 |
-| `tests/integration/tasks-json-authority.test.ts` | 5 | P1.M1.T2.S2 |
-| `tests/integration/delta-resume-regeneration.test.ts` | 5 | P1.M1.T2.S2 |
-| `tests/integration/prp-generator-integration.test.ts` | 2 | P1.M1.T2.S2 |
-| `tests/integration/prp-runtime-integration.test.ts` | 1 | P1.M1.T2.S2 |
-| `tests/integration/scope-resolution.test.ts` | 1 | P1.M1.T2.S2 |
-| `tests/integration/prd-task-command.test.ts` | 1 | P1.M1.T2.S2 |
+| File                                                  | Constructor Calls | Priority    |
+| ----------------------------------------------------- | ----------------- | ----------- |
+| `tests/integration/session-structure.test.ts`         | 5                 | P1.M1.T2.S2 |
+| `tests/integration/tasks-json-authority.test.ts`      | 5                 | P1.M1.T2.S2 |
+| `tests/integration/delta-resume-regeneration.test.ts` | 5                 | P1.M1.T2.S2 |
+| `tests/integration/prp-generator-integration.test.ts` | 2                 | P1.M1.T2.S2 |
+| `tests/integration/prp-runtime-integration.test.ts`   | 1                 | P1.M1.T2.S2 |
+| `tests/integration/scope-resolution.test.ts`          | 1                 | P1.M1.T2.S2 |
+| `tests/integration/prd-task-command.test.ts`          | 1                 | P1.M1.T2.S2 |
 
 ### Summary
 
@@ -258,21 +263,19 @@ const manager = new SessionManager(
 #### Pattern 2: Multi-line Formatting
 
 **Instead of**:
+
 ```typescript
-new ResearchQueue(sessionManager, maxSize, noCache, cacheTtlMs)
+new ResearchQueue(sessionManager, maxSize, noCache, cacheTtlMs);
 ```
 
 **Use**:
+
 ```typescript
-new ResearchQueue(
-  sessionManager,
-  maxSize,
-  noCache,
-  cacheTtlMs
-)
+new ResearchQueue(sessionManager, maxSize, noCache, cacheTtlMs);
 ```
 
 **Benefits**:
+
 - Easy to spot missing parameters
 - Clear parameter separation
 - Better code review experience
@@ -329,11 +332,13 @@ describe('planDir parameter', () => {
 ### Step-by-Step Approach
 
 1. **Add Import Statement**
+
    ```typescript
    import { resolve } from 'node:path';
    ```
 
 2. **Add Test Constants**
+
    ```typescript
    const DEFAULT_PRD_PATH = '/test/PRD.md';
    const DEFAULT_PLAN_DIR = 'plan';
@@ -433,7 +438,9 @@ describe('constructor', () => {
   it('should throw SessionFileError when PRD does not exist', () => {
     const error = new Error('ENOENT') as NodeJS.ErrnoException;
     error.code = 'ENOENT';
-    mockStatSync.mockImplementation(() => { throw error; });
+    mockStatSync.mockImplementation(() => {
+      throw error;
+    });
     expect(() => new SessionManager('/test/PRD.md')).toThrow(SessionFileError);
   });
 });
@@ -465,11 +472,12 @@ describe('constructor', () => {
   it('should throw SessionFileError when PRD does not exist', () => {
     const error = new Error('ENOENT') as NodeJS.ErrnoException;
     error.code = 'ENOENT';
-    mockStatSync.mockImplementation(() => { throw error; });
-    expect(() => new SessionManager(
-      DEFAULT_PRD_PATH,
-      resolve(DEFAULT_PLAN_DIR)
-    )).toThrow(SessionFileError);
+    mockStatSync.mockImplementation(() => {
+      throw error;
+    });
+    expect(
+      () => new SessionManager(DEFAULT_PRD_PATH, resolve(DEFAULT_PLAN_DIR))
+    ).toThrow(SessionFileError);
   });
 });
 
@@ -484,10 +492,7 @@ describe('planDir parameter', () => {
   it('should accept custom planDir', () => {
     mockStatSync.mockReturnValue({ isFile: () => true });
     const customPlanDir = '/custom/plan';
-    const manager = new SessionManager(
-      DEFAULT_PRD_PATH,
-      customPlanDir
-    );
+    const manager = new SessionManager(DEFAULT_PRD_PATH, customPlanDir);
     expect(manager.planDir).toBe(customPlanDir);
   });
 

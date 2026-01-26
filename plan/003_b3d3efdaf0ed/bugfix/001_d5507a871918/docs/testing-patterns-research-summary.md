@@ -57,36 +57,38 @@ Based on the research, consider adding:
 
 ### Official Documentation
 
-| Resource | URL | Relevance |
-|----------|-----|-----------|
-| **Vitest Guide** | https://vitest.dev/guide/ | Primary testing framework documentation |
-| **Vitest API: Mocking** | https://vitest.dev/api/#vi-mock | Mock functions and modules |
-| **Vitest API: Fake Timers** | https://vitest.dev/api/#vi-usefaketimers | Time-based testing with fake timers |
-| **Vitest API: vi.runAllTimersAsync** | https://vitest.dev/api/#vi-runalltimersasync | Advance fake timers asynchronously |
-| **Node.js fs/promises** | https://nodejs.org/api/fs.html#fspromises | File system promises API |
-| **Node.js crypto.randomBytes** | https://nodejs.org/api/crypto.html#cryptorandombytessize-callback | Random bytes for temp filenames |
-| **Node.js Error Codes** | https://nodejs.org/api/errors.html#errorcodes | System error codes (ENOSPC, EIO, etc.) |
+| Resource                             | URL                                                               | Relevance                               |
+| ------------------------------------ | ----------------------------------------------------------------- | --------------------------------------- |
+| **Vitest Guide**                     | https://vitest.dev/guide/                                         | Primary testing framework documentation |
+| **Vitest API: Mocking**              | https://vitest.dev/api/#vi-mock                                   | Mock functions and modules              |
+| **Vitest API: Fake Timers**          | https://vitest.dev/api/#vi-usefaketimers                          | Time-based testing with fake timers     |
+| **Vitest API: vi.runAllTimersAsync** | https://vitest.dev/api/#vi-runalltimersasync                      | Advance fake timers asynchronously      |
+| **Node.js fs/promises**              | https://nodejs.org/api/fs.html#fspromises                         | File system promises API                |
+| **Node.js crypto.randomBytes**       | https://nodejs.org/api/crypto.html#cryptorandombytessize-callback | Random bytes for temp filenames         |
+| **Node.js Error Codes**              | https://nodejs.org/api/errors.html#errorcodes                     | System error codes (ENOSPC, EIO, etc.)  |
 
 ### Testing Pattern References
 
 Based on industry best practices and your codebase analysis:
 
-| Pattern | Description | Source |
-|---------|-------------|--------|
-| **Atomic Write Pattern** | Write temp file → rename → cleanup on error | Your implementation in `/home/dustin/projects/hacky-hack/src/core/session-utils.ts` (lines 98-160) |
-| **Exponential Backoff** | baseDelay × backoffFactor^attempt, capped at maxDelay | Your implementation in `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` (lines 73-88) |
-| **Fake Timer Testing** | vi.useFakeTimers() for deterministic delay testing | Vitest official documentation |
-| **Transient Error Detection** | isTransientError() for retryable errors | Your implementation in `/home/dustin/projects/hacky-hack/tests/unit/utils/retry.test.ts` |
-| **Batch Accumulation** | In-memory batching with dirty flag | Your SessionManager implementation (lines 170-177) |
+| Pattern                       | Description                                           | Source                                                                                              |
+| ----------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Atomic Write Pattern**      | Write temp file → rename → cleanup on error           | Your implementation in `/home/dustin/projects/hacky-hack/src/core/session-utils.ts` (lines 98-160)  |
+| **Exponential Backoff**       | baseDelay × backoffFactor^attempt, capped at maxDelay | Your implementation in `/home/dustin/projects/hacky-hack/src/core/session-manager.ts` (lines 73-88) |
+| **Fake Timer Testing**        | vi.useFakeTimers() for deterministic delay testing    | Vitest official documentation                                                                       |
+| **Transient Error Detection** | isTransientError() for retryable errors               | Your implementation in `/home/dustin/projects/hacky-hack/tests/unit/utils/retry.test.ts`            |
+| **Batch Accumulation**        | In-memory batching with dirty flag                    | Your SessionManager implementation (lines 170-177)                                                  |
 
 ---
 
 ## Generated Documentation
 
 ### 1. Comprehensive Research Document
+
 **File:** `/home/dustin/projects/hacky-hack/docs/research/testing-patterns-atomic-batch-flush.md`
 
 **Contents:**
+
 - Detailed testing patterns for all 6 focus areas
 - Code examples with explanations
 - Vitest fake timer patterns
@@ -97,6 +99,7 @@ Based on industry best practices and your codebase analysis:
 - Common pitfalls and solutions
 
 **Key Sections:**
+
 - Section 1: Atomic Write Pattern Testing (6 patterns)
 - Section 2: Batch Accumulation and Flush Testing (5 patterns)
 - Section 3: Retry Logic with Exponential Backoff (7 patterns)
@@ -105,9 +108,11 @@ Based on industry best practices and your codebase analysis:
 - Section 6: Recovery File Testing (5 patterns)
 
 ### 2. Quick Reference Guide
+
 **File:** `/home/dustin/projects/hacky-hack/docs/research/testing-patterns-quick-reference.md`
 
 **Contents:**
+
 - Essential patterns at a glance
 - Copy-paste templates for common tests
 - Mock setup templates
@@ -127,6 +132,7 @@ Based on industry best practices and your codebase analysis:
 Your current retry tests verify retry behavior but don't validate timing:
 
 **Current:**
+
 ```typescript
 it('should preserve dirty state on flush failure for retry', async () => {
   // ... setup ...
@@ -137,10 +143,15 @@ it('should preserve dirty state on flush failure for retry', async () => {
 ```
 
 **Enhanced:**
+
 ```typescript
 describe('with fake timers', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
-  afterEach(() => { vi.restoreAllMocks(); });
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   it('should use exponential backoff on retry', async () => {
     const delays: number[] = [];
@@ -208,8 +219,8 @@ it('should add jitter to retry delays', async () => {
   await retryPromise;
 
   // Verify jitter variance
-  expect(delays[0]).toBeGreaterThan(900);  // 1000 - 10%
-  expect(delays[0]).toBeLessThan(1100);    // 1000 + 10%
+  expect(delays[0]).toBeGreaterThan(900); // 1000 - 10%
+  expect(delays[0]).toBeLessThan(1100); // 1000 + 10%
 });
 ```
 
@@ -223,9 +234,9 @@ it('should cap retry delay at maxDelay', async () => {
   // ... setup with 4 failures ...
 
   // Verify capping
-  expect(delays[0]).toBe(100);   // 100 * 2^0
-  expect(delays[1]).toBe(200);   // 100 * 2^1
-  expect(delays[2]).toBe(200);   // 100 * 2^2 = 400, capped at 200 (from config)
+  expect(delays[0]).toBe(100); // 100 * 2^0
+  expect(delays[1]).toBe(200); // 100 * 2^1
+  expect(delays[2]).toBe(200); // 100 * 2^2 = 400, capped at 200 (from config)
   // Wait: your config says maxDelay: 2000, so this would be 400, not capped yet
   // Need more retries to see capping: 100, 200, 400, 800, 1600, 2000(capped)
 });
@@ -239,16 +250,16 @@ it('should cap retry delay at maxDelay', async () => {
 
 Based on analysis of `/home/dustin/projects/hacky-hack/tests/unit/core/session-state-batching.test.ts`:
 
-| Test Category | Coverage | Quality |
-|---------------|----------|---------|
+| Test Category            | Coverage     | Quality                                                   |
+| ------------------------ | ------------ | --------------------------------------------------------- |
 | **Atomic Write Pattern** | ✅ Excellent | Temp file creation, rename sequence, permissions verified |
-| **Batch Accumulation** | ✅ Excellent | Multiple updates, single write, efficiency metrics |
-| **Dirty State** | ✅ Excellent | Flag behavior, state reset, empty batch |
-| **Update Counting** | ✅ Good | Multiple updates tracked, same item updates |
-| **Edge Cases** | ✅ Excellent | Empty batch, single update, large batches (100) |
-| **Error Handling** | ✅ Good | Write/rename failures, cleanup verification |
-| **Retry Behavior** | ⚠️ Basic | Retry happens, but timing not verified |
-| **Recovery Files** | ❌ Missing | No tests for recovery file creation |
+| **Batch Accumulation**   | ✅ Excellent | Multiple updates, single write, efficiency metrics        |
+| **Dirty State**          | ✅ Excellent | Flag behavior, state reset, empty batch                   |
+| **Update Counting**      | ✅ Good      | Multiple updates tracked, same item updates               |
+| **Edge Cases**           | ✅ Excellent | Empty batch, single update, large batches (100)           |
+| **Error Handling**       | ✅ Good      | Write/rename failures, cleanup verification               |
+| **Retry Behavior**       | ⚠️ Basic     | Retry happens, but timing not verified                    |
+| **Recovery Files**       | ❌ Missing   | No tests for recovery file creation                       |
 
 ### Test Statistics
 
@@ -300,15 +311,18 @@ Based on analysis of `/home/dustin/projects/hacky-hack/tests/unit/core/session-s
 ## Testing Patterns Summary
 
 ### Pattern 1: Atomic Write Verification
+
 **Purpose:** Ensure temp file + rename pattern is followed
 
 **Key Assertions:**
+
 - writeFile called with temp path
 - rename called with temp → target
 - File permissions are 0o644
 - Cleanup on error (unlink called)
 
 **Example:**
+
 ```typescript
 expect(mockWriteFile).toHaveBeenCalledWith(
   expect.stringContaining('.tmp'),
@@ -322,14 +336,17 @@ expect(mockRename).toHaveBeenCalledWith(
 ```
 
 ### Pattern 2: Batch Accumulation Verification
+
 **Purpose:** Ensure updates are batched in memory
 
 **Key Assertions:**
+
 - No writes during batching
 - Single write on flush
 - All updates in written backlog
 
 **Example:**
+
 ```typescript
 // During batching
 expect(mockWriteTasksJSON).not.toHaveBeenCalled();
@@ -339,30 +356,38 @@ expect(mockWriteTasksJSON).toHaveBeenCalledTimes(1);
 ```
 
 ### Pattern 3: Retry with Fake Timers
+
 **Purpose:** Verify exponential backoff timing
 
 **Key Assertions:**
+
 - Delays follow exponential pattern
 - Max delay enforced
 - Jitter applied
 
 **Example:**
+
 ```typescript
-beforeEach(() => { vi.useFakeTimers(); });
+beforeEach(() => {
+  vi.useFakeTimers();
+});
 // ... test with delay tracking ...
-expect(delays[0]).toBe(100);   // baseDelay
-expect(delays[1]).toBe(200);   // baseDelay * 2
+expect(delays[0]).toBe(100); // baseDelay
+expect(delays[1]).toBe(200); // baseDelay * 2
 ```
 
 ### Pattern 4: File System Mocking
+
 **Purpose:** Mock fs/promises for testing
 
 **Key Techniques:**
+
 - vi.mock() for module-level mocking
 - vi.mocked() for type-safe mock access
 - mockImplementation() for custom behavior
 
 **Example:**
+
 ```typescript
 vi.mock('node:fs/promises', () => ({
   writeFile: vi.fn(),
@@ -372,14 +397,17 @@ const mockWriteFile = vi.mocked(writeFile);
 ```
 
 ### Pattern 5: Dirty State Testing
+
 **Purpose:** Verify dirty flag behavior
 
 **Key Assertions:**
+
 - Dirty set after updates
 - Dirty reset after flush
 - No writes when not dirty
 
 **Example:**
+
 ```typescript
 await manager.flushUpdates(); // No writes (not dirty)
 await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
@@ -388,15 +416,18 @@ await manager.flushUpdates(); // No writes (dirty reset)
 ```
 
 ### Pattern 6: Recovery File Testing
+
 **Purpose:** Verify recovery file creation
 
 **Key Assertions:**
+
 - Created after all retries fail
 - ISO 8601 timestamp
 - Error context preserved
 - Pending updates saved
 
 **Example:**
+
 ```typescript
 expect(recoveryFile.version).toBe('1.0');
 expect(recoveryFile.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
@@ -435,12 +466,14 @@ expect(recoveryFile.pendingUpdates).toEqual(expectedBacklog);
 This research provides comprehensive testing patterns for SessionManager's atomic state update batching mechanism. Your existing test suite already demonstrates excellent practices, with opportunities to enhance retry timing verification and recovery file testing.
 
 The generated documentation includes:
+
 - Detailed patterns with code examples
 - Quick reference for common scenarios
 - Assertion templates and helper functions
 - Test checklist and debugging tips
 
 All patterns are based on:
+
 - Your existing implementation (session-manager.ts, session-utils.ts)
 - Vitest official documentation
 - Node.js fs/promises API
@@ -452,5 +485,6 @@ All patterns are based on:
 **Date:** 2026-01-26
 **Status:** Complete
 **Generated Documents:** 2
+
 - Comprehensive guide (62 sections)
 - Quick reference (6 patterns)

@@ -1127,8 +1127,8 @@ This workflow orchestrates a multi-phase process to find bugs in code using AI a
    **Exponential Backoff Formula:**
    ```
 
-   delay = min(initial_delay _ (backoff_multiplier ^ (attempt - 1)), max_delay)
-   actual_delay = delay _ (1 + random(-jitter, +jitter))
+   delay = min(initial*delay * (backoff*multiplier ^ (attempt - 1)), max_delay)
+   actual_delay = delay * (1 + random(-jitter, +jitter))
 
    ```
 

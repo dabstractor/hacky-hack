@@ -7,6 +7,7 @@
 **Deliverable**: All integration test files under `tests/integration/` updated to use the correct 3-parameter SessionManager constructor, with zero constructor signature errors in the integration test suite.
 
 **Success Definition**:
+
 - All 7 identified integration test files updated
 - All ~20 SessionManager constructor calls updated to 3-parameter signature
 - All integration tests pass: `npm test -- tests/integration/`
@@ -25,12 +26,14 @@
 Update all integration test files that instantiate SessionManager to use the correct 3-parameter constructor signature.
 
 ### Current State (Incorrect)
+
 ```typescript
 const manager = new SessionManager(prdPath, planDir);
 // Missing flushRetries parameter - only 2 parameters
 ```
 
 ### Target State (Correct)
+
 ```typescript
 const manager = new SessionManager(prdPath, planDir, 3);
 // All 3 parameters explicitly provided
@@ -49,6 +52,7 @@ const manager = new SessionManager(prdPath, planDir, 3);
 ### Context Completeness Check
 
 ✅ **"No Prior Knowledge" Test**: A developer unfamiliar with this codebase would have everything needed to implement this successfully because:
+
 - Exact file paths and line patterns are provided
 - Current and target constructor signatures are specified
 - Test framework details (Vitest) are included
@@ -272,11 +276,7 @@ const manager = new SessionManager(prdPath, planDir, 3);
 
 // Pattern 2: Multi-line format for clarity (from S1)
 // Use this when constructor call is part of complex setup:
-const manager = new SessionManager(
-  prdPath,
-  resolve(planDir),
-  3
-);
+const manager = new SessionManager(prdPath, resolve(planDir), 3);
 
 // Pattern 3: With temp directory for plan directory tests
 // Use this for tests that specifically test plan directory functionality:
@@ -443,6 +443,7 @@ npx tsc --noEmit | grep -i "sessionmanager\|constructor"
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Rationale**:
+
 - All target files are clearly identified with exact paths
 - Current and target states are precisely specified
 - Reference implementation from S1 (commit 310054f) provides exact pattern to follow

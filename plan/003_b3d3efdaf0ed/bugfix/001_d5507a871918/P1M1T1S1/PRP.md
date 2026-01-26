@@ -7,6 +7,7 @@
 **Deliverable**: Verified TaskOrchestrator constructor implementation at `src/core/task-orchestrator.ts:161-166` that correctly passes all 4 parameters (sessionManager, maxSize, noCache, cacheTtlMs) to ResearchQueue.
 
 **Success Definition**:
+
 - ResearchQueue instantiation receives all 4 constructor parameters
 - Parameters are correctly sourced from TaskOrchestrator constructor arguments
 - Code compiles without TypeScript errors
@@ -15,6 +16,7 @@
 ## Why
 
 **Business Value**: This bug fix ensures the ResearchQueue is properly configured with all required parameters, enabling:
+
 - Correct cache TTL behavior for PRP caching
 - Proper concurrency limits for parallel PRP generation
 - Cache bypass functionality via `--no-cache` CLI flag
@@ -22,6 +24,7 @@
 **Integration**: The TaskOrchestrator is a core component of the Four Core Processing Engines (PRD §5.1). Incorrect ResearchQueue instantiation would break parallel PRP generation and caching.
 
 **Problems Solved**:
+
 - Bug 001_d5507a871918 from TEST_RESULTS.md identified that TaskOrchestrator was missing the `cacheTtlMs` parameter
 - Without this parameter, PRP caching would use incorrect TTL values
 - Cache bypass functionality would not work correctly
@@ -31,9 +34,10 @@
 **User-Visible Behavior**: No direct user-visible behavior change. This is an internal bug fix ensuring correct constructor parameter passing.
 
 **Technical Requirements**:
+
 1. TaskOrchestrator must pass all 4 parameters to ResearchQueue constructor
 2. Parameters must be sourced from TaskOrchestrator's constructor arguments
-3. Default values must match: maxSize=3, noCache=false, cacheTtlMs=24*60*60*1000
+3. Default values must match: maxSize=3, noCache=false, cacheTtlMs=24*60*60\*1000
 
 ### Success Criteria
 
@@ -50,6 +54,7 @@
 **Test**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: Yes - this PRP provides:
+
 - Exact file paths and line numbers for all relevant code
 - Complete constructor signatures for ResearchQueue and PRPGenerator
 - TaskOrchestrator's current implementation state
@@ -170,6 +175,7 @@ tests/
 No new data models needed. This PRP verifies existing implementation.
 
 **TaskOrchestrator Constructor Parameters** (already defined):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -183,6 +189,7 @@ constructor(
 ```
 
 **ResearchQueue Constructor Signature** (already defined):
+
 ```typescript
 constructor(
   sessionManager: SessionManager,
@@ -310,9 +317,9 @@ TASK_ORCHESTRATOR_CONSTRUCTOR:
   - file: src/core/task-orchestrator.ts
   - lines: 132-180
   - parameters:
-    - noCache: from CLI --no-cache flag
-    - researchQueueConcurrency: from CLI --research-concurrency flag
-    - cacheTtlMs: from CLI --cache-ttl flag (parsed by 'ms' package)
+      - noCache: from CLI --no-cache flag
+      - researchQueueConcurrency: from CLI --research-concurrency flag
+      - cacheTtlMs: from CLI --cache-ttl flag (parsed by 'ms' package)
 
 RESEARCH_QUEUE_CONSTRUCTOR:
   - file: src/core/research-queue.ts
@@ -456,7 +463,7 @@ grep -A 5 "new ResearchQueue" src/core/task-orchestrator.ts
 - [ ] Code follows existing TaskOrchestrator patterns
 - [ ] Debug logging present for ResearchQueue initialization
 - [ ] Private field naming matches constructor parameters
-- [ ] Default values match documentation (3, false, 24*60*60*1000)
+- [ ] Default values match documentation (3, false, 24*60*60\*1000)
 - [ ] No breaking changes to external interfaces
 
 ### Documentation & Deployment
@@ -485,11 +492,13 @@ grep -A 5 "new ResearchQueue" src/core/task-orchestrator.ts
 As of commit `6591868` (Add configurable PRP cache TTL with CLI support and validation), the TaskOrchestrator ResearchQueue instantiation at lines 161-166 **already passes all 4 parameters correctly**. This PRP serves as verification documentation and ensures tests are updated to match the correct implementation.
 
 **Git History**:
+
 - Commit `6591868`: Added cacheTtlMs parameter support
 - Commit `dcc3b9b`: Added researchQueueConcurrency parameter support
 - Commit `bb642bc`: Initial ResearchQueue implementation
 
 **Related Work Items**:
+
 - P1.M1.T1.S2: Update ResearchQueue unit tests for full constructor signature
 - P1.M1.T1.S3: Update ResearchQueue integration tests for constructor consistency
 

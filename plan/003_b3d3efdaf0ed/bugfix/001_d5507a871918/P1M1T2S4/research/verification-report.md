@@ -17,6 +17,7 @@
 ## 1. TaskOrchestrator SessionManager Usage Pattern
 
 ### Location
+
 `src/core/task-orchestrator.ts:132-183`
 
 ### Pattern: Receives SessionManager as Constructor Parameter
@@ -50,6 +51,7 @@ constructor(
 ```
 
 ### Key Findings
+
 - **TaskOrchestrator does NOT instantiate SessionManager**
 - SessionManager is received as a constructor parameter (dependency injection pattern)
 - The instance is stored as a readonly property (`this.sessionManager`)
@@ -60,20 +62,23 @@ constructor(
 ## 2. PRPPipeline Reference Pattern (CORRECT)
 
 ### Location
+
 `src/workflows/prp-pipeline.ts:1768-1772`
 
 ### Pattern: Creates SessionManager With 3 Parameters
 
 ```typescript
-const SessionManagerClass = (await import('./core/session-manager.js')).SessionManager;
+const SessionManagerClass = (await import('./core/session-manager.js'))
+  .SessionManager;
 this.sessionManager = new SessionManagerClass(
-  this.#prdPath,      // Parameter 1: string (required)
-  this.#planDir,      // Parameter 2: string | undefined (optional, defaults to resolve('plan'))
-  this.#flushRetries  // Parameter 3: number | undefined (optional, defaults to 3)
+  this.#prdPath, // Parameter 1: string (required)
+  this.#planDir, // Parameter 2: string | undefined (optional, defaults to resolve('plan'))
+  this.#flushRetries // Parameter 3: number | undefined (optional, defaults to 3)
 );
 ```
 
 ### Key Findings
+
 - **PRPPipeline uses correct 3-parameter signature**
 - All three parameters are explicitly passed: `prdPath`, `planDir`, `flushRetries`
 - SessionManagerClass is dynamically imported (ESM compatibility)
@@ -124,6 +129,7 @@ TaskOrchestrator Uses SessionManager (src/core/task-orchestrator.ts:142+)
 ## 4. SessionManager Constructor Signature
 
 ### Location
+
 `src/core/session-manager.ts:190-194`
 
 ```typescript
@@ -135,23 +141,27 @@ constructor(
 ```
 
 ### Parameter Details
-| Parameter | Type | Default | Required | Purpose |
-|-----------|------|---------|----------|---------|
-| `prdPath` | `string` | None | Yes | Path to PRD.md file |
-| `planDir` | `string` | `resolve('plan')` | No | Directory for plan/session storage |
-| `flushRetries` | `number` | `3` | No | Number of retry attempts for session flush |
+
+| Parameter      | Type     | Default           | Required | Purpose                                    |
+| -------------- | -------- | ----------------- | -------- | ------------------------------------------ |
+| `prdPath`      | `string` | None              | Yes      | Path to PRD.md file                        |
+| `planDir`      | `string` | `resolve('plan')` | No       | Directory for plan/session storage         |
+| `flushRetries` | `number` | `3`               | No       | Number of retry attempts for session flush |
 
 ### Critical Note on Parameter Order
+
 The correct parameter order is: **(prdPath, planDir, flushRetries)**
 
 **OLD BUG PATTERN** (incorrect):
+
 ```typescript
-new SessionManager(prdPath, flushRetries)  // Bug: flushRetries goes to planDir!
+new SessionManager(prdPath, flushRetries); // Bug: flushRetries goes to planDir!
 ```
 
 **CORRECT PATTERN**:
+
 ```typescript
-new SessionManager(prdPath, planDir, flushRetries)  // All params in correct positions
+new SessionManager(prdPath, planDir, flushRetries); // All params in correct positions
 ```
 
 ---
@@ -160,17 +170,17 @@ new SessionManager(prdPath, planDir, flushRetries)  // All params in correct pos
 
 ### Production Code Comparison
 
-| Component | Pattern | Status | Notes |
-|-----------|---------|--------|-------|
-| PRPPipeline | `new SessionManagerClass(this.#prdPath, this.#planDir, this.#flushRetries)` | ✅ CORRECT | Uses 3-parameter signature explicitly |
-| TaskOrchestrator | Receives as constructor parameter | ✅ CORRECT | Does not instantiate, dependency injection |
-| PRPPipeline→TaskOrchestrator | `new TaskOrchestratorClass(this.sessionManager, ...)` | ✅ CORRECT | Passes instantiated SessionManager |
+| Component                    | Pattern                                                                     | Status     | Notes                                      |
+| ---------------------------- | --------------------------------------------------------------------------- | ---------- | ------------------------------------------ |
+| PRPPipeline                  | `new SessionManagerClass(this.#prdPath, this.#planDir, this.#flushRetries)` | ✅ CORRECT | Uses 3-parameter signature explicitly      |
+| TaskOrchestrator             | Receives as constructor parameter                                           | ✅ CORRECT | Does not instantiate, dependency injection |
+| PRPPipeline→TaskOrchestrator | `new TaskOrchestratorClass(this.sessionManager, ...)`                       | ✅ CORRECT | Passes instantiated SessionManager         |
 
 ### Test Code Comparison
 
-| Test File | Pattern | Status | Notes |
-|-----------|---------|--------|-------|
-| Unit Tests | Mocks SessionManager | ✅ CORRECT | No instantiation, mocks provided |
+| Test File         | Pattern                                | Status          | Notes                                   |
+| ----------------- | -------------------------------------- | --------------- | --------------------------------------- |
+| Unit Tests        | Mocks SessionManager                   | ✅ CORRECT      | No instantiation, mocks provided        |
 | Integration Tests | `new SessionManager(prdPath, planDir)` | ⚠️ INCONSISTENT | Works but missing explicit flushRetries |
 
 ### Integration Test Finding
@@ -178,11 +188,13 @@ new SessionManager(prdPath, planDir, flushRetries)  // All params in correct pos
 **Location**: `tests/integration/core/task-orchestrator.test.ts:214`
 
 **Current Pattern**:
+
 ```typescript
 const sessionManager = new SessionManager(prdPath, planDir);
 ```
 
 **Analysis**:
+
 - This pattern is **functionally correct** because `flushRetries` has a default value of 3
 - However, it is **inconsistent** with PRPPipeline's explicit 3-parameter pattern
 - For consistency and clarity, should use: `new SessionManager(prdPath, planDir, 3)`
@@ -203,6 +215,7 @@ const sessionManager = new SessionManager(prdPath, planDir);
 The integration test file uses a 2-parameter instantiation pattern that, while functionally correct, should be updated to match PRPPipeline's explicit 3-parameter pattern for consistency.
 
 **Recommended Change**:
+
 ```typescript
 // Current (line 214):
 const sessionManager = new SessionManager(prdPath, planDir);

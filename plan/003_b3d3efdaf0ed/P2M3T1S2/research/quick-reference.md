@@ -7,6 +7,7 @@
 ## TL;DR - What to Build
 
 Create a `MetricsCollector` class that tracks:
+
 1. **Task durations** (min, max, avg, p95) per subtask
 2. **Agent token usage** (input/output) per agent type
 3. **Cache stats** (hits, misses, hit rate)
@@ -60,8 +61,12 @@ export class MetricsCollector extends EventEmitter {
     // Accumulate token counts, emit event
   }
 
-  recordCacheHit(): void { this.cacheStats.hits++; }
-  recordCacheMiss(): void { this.cacheStats.misses++; }
+  recordCacheHit(): void {
+    this.cacheStats.hits++;
+  }
+  recordCacheMiss(): void {
+    this.cacheStats.misses++;
+  }
 
   recordResourceSnapshot(snapshot: ResourceSnapshot): void {
     this.resourceSnapshots.push(snapshot);
@@ -261,7 +266,7 @@ describe('utils/metrics-collector', () => {
       const stats = collector.getSnapshot().cacheStats;
       expect(stats.hits).toBe(2);
       expect(stats.misses).toBe(1);
-      expect(stats.hitRate).toBe(2/3);
+      expect(stats.hitRate).toBe(2 / 3);
     });
   });
 

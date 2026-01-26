@@ -241,7 +241,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       // EXECUTE: Enqueue all tasks
@@ -286,7 +291,12 @@ describe('ResearchQueue Integration Tests', () => {
           return createTestPRPDocument(task.id);
         });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
@@ -324,7 +334,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       // Enqueue 5 tasks
@@ -354,7 +369,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, 1, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS); // Serial processing
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        1,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // Serial processing
       const backlog = createTestBacklog([]);
 
       const tasks = [
@@ -395,7 +415,12 @@ describe('ResearchQueue Integration Tests', () => {
         .mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S2'))
         .mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S3'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
@@ -431,7 +456,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Mock generate to reject with error
       mockGenerate.mockRejectedValueOnce(new Error('Generation failed'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -458,7 +488,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Mock generate to reject with error
       mockGenerate.mockRejectedValueOnce(new Error('Task failed'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -488,7 +523,12 @@ describe('ResearchQueue Integration Tests', () => {
         .mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S3'))
         .mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S4'));
 
-      const queue = new ResearchQueue(mockSessionManager, 2, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        2,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
@@ -537,7 +577,12 @@ describe('ResearchQueue Integration Tests', () => {
   describe('Cache Deduplication', () => {
     it('should skip generation if task already cached', async () => {
       // SETUP: Pre-populate results Map with PRP
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const cachedPRP = createTestPRPDocument('P1.M1.T1.S1');
       queue.results.set('P1.M1.T1.S1', cachedPRP);
 
@@ -564,7 +609,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
       const backlog = createTestBacklog([]);
 
@@ -590,7 +640,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Mock generate to resolve with PRP
       mockGenerate.mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S1'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -617,7 +672,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       const task1 = createTestSubtask('P1.M1.T1.S1', 'Task 1', 'Planned');
@@ -655,7 +715,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, true, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        true,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -681,7 +746,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, false, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        false,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -706,7 +776,12 @@ describe('ResearchQueue Integration Tests', () => {
       const customTtl = 60 * 60 * 1000; // 1 hour
       mockGenerate.mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S1'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, customTtl);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        customTtl
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -723,7 +798,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Verify default TTL is used
       mockGenerate.mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S1'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -749,7 +829,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       // EXECUTE: Enqueue multiple tasks
@@ -787,7 +872,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Create fresh queue
       mockGenerate.mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S1'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // VERIFY: All stats are 0 for fresh queue
       const stats = queue.getStats();
@@ -819,7 +909,12 @@ describe('ResearchQueue Integration Tests', () => {
           return createTestPRPDocument(task.id);
         });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       const tasks = [
@@ -870,7 +965,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, 1, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS); // Serial processing
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        1,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      ); // Serial processing
       const backlog = createTestBacklog([]);
 
       const tasks = [
@@ -918,7 +1018,12 @@ describe('ResearchQueue Integration Tests', () => {
           return createTestPRPDocument(task.id);
         });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       const tasks = [
@@ -1003,7 +1108,12 @@ describe('ResearchQueue Integration Tests', () => {
         },
       ]);
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
 
       // EXECUTE: Enqueue dependent task first, then dependency
       const task1 = backlog.backlog[0].milestones[0].tasks[0].subtasks[1]; // S2 depends on S1
@@ -1030,7 +1140,12 @@ describe('ResearchQueue Integration Tests', () => {
   describe('Edge Cases', () => {
     it('should handle empty queue gracefully', async () => {
       // SETUP: Create queue with no tasks
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       // EXECUTE: Call processNext on empty queue
@@ -1049,7 +1164,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Create single task
       mockGenerate.mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S1'));
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -1073,7 +1193,12 @@ describe('ResearchQueue Integration Tests', () => {
       // SETUP: Create queue with maxSize 0
       mockGenerate.mockResolvedValueOnce(createTestPRPDocument('P1.M1.T1.S1'));
 
-      const queue = new ResearchQueue(mockSessionManager, 0, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        0,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
       const task = createTestSubtask('P1.M1.T1.S1', 'Test Task', 'Planned');
 
@@ -1092,7 +1217,12 @@ describe('ResearchQueue Integration Tests', () => {
         return createTestPRPDocument(task.id);
       });
 
-      const queue = new ResearchQueue(mockSessionManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+      const queue = new ResearchQueue(
+        mockSessionManager,
+        DEFAULT_MAX_SIZE,
+        DEFAULT_NO_CACHE,
+        DEFAULT_CACHE_TTL_MS
+      );
       const backlog = createTestBacklog([]);
 
       // EXECUTE: Rapid enqueue/dequeue cycles

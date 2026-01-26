@@ -4,6 +4,7 @@
 **Status:** Comprehensive compilation of industry best practices and implementation patterns
 
 ## Table of Contents
+
 1. [Metrics Collector Class Implementation](#1-metrics-collector-class-implementation)
 2. [Timing Metrics and Percentiles](#2-timing-metrics-and-percentiles)
 3. [Memory and Resource Usage Monitoring](#3-memory-and-resource-usage-monitoring)
@@ -21,6 +22,7 @@
 ### 1.1 Basic Metrics Collector Pattern
 
 A well-designed metrics collector should be:
+
 - **Type-safe** with comprehensive TypeScript interfaces
 - **Thread-safe** for concurrent operations
 - **Extensible** for custom metric types
@@ -82,11 +84,18 @@ export class MetricsCollector extends EventEmitter {
   }
 
   // Counter operations
-  increment(metricName: string, value: number = 1, tags?: Record<string, string>): void {
-    const current = this.counters.get(metricName) || { value: 0, increments: 0 };
+  increment(
+    metricName: string,
+    value: number = 1,
+    tags?: Record<string, string>
+  ): void {
+    const current = this.counters.get(metricName) || {
+      value: 0,
+      increments: 0,
+    };
     this.counters.set(metricName, {
       value: current.value + value,
-      increments: current.increments + 1
+      increments: current.increments + 1,
     });
     this.emit('counter', { metricName, value, tags });
   }
@@ -99,7 +108,7 @@ export class MetricsCollector extends EventEmitter {
   setGauge(metricName: string, value: number): void {
     this.gauges.set(metricName, {
       value,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     });
     this.emit('gauge', { metricName, value });
   }
@@ -112,7 +121,7 @@ export class MetricsCollector extends EventEmitter {
       max: -Infinity,
       sum: 0,
       avg: 0,
-      values: []
+      values: [],
     };
 
     current.count++;
@@ -158,7 +167,7 @@ export class MetricsCollector extends EventEmitter {
       timestamp: new Date().toISOString(),
       counters: Object.fromEntries(this.counters),
       gauges: Object.fromEntries(this.gauges),
-      timings: Object.fromEntries(this.timings)
+      timings: Object.fromEntries(this.timings),
     };
   }
 
@@ -182,7 +191,7 @@ export class MetricsManager {
   static getInstance(): MetricsCollector {
     if (!this.instance) {
       this.instance = new MetricsCollector({
-        maxSamples: parseInt(process.env.METRICS_MAX_SAMPLES || '10000')
+        maxSamples: parseInt(process.env.METRICS_MAX_SAMPLES || '10000'),
       });
     }
     return this.instance;
@@ -228,7 +237,7 @@ class ExactPercentileCalculator {
       avg: sum / values.length,
       p50: this.calculate(sorted, 50),
       p95: this.calculate(sorted, 95),
-      p99: this.calculate(sorted, 99)
+      p99: this.calculate(sorted, 99),
     };
   }
 }
@@ -278,6 +287,7 @@ class ReservoirSampler {
 #### Strategy 3: T-Digest (for production systems)
 
 For production systems with high-volume metrics, consider using the T-Digest algorithm:
+
 - Library: `tdigest` (npm package)
 - Provides accurate percentiles with bounded memory
 - Suitable for streaming data
@@ -314,7 +324,7 @@ class TDigestTimingMetric {
       p50: this.getPercentile(50),
       p90: this.getPercentile(90),
       p95: this.getPercentile(95),
-      p99: this.getPercentile(99)
+      p99: this.getPercentile(99),
     };
   }
 }
@@ -329,9 +339,9 @@ class PerformanceMonitor {
   private observer: PerformanceObserver;
 
   constructor() {
-    this.observer = new PerformanceObserver((list) => {
+    this.observer = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         // Process performance entries
         console.log(`${entry.name}: ${entry.duration}ms`);
       });
@@ -434,7 +444,7 @@ export class MemoryMonitor {
       heapUsed: usage.heapUsed,
       external: usage.external,
       arrayBuffers: usage.arrayBuffers,
-      usagePercentage: (usage.heapUsed / usage.heapTotal) * 100
+      usagePercentage: (usage.heapUsed / usage.heapTotal) * 100,
     };
 
     this.samples.push(stats);
@@ -457,14 +467,15 @@ export class MemoryMonitor {
     }
 
     const current = this.samples[this.samples.length - 1];
-    const peak = this.samples.reduce((max, sample) =>
-      sample.heapUsed > max.heapUsed ? sample : max
-    , this.samples[0]);
+    const peak = this.samples.reduce(
+      (max, sample) => (sample.heapUsed > max.heapUsed ? sample : max),
+      this.samples[0]
+    );
 
     const average = {
       rss: this.average(this.samples.map(s => s.rss)),
       heapUsed: this.average(this.samples.map(s => s.heapUsed)),
-      usagePercentage: this.average(this.samples.map(s => s.usagePercentage))
+      usagePercentage: this.average(this.samples.map(s => s.usagePercentage)),
     };
 
     return { current, peak, average };
@@ -529,8 +540,8 @@ export class V8Monitor {
         size: space.space_size,
         used: space.space_used_size,
         available: space.space_available_size,
-        physicalSize: space.physical_space_size
-      }))
+        physicalSize: space.physical_space_size,
+      })),
     };
   }
 
@@ -613,12 +624,13 @@ export class EventLoopMonitor {
     }
 
     const maxLag = Math.max(...this.lagSamples);
-    const avgLag = this.lagSamples.reduce((a, b) => a + b, 0) / this.lagSamples.length;
+    const avgLag =
+      this.lagSamples.reduce((a, b) => a + b, 0) / this.lagSamples.length;
 
     return {
       maxLag,
       avgLag,
-      samples: this.lagSamples.length
+      samples: this.lagSamples.length,
     };
   }
 
@@ -687,7 +699,11 @@ export class MetricsWriter {
       }
 
       existingData.push(metricData);
-      await writeFile(this.filePath, JSON.stringify(existingData, null, 2), 'utf8');
+      await writeFile(
+        this.filePath,
+        JSON.stringify(existingData, null, 2),
+        'utf8'
+      );
     };
 
     return new Promise((resolve, reject) => {
@@ -779,7 +795,8 @@ export class RollingMetricsWriter {
 
     // Rename existing files
     for (let i = this.maxFiles - 1; i >= 1; i--) {
-      const oldFile = i === 1 ? `${this.basePath}.json` : `${this.basePath}.${i}.json`;
+      const oldFile =
+        i === 1 ? `${this.basePath}.json` : `${this.basePath}.${i}.json`;
       const newFile = `${this.basePath}.${i + 1}.json`;
 
       try {
@@ -886,19 +903,23 @@ export class TokenUsageTracker {
       model,
       operation,
       usage,
-      metadata
+      metadata,
     };
 
     this.requests.push(log);
     this.updateTotals(model, operation, usage);
   }
 
-  private updateTotals(model: string, operation: string, usage: TokenUsage): void {
+  private updateTotals(
+    model: string,
+    operation: string,
+    usage: TokenUsage
+  ): void {
     // Update model totals
     const modelTotals = this.totalsByModel.get(model) || {
       promptTokens: 0,
       completionTokens: 0,
-      totalTokens: 0
+      totalTokens: 0,
     };
     modelTotals.promptTokens += usage.promptTokens;
     modelTotals.completionTokens += usage.completionTokens;
@@ -909,7 +930,7 @@ export class TokenUsageTracker {
     const opTotals = this.totalsByOperation.get(operation) || {
       promptTokens: 0,
       completionTokens: 0,
-      totalTokens: 0
+      totalTokens: 0,
     };
     opTotals.promptTokens += usage.promptTokens;
     opTotals.completionTokens += usage.completionTokens;
@@ -929,7 +950,7 @@ export class TokenUsageTracker {
     let total: TokenUsage = {
       promptTokens: 0,
       completionTokens: 0,
-      totalTokens: 0
+      totalTokens: 0,
     };
 
     for (const usage of this.totalsByModel.values()) {
@@ -977,7 +998,7 @@ export class OpenAIMetricsWrapper {
     const response = await this.client.chat.completions.create({
       model,
       messages,
-      ...options
+      ...options,
     });
 
     // Track token usage
@@ -988,7 +1009,7 @@ export class OpenAIMetricsWrapper {
         {
           promptTokens: response.usage.prompt_tokens,
           completionTokens: response.usage.completion_tokens,
-          totalTokens: response.usage.total_tokens
+          totalTokens: response.usage.total_tokens,
         },
         { messageCount: messages.length }
       );
@@ -1007,7 +1028,7 @@ export class OpenAIMetricsWrapper {
       model,
       messages,
       stream: true,
-      ...options
+      ...options,
     });
 
     // Wrap stream to estimate tokens
@@ -1042,7 +1063,7 @@ export class OpenAIMetricsWrapper {
       {
         promptTokens,
         completionTokens,
-        totalTokens: promptTokens + completionTokens
+        totalTokens: promptTokens + completionTokens,
       },
       { messageCount, estimated: true }
     );
@@ -1087,7 +1108,8 @@ export class TokenCostCalculator {
     }
 
     const promptCost = (usage.promptTokens / 1000) * pricing.promptPricePer1k;
-    const completionCost = (usage.completionTokens / 1000) * pricing.completionPricePer1k;
+    const completionCost =
+      (usage.completionTokens / 1000) * pricing.completionPricePer1k;
 
     return promptCost + completionCost;
   }
@@ -1191,7 +1213,7 @@ export class CacheMetricsCollector {
       missRate,
       totalRequests,
       hitRatePercentage: hitRate * 100,
-      missRatePercentage: missRate * 100
+      missRatePercentage: missRate * 100,
     };
   }
 
@@ -1202,7 +1224,7 @@ export class CacheMetricsCollector {
       const history = this.history.get(cacheName) || [];
       history.push({
         ...stats,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       } as any);
 
       if (history.length > this.maxHistorySize) {
@@ -1217,7 +1239,10 @@ export class CacheMetricsCollector {
     return this.history.get(cacheName) || [];
   }
 
-  getTrend(cacheName: string, windowSize: number = 10): {
+  getTrend(
+    cacheName: string,
+    windowSize: number = 10
+  ): {
     hitRateTrend: 'improving' | 'declining' | 'stable';
     averageHitRate: number;
   } | null {
@@ -1228,13 +1253,16 @@ export class CacheMetricsCollector {
     }
 
     const recent = history.slice(-windowSize);
-    const averageHitRate = recent.reduce((sum, s) => sum + s.hitRate, 0) / recent.length;
+    const averageHitRate =
+      recent.reduce((sum, s) => sum + s.hitRate, 0) / recent.length;
 
     const firstHalf = recent.slice(0, Math.floor(recent.length / 2));
     const secondHalf = recent.slice(Math.ceil(recent.length / 2));
 
-    const firstHalfAvg = firstHalf.reduce((sum, s) => sum + s.hitRate, 0) / firstHalf.length;
-    const secondHalfAvg = secondHalf.reduce((sum, s) => sum + s.hitRate, 0) / secondHalf.length;
+    const firstHalfAvg =
+      firstHalf.reduce((sum, s) => sum + s.hitRate, 0) / firstHalf.length;
+    const secondHalfAvg =
+      secondHalf.reduce((sum, s) => sum + s.hitRate, 0) / secondHalf.length;
 
     const diff = secondHalfAvg - firstHalfAvg;
 
@@ -1251,13 +1279,15 @@ export class CacheMetricsCollector {
   }
 
   private getOrCreateMetrics(cacheName: string): CacheMetrics {
-    return this.metrics.get(cacheName) || {
-      hits: 0,
-      misses: 0,
-      evictions: 0,
-      size: 0,
-      lastUpdated: new Date()
-    };
+    return (
+      this.metrics.get(cacheName) || {
+        hits: 0,
+        misses: 0,
+        evictions: 0,
+        size: 0,
+        lastUpdated: new Date(),
+      }
+    );
   }
 
   reset(cacheName: string): void {
@@ -1325,7 +1355,7 @@ export function createMonitoredCache<K, V>(
       }
 
       return value;
-    }
+    },
   });
 }
 
@@ -1351,7 +1381,8 @@ export class SlidingWindowCacheMetrics {
   private window: Map<string, WindowEntry[]> = new Map();
   private windowSizeMs: number;
 
-  constructor(windowSizeMs: number = 60000) { // 1 minute default
+  constructor(windowSizeMs: number = 60000) {
+    // 1 minute default
     this.windowSizeMs = windowSizeMs;
   }
 
@@ -1359,7 +1390,7 @@ export class SlidingWindowCacheMetrics {
     const entries = this.window.get(cacheName) || [];
     entries.push({
       timestamp: Date.now(),
-      isHit
+      isHit,
     });
 
     this.cleanupWindow(entries);
@@ -1414,7 +1445,7 @@ export class SlidingWindowCacheMetrics {
       hitRate: hits / total,
       totalRequests: total,
       hits,
-      misses: total - hits
+      misses: total - hits,
     };
   }
 
@@ -1614,7 +1645,13 @@ describe('ExactPercentileCalculator', () => {
     it('should return zeros for empty array', () => {
       const stats = ExactPercentileCalculator.getStats([]);
       expect(stats).toEqual({
-        min: 0, max: 0, avg: 0, p50: 0, p95: 0, p99: 0, count: 0
+        min: 0,
+        max: 0,
+        avg: 0,
+        p50: 0,
+        p95: 0,
+        p99: 0,
+        count: 0,
       });
     });
 
@@ -1652,7 +1689,7 @@ describe('CacheMetricsCollector', () => {
     collector.recordMiss('my-cache');
 
     const stats = collector.getStats('my-cache');
-    expect(stats?.hitRate).toBe(2/3);
+    expect(stats?.hitRate).toBe(2 / 3);
     expect(stats?.hitRatePercentage).toBeCloseTo(66.67, 2);
   });
 
@@ -1709,7 +1746,7 @@ describe('Metrics Integration', () => {
     const collector = new MetricsCollector();
     const writer = new MetricsWriter({
       outputDir: __dirname,
-      fileName: 'test-metrics.json'
+      fileName: 'test-metrics.json',
     });
 
     collector.increment('test.counter', 5);
@@ -1731,6 +1768,7 @@ describe('Metrics Integration', () => {
 ### 8.1 Minimizing Overhead
 
 **Key Strategies:**
+
 1. **Sampling**: Only record a percentage of operations
 2. **Batching**: Aggregate metrics before writing
 3. **Async Operations**: Don't block on metrics collection
@@ -1741,7 +1779,8 @@ describe('Metrics Integration', () => {
 export class SampledMetricsCollector extends MetricsCollector {
   private sampleRate: number;
 
-  constructor(sampleRate: number = 0.1) { // 10% default
+  constructor(sampleRate: number = 0.1) {
+    // 10% default
     super();
     this.sampleRate = sampleRate;
   }
@@ -1752,7 +1791,11 @@ export class SampledMetricsCollector extends MetricsCollector {
     }
   }
 
-  increment(metricName: string, value: number = 1, tags?: Record<string, string>): void {
+  increment(
+    metricName: string,
+    value: number = 1,
+    tags?: Record<string, string>
+  ): void {
     if (Math.random() < this.sampleRate) {
       super.increment(metricName, value / this.sampleRate, tags);
     }
@@ -1915,10 +1958,12 @@ export class AsyncMetricsCollector {
       const task = this.queue.shift();
       if (task) {
         // Process tasks in next tick to avoid blocking
-        await new Promise(resolve => setImmediate(() => {
-          task();
-          resolve(undefined);
-        }));
+        await new Promise(resolve =>
+          setImmediate(() => {
+            task();
+            resolve(undefined);
+          })
+        );
       }
     }
 

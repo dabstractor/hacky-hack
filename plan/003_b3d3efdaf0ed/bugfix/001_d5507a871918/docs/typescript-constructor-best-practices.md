@@ -22,6 +22,7 @@ This research summary compiles best practices for TypeScript constructor paramet
 ### 1.1 Default Parameter Patterns in TypeScript Constructors
 
 #### Basic Syntax
+
 ```typescript
 class Example {
   constructor(
@@ -35,6 +36,7 @@ class Example {
 #### Key Patterns Found in Your Codebase
 
 **Pattern 1: Parameter Properties with Defaults**
+
 ```typescript
 // From: src/agents/prp-runtime.ts
 constructor(
@@ -45,6 +47,7 @@ constructor(
 ```
 
 **Pattern 2: Optional Parameters Without Defaults**
+
 ```typescript
 // From: src/core/task-orchestrator.ts
 constructor(
@@ -65,6 +68,7 @@ constructor(
    - TypeScript compiler enforces this at compile time
 
 2. **Use meaningful default values**
+
    ```typescript
    // Good: Clear, meaningful default
    constructor(timeout: number = 5000) {}
@@ -74,6 +78,7 @@ constructor(
    ```
 
 3. **Consider using `undefined` for optional parameters without defaults**
+
    ```typescript
    // Explicitly undefined
    constructor(value?: string) {}
@@ -86,18 +91,19 @@ constructor(
 
 #### Comparison Table
 
-| Aspect | Optional Parameters (`?`) | Default Parameters (`= value`) |
-|--------|---------------------------|-------------------------------|
-| Syntax | `param?: Type` | `param: Type = defaultValue` |
-| Type | `Type \| undefined` | `Type` |
-| Can be omitted | Yes | Yes |
-| Default value | `undefined` | Specified value |
-| Backwards compatible | Yes (adding is safe) | Yes (adding is safe) |
-| Compile-time detection | No error if omitted | No error if omitted |
+| Aspect                 | Optional Parameters (`?`) | Default Parameters (`= value`) |
+| ---------------------- | ------------------------- | ------------------------------ |
+| Syntax                 | `param?: Type`            | `param: Type = defaultValue`   |
+| Type                   | `Type \| undefined`       | `Type`                         |
+| Can be omitted         | Yes                       | Yes                            |
+| Default value          | `undefined`               | Specified value                |
+| Backwards compatible   | Yes (adding is safe)      | Yes (adding is safe)           |
+| Compile-time detection | No error if omitted       | No error if omitted            |
 
 #### When to Use Each
 
 **Use Optional Parameters (`?`) when:**
+
 - The parameter can legitimately be `undefined`
 - You want to explicitly handle the `undefined` case
 - The parameter is truly optional and has no sensible default
@@ -106,12 +112,13 @@ constructor(
 class Database {
   constructor(
     public connectionString: string,
-    public connectionTimeout?: number  // Optional: use default timeout
+    public connectionTimeout?: number // Optional: use default timeout
   ) {}
 }
 ```
 
 **Use Default Parameters when:**
+
 - You have a sensible default value
 - The parameter should rarely be overridden
 - You want to simplify the API
@@ -120,8 +127,8 @@ class Database {
 class APIClient {
   constructor(
     public baseURL: string,
-    public timeout: number = 5000,  // Default: 5 seconds
-    public retries: number = 3      // Default: 3 retries
+    public timeout: number = 5000, // Default: 5 seconds
+    public retries: number = 3 // Default: 3 retries
   ) {}
 }
 ```
@@ -131,6 +138,7 @@ class APIClient {
 #### Safe Changes (Non-Breaking)
 
 1. **Adding optional parameters with defaults**
+
    ```typescript
    // Before
    class Service {
@@ -141,12 +149,13 @@ class APIClient {
    class Service {
      constructor(
        id: string,
-       timeout: number = 5000  // NEW: safe addition
+       timeout: number = 5000 // NEW: safe addition
      ) {}
    }
    ```
 
 2. **Adding optional parameters without defaults**
+
    ```typescript
    // Before
    class Service {
@@ -157,7 +166,7 @@ class APIClient {
    class Service {
      constructor(
        id: string,
-       timeout?: number  // NEW: safe addition
+       timeout?: number // NEW: safe addition
      ) {}
    }
    ```
@@ -165,6 +174,7 @@ class APIClient {
 #### Breaking Changes
 
 1. **Making an optional parameter required**
+
    ```typescript
    // Before
    class Service {
@@ -175,12 +185,13 @@ class APIClient {
    class Service {
      constructor(
        id: string,
-       timeout: number  // BREAKING: now required
+       timeout: number // BREAKING: now required
      ) {}
    }
    ```
 
 2. **Changing parameter order**
+
    ```typescript
    // Before
    class Service {
@@ -189,11 +200,12 @@ class APIClient {
 
    // After: BREAKING CHANGE
    class Service {
-     constructor(timeout: number, id: string)  // BREAKING: order changed
+     constructor(timeout: number, id: string); // BREAKING: order changed
    }
    ```
 
 3. **Removing parameters**
+
    ```typescript
    // Before
    class Service {
@@ -202,7 +214,7 @@ class APIClient {
 
    // After: BREAKING CHANGE
    class Service {
-     constructor(id: string)  // BREAKING: timeout removed
+     constructor(id: string); // BREAKING: timeout removed
    }
    ```
 
@@ -220,11 +232,7 @@ class Service {
   constructor(id: string, timeout: number, retries: number);
 
   // Implementation signature
-  constructor(
-    id: string,
-    timeout?: number,
-    retries?: number
-  ) {
+  constructor(id: string, timeout?: number, retries?: number) {
     // Implementation
   }
 }
@@ -244,28 +252,25 @@ interface ServiceConfig {
 
 class Service {
   constructor(config: ServiceConfig) {
-    const {
-      id,
-      timeout = 5000,
-      retries = 3,
-      debug = false
-    } = config;
+    const { id, timeout = 5000, retries = 3, debug = false } = config;
   }
 }
 
 // Usage
 const service = new Service({
   id: 'my-service',
-  timeout: 10000  // Other params use defaults
+  timeout: 10000, // Other params use defaults
 });
 ```
 
 **Advantages:**
+
 - Easy to add new parameters without breaking existing code
 - Self-documenting (parameter names are explicit)
 - No parameter order issues
 
 **Disadvantages:**
+
 - More verbose
 - Requires object creation
 - Slightly more complex type checking
@@ -339,7 +344,7 @@ describe('Service Constructor', () => {
       // Old usage pattern - must continue to work
       const service = new Service('id-123');
       expect(service.id).toBe('id-123');
-      expect(service.timeout).toBe(5000);  // Default
+      expect(service.timeout).toBe(5000); // Default
     });
 
     it('should work with new optional parameters', () => {
@@ -363,14 +368,17 @@ describe('Service Constructor', () => {
 #### Testing Strategy: Gradual Rollout
 
 1. **Phase 1: Add optional parameter with default**
+
    ```typescript
    constructor(id: string, newParam: number = 42)
    ```
+
    - Existing code continues to work
    - New code can use the parameter
    - Monitor for any issues
 
 2. **Phase 2: Deprecate old usage (if needed)**
+
    ```typescript
    /**
     * @deprecated Use `withNewParam()` method instead
@@ -392,6 +400,7 @@ describe('Service Constructor', () => {
    - New functionality available via new parameter
 
 2. **Adding parameters after required parameters**
+
    ```typescript
    // Safe: new parameters at the end
    constructor(
@@ -402,6 +411,7 @@ describe('Service Constructor', () => {
    ```
 
 3. **Loosening type constraints**
+
    ```typescript
    // Before
    constructor(id: string) {}
@@ -425,6 +435,7 @@ describe('Service Constructor', () => {
    - Requires major version bump
 
 4. **Tightening type constraints**
+
    ```typescript
    // Before
    constructor(id: string | number) {}
@@ -441,8 +452,8 @@ describe('Service Constructor', () => {
 class Service {
   constructor(
     public id: string,
-    timeout?: number,  // Old parameter name
-    connectionTimeout?: number  // New parameter name
+    timeout?: number, // Old parameter name
+    connectionTimeout?: number // New parameter name
   ) {
     // Use new parameter if provided, fall back to old
     this.timeout = connectionTimeout ?? timeout ?? 5000;
@@ -505,13 +516,13 @@ class ExtendedService extends BaseService {
 class Service {
   constructor(
     public id: string,
-    public timeout: number = 5000  // New parameter
+    public timeout: number = 5000 // New parameter
   ) {}
 }
 
 // Old code (still works)
 const service = new Service('abc');
-console.log(service.timeout);  // Output: 5000 (default used)
+console.log(service.timeout); // Output: 5000 (default used)
 ```
 
 **Result:** No error, default value is used
@@ -522,12 +533,12 @@ console.log(service.timeout);  // Output: 5000 (default used)
 class Service {
   constructor(
     public id: string,
-    public timeout: number  // New required parameter
+    public timeout: number // New required parameter
   ) {}
 }
 
 // Old code (BREAKS)
-const service = new Service('abc');  // TypeScript Error: Expected 2 arguments, but got 1
+const service = new Service('abc'); // TypeScript Error: Expected 2 arguments, but got 1
 ```
 
 **Result:** TypeScript compile-time error (if strict mode enabled)
@@ -542,7 +553,7 @@ class Service {
 
 // After
 class Service {
-  constructor(timeout: number, id: string) {}  // Order swapped
+  constructor(timeout: number, id: string) {} // Order swapped
 }
 
 // Old code (compiles but runtime behavior changes)
@@ -572,10 +583,11 @@ Ensure your `tsconfig.json` has strict checking enabled:
 ```
 
 **Your current configuration (`/home/dustin/projects/hacky-hack/tsconfig.json`):**
+
 ```json
 {
   "compilerOptions": {
-    "strict": true,  // ✓ Enabled
+    "strict": true, // ✓ Enabled
     "target": "ES2022",
     "module": "NodeNext"
   }
@@ -585,6 +597,7 @@ Ensure your `tsconfig.json` has strict checking enabled:
 #### Compile-Time Detection Examples
 
 **Example 1: Missing Required Parameter**
+
 ```typescript
 class Service {
   constructor(id: string, timeout: number) {}
@@ -596,6 +609,7 @@ const service = new Service('abc');
 ```
 
 **Example 2: Type Mismatch**
+
 ```typescript
 class Service {
   constructor(id: string, timeout: number) {}
@@ -607,6 +621,7 @@ const service = new Service('abc', '5000');
 ```
 
 **Example 3: Undefined for Required Parameter**
+
 ```typescript
 class Service {
   constructor(id: string, timeout: number) {}
@@ -625,10 +640,10 @@ Add to your `.eslintrc.js`:
 module.exports = {
   rules: {
     '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/no-parameter-properties': 'off',  // If using parameter properties
-    'no-undef': 'error'
-  }
-}
+    '@typescript-eslint/no-parameter-properties': 'off', // If using parameter properties
+    'no-undef': 'error',
+  },
+};
 ```
 
 ### 3.3 Runtime Errors from Missing Constructor Parameters
@@ -640,7 +655,7 @@ module.exports = {
 
 class Service {
   constructor(id: string, timeout: number) {
-    console.log(timeout);  // Might be undefined at runtime
+    console.log(timeout); // Might be undefined at runtime
   }
 }
 
@@ -656,7 +671,7 @@ class Service {
 }
 
 const id: any = 'abc';
-const service = new Service(id);  // Missing timeout
+const service = new Service(id); // Missing timeout
 // No compile-time error due to `any` type
 // Runtime: timeout is undefined
 ```
@@ -668,7 +683,7 @@ class Service {
   constructor(id: string, timeout: number) {}
 }
 
-const args = ['abc'] as any;  // Unsafe type assertion
+const args = ['abc'] as any; // Unsafe type assertion
 const service = new Service(...args);
 // No compile-time error
 // Runtime: timeout is undefined
@@ -696,7 +711,7 @@ class Service {
 class Service {
   constructor(
     id: string,
-    timeout: number = 5000  // Prevents undefined
+    timeout: number = 5000 // Prevents undefined
   ) {
     this.id = id;
     this.timeout = timeout;
@@ -732,6 +747,7 @@ constructor(
 ```
 
 **Analysis:**
+
 - ✓ Good: Required parameter first
 - ✓ Good: Optional parameters with sensible defaults
 - ✓ Good: Clear parameter names
@@ -770,6 +786,7 @@ constructor(
 ```
 
 **Analysis:**
+
 - ⚠️ Concern: Many parameters (7 total)
 - ✓ Good: All optional parameters have defaults
 - ✓ Good: Required parameter first
@@ -818,6 +835,7 @@ constructor(
 ```
 
 **Analysis:**
+
 - ✓ Good: Simple, clear constructor
 - ✓ Good: Required parameter first
 - ✓ Good: Optional parameters with defaults
@@ -832,6 +850,7 @@ constructor(
 ### 5.1 When Adding New Constructor Parameters
 
 1. **Always use default values for new optional parameters**
+
    ```typescript
    constructor(
      existingParam: string,
@@ -840,6 +859,7 @@ constructor(
    ```
 
 2. **Add new parameters at the end**
+
    ```typescript
    // Good
    constructor(
@@ -891,6 +911,7 @@ Before merging constructor changes:
 If a breaking change is unavoidable:
 
 1. **Add deprecation warning**
+
    ```typescript
    /**
     * @deprecated Use `new Service({ id, timeout })` instead
@@ -907,12 +928,13 @@ If a breaking change is unavoidable:
    ```
 
 2. **Provide migration script**
+
    ```typescript
    // Migration helper
    function migrateService(oldInstance: OldService): NewService {
      return new NewService({
        id: oldInstance.id,
-       timeout: oldInstance.timeout ?? 5000
+       timeout: oldInstance.timeout ?? 5000,
      });
    }
    ```
@@ -990,11 +1012,7 @@ class Example {
   constructor(name: string, age: number, id: string);
 
   // Implementation signature
-  constructor(
-    name: string,
-    age?: number,
-    id?: string
-  ) {
+  constructor(name: string, age?: number, id?: string) {
     // Implementation
   }
 }
@@ -1009,7 +1027,7 @@ abstract class Base {
 
 class Derived extends Base {
   constructor(value: string) {
-    super(value);  // Must call super()
+    super(value); // Must call super()
   }
 }
 ```
@@ -1023,10 +1041,10 @@ class Example {
 
 // Type inferred correctly
 const example = new Example('test');
-example.value;  // string
+example.value; // string
 
 // Type error
-example.value = 123;  // Error: Type 'number' is not assignable to type 'string'
+example.value = 123; // Error: Type 'number' is not assignable to type 'string'
 ```
 
 ---
@@ -1034,6 +1052,7 @@ example.value = 123;  // Error: Type 'number' is not assignable to type 'string'
 **End of Research Summary**
 
 **Next Steps:**
+
 1. Review this summary with the team
 2. Identify specific constructor changes needed
 3. Create implementation plan following best practices

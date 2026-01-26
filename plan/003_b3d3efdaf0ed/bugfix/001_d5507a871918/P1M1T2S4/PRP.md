@@ -15,6 +15,7 @@
 **Use Case**: Verify SessionManager instantiation in TaskOrchestrator as part of Phase 1 Milestone 1.2 (SessionManager Constructor Signature Fixes) to prevent parameter misalignment bugs where flushRetries could be incorrectly passed to planDir.
 
 **User Journey**:
+
 1. Review TaskOrchestrator source code for SessionManager instantiation
 2. Compare against PRP Pipeline's correct 3-parameter pattern
 3. Verify parameter sources and propagation
@@ -22,6 +23,7 @@
 5. Confirm consistency across codebase
 
 **Pain Points Addressed**:
+
 - **Parameter Misalignment Bug**: Old 2-parameter pattern `new SessionManager(prdPath, flushRetries)` incorrectly passes flushRetries to planDir parameter
 - **Inconsistent Instantiation**: Different parts of codebase using different constructor signatures
 - **Silent Failures**: Wrong parameter types may not throw immediate errors but cause subtle bugs
@@ -77,51 +79,51 @@ MUST_READ:
   - file: /home/dustin/projects/hacky-hack/src/core/task-orchestrator.ts
     why: TaskOrchestrator receives SessionManager as constructor parameter, lines 132-183
     pattern: Constructor receives SessionManager instance, does not create it
-    critical: "TaskOrchestrator.sessionManager is assigned from constructor parameter at line 142"
-    gotcha: "TaskOrchestrator NEVER instantiates SessionManager - PRPPipeline does"
+    critical: 'TaskOrchestrator.sessionManager is assigned from constructor parameter at line 142'
+    gotcha: 'TaskOrchestrator NEVER instantiates SessionManager - PRPPipeline does'
 
   # Source: PRPPipeline SessionManager instantiation (CORRECT PATTERN)
   - file: /home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts
     why: Reference implementation showing correct 3-parameter SessionManager instantiation, lines 1768-1772
-    pattern: "new SessionManagerClass(this.#prdPath, this.#planDir, this.#flushRetries)"
-    critical: "This is the correct pattern that all instantiations should follow"
-    gotcha: "SessionManagerClass is dynamically imported, verify the import alias at line 1768"
+    pattern: 'new SessionManagerClass(this.#prdPath, this.#planDir, this.#flushRetries)'
+    critical: 'This is the correct pattern that all instantiations should follow'
+    gotcha: 'SessionManagerClass is dynamically imported, verify the import alias at line 1768'
 
   # Source: SessionManager constructor signature
   - file: /home/dustin/projects/hacky-hack/src/core/session-manager.ts
     why: Complete constructor signature with parameter types and defaults, lines 190-194
     pattern: "constructor(prdPath: string, planDir: string = resolve('plan'), flushRetries: number = 3)"
-    critical: "planDir parameter was added in constructor signature update, tests must pass all 3 params"
+    critical: 'planDir parameter was added in constructor signature update, tests must pass all 3 params'
     gotcha: "planDir defaults to resolve('plan') but should be explicitly passed for consistency"
 
   # Source: Architecture audit context
   - file: /home/dustin/projects/hacky-hack/plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918/tasks.json
     why: Research Objective 1 context on SessionManager constructor signature requirements
     section: Lines 71-72, 104-105 (TaskOrchestrator verification requirements)
-    critical: "Explains why 3-parameter signature is required and consequences of 2-parameter bug"
-    gotcha: "Old pattern new SessionManager(prdPath, flushRetries) passes flushRetries to planDir!"
+    critical: 'Explains why 3-parameter signature is required and consequences of 2-parameter bug'
+    gotcha: 'Old pattern new SessionManager(prdPath, flushRetries) passes flushRetries to planDir!'
 
   # Source: Test patterns for verification
   - file: /home/dustin/projects/hacky-hack/tests/unit/core/task-orchestrator.test.ts
     why: Unit test patterns showing how TaskOrchestrator is tested with SessionManager
     pattern: Mock SessionManager passed to TaskOrchestrator constructor
-    critical: "Tests verify TaskOrchestrator behavior with mocked SessionManager"
-    gotcha: "Unit tests mock SessionManager, integration tests use real instance"
+    critical: 'Tests verify TaskOrchestrator behavior with mocked SessionManager'
+    gotcha: 'Unit tests mock SessionManager, integration tests use real instance'
 
   # Source: Integration test patterns
   - file: /home/dustin/projects/hacky-hack/tests/integration/core/task-orchestrator.test.js
     why: Integration test showing real SessionManager usage with TaskOrchestrator
     pattern: Real SessionManager created with 3-parameter signature, passed to TaskOrchestrator
-    critical: "Integration tests demonstrate correct instantiation pattern"
-    gotcha: "Integration tests use temporary directories with setupTestEnvironment pattern"
+    critical: 'Integration tests demonstrate correct instantiation pattern'
+    gotcha: 'Integration tests use temporary directories with setupTestEnvironment pattern'
 
   # Source: PRPPipeline parameter propagation
   - file: /home/dustin/projects/hacky-hack/src/workflows/prp-pipeline.ts
     why: Shows how prdPath, planDir, flushRetries flow from CLI to SessionManager
     section: Lines 303-351 (constructor parameter assignment), Lines 1768-1772 (instantiation)
-    pattern: "CLI → PRPPipeline constructor → private fields → SessionManager constructor"
+    pattern: 'CLI → PRPPipeline constructor → private fields → SessionManager constructor'
     critical: "planDir comes from CLI --plan-dir option, defaults to undefined which becomes resolve('plan')"
-    gotcha: "Parameter flow: CLI arg → constructor param → private field → SessionManager instantiation"
+    gotcha: 'Parameter flow: CLI arg → constructor param → private field → SessionManager instantiation'
 ```
 
 ### Current Codebase Tree (Relevant Sections)
@@ -180,15 +182,15 @@ TaskOrchestrator Uses SessionManager (line 142, 162, etc.)
 // CORRECT REALITY: PRPPipeline creates SessionManager, TaskOrchestrator receives it:
 // In PRPPipeline (src/workflows/prp-pipeline.ts:1768-1772):
 this.sessionManager = new SessionManagerClass(
-  this.#prdPath,      // From CLI --prd argument or PRD.md
-  this.#planDir,      // From CLI --plan-dir argument or undefined
-  this.#flushRetries  // From CLI --flush-retries argument or undefined
+  this.#prdPath, // From CLI --prd argument or PRD.md
+  this.#planDir, // From CLI --plan-dir argument or undefined
+  this.#flushRetries // From CLI --flush-retries argument or undefined
 );
 
 // Then TaskOrchestrator receives the already-instantiated SessionManager:
 // In PRPPipeline (src/workflows/prp-pipeline.ts:554-562):
 this.taskOrchestrator = new TaskOrchestratorClass(
-  this.sessionManager,  // Already instantiated with correct 3 params
+  this.sessionManager, // Already instantiated with correct 3 params
   this.#scope,
   this.#noCache,
   this.#researchQueueConcurrency,
@@ -418,28 +420,28 @@ it('should process tasks', async () => {
 
 ```yaml
 TASK_ORCHESTRATOR:
-  - location: "src/core/task-orchestrator.ts:132-183"
-  - pattern: "Receives SessionManager as constructor parameter"
-  - usage: "Stores as readonly property, validates currentSession, uses throughout class"
-  - integration: "Created and injected by PRPPipeline"
+  - location: 'src/core/task-orchestrator.ts:132-183'
+  - pattern: 'Receives SessionManager as constructor parameter'
+  - usage: 'Stores as readonly property, validates currentSession, uses throughout class'
+  - integration: 'Created and injected by PRPPipeline'
 
 PRP_PIPELINE:
-  - location: "src/workflows/prp-pipeline.ts:1768-1772"
-  - pattern: "Instantiates SessionManager with 3 parameters"
-  - instantiation: "new SessionManagerClass(this.#prdPath, this.#planDir, this.#flushRetries)"
-  - injection: "Passes SessionManager to TaskOrchestrator at lines 554-562"
+  - location: 'src/workflows/prp-pipeline.ts:1768-1772'
+  - pattern: 'Instantiates SessionManager with 3 parameters'
+  - instantiation: 'new SessionManagerClass(this.#prdPath, this.#planDir, this.#flushRetries)'
+  - injection: 'Passes SessionManager to TaskOrchestrator at lines 554-562'
 
 SESSION_MANAGER:
-  - location: "src/core/session-manager.ts:190-194"
+  - location: 'src/core/session-manager.ts:190-194'
   - signature: "constructor(prdPath: string, planDir: string = resolve('plan'), flushRetries: number = 3)"
   - validation: "Throws SessionFileError if PRD file doesn't exist"
-  - initialization: "Synchronous validation, async session loading"
+  - initialization: 'Synchronous validation, async session loading'
 
 TEST_FILES:
-  - unit: "tests/unit/core/task-orchestrator.test.ts"
-  - integration: "tests/integration/core/task-orchestrator.test.js"
-  - pattern: "Integration tests use real SessionManager, unit tests mock it"
-  - verification: "This task should verify test patterns use correct instantiation"
+  - unit: 'tests/unit/core/task-orchestrator.test.ts'
+  - integration: 'tests/integration/core/task-orchestrator.test.js'
+  - pattern: 'Integration tests use real SessionManager, unit tests mock it'
+  - verification: 'This task should verify test patterns use correct instantiation'
 ```
 
 ## Validation Loop

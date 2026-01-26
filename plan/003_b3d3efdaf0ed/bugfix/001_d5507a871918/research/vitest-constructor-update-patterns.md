@@ -24,6 +24,7 @@ This research document captures best practices for updating test files when cons
 Your codebase demonstrates excellent patterns for handling constructor signatures:
 
 **Test Constants Pattern** (from `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts`):
+
 ```typescript
 // Test constants for ResearchQueue constructor parameters
 const DEFAULT_MAX_SIZE = 3;
@@ -50,6 +51,7 @@ describe('ResearchQueue', () => {
 ```
 
 **Benefits:**
+
 - Single source of truth for default values
 - Easy to update when constructor signatures change
 - Clear intent: these are TEST defaults, not production defaults
@@ -98,8 +100,9 @@ describe('flushRetries parameter', () => {
   });
 
   it('should validate flushRetries is positive integer', () => {
-    expect(() => new SessionManager(prdPath, planDir, -1))
-      .toThrow('flushRetries must be positive');
+    expect(() => new SessionManager(prdPath, planDir, -1)).toThrow(
+      'flushRetries must be positive'
+    );
   });
 });
 ```
@@ -113,6 +116,7 @@ describe('flushRetries parameter', () => {
 Your codebase already uses factory functions effectively:
 
 **From `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts`:**
+
 ```typescript
 // Factory functions for test data
 const createTestSubtask = (
@@ -182,6 +186,7 @@ describe('MyClass parameter variations', () => {
 ```
 
 **Benefits:**
+
 - Centralizes constructor call pattern
 - Easy to update when signature changes
 - Supports both default and custom parameters
@@ -253,6 +258,7 @@ describe('SessionManager', () => {
 When updating constructor signatures, maintain isolation by:
 
 1. **Reset mocks before each test:**
+
    ```typescript
    beforeEach(() => {
      vi.clearAllMocks();
@@ -262,6 +268,7 @@ When updating constructor signatures, maintain isolation by:
    ```
 
 2. **Use descriptive test names:**
+
    ```typescript
    it('should accept planDir as second parameter', () => {
      // Clear intent about what's being tested
@@ -269,6 +276,7 @@ When updating constructor signatures, maintain isolation by:
    ```
 
 3. **Avoid shared state:**
+
    ```typescript
    // BAD: Shared state
    let manager: SessionManager;
@@ -294,12 +302,19 @@ describe('constructor with mocked dependencies', () => {
   });
 
   it('should call PRPGenerator with correct parameters', () => {
-    const mockGenerate = vi.fn().mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
+    const mockGenerate = vi
+      .fn()
+      .mockResolvedValue(createTestPRPDocument('P1.M1.T1.S1'));
     MockPRPGenerator.mockImplementation(() => ({
       generate: mockGenerate,
     }));
 
-    new ResearchQueue(mockManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+    new ResearchQueue(
+      mockManager,
+      DEFAULT_MAX_SIZE,
+      DEFAULT_NO_CACHE,
+      DEFAULT_CACHE_TTL_MS
+    );
 
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
@@ -345,8 +360,9 @@ describe('flushRetries parameter validation', () => {
       const manager = new SessionManager(prdPath, planDir, flushRetries);
       expect(manager.flushRetries).toBe(flushRetries);
     } else {
-      expect(() => new SessionManager(prdPath, planDir, flushRetries))
-        .toThrow();
+      expect(
+        () => new SessionManager(prdPath, planDir, flushRetries)
+      ).toThrow();
     }
   });
 });
@@ -372,8 +388,16 @@ describe('constructor parameter edge cases', () => {
 
   test.each([
     { noCache: true, cacheTtlMs: 0, description: 'no cache, zero TTL' },
-    { noCache: false, cacheTtlMs: 60000, description: 'cache enabled, 1min TTL' },
-    { noCache: false, cacheTtlMs: 86400000, description: 'cache enabled, 24hr TTL' },
+    {
+      noCache: false,
+      cacheTtlMs: 60000,
+      description: 'cache enabled, 1min TTL',
+    },
+    {
+      noCache: false,
+      cacheTtlMs: 86400000,
+      description: 'cache enabled, 24hr TTL',
+    },
   ])('should configure caching: $description', ({ noCache, cacheTtlMs }) => {
     const queue = new ResearchQueue(
       mockManager,
@@ -398,7 +422,12 @@ When constructors forward parameters to dependencies:
 ```typescript
 describe('PRPGenerator parameter forwarding', () => {
   it('should forward noCache=true to PRPGenerator', () => {
-    new ResearchQueue(mockManager, DEFAULT_MAX_SIZE, true, DEFAULT_CACHE_TTL_MS);
+    new ResearchQueue(
+      mockManager,
+      DEFAULT_MAX_SIZE,
+      true,
+      DEFAULT_CACHE_TTL_MS
+    );
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
       true,
@@ -408,7 +437,12 @@ describe('PRPGenerator parameter forwarding', () => {
 
   it('should forward custom cacheTtlMs to PRPGenerator', () => {
     const customTtl = 12 * 60 * 60 * 1000; // 12 hours
-    new ResearchQueue(mockManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, customTtl);
+    new ResearchQueue(
+      mockManager,
+      DEFAULT_MAX_SIZE,
+      DEFAULT_NO_CACHE,
+      customTtl
+    );
     expect(MockPRPGenerator).toHaveBeenCalledWith(
       mockManager,
       DEFAULT_NO_CACHE,
@@ -449,8 +483,12 @@ export const CACHE_TTL_PRESETS = {
 ```
 
 Usage:
+
 ```typescript
-import { RESEARCH_QUEUE_DEFAULTS, CACHE_TTL_PRESETS } from '../constants/constructor-defaults.js';
+import {
+  RESEARCH_QUEUE_DEFAULTS,
+  CACHE_TTL_PRESETS,
+} from '../constants/constructor-defaults.js';
 
 describe('ResearchQueue', () => {
   it('should use default cache TTL', () => {
@@ -563,7 +601,12 @@ describe('constructor with dependency injection', () => {
   });
 
   it('should create PRPGenerator with sessionManager', () => {
-    new ResearchQueue(mockManager, DEFAULT_MAX_SIZE, DEFAULT_NO_CACHE, DEFAULT_CACHE_TTL_MS);
+    new ResearchQueue(
+      mockManager,
+      DEFAULT_MAX_SIZE,
+      DEFAULT_NO_CACHE,
+      DEFAULT_CACHE_TTL_MS
+    );
 
     expect(MockPRPGenerator).toHaveBeenCalledTimes(1);
     expect(MockPRPGenerator).toHaveBeenCalledWith(
@@ -578,8 +621,18 @@ describe('constructor with dependency injection', () => {
     const queue2 = new ResearchQueue(mockManager, 5, true, 3600000);
 
     expect(MockPRPGenerator).toHaveBeenCalledTimes(2);
-    expect(MockPRPGenerator).toHaveBeenNthCalledWith(1, mockManager, false, 86400000);
-    expect(MockPRPGenerator).toHaveBeenNthCalledWith(2, mockManager, true, 3600000);
+    expect(MockPRPGenerator).toHaveBeenNthCalledWith(
+      1,
+      mockManager,
+      false,
+      86400000
+    );
+    expect(MockPRPGenerator).toHaveBeenNthCalledWith(
+      2,
+      mockManager,
+      true,
+      3600000
+    );
   });
 });
 ```
@@ -593,6 +646,7 @@ describe('constructor with dependency injection', () => {
 When updating constructor signatures across many test files:
 
 **Step 1: Add Test Constants**
+
 ```typescript
 // Add at top of test file
 const DEFAULT_PRD_PATH = '/test/PRD.md';
@@ -601,6 +655,7 @@ const DEFAULT_FLUSH_RETRIES = 3;
 ```
 
 **Step 2: Update Constructor Calls Incrementally**
+
 ```typescript
 // Before
 new SessionManager(prdPath, flushRetries);
@@ -610,17 +665,23 @@ new SessionManager(prdPath, resolve(DEFAULT_PLAN_DIR), flushRetries);
 ```
 
 **Step 3: Add Parameter-Specific Tests**
+
 ```typescript
 describe('planDir parameter', () => {
   it('should accept custom planDir', () => {
     const customPlanDir = '/custom/plan';
-    const manager = new SessionManager(DEFAULT_PRD_PATH, customPlanDir, DEFAULT_FLUSH_RETRIES);
+    const manager = new SessionManager(
+      DEFAULT_PRD_PATH,
+      customPlanDir,
+      DEFAULT_FLUSH_RETRIES
+    );
     expect(manager.planDir).toContain(customPlanDir);
   });
 });
 ```
 
 **Step 4: Verify Parameter Forwarding**
+
 ```typescript
 describe('constructor parameter forwarding', () => {
   it('should pass all parameters to dependencies', () => {
@@ -718,7 +779,12 @@ describe('constructor with file operations', () => {
 ```typescript
 describe.each([
   { variant: 'default', maxSize: 3, noCache: false, cacheTtlMs: 86400000 },
-  { variant: 'high-concurrency', maxSize: 10, noCache: false, cacheTtlMs: 86400000 },
+  {
+    variant: 'high-concurrency',
+    maxSize: 10,
+    noCache: false,
+    cacheTtlMs: 86400000,
+  },
   { variant: 'no-cache', maxSize: 3, noCache: true, cacheTtlMs: 0 },
 ])('ResearchQueue variant: $variant', ({ maxSize, noCache, cacheTtlMs }) => {
   it(`should create instance with ${maxSize} max size`, () => {
@@ -742,6 +808,7 @@ describe.each([
 **Problem:** Constructor signature updated but some tests still use old signature.
 
 **Solution:**
+
 ```bash
 # Find all constructor calls
 grep -r "new SessionManager(" tests/
@@ -755,6 +822,7 @@ grep -r "new SessionManager(" tests/
 **Problem:** Mock implementations from previous tests affect current test.
 
 **Solution:**
+
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks();
@@ -775,6 +843,7 @@ it('should use custom mock', () => {
 **Problem:** Test default values don't match production defaults.
 
 **Solution:**
+
 ```typescript
 /**
  * Test defaults must match production defaults in src/core/research-queue.ts
@@ -788,6 +857,7 @@ export const DEFAULT_MAX_SIZE = 3; // Matches production default
 **Problem:** New parameter added but validation tests missing.
 
 **Solution:**
+
 ```typescript
 describe('new parameter validation', () => {
   test.each([
@@ -810,6 +880,7 @@ describe('new parameter validation', () => {
 ## 10. Checklist for Constructor Signature Updates
 
 ### Pre-Update Checklist
+
 - [ ] Document current constructor signature
 - [ ] List all test files that instantiate the class
 - [ ] Identify production code that instantiates the class
@@ -817,6 +888,7 @@ describe('new parameter validation', () => {
 - [ ] Plan parameter validation rules
 
 ### During Update Checklist
+
 - [ ] Add test constants at top of test files
 - [ ] Update constructor calls in tests
 - [ ] Add parameter-specific describe blocks
@@ -826,6 +898,7 @@ describe('new parameter validation', () => {
 - [ ] Run tests after each file update
 
 ### Post-Update Checklist
+
 - [ ] All tests pass with new signature
 - [ ] No compiler errors
 - [ ] Coverage maintained at 100%
@@ -838,17 +911,20 @@ describe('new parameter validation', () => {
 ## 11. References and Resources
 
 ### Vitest Documentation
+
 - **Vitest Guide:** https://vitest.dev/guide/
 - **Vitest API:** https://vitest.dev/api/
 - **Test Context:** https://vitest.dev/guide/test-context.html
 - **Mock Functions:** https://vitest.dev/api/mock.html
 
 ### TypeScript Testing Patterns
+
 - **Vitest TypeScript Config:** `/home/dustin/projects/hacky-hack/vitest.config.ts`
 - **Your Test Constants:** `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts` (lines 102-104)
 - **Your Factory Functions:** `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts` (lines 110-169)
 
 ### Codebase Examples
+
 - **ResearchQueue Tests:** `/home/dustin/projects/hacky-hack/tests/unit/core/research-queue.test.ts`
 - **SessionManager Tests:** `/home/dustin/projects/hacky-hack/tests/unit/core/session-manager.test.ts`
 - **Flush Retry Tests:** `/home/dustin/projects/hacky-hack/tests/unit/core/flush-retry.test.ts`
@@ -859,6 +935,7 @@ describe('new parameter validation', () => {
 ## Appendix: Quick Reference Patterns
 
 ### Pattern 1: Basic Constructor Test
+
 ```typescript
 const DEFAULT_PARAM = 'value';
 
@@ -875,6 +952,7 @@ describe('constructor', () => {
 ```
 
 ### Pattern 2: Parameterized Constructor Tests
+
 ```typescript
 test.each([
   { param: 1, expected: true },
@@ -886,6 +964,7 @@ test.each([
 ```
 
 ### Pattern 3: Factory Function
+
 ```typescript
 const createTestInstance = (overrides = {}) => {
   return new MyClass({
@@ -897,6 +976,7 @@ const createTestInstance = (overrides = {}) => {
 ```
 
 ### Pattern 4: Mock Preservation
+
 ```typescript
 describe('with mocks', () => {
   beforeEach(() => {

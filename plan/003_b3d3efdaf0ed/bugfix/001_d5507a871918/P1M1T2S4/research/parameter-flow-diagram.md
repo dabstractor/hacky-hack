@@ -141,11 +141,11 @@ The 2-parameter constructor bug exists in **test files only**:
 
 ```typescript
 // WRONG (old test pattern):
-new SessionManager(prdPath, flushRetries)
+new SessionManager(prdPath, flushRetries);
 // Bug: flushRetries (number) is passed to planDir (string) parameter!
 
 // CORRECT (new test pattern):
-new SessionManager(prdPath, resolve('plan'), flushRetries)
+new SessionManager(prdPath, resolve('plan'), flushRetries);
 // Fix: Explicitly pass planDir so flushRetries goes to correct parameter
 ```
 

@@ -9,6 +9,7 @@
 **Deliverable**: A `MetricsCollector` class at `src/utils/metrics-collector.ts` integrated with `PRPPipeline`, with CLI option `--metrics-output` for exporting metrics to JSON file, and comprehensive unit tests at `tests/unit/metrics-collector.test.ts`.
 
 **Success Definition**:
+
 - MetricsCollector tracks task execution duration (min, max, avg, p95)
 - Agent token usage is tracked per agent (input/output tokens)
 - Cache hit/miss rates are calculated and reported
@@ -25,12 +26,14 @@
 **Use Case**: Analyzing pipeline execution patterns to identify bottlenecks, optimize resource allocation, and track efficiency over time.
 
 **User Journey**:
+
 1. User runs pipeline with `--metrics-output metrics.json`
 2. Pipeline executes normally while collecting metrics in background
 3. On completion, metrics.json contains comprehensive performance data
 4. User analyzes metrics to identify optimization opportunities
 
 **Pain Points Addressed**:
+
 - No visibility into task duration distributions (which tasks are slowest)
 - Unknown token usage per agent (cost tracking)
 - Cache effectiveness unclear (is cache working?)
@@ -292,13 +295,13 @@ class MetricsCollector {
  * Timing statistics with percentiles
  */
 interface TimingMetric {
-  count: number;           // Number of samples
-  min: number;             // Minimum duration (ms)
-  max: number;             // Maximum duration (ms)
-  avg: number;             // Average duration (ms)
-  p50: number;             // Median (ms)
-  p95: number;             // 95th percentile (ms)
-  p99: number;             // 99th percentile (ms)
+  count: number; // Number of samples
+  min: number; // Minimum duration (ms)
+  max: number; // Maximum duration (ms)
+  avg: number; // Average duration (ms)
+  p50: number; // Median (ms)
+  p95: number; // 95th percentile (ms)
+  p99: number; // 99th percentile (ms)
 }
 
 /**
@@ -318,7 +321,7 @@ interface TokenUsage {
 interface CacheStats {
   hits: number;
   misses: number;
-  hitRate: number;         // 0-1
+  hitRate: number; // 0-1
   totalRequests: number;
 }
 
@@ -326,10 +329,10 @@ interface CacheStats {
  * Resource snapshot
  */
 interface ResourceSnapshot {
-  timestamp: number;       // Milliseconds since epoch
-  heapUsed: number;        // Bytes
-  heapTotal: number;       // Bytes
-  rss: number;             // Bytes
+  timestamp: number; // Milliseconds since epoch
+  heapUsed: number; // Bytes
+  heapTotal: number; // Bytes
+  rss: number; // Bytes
   fileHandles: number;
   fileHandleUlimit: number;
 }
@@ -347,7 +350,7 @@ interface CounterMetric {
  */
 interface GaugeMetric {
   value: number;
-  lastUpdated: number;     // Timestamp
+  lastUpdated: number; // Timestamp
 }
 
 /**
@@ -355,13 +358,13 @@ interface GaugeMetric {
  */
 interface MetricsSnapshot {
   metadata: {
-    collectedAt: string;   // ISO timestamp
+    collectedAt: string; // ISO timestamp
     pipelineDuration: number; // Total pipeline duration (ms)
     sessionPath: string;
     correlationId: string;
   };
-  taskTimings: Record<string, TimingMetric>;    // taskId -> timing stats
-  agentTokens: Record<string, TokenUsage>;      // agentType -> usage
+  taskTimings: Record<string, TimingMetric>; // taskId -> timing stats
+  agentTokens: Record<string, TokenUsage>; // agentType -> usage
   cacheStats: CacheStats;
   resourceSnapshots: ResourceSnapshot[];
   customCounters: Record<string, CounterMetric>;

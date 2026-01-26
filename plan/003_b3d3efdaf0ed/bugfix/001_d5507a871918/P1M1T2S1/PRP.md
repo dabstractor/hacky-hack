@@ -7,6 +7,7 @@
 **Deliverable**: Updated `tests/unit/core/session-manager.test.ts` where all SessionManager instantiations use the correct 3-parameter constructor: `(prdPath, planDir, flushRetries)`.
 
 **Success Definition**:
+
 - All SessionManager constructor calls in `tests/unit/core/session-manager.test.ts` include `planDir` as the second parameter
 - Tests use `resolve('plan')` or test temp directory for planDir
 - Default value `3` is used for flushRetries when not explicitly tested
@@ -16,6 +17,7 @@
 ## Why
 
 **Business Value**: This bug fix ensures unit tests correctly match the SessionManager constructor signature, enabling:
+
 - Accurate testing of SessionManager functionality with plan directory parameter
 - Proper validation of the planDir parameter behavior
 - Test suite stability and maintainability
@@ -23,6 +25,7 @@
 **Integration**: The SessionManager is a core component of the Four Core Processing Engines (PRD §5.1). Incorrect constructor calls in tests cause test failures and prevent validation of other bug fixes.
 
 **Problems Solved**:
+
 - Bug 001_d5507a871918 §Issue 2 identified that tests pass only 2 parameters `(prdPath, flushRetries)` but constructor requires 3 parameters `(prdPath, planDir, flushRetries)`
 - Current tests incorrectly pass flushRetries as the second parameter instead of planDir
 - Missing planDir parameter prevents proper testing of plan directory functionality
@@ -32,6 +35,7 @@
 **User-Visible Behavior**: No direct user-visible behavior change. This is an internal test fix ensuring correct constructor parameter usage.
 
 **Technical Requirements**:
+
 1. Update all `new SessionManager(prdPath, planDir)` calls to include planDir as the second parameter
 2. For tests that don't care about planDir, use `resolve('plan')` as default value
 3. Ensure test setup/teardown properly creates and cleans up plan directories
@@ -52,6 +56,7 @@
 **Test**: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: Yes - this PRP provides:
+
 - Exact SessionManager constructor signature with parameter order
 - Primary test file location and current incorrect patterns
 - Test fixtures and patterns to follow
@@ -227,6 +232,7 @@ tests/
 No new data models needed. This PRP updates existing test constructor calls.
 
 **SessionManager Constructor Signature** (already defined in source):
+
 ```typescript
 constructor(
   prdPath: string,
@@ -236,6 +242,7 @@ constructor(
 ```
 
 **Test Constants Pattern** (add to top of test file):
+
 ```typescript
 // Test constants for SessionManager constructor
 const DEFAULT_PRD_PATH = '/test/PRD.md';
@@ -349,18 +356,14 @@ import { resolve } from 'node:path';
 const manager = new SessionManager(prdPath, flushRetries);
 
 // CORRECTED PATTERN:
-const manager = new SessionManager(
-  prdPath,
-  resolve('plan'),
-  flushRetries
-);
+const manager = new SessionManager(prdPath, resolve('plan'), flushRetries);
 
 // Pattern 4: Multi-line formatting for readability
 // This makes it easy to verify all 3 parameters are present
 const manager = new SessionManager(
-  prdPath,           // Parameter 1: PRD file path
-  resolve('plan'),   // Parameter 2: Plan directory
-  flushRetries       // Parameter 3: Max retry attempts
+  prdPath, // Parameter 1: PRD file path
+  resolve('plan'), // Parameter 2: Plan directory
+  flushRetries // Parameter 3: Max retry attempts
 );
 
 // Pattern 5: Default parameter usage
@@ -378,20 +381,13 @@ describe('planDir parameter', () => {
   it('should accept custom planDir', () => {
     mockStatSync.mockReturnValue({ isFile: () => true });
     const customPlanDir = '/custom/plan/path';
-    const manager = new SessionManager(
-      DEFAULT_PRD_PATH,
-      customPlanDir
-    );
+    const manager = new SessionManager(DEFAULT_PRD_PATH, customPlanDir);
     expect(manager.planDir).toBe(customPlanDir);
   });
 
   it('should work with all three parameters', () => {
     mockStatSync.mockReturnValue({ isFile: () => true });
-    const manager = new SessionManager(
-      DEFAULT_PRD_PATH,
-      resolve('plan'),
-      5
-    );
+    const manager = new SessionManager(DEFAULT_PRD_PATH, resolve('plan'), 5);
     expect(manager.prdPath).toBe(DEFAULT_PRD_PATH);
     expect(manager.planDir).toContain('plan');
     expect(manager.flushRetries).toBe(5);
@@ -619,6 +615,7 @@ grep "DEFAULT_PRD_PATH\|DEFAULT_PLAN_DIR\|DEFAULT_FLUSH_RETRIES" tests/unit/core
 **Rating: 9/10** for one-pass implementation success likelihood
 
 **Reasoning**:
+
 - Comprehensive research provides exact file locations and patterns
 - ResearchQueue fix (P1.M1.T1) provides proven pattern to replicate
 - Test constants, multi-line formatting, and parameter variation tests are specified
@@ -628,11 +625,13 @@ grep "DEFAULT_PRD_PATH\|DEFAULT_PLAN_DIR\|DEFAULT_FLUSH_RETRIES" tests/unit/core
 - Only test file modifications (isolated scope)
 
 **Risk Factors**:
+
 - Large number of constructor calls (~200) increases chance of missing one
 - Integration tests may fail (expected, will be fixed in P1.M1.T2.S2)
 - Coverage threshold is strict (100% - must maintain)
 
 **Mitigation**:
+
 - Use grep patterns to verify all instances updated
 - Run comprehensive test suite to catch any misses
 - Add parameter variation tests to validate behavior

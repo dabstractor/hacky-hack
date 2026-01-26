@@ -7,12 +7,13 @@
 ## Objective
 
 Update 23 test files to use the correct SessionManager constructor signature:
+
 ```typescript
 // OLD (incorrect)
-new SessionManager(prdPath, flushRetries)
+new SessionManager(prdPath, flushRetries);
 
 // NEW (correct)
-new SessionManager(prdPath, planDir, flushRetries)
+new SessionManager(prdPath, planDir, flushRetries);
 ```
 
 ## Quick Start Pattern
@@ -52,7 +53,11 @@ describe('SessionManager', () => {
 const manager = new SessionManager('/test/PRD.md', 3);
 
 // AFTER
-const manager = new SessionManager(DEFAULT_PRD_PATH, resolve(DEFAULT_PLAN_DIR), DEFAULT_FLUSH_RETRIES);
+const manager = new SessionManager(
+  DEFAULT_PRD_PATH,
+  resolve(DEFAULT_PLAN_DIR),
+  DEFAULT_FLUSH_RETRIES
+);
 ```
 
 ## Common Update Patterns
@@ -68,7 +73,11 @@ it('should do something', () => {
 
 // Replace with
 it('should do something', () => {
-  const manager = new SessionManager(DEFAULT_PRD_PATH, resolve(DEFAULT_PLAN_DIR), DEFAULT_FLUSH_RETRIES);
+  const manager = new SessionManager(
+    DEFAULT_PRD_PATH,
+    resolve(DEFAULT_PLAN_DIR),
+    DEFAULT_FLUSH_RETRIES
+  );
   // ...test logic
 });
 ```
@@ -84,7 +93,11 @@ it('should accept custom flushRetries', () => {
 
 // Replace with
 it('should accept custom flushRetries', () => {
-  const manager = new SessionManager(DEFAULT_PRD_PATH, resolve(DEFAULT_PLAN_DIR), 5);
+  const manager = new SessionManager(
+    DEFAULT_PRD_PATH,
+    resolve(DEFAULT_PLAN_DIR),
+    5
+  );
   expect(manager.flushRetries).toBe(5);
 });
 ```
@@ -102,7 +115,11 @@ it('should handle custom PRD path', () => {
 // Replace with
 it('should handle custom PRD path', () => {
   const customPath = '/custom/PRD.md';
-  const manager = new SessionManager(customPath, resolve(DEFAULT_PLAN_DIR), DEFAULT_FLUSH_RETRIES);
+  const manager = new SessionManager(
+    customPath,
+    resolve(DEFAULT_PLAN_DIR),
+    DEFAULT_FLUSH_RETRIES
+  );
   expect(manager.prdPath).toBe(customPath);
 });
 ```
@@ -115,7 +132,11 @@ it('should accept all custom parameters', () => {
   const customPlanDir = '/custom/plan';
   const customRetries = 5;
 
-  const manager = new SessionManager(customPath, resolve(customPlanDir), customRetries);
+  const manager = new SessionManager(
+    customPath,
+    resolve(customPlanDir),
+    customRetries
+  );
 
   expect(manager.prdPath).toBe(customPath);
   expect(manager.planDir).toContain(customPlanDir);
@@ -154,6 +175,7 @@ it('should work with custom flushRetries', () => {
 Based on tasks.json, these files need updating:
 
 ### Unit Tests
+
 - [ ] `tests/unit/core/session-manager.test.ts` (P1.M1.T2.S1) - PRIMARY FILE
 - [ ] `tests/unit/core/session-state-batching.test.ts` (P1.M1.T2.S3)
 - [ ] `tests/unit/core/checkpoint-manager.test.ts`
@@ -164,6 +186,7 @@ Based on tasks.json, these files need updating:
 - [ ] `tests/unit/workflows/fix-cycle-workflow.test.ts`
 
 ### Integration Tests
+
 - [ ] `tests/integration/core/session-manager.test.ts` (P1.M1.T2.S2)
 - [ ] `tests/integration/core/delta-session.test.ts`
 - [ ] `tests/integration/core/session-structure.test.ts`
@@ -183,7 +206,11 @@ describe('planDir parameter', () => {
     mockStatSync.mockReturnValue({ isFile: () => true });
     const customPlanDir = '/custom/plan/path';
 
-    const manager = new SessionManager(DEFAULT_PRD_PATH, customPlanDir, DEFAULT_FLUSH_RETRIES);
+    const manager = new SessionManager(
+      DEFAULT_PRD_PATH,
+      customPlanDir,
+      DEFAULT_FLUSH_RETRIES
+    );
 
     expect(manager.planDir).toContain(customPlanDir);
   });
@@ -191,7 +218,11 @@ describe('planDir parameter', () => {
   it('should resolve relative planDir to absolute path', () => {
     mockStatSync.mockReturnValue({ isFile: () => true });
 
-    const manager = new SessionManager(DEFAULT_PRD_PATH, resolve('plan'), DEFAULT_FLUSH_RETRIES);
+    const manager = new SessionManager(
+      DEFAULT_PRD_PATH,
+      resolve('plan'),
+      DEFAULT_FLUSH_RETRIES
+    );
 
     expect(manager.planDir).toMatch(/^\/.*plan$/);
   });
@@ -199,7 +230,11 @@ describe('planDir parameter', () => {
   it('should use default plan directory when not specified', () => {
     mockStatSync.mockReturnValue({ isFile: () => true });
 
-    const manager = new SessionManager(DEFAULT_PRD_PATH, resolve(DEFAULT_PLAN_DIR), DEFAULT_FLUSH_RETRIES);
+    const manager = new SessionManager(
+      DEFAULT_PRD_PATH,
+      resolve(DEFAULT_PLAN_DIR),
+      DEFAULT_FLUSH_RETRIES
+    );
 
     expect(manager.planDir).toContain('plan');
   });
@@ -245,12 +280,13 @@ grep -r "new SessionManager(.*," tests/ --include="*.test.ts" | grep -v "node_mo
 **Cause:** Still using old 2-parameter signature.
 
 **Fix:**
+
 ```typescript
 // BEFORE
-new SessionManager(prdPath, flushRetries)
+new SessionManager(prdPath, flushRetries);
 
 // AFTER
-new SessionManager(prdPath, resolve(planDir), flushRetries)
+new SessionManager(prdPath, resolve(planDir), flushRetries);
 ```
 
 ### Error 2: "Cannot read property 'isFile' of undefined"
@@ -258,6 +294,7 @@ new SessionManager(prdPath, resolve(planDir), flushRetries)
 **Cause:** Missing `mockStatSync.mockReturnValue({ isFile: () => true })` in beforeEach.
 
 **Fix:**
+
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks();
@@ -270,6 +307,7 @@ beforeEach(() => {
 **Cause:** Not mocking file system operations correctly.
 
 **Fix:** Ensure all fs operations are mocked:
+
 ```typescript
 vi.mock('node:fs', () => ({
   statSync: vi.fn(),
