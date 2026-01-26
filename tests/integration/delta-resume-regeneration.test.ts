@@ -32,7 +32,7 @@ import {
   mkdirSync,
   rmSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { mkdtempSync } from 'node:fs';
 
@@ -343,7 +343,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should detect missing delta_prd.md on resume', async () => {
       // SETUP: Create initial session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -378,7 +378,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should identify parent session from parent_session.txt', async () => {
       // SETUP: Create initial session and incomplete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -833,7 +833,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should have parent_session.txt in incomplete delta session', async () => {
       // SETUP: Create initial and incomplete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -857,7 +857,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should have prd_snapshot.md in incomplete delta session', async () => {
       // SETUP: Create incomplete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -881,7 +881,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should have tasks.json in incomplete delta session', async () => {
       // SETUP: Create incomplete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -907,7 +907,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should NOT have delta_prd.md in incomplete delta session', async () => {
       // SETUP: Create incomplete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -927,7 +927,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should have all required files except delta_prd.md', async () => {
       // SETUP: Create incomplete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;
@@ -952,7 +952,7 @@ describe('integration/delta-resume-regeneration', () => {
     it('should have all files including delta_prd.md', async () => {
       // SETUP: Create complete delta session
       createTestPRD(prdPath, mockSimplePRD);
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const parentSessionId = manager.currentSession.metadata.id;
       const parentSessionPath = manager.currentSession.metadata.path;

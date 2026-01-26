@@ -29,7 +29,7 @@ import {
   readdirSync,
   statSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { SessionManager } from '../../src/core/session-manager.js';
@@ -271,7 +271,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       writeFileSync(prdPath, generateValidPRD('test-1'));
 
       // EXECUTE: Initialize session and save backlog
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const backlog = createMinimalBacklog();
       await saveBacklogAndSync(manager, backlog);
@@ -291,7 +291,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session and save backlog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-perms'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -312,7 +312,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session and save backlog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-only-file'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -336,7 +336,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session, spy on saveBacklog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-flow'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -354,7 +354,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session and save initial backlog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-flush'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const tasksPath = join(session.metadata.path, 'tasks.json');
       const backlog = createMinimalBacklog();
@@ -373,7 +373,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       expect(item?.status).toBe('Complete');
 
       // VERIFY: Load fresh instance (reads from disk, not memory)
-      const manager2 = new SessionManager(prdPath, planDir);
+      const manager2 = new SessionManager(prdPath, planDir, 3);
       await manager2.initialize();
       const backlogFromDisk = await manager2.loadBacklog();
       item = findItem(backlogFromDisk, 'P1.M1.T1.S1');
@@ -385,7 +385,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       await manager.flushUpdates();
 
       // VERIFY: After flush, disk has new status
-      const manager3 = new SessionManager(prdPath, planDir);
+      const manager3 = new SessionManager(prdPath, planDir, 3);
       await manager3.initialize();
       const backlogAfterFlush = await manager3.loadBacklog();
       item = findItem(backlogAfterFlush, 'P1.M1.T1.S1');
@@ -396,7 +396,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session and save backlog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-reload'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -409,7 +409,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       await manager.flushUpdates();
 
       // VERIFY: Load fresh SessionManager with same PRD
-      const manager2 = new SessionManager(prdPath, planDir);
+      const manager2 = new SessionManager(prdPath, planDir, 3);
       const session2 = await manager2.initialize();
       const backlogFromDisk = await manager2.loadBacklog();
 
@@ -429,7 +429,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session and save backlog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-no-dup'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -461,7 +461,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-mem-flush'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -473,7 +473,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       await manager.updateItemStatus('P1.M1.T1.S1', 'Complete');
 
       // EXECUTE: Create new manager instance
-      const manager2 = new SessionManager(prdPath, planDir);
+      const manager2 = new SessionManager(prdPath, planDir, 3);
       await manager2.initialize();
       const backlogFromDisk = await manager2.loadBacklog();
 
@@ -492,7 +492,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create backlog with invalid status
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-invalid-status'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
 
       const invalidBacklog: Backlog = {
@@ -523,7 +523,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-malformed'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
 
       // EXECUTE: Write invalid tasks.json manually
@@ -538,7 +538,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create backlog with invalid ID format
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-invalid-id'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
 
       const invalidBacklog: Backlog = {
@@ -568,7 +568,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-atomic'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -591,7 +591,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session and save initial backlog
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-corruption'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -642,7 +642,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-cleanup'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const sessionPath = manager.currentSession!.metadata.path;
 
@@ -665,7 +665,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session with multiple items
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-batching'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const backlog = createMultiItemBacklog();
       await manager.saveBacklog(backlog);
@@ -679,7 +679,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       await manager.updateItemStatus('P1.M2.T1.S1', 'Complete');
 
       // VERIFY: Load from disk (not flushed yet)
-      const manager2 = new SessionManager(prdPath, planDir);
+      const manager2 = new SessionManager(prdPath, planDir, 3);
       await manager2.initialize();
       const backlogFromDisk = await manager2.loadBacklog();
 
@@ -695,7 +695,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       await manager.flushUpdates();
 
       // VERIFY: After flush, all updates persisted
-      const manager3 = new SessionManager(prdPath, planDir);
+      const manager3 = new SessionManager(prdPath, planDir, 3);
       await manager3.initialize();
       const backlogAfterFlush = await manager3.loadBacklog();
 
@@ -712,7 +712,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-transitions'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       await manager.initialize();
       const backlog = createMinimalBacklog();
       await manager.saveBacklog(backlog);
@@ -731,7 +731,7 @@ describe('integration/tasks-json-authority > tasks.json authority enforcement', 
       await manager.flushUpdates();
 
       // VERIFY: Load fresh instance
-      const manager2 = new SessionManager(prdPath, planDir);
+      const manager2 = new SessionManager(prdPath, planDir, 3);
       await manager2.initialize();
       const finalBacklog = await manager2.loadBacklog();
 

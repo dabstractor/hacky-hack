@@ -29,7 +29,7 @@ import {
   statSync,
   mkdirSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { SessionManager } from '../../src/core/session-manager.js';
@@ -278,7 +278,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       writeFileSync(prdPath, generateValidPRD('test-1'));
 
       // EXECUTE: Initialize session
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
 
       // VERIFY: Session ID matches pattern
@@ -305,7 +305,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       writeFileSync(prdPath, generateValidPRD('test-subdirs'));
 
       // EXECUTE: Initialize session
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -331,7 +331,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       writeFileSync(prdPath, generateValidPRD('test-perms'));
 
       // EXECUTE: Initialize session and save backlog
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -360,7 +360,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-prp'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -383,7 +383,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-cache'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -405,7 +405,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session with cache metadata
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-metadata'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -444,7 +444,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session with old cache metadata
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-ttl'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -491,7 +491,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-artifacts'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -514,7 +514,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session with artifacts
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-validation'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -551,7 +551,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session with artifacts
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-summary'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -577,7 +577,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session with artifacts
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-list'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 
@@ -610,7 +610,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create main session
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-bugfix'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const mainSession = await manager.initialize();
       const mainSessionPath = mainSession.metadata.path;
 
@@ -632,7 +632,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create main session with bugfix subdirectory
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-bugfix-struct'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const mainSession = await manager.initialize();
       const mainSessionPath = mainSession.metadata.path;
 
@@ -670,7 +670,7 @@ describe('integration/session-structure > plan/ directory structure', () => {
       // SETUP: Create session with artifacts
       const prdPath = join(tempDir, 'PRD.md');
       writeFileSync(prdPath, generateValidPRD('test-preserve'));
-      const manager = new SessionManager(prdPath, planDir);
+      const manager = new SessionManager(prdPath, planDir, 3);
       const session = await manager.initialize();
       const sessionPath = session.metadata.path;
 

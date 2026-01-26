@@ -291,7 +291,8 @@ describe('PRD Task Command Integration Tests', () => {
     // Use mocked SessionManager
     sessionManager = new SessionManager(
       mockJoin(tempDir, 'PRD.md'),
-      mockJoin(tempDir, 'plan')
+      mockJoin(tempDir, 'plan'),
+      3
     );
   });
 

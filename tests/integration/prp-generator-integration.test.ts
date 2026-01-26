@@ -12,7 +12,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import {
@@ -151,7 +151,7 @@ This is a unique test PRD for PRPGenerator integration tests with ID: ${uniqueId
     await fs.writeFile(prdPath, testPRD);
 
     // Initialize SessionManager with test PRD and custom plan directory
-    sessionManager = new SessionManager(prdPath, planDir);
+    sessionManager = new SessionManager(prdPath, planDir, 3);
     await sessionManager.initialize();
 
     // Setup mock agent
@@ -186,7 +186,7 @@ This is a unique test PRD for PRPGenerator integration tests with ID: ${uniqueId
 
     it('should throw error when SessionManager has no active session', async () => {
       // SETUP: Create SessionManager without initializing
-      const emptyManager = new SessionManager(prdPath, planDir);
+      const emptyManager = new SessionManager(prdPath, planDir, 3);
 
       // EXECUTE & VERIFY: Constructor throws
       expect(() => new PRPGenerator(emptyManager)).toThrow(

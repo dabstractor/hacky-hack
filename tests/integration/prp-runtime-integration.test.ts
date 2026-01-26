@@ -11,7 +11,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { PRPRuntime } from '../../src/agents/prp-runtime.js';
@@ -204,7 +204,7 @@ This is a unique test PRD for PRPRuntime integration tests with ID: ${uniqueId}.
     await fs.writeFile(prdPath, testPRD);
 
     // Initialize SessionManager with test PRD and custom plan directory
-    sessionManager = new SessionManager(prdPath, planDir);
+    sessionManager = new SessionManager(prdPath, planDir, 3);
     await sessionManager.initialize();
 
     // Write test backlog to session tasks.json

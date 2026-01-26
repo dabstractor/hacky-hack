@@ -11,7 +11,7 @@
 
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 
@@ -237,7 +237,7 @@ function setupTestEnvironment(): {
     mkdirSync(dir, { recursive: true });
   }
 
-  const sessionManager = new SessionManager(prdPath, planDir);
+  const sessionManager = new SessionManager(prdPath, planDir, 3);
 
   return { tempDir, prdPath, sessionManager };
 }
