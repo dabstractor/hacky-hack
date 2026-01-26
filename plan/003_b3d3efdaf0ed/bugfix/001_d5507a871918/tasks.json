@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Milestone 1.1: Constructor Signature Fixes",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Fix ResearchQueue and SessionManager constructor signature mismatches across all instantiation sites and tests.",
           "tasks": [
             {
@@ -58,7 +58,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Fix SessionManager Constructor Signature",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Update all 23 test files that instantiate SessionManager to include the planDir parameter, aligning with the actual constructor signature.",
               "subtasks": [
                 {
@@ -96,7 +96,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S4",
                   "title": "Verify TaskOrchestrator SessionManager usage",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S3"
