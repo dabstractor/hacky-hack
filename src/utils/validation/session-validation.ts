@@ -20,17 +20,13 @@
  * ```
  */
 
-// NOTE: BugfixSessionValidationError will be properly implemented in P1.M3.T1.S2
-// This is a temporary placeholder for this subtask
-export class BugfixSessionValidationError extends Error {
-  readonly code = 'PIPELINE_SESSION_INVALID_BUGFIX_PATH';
+import {
+  BugfixSessionValidationError,
+  isBugfixSessionValidationError,
+} from '../errors.js';
 
-  constructor(message: string) {
-    super(message);
-    this.name = 'BugfixSessionValidationError';
-    Object.setPrototypeOf(this, BugfixSessionValidationError.prototype);
-  }
-}
+// Re-export for convenience
+export { BugfixSessionValidationError, isBugfixSessionValidationError };
 
 /**
  * Validates that a session path is for a bugfix session
@@ -80,7 +76,8 @@ export function validateBugfixSession(sessionPath: string): void {
   // This matches both: plan/.../bugfix/... and bugfix/... patterns
   if (!sessionPath.includes('bugfix')) {
     throw new BugfixSessionValidationError(
-      `Bug fix tasks can only be executed within bugfix sessions. Invalid path: ${sessionPath}`
+      `Bug fix tasks can only be executed within bugfix sessions. Invalid path: ${sessionPath}`,
+      { sessionPath }
     );
   }
 

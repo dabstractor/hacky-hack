@@ -60,6 +60,7 @@ export const ErrorCodes = {
   PIPELINE_SESSION_LOAD_FAILED: 'PIPELINE_SESSION_LOAD_FAILED',
   PIPELINE_SESSION_SAVE_FAILED: 'PIPELINE_SESSION_SAVE_FAILED',
   PIPELINE_SESSION_NOT_FOUND: 'PIPELINE_SESSION_NOT_FOUND',
+  PIPELINE_SESSION_INVALID_BUGFIX_PATH: 'PIPELINE_SESSION_INVALID_BUGFIX_PATH',
 
   // Task errors
   PIPELINE_TASK_EXECUTION_FAILED: 'PIPELINE_TASK_EXECUTION_FAILED',
@@ -471,6 +472,36 @@ export class ValidationError extends PipelineError {
 }
 
 /**
+ * Error thrown when bugfix session validation fails
+ *
+ * @remarks
+ * Thrown when attempting to execute bug fix tasks outside of a bugfix session.
+ * This prevents state corruption from creating fix tasks in feature implementation
+ * sessions or other non-bugfix contexts.
+ *
+ * @example
+ * ```typescript
+ * import { BugfixSessionValidationError } from './utils/errors.js';
+ *
+ * if (!sessionPath.includes('bugfix')) {
+ *   throw new BugfixSessionValidationError(
+ *     'Bug fix tasks can only be executed within bugfix sessions.',
+ *     { sessionPath }
+ *   );
+ * }
+ * ```
+ */
+export class BugfixSessionValidationError extends PipelineError {
+  readonly code = ErrorCodes.PIPELINE_SESSION_INVALID_BUGFIX_PATH;
+
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
+    super(message, context, cause);
+    // CRITICAL: Must set prototype for this class explicitly
+    Object.setPrototypeOf(this, BugfixSessionValidationError.prototype);
+  }
+}
+
+/**
  * Environment configuration errors
  *
  * @remarks
@@ -611,6 +642,30 @@ export function isValidationError(error: unknown): error is ValidationError {
  */
 export function isEnvironmentError(error: unknown): error is EnvironmentError {
   return error instanceof EnvironmentError;
+}
+
+/**
+ * Type guard for BugfixSessionValidationError
+ *
+ * @remarks
+ * Returns true if the error is an instance of BugfixSessionValidationError.
+ * Use for bugfix session validation error handling.
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   validateBugfixSession(sessionPath);
+ * } catch (error) {
+ *   if (isBugfixSessionValidationError(error)) {
+ *     console.error(`Invalid bugfix path: ${error.context?.sessionPath}`);
+ *   }
+ * }
+ * ```
+ */
+export function isBugfixSessionValidationError(
+  error: unknown
+): error is BugfixSessionValidationError {
+  return error instanceof BugfixSessionValidationError;
 }
 
 /**

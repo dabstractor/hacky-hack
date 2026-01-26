@@ -27,11 +27,13 @@ import {
   TaskError,
   AgentError,
   ValidationError,
+  BugfixSessionValidationError,
   isPipelineError,
   isSessionError,
   isTaskError,
   isAgentError,
   isValidationError,
+  isBugfixSessionValidationError,
 } from '../../../src/utils/errors.js';
 
 // =============================================================================
@@ -63,6 +65,9 @@ describe('Error hierarchy', () => {
       );
       expect(ErrorCodes.PIPELINE_SESSION_NOT_FOUND).toBe(
         'PIPELINE_SESSION_NOT_FOUND'
+      );
+      expect(ErrorCodes.PIPELINE_SESSION_INVALID_BUGFIX_PATH).toBe(
+        'PIPELINE_SESSION_INVALID_BUGFIX_PATH'
       );
 
       // Task errors
@@ -668,6 +673,77 @@ describe('Error hierarchy', () => {
   });
 
   // ========================================================================
+  // BugfixSessionValidationError class tests
+  // ========================================================================
+
+  describe('BugfixSessionValidationError class', () => {
+    it('should create BugfixSessionValidationError with message only', () => {
+      const error = new BugfixSessionValidationError('Invalid bugfix session');
+      expect(error instanceof BugfixSessionValidationError).toBe(true);
+      expect(error.message).toBe('Invalid bugfix session');
+    });
+
+    it('should have correct error code', () => {
+      const error = new BugfixSessionValidationError('Test error');
+      expect(error.code).toBe(ErrorCodes.PIPELINE_SESSION_INVALID_BUGFIX_PATH);
+    });
+
+    it('should have correct name', () => {
+      const error = new BugfixSessionValidationError('Test error');
+      expect(error.name).toBe('BugfixSessionValidationError');
+    });
+
+    it('should accept context', () => {
+      const context: PipelineErrorContext = {
+        sessionPath: '/path/to/session',
+      };
+      const error = new BugfixSessionValidationError('Test error', context);
+      expect(error.context).toEqual(context);
+    });
+
+    it('should accept cause', () => {
+      const cause = new Error('Underlying error');
+      const error = new BugfixSessionValidationError('Test error', {}, cause);
+
+      const errorWithCause = error as unknown as { cause?: Error };
+      expect(errorWithCause.cause).toBe(cause);
+    });
+
+    it('should work with instanceof', () => {
+      const error = new BugfixSessionValidationError('Test error');
+
+      expect(error instanceof BugfixSessionValidationError).toBe(true);
+      expect(error instanceof PipelineError).toBe(true);
+      expect(error instanceof Error).toBe(true);
+    });
+
+    it('should serialize to JSON correctly', () => {
+      const context: PipelineErrorContext = {
+        sessionPath: '/invalid/path',
+      };
+      const error = new BugfixSessionValidationError('Test error', context);
+      const json = error.toJSON();
+
+      expect(json.name).toBe('BugfixSessionValidationError');
+      expect(json.code).toBe(ErrorCodes.PIPELINE_SESSION_INVALID_BUGFIX_PATH);
+      expect(json.message).toBe('Test error');
+      expect(json.context).toEqual(context);
+      expect(json.timestamp).toBeDefined();
+    });
+
+    it('should have correct prototype chain', () => {
+      const error = new BugfixSessionValidationError('Test error');
+
+      expect(Object.getPrototypeOf(error)).toBe(
+        BugfixSessionValidationError.prototype
+      );
+      expect(Object.getPrototypeOf(Object.getPrototypeOf(error))).toBe(
+        PipelineError.prototype
+      );
+    });
+  });
+
+  // ========================================================================
   // Prototype chain tests
   // ========================================================================
 
@@ -728,11 +804,28 @@ describe('Error hierarchy', () => {
       ).toBe(Error.prototype);
     });
 
+    it('should have correct prototype chain for BugfixSessionValidationError', () => {
+      const error = new BugfixSessionValidationError('Test error');
+
+      expect(Object.getPrototypeOf(error)).toBe(
+        BugfixSessionValidationError.prototype
+      );
+      expect(Object.getPrototypeOf(Object.getPrototypeOf(error))).toBe(
+        PipelineError.prototype
+      );
+      expect(
+        Object.getPrototypeOf(
+          Object.getPrototypeOf(Object.getPrototypeOf(error))
+        )
+      ).toBe(Error.prototype);
+    });
+
     it('should work with instanceof for all error types', () => {
       const sessionError = new SessionError('Test');
       const taskError = new TaskError('Test');
       const agentError = new AgentError('Test');
       const validationError = new ValidationError('Test');
+      const bugfixSessionError = new BugfixSessionValidationError('Test');
 
       // SessionError
       expect(sessionError instanceof SessionError).toBe(true);
@@ -753,6 +846,13 @@ describe('Error hierarchy', () => {
       expect(validationError instanceof ValidationError).toBe(true);
       expect(validationError instanceof PipelineError).toBe(true);
       expect(validationError instanceof Error).toBe(true);
+
+      // BugfixSessionValidationError
+      expect(bugfixSessionError instanceof BugfixSessionValidationError).toBe(
+        true
+      );
+      expect(bugfixSessionError instanceof PipelineError).toBe(true);
+      expect(bugfixSessionError instanceof Error).toBe(true);
     });
   });
 
@@ -767,11 +867,13 @@ describe('Error hierarchy', () => {
         const taskError = new TaskError('Test');
         const agentError = new AgentError('Test');
         const validationError = new ValidationError('Test');
+        const bugfixSessionError = new BugfixSessionValidationError('Test');
 
         expect(isPipelineError(sessionError)).toBe(true);
         expect(isPipelineError(taskError)).toBe(true);
         expect(isPipelineError(agentError)).toBe(true);
         expect(isPipelineError(validationError)).toBe(true);
+        expect(isPipelineError(bugfixSessionError)).toBe(true);
       });
 
       it('should return true for plain Error', () => {
@@ -888,6 +990,34 @@ describe('Error hierarchy', () => {
         expect(isValidationError('string')).toBe(false);
       });
     });
+
+    describe('isBugfixSessionValidationError', () => {
+      it('should return true for BugfixSessionValidationError instances', () => {
+        const error = new BugfixSessionValidationError('Test');
+        expect(isBugfixSessionValidationError(error)).toBe(true);
+      });
+
+      it('should return false for other error types', () => {
+        const sessionError = new SessionError('Test');
+        const taskError = new TaskError('Test');
+        const agentError = new AgentError('Test');
+        const validationError = new ValidationError('Test');
+        const plainError = new Error('Test');
+
+        expect(isBugfixSessionValidationError(sessionError)).toBe(false);
+        expect(isBugfixSessionValidationError(taskError)).toBe(false);
+        expect(isBugfixSessionValidationError(agentError)).toBe(false);
+        expect(isBugfixSessionValidationError(validationError)).toBe(false);
+        expect(isBugfixSessionValidationError(plainError)).toBe(false);
+      });
+
+      it('should return false for non-errors', () => {
+        expect(isBugfixSessionValidationError(null)).toBe(false);
+        expect(isBugfixSessionValidationError(undefined)).toBe(false);
+        expect(isBugfixSessionValidationError('string')).toBe(false);
+        expect(isBugfixSessionValidationError(123)).toBe(false);
+      });
+    });
   });
 
   // ========================================================================
@@ -932,6 +1062,17 @@ describe('Error hierarchy', () => {
       }
     });
 
+    it('should narrow type with isBugfixSessionValidationError', () => {
+      const error = new BugfixSessionValidationError('Test error');
+
+      if (isBugfixSessionValidationError(error)) {
+        // Type is narrowed to BugfixSessionValidationError
+        expect(error.code).toBe(
+          ErrorCodes.PIPELINE_SESSION_INVALID_BUGFIX_PATH
+        );
+      }
+    });
+
     it('should narrow type with isPipelineError', () => {
       const error = new SessionError('Test error');
 
@@ -949,6 +1090,7 @@ describe('Error hierarchy', () => {
         new TaskError('Task error'),
         new AgentError('Agent error'),
         new ValidationError('Validation error'),
+        new BugfixSessionValidationError('Bugfix session error'),
         new Error('Plain error'),
       ];
 
@@ -956,6 +1098,7 @@ describe('Error hierarchy', () => {
       let taskCount = 0;
       let agentCount = 0;
       let validationCount = 0;
+      let bugfixSessionCount = 0;
 
       for (const error of errors) {
         if (isSessionError(error)) {
@@ -966,6 +1109,8 @@ describe('Error hierarchy', () => {
           agentCount++;
         } else if (isValidationError(error)) {
           validationCount++;
+        } else if (isBugfixSessionValidationError(error)) {
+          bugfixSessionCount++;
         }
       }
 
@@ -973,6 +1118,7 @@ describe('Error hierarchy', () => {
       expect(taskCount).toBe(1);
       expect(agentCount).toBe(1);
       expect(validationCount).toBe(1);
+      expect(bugfixSessionCount).toBe(1);
     });
 
     it('should support error code checking', () => {

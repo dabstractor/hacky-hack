@@ -1666,6 +1666,9 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
     this.#startTime = performance.now();
     this.setStatus('running');
 
+    // Store current PID as string for guard operations
+    const currentPid = process.pid.toString();
+
     this.correlationLogger.info(
       '[PRPPipeline] Starting PRP Pipeline workflow',
       {
@@ -1698,6 +1701,10 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
         this.#planDir,
         this.#flushRetries
       );
+
+      // Set guard after validation passes (validateNestedExecution called in S3)
+      process.env.PRP_PIPELINE_RUNNING = currentPid;
+      this.logger.debug(`[PRPPipeline] Set PRP_PIPELINE_RUNNING=${currentPid}`);
 
       // Execute workflow steps
       await this.initializeSession();
@@ -1805,6 +1812,12 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
         shutdownReason: this.shutdownReason ?? undefined,
       };
     } finally {
+      // Clear guard if we own it (before cleanup)
+      if (process.env.PRP_PIPELINE_RUNNING === currentPid) {
+        delete process.env.PRP_PIPELINE_RUNNING;
+        this.logger.debug('[PRPPipeline] Cleared PRP_PIPELINE_RUNNING');
+      }
+
       // Always cleanup, even if interrupted or errored
       await this.cleanup();
     }
