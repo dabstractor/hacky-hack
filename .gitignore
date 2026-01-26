@@ -53,3 +53,11 @@ tests/**/*.{js,d.ts}
 # Generated API documentation (TypeDoc)
 docs/api/
 
+# Session-specific subdirectories (temporary working directories)
+
+# Ruff cache
+.ruff_cache/
+
+# Yalc package manager (local package linking)
+.yalc/
+yalc.lock

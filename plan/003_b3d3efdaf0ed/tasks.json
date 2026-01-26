@@ -663,7 +663,7 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Task 2.2.2: Extensibility Documentation",
-              "status": "Complete",
+              "status": "Researching",
               "description": "Document how to extend the pipeline with custom agents, tools, and workflows.",
               "subtasks": [
                 {
@@ -690,7 +690,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Create custom workflow development guide",
-                  "status": "Complete",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M2.T2.S2"
