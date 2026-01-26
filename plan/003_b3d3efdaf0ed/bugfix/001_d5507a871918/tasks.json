@@ -196,7 +196,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S4",
                   "title": "Update PRP Pipeline to pass session path to FixCycleWorkflow",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T2.S3"

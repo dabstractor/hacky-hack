@@ -1142,8 +1142,16 @@ export class PRPPipeline extends Workflow {
         `[PRPPipeline] Testing against ${completedTasks.length} completed tasks`
       );
 
+      // Extract and validate session path for BugHuntWorkflow
+      const sessionPath = this.sessionManager.currentSession?.metadata.path;
+      if (!sessionPath) {
+        throw new Error(
+          '[PRPPipeline] Session path not available for QA cycle'
+        );
+      }
+
       const bugHuntWorkflow = new BugHuntWorkflow(prdContent, completedTasks);
-      const testResults = await bugHuntWorkflow.run();
+      const testResults = await bugHuntWorkflow.run(sessionPath);
 
       // Log initial test results
       this.logger.info('[PRPPipeline] Bug hunt complete', {
@@ -1163,7 +1171,7 @@ export class PRPPipeline extends Workflow {
 
         try {
           const fixCycleWorkflow = new FixCycleWorkflow(
-            testResults,
+            sessionPath,
             prdContent,
             this.taskOrchestrator,
             this.sessionManager
@@ -1208,84 +1216,7 @@ export class PRPPipeline extends Workflow {
       this.currentPhase = 'qa_complete';
 
       // ============================================================
-      // Phase 4: Write TEST_RESULTS.md (if bugs found)
-      // ============================================================
-
-      if (finalResults.bugs.length > 0) {
-        const sessionPath = this.sessionManager.currentSession?.metadata.path;
-        if (sessionPath) {
-          const { resolve } = await import('node:path');
-          const { writeFile } = await import('node:fs/promises');
-
-          const resultsPath = resolve(sessionPath, 'TEST_RESULTS.md');
-
-          // Generate markdown content
-          const criticalBugs = finalResults.bugs.filter(
-            b => b.severity === 'critical'
-          );
-          const majorBugs = finalResults.bugs.filter(
-            b => b.severity === 'major'
-          );
-          const minorBugs = finalResults.bugs.filter(
-            b => b.severity === 'minor'
-          );
-          const cosmeticBugs = finalResults.bugs.filter(
-            b => b.severity === 'cosmetic'
-          );
-
-          const content = `# QA Test Results
-
-**Generated**: ${new Date().toISOString()}
-**Mode**: ${this.mode}
-**Total Bugs**: ${finalResults.bugs.length}
-
-## Summary
-
-${finalResults.summary}
-
-## Bug Breakdown
-
-| Severity | Count |
-|----------|-------|
-| 🔴 Critical | ${criticalBugs.length} |
-| 🟠 Major | ${majorBugs.length} |
-| 🟡 Minor | ${minorBugs.length} |
-| ⚪ Cosmetic | ${cosmeticBugs.length} |
-
-## Bug Details
-
-${finalResults.bugs
-  .map(
-    (bug, index) => `
-### ${index + 1}. ${bug.title}
-
-**Severity**: ${bug.severity}
-**ID**: ${bug.id}
-
-${bug.description}
-
-**Reproduction**:
-${bug.reproduction}
-
-${bug.location ? `**Location**: ${bug.location}` : ''}
-`
-  )
-  .join('\n')}
-
-## Recommendations
-
-${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
-`;
-
-          await writeFile(resultsPath, content, 'utf-8');
-          this.logger.info(
-            `[PRPPipeline] TEST_RESULTS.md written to ${resultsPath}`
-          );
-        }
-      }
-
-      // ============================================================
-      // Phase 5: Print console summary
+      // Phase 4: Print console summary
       // ============================================================
 
       console.log('\n' + '='.repeat(60));
@@ -1323,10 +1254,7 @@ ${finalResults.recommendations.map(rec => `- ${rec}`).join('\n')}
           );
         }
 
-        const sessionPath = this.sessionManager.currentSession?.metadata.path;
-        if (sessionPath) {
-          console.log(`\n📄 Detailed results: ${sessionPath}/TEST_RESULTS.md`);
-        }
+        console.log(`\n📄 Detailed results: ${sessionPath}/TEST_RESULTS.md`);
       }
 
       console.log('='.repeat(60) + '\n');
