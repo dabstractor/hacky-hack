@@ -65,7 +65,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Update SessionManager unit test constructor calls",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SessionManager constructor requires 3 parameters: (prdPath, planDir, flushRetries). Tests currently pass only 2 parameters: (prdPath, flushRetries). See architecture/001_codebase_audit.md §Research Objective 1. 23 test files need updating.\n2. INPUT: Primary test file at tests/unit/core/session-manager.test.ts. Use test fixtures for prdPath (mock PRD file path), planDir (use resolve('plan') or test temp directory), flushRetries (use 3 as default).\n3. LOGIC: Update all SessionManager constructor calls in tests/unit/core/session-manager.test.ts to include planDir as the second parameter. Pattern: new SessionManager(prdPath, resolve('plan'), flushRetries). For tests that don't care about planDir, use resolve('plan') as default value. Ensure test setup/teardown properly creates and cleans up plan directories.\n4. OUTPUT: Updated tests/unit/core/session-manager.test.ts where all SessionManager instantiations use the correct 3-parameter constructor. Tests should pass without constructor signature errors."

@@ -81,6 +81,7 @@ vi.mock('../../../src/utils/prd-validator.js', () => ({
 // Import mocked modules
 import { readFile, writeFile, stat, readdir } from 'node:fs/promises';
 import { statSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Cast mocked functions
 const mockReadFile = readFile as any;
@@ -172,6 +173,11 @@ const MOCK_FULL_HASH =
   '14b9dc2a33c7a1234567890abcdef1234567890abcdef1234567890abcdef123';
 const MOCK_SESSION_HASH = '14b9dc2a33c7'; // First 12 chars
 
+// Test constants for SessionManager constructor
+const DEFAULT_PRD_PATH = '/test/PRD.md';
+const DEFAULT_PLAN_DIR = 'plan'; // Will be resolved to absolute path
+const DEFAULT_FLUSH_RETRIES = 3;
+
 describe('SessionManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -183,7 +189,7 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // VERIFY
       expect(mockStatSync).toHaveBeenCalledWith('/test/PRD.md');
@@ -200,10 +206,10 @@ describe('SessionManager', () => {
       });
 
       // EXECUTE & VERIFY
-      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+      expect(() => new SessionManager('/test/PRD.md', resolve('plan'))).toThrow(
         SessionFileError
       );
-      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+      expect(() => new SessionManager('/test/PRD.md', resolve('plan'))).toThrow(
         'validate PRD exists'
       );
     });
@@ -213,10 +219,10 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => false });
 
       // EXECUTE & VERIFY
-      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+      expect(() => new SessionManager('/test/PRD.md', resolve('plan'))).toThrow(
         SessionFileError
       );
-      expect(() => new SessionManager('/test/PRD.md')).toThrow(
+      expect(() => new SessionManager('/test/PRD.md', resolve('plan'))).toThrow(
         'validate PRD path'
       );
     });
@@ -242,7 +248,7 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // VERIFY
       expect(manager.currentSession).toBeNull();
@@ -253,7 +259,7 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
 
       // EXECUTE
-      const manager = new SessionManager('./PRD.md');
+      const manager = new SessionManager('./PRD.md', resolve('plan'));
 
       // VERIFY: Path should be absolute
       expect(manager.prdPath).toMatch(/^\/.*PRD\.md$/);
@@ -264,10 +270,39 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // VERIFY
       expect(manager.planDir).toContain('plan');
+    });
+
+    it('should accept custom planDir as second parameter', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+      const customPlanDir = '/custom/plan/path';
+
+      // EXECUTE
+      const manager = new SessionManager(DEFAULT_PRD_PATH, customPlanDir);
+
+      // VERIFY
+      expect(manager.prdPath).toBe(DEFAULT_PRD_PATH);
+      expect(manager.planDir).toContain(customPlanDir);
+    });
+
+    it('should accept all three parameters', () => {
+      // SETUP
+      mockStatSync.mockReturnValue({ isFile: () => true });
+
+      // EXECUTE
+      const manager = new SessionManager(
+        DEFAULT_PRD_PATH,
+        resolve(DEFAULT_PLAN_DIR),
+        5
+      );
+
+      // VERIFY
+      expect(manager.prdPath).toBe(DEFAULT_PRD_PATH);
+      expect(manager.planDir).toContain(DEFAULT_PLAN_DIR);
     });
   });
 
@@ -277,7 +312,7 @@ describe('SessionManager', () => {
       mockStatSync.mockReturnValue({ isFile: () => true });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // VERIFY
       expect(manager.currentSession).toBeNull();
@@ -301,7 +336,7 @@ describe('SessionManager', () => {
       });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // VERIFY
@@ -332,7 +367,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // VERIFY
@@ -360,7 +395,7 @@ describe('SessionManager', () => {
       });
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(manager.initialize()).rejects.toThrow(ValidationError);
     });
 
@@ -382,7 +417,7 @@ describe('SessionManager', () => {
       });
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       try {
         await manager.initialize();
         expect.fail('Should have thrown ValidationError');
@@ -404,7 +439,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // VERIFY
@@ -417,7 +452,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // VERIFY: readdir was called to search for existing sessions
@@ -432,13 +467,14 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
       expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
         '/test/PRD.md',
-        1
+        1,
+        resolve('plan')
       );
       expect(session.metadata.id).toBe('001_14b9dc2a33c7');
       expect(session.taskRegistry.backlog).toEqual([]);
@@ -452,7 +488,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // VERIFY
@@ -469,7 +505,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
@@ -499,7 +535,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY: Should load from existing session
@@ -516,13 +552,14 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/002_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY: Should create session 002
       expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
         '/test/PRD.md',
-        2
+        2,
+        resolve('plan')
       );
       expect(session.metadata.id).toBe('002_14b9dc2a33c7');
     });
@@ -533,13 +570,14 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // VERIFY
       expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
         '/test/PRD.md',
-        1
+        1,
+        resolve('plan')
       );
     });
 
@@ -549,7 +587,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
@@ -562,7 +600,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
@@ -580,7 +618,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockResolvedValue('/plan/001_14b9dc2a33c7');
 
       // EXECUTE: Should create first session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
@@ -593,7 +631,7 @@ describe('SessionManager', () => {
       mockHashPRD.mockRejectedValue(hashError);
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(manager.initialize()).rejects.toThrow(SessionFileError);
     });
 
@@ -607,7 +645,7 @@ describe('SessionManager', () => {
       mockCreateSessionDirectory.mockRejectedValue(dirError);
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(manager.initialize()).rejects.toThrow(SessionFileError);
     });
   });
@@ -627,7 +665,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -643,7 +681,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -661,7 +699,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -678,7 +716,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -694,7 +732,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -709,7 +747,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -724,7 +762,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date() });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -747,7 +785,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date('2024-01-01') });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY: Complete hierarchy restored
@@ -771,7 +809,7 @@ describe('SessionManager', () => {
       mockReadTasksJSON.mockRejectedValue(error);
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(
         manager.loadSession('/plan/001_14b9dc2a33c7')
       ).rejects.toThrow(SessionFileError);
@@ -785,7 +823,7 @@ describe('SessionManager', () => {
       mockReadFile.mockRejectedValue(error);
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(
         manager.loadSession('/plan/001_14b9dc2a33c7')
       ).rejects.toThrow();
@@ -799,7 +837,7 @@ describe('SessionManager', () => {
 
     it('should require initialize() to be called first', async () => {
       // SETUP: Manager with no current session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE & VERIFY
       await expect(manager.createDeltaSession('/new/PRD.md')).rejects.toThrow(
@@ -815,7 +853,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Old PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: New PRD doesn't exist
@@ -838,7 +876,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: Mock new PRD hash
@@ -861,7 +899,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: Different hash for new PRD
@@ -891,7 +929,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: New PRD
@@ -918,7 +956,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: New PRD - reset mock and setup for new PRD read
@@ -944,7 +982,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: New PRD with different content
@@ -973,7 +1011,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: Create delta session
@@ -987,7 +1025,7 @@ describe('SessionManager', () => {
 
       // VERIFY
       expect(deltaSession.metadata.id).toBe('002_a3f8e9d12b4a');
-      expect(mockCreateSessionDirectory).toHaveBeenCalledWith('/new/PRD.md', 2);
+      expect(mockCreateSessionDirectory).toHaveBeenCalledWith('/new/PRD.md', 2, resolve('plan'));
     });
 
     it('should write parent_session.txt to new session directory', async () => {
@@ -999,7 +1037,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: Create delta session
@@ -1028,7 +1066,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: Create delta session
@@ -1055,7 +1093,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: Create delta session - reset mock for new PRD read
@@ -1087,7 +1125,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: New PRD stat throws
@@ -1110,7 +1148,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // SETUP: createSessionDirectory throws
@@ -1143,7 +1181,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date() });
 
       // EXECUTE: Initialize new session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session1 = await manager.initialize();
 
       // VERIFY: Initial session created
@@ -1188,7 +1226,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE: Create first session
       mockReaddir.mockResolvedValue([]);
@@ -1222,17 +1260,20 @@ describe('SessionManager', () => {
       expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
         1,
         '/test/PRD.md',
-        1
+        1,
+        resolve('plan')
       );
       expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
         2,
         '/test/PRD.md',
-        2
+        2,
+        resolve('plan')
       );
       expect(mockCreateSessionDirectory).toHaveBeenNthCalledWith(
         3,
         '/test/PRD.md',
-        3
+        3,
+        resolve('plan')
       );
     });
   });
@@ -1248,7 +1289,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
@@ -1276,7 +1317,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date() });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -1297,13 +1338,14 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY: Should create session 1000
       expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
         '/test/PRD.md',
-        1000
+        1000,
+        resolve('plan')
       );
       expect(session.metadata.id).toBe('1000_14b9dc2a33c7');
     });
@@ -1320,7 +1362,7 @@ describe('SessionManager', () => {
       mockStat.mockResolvedValue({ mtime: new Date() });
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.loadSession('/plan/001_14b9dc2a33c7');
 
       // VERIFY
@@ -1339,7 +1381,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
 
       // EXECUTE
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const session = await manager.initialize();
 
       // VERIFY
@@ -1355,7 +1397,7 @@ describe('SessionManager', () => {
       mockReaddir.mockRejectedValue(new Error('EACCES: permission denied'));
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(manager.initialize()).rejects.toThrow('EACCES');
     });
 
@@ -1367,7 +1409,7 @@ describe('SessionManager', () => {
       mockStat.mockRejectedValue(new Error('EIO: I/O error'));
 
       // EXECUTE & VERIFY
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await expect(
         manager.loadSession('/plan/001_14b9dc2a33c7')
       ).rejects.toThrow('EIO');
@@ -1383,7 +1425,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockStat.mockResolvedValue({});
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: First delta
@@ -1408,7 +1450,8 @@ describe('SessionManager', () => {
       expect(delta2.metadata.id).toBe('003_xyz789abc12a');
       expect(mockCreateSessionDirectory).toHaveBeenCalledWith(
         '/test/PRD.md',
-        3
+        3,
+        resolve('plan')
       );
     });
   });
@@ -1427,7 +1470,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockWriteTasksJSON.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       const testBacklog = createTestBacklog([
@@ -1446,7 +1489,7 @@ describe('SessionManager', () => {
 
     it('should throw Error when no session loaded', async () => {
       // SETUP: Manager without session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       const testBacklog = createTestBacklog([]);
 
       // EXECUTE & VERIFY
@@ -1469,7 +1512,7 @@ describe('SessionManager', () => {
       );
       mockWriteTasksJSON.mockRejectedValue(error);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       const testBacklog = createTestBacklog([]);
@@ -1499,7 +1542,7 @@ describe('SessionManager', () => {
       ]);
       mockReadTasksJSON.mockResolvedValue(testBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE
@@ -1512,7 +1555,7 @@ describe('SessionManager', () => {
 
     it('should throw Error when no session loaded', async () => {
       // SETUP: Manager without session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE & VERIFY
       await expect(manager.loadBacklog()).rejects.toThrow(
@@ -1534,7 +1577,7 @@ describe('SessionManager', () => {
       );
       mockReadTasksJSON.mockRejectedValue(error);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE & VERIFY
@@ -1581,7 +1624,7 @@ describe('SessionManager', () => {
       mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
       mockWriteTasksJSON.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE - updateItemStatus will batch the update (no immediate write)
@@ -1608,7 +1651,7 @@ describe('SessionManager', () => {
 
     it('should throw Error when no session loaded', async () => {
       // SETUP: Manager without session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE & VERIFY
       await expect(
@@ -1635,7 +1678,7 @@ describe('SessionManager', () => {
       mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
       mockWriteTasksJSON.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
       // Now we have empty backlog, but for this test let's use loadBacklog to set the original
       mockReadTasksJSON.mockResolvedValue(originalBacklog);
@@ -1669,7 +1712,7 @@ describe('SessionManager', () => {
       );
       mockFindItem.mockReturnValue(testSubtask);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize(); // Must await for session to load
       // Set currentItemId
       manager.setCurrentItem('P1.M1.T1.S1');
@@ -1687,7 +1730,7 @@ describe('SessionManager', () => {
 
     it('should return null when no session loaded', () => {
       // SETUP: Manager without session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE
       const result = manager.getCurrentItem();
@@ -1704,7 +1747,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize(); // Must await for session to load
 
       // EXECUTE
@@ -1724,7 +1767,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockFindItem.mockReturnValue(null);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize(); // Must await for session to load
       manager.setCurrentItem('P1.M1.T1.S1');
 
@@ -1749,7 +1792,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize(); // Must await for session to load
 
       // EXECUTE
@@ -1761,7 +1804,7 @@ describe('SessionManager', () => {
 
     it('should throw Error when no session loaded', () => {
       // SETUP: Manager without session
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE & VERIFY
       expect(() => manager.setCurrentItem('P1.M1.T1.S1')).toThrow(
@@ -1789,7 +1832,7 @@ describe('SessionManager', () => {
       mockWriteTasksJSON.mockResolvedValue(undefined);
       mockReadTasksJSON.mockResolvedValue(originalBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Save backlog
@@ -1819,7 +1862,7 @@ describe('SessionManager', () => {
       // loadBacklog should return the updated backlog (simulating persistence)
       mockReadTasksJSON.mockResolvedValue(updatedBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Update status (batched in memory)
@@ -1850,7 +1893,7 @@ describe('SessionManager', () => {
       );
       mockFindItem.mockReturnValue(testSubtask);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize(); // Must await for session to load
 
       // EXECUTE: Set current item
@@ -2222,7 +2265,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE
@@ -2241,7 +2284,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // Create a delta session with different hash (simulating PRD change)
@@ -2264,7 +2307,7 @@ describe('SessionManager', () => {
     it('should throw Error when no session is loaded', async () => {
       // SETUP: Manager without session
       mockStatSync.mockReturnValue({ isFile: () => true });
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
 
       // EXECUTE & VERIFY
       expect(() => manager.hasSessionChanged()).toThrow(
@@ -2281,7 +2324,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // Verify hashPRD was called exactly once during initialize
@@ -2384,7 +2427,7 @@ describe('SessionManager', () => {
 
       mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Update status (should batch, not write)
@@ -2412,7 +2455,7 @@ describe('SessionManager', () => {
 
       mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Batch updates then flush
@@ -2436,7 +2479,7 @@ describe('SessionManager', () => {
       mockWriteFile.mockResolvedValue(undefined);
       mockWriteTasksJSON.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Flush without any updates
@@ -2466,7 +2509,7 @@ describe('SessionManager', () => {
         .mockReturnValueOnce(backlog1)
         .mockReturnValueOnce(backlog2);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Multiple updates, single flush
@@ -2503,7 +2546,7 @@ describe('SessionManager', () => {
         .mockReturnValueOnce(backlog2)
         .mockReturnValueOnce(backlog3);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: 3 updates then flush
@@ -2540,7 +2583,7 @@ describe('SessionManager', () => {
       mockWriteTasksJSON.mockRejectedValue(writeError);
       mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Update then flush (should fail)
@@ -2572,7 +2615,7 @@ describe('SessionManager', () => {
 
       mockUpdateItemStatusUtil.mockReturnValue(updatedBacklog);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // EXECUTE: Update, flush, then flush again
@@ -2592,7 +2635,7 @@ describe('SessionManager', () => {
       mockReadFile.mockResolvedValue('# Test PRD');
       mockWriteFile.mockResolvedValue(undefined);
 
-      const manager = new SessionManager('/test/PRD.md');
+      const manager = new SessionManager('/test/PRD.md', resolve('plan'));
       await manager.initialize();
 
       // NOTE: We can't directly set dirty flag without pendingUpdates
