@@ -236,7 +236,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Add validateBugfixSession function to core utilities",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD §5.1 requires validation that bug fix tasks only execute in bugfix sessions. No validation currently exists. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: Create new file at src/utils/validation/session-validation.ts or add to existing validation utilities. No dependencies yet - this is foundational validation logic.\n3. LOGIC: Export function validateBugfixSession(sessionPath: string): void. Function should: check if sessionPath includes 'bugfix' substring (use path.basename(sessionPath).includes('bugfix') or sessionPath.includes('/bugfix/') to match directory naming), if path does not include 'bugfix': throw BugfixSessionValidationError with message 'Bug fix tasks can only be executed within bugfix sessions. Invalid path: {sessionPath}', if path is valid: return undefined (no error). Add JSDoc explaining purpose and PRD reference.\n4. OUTPUT: New validation function validateBugfixSession that enforces bugfix session path requirements. Function throws descriptive error for invalid paths."
