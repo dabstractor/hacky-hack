@@ -88,6 +88,9 @@ export class FixCycleWorkflow extends Workflow {
   /** Fix subtasks created from bugs */
   #fixTasks: Subtask[] = [];
 
+  /** Loaded bug report from TEST_RESULTS.md */
+  #testResults: TestResults | null = null;
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -151,12 +154,16 @@ export class FixCycleWorkflow extends Workflow {
     this.logger.info(
       '[FixCycleWorkflow] Phase 1: Creating fix tasks from bugs'
     );
+    const testResults = this.currentResults ?? this.#testResults;
+    if (!testResults) {
+      throw new Error('[FixCycleWorkflow] No test results available');
+    }
     this.logger.info(
-      `[FixCycleWorkflow] Processing ${this.testResults.bugs.length} bugs`
+      `[FixCycleWorkflow] Processing ${testResults.bugs.length} bugs`
     );
 
     // Convert bugs to fix subtasks
-    this.#fixTasks = this.testResults.bugs.map((bug, index) =>
+    this.#fixTasks = testResults.bugs.map((bug, index) =>
       this.#createFixSubtask(bug, index)
     );
 
@@ -301,8 +308,13 @@ export class FixCycleWorkflow extends Workflow {
       '[FixCycleWorkflow] Starting fix cycle workflow'
     );
     this.logger.info('[FixCycleWorkflow] Starting fix cycle workflow');
+
+    // Load bug report from TEST_RESULTS.md
+    this.#testResults = await this.#loadBugReport();
+    this.logger.debug(`Loaded TEST_RESULTS.md from ${this.sessionPath}`);
+
     this.logger.info(
-      `[FixCycleWorkflow] Initial bug count: ${this.testResults.bugs.length}`
+      `[FixCycleWorkflow] Initial bug count: ${this.#testResults.bugs.length}`
     );
 
     try {
@@ -354,7 +366,7 @@ export class FixCycleWorkflow extends Workflow {
       this.setStatus('completed');
 
       // Return final results
-      return this.currentResults ?? this.testResults;
+      return this.currentResults ?? this.#testResults!;
     } catch (error) {
       this.setStatus('failed');
       const errorMessage =
@@ -381,11 +393,16 @@ export class FixCycleWorkflow extends Workflow {
   /**
    * Test-only getter for loadBugReport method
    *
-   * @returns Bound loadBugReport method
+   * @returns Bound loadBugReport method that also stores results in this.#testResults
    * @internal
    */
   get _loadBugReportForTesting(): () => Promise<TestResults> {
-    return this.#loadBugReport.bind(this);
+    const loadAndStore = async (): Promise<TestResults> => {
+      const results = await this.#loadBugReport();
+      this.#testResults = results;
+      return results;
+    };
+    return loadAndStore.bind(this);
   }
 
   // ========================================================================

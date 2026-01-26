@@ -217,6 +217,11 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found 2 bugs',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
+
       const orchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
 
@@ -226,6 +231,9 @@ describe('FixCycleWorkflow', () => {
         orchestrator,
         sessionManager
       );
+
+      // Load test results first (populates this.#testResults)
+      await workflow._loadBugReportForTesting();
 
       // EXECUTE
       await workflow.createFixTasks();
@@ -275,6 +283,11 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found 4 bugs',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
+
       const orchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
 
@@ -284,6 +297,9 @@ describe('FixCycleWorkflow', () => {
         orchestrator,
         sessionManager
       );
+
+      // Load test results first
+      await workflow._loadBugReportForTesting();
 
       // EXECUTE
       await workflow.createFixTasks();
@@ -314,6 +330,11 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found 1 bug',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
+
       const orchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
 
@@ -323,6 +344,9 @@ describe('FixCycleWorkflow', () => {
         orchestrator,
         sessionManager
       );
+
+      // Load test results first
+      await workflow._loadBugReportForTesting();
 
       // EXECUTE
       await workflow.createFixTasks();
@@ -346,6 +370,11 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found 2 bugs',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
+
       const mockOrchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
 
@@ -356,7 +385,8 @@ describe('FixCycleWorkflow', () => {
         sessionManager
       );
 
-      // Create fix tasks first
+      // Load test results and create fix tasks first
+      await workflow._loadBugReportForTesting();
       await workflow.createFixTasks();
 
       // EXECUTE
@@ -377,6 +407,11 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found 2 bugs',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
+
       const mockOrchestrator: TaskOrchestrator = {
         executeSubtask: vi
           .fn()
@@ -392,6 +427,7 @@ describe('FixCycleWorkflow', () => {
         sessionManager
       );
 
+      await workflow._loadBugReportForTesting();
       await workflow.createFixTasks();
 
       // EXECUTE - Should not throw
@@ -698,9 +734,9 @@ describe('FixCycleWorkflow', () => {
       );
 
       // EXECUTE & VERIFY
-      await expect(
-        workflow._loadBugReportForTesting()
-      ).rejects.toThrow(`TEST_RESULTS.md not found at ${resolve(sessionPath, 'TEST_RESULTS.md')}`);
+      await expect(workflow._loadBugReportForTesting()).rejects.toThrow(
+        `TEST_RESULTS.md not found at ${resolve(sessionPath, 'TEST_RESULTS.md')}`
+      );
 
       expect(mockedAccess).toHaveBeenCalledWith(
         resolve(sessionPath, 'TEST_RESULTS.md'),
@@ -724,9 +760,9 @@ describe('FixCycleWorkflow', () => {
       );
 
       // EXECUTE & VERIFY
-      await expect(
-        workflow._loadBugReportForTesting()
-      ).rejects.toThrow(`Failed to parse TEST_RESULTS.md at ${resolve(sessionPath, 'TEST_RESULTS.md')}`);
+      await expect(workflow._loadBugReportForTesting()).rejects.toThrow(
+        `Failed to parse TEST_RESULTS.md at ${resolve(sessionPath, 'TEST_RESULTS.md')}`
+      );
 
       expect(mockedAccess).toHaveBeenCalledWith(
         resolve(sessionPath, 'TEST_RESULTS.md'),
@@ -769,9 +805,9 @@ describe('FixCycleWorkflow', () => {
       );
 
       // EXECUTE & VERIFY
-      await expect(
-        workflow._loadBugReportForTesting()
-      ).rejects.toThrow(`Invalid TestResults in TEST_RESULTS.md at ${resolve(sessionPath, 'TEST_RESULTS.md')}`);
+      await expect(workflow._loadBugReportForTesting()).rejects.toThrow(
+        `Invalid TestResults in TEST_RESULTS.md at ${resolve(sessionPath, 'TEST_RESULTS.md')}`
+      );
 
       expect(mockedAccess).toHaveBeenCalled();
       expect(mockedReadFile).toHaveBeenCalled();
@@ -814,6 +850,10 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found bug',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
 
       const mockOrchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
@@ -869,6 +909,10 @@ describe('FixCycleWorkflow', () => {
         summary: 'Found bug',
         recommendations: [],
       };
+
+      // Mock file operations for loadBugReport
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(testResults));
 
       const mockOrchestrator = createMockTaskOrchestrator();
       const sessionManager = createMockSessionManager();
