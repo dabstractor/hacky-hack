@@ -762,6 +762,238 @@ describe('BugHuntWorkflow', () => {
       expect(workflow.prdContent).toBe(prdContent);
       expect(workflow.completedTasks).toEqual(completedTasks);
     });
+
+    it('should call writeBugReport when sessionPath provided and critical bugs found', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const testResults = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const writeBugReportSpy = vi.spyOn(workflow, 'writeBugReport');
+      const sessionPath = '/path/to/session';
+
+      // EXECUTE
+      await workflow.run(sessionPath);
+
+      // VERIFY
+      expect(writeBugReportSpy).toHaveBeenCalledWith(sessionPath, testResults);
+    });
+
+    it('should call writeBugReport when sessionPath provided and major bugs found', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const testResults = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'major', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const writeBugReportSpy = vi.spyOn(workflow, 'writeBugReport');
+
+      // EXECUTE
+      await workflow.run('/path/to/session');
+
+      // VERIFY
+      expect(writeBugReportSpy).toHaveBeenCalledWith(
+        '/path/to/session',
+        testResults
+      );
+    });
+
+    it('should NOT call writeBugReport when sessionPath not provided', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const testResults = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const writeBugReportSpy = vi.spyOn(workflow, 'writeBugReport');
+
+      // EXECUTE - call run() without sessionPath
+      await workflow.run();
+
+      // VERIFY
+      expect(writeBugReportSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT call writeBugReport when no critical or major bugs found', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      // Only minor/cosmetic bugs - writeBugReport should skip write internally
+      const testResults = createTestResults(
+        false,
+        [
+          createTestBug('BUG-001', 'minor', 'Bug', 'Desc', 'Rep'),
+          createTestBug('BUG-002', 'cosmetic', 'Bug 2', 'Desc 2', 'Rep 2'),
+        ],
+        'Found minor bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const writeBugReportSpy = vi.spyOn(workflow, 'writeBugReport');
+
+      // EXECUTE
+      await workflow.run('/path/to/session');
+
+      // VERIFY - writeBugReport is called, but it skips writing internally
+      expect(writeBugReportSpy).toHaveBeenCalledWith(
+        '/path/to/session',
+        testResults
+      );
+      // Verify atomicWrite was not called (writeBugReport skips write for non-critical/major)
+      expect(mockAtomicWrite).not.toHaveBeenCalled();
+    });
+
+    it('should still return testResults when writeBugReport called', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const expectedResult = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(expectedResult),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+
+      // EXECUTE
+      const result = await workflow.run('/path/to/session');
+
+      // VERIFY
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should set status to failed if writeBugReport throws', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const testResults = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const writeBugReportSpy = vi.spyOn(workflow, 'writeBugReport');
+      writeBugReportSpy.mockRejectedValue(new Error('Write failed'));
+
+      // EXECUTE
+      try {
+        await workflow.run('/path/to/session');
+      } catch {
+        // Expected error
+      }
+
+      // VERIFY
+      expect(workflow.status).toBe('failed');
+    });
+
+    it('should log write operation when sessionPath provided', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const testResults = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const logSpy = vi.spyOn((workflow as any).correlationLogger, 'info');
+      const sessionPath = '/test/session/path';
+
+      // EXECUTE
+      await workflow.run(sessionPath);
+
+      // VERIFY
+      expect(logSpy).toHaveBeenCalledWith(
+        `[BugHuntWorkflow] Writing TEST_RESULTS.md to ${sessionPath}`
+      );
+    });
+
+    it('should maintain backward compatibility - run() without sessionPath', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const expectedResult = createTestResults(
+        true,
+        [createTestBug('BUG-001', 'critical', 'Bug', 'Desc', 'Rep')],
+        'Found bugs',
+        ['Fix']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(expectedResult),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+
+      // EXECUTE - call without sessionPath (backward compatible)
+      const result = await workflow.run();
+
+      // VERIFY
+      expect(result).toEqual(expectedResult);
+      expect(workflow.status).toBe('completed');
+    });
+
+    it('should pass correct sessionPath and testResults to writeBugReport', async () => {
+      // SETUP
+      const workflow = new BugHuntWorkflow('PRD content', []);
+      const testResults = createTestResults(
+        true,
+        [
+          createTestBug('BUG-001', 'critical', 'Bug 1', 'Desc 1', 'Rep 1'),
+          createTestBug('BUG-002', 'major', 'Bug 2', 'Desc 2', 'Rep 2'),
+        ],
+        'Found multiple bugs',
+        ['Fix all']
+      );
+      const mockAgent = {
+        prompt: vi.fn().mockResolvedValue(testResults),
+      };
+      mockCreateQAAgent.mockReturnValue(mockAgent);
+      mockCreateBugHuntPrompt.mockReturnValue({});
+      const writeBugReportSpy = vi.spyOn(workflow, 'writeBugReport');
+      const sessionPath = '/custom/session/path';
+
+      // EXECUTE
+      await workflow.run(sessionPath);
+
+      // VERIFY
+      expect(writeBugReportSpy).toHaveBeenCalledTimes(1);
+      expect(writeBugReportSpy).toHaveBeenCalledWith(sessionPath, testResults);
+    });
   });
 
   describe('writeBugReport', () => {

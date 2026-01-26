@@ -397,14 +397,18 @@ export class BugHuntWorkflow extends Workflow {
    * 3. Adversarial Testing - Define adversarial scenarios
    * 4. Generate Report - Execute QA and produce TestResults
    *
+   * @param sessionPath - Optional path to session directory for writing TEST_RESULTS.md
    * @returns Promise<TestResults> - Structured test results with bug findings
    * @throws {Error} If any phase fails or QA agent fails
    *
    * @remarks
    * The workflow status transitions through: idle → running → completed/failed
    * TestResults.hasBugs drives the bug fix pipeline (true = trigger fix cycle)
+   *
+   * If sessionPath is provided and critical/major bugs are found, TEST_RESULTS.md
+   * is automatically written to the session directory before returning.
    */
-  async run(): Promise<TestResults> {
+  async run(sessionPath?: string): Promise<TestResults> {
     this.setStatus('running');
     this.correlationLogger.info('[BugHuntWorkflow] Starting bug hunt workflow');
     this.correlationLogger.info('[BugHuntWorkflow] Starting bug hunt workflow');
@@ -417,6 +421,14 @@ export class BugHuntWorkflow extends Workflow {
 
       // Generate and return bug report
       const results = await this.generateReport();
+
+      // Write bug report if sessionPath provided
+      if (sessionPath) {
+        this.correlationLogger.info(
+          `[BugHuntWorkflow] Writing TEST_RESULTS.md to ${sessionPath}`
+        );
+        await this.writeBugReport(sessionPath, results);
+      }
 
       this.setStatus('completed');
       this.correlationLogger.info(
