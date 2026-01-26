@@ -111,7 +111,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Milestone 1.2: TEST_RESULTS.md Workflow Fix",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Fix the TEST_RESULTS.md writing workflow so the bug report file is written immediately after BugHuntWorkflow completes, before FixCycleWorkflow attempts to read it.",
           "tasks": [
             {
@@ -158,7 +158,7 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Update FixCycleWorkflow to Read from File",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Refactor FixCycleWorkflow to read TEST_RESULTS.md from disk instead of accepting in-memory TestResults object, ensuring proper workflow sequencing.",
               "subtasks": [
                 {
@@ -207,7 +207,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S5",
                   "title": "Add unit tests for FixCycleWorkflow file loading",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T2.S4"
