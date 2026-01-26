@@ -174,7 +174,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S2",
                   "title": "Add loadBugReport method to FixCycleWorkflow",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T2.S1"

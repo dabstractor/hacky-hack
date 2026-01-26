@@ -11,6 +11,8 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { readFile, access, constants } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { FixCycleWorkflow } from '../../../src/workflows/fix-cycle-workflow.js';
 import type {
   Task,
@@ -28,10 +30,19 @@ vi.mock('../../../src/workflows/bug-hunt-workflow.js', () => ({
   })),
 }));
 
+// Mock node:fs/promises
+vi.mock('node:fs/promises', () => ({
+  readFile: vi.fn(),
+  access: vi.fn(),
+  constants: { F_OK: 0 },
+}));
+
 // Import mocked BugHuntWorkflow
 import { BugHuntWorkflow } from '../../../src/workflows/bug-hunt-workflow.js';
 
 const mockBugHuntWorkflow = BugHuntWorkflow as any;
+const mockedAccess = access as ReturnType<typeof vi.fn>;
+const mockedReadFile = readFile as ReturnType<typeof vi.fn>;
 
 // Factory functions for test data
 const _createTestTask = (
@@ -613,9 +624,159 @@ describe('FixCycleWorkflow', () => {
     });
   });
 
-  // Note: Tests for private helper methods (#extractCompletedTasks, #createFixSubtask)
-  // are intentionally removed as they test implementation details.
-  // The integration tests verify the correct behavior of the workflow as a whole.
+  describe('loadBugReport', () => {
+    const sessionPath = 'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918';
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should successfully load valid TEST_RESULTS.md', async () => {
+      // SETUP
+      const mockTestResults: TestResults = {
+        hasBugs: true,
+        bugs: [
+          createTestBug(
+            'BUG-001',
+            'critical',
+            'Login bug',
+            'Critical login failure',
+            '1. Go to login\n2. Enter bad password',
+            'src/auth/login.ts:45'
+          ),
+        ],
+        summary: 'Found 1 critical bug',
+        recommendations: ['Fix login validation'],
+      };
+
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(mockTestResults));
+
+      const orchestrator = createMockTaskOrchestrator();
+      const sessionManager = createMockSessionManager();
+      const workflow = new FixCycleWorkflow(
+        sessionPath,
+        'PRD content',
+        orchestrator,
+        sessionManager
+      );
+
+      // EXECUTE - Use test-only getter
+      const result = await workflow._loadBugReportForTesting();
+
+      // VERIFY
+      expect(mockedAccess).toHaveBeenCalledWith(
+        resolve(sessionPath, 'TEST_RESULTS.md'),
+        constants.F_OK
+      );
+      expect(mockedReadFile).toHaveBeenCalledWith(
+        resolve(sessionPath, 'TEST_RESULTS.md'),
+        'utf-8'
+      );
+      expect(result).toEqual(mockTestResults);
+      expect(result.hasBugs).toBe(true);
+      expect(result.bugs).toHaveLength(1);
+      expect(result.bugs[0].id).toBe('BUG-001');
+    });
+
+    it('should throw error if TEST_RESULTS.md not found', async () => {
+      // SETUP
+      const enoentError: NodeJS.ErrnoException = new Error(
+        'File not found'
+      ) as NodeJS.ErrnoException;
+      enoentError.code = 'ENOENT';
+
+      mockedAccess.mockRejectedValue(enoentError);
+
+      const orchestrator = createMockTaskOrchestrator();
+      const sessionManager = createMockSessionManager();
+      const workflow = new FixCycleWorkflow(
+        sessionPath,
+        'PRD content',
+        orchestrator,
+        sessionManager
+      );
+
+      // EXECUTE & VERIFY
+      await expect(
+        workflow._loadBugReportForTesting()
+      ).rejects.toThrow(`TEST_RESULTS.md not found at ${resolve(sessionPath, 'TEST_RESULTS.md')}`);
+
+      expect(mockedAccess).toHaveBeenCalledWith(
+        resolve(sessionPath, 'TEST_RESULTS.md'),
+        constants.F_OK
+      );
+      expect(mockedReadFile).not.toHaveBeenCalled();
+    });
+
+    it('should throw error if JSON parsing fails', async () => {
+      // SETUP
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue('invalid json {{{');
+
+      const orchestrator = createMockTaskOrchestrator();
+      const sessionManager = createMockSessionManager();
+      const workflow = new FixCycleWorkflow(
+        sessionPath,
+        'PRD content',
+        orchestrator,
+        sessionManager
+      );
+
+      // EXECUTE & VERIFY
+      await expect(
+        workflow._loadBugReportForTesting()
+      ).rejects.toThrow(`Failed to parse TEST_RESULTS.md at ${resolve(sessionPath, 'TEST_RESULTS.md')}`);
+
+      expect(mockedAccess).toHaveBeenCalledWith(
+        resolve(sessionPath, 'TEST_RESULTS.md'),
+        constants.F_OK
+      );
+      expect(mockedReadFile).toHaveBeenCalledWith(
+        resolve(sessionPath, 'TEST_RESULTS.md'),
+        'utf-8'
+      );
+    });
+
+    it('should throw error if Zod validation fails', async () => {
+      // SETUP
+      const invalidTestResults = {
+        hasBugs: true,
+        bugs: [
+          createTestBug(
+            'BUG-001',
+            'critical',
+            'Login bug',
+            'Critical login failure',
+            '1. Go to login\n2. Enter bad password',
+            'src/auth/login.ts:45'
+          ),
+        ],
+        // Missing required 'summary' field
+        recommendations: [],
+      };
+
+      mockedAccess.mockResolvedValue(undefined);
+      mockedReadFile.mockResolvedValue(JSON.stringify(invalidTestResults));
+
+      const orchestrator = createMockTaskOrchestrator();
+      const sessionManager = createMockSessionManager();
+      const workflow = new FixCycleWorkflow(
+        sessionPath,
+        'PRD content',
+        orchestrator,
+        sessionManager
+      );
+
+      // EXECUTE & VERIFY
+      await expect(
+        workflow._loadBugReportForTesting()
+      ).rejects.toThrow(`Invalid TestResults in TEST_RESULTS.md at ${resolve(sessionPath, 'TEST_RESULTS.md')}`);
+
+      expect(mockedAccess).toHaveBeenCalled();
+      expect(mockedReadFile).toHaveBeenCalled();
+    });
+  });
 
   describe('run loop', () => {
     it('should loop until complete (1 iteration)', async () => {

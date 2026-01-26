@@ -21,6 +21,9 @@
  * ```
  */
 
+import { readFile, access, constants } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
 import { Workflow, Step } from 'groundswell';
 import type {
   TestResults,
@@ -29,6 +32,7 @@ import type {
   Subtask,
   Status,
 } from '../core/models.js';
+import { TestResultsSchema } from '../core/models.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import { TaskOrchestrator } from '../core/task-orchestrator.js';
@@ -374,6 +378,16 @@ export class FixCycleWorkflow extends Workflow {
     return this.#fixTasks;
   }
 
+  /**
+   * Test-only getter for loadBugReport method
+   *
+   * @returns Bound loadBugReport method
+   * @internal
+   */
+  get _loadBugReportForTesting(): () => Promise<TestResults> {
+    return this.#loadBugReport.bind(this);
+  }
+
   // ========================================================================
   // Helper Methods
   // ========================================================================
@@ -404,6 +418,90 @@ export class FixCycleWorkflow extends Workflow {
     }
 
     return completedTasks;
+  }
+
+  /**
+   * Load bug report from TEST_RESULTS.md in session directory
+   *
+   * @returns Parsed and validated TestResults object
+   * @throws {Error} If TEST_RESULTS.md not found or contains invalid data
+   * @private
+   */
+  async #loadBugReport(): Promise<TestResults> {
+    const resultsPath = resolve(this.sessionPath, 'TEST_RESULTS.md');
+
+    this.correlationLogger.info('[FixCycleWorkflow] Loading bug report', {
+      resultsPath,
+    });
+
+    // Check file existence
+    try {
+      await access(resultsPath, constants.F_OK);
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err.code === 'ENOENT') {
+        throw new Error(`TEST_RESULTS.md not found at ${resultsPath}`);
+      }
+      throw new Error(
+        `Failed to access TEST_RESULTS.md at ${resultsPath}: ${err.message}`
+      );
+    }
+
+    // Read file content
+    let content: string;
+    try {
+      content = await readFile(resultsPath, 'utf-8');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error('[FixCycleWorkflow] Failed to read TEST_RESULTS.md', {
+        resultsPath,
+        error: errorMessage,
+      });
+      throw new Error(
+        `Failed to read TEST_RESULTS.md at ${resultsPath}: ${errorMessage}`
+      );
+    }
+
+    // Parse JSON
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error('[FixCycleWorkflow] Failed to parse TEST_RESULTS.md', {
+        resultsPath,
+        error: errorMessage,
+      });
+      throw new Error(
+        `Failed to parse TEST_RESULTS.md at ${resultsPath}: ${errorMessage}`
+      );
+    }
+
+    // Validate with Zod
+    try {
+      const validated = TestResultsSchema.parse(parsed) as TestResults;
+      this.correlationLogger.info('[FixCycleWorkflow] Bug report loaded', {
+        resultsPath,
+        hasBugs: validated.hasBugs,
+        bugCount: validated.bugs.length,
+      });
+      return validated;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        '[FixCycleWorkflow] Invalid TestResults in TEST_RESULTS.md',
+        {
+          resultsPath,
+          error: errorMessage,
+        }
+      );
+      throw new Error(
+        `Invalid TestResults in TEST_RESULTS.md at ${resultsPath}: ${errorMessage}`
+      );
+    }
   }
 
   /**
