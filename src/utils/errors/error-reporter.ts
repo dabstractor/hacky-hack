@@ -17,7 +17,6 @@
  * ```
  */
 
-import type { Logger } from '../logger.js';
 import type {
   TaskFailure,
   ReportContext,
@@ -38,6 +37,24 @@ import {
 } from '../errors.js';
 
 /**
+ * Minimal logger interface for error reporting
+ *
+ * @remarks
+ * ErrorReportBuilder only requires basic logging methods.
+ * This interface is compatible with both Logger and WorkflowLogger.
+ */
+interface ErrorReportLogger {
+  info(msg: string, ...args: unknown[]): void;
+  info(obj: unknown, msg?: string, ...args: unknown[]): void;
+  warn(msg: string, ...args: unknown[]): void;
+  warn(obj: unknown, msg?: string, ...args: unknown[]): void;
+  error(msg: string, ...args: unknown[]): void;
+  error(obj: unknown, msg?: string, ...args: unknown[]): void;
+  debug(msg: string, ...args: unknown[]): void;
+  debug(obj: unknown, msg?: string, ...args: unknown[]): void;
+}
+
+/**
  * Enhanced error report builder
  *
  * @remarks
@@ -45,7 +62,7 @@ import {
  * markdown reports with timeline, impact analysis, fixes, and commands.
  */
 export class ErrorReportBuilder {
-  #logger: Logger;
+  #logger: ErrorReportLogger;
   #timelineTracker: TimelineTracker;
   #stackTraceFormatter: StackTraceFormatter;
   #resumeCommandBuilder: ResumeCommandBuilder;
@@ -58,7 +75,7 @@ export class ErrorReportBuilder {
    * @param startTime - Pipeline start time
    * @param sessionId - Session identifier
    */
-  constructor(logger: Logger, startTime: Date, sessionId: string) {
+  constructor(logger: ErrorReportLogger, startTime: Date, sessionId: string) {
     this.#logger = logger;
     this.#timelineTracker = new TimelineTracker(sessionId, startTime);
     this.#stackTraceFormatter = new StackTraceFormatter();
