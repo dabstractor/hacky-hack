@@ -229,7 +229,7 @@
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Implement Bugfix Session Path Validation",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Add validation to ensure bug fix tasks are only created within session directories that contain 'bugfix' in the path, as required by PRD §5.1.",
               "subtasks": [
                 {
@@ -267,7 +267,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S4",
                   "title": "Add unit tests for bugfix session validation",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T1.S3"
