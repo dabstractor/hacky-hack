@@ -1738,6 +1738,17 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
       process.env.PRP_PIPELINE_RUNNING = currentPid;
       this.logger.debug(`[PRPPipeline] Set PRP_PIPELINE_RUNNING=${currentPid}`);
 
+      // Log guard context for troubleshooting
+      const planDir = this.sessionManager.planDir;
+      const sessionDir =
+        this.sessionManager.currentSession?.metadata.path ?? 'not set';
+      const skipBugFinding = process.env.SKIP_BUG_FINDING ?? 'false';
+      const running = process.env.PRP_PIPELINE_RUNNING ?? 'not set';
+
+      this.logger.debug(
+        `[PRPPipeline] Guard Context: PLAN_DIR=${planDir}, SESSION_DIR=${sessionDir}, SKIP_BUG_FINDING=${skipBugFinding}, PRP_PIPELINE_RUNNING=${running}`
+      );
+
       // Execute workflow steps
       await this.initializeSession();
 

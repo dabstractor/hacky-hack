@@ -329,7 +329,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S5",
                   "title": "Add debug logging for guard context",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M3.T2.S4"

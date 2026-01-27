@@ -1233,7 +1233,7 @@ describe('PRPPipeline', () => {
 
       // VERIFY - should log "Checking for nested execution at {sessionPath}"
       const validationCalls = debugSpy.mock.calls.filter((call: any[]) =>
-        call.some((arg) => String(arg).includes('Checking for nested execution'))
+        call.some(arg => String(arg).includes('Checking for nested execution'))
       );
       expect(validationCalls.length).toBeGreaterThan(0);
     });
@@ -1329,7 +1329,7 @@ describe('PRPPipeline', () => {
       // VERIFY error was logged with context
       const errorCalls = errorSpy.mock.calls;
       const nestedExecutionErrors = errorCalls.filter((call: any[]) =>
-        call.some((arg) => {
+        call.some(arg => {
           if (typeof arg === 'string') {
             return arg.includes('Nested execution detected');
           }
