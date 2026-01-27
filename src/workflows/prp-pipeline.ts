@@ -32,6 +32,7 @@ import type { Scope } from '../core/scope-resolver.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import { isPipelineError, isFatalError } from '../utils/errors.js';
+import { validateNestedExecution } from '../utils/validation/execution-guard.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
 import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
@@ -1716,6 +1717,12 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
           (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ??
             0) > 0,
       });
+
+      // Validate no nested execution (after session path is available)
+      if (this.sessionManager.currentSession?.metadata.path) {
+        const sessionPath = this.sessionManager.currentSession.metadata.path;
+        validateNestedExecution(sessionPath);
+      }
 
       await this.decomposePRD();
 

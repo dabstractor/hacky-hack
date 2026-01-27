@@ -287,7 +287,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S1",
                   "title": "Add validateNestedExecution function",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD §9.2.5 requires PRP_PIPELINE_RUNNING guard to prevent nested execution. No guard currently implemented. See architecture/001_codebase_audit.md §Research Objective 4.\n2. INPUT: Create in src/utils/validation/execution-guard.ts or add to session-validation.ts. Environment variables: process.env.PRP_PIPELINE_RUNNING, process.env.SKIP_BUG_FINDING.\n3. LOGIC: Export function validateNestedExecution(sessionPath: string): void. Function should: check if process.env.PRP_PIPELINE_RUNNING is set, if set: check if process.env.SKIP_BUG_FINDING === 'true' AND sessionPath.includes('bugfix'), if both conditions true (legitimate recursion): return without error, else: throw NestedExecutionError with message 'Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {process.env.PRP_PIPELINE_RUNNING}'. If PRP_PIPELINE_RUNNING not set: return without error (first execution).\n4. OUTPUT: Validation function that prevents recursive pipeline execution except for legitimate bug fix session recursion. Function checks environment variables and session path."

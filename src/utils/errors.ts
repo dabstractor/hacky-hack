@@ -78,6 +78,7 @@ export const ErrorCodes = {
   PIPELINE_VALIDATION_SCHEMA_FAILED: 'PIPELINE_VALIDATION_SCHEMA_FAILED',
   PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY:
     'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
+  PIPELINE_VALIDATION_NESTED_EXECUTION: 'PIPELINE_VALIDATION_NESTED_EXECUTION',
 
   // Resource errors
   PIPELINE_RESOURCE_LIMIT_EXCEEDED: 'PIPELINE_RESOURCE_LIMIT_EXCEEDED',
@@ -502,6 +503,41 @@ export class BugfixSessionValidationError extends PipelineError {
 }
 
 /**
+ * Nested PRP Pipeline execution errors
+ *
+ * @remarks
+ * Used when PRP Pipeline execution is attempted while already running.
+ * Only bug fix sessions with SKIP_BUG_FINDING=true are allowed to recurse.
+ *
+ * @example
+ * ```typescript
+ * if (process.env.PRP_PIPELINE_RUNNING && !isLegitimateRecursion) {
+ *   throw new NestedExecutionError(
+ *     'Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {existingPid}',
+ *     { existingPid, currentPid, sessionPath }
+ *   );
+ * }
+ * ```
+ */
+export class NestedExecutionError extends PipelineError {
+  readonly code = ErrorCodes.PIPELINE_VALIDATION_NESTED_EXECUTION;
+
+  constructor(
+    message: string,
+    context?: PipelineErrorContext & {
+      existingPid?: string;
+      currentPid?: string;
+      sessionPath?: string;
+    },
+    cause?: Error
+  ) {
+    super(message, context, cause);
+    // CRITICAL: Must set prototype for this class explicitly
+    Object.setPrototypeOf(this, NestedExecutionError.prototype);
+  }
+}
+
+/**
  * Environment configuration errors
  *
  * @remarks
@@ -666,6 +702,30 @@ export function isBugfixSessionValidationError(
   error: unknown
 ): error is BugfixSessionValidationError {
   return error instanceof BugfixSessionValidationError;
+}
+
+/**
+ * Type guard for NestedExecutionError
+ *
+ * @remarks
+ * Returns true if the error is an instance of NestedExecutionError.
+ * Enables type narrowing in catch blocks.
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   validateNestedExecution(sessionPath);
+ * } catch (error) {
+ *   if (isNestedExecutionError(error)) {
+ *     console.error(`Nested execution detected. Existing PID: ${error.existingPid}`);
+ *   }
+ * }
+ * ```
+ */
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
+  return error instanceof NestedExecutionError;
 }
 
 /**
