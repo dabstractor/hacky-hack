@@ -1721,12 +1721,12 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
         } catch (error) {
           if (isNestedExecutionError(error)) {
             this.logger.error(
+              '[PRPPipeline] Nested execution detected - cannot proceed',
               {
                 sessionPath,
                 existingPid: error.context?.existingPid,
                 currentPid: error.context?.currentPid,
-              },
-              '[PRPPipeline] Nested execution detected - cannot proceed'
+              }
             );
             throw error; // Re-throw to prevent execution
           }
