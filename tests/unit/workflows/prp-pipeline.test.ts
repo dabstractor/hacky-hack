@@ -92,6 +92,12 @@ vi.mock('../../../src/utils/task-utils.js', () => ({
   filterByStatus: vi.fn().mockReturnValue([]),
 }));
 
+// Mock execution-guard
+vi.mock('../../../src/utils/validation/execution-guard.js', () => ({
+  validateNestedExecution: vi.fn(),
+  isNestedExecutionError: vi.fn(() => false),
+}));
+
 // Import mocked modules
 import { readFile } from 'node:fs/promises';
 import { createArchitectAgent } from '../../../src/agents/agent-factory.js';
@@ -99,6 +105,10 @@ import { SessionManager as SessionManagerClass } from '../../../src/core/session
 import { DeltaAnalysisWorkflow } from '../../../src/workflows/delta-analysis-workflow.js';
 import { patchBacklog } from '../../../src/core/task-patcher.js';
 import { filterByStatus } from '../../../src/utils/task-utils.js';
+import {
+  validateNestedExecution,
+  isNestedExecutionError,
+} from '../../../src/utils/validation/execution-guard.js';
 
 // Cast mocked functions
 const mockReadFile = readFile as any;
@@ -106,6 +116,8 @@ const mockCreateArchitectAgent = createArchitectAgent as any;
 const MockDeltaAnalysisWorkflow = DeltaAnalysisWorkflow as any;
 const mockPatchBacklog = patchBacklog as any;
 const mockFilterByStatus = filterByStatus as any;
+const mockValidateNestedExecution = validateNestedExecution as any;
+const mockIsNestedExecutionError = isNestedExecutionError as any;
 // Get reference to mocked constructor for test setup
 const MockSessionManagerClass = SessionManagerClass as any;
 
@@ -173,12 +185,13 @@ const createTestBacklog = (phases: any[]): Backlog => ({
 
 const createTestSession = (
   backlog: Backlog,
-  prdSnapshot: string = '# Test PRD'
+  prdSnapshot: string = '# Test PRD',
+  sessionPath: string = '/plan/001_14b9dc2a33c7'
 ): SessionState => ({
   metadata: {
     id: '001_14b9dc2a33c7',
     hash: '14b9dc2a33c7',
-    path: '/plan/001_14b9dc2a33c7',
+    path: sessionPath,
     createdAt: new Date(),
     parentSession: null,
   },
@@ -233,6 +246,11 @@ describe('PRPPipeline', () => {
         backlog: createTestBacklog([]),
       }),
     });
+    // Setup default validation mock (allow execution)
+    mockValidateNestedExecution.mockImplementation(() => {
+      // Default: allow execution (no throw)
+    });
+    mockIsNestedExecutionError.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -1178,6 +1196,235 @@ describe('PRPPipeline', () => {
           'Failed to load new PRD'
         );
       });
+    });
+  });
+
+  describe('nested execution validation', () => {
+    it('should log debug message before validation', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        'plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      const debugSpy = vi.fn();
+      const loggerSpy = {
+        debug: debugSpy,
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      }
+
+      // VERIFY - should log "Checking for nested execution at {sessionPath}"
+      const validationCalls = debugSpy.mock.calls.filter((call: any[]) =>
+        call.some((arg) => String(arg).includes('Checking for nested execution'))
+      );
+      expect(validationCalls.length).toBeGreaterThan(0);
+    });
+
+    it('should call validateNestedExecution with session path', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      }
+
+      // VERIFY
+      expect(mockValidateNestedExecution).toHaveBeenCalledWith(
+        'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918'
+      );
+    });
+
+    it('should throw and log NestedExecutionError when validation fails', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        'plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      // Create a mock NestedExecutionError
+      class MockNestedExecutionError extends Error {
+        constructor(
+          message: string,
+          public context?: {
+            existingPid?: string;
+            currentPid?: string;
+            sessionPath?: string;
+          }
+        ) {
+          super(message);
+          this.name = 'NestedExecutionError';
+        }
+      }
+
+      const mockError = new MockNestedExecutionError(
+        'Nested PRP Pipeline execution detected',
+        {
+          existingPid: '12345',
+          currentPid: '67890',
+          sessionPath: 'plan/001_14b9dc2a33c7',
+        }
+      );
+
+      mockValidateNestedExecution.mockImplementation(() => {
+        throw mockError;
+      });
+      mockIsNestedExecutionError.mockReturnValue(true);
+
+      const errorSpy = vi.fn();
+      const loggerSpy = {
+        debug: vi.fn(),
+        info: vi.fn(),
+        error: errorSpy,
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE - run() catches errors and returns result object
+      const result = await (pipeline as any).run();
+
+      // VERIFY - result indicates failure with nested execution error
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Nested PRP Pipeline');
+
+      // VERIFY error was logged with context
+      const errorCalls = errorSpy.mock.calls;
+      const nestedExecutionErrors = errorCalls.filter((call: any[]) =>
+        call.some((arg) => {
+          if (typeof arg === 'string') {
+            return arg.includes('Nested execution detected');
+          }
+          if (typeof arg === 'object' && arg !== null) {
+            return (
+              arg.sessionPath === 'plan/001_14b9dc2a33c7' &&
+              arg.existingPid === '12345' &&
+              arg.currentPid === '67890'
+            );
+          }
+          return false;
+        })
+      );
+      expect(nestedExecutionErrors.length).toBeGreaterThan(0);
+    });
+
+    it('should validate BEFORE guard is set', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        'plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      let validationCallCount = 0;
+      let guardSetCount = 0;
+
+      // Track validation call
+      const originalEnv = process.env.PRP_PIPELINE_RUNNING;
+      delete process.env.PRP_PIPELINE_RUNNING;
+
+      mockValidateNestedExecution.mockImplementation(() => {
+        validationCallCount++;
+        // Check if guard is already set (it should NOT be)
+        if (process.env.PRP_PIPELINE_RUNNING) {
+          guardSetCount++;
+        }
+      });
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      } finally {
+        // Restore env
+        if (originalEnv) {
+          process.env.PRP_PIPELINE_RUNNING = originalEnv;
+        } else {
+          delete process.env.PRP_PIPELINE_RUNNING;
+        }
+      }
+
+      // VERIFY - validation was called
+      expect(validationCallCount).toBeGreaterThan(0);
+      // VERIFY - guard was NOT set at the time of validation
+      expect(guardSetCount).toBe(0);
+    });
+
+    it('should allow execution when validation passes', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        'plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      // Validation passes (no throw)
+      mockValidateNestedExecution.mockImplementation(() => {
+        // Do nothing - allow execution
+      });
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE & VERIFY - should not throw from validation
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Error should NOT be from validation
+        if (e instanceof Error) {
+          expect(e.message).not.toContain('Nested execution');
+        }
+      }
     });
   });
 });

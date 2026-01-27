@@ -32,7 +32,10 @@ import type { Scope } from '../core/scope-resolver.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 import { isPipelineError, isFatalError } from '../utils/errors.js';
-import { validateNestedExecution } from '../utils/validation/execution-guard.js';
+import {
+  validateNestedExecution,
+  isNestedExecutionError,
+} from '../utils/validation/execution-guard.js';
 import { SessionManager as SessionManagerClass } from '../core/session-manager.js';
 import { TaskOrchestrator as TaskOrchestratorClass } from '../core/task-orchestrator.js';
 import { DeltaAnalysisWorkflow } from './delta-analysis-workflow.js';
@@ -1703,7 +1706,35 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
         this.#flushRetries
       );
 
-      // Set guard after validation passes (validateNestedExecution called in S3)
+      // Validate no nested execution BEFORE setting guard
+      // CRITICAL: Validation must happen before guard is set to prevent race condition
+      if (this.sessionManager.currentSession?.metadata.path) {
+        const sessionPath = this.sessionManager.currentSession.metadata.path;
+        try {
+          this.logger.debug(
+            `[PRPPipeline] Checking for nested execution at ${sessionPath}`
+          );
+          validateNestedExecution(sessionPath);
+          this.logger.debug(
+            '[PRPPipeline] No nested execution detected, proceeding'
+          );
+        } catch (error) {
+          if (isNestedExecutionError(error)) {
+            this.logger.error(
+              {
+                sessionPath,
+                existingPid: error.context?.existingPid,
+                currentPid: error.context?.currentPid,
+              },
+              '[PRPPipeline] Nested execution detected - cannot proceed'
+            );
+            throw error; // Re-throw to prevent execution
+          }
+          throw error; // Re-throw other errors
+        }
+      }
+
+      // Set guard after validation passes
       process.env.PRP_PIPELINE_RUNNING = currentPid;
       this.logger.debug(`[PRPPipeline] Set PRP_PIPELINE_RUNNING=${currentPid}`);
 
@@ -1717,12 +1748,6 @@ Report Location: ${sessionPath}/RESOURCE_LIMIT_REPORT.md
           (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ??
             0) > 0,
       });
-
-      // Validate no nested execution (after session path is available)
-      if (this.sessionManager.currentSession?.metadata.path) {
-        const sessionPath = this.sessionManager.currentSession.metadata.path;
-        validateNestedExecution(sessionPath);
-      }
 
       await this.decomposePRD();
 
