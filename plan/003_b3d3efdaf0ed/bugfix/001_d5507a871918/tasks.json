@@ -340,7 +340,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T2.S6",
                   "title": "Add unit tests for nested execution guard",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M3.T2.S5"
