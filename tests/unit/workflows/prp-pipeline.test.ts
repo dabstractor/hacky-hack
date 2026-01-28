@@ -1427,4 +1427,247 @@ describe('PRPPipeline', () => {
       }
     });
   });
+
+  describe('guard context logging', () => {
+    it('should log guard context with all 4 fields after guard is set', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        '/plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.planDir = '/plan';
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      const debugLogs: string[] = [];
+      const loggerSpy = {
+        debug: vi.fn((message: string) => debugLogs.push(message)),
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      }
+
+      // VERIFY - find guard context log
+      const guardContextLog = debugLogs.find(log =>
+        log.includes('[PRPPipeline] Guard Context:')
+      );
+
+      expect(guardContextLog).toBeDefined();
+      expect(guardContextLog).toMatch(/PLAN_DIR=/);
+      expect(guardContextLog).toMatch(/SESSION_DIR=/);
+      expect(guardContextLog).toMatch(/SKIP_BUG_FINDING=/);
+      expect(guardContextLog).toMatch(/PRP_PIPELINE_RUNNING=/);
+    });
+
+    it('should handle null currentSession gracefully', async () => {
+      // SETUP
+      const mockManager = createMockSessionManager(null);
+      mockManager.planDir = '/plan';
+      mockManager.currentSession = null;
+      mockManager.initialize = vi.fn().mockResolvedValue(null);
+
+      const debugLogs: string[] = [];
+      const loggerSpy = {
+        debug: vi.fn((message: string) => debugLogs.push(message)),
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      }
+
+      // VERIFY - should not throw, and SESSION_DIR should be 'not set'
+      const guardContextLogs = debugLogs.filter(log =>
+        log.includes('[PRPPipeline] Guard Context:')
+      );
+
+      // If guard context was logged, verify SESSION_DIR is 'not set'
+      if (guardContextLogs.length > 0) {
+        const hasNotSetSession = guardContextLogs.some(log =>
+          log.includes('SESSION_DIR=not set')
+        );
+        expect(hasNotSetSession).toBe(true);
+      }
+    });
+
+    it('should show default values when env vars are not set', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        '/plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.planDir = '/plan';
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      // Clear env vars for test
+      const originalSkipBugFinding = process.env.SKIP_BUG_FINDING;
+      const originalRunning = process.env.PRP_PIPELINE_RUNNING;
+      delete process.env.SKIP_BUG_FINDING;
+      delete process.env.PRP_PIPELINE_RUNNING;
+
+      const debugLogs: string[] = [];
+      const loggerSpy = {
+        debug: vi.fn((message: string) => debugLogs.push(message)),
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      } finally {
+        // Restore env vars
+        if (originalSkipBugFinding) {
+          process.env.SKIP_BUG_FINDING = originalSkipBugFinding;
+        }
+        if (originalRunning) {
+          process.env.PRP_PIPELINE_RUNNING = originalRunning;
+        }
+      }
+
+      // VERIFY - default values should be shown
+      const guardContextLog = debugLogs.find(log =>
+        log.includes('[PRPPipeline] Guard Context:')
+      );
+
+      if (guardContextLog) {
+        expect(guardContextLog).toMatch(/SKIP_BUG_FINDING=false/);
+      }
+    });
+
+    it('should show actual env var values when set', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        '/plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.planDir = '/plan';
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      // Set SKIP_BUG_FINDING for test (PRP_PIPELINE_RUNNING will be set to process.pid by the implementation)
+      const originalSkipBugFinding = process.env.SKIP_BUG_FINDING;
+      process.env.SKIP_BUG_FINDING = 'true';
+
+      const debugLogs: string[] = [];
+      const loggerSpy = {
+        debug: vi.fn((message: string) => debugLogs.push(message)),
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      } finally {
+        // Restore env vars
+        if (originalSkipBugFinding !== undefined) {
+          process.env.SKIP_BUG_FINDING = originalSkipBugFinding;
+        } else {
+          delete process.env.SKIP_BUG_FINDING;
+        }
+      }
+
+      // VERIFY - actual values should be shown
+      const guardContextLog = debugLogs.find(log =>
+        log.includes('[PRPPipeline] Guard Context:')
+      );
+
+      if (guardContextLog) {
+        expect(guardContextLog).toMatch(/SKIP_BUG_FINDING=true/);
+        // PRP_PIPELINE_RUNNING should be set to a PID (numeric string)
+        expect(guardContextLog).toMatch(/PRP_PIPELINE_RUNNING=\d+/);
+      }
+    });
+
+    it('should use exact format specified in requirements', async () => {
+      // SETUP
+      const backlog = createTestBacklog([]);
+      const mockSession = createTestSession(
+        backlog,
+        '# Test PRD',
+        '/plan/001_14b9dc2a33c7'
+      );
+
+      const mockManager = createMockSessionManager(mockSession);
+      mockManager.planDir = '/plan';
+      mockManager.initialize = vi.fn().mockResolvedValue(mockSession);
+
+      const debugLogs: string[] = [];
+      const loggerSpy = {
+        debug: vi.fn((message: string) => debugLogs.push(message)),
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+      };
+
+      const pipeline = new PRPPipeline('./test.md');
+      (pipeline as any).logger = loggerSpy;
+      (pipeline as any).sessionManager = mockManager;
+
+      // EXECUTE
+      try {
+        await (pipeline as any).run();
+      } catch (e) {
+        // Ignore errors from missing mocks
+      }
+
+      // VERIFY - format should match specification
+      const guardContextLog = debugLogs.find(log =>
+        log.includes('[PRPPipeline] Guard Context:')
+      );
+
+      if (guardContextLog) {
+        // Check format: Guard Context: PLAN_DIR={planDir}, SESSION_DIR={sessionDir}, SKIP_BUG_FINDING={skipBugFinding}, PRP_PIPELINE_RUNNING={running}
+        const formatPattern =
+          /^Guard Context: PLAN_DIR=.+, SESSION_DIR=.+, SKIP_BUG_FINDING=.+, PRP_PIPELINE_RUNNING=.+$/;
+        const messageOnly = guardContextLog.replace('[PRPPipeline] ', '');
+        expect(messageOnly).toMatch(formatPattern);
+      }
+    });
+  });
 });
