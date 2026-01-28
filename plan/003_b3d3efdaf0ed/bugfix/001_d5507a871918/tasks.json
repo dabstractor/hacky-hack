@@ -369,7 +369,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S1",
                   "title": "Verify StatusEnum definition includes Retrying",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Bug report claims StatusEnum is missing 'Retrying', but codebase audit shows it may already be included. Must verify actual state. See architecture/001_codebase_audit.md §Research Objective 3.\n2. INPUT: src/core/models.ts file. StatusEnum and Status type definitions. Recent commit 63bed9c reference.\n3. LOGIC: Read src/core/models.ts and locate StatusEnum definition. Check if 'Retrying' is included in the enum values. Check if Status union type includes 'Retrying'. If missing: add 'Retrying' to StatusEnum Zod schema, add 'Retrying' to Status union type. If already present: verify it's correctly positioned in the status lifecycle (should be between 'Implementing' and 'Complete' or similar). Document findings.\n4. OUTPUT: StatusEnum verified to include 'Retrying' status or updated to include it. Status type union includes 'Retrying'. Document current state."
@@ -378,7 +378,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S2",
                   "title": "Verify status color and indicator mappings include Retrying",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S1"

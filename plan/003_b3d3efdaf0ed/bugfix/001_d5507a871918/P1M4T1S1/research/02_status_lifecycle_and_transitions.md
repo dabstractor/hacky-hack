@@ -1,303 +1,412 @@
 # Status Lifecycle and Transitions Analysis
 
-## Research Date
-2026-01-27
+## Executive Summary
 
-## Objective
-Document the complete status lifecycle and verify 'Retrying' status positioning within the workflow.
+**'Retrying' Status Positioning**: CORRECT ✅
 
-## Status Lifecycle Overview
+The 'Retrying' status is correctly positioned in the status lifecycle between 'Implementing' and the terminal states ('Complete', 'Failed'). This positioning makes logical sense for a retry workflow where tasks can only be retried during the implementation phase.
 
-### Normal Flow (No Errors)
+---
+
+## 1. Status Lifecycle Overview
+
+### Complete Status Flow
+
 ```
-Planned → Researching → Implementing → Complete
+┌─────────────────────────────────────────────────────────────────────┐
+│                         TASK STATUS LIFECYCLE                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  START                                                              │
+│    │                                                                │
+│    ▼                                                                │
+│  ┌─────────────┐                                                    │
+│  │  Planned    │ ← Initial state, not yet started                  │
+│  └──────┬──────┘                                                    │
+│         │                                                            │
+│         ▼                                                            │
+│  ┌─────────────┐                                                    │
+│  │ Researching │ ← Discovery and planning phase                    │
+│  └──────┬──────┘                                                    │
+│         │                                                            │
+│         ▼                                                            │
+│  ┌─────────────┐                                                    │
+│  │Implementing│ ← Active work in progress                          │
+│  └──────┬──────┘                                                    │
+│         │                                                            │
+│         ├──► ┌─────────────┐                                        │
+│         │    │  Retrying   │ ← Retry attempt after failure         │
+│         │    └──────┬──────┘                                        │
+│         │           │                                               │
+│         │           ├──► Implementing (retry in progress)          │
+│         │           │                                               │
+│         │           └──► Terminal states (below)                   │
+│         │                                                           │
+│         ▼                                                           │
+│  ┌─────────────────────────────────────────────┐                   │
+│  │              TERMINAL STATES                  │                   │
+│  ├─────────────────────────────────────────────┤                   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │                   │
+│  │  │ Complete │  │  Failed  │  │ Obsolete │  │                   │
+│  │  │   ✓      │  │    ✗     │  │    ⊘     │  │                   │
+│  │  └──────────┘  └──────────┘  └──────────┘  │                   │
+│  │     Success      Permanent      Deprecated  │                   │
+│  └─────────────────────────────────────────────┘                   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Retry Flow (With Transient Errors)
-```
-Planned → Researching → Implementing → Retrying → Implementing → Complete
-                                              ↓
-                                          (max retries)
-                                              ↓
-                                           Failed
-```
+### Status Positioning Analysis
 
-### Failure Flow (Permanent Errors)
-```
-Planned → Researching → Implementing → Failed
-```
+| Position | Status | Type | Description |
+|----------|--------|------|-------------|
+| 1st | `Planned` | Initial | Not yet started |
+| 2nd | `Researching` | Active | Discovery phase |
+| 3rd | `Implementing` | Active | Work in progress |
+| **4th** | **`Retrying`** | **Active** | **Retry attempt** ← |
+| 5th | `Complete` | Terminal | Successfully finished |
+| 6th | `Failed` | Terminal | Permanently failed |
+| 7th | `Obsolete` | Terminal | No longer relevant |
 
-### Obsolescence Flow (Delta Sessions)
-```
-Planned → Researching → Implementing → Obsolete
-```
+---
 
-## Detailed Status Definitions
-
-### 1. Planned
-**Purpose**: Initial state for all work items
-**Entry**: Creation of work item
-**Exit**: TaskOrchestrator begins work
-**Color**: Gray (○)
-**Meaning**: Not yet started
-
-### 2. Researching
-**Purpose**: Discovery and planning phase
-**Entry**: TaskOrchestrator starts PRP generation
-**Exit**: PRP complete, ready for implementation
-**Color**: Cyan (◐)
-**Meaning**: Gathering requirements and context
-
-### 3. Implementing
-**Purpose**: Active execution phase
-**Entry**: Agent begins implementation work
-**Exit**: Implementation complete or error occurs
-**Color**: Blue (◐)
-**Meaning**: Actively writing code
-
-### 4. Retrying
-**Purpose**: Retry attempt in progress
-**Entry**: TaskRetryManager initiates retry after transient error
-**Exit**: Retry attempt complete (success or failure)
-**Color**: Yellow (↻)
-**Meaning**: Recovering from transient error
-
-**Retry Logic:**
-- Triggered by: TaskRetryManager.executeWithRetry()
-- Errors: Network issues, timeouts, HTTP 5xx, HTTP 429
-- Max attempts: 3 (configurable)
-- Backoff: Exponential with jitter (1s → 2s → 4s → 8s, max 30s)
-
-### 5. Complete
-**Purpose**: Successful completion
-**Entry**: TaskOrchestrator finishes all work
-**Exit**: Final state (no transitions out)
-**Color**: Green (✓)
-**Meaning**: Successfully implemented
-
-### 6. Failed
-**Purpose**: Permanent failure after retries
-**Entry**: Max retries exhausted or permanent error
-**Exit**: Final state (no transitions out)
-**Color**: Red (✗)
-**Meaning**: Cannot complete
-
-**Permanent Errors:**
-- ValidationError (contract violations)
-- HTTP 4xx (client errors, except 429)
-- Parse failures
-- Code injection attempts
-
-### 7. Obsolete
-**Purpose**: Deprecated in delta sessions
-**Entry**: DeltaAnalysis marks item as removed
-**Exit**: Final state (no transitions out)
-**Color**: Dim (⊘)
-**Meaning**: Replaced or removed in newer PRD version
-
-## Status Transition Matrix
-
-### Valid Transitions (Current Implementation)
-
-| From → To       | Planned | Researching | Implementing | Retrying | Complete | Failed | Obsolete |
-|-----------------|---------|-------------|--------------|----------|----------|--------|----------|
-| **Planned**     | -       | ✅          | ❌           | ❌       | ❌        | ❌      | ❌        |
-| **Researching** | ❌       | -           | ✅           | ❌       | ❌        | ❌      | ❌        |
-| **Implementing**| ❌       | ❌          | -            | ✅       | ✅        | ✅      | ❌        |
-| **Retrying**    | ❌       | ❌          | ✅           | -        | ✅        | ✅      | ❌        |
-| **Complete**    | ❌       | ❌          | ❌           | ❌       | -         | ❌      | ❌        |
-| **Failed**      | ❌       | ❌          | ❌           | ❌       | ❌        | -      | ❌        |
-| **Obsolete**    | ❌       | ❌          | ❌           | ❌       | ❌        | ❌      | -        |
-
-### Transition Rules
-
-**Forward Progression (Normal):**
-1. Planned → Researching (TaskOrchestrator starts)
-2. Researching → Implementing (PRP complete, implementation begins)
-3. Implementing → Complete (success)
-
-**Retry Logic:**
-1. Implementing → Retrying (transient error occurs)
-2. Retrying → Implementing (retry attempt starting)
-3. Retrying → Complete (retry succeeds)
-4. Retrying → Failed (max retries exhausted)
-
-**Failure Paths:**
-1. Implementing → Failed (permanent error)
-2. Retrying → Failed (max retries exhausted)
-
-**Obsolescence:**
-1. Any active state → Obsolete (delta analysis marks as removed)
-
-## 'Retrying' Status Positioning Analysis
+## 2. 'Retrying' Status Positioning Analysis
 
 ### Current Position: 4th of 7
-```
-1. Planned
-2. Researching
-3. Implementing
-4. Retrying ← CORRECT POSITION
-5. Complete
-6. Failed
-7. Obsolete
-```
 
-### Why This Position Is Correct
+**Location**: Between `Implementing` and terminal states
 
-**Logical Flow:**
-- 'Retrying' comes AFTER 'Implementing' (only occurs during implementation)
-- 'Retrying' comes BEFORE terminal states (not a final state)
-- 'Retrying' is parallel to 'Implementing' in the workflow (alternates during retries)
+**Rationale**:
+1. **Logical Flow**: Retries only occur during implementation
+2. **Precondition**: Task must be in 'Implementing' before it can be retried
+3. **Transition Flexibility**: From 'Retrying', task can:
+   - Return to 'Implementing' (retry in progress)
+   - Move to 'Complete' (succeeded on retry)
+   - Move to 'Failed' (exhausted retries)
 
-**Alternative Positions Considered:**
+### Why This Positioning is Correct
 
-1. **Before 'Implementing'?** ❌
-   - Bad: Cannot retry before starting implementation
-   - Current: Correct placement after 'Implementing'
-
-2. **After 'Complete'?** ❌
-   - Bad: Cannot retry after completion
-   - Current: Correct placement before 'Complete'
-
-3. **As terminal state?** ❌
-   - Bad: 'Retrying' is transient, not final
-   - Current: Correct as intermediate state
-
-**Conclusion:** Current positioning is **OPTIMAL** for the workflow.
-
-## State Machine Implementation
-
-### Entry Points
-
-**Planned Entry:**
 ```typescript
-// src/core/session-manager.ts
-const newSubtask: Subtask = {
-  id: subtaskId,
-  type: 'Subtask',
-  title: task.title,
-  status: 'Planned',  // ← Initial state
-  // ...
-};
+// Retry workflow:
+// 1. Task starts as 'Planned'
+// 2. Task moves to 'Researching' for planning
+// 3. Task moves to 'Implementing' for execution
+// 4. Task fails during execution
+// 5. Task moves to 'Retrying' (4th position) ←
+// 6. Task either:
+//    - Returns to 'Implementing' for another attempt
+//    - Moves to 'Complete' if successful
+//    - Moves to 'Failed' if retries exhausted
 ```
 
-**Researching Entry:**
-```typescript
-// src/core/task-orchestrator.ts
-await this.#sessionManager.updateItemStatus(subtask.id, 'Researching');
+**Key Insight**: 'Retrying' is NOT a terminal state. It's a transitional state that only makes sense during the implementation phase.
+
+---
+
+## 3. Status Transition Matrix
+
+### Valid Transitions
+
+| From | To | Valid? | Context |
+|------|----|--------|---------|
+| Planned | Researching | ✅ | Task ready for research |
+| Planned | Obsolete | ✅ | Task cancelled before start |
+| Researching | Implementing | ✅ | Research complete, start work |
+| Researching | Planned | ✅ | Needs more planning |
+| Researching | Obsolete | ✅ | Task cancelled |
+| **Implementing** | **Retrying** | ✅ | **Failed, retry initiated** |
+| **Implementing** | **Complete** | ✅ | **Work finished** |
+| **Implementing** | **Failed** | ✅ | **Permanently failed** |
+| **Implementing** | **Obsolete** | ✅ | **Task cancelled** |
+| **Retrying** | **Implementing** | ✅ | **Retry in progress** |
+| **Retrying** | **Complete** | ✅ | **Succeeded on retry** |
+| **Retrying** | **Failed** | ✅ | **Retries exhausted** |
+| **Retrying** | **Obsolete** | ✅ | **Cancelled during retry** |
+| Complete | Obsolete | ✅ | Superseded by new work |
+| Failed | Obsolete | ✅ | No longer relevant |
+
+### Transitions Involving 'Retrying'
+
+```
+                    ┌──────────────┐
+                    │ Implementing │
+                    └───────┬──────┘
+                            │
+                            │  (fails during execution)
+                            │
+                            ▼
+                    ┌──────────────┐
+                    │   Retrying   │ ← ENTRY POINT
+                    └───────┬──────┘
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+          ▼                 ▼                 ▼
+   ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+   │ Implementing │ │  Complete    │ │    Failed     │
+   └──────────────┘ └──────────────┘ └──────────────┘
+   (retry loop)    (success)        (exhausted)
 ```
 
-**Implementing Entry:**
+---
+
+## 4. 'Retrying' Status Semantics
+
+### Definition
+
+**'Retrying'** = A task that failed during execution and is now being attempted again.
+
+### Characteristics
+
+1. **Non-terminal**: Not an end state
+2. **Transitional**: Intermediate state during retry workflow
+3. **Implementation-phase only**: Only reachable from 'Implementing'
+4. **Multi-path**: Can lead back to 'Implementing' or to terminal states
+
+### Visual Indicators
+
 ```typescript
-// src/core/task-orchestrator.ts
-await this.#sessionManager.updateItemStatus(subtask.id, 'Implementing');
+// Color: chalk.yellow (warning/caution)
+getStatusColor('Retrying') // → chalk.yellow
+
+// Indicator: '↻' (refresh/redo symbol)
+getStatusIndicator('Retrying') // → '↻' (yellow)
+getPlainStatusIndicator('Retrying') // → '↻' (plain)
 ```
 
-**Retrying Entry:**
+**Semantic Meaning**: The yellow color and ↻ symbol convey:
+- Caution (previous attempt failed)
+- Action in progress (retrying)
+- Not yet terminal (outcome uncertain)
+
+---
+
+## 5. Status Lifecycle Code Examples
+
+### Example 1: Normal Flow (No Retries)
+
 ```typescript
-// src/core/task-retry-manager.ts:312-315
+// Task progresses through lifecycle without issues
+let status: Status = 'Planned';
+status = 'Researching';  // Research complete
+status = 'Implementing'; // Work started
+status = 'Complete';     // Work finished
+```
+
+### Example 2: Retry Flow
+
+```typescript
+// Task fails and enters retry loop
+let status: Status = 'Planned';
+status = 'Researching';
+status = 'Implementing';
+
+// Task fails
+status = 'Retrying';     // ← Entered retry state
+
+// Retry attempt succeeds
+status = 'Complete';     // ← Exited retry state to success
+```
+
+### Example 3: Exhausted Retries
+
+```typescript
+// Task fails multiple times
+let status: Status = 'Implementing';
+
+// First failure
+status = 'Retrying';
+status = 'Implementing'; // Retry 1
+
+// Second failure
+status = 'Retrying';
+status = 'Implementing'; // Retry 2
+
+// Third failure (exhausted)
+status = 'Retrying';
+status = 'Failed';       // ← Exited retry state to failure
+```
+
+---
+
+## 6. TaskRetryManager Integration
+
+### Location in Code
+
+**File**: `src/core/task-retry-manager.ts`
+**Lines**: 311-316
+
+### Code
+
+```typescript
+// Update status to 'Retrying'
 await this.#sessionManager.updateItemStatus(
   subtask.id,
-  'Retrying' as Status  // ← Retry trigger
+  'Retrying' as Status
 );
 await this.#sessionManager.flushUpdates();
 ```
 
-**Complete Entry:**
+### Workflow
+
 ```typescript
-// src/core/task-orchestrator.ts
-await this.#sessionManager.updateItemStatus(subtask.id, 'Complete');
+// 1. Task is 'Implementing'
+// 2. Task execution fails
+// 3. TaskRetryManager catches failure
+// 4. Status updated to 'Retrying' (lines 311-316)
+// 5. Retry attempt initiated
+// 6. Status either:
+//    - Returns to 'Implementing' (retry in progress)
+//    - Moves to 'Complete' (success)
+//    - Moves to 'Failed' (exhausted)
 ```
 
-**Failed Entry:**
+---
+
+## 7. Status Lifecycle Validation
+
+### TypeScript Type System
+
 ```typescript
-// src/core/task-orchestrator.ts
-await this.#sessionManager.updateItemStatus(subtask.id, 'Failed');
+// Type system allows all transitions
+type Status =
+  | 'Planned'
+  | 'Researching'
+  | 'Implementing'
+  | 'Retrying'      // ← Properly included
+  | 'Complete'
+  | 'Failed'
+  | 'Obsolete';
+
+// Type narrowing with exhaustiveness checking
+function handleStatus(status: Status): void {
+  switch (status) {
+    case 'Planned':
+      // ...
+      break;
+    case 'Researching':
+      // ...
+      break;
+    case 'Implementing':
+      // ...
+      break;
+    case 'Retrying':    // ← Properly handled
+      // ...
+      break;
+    case 'Complete':
+      // ...
+      break;
+    case 'Failed':
+      // ...
+      break;
+    case 'Obsolete':
+      // ...
+      break;
+  }
+}
 ```
 
-**Obsolete Entry:**
+### Runtime Validation with Zod
+
 ```typescript
-// src/core/task-patcher.ts
-patchedSubtask.status = 'Obsolete';  // ← Delta analysis
+import { StatusEnum } from './models.js';
+
+// Parse and validate status
+const result = StatusEnum.safeParse('Retrying');
+
+if (result.success) {
+  console.log('Valid status:', result.data); // 'Retrying'
+} else {
+  console.log('Invalid status');
+}
+
+// Get all valid status values
+StatusEnum.options; // ['Planned', 'Researching', 'Implementing', 'Retrying', 'Complete', 'Failed', 'Obsolete']
 ```
 
-### Exit Conditions
+---
 
-**From 'Retrying':**
-- **Success**: Transition to 'Implementing' (next retry attempt)
-- **Success (final)**: Transition to 'Complete' (retry succeeds)
-- **Failure**: Transition to 'Failed' (max retries exhausted)
+## 8. Comparison with Bug Report Claims
 
-### Duration Analysis
+### Bug Report (Issue #3)
 
-| Status        | Typical Duration | Trigger                           |
-|---------------|------------------|-----------------------------------|
-| Planned       | Seconds-minutes  | Until TaskOrchestrator starts     |
-| Researching   | Minutes-hours    | PRP generation time               |
-| Implementing  | Minutes-hours    | Agent implementation time         |
-| Retrying      | Seconds          | Retry delay (1-30s)               |
-| Complete      | Permanent        | N/A (final state)                 |
-| Failed        | Permanent        | N/A (final state)                 |
-| Obsolete      | Permanent        | N/A (final state, delta sessions) |
+> **Claim**: "StatusEnum only defines 6 values"
 
-## Visualization
+**Reality**: StatusEnum defines **7 values** including 'Retrying'.
 
-### ASCII Diagram
+> **Claim**: "Tests expect 6 status values plus 'Retrying' (total 7)"
+
+**Reality**: Tests expect **6 values** (missing 'Retrying'), implementation has **7 values**.
+
+### Analysis
+
+The bug report has the situation completely backwards:
+
+| Aspect | Bug Report Claim | Reality |
+|--------|-----------------|---------|
+| StatusEnum count | 6 values | 7 values ✅ |
+| 'Retrying' in StatusEnum | Missing | Present ✅ |
+| Test expectations | 7 values | 6 values ❌ |
+| Root cause | Implementation bug | Test bug ❌ |
+
+---
+
+## 9. Conclusion
+
+### 'Retrying' Status Positioning: VERIFIED CORRECT ✅
+
+1. **Position**: 4th of 7 (between 'Implementing' and terminal states)
+2. **Semantics**: Transitional state for retry attempts
+3. **Transitions**: Properly connected to 'Implementing' and terminal states
+4. **Visuals**: Yellow color and ↻ indicator convey "retry in progress"
+5. **Usage**: Actively used by TaskRetryManager (lines 311-316)
+
+### Status Lifecycle: COMPLETE AND LOGICAL ✅
+
+The 7-status lifecycle provides a complete workflow:
+1. **Initial states**: Planned, Researching, Implementing
+2. **Retry state**: Retrying (during implementation only)
+3. **Terminal states**: Complete, Failed, Obsolete
+
+### Implementation Status: CORRECT ✅
+
+No changes needed to the StatusEnum or status lifecycle. The implementation is correct and complete.
+
+### Test Status: OUTDATED ❌
+
+Tests need updating in P1.M4.T1.S4 to include 'Retrying' in expected status arrays.
+
+---
+
+## 10. ASCII Diagram Summary
+
 ```
-                    ┌─────────────┐
-                    │   Planned   │ (Initial)
-                    └──────┬──────┘
+                    TASK STATUS LIFECYCLE
+                    
+    ┌──────────────────────────────────────────────────┐
+    │                                                  │
+    │  Planned ─► Researching ─► Implementing ─┐       │
+    │                                          │       │
+    │                                          ▼       │
+    │                                    ┌─────────┐   │
+    │                                    │Retrying │   │
+    │                                    └────┬────┘   │
+    │                                         │        │
+    │                    ┌────────────────────┼────────────────────┐
+    │                    │                    │                    │
+    │                    ▼                    ▼                    ▼
+    │              Implementing          Complete            Failed
+    │              (retry loop)          (success)       (exhausted)
+    │                                                              │
+    └──────────────────────┬───────────────────────────────────────┘
                            │
                            ▼
-                    ┌─────────────┐
-                    │ Researching │ (Discovery)
-                    └──────┬──────┘
-                           │
-                           ▼
-              ┌────────────────────────┐
-              │    Implementing        │ ◄──────┐
-              └──────────┬─────────────┘        │
-                         │                      │
-            ┌────────────┼────────────┐         │
-            │            │            │         │
-            ▼            ▼            ▼         │
-       ┌─────────┐  ┌─────────┐  ┌──────┐    │
-       │Retrying │  │Complete │  │Failed│    │
-       └────┬────┘  └─────────┘  └──────┘    │
-            │                              │
-            └──────────────────────────────┘
-                     (retry loop)
+                        Obsolete
+                     (any state can go here)
 ```
 
-## Status Invariants
-
-### Immutable Properties
-1. Once 'Complete', always 'Complete'
-2. Once 'Failed', always 'Failed'
-3. Once 'Obsolete', always 'Obsolete'
-4. 'Retrying' can only transition to 'Implementing', 'Complete', or 'Failed'
-
-### Mutable Properties
-1. 'Planned' → 'Researching'
-2. 'Researching' → 'Implementing'
-3. 'Implementing' ↔ 'Retrying' (bidirectional during retries)
-4. 'Implementing' → 'Failed' (permanent error)
-5. 'Retrying' → 'Failed' (max retries)
-
-### Delta Session Behavior
-In delta sessions, items can transition from any active state to 'Obsolete':
-- Planned → Obsolete
-- Researching → Obsolete
-- Implementing → Obsolete
-- Retrying → Obsolete
-
-## Conclusion
-
-The 'Retrying' status is:
-- ✅ **CORRECTLY INCLUDED** in StatusEnum
-- ✅ **CORRECTLY POSITIONED** between 'Implementing' and terminal states
-- ✅ **FULLY INTEGRATED** into retry workflow
-- ✅ **PROPERLY VISUALIZED** with yellow color and ↻ indicator
-- ✅ **ACTIVELY USED** by TaskRetryManager
-
-No implementation changes needed. The status lifecycle is well-designed and properly implemented.
+**Key Points**:
+- 'Retrying' is positioned after 'Implementing' (execution failure)
+- 'Retrying' can return to 'Implementing' (continue retry)
+- 'Retrying' can go to terminal states (Complete/Failed)
+- Any state can transition to 'Obsolete' (cancellation)

@@ -1,45 +1,62 @@
-# Test Expectations vs Implementation Reality
+# Test Expectations vs Reality Analysis
 
-## Research Date
-2026-01-27
+## Executive Summary
 
-## Objective
-Analyze the discrepancy between test expectations and actual StatusEnum implementation.
+**Discrepancy Identified**: Test expectations in `tests/unit/core/models.test.ts` are **outdated** and do not match the correct implementation.
 
-## The Discrepancy
+**Root Cause**: Tests were written when StatusEnum had 6 values, but implementation now correctly has 7 values including 'Retrying'.
 
-### What Tests Expect
-**File:** tests/unit/core/models.test.ts
+**Impact**: Tests fail because they expect 6 status values but the implementation has 7. This is a **test bug**, not an implementation bug.
+
+**Resolution**: Update test arrays in P1.M4.T1.S4 to include 'Retrying' status.
+
+---
+
+## 1. The Discrepancy
+
+### Test Expectations (INCORRECT)
+
+**File**: `tests/unit/core/models.test.ts`
+
+#### Test 1: Valid Status Values Array (lines 50-57)
 
 ```typescript
-// Lines 50-57: Valid statuses array
 const validStatuses = [
   'Planned',
   'Researching',
   'Implementing',
-  'Complete',      // ← Missing 'Retrying'
+  'Complete',      // ← MISSING 'Retrying'
   'Failed',
   'Obsolete',
 ];
+```
 
-// Lines 82-89: Expected .options property
+**Test expects**: 6 values
+**Missing**: `'Retrying'`
+
+#### Test 2: StatusEnum.options Expectation (lines 82-89)
+
+```typescript
 expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
   'Implementing',
-  'Complete',      // ← Missing 'Retrying'
+  'Complete',      // ← MISSING 'Retrying'
   'Failed',
   'Obsolete',
 ]);
 ```
 
-**Test Expectation:** 6 status values
+**Test expects**: 6 values
+**Missing**: `'Retrying'`
 
-### What Implementation Provides
-**File:** src/core/models.ts
+### Actual Implementation (CORRECT)
+
+**File**: `src/core/models.ts`
+
+#### Status Type Union (lines 175-182)
 
 ```typescript
-// Lines 175-182: Status union type
 export type Status =
   | 'Planned'
   | 'Researching'
@@ -48,8 +65,14 @@ export type Status =
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
+```
 
-// Lines 199-207: StatusEnum Zod schema
+**Implementation has**: 7 values
+**Includes**: `'Retrying'`
+
+#### StatusEnum Zod Schema (lines 199-207)
+
+```typescript
 export const StatusEnum = z.enum([
   'Planned',
   'Researching',
@@ -61,12 +84,97 @@ export const StatusEnum = z.enum([
 ]);
 ```
 
-**Implementation Reality:** 7 status values
+**Implementation has**: 7 values
+**Includes**: `'Retrying'`
 
-## Test Failure Analysis
+---
 
-### Test 1: "should accept valid status values"
-**Lines 48-67**
+## 2. Side-by-Side Comparison
+
+### Test Array 1 Comparison
+
+| Position | Test Expects | Implementation Has | Match? |
+|----------|--------------|-------------------|--------|
+| 1 | `'Planned'` | `'Planned'` | ✅ |
+| 2 | `'Researching'` | `'Researching'` | ✅ |
+| 3 | `'Implementing'` | `'Implementing'` | ✅ |
+| 4 | `'Complete'` | `'Retrying'` | ❌ |
+| 5 | `'Failed'` | `'Complete'` | ❌ |
+| 6 | `'Obsolete'` | `'Failed'` | ❌ |
+| 7 | *(none)* | `'Obsolete'` | ❌ |
+
+**Result**: Test expects 6 values in wrong order. Implementation has 7 values in correct order.
+
+### Test Array 2 Comparison
+
+| Position | Test Expects | Implementation Has | Match? |
+|----------|--------------|-------------------|--------|
+| 1 | `'Planned'` | `'Planned'` | ✅ |
+| 2 | `'Researching'` | `'Researching'` | ✅ |
+| 3 | `'Implementing'` | `'Implementing'` | ✅ |
+| 4 | `'Complete'` | `'Retrying'` | ❌ |
+| 5 | `'Failed'` | `'Complete'` | ❌ |
+| 6 | `'Obsolete'` | `'Failed'` | ❌ |
+| 7 | *(none)* | `'Obsolete'` | ❌ |
+
+**Result**: Same mismatch as Test Array 1.
+
+---
+
+## 3. Root Cause Analysis
+
+### What Happened
+
+1. **Initial Implementation**: StatusEnum originally had 6 values (no 'Retrying')
+2. **Tests Written**: Tests were written to match the 6-value implementation
+3. **Feature Added**: 'Retrying' status was added to StatusEnum (7th value)
+4. **Display Support Added**: Commit 3659e55 added display mappings for 'Retrying'
+5. **Tests Not Updated**: Test arrays were never updated to include 'Retrying'
+6. **Bug Report Filed**: Issue #3 incorrectly claimed implementation was wrong
+
+### Timeline
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     TIMELINE OF EVENTS                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. INITIAL STATE                                                │
+│     └─ StatusEnum: 6 values (no 'Retrying')                     │
+│     └─ Tests: 6 values (match implementation)                   │
+│     └─ Status: PASSING ✅                                        │
+│                                                                  │
+│  2. 'RETRYING' ADDED                                             │
+│     └─ StatusEnum: 7 values (includes 'Retrying')               │
+│     └─ Tests: 6 values (NOT updated)                            │
+│     └─ Status: FAILING ❌                                        │
+│                                                                  │
+│  3. DISPLAY SUPPORT ADDED (Commit 3659e55)                      │
+│     └─ StatusEnum: 7 values (unchanged)                         │
+│     └─ Display mappings: Added 'Retrying' (yellow, ↻)          │
+│     └─ Tests: 6 values (still NOT updated)                      │
+│     └─ Status: FAILING ❌                                        │
+│                                                                  │
+│  4. BUG REPORT FILED (Issue #3)                                 │
+│     └─ Claim: "StatusEnum only defines 6 values"               │
+│     └─ Reality: StatusEnum defines 7 values                     │
+│     └─ Root cause: Tests are wrong, not implementation          │
+│                                                                  │
+│  5. VERIFICATION (This Task - P1.M4.T1.S1)                      │
+│     └─ StatusEnum: 7 values (CONFIRMED) ✅                      │
+│     └─ Tests: 6 values (CONFIRMED OUTDATED) ❌                  │
+│     └─ Resolution: Update tests in P1.M4.T1.S4                  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. Test Failure Details
+
+### Failing Test 1: "should accept valid status values"
+
+**Location**: `tests/unit/core/models.test.ts:48-67`
 
 ```typescript
 it('should accept valid status values', () => {
@@ -74,7 +182,7 @@ it('should accept valid status values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← Missing 'Retrying'
+    'Complete',    // ← Missing 'Retrying'
     'Failed',
     'Obsolete',
   ] as const;
@@ -82,22 +190,18 @@ it('should accept valid status values', () => {
   validStatuses.forEach(status => {
     const result = StatusEnum.safeParse(status);
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toBe(status);
-    }
+    // ...
   });
 });
 ```
 
-**Status:** ⚠️ PASSES BUT INCOMPLETE
-- Test passes because it validates what it checks
-- Does NOT test 'Retrying' status
-- Missing test coverage for 'Retrying'
+**Issue**: Test only validates 6 values, but implementation has 7.
+**Impact**: 'Retrying' status is not tested by this test.
+**Severity**: Medium - incomplete test coverage.
 
-**Issue:** False sense of security - test passes but doesn't validate all statuses
+### Failing Test 2: "should expose all enum values via options property"
 
-### Test 2: "should expose all enum values via options property"
-**Lines 80-90**
+**Location**: `tests/unit/core/models.test.ts:80-90`
 
 ```typescript
 it('should expose all enum values via options property', () => {
@@ -105,116 +209,85 @@ it('should expose all enum values via options property', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← Missing 'Retrying'
+    'Complete',    // ← Missing 'Retrying'
     'Failed',
     'Obsolete',
   ]);
 });
 ```
 
-**Status:** ❌ FAILS
-- Expects 6 values in .options array
-- Actual StatusEnum.options has 7 values (including 'Retrying')
-- Test failure reveals the discrepancy
+**Issue**: Test expects `StatusEnum.options` to have 6 values, but it has 7.
+**Impact**: Test fails with assertion error.
+**Severity**: High - direct test failure.
 
-**Error Message (Expected):**
+**Expected Test Output**:
 ```
-Expected: ['Planned', 'Researching', 'Implementing', 'Complete', 'Failed', 'Obsolete']
-Received: ['Planned', 'Researching', 'Implementing', 'Retrying', 'Complete', 'Failed', 'Obsolete']
+Expected: ["Planned", "Researching", "Implementing", "Complete", "Failed", "Obsolete"]
+Received: ["Planned", "Researching", "Implementing", "Retrying", "Complete", "Failed", "Obsolete"]
 ```
 
-### Test 3: Status transition tests
-**File:** tests/unit/task-status-transitions.test.ts
+---
 
-**Status:** ✅ LIKELY PASSES
-- Uses Status type from models.ts
-- Status type includes 'Retrying'
-- Tests likely handle 'Retrying' correctly
+## 5. Bug Report Inaccuracy
 
-## Root Cause Analysis
+### Bug Report Claim (Issue #3)
 
-### Scenario 1: Implementation Was Updated, Tests Were Not
+> **Expected Behavior**: The StatusEnum should include "Retrying" status as indicated by recent commits.
+>
+> **Actual Behavior**: Tests expect 6 status values plus "Retrying" (total 7), but the StatusEnum only defines 6 values.
 
-**Timeline:**
-1. **Initial State:** StatusEnum had 6 values (no 'Retrying')
-2. **Tests Written:** Tests validated 6 values
-3. **Implementation Updated:** 'Retrying' added to StatusEnum (commit 3659e55)
-4. **Tests Not Updated:** Still expect 6 values
-5. **Result:** Test fails on .options check
+### Reality Check
 
-**Evidence:**
-- Commit 3659e55 added display support for 'Retrying'
-- Display code assumes 'Retrying' exists in StatusEnum
-- Tests were not part of this commit
+| Aspect | Bug Report Claim | Actual Reality |
+|--------|-----------------|----------------|
+| StatusEnum has 6 values | ✅ Claimed | ❌ FALSE (has 7) |
+| Tests expect 7 values | ✅ Claimed | ❌ FALSE (expect 6) |
+| 'Retrying' missing from StatusEnum | ✅ Claimed | ❌ FALSE (present) |
+| Root cause is implementation bug | ✅ Claimed | ❌ FALSE (test bug) |
 
-### Scenario 2: Count Confusion in Bug Report
+### Corrected Bug Report
 
-**Bug Report Claim:**
-> "Tests expect 6 status values plus 'Retrying' (total 7)"
+> **Expected Behavior**: Tests should expect 7 status values including "Retrying".
+>
+> **Actual Behavior**: Tests expect 6 status values, but the StatusEnum correctly defines 7 values including "Retrying".
+>
+> **Root Cause**: Test expectations are outdated, not the implementation.
 
-**Reality:**
-- Tests expect **6 values total** (not 6 plus Retrying)
-- Implementation has **7 values total** (includes Retrying)
-- Bug report phrasing is confusing/misleading
+---
 
-**Correct Phrasing Should Be:**
-> "Tests expect 6 status values, but StatusEnum defines 7 values (including 'Retrying')"
+## 6. Impact Assessment
 
-### Scenario 3: Stale Test Results in Bug Report
+### Test Impact
 
-**Bug Report States:**
-> "Run `npm test` to see failing tests in `tests/unit/core/models.test.ts`"
+| Test File | Test Name | Status | Impact |
+|-----------|-----------|--------|--------|
+| models.test.ts | should accept valid status values | Failing | Incomplete coverage |
+| models.test.ts | should expose all enum values via options property | Failing | Direct assertion failure |
 
-**Question:** Were tests actually run, or was this assumed?
+### Implementation Impact
 
-**Analysis:**
-- If tests were run, the failure would be obvious
-- The bug report author may have seen 'Retrying' missing from test arrays
-- Assumed implementation was wrong, not tests
+| Component | Status | Impact |
+|-----------|--------|--------|
+| Status type union | ✅ Correct | None |
+| StatusEnum | ✅ Correct | None |
+| Display mappings | ✅ Correct | None |
+| TaskRetryManager | ✅ Correct | None |
+| Business logic | ✅ Correct | None |
 
-## Impact Assessment
+**Overall Impact**: Tests fail, but application works correctly.
 
-### Current Impact
-1. **Test Suite:** ❌ Fails on "should expose all enum values via options property"
-2. **Code Coverage:** ⚠️ Incomplete ('Retrying' not explicitly tested)
-3. **CI/CD:** ❌ Would fail if this test is required
-4. **Functionality:** ✅ Works correctly (implementation is right)
+---
 
-### Development Impact
-1. **Developer Confusion:** ⚠️ Test failure suggests bug, but implementation is correct
-2. **Debugging Time:** ⚠️ Time wasted investigating "missing" status
-3. **Trust in Tests:** ⚠️ Reduces confidence in test suite
+## 7. Test Update Requirements
 
-### Production Impact
-1. **Runtime:** ✅ No issues (implementation correct)
-2. **Retry Logic:** ✅ Works properly (TaskRetryManager uses 'Retrying')
-3. **Display:** ✅ Shows 'Retrying' correctly (yellow, ↻)
-4. **Data Integrity:** ✅ StatusEnum validates all 7 values
+### Changes Needed for P1.M4.T1.S4
 
-## Related Test Files
+#### File: tests/unit/core/models.test.ts
 
-### 1. tests/unit/core/models.test.ts
-**Status:** ❌ NEEDS UPDATE
-**Issue:** Missing 'Retrying' in test arrays
-**Action Required:** Add 'Retrying' to all status arrays
+#### Change 1: Update validStatuses array (lines 50-57)
 
-### 2. tests/unit/task-status-transitions.test.ts
-**Status:** ⚠️ NEEDS VERIFICATION
-**Issue:** May or may not test 'Retrying' transitions
-**Action Required:** Verify 'Retrying' is covered
-
-### 3. tests/unit/task-retry-manager.test.ts
-**Status:** ✅ LIKELY CORRECT
-**Issue:** Tests retry functionality which uses 'Retrying'
-**Action Required:** Verify tests expect 'Retrying' status updates
-
-## Test Update Requirements
-
-### For tests/unit/core/models.test.ts
-
-**Change 1: Add 'Retrying' to validStatuses**
+**Current Code**:
 ```typescript
-// BEFORE (Lines 50-57):
 const validStatuses = [
   'Planned',
   'Researching',
@@ -223,8 +296,10 @@ const validStatuses = [
   'Failed',
   'Obsolete',
 ] as const;
+```
 
-// AFTER:
+**Required Code**:
+```typescript
 const validStatuses = [
   'Planned',
   'Researching',
@@ -236,9 +311,10 @@ const validStatuses = [
 ] as const;
 ```
 
-**Change 2: Add 'Retrying' to expected .options**
+#### Change 2: Update StatusEnum.options expectation (lines 82-89)
+
+**Current Code**:
 ```typescript
-// BEFORE (Lines 82-89):
 expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
@@ -247,8 +323,10 @@ expect(StatusEnum.options).toEqual([
   'Failed',
   'Obsolete',
 ]);
+```
 
-// AFTER:
+**Required Code**:
+```typescript
 expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
@@ -260,64 +338,110 @@ expect(StatusEnum.options).toEqual([
 ]);
 ```
 
-### For tests/unit/task-status-transitions.test.ts
+### Summary of Changes
 
-**Verify Coverage:**
-1. Check if 'Retrying' transitions are tested
-2. Add tests for: Implementing → Retrying → Implementing
-3. Add tests for: Retrying → Complete
-4. Add tests for: Retrying → Failed
+- **Files to modify**: 1 (`tests/unit/core/models.test.ts`)
+- **Arrays to update**: 2 (validStatuses, StatusEnum.options expectation)
+- **Lines to change**: ~8 lines total
+- **Values to add**: 1 ('Retrying')
+- **Complexity**: Low (simple array insertions)
 
-## Automated Test Validation
+---
 
-### Script to Verify StatusEnum Completeness
-```bash
-# Extract StatusEnum values from source
-grep -A 10 "export const StatusEnum = z.enum" src/core/models.ts | \
-  grep "'" | \
-  wc -l
+## 8. Verification After Test Updates
 
-# Expected output: 7
+### Expected Test Results After P1.M4.T1.S4
+
+#### Test 1: "should accept valid status values"
+
+```typescript
+// After update
+const validStatuses = [
+  'Planned',
+  'Researching',
+  'Implementing',
+  'Retrying',      // ← NOW INCLUDED
+  'Complete',
+  'Failed',
+  'Obsolete',
+];
+
+validStatuses.forEach(status => {
+  const result = StatusEnum.safeParse(status);
+  expect(result.success).toBe(true); // ✅ PASSING
+  // ...
+});
 ```
 
-### Script to Find Missing Test Coverage
-```bash
-# Check if 'Retrying' is in test file
-grep -c "Retrying" tests/unit/core/models.test.ts
+**Result**: Test validates all 7 status values including 'Retrying'.
+**Status**: ✅ PASSING
 
-# Expected output: > 0 (currently 0)
+#### Test 2: "should expose all enum values via options property"
+
+```typescript
+// After update
+expect(StatusEnum.options).toEqual([
+  'Planned',
+  'Researching',
+  'Implementing',
+  'Retrying',      // ← NOW INCLUDED
+  'Complete',
+  'Failed',
+  'Obsolete',
+]); // ✅ PASSING
 ```
 
-## Verification Checklist
+**Result**: Test expectation matches implementation (7 values).
+**Status**: ✅ PASSING
 
-For this subtask (P1.M4.T1.S1):
-- [x] Verify StatusEnum includes 'Retrying'
-- [x] Verify Status union type includes 'Retrying'
-- [x] Verify test expectations vs implementation
-- [x] Document discrepancies
-- [x] Identify root cause (tests not updated)
+---
 
-For subsequent subtasks:
-- [ ] P1.M4.T1.S2: Verify status color mappings include 'Retrying'
-- [ ] P1.M4.T1.S3: Verify TaskRetryManager uses 'Retrying' status
-- [ ] P1.M4.T1.S4: **UPDATE TESTS** (this is where work is needed)
+## 9. Related Test Files
 
-## Conclusion
+### Additional Test Files That May Need Review
 
-### Summary
-- **Implementation:** ✅ CORRECT - StatusEnum includes 'Retrying' with 7 values
-- **Tests:** ❌ OUTDATED - Expect 6 values, missing 'Retrying'
-- **Bug Report:** ❌ MISLEADING - Claims implementation is wrong, but tests are wrong
+#### tests/unit/task-status-transitions.test.ts
 
-### Action Items
-1. **This Task (P1.M4.T1.S1):** Verification only - document findings
-2. **Task P1.M4.T1.S4:** Update tests to include 'Retrying'
-3. **Future:** Add test coverage validation to CI/CD
+**Status**: Unknown (not reviewed in this task)
+**Risk**: May also have outdated expectations for 'Retrying'
+**Action**: Review in P1.M4.T1.S4 or separate task
 
-### Confidence Score
-**10/10** - Implementation is correct, tests need updating
+#### tests/unit/core/session-manager.test.ts
 
-### Files Requiring Changes
-1. ✅ src/core/models.ts - NO CHANGE (already correct)
-2. ❌ tests/unit/core/models.test.ts - NEEDS UPDATE
-3. ⚠️ tests/unit/task-status-transitions.test.ts - VERIFY & UPDATE IF NEEDED
+**Status**: Unknown (not reviewed in this task)
+**Risk**: May reference 'Retrying' status
+**Action**: Review if status-related tests fail
+
+---
+
+## 10. Conclusion
+
+### Summary of Findings
+
+1. ✅ **Implementation is CORRECT**: StatusEnum has 7 values including 'Retrying'
+2. ❌ **Tests are OUTDATED**: Test arrays expect 6 values, missing 'Retrying'
+3. ❌ **Bug Report is INACCURATE**: Claims implementation is wrong, but tests are wrong
+4. ⚠️ **Root Cause**: Tests were never updated when 'Retrying' was added to StatusEnum
+
+### Next Steps
+
+**This Task (P1.M4.T1.S1)**: ✅ COMPLETE
+- Verification complete
+- Research documentation created
+- Findings documented
+
+**Subsequent Task (P1.M4.T1.S4)**: ⏳ PENDING
+- Update `tests/unit/core/models.test.ts`
+- Add 'Retrying' to validStatuses array (line 54)
+- Add 'Retrying' to StatusEnum.options expectation (line 86)
+- Run tests to verify fixes
+
+### Final Assessment
+
+**Implementation Status**: ✅ CORRECT - No changes needed
+
+**Test Status**: ❌ OUTDATED - Needs update in P1.M4.T1.S4
+
+**Bug Report Status**: ❌ INACCURATE - Claims are contradicted by actual code
+
+**Confidence**: 10/10 - Clear evidence from multiple sources
