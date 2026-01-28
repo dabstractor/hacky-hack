@@ -41,6 +41,7 @@ import {
   type BugSeverity,
   type Bug,
   type TestResults,
+  type Status,
 } from '../../../src/core/models.js';
 
 describe('core/models Zod Schemas', () => {
@@ -51,6 +52,7 @@ describe('core/models Zod Schemas', () => {
         'Planned',
         'Researching',
         'Implementing',
+        'Retrying',
         'Complete',
         'Failed',
         'Obsolete',
@@ -83,6 +85,7 @@ describe('core/models Zod Schemas', () => {
         'Planned',
         'Researching',
         'Implementing',
+        'Retrying',
         'Complete',
         'Failed',
         'Obsolete',
@@ -221,11 +224,12 @@ describe('core/models Zod Schemas', () => {
     });
 
     it('should document complete status lifecycle with all valid values', () => {
-      // SETUP: All 6 valid status values (not 7 as in outdated docs)
+      // SETUP: All 7 valid status values including Retrying
       const allValidStatuses: Status[] = [
         'Planned',
         'Researching',
         'Implementing',
+        'Retrying',
         'Complete',
         'Failed',
         'Obsolete',
@@ -237,9 +241,9 @@ describe('core/models Zod Schemas', () => {
         expect(result.success).toBe(true);
       });
 
-      // VERIFY: Count matches implementation (6 values)
-      expect(allValidStatuses.length).toBe(6);
-      expect(StatusEnum.options.length).toBe(6);
+      // VERIFY: Count matches implementation (7 values)
+      expect(allValidStatuses.length).toBe(7);
+      expect(StatusEnum.options.length).toBe(7);
 
       // VERIFY: No 'Ready' status in implementation
       expect(StatusEnum.options).not.toContain('Ready');
