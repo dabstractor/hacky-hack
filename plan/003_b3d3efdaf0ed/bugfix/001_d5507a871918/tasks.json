@@ -355,14 +355,14 @@
           "type": "Milestone",
           "id": "P1.M4",
           "title": "Milestone 1.4: Status Management Verification",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Verify StatusEnum includes 'Retrying' status and status transitions work correctly, ensuring retry logic is properly integrated.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M4.T1",
               "title": "Verify StatusEnum Includes Retrying Status",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Confirm that StatusEnum in src/core/models.ts includes the 'Retrying' status value and that it's properly integrated throughout the codebase.",
               "subtasks": [
                 {
@@ -389,7 +389,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S3",
                   "title": "Verify TaskRetryManager uses Retrying status",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S2"
@@ -400,7 +400,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S4",
                   "title": "Update status model unit tests",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S3"
