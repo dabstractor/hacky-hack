@@ -378,7 +378,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S2",
                   "title": "Verify status color and indicator mappings include Retrying",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S1"
@@ -389,7 +389,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S3",
                   "title": "Verify TaskRetryManager uses Retrying status",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M4.T1.S2"
