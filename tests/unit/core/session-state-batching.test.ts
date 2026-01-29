@@ -111,9 +111,17 @@ const mockUpdateItemStatusUtil = vi.mocked(updateItemStatusUtil);
 
 // Setup mock validator instance
 const mockValidate = vi.fn();
-mockPRDValidator.mockImplementation(() => ({
-  validate: mockValidate,
-}));
+mockPRDValidator.mockImplementation(
+  () =>
+    ({
+      validate: mockValidate,
+      // Add private method mocks to satisfy TypeScript
+      '#validateFileExists': mockValidate,
+      '#validateContentLength': mockValidate,
+      '#validateRequiredSections': mockValidate,
+      '#buildResult': mockValidate,
+    }) as any
+);
 
 // =============================================================================
 // Factory Functions for Test Data
@@ -333,7 +341,15 @@ async function createMockSessionManager(
         };
         task.subtasks.push(subtask);
       } else {
-        subtask.status = newStatus as any;
+        // Create new subtask with updated status (readonly property workaround)
+        const updatedSubtask = {
+          ...subtask,
+          status: newStatus as any,
+        };
+        const index = task.subtasks.findIndex(s => s.id === itemId);
+        if (index !== -1) {
+          (task.subtasks as any)[index] = updatedSubtask;
+        }
       }
 
       return updated;
