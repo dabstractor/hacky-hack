@@ -37,6 +37,35 @@ import {
 // =============================================================================
 
 /**
+ * Helper function to create a mock AgentResponse
+ *
+ * @remarks
+ * Creates a proper AgentResponse object matching Groundswell's types.
+ *
+ * @param data - The response data
+ * @returns A success AgentResponse<string>
+ */
+function createMockAgentResponse(data: string): {
+  status: 'success';
+  data: string;
+  error: null;
+  metadata: {
+    agentId: string;
+    timestamp: number;
+  };
+} {
+  return {
+    status: 'success',
+    data,
+    error: null,
+    metadata: {
+      agentId: 'mock-agent-id',
+      timestamp: Date.now(),
+    },
+  };
+}
+
+/**
  * Mock Groundswell for agent configuration tests
  *
  * @remarks
@@ -46,7 +75,11 @@ vi.mock('groundswell', async () => {
   const actual = await vi.importActual('groundswell');
   return {
     ...actual,
-    createAgent: vi.fn(),
+    createAgent: vi.fn().mockReturnValue({
+      id: 'mock-agent-id',
+      name: 'MockAgent',
+      prompt: vi.fn(),
+    }),
     createPrompt: vi.fn(),
   };
 });
@@ -358,10 +391,12 @@ describe('integration/coder-agent > PRP executor integration', () => {
 
     // Mock agent to return success
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({
-        result: 'success',
-        message: 'Implementation complete',
-      })
+      createMockAgentResponse(
+        JSON.stringify({
+          result: 'success',
+          message: 'Implementation complete',
+        })
+      )
     );
 
     const executor = new PRPExecutor(sessionPath);
@@ -417,10 +452,12 @@ describe('integration/coder-agent > progressive validation execution', () => {
 
     // Mock agent to return success
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({
-        result: 'success',
-        message: 'Implementation complete',
-      })
+      createMockAgentResponse(
+        JSON.stringify({
+          result: 'success',
+          message: 'Implementation complete',
+        })
+      )
     );
 
     const executor = new PRPExecutor(sessionPath);
@@ -456,7 +493,7 @@ describe('integration/coder-agent > progressive validation execution', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -481,7 +518,7 @@ describe('integration/coder-agent > progressive validation execution', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -505,7 +542,7 @@ describe('integration/coder-agent > progressive validation execution', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -554,7 +591,7 @@ describe('integration/coder-agent > fix-and-retry mechanism', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -585,7 +622,9 @@ describe('integration/coder-agent > fix-and-retry mechanism', () => {
     ]);
 
     mockAgent.prompt.mockImplementation(async (prompt: string) => {
-      return JSON.stringify({ result: 'success', message: 'Fixed' });
+      return createMockAgentResponse(
+        JSON.stringify({ result: 'success', message: 'Fixed' })
+      );
     });
 
     const executor = new PRPExecutor(process.cwd());
@@ -619,7 +658,7 @@ describe('integration/coder-agent > BashMCP tool integration', () => {
     const prpPath = '/tmp/test-session/prps/P1M2T2S2.md';
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -651,7 +690,7 @@ describe('integration/coder-agent > BashMCP tool integration', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -678,7 +717,7 @@ describe('integration/coder-agent > BashMCP tool integration', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -711,7 +750,7 @@ describe('integration/coder-agent > BashMCP tool integration', () => {
     ]);
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -754,7 +793,7 @@ describe('integration/coder-agent > validation artifact collection', () => {
     const prp = createMockPRPDocument('P1.M2.T2.S2');
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -784,7 +823,7 @@ describe('integration/coder-agent > validation artifact collection', () => {
     const prp = createMockPRPDocument('P1.M2.T2.S2');
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -801,7 +840,7 @@ describe('integration/coder-agent > validation artifact collection', () => {
     const prp = createMockPRPDocument('P1.M2.T2.S2');
 
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({ result: 'success', message: '' })
+      createMockAgentResponse(JSON.stringify({ result: 'success', message: '' }))
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -838,10 +877,12 @@ describe('integration/coder-agent > JSON result parsing', () => {
 
     // Mock agent to return raw JSON
     mockAgent.prompt.mockResolvedValue(
-      JSON.stringify({
-        result: 'success',
-        message: 'Implementation complete',
-      })
+      createMockAgentResponse(
+        JSON.stringify({
+          result: 'success',
+          message: 'Implementation complete',
+        })
+      )
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -859,12 +900,14 @@ describe('integration/coder-agent > JSON result parsing', () => {
 
     // Mock agent to return JSON wrapped in markdown
     mockAgent.prompt.mockResolvedValue(
-      '```json\n' +
-        '{\n' +
-        '  "result": "success",\n' +
-        '  "message": "Implementation complete"\n' +
-        '}\n' +
-        '```'
+      createMockAgentResponse(
+        '```json\n' +
+          '{\n' +
+          '  "result": "success",\n' +
+          '  "message": "Implementation complete"\n' +
+          '}\n' +
+          '```'
+      )
     );
 
     const executor = new PRPExecutor(process.cwd());
@@ -881,7 +924,9 @@ describe('integration/coder-agent > JSON result parsing', () => {
     const prp = createMockPRPDocument('P1.M2.T2.S2');
 
     // Mock agent to return invalid JSON
-    mockAgent.prompt.mockResolvedValue('not valid json at all');
+    mockAgent.prompt.mockResolvedValue(
+      createMockAgentResponse('not valid json at all')
+    );
 
     const executor = new PRPExecutor(process.cwd());
 
