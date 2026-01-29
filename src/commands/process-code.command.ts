@@ -48,7 +48,7 @@ export const processCodeCommand = new Command('process-code')
           result = await minifyCode(code);
           break;
 
-        case 'extract-lines':
+        case 'extract-lines': {
           if (!options.extractLines) {
             console.error(
               'Error: --extract-lines required for method "extract-lines"'
@@ -59,8 +59,9 @@ export const processCodeCommand = new Command('process-code')
           const processor = new CodeProcessor();
           result = processor.extractLineRange(code, { start, end });
           break;
+        }
 
-        case 'extract-function':
+        case 'extract-function': {
           if (!options.extractFunction) {
             console.error(
               'Error: --extract-function required for method "extract-function"'
@@ -70,8 +71,9 @@ export const processCodeCommand = new Command('process-code')
           const funcProcessor = new CodeProcessor();
           result = funcProcessor.extractFunction(code, options.extractFunction);
           break;
+        }
 
-        case 'extract-class':
+        case 'extract-class': {
           if (!options.extractClass) {
             console.error(
               'Error: --extract-class required for method "extract-class"'
@@ -81,18 +83,21 @@ export const processCodeCommand = new Command('process-code')
           const classProcessor = new CodeProcessor();
           result = classProcessor.extractClass(code, options.extractClass);
           break;
+        }
 
-        case 'comments-only':
+        case 'comments-only': {
           const commentProcessor = new CodeProcessor();
           result = commentProcessor.removeComments(code);
           break;
+        }
 
-        case 'blank-lines-only':
+        case 'blank-lines-only': {
           const blankProcessor = new CodeProcessor();
           result = blankProcessor.removeBlankLines(code);
           break;
+        }
 
-        case 'compress':
+        case 'compress': {
           const compressProcessor = new CodeProcessor();
           result = await compressProcessor.process(code, {
             removeComments: true,
@@ -100,6 +105,7 @@ export const processCodeCommand = new Command('process-code')
             mangle: false,
           });
           break;
+        }
 
         default:
           console.error(`Error: Unknown method "${options.method}"`);

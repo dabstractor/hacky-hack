@@ -7,6 +7,7 @@
 **Deliverable**: New error class `BugfixSessionValidationError` extending `PipelineError` with proper error code, context support, type guard, and comprehensive unit tests, enabling programmatic distinction of bugfix session validation failures from other errors.
 
 **Success Definition**:
+
 - Error class properly extends `PipelineError` base class with correct prototype chain setup
 - Error class implements error code `PIPELINE_SESSION_INVALID_BUGFIX_PATH` in `ErrorCodes` const
 - Error class accepts `sessionPath` parameter in context object for debugging
@@ -21,11 +22,13 @@
 **Target User**: AI agent implementing bug fix tasks in the PRP Pipeline execution context, developers debugging session validation failures.
 
 **Use Case**: When `validateBugfixSession` function detects an invalid session path (not containing 'bugfix'), it throws `BugfixSessionValidationError` with clear error message including the invalid path. This error can be:
+
 - Caught and logged with structured context
 - Distinguished from other error types programmatically via error code or type guard
 - Displayed to users with actionable information
 
 **User Journey**:
+
 1. PRP Pipeline instantiates `FixCycleWorkflow` with session path
 2. Constructor calls `validateBugfixSession(sessionPath)`
 3. If path invalid (no 'bugfix'), function throws `BugfixSessionValidationError`
@@ -34,6 +37,7 @@
 6. Pipeline halts with clear error message showing invalid path
 
 **Pain Points Addressed**:
+
 - Distinguishes bugfix session validation failures from other validation or session errors
 - Provides specific error code for programmatic handling (`PIPELINE_SESSION_INVALID_BUGFIX_PATH`)
 - Includes session path in error context for debugging
@@ -45,12 +49,14 @@
 **Business value**: Provides specific error type for bugfix session validation failures, enabling targeted error handling, monitoring, and debugging. Following established error patterns ensures maintainability and consistency across the codebase.
 
 **Integration with existing features**:
+
 - Replaces placeholder `BugfixSessionValidationError` in `src/utils/validation/session-validation.ts`
 - Adds to existing error hierarchy in `src/utils/errors.ts` alongside `SessionError`, `TaskError`, `ValidationError`
 - Follows established patterns from codebase error classes
 - Integrates with existing type guard pattern (`isSessionError`, `isTaskError`, etc.)
 
 **Problems this solves**:
+
 - Current placeholder error class in `session-validation.ts` is temporary and doesn't follow codebase patterns
 - No error code `PIPELINE_SESSION_INVALID_BUGFIX_PATH` exists in `ErrorCodes` const
 - No type guard exists for bugfix session validation errors
@@ -60,6 +66,7 @@
 ## What
 
 **User-visible behavior**: When `validateBugfixSession` function throws `BugfixSessionValidationError`, the error includes:
+
 - Clear error message with invalid path
 - Error code `PIPELINE_SESSION_INVALID_BUGFIX_PATH` for programmatic handling
 - Context object with `sessionPath` property for debugging
@@ -67,6 +74,7 @@
 - JSON serialization support for structured logging
 
 **Technical requirements**:
+
 1. Add error code `PIPELINE_SESSION_INVALID_BUGFIX_PATH` to `ErrorCodes` const in `src/utils/errors.ts`
 2. Create `BugfixSessionValidationError` class extending `PipelineError` in `src/utils/errors.ts`
 3. Constructor accepts `(message: string, context?: PipelineErrorContext, cause?: Error)`
@@ -233,7 +241,9 @@ export const ErrorCodes = {
 
 // CRITICAL: Type guard pattern for type narrowing
 // See src/utils/errors.ts lines 521-614 for type guard examples
-export function isBugfixSessionValidationError(error: unknown): error is BugfixSessionValidationError {
+export function isBugfixSessionValidationError(
+  error: unknown
+): error is BugfixSessionValidationError {
   return error instanceof BugfixSessionValidationError;
 }
 
@@ -243,7 +253,7 @@ export function isBugfixSessionValidationError(error: unknown): error is BugfixS
 // See src/utils/errors.ts lines 94-112 for PipelineErrorContext interface
 throw new BugfixSessionValidationError(
   'Bug fix tasks can only be executed within bugfix sessions. Invalid path: /path/to/session',
-  { sessionPath: '/path/to/session' }  // Context with sessionPath for debugging
+  { sessionPath: '/path/to/session' } // Context with sessionPath for debugging
 );
 
 // CRITICAL: toJSON() method for structured logging
@@ -299,6 +309,7 @@ throw new BugfixSessionValidationError(
 No new data models required. This implementation uses existing `PipelineErrorContext` interface and extends `PipelineError` base class.
 
 **Key Types**:
+
 - `PipelineError`: Base error class from `src/utils/errors.ts`
 - `PipelineErrorContext`: Context interface with optional `sessionPath`, `taskId`, `operation`, `cause` properties
 - `ErrorCode`: Union type of all error code values from `ErrorCodes` const
@@ -369,7 +380,7 @@ Task 7: VERIFY existing session-validation tests still pass
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // FILE: src/utils/errors.ts
 // ============================================================================
@@ -418,11 +429,7 @@ export const ErrorCodes = {
 export class BugfixSessionValidationError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_SESSION_INVALID_BUGFIX_PATH;
 
-  constructor(
-    message: string,
-    context?: PipelineErrorContext,
-    cause?: Error
-  ) {
+  constructor(message: string, context?: PipelineErrorContext, cause?: Error) {
     super(message, context, cause);
     // CRITICAL: Must set prototype for this class explicitly
     Object.setPrototypeOf(this, BugfixSessionValidationError.prototype);
@@ -478,7 +485,7 @@ export function validateBugfixSession(sessionPath: string): void {
   if (!sessionPath.includes('bugfix')) {
     throw new BugfixSessionValidationError(
       `Bug fix tasks can only be executed within bugfix sessions. Invalid path: ${sessionPath}`,
-      { sessionPath }  // Include sessionPath in context for debugging
+      { sessionPath } // Include sessionPath in context for debugging
     );
   }
 }
@@ -517,26 +524,21 @@ describe('BugfixSessionValidationError', () => {
   });
 
   it('should set error message correctly', () => {
-    const message = 'Bug fix tasks can only be executed within bugfix sessions.';
+    const message =
+      'Bug fix tasks can only be executed within bugfix sessions.';
     const error = new BugfixSessionValidationError(message);
     expect(error.message).toBe(message);
   });
 
   it('should store and provide context object', () => {
     const context = { sessionPath: '/invalid/path' };
-    const error = new BugfixSessionValidationError(
-      'Test message',
-      context
-    );
+    const error = new BugfixSessionValidationError('Test message', context);
     expect(error.context).toEqual(context);
   });
 
   it('should serialize to JSON correctly', () => {
     const context = { sessionPath: '/invalid/path' };
-    const error = new BugfixSessionValidationError(
-      'Test message',
-      context
-    );
+    const error = new BugfixSessionValidationError('Test message', context);
     const json = error.toJSON();
 
     expect(json).toBeInstanceOf(Object);
@@ -579,16 +581,13 @@ describe('BugfixSessionValidationError', () => {
     const sessionPath = 'plan/003_b3d3efdaf0ed/feature/001_xyz';
     const message = `Bug fix tasks can only be executed within bugfix sessions. Invalid path: ${sessionPath}`;
 
-    const error = new BugfixSessionValidationError(
-      message,
-      { sessionPath }
-    );
+    const error = new BugfixSessionValidationError(message, { sessionPath });
 
     expect(error.message).toBe(message);
     expect(error.context?.sessionPath).toBe(sessionPath);
   });
 });
-```
+````
 
 ### Integration Points
 
@@ -831,7 +830,7 @@ npm test -- --testNamePattern="BugfixSessionValidationError async handling"
 - [ ] JSDoc comments follow existing documentation style
 - [ ] File placement matches desired codebase tree structure
 - [ ] Imports use relative paths with .js extension (ESM module pattern)
-- [ ] Error code naming follows convention: PIPELINE_{DOMAIN}_{ACTION}_{OUTCOME}
+- [ ] Error code naming follows convention: PIPELINE*{DOMAIN}*{ACTION}\_{OUTCOME}
 - [ ] No code duplication (reuses PipelineError base class functionality)
 - [ ] Consistent with other error classes (SessionError, TaskError, ValidationError)
 - [ ] Test coverage matches existing error test patterns

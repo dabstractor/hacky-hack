@@ -245,10 +245,8 @@ export class CodeProcessor {
         keep_fnames: true,
       });
 
-      if (result.error) {
-        throw new Error(`Terser error: ${result.error.message}`);
-      }
-
+      // MinifyOutput doesn't have an error property - errors are thrown
+      // The minify function throws on error, so if we get here, it succeeded
       return result.code || code;
     } catch (error) {
       console.warn('Terser minification failed:', error);
@@ -527,9 +525,14 @@ export const codeUtils = {
 
 /**
  * Create a processor instance with default options
+ *
+ * @remarks
+ * Options are passed to the process() method, not the constructor.
+ * This is intentional to allow the same processor instance to be
+ * reused with different options.
  */
 export function createProcessor(
-  options: ProcessingOptions = {}
+  _options: ProcessingOptions = {}
 ): CodeProcessor {
   return new CodeProcessor();
 }

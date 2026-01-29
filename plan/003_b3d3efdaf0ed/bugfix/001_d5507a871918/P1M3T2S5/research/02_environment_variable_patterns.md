@@ -7,6 +7,7 @@ Comprehensive analysis of how environment variables are accessed and used throug
 ## Access Patterns
 
 ### Direct Access Pattern
+
 ```typescript
 // From execution-guard.ts (line 57-58)
 const existingPid = process.env.PRP_PIPELINE_RUNNING;
@@ -16,6 +17,7 @@ const isBugfixRecursion =
 ```
 
 ### Configuration Pattern with Defaults
+
 ```typescript
 // From CLI (line 281)
 .choices(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
@@ -28,6 +30,7 @@ process.env.MONITOR_TASK_INTERVAL ?? '1'
 ## SKIP_BUG_FINDING Usage
 
 ### Current Implementation
+
 ```typescript
 // From src/utils/validation/execution-guard.ts (lines 67-69)
 const isBugfixRecursion =
@@ -36,6 +39,7 @@ const isBugfixRecursion =
 ```
 
 ### Key Points
+
 - Uses **exact string match** (`=== 'true'`), case-sensitive
 - Allows legitimate bug fix session recursion when combined with 'bugfix' in path
 - Prevents illegitimate nested execution
@@ -43,6 +47,7 @@ const isBugfixRecursion =
 ## Default Values: Handling Undefined Environment Variables
 
 ### Nullish Coalescing Operator (??)
+
 ```typescript
 // From CLI (line 281)
 .default(process.env.HACKY_LOG_LEVEL ?? 'info')
@@ -56,14 +61,16 @@ process.env.MONITOR_TASK_INTERVAL ?? '1'
 The codebase consistently uses **exact string matching** for boolean environment variables:
 
 ### Standard Boolean Pattern
+
 ```typescript
 // Throughout the codebase
-process.env.SKIP_BUG_FINDING === 'true'  // Returns boolean
-process.env.ENABLE_METRICS === 'true'     // Returns boolean
-process.env.DEBUG === 'true'              // Returns boolean
+process.env.SKIP_BUG_FINDING === 'true'; // Returns boolean
+process.env.ENABLE_METRICS === 'true'; // Returns boolean
+process.env.DEBUG === 'true'; // Returns boolean
 ```
 
 ### Why This Pattern
+
 1. **Explicit and Clear**: No ambiguity about truthy/falsy values
 2. **Type Safe**: Ensures actual boolean result, not truthy string
 3. **Consistent**: Used everywhere in the codebase
@@ -71,10 +78,12 @@ process.env.DEBUG === 'true'              // Returns boolean
 ## Best Practices Observed
 
 ### 1. Consistent Naming Convention
+
 - All env vars use `UPPER_SNAKE_CASE`
 - Prefixed with project name when needed (e.g., `HACKY_LOG_LEVEL`)
 
 ### 2. Type-Safe Access
+
 ```typescript
 // Always check with exact string for booleans
 if (process.env.SKIP_BUG_FINDING === 'true') {
@@ -83,6 +92,7 @@ if (process.env.SKIP_BUG_FINDING === 'true') {
 ```
 
 ### 3. Validation Before Use
+
 ```typescript
 // From config/environment.ts - validate required vars
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -91,12 +101,15 @@ if (!process.env.ANTHROPIC_API_KEY) {
 ```
 
 ### 4. Default Value Strategies
+
 ```typescript
 // Option 1: Nullish coalescing (most common)
-value = process.env.VAR_NAME ?? 'default'
+value =
+  process.env.VAR_NAME ??
+  'default'
 
-// Option 2: Explicit default in CLI definition
-.option('--opt <value>', 'Description', 'default')
+    // Option 2: Explicit default in CLI definition
+    .option('--opt <value>', 'Description', 'default');
 ```
 
 ## Implementation Guidance for Guard Context Logging

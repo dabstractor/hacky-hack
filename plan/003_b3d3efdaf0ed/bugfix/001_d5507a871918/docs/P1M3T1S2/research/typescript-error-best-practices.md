@@ -31,6 +31,7 @@ class BugfixSessionValidationError extends Error {
 ```
 
 **Why this matters:**
+
 - Without `Object.setPrototypeOf()`, `instanceof` checks fail in transpiled code
 - TypeScript's default target (ES5) breaks prototype inheritance for Error
 - `Error.captureStackTrace()` provides cleaner stack traces in Node.js
@@ -42,11 +43,13 @@ class BugfixSessionValidationError extends Error {
 ### When to Extend Error vs Custom Base Classes
 
 **Extend Error directly when:**
+
 - Creating a specific error type for a domain (e.g., ValidationError, NetworkError)
 - The error will be thrown and caught with try/catch
 - You need stack traces and standard error properties
 
 **Create a custom base class when:**
+
 - You have multiple related error types sharing common properties
 - You need centralized error handling logic
 - You want to add consistent serialization or logging
@@ -100,6 +103,7 @@ class BugfixSessionValidationError extends AppError {
    - Example: `BUGFIX_SESSION_FILE_NOT_FOUND`
 
 2. **Include error codes for programmatic handling:**
+
    ```typescript
    enum BugfixSessionErrorCodes {
      INVALID_SESSION_PATH = 'BUGFIX_SESSION_INVALID_PATH',
@@ -151,6 +155,7 @@ class BugfixSessionValidationError extends Error {
 ```
 
 **Context Object Best Practices:**
+
 - Include file paths for debugging (useful for validation errors)
 - Include the value that failed validation (be mindful of sensitive data)
 - Include schema/rule information that caused validation failure
@@ -185,6 +190,7 @@ class BugfixSessionValidationError extends Error {
 ```
 
 **Parameter Order (convention):**
+
 1. `message: string` - Human-readable error description
 2. `code: string` - Machine-readable error identifier
 3. `context?: Record<string, unknown>` - Additional debugging context
@@ -276,6 +282,7 @@ class BugfixSessionValidationError extends Error {
 ```
 
 **toJSON() Best Practices:**
+
 - Return a plain object (not the error instance)
 - Include all custom properties
 - Include cause information (if any)
@@ -334,6 +341,7 @@ function handleError(error: unknown) {
 **Validation Error Characteristics:**
 
 1. **Multiple validation failures:**
+
    ```typescript
    interface ValidationErrorItem {
      field: string;
@@ -355,6 +363,7 @@ function handleError(error: unknown) {
    ```
 
 2. **Structured error reporting:**
+
    ```typescript
    const error = new BugfixSessionValidationError(
      'Session validation failed',
@@ -377,28 +386,31 @@ function handleError(error: unknown) {
 **Message Guidelines:**
 
 1. **Be specific about what failed:**
+
    ```typescript
    // Good: Specific
-   'Session ID must be a non-empty string'
+   'Session ID must be a non-empty string';
 
    // Bad: Generic
-   'Validation failed'
+   'Validation failed';
    ```
 
 2. **Include the problematic value:**
+
    ```typescript
-   `Expected sessionId to be string, got ${typeof sessionId}`
+   `Expected sessionId to be string, got ${typeof sessionId}`;
    ```
 
 3. **Provide actionable guidance:**
+
    ```typescript
-   'Session file must exist at path: /path/to/session. Run init to create.'
+   'Session file must exist at path: /path/to/session. Run init to create.';
    ```
 
 4. **Use consistent message format:**
    ```typescript
    // Format: "What failed + why + how to fix"
-   'Bugfix session validation failed: filePath is missing. Provide a valid file path.'
+   'Bugfix session validation failed: filePath is missing. Provide a valid file path.';
    ```
 
 ---
@@ -406,6 +418,7 @@ function handleError(error: unknown) {
 ### When to Include vs Exclude Sensitive Data
 
 **Exclude from errors:**
+
 - Passwords, API keys, tokens
 - Personal identifiable information (PII)
 - Internal business logic details
@@ -413,6 +426,7 @@ function handleError(error: unknown) {
 - File contents (only include paths)
 
 **Include in errors:**
+
 - File paths (for debugging)
 - Field names that failed validation
 - Expected vs actual types
@@ -695,7 +709,7 @@ describe('Error serialization', () => {
 
 Based on research findings, here's the recommended implementation:
 
-```typescript
+````typescript
 /**
  * Error codes for bugfix session validation
  */
@@ -791,8 +805,7 @@ export class BugfixSessionValidationError extends Error {
           }
         : undefined,
       // Only include stack traces in development
-      stack:
-        process.env.NODE_ENV === 'development' ? this.stack : undefined,
+      stack: process.env.NODE_ENV === 'development' ? this.stack : undefined,
     };
   }
 }
@@ -837,13 +850,14 @@ export function hasBugfixSessionErrorCode(
 ): error is BugfixSessionValidationError {
   return isBugfixSessionValidationError(error) && error.code === code;
 }
-```
+````
 
 ---
 
 ## 6. Sources and References
 
 ### Official Documentation
+
 1. **TypeScript Handbook - Exception Handling**
    https://www.typescriptlang.org/docs/handbook/2/basic-types.html#exceptions
 
@@ -854,6 +868,7 @@ export function hasBugfixSessionErrorCode(
    https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types
 
 ### TypeScript Error Handling Libraries
+
 4. **ts-custom-error**
    https://github.com/adrai/ts-custom-error
    - Popular library for creating custom error classes in TypeScript
@@ -868,6 +883,7 @@ export function hasBugfixSessionErrorCode(
    - Result type pattern for functional error handling
 
 ### Community Resources
+
 7. **StackOverflow - TypeScript Error Extension**
    https://stackoverflow.com/questions/41102060/typescript-extending-error-class
 
@@ -878,12 +894,14 @@ export function hasBugfixSessionErrorCode(
    https://github.com/microsoft/TypeScript/wiki/Best-Practices
 
 ### Error Cause Pattern
+
 10. **TC39 Proposal - Error Cause**
     https://tc39.es/proposal-error-cause/
     - Standard proposal for error cause chain
     - Now supported in modern Node.js versions
 
 ### Additional Reading
+
 11. **Effective TypeScript - Error Handling**
     https://effectivetypescript.com/2020/09/28/error-handling/
 

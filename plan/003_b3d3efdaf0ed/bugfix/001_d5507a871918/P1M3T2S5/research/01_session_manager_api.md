@@ -38,6 +38,7 @@ Complete API documentation for accessing session metadata and plan directory fro
 ## Code Examples
 
 ### Basic SessionManager initialization
+
 ```typescript
 import { SessionManager } from '../core/session-manager.js';
 
@@ -48,6 +49,7 @@ console.log(manager.planDir); // "/path/to/plan"
 ```
 
 ### Accessing session metadata
+
 ```typescript
 // Check if session exists
 if (manager.currentSession) {
@@ -62,6 +64,7 @@ if (manager.currentSession) {
 ## Key Gotchas and Null Checks
 
 ### Important null checks
+
 ```typescript
 // Always check if session exists before accessing properties
 if (!manager.currentSession) {
@@ -76,6 +79,7 @@ if (!sessionPath) {
 ```
 
 ### Property access patterns
+
 ```typescript
 // Safe property access with null coalescing
 const sessionId = manager.currentSession?.metadata.id ?? 'unknown';
@@ -99,7 +103,8 @@ For the guard context logging, use:
 const planDir = this.sessionManager.planDir;
 
 // SESSION_DIR access (with null check)
-const sessionDir = this.sessionManager.currentSession?.metadata.path ?? 'not set';
+const sessionDir =
+  this.sessionManager.currentSession?.metadata.path ?? 'not set';
 ```
 
 **Critical gotcha**: `currentSession` may be null during early initialization, so use optional chaining and nullish coalescing.

@@ -38,17 +38,17 @@ function functionName(paramName: string): Type {
 
 ### Complete Tag Reference
 
-| Tag | Purpose | Example |
-|-----|---------|---------|
-| `@param` | Document parameters | `@param {string} name - The user name` |
-| `@returns` | Document return value | `@returns {boolean} True if valid` |
-| `@throws` | Document thrown errors | `@throws {ValidationError} If validation fails` |
-| `@example` | Provide usage examples | `@example validatePath('/path')` |
-| `@see` | Reference other docs | `@see {@link validatePath}` |
-| `@deprecated` | Mark as deprecated | `@deprecated Use validatePathV2 instead` |
-| `@todo` | Document TODOs | `@todo Add more validation` |
-| `@template` | Document generics | `@template T` |
-| `@typedef` | Define custom types | `@typedef {Object} ValidationResult` |
+| Tag           | Purpose                | Example                                         |
+| ------------- | ---------------------- | ----------------------------------------------- |
+| `@param`      | Document parameters    | `@param {string} name - The user name`          |
+| `@returns`    | Document return value  | `@returns {boolean} True if valid`              |
+| `@throws`     | Document thrown errors | `@throws {ValidationError} If validation fails` |
+| `@example`    | Provide usage examples | `@example validatePath('/path')`                |
+| `@see`        | Reference other docs   | `@see {@link validatePath}`                     |
+| `@deprecated` | Mark as deprecated     | `@deprecated Use validatePathV2 instead`        |
+| `@todo`       | Document TODOs         | `@todo Add more validation`                     |
+| `@template`   | Document generics      | `@template T`                                   |
+| `@typedef`    | Define custom types    | `@typedef {Object} ValidationResult`            |
 
 ## Documenting Validation Functions
 
@@ -175,12 +175,13 @@ export function isValidPath(value: unknown): value is string {
  * }
  */
 export function validateSessionPath(sessionPath: string): void {
-  const SESSION_PATH_PATTERN = /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
+  const SESSION_PATH_PATTERN =
+    /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
 
   if (!SESSION_PATH_PATTERN.test(sessionPath)) {
     throw new ValidationError(
       `Invalid session path format: ${sessionPath}. ` +
-      `Expected format: plan/XXX_<hash>/bugfix/XXX_<hash>`,
+        `Expected format: plan/XXX_<hash>/bugfix/XXX_<hash>`,
       'INVALID_SESSION_PATH'
     );
   }
@@ -403,10 +404,7 @@ export function assertNonEmptyString(
     );
   }
   if (value.trim().length === 0) {
-    throw new ValidationError(
-      `${fieldName} cannot be empty`,
-      'EMPTY_STRING'
-    );
+    throw new ValidationError(`${fieldName} cannot be empty`, 'EMPTY_STRING');
   }
 }
 ```
@@ -456,7 +454,9 @@ export function isValidBugReport(data: unknown): data is BugReport {
  * @todo Remove this function in version 2.0.0
  */
 export function checkSessionPath(path: string): boolean {
-  console.warn('checkSessionPath is deprecated. Use validateSessionPath instead.');
+  console.warn(
+    'checkSessionPath is deprecated. Use validateSessionPath instead.'
+  );
   return validateSessionPath(path);
 }
 ```
@@ -534,7 +534,9 @@ export function validateSessionPath(sessionPath: string): void {
  * // Load from data object
  * const report2 = loadBugReport({ description: 'Bug', steps: [] });
  */
-export function loadBugReport(input: string | BugReportData): BugReport | Promise<BugReport> {
+export function loadBugReport(
+  input: string | BugReportData
+): BugReport | Promise<BugReport> {
   // Implementation...
   throw new Error('Not implemented');
 }
@@ -682,7 +684,8 @@ function validate(path: string) { ... }
  * }
  */
 export function validateSessionPath(sessionPath: string): void {
-  const SESSION_PATH_PATTERN = /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
+  const SESSION_PATH_PATTERN =
+    /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
 
   if (!SESSION_PATH_PATTERN.test(sessionPath)) {
     throw new ValidationError(

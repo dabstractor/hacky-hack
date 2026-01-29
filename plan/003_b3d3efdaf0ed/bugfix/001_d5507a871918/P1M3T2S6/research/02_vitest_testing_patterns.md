@@ -27,6 +27,7 @@ beforeEach(() => {
 ```
 
 **Key Points:**
+
 - `vi.stubEnv(name, value)` sets an environment variable for the test
 - `delete process.env.VAR` removes an environment variable
 - Changes persist across tests unless cleaned up
@@ -41,6 +42,7 @@ afterEach(() => {
 ```
 
 **Key Points:**
+
 - Must be called in `afterEach` to prevent test pollution
 - Restores all environment variables to their original state
 - Essential for test isolation
@@ -115,6 +117,7 @@ try {
 ```
 
 **Key Points:**
+
 - `expect.fail()` explicitly fails the test if no error is thrown
 - Useful when you need to inspect error properties
 - Alternative: `expect(() => fn()).toThrow(ErrorClass)` for simple cases
@@ -150,6 +153,7 @@ describe('execution-guard', () => {
 ```
 
 **Key Points:**
+
 - Outer describe block for overall test suite
 - Inner describe blocks for specific scenarios
 - beforeEach/afterEach can be nested for specific scenarios
@@ -196,9 +200,7 @@ expect(() => validateNestedExecution(sessionPath)).toThrow(
 
 ```typescript
 expect((error as NestedExecutionError).existingPid).toBe('99999');
-expect((error as NestedExecutionError).currentPid).toBe(
-  process.pid.toString()
-);
+expect((error as NestedExecutionError).currentPid).toBe(process.pid.toString());
 expect((error as NestedExecutionError).sessionPath).toBe(sessionPath);
 ```
 
@@ -309,6 +311,7 @@ import {
 ```
 
 **Key Points:**
+
 - Import from 'vitest' for test functions
 - Use relative imports with `..` to navigate to source files
 - Include `.js` extension even for TypeScript files (ESM requirement)
@@ -401,7 +404,8 @@ it('second test assumes env is set', () => {
 ```typescript
 // GOOD: Test edge cases
 it('should handle very long session paths', () => {
-  const longPath = 'plan/003_b3d3efdaf0ed/' + 'bugfix/'.repeat(100) + '001_test';
+  const longPath =
+    'plan/003_b3d3efdaf0ed/' + 'bugfix/'.repeat(100) + '001_test';
   expect(() => validateNestedExecution(longPath)).not.toThrow();
 });
 
@@ -419,21 +423,25 @@ it('should handle unicode characters in session path', () => {
 ## Running Tests
 
 ### Run All Tests
+
 ```bash
 npm test
 ```
 
 ### Run Specific Test File
+
 ```bash
 npm test -- tests/unit/utils/validation/execution-guard.test.ts
 ```
 
 ### Run with Coverage
+
 ```bash
 npm test -- --coverage
 ```
 
 ### Watch Mode
+
 ```bash
 npm test -- --watch
 ```

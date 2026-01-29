@@ -9,6 +9,7 @@
 **Deliverable**: `NestedExecutionError` class extending `PipelineError` with specific error code, context properties for debugging (existingPid, currentPid, sessionPath), and accompanying type guard function.
 
 **Success Definition**:
+
 - Error class follows established `PipelineError` hierarchy pattern
 - Error has unique error code for programmatic handling
 - Constructor accepts message, context (with typed properties), and optional cause
@@ -29,6 +30,7 @@
 - **Pattern Consistency**: Follows established error class patterns (BugfixSessionValidationError, SessionError, etc.)
 
 **Problems this solves**:
+
 - Generic `Error` or `ValidationError` don't provide enough context for nested execution failures
 - Monitoring systems need specific error codes to track nested execution attempts
 - Developers need clear error messages explaining why execution was blocked and how to legitimize recursion
@@ -43,11 +45,13 @@
 **No direct user-visible behavior** - this is a developer-facing error class. Users will experience:
 
 **Error Scenario** (when nested execution is detected):
+
 - Error message: `"Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {existingPid}"`
 - Error includes context with running PID, current PID, and session path
 - Pipeline execution stops before creating duplicate sessions
 
 **Success Scenario** (legitimate recursion):
+
 - Bug fix sessions with `SKIP_BUG_FINDING=true` execute without error
 - No error is thrown when recursion is legitimate
 
@@ -87,7 +91,7 @@ export function isNestedExecutionError(
 #### Error Code
 
 ```typescript
-PIPELINE_VALIDATION_NESTED_EXECUTION: 'PIPELINE_VALIDATION_NESTED_EXECUTION'
+PIPELINE_VALIDATION_NESTED_EXECUTION: 'PIPELINE_VALIDATION_NESTED_EXECUTION';
 ```
 
 #### Error Message Format
@@ -100,9 +104,9 @@ Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: 
 
 ```typescript
 {
-  existingPid: string;  // PID from process.env.PRP_PIPELINE_RUNNING
-  currentPid: string;   // Current process PID from process.pid
-  sessionPath: string;  // Session path being validated
+  existingPid: string; // PID from process.env.PRP_PIPELINE_RUNNING
+  currentPid: string; // Current process PID from process.pid
+  sessionPath: string; // Session path being validated
 }
 ```
 
@@ -125,6 +129,7 @@ Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: 
 ### Context Completeness Check
 
 **"No Prior Knowledge" test**: ✅ This PRP provides everything needed to implement `NestedExecutionError` successfully:
+
 - Exact error class pattern to follow from existing codebase
 - Complete constructor signature and property definitions
 - Error code placement in ErrorCodes const
@@ -297,9 +302,9 @@ No new data models - using existing PipelineError infrastructure:
 ```typescript
 // Error context interface (extended for type safety)
 interface NestedExecutionErrorContext extends PipelineErrorContext {
-  existingPid?: string;  // PID from process.env.PRP_PIPELINE_RUNNING
-  currentPid?: string;   // Current process PID
-  sessionPath?: string;  // Session path being validated
+  existingPid?: string; // PID from process.env.PRP_PIPELINE_RUNNING
+  currentPid?: string; // Current process PID
+  sessionPath?: string; // Session path being validated
 }
 
 // Error class extends PipelineError
@@ -414,8 +419,7 @@ export class NestedExecutionError extends PipelineError {
 
 export const ErrorCodes = {
   // ... existing codes ...
-  PIPELINE_VALIDATION_NESTED_EXECUTION:
-    'PIPELINE_VALIDATION_NESTED_EXECUTION',
+  PIPELINE_VALIDATION_NESTED_EXECUTION: 'PIPELINE_VALIDATION_NESTED_EXECUTION',
 } as const;
 
 // ============================================================================
@@ -440,9 +444,7 @@ import {
   isNestedExecutionError,
 } from '../errors.js';
 
-import {
-  NestedExecutionError,
-} from '../errors.js';
+import { NestedExecutionError } from '../errors.js';
 
 export function validateNestedExecution(sessionPath: string): void {
   const existingPid = process.env.PRP_PIPELINE_RUNNING;
@@ -490,9 +492,12 @@ describe('NestedExecutionError class', () => {
     const context = {
       existingPid: '12345',
       currentPid: process.pid.toString(),
-      sessionPath: '/test/path'
+      sessionPath: '/test/path',
     };
-    const error = new NestedExecutionError('Nested execution detected', context);
+    const error = new NestedExecutionError(
+      'Nested execution detected',
+      context
+    );
 
     // instanceof checks (prototype chain)
     expect(error instanceof NestedExecutionError).toBe(true);
@@ -805,21 +810,22 @@ The `NestedExecutionError` class is **fully implemented** and meets all requirem
 
 ### Requirements Validation
 
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| Extends PipelineError | ✅ | Lines 523-539 |
-| Error code property | ✅ | `PIPELINE_VALIDATION_NESTED_EXECUTION` |
-| Constructor signature | ✅ | `(message, context, cause)` |
-| Context properties | ✅ | `existingPid`, `currentPid`, `sessionPath` |
-| Prototype setup | ✅ | `Object.setPrototypeOf` called |
-| Type guard function | ✅ | `isNestedExecutionError` at lines 726-733 |
-| Error in ErrorCodes | ✅ | Lines 81-82 |
-| Used by validateNestedExecution | ✅ | `execution-guard.ts` |
-| Comprehensive tests | ✅ | `execution-guard.test.ts` lines 136-406 |
+| Requirement                     | Status | Notes                                      |
+| ------------------------------- | ------ | ------------------------------------------ |
+| Extends PipelineError           | ✅     | Lines 523-539                              |
+| Error code property             | ✅     | `PIPELINE_VALIDATION_NESTED_EXECUTION`     |
+| Constructor signature           | ✅     | `(message, context, cause)`                |
+| Context properties              | ✅     | `existingPid`, `currentPid`, `sessionPath` |
+| Prototype setup                 | ✅     | `Object.setPrototypeOf` called             |
+| Type guard function             | ✅     | `isNestedExecutionError` at lines 726-733  |
+| Error in ErrorCodes             | ✅     | Lines 81-82                                |
+| Used by validateNestedExecution | ✅     | `execution-guard.ts`                       |
+| Comprehensive tests             | ✅     | `execution-guard.test.ts` lines 136-406    |
 
 ### Minor Gap Identified
 
 **Missing JSDoc Documentation**:
+
 - `BugfixSessionValidationError` has JSDoc documentation
 - `NestedExecutionError` is missing JSDoc
 - Recommendation: Add JSDoc to match pattern (see `error-class-patterns.md`)
@@ -831,6 +837,7 @@ The `NestedExecutionError` class is **fully implemented** and meets all requirem
 **Rating: 10/10** for implementation completeness and correctness
 
 **Rationale**:
+
 - ✅ Error class is fully implemented and follows all patterns
 - ✅ Error code follows naming convention
 - ✅ Type guard function exists and works correctly
@@ -849,6 +856,7 @@ The `NestedExecutionError` class is **fully implemented** and meets all requirem
 **This PRP documents an already-completed implementation.**
 
 The `NestedExecutionError` class was implemented as part of the overall nested execution guard feature. This PRP serves as:
+
 1. **Verification** that the implementation meets all requirements
 2. **Documentation** of the error class design and patterns
 3. **Reference** for future error class implementations

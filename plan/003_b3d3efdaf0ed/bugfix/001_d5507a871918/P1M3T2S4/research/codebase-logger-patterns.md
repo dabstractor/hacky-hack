@@ -33,12 +33,13 @@ this.correlationLogger = getLogger('PRPPipeline').child({
 this.logger.debug('[PRPPipeline] Session initialized', {
   sessionPath: this.sessionManager?.currentSession?.metadata.path,
   hasExistingBacklog:
-    (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ??
-      0) > 0,
+    (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0) >
+    0,
 });
 ```
 
 **Key characteristics:**
+
 - Always use `[PRPPipeline]` prefix
 - Include context object with relevant data
 - Use optional chaining for nested properties
@@ -51,10 +52,13 @@ this.logger.debug('[PRPPipeline] Session initialized', {
 ```typescript
 this.logger.info('[PRPPipeline] Starting PRP Pipeline workflow');
 this.logger.info(`[PRPPipeline] PRD: ${this.#prdPath}`);
-this.logger.info(`[PRPPipeline] Scope: ${JSON.stringify(this.#scope ?? 'all')}`);
+this.logger.info(
+  `[PRPPipeline] Scope: ${JSON.stringify(this.#scope ?? 'all')}`
+);
 ```
 
 **Key characteristics:**
+
 - Include `[PRPPipeline]` prefix
 - Use template literals for dynamic values
 - JSON.stringify complex objects
@@ -74,6 +78,7 @@ this.logger.debug('[PRPPipeline] Workflow failed with error', {
 ```
 
 **Key characteristics:**
+
 - Include error type, code, phase
 - Conditionally include stack trace for Error instances
 - Spread operator for conditional stack property
@@ -89,6 +94,7 @@ this.logger.warn(
 ```
 
 **Key characteristics:**
+
 - Use `[PRPPipeline]` prefix
 - Clear descriptive messages
 
@@ -148,6 +154,7 @@ async cleanup(): Promise<void> {
 ```
 
 **Key patterns for cleanup logging:**
+
 1. Log entry: "Starting cleanup and state preservation"
 2. Log each step: Use debug level for individual operations
 3. Log success: "Cleanup complete"
@@ -216,9 +223,12 @@ if (process.env.PRP_PIPELINE_RUNNING === process.pid.toString()) {
 
 ```typescript
 if (process.env.PRP_PIPELINE_RUNNING === process.pid.toString()) {
-  this.logger.debug('[PRPPipeline] PRP_PIPELINE_RUNNING already set to current PID', {
-    pid: process.pid,
-  });
+  this.logger.debug(
+    '[PRPPipeline] PRP_PIPELINE_RUNNING already set to current PID',
+    {
+      pid: process.pid,
+    }
+  );
   return;
 }
 ```

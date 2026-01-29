@@ -7,7 +7,7 @@
 ## Function Signature
 
 ```typescript
-export function validateNestedExecution(sessionPath: string): void
+export function validateNestedExecution(sessionPath: string): void;
 ```
 
 ## Function Purpose
@@ -70,15 +70,16 @@ export function validateNestedExecution(sessionPath: string): void {
 ## Critical Gotchas
 
 1. **SKIP_BUG_FINDING must be EXACT string match (case-sensitive)**
+
    ```typescript
-   process.env.SKIP_BUG_FINDING = 'true';   // ✓ Correct
-   process.env.SKIP_BUG_FINDING = 'True';   // ✗ Wrong (won't work)
+   process.env.SKIP_BUG_FINDING = 'true'; // ✓ Correct
+   process.env.SKIP_BUG_FINDING = 'True'; // ✗ Wrong (won't work)
    ```
 
 2. **Path check for 'bugfix' is case-insensitive**
    ```typescript
-   sessionPath.toLowerCase().includes('bugfix');  // ✓ Correct
-   sessionPath.includes('bugfix');                // ✗ Wrong (case-sensitive)
+   sessionPath.toLowerCase().includes('bugfix'); // ✓ Correct
+   sessionPath.includes('bugfix'); // ✗ Wrong (case-sensitive)
    ```
 
 ## Import Statement
@@ -111,7 +112,9 @@ try {
   validateNestedExecution(sessionPath);
 } catch (error) {
   if (isNestedExecutionError(error)) {
-    console.error(`Nested execution detected. Existing PID: ${error.existingPid}`);
+    console.error(
+      `Nested execution detected. Existing PID: ${error.existingPid}`
+    );
     console.error(`Current PID: ${error.currentPid}`);
     console.error(`Session path: ${error.sessionPath}`);
   }
@@ -123,6 +126,7 @@ try {
 **File:** `/home/dustin/projects/hacky-hack/tests/unit/utils/validation/execution-guard.test.ts`
 
 **Test Coverage:**
+
 - First execution scenarios (PRP_PIPELINE_RUNNING not set)
 - Legitimate bug fix recursion (SKIP_BUG_FINDING='true' + path contains 'bugfix')
 - Illegitimate nested execution (throws NestedExecutionError)

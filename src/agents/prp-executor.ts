@@ -23,7 +23,7 @@ import { createCoderAgent } from './agent-factory.js';
 import { PRP_BUILDER_PROMPT } from './prompts.js';
 import { getLogger } from '../utils/logger.js';
 import type { Logger } from '../utils/logger.js';
-import type { Agent, Prompt } from 'groundswell';
+import type { Agent, Prompt, AgentResponse } from 'groundswell';
 import type { PRPDocument, ValidationGate } from '../core/models.js';
 import { BashMCP } from '../tools/bash-mcp.js';
 import { retryAgentPrompt } from '../utils/retry.js';
@@ -136,6 +136,19 @@ export class ValidationError extends Error {
     );
     this.name = 'ValidationError';
   }
+}
+
+/**
+ * Result from parsing Coder Agent JSON response
+ *
+ * @remarks
+ * The result field uses literal types for type safety.
+ */
+interface ExecuteResult {
+  /** The execution result status */
+  result: 'error' | 'success' | 'issue';
+  /** Detailed message about the result */
+  message: string;
 }
 
 /**
@@ -267,20 +280,21 @@ export class PRPExecutor {
 
       // STEP 2: Execute Coder Agent with retry logic
       this.#logger.info({ prpTaskId: prp.taskId }, 'Starting PRP execution');
-      const coderResponse = await retryAgentPrompt(
+      const coderAgentResponse = await retryAgentPrompt(
         () =>
           this.#coderAgent.prompt(injectedPrompt as unknown as Prompt<unknown>),
         { agentType: 'Coder', operation: 'executePRP' }
       );
 
-      // STEP 3: Parse JSON result
-      const coderResult = this.#parseCoderResult(coderResponse as string);
+      // STEP 3: Extract response content and parse JSON result
+      const coderResponse = this.#extractResponseContent(coderAgentResponse);
+      const coderResult = this.#parseCoderResult(coderResponse);
 
       // CHECKPOINT: Coder response - after parsing result
       const coderResponseState: CheckpointExecutionState = {
         prpPath,
         stage: 'coder-response',
-        coderResponse: coderResponse as string,
+        coderResponse,
         coderResult,
         validationResults: [],
         timestamp: new Date(),
@@ -316,7 +330,7 @@ export class PRPExecutor {
           const validationState: CheckpointExecutionState = {
             prpPath,
             stage: validationStage,
-            coderResponse: coderResponse as string,
+            coderResponse,
             coderResult,
             validationResults,
             fixAttempt: fixAttempts > 0 ? fixAttempts : undefined,
@@ -363,7 +377,7 @@ export class PRPExecutor {
       const finalState: CheckpointExecutionState = {
         prpPath,
         stage: finalStage,
-        coderResponse: coderResponse as string,
+        coderResponse,
         coderResult,
         validationResults,
         fixAttempt: fixAttempts > 0 ? fixAttempts : undefined,
@@ -556,7 +570,7 @@ Output your result in the same JSON format:
    * @returns Parsed result object with result and message fields
    * @private
    */
-  #parseCoderResult(response: string): { result: string; message: string } {
+  #parseCoderResult(response: string): ExecuteResult {
     try {
       // Extract JSON from response (may be wrapped in markdown code blocks)
       const jsonMatch = response.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
@@ -570,6 +584,33 @@ Output your result in the same JSON format:
         message: `Failed to parse Coder Agent response: ${response}`,
       };
     }
+  }
+
+  /**
+   * Extracts the response content from AgentResponse
+   *
+   * @remarks
+   * The agent.prompt() method returns AgentResponse<T> where the actual
+   * content is in the data property. This method extracts it as a string.
+   *
+   * @param agentResponse - The AgentResponse from the agent
+   * @returns The response content as a string
+   * @private
+   */
+  #extractResponseContent(agentResponse: AgentResponse<unknown>): string {
+    if (agentResponse.status === 'success' && agentResponse.data !== null) {
+      return typeof agentResponse.data === 'string'
+        ? agentResponse.data
+        : JSON.stringify(agentResponse.data);
+    }
+    // For error or partial responses, try to get a string representation
+    if (agentResponse.status === 'error') {
+      return agentResponse.error?.message ?? 'Unknown error';
+    }
+    // For partial or null data, return empty string or stringified data
+    return agentResponse.data === null
+      ? ''
+      : JSON.stringify(agentResponse.data);
   }
 
   /**

@@ -422,7 +422,7 @@ def test_mutable_default_fix():
     assert error2.details == []  # EXPECTED!
 ```
 
-### Test Forgetting super().__init__() (Gotcha)
+### Test Forgetting super().**init**() (Gotcha)
 
 ```python
 # BAD: Missing super() call

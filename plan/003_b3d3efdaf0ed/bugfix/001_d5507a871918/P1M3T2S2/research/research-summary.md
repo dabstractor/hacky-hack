@@ -11,7 +11,9 @@ Comprehensive research on Python custom error class best practices has been comp
 ## Deliverables
 
 ### 1. **python-custom-error-best-practices.md** (19KB)
+
 Comprehensive guide covering:
+
 - Basic error class patterns
 - Error code integration (Enum-based)
 - Proper exception inheritance
@@ -21,7 +23,9 @@ Comprehensive guide covering:
 - Comparison with TypeScript patterns
 
 ### 2. **quick-reference-python-errors.md** (7KB)
+
 Quick reference guide with:
+
 - TL;DR recommended pattern
 - Usage examples
 - Common gotchas table
@@ -30,7 +34,9 @@ Quick reference guide with:
 - Testing checklist
 
 ### 3. **python-error-examples.py** (22KB, validated syntax)
+
 Production-ready code examples including:
+
 - Complete error class hierarchy
 - Error codes using Enum
 - ErrorContext dataclass
@@ -41,7 +47,9 @@ Production-ready code examples including:
 - Executable demonstration code
 
 ### 4. **python-error-testing-patterns.md** (21KB)
+
 Comprehensive testing guide with:
+
 - Basic error testing patterns
 - Context testing
 - Exception chaining testing
@@ -54,7 +62,9 @@ Comprehensive testing guide with:
 - Async error testing
 
 ### 5. **typescript-python-comparison.md** (21KB)
+
 Side-by-side comparison of:
+
 - Error code definitions
 - Base class implementations
 - Context object patterns
@@ -65,7 +75,9 @@ Side-by-side comparison of:
 - Key differences and gotchas
 
 ### 6. **sources-and-references.md** (9.8KB)
+
 Complete reference documentation:
+
 - Python official documentation sources
 - PEP references (PEP 8, PEP 484, PEP 585)
 - Community best practices (Django, Flask, FastAPI)
@@ -75,7 +87,9 @@ Complete reference documentation:
 - Research methodology and limitations
 
 ### 7. **README.md** (19KB)
+
 Main research document with:
+
 - Research objectives
 - Documents index
 - Key findings
@@ -87,7 +101,9 @@ Main research document with:
 ## Key Findings
 
 ### 1. Error Code Patterns
+
 **Recommended:** Use `Enum` for type-safe error codes
+
 ```python
 class ErrorCode(str, Enum):
     SESSION_LOAD_FAILED = "SESSION_LOAD_FAILED"
@@ -95,7 +111,9 @@ class ErrorCode(str, Enum):
 ```
 
 ### 2. Proper Exception Inheritance
+
 **Critical:** Always call `super().__init__(message)`
+
 ```python
 class CustomError(Exception):
     def __init__(self, message: str, context: dict | None = None):
@@ -104,7 +122,9 @@ class CustomError(Exception):
 ```
 
 ### 3. Abstract Base Classes
+
 **Recommended:** Use abstract base classes to enforce contracts
+
 ```python
 class PipelineError(ABC, Exception):
     @property
@@ -114,7 +134,9 @@ class PipelineError(ABC, Exception):
 ```
 
 ### 4. Context Objects
+
 **Recommended:** Use `dataclass` for type-safe context
+
 ```python
 @dataclass
 class ErrorContext:
@@ -124,7 +146,9 @@ class ErrorContext:
 ```
 
 ### 5. Exception Chaining
+
 **Critical:** Use `raise ... from e` to preserve tracebacks
+
 ```python
 try:
     risky_operation()
@@ -133,7 +157,9 @@ except FileNotFoundError as e:
 ```
 
 ### 6. Serialization for Logging
+
 **Recommended:** Implement `to_dict()` method
+
 ```python
 def to_dict(self) -> dict[str, Any]:
     return {
@@ -167,6 +193,7 @@ def to_dict(self) -> dict[str, Any]:
 ## Testing Guidelines
 
 All error classes should be tested for:
+
 - Basic creation and properties
 - Error code assignment
 - Context handling (dict, dataclass, None)
@@ -180,6 +207,7 @@ All error classes should be tested for:
 ## Compatibility with TypeScript Implementation
 
 The Python patterns are designed to match the existing TypeScript implementation in:
+
 - Error codes (Enum vs const assertion)
 - Base class structure (ABC vs abstract class)
 - Context objects (dataclass vs interface)
@@ -190,11 +218,13 @@ The Python patterns are designed to match the existing TypeScript implementation
 ## Files Location
 
 All research files are stored in:
+
 ```
 /home/dustin/projects/hacky-hack/plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918/P1M3T2S2/research/
 ```
 
 **File Sizes:**
+
 - python-custom-error-best-practices.md: 19KB
 - python-error-examples.py: 22KB (validated ✓)
 - python-error-testing-patterns.md: 21KB

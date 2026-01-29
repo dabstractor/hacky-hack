@@ -15,6 +15,7 @@
 **Feature Goal**: Integrate the `validateNestedExecution` function into the PRP Pipeline entry point with proper error handling and debug logging to prevent accidental recursive pipeline execution while allowing legitimate bugfix session recursion.
 
 **Deliverable**: Updated `PRPPipeline.run()` method in `src/workflows/prp-pipeline.ts` with:
+
 - Import of `isNestedExecutionError` type guard
 - Validation call **MOVED** from line 1724 to BEFORE guard setting (line 1707)
 - try-catch wrapper around `validateNestedExecution` call
@@ -24,6 +25,7 @@
 - Old validation location at lines 1722-1725 **REMOVED**
 
 **Success Definition**:
+
 - [ ] `isNestedExecutionError` imported from validation module
 - [ ] `validateNestedExecution` call **MOVED** to BEFORE `PRP_PIPELINE_RUNNING` is set (line 1707)
 - [ ] Validation call wrapped in try-catch with type guard
@@ -44,6 +46,7 @@
 **Use Case**: When PRP Pipeline starts execution, it must validate that it's not being run recursively (nested execution) which could corrupt session state. The validation happens as early as possible (after session initialization) and provides clear error messages if nested execution is detected.
 
 **User Journey**:
+
 1. Developer or system initiates PRP Pipeline
 2. Pipeline starts and initializes session (to get session path)
 3. Pipeline validates no nested execution is occurring
@@ -51,6 +54,7 @@
 5. If validation fails: Error is logged with full context and execution is aborted
 
 **Pain Points Addressed**:
+
 - Prevents accidental recursive pipeline execution that could corrupt state
 - Provides clear debug logging for troubleshooting nested execution issues
 - Enables legitimate bugfix session recursion with proper env vars
@@ -61,12 +65,14 @@
 ## Why
 
 **Business value and user impact**:
+
 - Prevents state corruption from nested pipeline executions
 - Protects against infinite recursion loops
 - Enables legitimate bugfix session workflows (recursive execution for fixing bugs)
 - Provides clear, actionable error messages with full context
 
 **Integration with existing features**:
+
 - Part of P1.M3 (Session Validation Guards) milestone
 - Uses `validateNestedExecution()` function from P1.M3.T2.S1
 - Uses `NestedExecutionError` class from P1.M3.T2.S2
@@ -74,6 +80,7 @@
 - Supports `SKIP_BUG_FINDING=true` for legitimate recursion
 
 **Problems this solves**:
+
 1. **Nested execution prevention**: Stops recursive pipeline execution that could corrupt session state
 2. **Debug visibility**: Provides clear logging about validation attempts and results
 3. **Error context**: When validation fails, logs full context (existing PID, current PID, session path)
@@ -86,6 +93,7 @@
 **User-visible behavior**: When PRP Pipeline starts execution, it validates against nested execution before proceeding with any pipeline work. The validation happens immediately after session initialization (when session path becomes available) and includes comprehensive debug logging.
 
 **Technical requirements**:
+
 - Import `isNestedExecutionError` type guard from validation module
 - Wrap `validateNestedExecution` call in try-catch
 - Add debug logging before validation call
@@ -113,6 +121,7 @@
 ### Context Completeness Check
 
 ✅ **PASSES "No Prior Knowledge" test**: This PRP provides complete context including:
+
 - Exact file locations and line numbers
 - Current implementation state and gaps
 - Complete code patterns for error handling and logging
@@ -330,16 +339,18 @@ No new data models needed. This PRP uses existing:
 
 ```typescript
 // From src/utils/validation/execution-guard.ts
-export function validateNestedExecution(sessionPath: string): void
+export function validateNestedExecution(sessionPath: string): void;
 
 // From src/utils/errors.ts (re-exported from execution-guard.ts)
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError;
 
 // NestedExecutionError context structure
 interface NestedExecutionErrorContext extends PipelineErrorContext {
-  existingPid?: string;   // PID of already-running pipeline
-  currentPid?: string;    // PID of current execution attempt
-  sessionPath?: string;   // Session path being validated
+  existingPid?: string; // PID of already-running pipeline
+  currentPid?: string; // PID of current execution attempt
+  sessionPath?: string; // Session path being validated
 }
 ```
 
@@ -475,8 +486,8 @@ Task 6: RUN LINTING AND TYPE CHECKING
 
 // Pattern: Import validation function and type guard
 import {
-  validateNestedExecution,      // Validation function from P1.M3.T2.S1
-  isNestedExecutionError        // Type guard from P1.M3.T2.S2
+  validateNestedExecution, // Validation function from P1.M3.T2.S1
+  isNestedExecutionError, // Type guard from P1.M3.T2.S2
 } from '../utils/validation/execution-guard.js';
 
 // Pattern: Session path access with optional chaining
@@ -488,22 +499,31 @@ if (this.sessionManager.currentSession?.metadata.path) {
 // Pattern: Try-catch with type guard for specific error handling
 try {
   // Log validation attempt
-  this.logger.debug(`[PRPPipeline] Checking for nested execution at ${sessionPath}`);
+  this.logger.debug(
+    `[PRPPipeline] Checking for nested execution at ${sessionPath}`
+  );
 
   // Call validation function
   validateNestedExecution(sessionPath);
 
   // Log success
   this.logger.debug('[PRPPipeline] No nested execution detected, proceeding');
-
 } catch (error) {
   // Use type guard for specific error handling
   if (isNestedExecutionError(error)) {
     // Type narrowing: error is now NestedExecutionError
-    this.logger.error(`[PRPPipeline] Nested execution detected: ${error.message}`);
-    this.logger.error(`[PRPPipeline] Existing PID: ${error.context?.existingPid}`);
-    this.logger.error(`[PRPPipeline] Current PID: ${error.context?.currentPid}`);
-    this.logger.error(`[PRPPipeline] Session path: ${error.context?.sessionPath}`);
+    this.logger.error(
+      `[PRPPipeline] Nested execution detected: ${error.message}`
+    );
+    this.logger.error(
+      `[PRPPipeline] Existing PID: ${error.context?.existingPid}`
+    );
+    this.logger.error(
+      `[PRPPipeline] Current PID: ${error.context?.currentPid}`
+    );
+    this.logger.error(
+      `[PRPPipeline] Session path: ${error.context?.sessionPath}`
+    );
 
     // CRITICAL: Re-throw to prevent execution
     throw error;
@@ -795,15 +815,25 @@ if (this.sessionManager.currentSession?.metadata.path) {
 if (this.sessionManager.currentSession?.metadata.path) {
   const sessionPath = this.sessionManager.currentSession.metadata.path;
   try {
-    this.logger.debug(`[PRPPipeline] Checking for nested execution at ${sessionPath}`);
+    this.logger.debug(
+      `[PRPPipeline] Checking for nested execution at ${sessionPath}`
+    );
     validateNestedExecution(sessionPath);
     this.logger.debug('[PRPPipeline] No nested execution detected, proceeding');
   } catch (error) {
     if (isNestedExecutionError(error)) {
-      this.logger.error(`[PRPPipeline] Nested execution detected: ${error.message}`);
-      this.logger.error(`[PRPPipeline] Existing PID: ${error.context?.existingPid}`);
-      this.logger.error(`[PRPPipeline] Current PID: ${error.context?.currentPid}`);
-      this.logger.error(`[PRPPipeline] Session path: ${error.context?.sessionPath}`);
+      this.logger.error(
+        `[PRPPipeline] Nested execution detected: ${error.message}`
+      );
+      this.logger.error(
+        `[PRPPipeline] Existing PID: ${error.context?.existingPid}`
+      );
+      this.logger.error(
+        `[PRPPipeline] Current PID: ${error.context?.currentPid}`
+      );
+      this.logger.error(
+        `[PRPPipeline] Session path: ${error.context?.sessionPath}`
+      );
       throw error; // Re-throw to prevent execution
     }
     throw error; // Re-throw other errors
@@ -820,7 +850,7 @@ import { validateNestedExecution } from '../utils/validation/execution-guard.js'
 // AFTER:
 import {
   validateNestedExecution,
-  isNestedExecutionError
+  isNestedExecutionError,
 } from '../utils/validation/execution-guard.js';
 ```
 
@@ -862,7 +892,7 @@ describe('nested execution validation', () => {
       throw new NestedExecutionError('Nested execution detected', {
         existingPid: '12345',
         currentPid: '67890',
-        sessionPath: 'plan/001_14b9dc2a33c7'
+        sessionPath: 'plan/001_14b9dc2a33c7',
       });
     });
 

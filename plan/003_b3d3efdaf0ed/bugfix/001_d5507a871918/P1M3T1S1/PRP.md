@@ -7,6 +7,7 @@
 **Deliverable**: New validation function `validateBugfixSession(sessionPath: string): void` that throws `BugfixSessionValidationError` when session path does not contain 'bugfix' substring, enabling early detection of invalid session contexts for bug fix operations.
 
 **Success Definition**:
+
 - Function correctly identifies valid bugfix session paths (containing 'bugfix' substring)
 - Function throws descriptive `BugfixSessionValidationError` for invalid paths with specific error message
 - Function integrated into FixCycleWorkflow constructor for immediate validation
@@ -19,6 +20,7 @@
 **Use Case**: When FixCycleWorkflow is instantiated with a session path, the validation function prevents execution in non-bugfix sessions, protecting against state corruption from creating fix tasks in wrong session directories.
 
 **User Journey**:
+
 1. PRP Pipeline instantiates FixCycleWorkflow with session path
 2. FixCycleWorkflow constructor calls `validateBugfixSession(sessionPath)`
 3. If path is valid (contains 'bugfix'), workflow proceeds normally
@@ -26,6 +28,7 @@
 5. PRP Pipeline catches error and halts before creating fix tasks
 
 **Pain Points Addressed**:
+
 - Prevents bug fix tasks from being created in non-bugfix sessions (e.g., feature implementation sessions)
 - Eliminates risk of state corruption from fix operations in wrong directory context
 - Provides clear, actionable error messages for debugging invalid session paths
@@ -37,6 +40,7 @@
 **Integration with existing features**: This validation function will be called in FixCycleWorkflow constructor (P1.M3.T1.S3) and is part of Milestone 1.3 "Session Validation Guards" which also includes nested execution guard (P1.M3.T2).
 
 **Problems this solves**:
+
 - Currently, no validation exists to ensure FixCycleWorkflow only runs in bugfix sessions
 - Bug fix tasks could be created in feature sessions, causing state corruption
 - No clear error message when attempting bug operations in wrong session type
@@ -46,6 +50,7 @@
 **User-visible behavior**: When FixCycleWorkflow is instantiated with an invalid session path (not containing 'bugfix'), a clear error is thrown immediately: `BugfixSessionValidationError: Bug fix tasks can only be executed within bugfix sessions. Invalid path: {sessionPath}`
 
 **Technical requirements**:
+
 1. Create new error class `BugfixSessionValidationError` extending `PipelineError` (P1.M3.T1.S2 - out of scope for this subtask)
 2. Create `validateBugfixSession` function in new file `src/utils/validation/session-validation.ts`
 3. Function checks if path contains 'bugfix' using `sessionPath.includes('bugfix')` or `path.basename(sessionPath).includes('bugfix')`
@@ -229,7 +234,7 @@ Task 5: CREATE tests/unit/utils/validation/session-validation.test.ts
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // File: src/utils/validation/session-validation.ts
 
 /**
@@ -321,7 +326,7 @@ export function validateBugfixSession(sessionPath: string): void {
   // PATTERN: Return undefined for success (implicit - no return statement)
   // Function exits normally when validation passes
 }
-```
+````
 
 ### Integration Points
 

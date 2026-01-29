@@ -29,12 +29,12 @@ The **tests already exist** in `/home/dustin/projects/hacky-hack/tests/unit/work
 
 ### Existing Test Coverage
 
-| Test Case | Line # | Status | Description |
-|-----------|--------|--------|-------------|
-| `should successfully load valid TEST_RESULTS.md` | 670 | ✅ PRESENT | Loads valid JSON, validates with Zod, returns TestResults |
-| `should throw error if TEST_RESULTS.md not found` | 718 | ✅ PRESENT | Mocks ENOENT error, expects "TEST_RESULTS.md not found" |
-| `should throw error if JSON parsing fails` | 748 | ✅ PRESENT | Mocks invalid JSON string, expects parse error |
-| `should throw error if Zod validation fails` | 777 | ✅ PRESENT | Mocks missing required field, expects validation error |
+| Test Case                                         | Line # | Status     | Description                                               |
+| ------------------------------------------------- | ------ | ---------- | --------------------------------------------------------- |
+| `should successfully load valid TEST_RESULTS.md`  | 670    | ✅ PRESENT | Loads valid JSON, validates with Zod, returns TestResults |
+| `should throw error if TEST_RESULTS.md not found` | 718    | ✅ PRESENT | Mocks ENOENT error, expects "TEST_RESULTS.md not found"   |
+| `should throw error if JSON parsing fails`        | 748    | ✅ PRESENT | Mocks invalid JSON string, expects parse error            |
+| `should throw error if Zod validation fails`      | 777    | ✅ PRESENT | Mocks missing required field, expects validation error    |
 
 ### Success Criteria
 
@@ -138,7 +138,9 @@ const loadBugReport = workflow._loadBugReportForTesting;
 
 // CRITICAL: Node.js ErrnoException requires proper error structure
 // When mocking ENOENT, must set code property:
-const enoentError: NodeJS.ErrnoException = new Error('File not found') as NodeJS.ErrnoException;
+const enoentError: NodeJS.ErrnoException = new Error(
+  'File not found'
+) as NodeJS.ErrnoException;
 enoentError.code = 'ENOENT';
 enoentError.errno = -2;
 enoentError.syscall = 'open';
@@ -180,16 +182,16 @@ describe('loadBugReport', () => {
   });
 
   // Test 1: Success case
-  it('should successfully load valid TEST_RESULTS.md', async () => { });
+  it('should successfully load valid TEST_RESULTS.md', async () => {});
 
   // Test 2: File not found error
-  it('should throw error if TEST_RESULTS.md not found', async () => { });
+  it('should throw error if TEST_RESULTS.md not found', async () => {});
 
   // Test 3: JSON parse error
-  it('should throw error if JSON parsing fails', async () => { });
+  it('should throw error if JSON parsing fails', async () => {});
 
   // Test 4: Zod validation error
-  it('should throw error if Zod validation fails', async () => { });
+  it('should throw error if Zod validation fails', async () => {});
 });
 ```
 
@@ -263,7 +265,9 @@ mockedAccess.mockResolvedValue(undefined);
 mockedReadFile.mockResolvedValue(JSON.stringify(mockTestResults));
 
 // Pattern 5: Mock ENOENT error
-const enoentError: NodeJS.ErrnoException = new Error('File not found') as NodeJS.ErrnoException;
+const enoentError: NodeJS.ErrnoException = new Error(
+  'File not found'
+) as NodeJS.ErrnoException;
 enoentError.code = 'ENOENT';
 mockedAccess.mockRejectedValue(enoentError);
 
@@ -284,7 +288,9 @@ await expect(workflow._loadBugReportForTesting()).rejects.toThrow(
 // Pattern 9: Mock invalid schema (missing required field)
 const invalidTestResults = {
   hasBugs: true,
-  bugs: [/* valid bug */],
+  bugs: [
+    /* valid bug */
+  ],
   // Missing required 'summary' field
   recommendations: [],
 };
@@ -443,13 +449,17 @@ After completing validation, document findings:
 ### Test Execution Results
 
 ```
+
 [Paste npm test output here]
+
 ```
 
 ### Coverage Results
 
 ```
+
 [Paste coverage output here]
+
 ```
 
 ### Contract Compliance
@@ -478,26 +488,31 @@ No additional tests required. Existing test suite is comprehensive and passing.
 ## Research Artifacts
 
 ### Test File Location
+
 - **Path**: `/home/dustin/projects/hacky-hack/tests/unit/workflows/fix-cycle-workflow.test.ts`
 - **Lines**: 663-815 (loadBugReport describe block)
 - **Test-Only Getter**: Line 399 (`_loadBugReportForTesting`)
 
 ### Implementation Location
+
 - **Path**: `/home/dustin/projects/hacky-hack/src/workflows/fix-cycle-workflow.ts`
 - **Method**: `async #loadBugReport(): Promise<TestResults>` (private method)
 - **Test Access**: `get _loadBugReportForTesting()` at lines 399-406
 
 ### Schema Definitions
+
 - **TestResults Interface**: `/home/dustin/projects/hacky-hack/src/core/models.ts` lines 1838-1879
 - **TestResultsSchema**: `/home/dustin/projects/hacky-hack/src/core/models.ts` lines 1902-1907
 - **Bug Interface**: `/home/dustin/projects/hacky-hack/src/core/models.ts` lines 1710-1771
 
 ### Mock Patterns
+
 - **Module Mock**: Lines 34-38 in test file
 - **Typed References**: Lines 44-45 in test file
 - **Cleanup**: Lines 112-114 (beforeEach with vi.clearAllMocks())
 
 ### Test Fixtures
+
 - **createTestBug()**: Lines 61-75 in test file
 - **createTestResults()**: Lines 77-87 in test file
 - **createMockTaskOrchestrator()**: Lines 89-92 in test file

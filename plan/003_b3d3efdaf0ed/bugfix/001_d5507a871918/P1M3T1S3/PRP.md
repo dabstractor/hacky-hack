@@ -1,7 +1,6 @@
 ---
-name: "P1.M3.T1.S3: Add Bugfix Session Validation to FixCycleWorkflow Constructor"
+name: 'P1.M3.T1.S3: Add Bugfix Session Validation to FixCycleWorkflow Constructor'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: Modified FixCycleWorkflow constructor that calls `validateBugfixSession(this.sessionPath)` after storing sessionPath, with proper error handling and debug logging.
 
 **Success Definition**:
+
 - FixCycleWorkflow constructor validates session path on initialization before any bug fix work begins
 - BugfixSessionValidationError is thrown with additional context when validation fails
 - Debug logging captures validation attempts and results
@@ -34,16 +34,19 @@ description: |
 ### Technical Requirements
 
 **Constructor Modifications**:
+
 1. Call `validateBugfixSession(this.sessionPath)` after `this.sessionPath = sessionPath` assignment
 2. Wrap in try-catch to add context about FixCycleWorkflow initialization
 3. Add debug logging before and after validation
 
 **Error Handling**:
+
 - If validation throws, re-throw with additional context
 - Preserve original error type (BugfixSessionValidationError)
 - Log validation failure with correlation ID
 
 **Logging**:
+
 - Before validation: `this.logger.debug('[FixCycleWorkflow] Validating bugfix session path: {sessionPath}')`
 - After success: `this.logger.debug('[FixCycleWorkflow] Bugfix session path validated')`
 - On error: `this.logger.error()` with validation failure context
@@ -64,6 +67,7 @@ description: |
 **"No Prior Knowledge" test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 ✅ This PRP provides:
+
 - Exact file path and line numbers to modify
 - Complete function signatures for all dependencies
 - Existing code patterns to follow (logging, error handling, validation)
@@ -235,7 +239,10 @@ Task 4: VERIFY existing tests still pass
 // PATTERN 1: Import Statement (Task 1)
 // ============================================================================
 // PLACE after line 40 (BugHuntWorkflow import)
-import { validateBugfixSession, BugfixSessionValidationError } from '../utils/validation/session-validation.js';
+import {
+  validateBugfixSession,
+  BugfixSessionValidationError,
+} from '../utils/validation/session-validation.js';
 
 // ============================================================================
 // PATTERN 2: Constructor Validation (Task 2) - Lines 120-130 area

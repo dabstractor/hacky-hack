@@ -13,6 +13,7 @@ This document analyzes the current state of `tests/unit/core/models.test.ts` and
 #### Test 1: "should accept valid status values" (lines 48-67)
 
 **Current Implementation:**
+
 ```typescript
 it('should accept valid status values', () => {
   // SETUP: Valid status values
@@ -20,7 +21,7 @@ it('should accept valid status values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← MISSING 'Retrying'
+    'Complete', // ← MISSING 'Retrying'
     'Failed',
     'Obsolete',
   ] as const;
@@ -37,17 +38,20 @@ it('should accept valid status values', () => {
 ```
 
 **Problem:**
+
 - Array only includes 6 statuses
 - Missing 'Retrying' status
 - Test will still pass (doesn't validate count)
 
 **Required Change:**
+
 - Add 'Retrying' to the `validStatuses` array
 - Position should be after 'Implementing' and before 'Complete'
 
 #### Test 2: "should expose all enum values via options property" (lines 80-90)
 
 **Current Implementation:**
+
 ```typescript
 it('should expose all enum values via options property', () => {
   // EXECUTE & VERIFY: Check .options property
@@ -55,7 +59,7 @@ it('should expose all enum values via options property', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← MISSING 'Retrying'
+    'Complete', // ← MISSING 'Retrying'
     'Failed',
     'Obsolete',
   ]);
@@ -63,17 +67,20 @@ it('should expose all enum values via options property', () => {
 ```
 
 **Problem:**
+
 - Expected array only includes 6 values
 - Actual `StatusEnum.options` has 7 values (including 'Retrying')
 - Test **will fail** with: "Expected [Planned, Researching, Implementing, Complete, Failed, Obsolete] but got [Planned, Researching, Implementing, Retrying, Complete, Failed, Obsolete]"
 
 **Required Change:**
+
 - Add 'Retrying' to expected array
 - Position must match actual enum order
 
 #### Test 3: "should document complete status lifecycle with all valid values" (lines 223-243)
 
 **Current Implementation:**
+
 ```typescript
 it('should document complete status lifecycle with all valid values', () => {
   // SETUP: All 6 valid status values (not 7 as in outdated docs)
@@ -98,12 +105,14 @@ it('should document complete status lifecycle with all valid values', () => {
 ```
 
 **Problem:**
+
 - Comment says "not 7 as in outdated docs" but this is **backwards**
 - Implementation actually **has** 7 values
 - Test expects 6 values but will get 7
 - Test **will fail** on count assertions
 
 **Required Change:**
+
 - Add 'Retrying' to `allValidStatuses` array
 - Update comment to reflect correct count
 - Change count assertions from 6 to 7
@@ -113,24 +122,26 @@ it('should document complete status lifecycle with all valid values', () => {
 ### File: `src/core/models.ts`
 
 #### Status Union Type (lines 175-182)
+
 ```typescript
 export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← PRESENT (4th of 7)
+  | 'Retrying' // ← PRESENT (4th of 7)
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
 ```
 
 #### StatusEnum Zod Schema (lines 199-207)
+
 ```typescript
 export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← PRESENT (4th of 7)
+  'Retrying', // ← PRESENT (4th of 7)
   'Complete',
   'Failed',
   'Obsolete',
@@ -138,9 +149,10 @@ export const StatusEnum = z.enum([
 ```
 
 **Verification:**
+
 ```typescript
-StatusEnum.options.length === 7  // ✅ TRUE
-StatusEnum.options.includes('Retrying')  // ✅ TRUE
+StatusEnum.options.length === 7; // ✅ TRUE
+StatusEnum.options.includes('Retrying'); // ✅ TRUE
 ```
 
 ## Required Test Updates
@@ -148,16 +160,19 @@ StatusEnum.options.includes('Retrying')  // ✅ TRUE
 ### Summary of Changes
 
 **Test 1**: Add 'Retrying' to `validStatuses` array
+
 - File: `tests/unit/core/models.test.ts`
 - Lines: 50-57
 - Action: Insert 'Retrying' after 'Implementing'
 
 **Test 2**: Add 'Retrying' to expected `.options` array
+
 - File: `tests/unit/core/models.test.ts`
 - Lines: 82-89
 - Action: Insert 'Retrying' after 'Implementing'
 
 **Test 3**: Add 'Retrying' to `allValidStatuses` array and update counts
+
 - File: `tests/unit/core/models.test.ts`
 - Lines: 224-242
 - Action:
@@ -170,11 +185,13 @@ StatusEnum.options.includes('Retrying')  // ✅ TRUE
 ### Expected Test Behavior
 
 **Before Updates:**
+
 - Test 1: Passes (doesn't validate completeness)
 - Test 2: **FAILS** (expected 6, got 7)
 - Test 3: **FAILS** (expected 6, got 7)
 
 **After Updates:**
+
 - Test 1: Passes (validates all 7 statuses)
 - Test 2: Passes (expected 7, got 7)
 - Test 3: Passes (expected 7, got 7)
@@ -205,6 +222,7 @@ node -e "import('./src/core/models.js').then(m => console.log(m.StatusEnum.optio
 **Finding**: StatusEnum **includes** 'Retrying' (line 203 in models.ts)
 
 **Impact on This Task**:
+
 - Confirms implementation is correct
 - Tests need updating to match implementation
 - No implementation changes needed
@@ -214,6 +232,7 @@ node -e "import('./src/core/models.js').then(m => console.log(m.StatusEnum.optio
 **Finding**: Display infrastructure **fully supports** 'Retrying'
 
 **Impact on This Task**:
+
 - Confirms 'Retrying' is integrated across codebase
 - Tests should reflect this integration
 - Display components don't need changes
@@ -223,6 +242,7 @@ node -e "import('./src/core/models.js').then(m => console.log(m.StatusEnum.optio
 **Finding**: TaskRetryManager **actively uses** 'Retrying' status
 
 **Impact on This Task**:
+
 - Confirms 'Retrying' is not just defined but **used**
 - Tests should validate the complete status lifecycle
 - Retry logic doesn't need changes
@@ -234,8 +254,11 @@ node -e "import('./src/core/models.js').then(m => console.log(m.StatusEnum.optio
 From the analysis of test patterns:
 
 1. **Enum Validation Pattern** (from BugSeverityEnum, ItemTypeEnum tests):
+
    ```typescript
-   const validValues = [/* all enum values */] as const;
+   const validValues = [
+     /* all enum values */
+   ] as const;
    validValues.forEach(value => {
      const result = EnumSchema.safeParse(value);
      expect(result.success).toBe(true);
@@ -243,8 +266,11 @@ From the analysis of test patterns:
    ```
 
 2. **Options Property Validation**:
+
    ```typescript
-   expect(EnumSchema.options).toEqual([/* all enum values */]);
+   expect(EnumSchema.options).toEqual([
+     /* all enum values */
+   ]);
    ```
 
 3. **Completeness Validation**:
@@ -255,12 +281,13 @@ From the analysis of test patterns:
 ### Applying Patterns to StatusEnum Updates
 
 **Pattern 1: Validate all 7 statuses**
+
 ```typescript
 const allValidStatuses: Status[] = [
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← ADD THIS
+  'Retrying', // ← ADD THIS
   'Complete',
   'Failed',
   'Obsolete',
@@ -268,12 +295,13 @@ const allValidStatuses: Status[] = [
 ```
 
 **Pattern 2: Validate options array**
+
 ```typescript
 expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← ADD THIS
+  'Retrying', // ← ADD THIS
   'Complete',
   'Failed',
   'Obsolete',
@@ -281,13 +309,15 @@ expect(StatusEnum.options).toEqual([
 ```
 
 **Pattern 3: Validate count**
+
 ```typescript
-expect(StatusEnum.options.length).toBe(7);  // ← CHANGE FROM 6 TO 7
+expect(StatusEnum.options.length).toBe(7); // ← CHANGE FROM 6 TO 7
 ```
 
 ## Conclusion
 
 The StatusEnum implementation is **correct and complete**. The 'Retrying' status is:
+
 - ✅ Present in Status union type (line 179)
 - ✅ Present in StatusEnum Zod schema (line 203)
 - ✅ Has color mapping (chalk.yellow)

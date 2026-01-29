@@ -41,14 +41,18 @@ export class BugfixSessionValidationError extends Error {
       message: this.message,
       code: this.code,
       context: this.context,
-      cause: this.cause ? { name: this.cause.name, message: this.cause.message } : undefined,
+      cause: this.cause
+        ? { name: this.cause.name, message: this.cause.message }
+        : undefined,
       stack: process.env.NODE_ENV === 'development' ? this.stack : undefined,
     };
   }
 }
 
 // Type guard
-export function isBugfixSessionValidationError(error: unknown): error is BugfixSessionValidationError {
+export function isBugfixSessionValidationError(
+  error: unknown
+): error is BugfixSessionValidationError {
   return error instanceof BugfixSessionValidationError;
 }
 ```
@@ -140,10 +144,7 @@ throw new BugfixSessionValidationError(
 describe('BugfixSessionValidationError', () => {
   describe('constructor', () => {
     it('should create error with message and code', () => {
-      const error = new BugfixSessionValidationError(
-        'Test error',
-        'TEST_CODE'
-      );
+      const error = new BugfixSessionValidationError('Test error', 'TEST_CODE');
 
       expect(error.message).toBe('Test error');
       expect(error.code).toBe('TEST_CODE');
@@ -307,6 +308,7 @@ Follow this pattern for error codes:
 ```
 
 Examples:
+
 - `BUGFIX_SESSION_INVALID_PATH` - Module: BUGFIX, Category: SESSION, Error: INVALID_PATH
 - `BUGFIX_SESSION_MISSING_FIELD` - Module: BUGFIX, Category: SESSION, Error: MISSING_FIELD
 - `BUGFIX_SESSION_VALIDATION_FAILED` - Module: BUGFIX, Category: SESSION, Error: VALIDATION_FAILED
@@ -412,9 +414,15 @@ if (validationErrors.length > 0) {
 ### Update validateBugfixSession Function
 
 ```typescript
-import { BugfixSessionValidationError, isBugfixSessionValidationError } from './errors';
+import {
+  BugfixSessionValidationError,
+  isBugfixSessionValidationError,
+} from './errors';
 
-export function validateBugfixSession(session: unknown, filePath: string): BugfixSession {
+export function validateBugfixSession(
+  session: unknown,
+  filePath: string
+): BugfixSession {
   // Validate it's an object
   if (typeof session !== 'object' || session === null) {
     throw new BugfixSessionValidationError(

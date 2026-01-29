@@ -15,9 +15,11 @@ This research document provides comprehensive guidance on creating a `BugfixSess
 ## Document Structure
 
 ### 1. **typescript-error-best-practices.md** (24 KB)
+
 Comprehensive research document covering all aspects of TypeScript error class design.
 
 **Contents:**
+
 - Proper prototype chain setup with `Object.setPrototypeOf()`
 - When to extend Error vs custom base classes
 - Error code patterns and conventions
@@ -35,9 +37,11 @@ Comprehensive research document covering all aspects of TypeScript error class d
 ---
 
 ### 2. **error-class-implementation-guide.md** (13 KB)
+
 Practical implementation guide with ready-to-use code examples.
 
 **Contents:**
+
 - Complete error class template
 - Usage examples (basic, with cause, with type guards)
 - Comprehensive testing template
@@ -52,9 +56,11 @@ Practical implementation guide with ready-to-use code examples.
 ---
 
 ### 3. **error-class-cheat-sheet.md** (9.4 KB)
+
 Quick reference guide for fast lookup during development.
 
 **Contents:**
+
 - Essential template (copy-paste ready)
 - 5 critical rules with correct/incorrect examples
 - Error code naming convention
@@ -71,9 +77,11 @@ Quick reference guide for fast lookup during development.
 ---
 
 ### 4. **sources-and-references.md** (13 KB)
+
 Complete list of documentation sources and references.
 
 **Contents:**
+
 - Official TypeScript documentation links
 - MDN Web Docs references
 - TC39 proposals (Error Cause, Error.isError)
@@ -94,18 +102,22 @@ Complete list of documentation sources and references.
 ### Critical Requirements
 
 1. **Prototype Chain Setup**
+
    ```typescript
    Object.setPrototypeOf(this, BugfixSessionValidationError.prototype);
    ```
+
    - Essential for `instanceof` to work in transpiled code
    - Source: TypeScript Handbook, MDN Custom Errors
 
 2. **Stack Trace Capture**
+
    ```typescript
    if (Error.captureStackTrace) {
      Error.captureStackTrace(this, BugfixSessionValidationError);
    }
    ```
+
    - Provides clean stack traces in Node.js
    - Source: MDN Error.captureStackTrace
 
@@ -227,6 +239,7 @@ All research documents are located at:
 ## Research Notes
 
 **Research Methodology:**
+
 - Official TypeScript documentation
 - MDN Web Docs (JavaScript standards)
 - TC39 proposals (modern JavaScript standards)
@@ -235,11 +248,13 @@ All research documents are located at:
 - Real-world GitHub implementations
 
 **Research Limitations:**
+
 - Web search service reached monthly usage limit during research
 - All information based on established standards and well-documented patterns
 - All recommendations align with official documentation
 
 **Source Quality:**
+
 - All sources are official documentation or well-established community resources
 - Code examples follow TypeScript/JavaScript standards
 - Patterns verified against multiple sources

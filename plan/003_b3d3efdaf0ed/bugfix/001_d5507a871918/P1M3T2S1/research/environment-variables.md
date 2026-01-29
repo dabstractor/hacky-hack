@@ -10,19 +10,19 @@
 
 ### 1.1 Core Configuration Variables
 
-| Variable               | Purpose                         | File                          | Pattern | Validation |
-| ---------------------- | ------------------------------- | ----------------------------- | ------- | ---------- |
-| `ANTHROPIC_API_KEY`    | API authentication key          | `src/config/environment.ts`   | Required | ✅ Mandatory |
-| `ANTHROPIC_AUTH_TOKEN` | Shell authentication token      | `src/config/environment.ts`   | Optional | Mapped to API_KEY |
-| `ANTHROPIC_BASE_URL`   | API endpoint URL                | `src/config/environment.ts`   | Required | ✅ Default provided |
+| Variable               | Purpose                    | File                        | Pattern  | Validation          |
+| ---------------------- | -------------------------- | --------------------------- | -------- | ------------------- |
+| `ANTHROPIC_API_KEY`    | API authentication key     | `src/config/environment.ts` | Required | ✅ Mandatory        |
+| `ANTHROPIC_AUTH_TOKEN` | Shell authentication token | `src/config/environment.ts` | Optional | Mapped to API_KEY   |
+| `ANTHROPIC_BASE_URL`   | API endpoint URL           | `src/config/environment.ts` | Required | ✅ Default provided |
 
 ### 1.2 Pipeline Guard Variables (CRITICAL FOR P1M3T2S1)
 
-| Variable              | Purpose                         | File                                     | Pattern | Validation |
-| --------------------- | ------------------------------- | ---------------------------------------- | ------- | ---------- |
-| `PRP_PIPELINE_RUNNING`| Pipeline execution guard        | `src/workflows/prp-pipeline.ts`          | Runtime | ✅ PID string |
-| `SKIP_BUG_FINDING`    | Bug fix recursion exception     | Multiple files                           | Runtime | ✅ Exact 'true' match |
-| `PLAN_DIR`           | Plan directory path             | Multiple files                           | Runtime | Bugfix path check |
+| Variable               | Purpose                     | File                            | Pattern | Validation            |
+| ---------------------- | --------------------------- | ------------------------------- | ------- | --------------------- |
+| `PRP_PIPELINE_RUNNING` | Pipeline execution guard    | `src/workflows/prp-pipeline.ts` | Runtime | ✅ PID string         |
+| `SKIP_BUG_FINDING`     | Bug fix recursion exception | Multiple files                  | Runtime | ✅ Exact 'true' match |
+| `PLAN_DIR`             | Plan directory path         | Multiple files                  | Runtime | Bugfix path check     |
 
 ---
 
@@ -72,8 +72,8 @@ Used to allow recursion during bug fixing scenarios when the pipeline is already
 // Case-sensitive exact string match
 vi.stubEnv('SKIP_BUG_FINDING', 'true'); // ✅ Valid
 vi.stubEnv('SKIP_BUG_FINDING', 'TRUE'); // ❌ Invalid
-vi.stubEnv('SKIP_BUG_FINDING', '1');    // ❌ Invalid
-vi.stubEnv('SKIP_BUG_FINDING', 'yes');  // ❌ Invalid
+vi.stubEnv('SKIP_BUG_FINDING', '1'); // ❌ Invalid
+vi.stubEnv('SKIP_BUG_FINDING', 'yes'); // ❌ Invalid
 ```
 
 ### 3.3 Path Validation
@@ -82,12 +82,12 @@ The variable must be used together with a path containing 'bugfix':
 
 ```typescript
 // Valid examples:
-'/path/to/bugfix/session'
-'/path/to/BugFix/session'
-'/path/to/BUGFIX/session'
+'/path/to/bugfix/session';
+'/path/to/BugFix/session';
+'/path/to/BUGFIX/session';
 
 // Invalid:
-'/path/to/plan/003_b3d3efdaf0ed' // No bugfix
+'/path/to/plan/003_b3d3efdaf0ed'; // No bugfix
 ```
 
 ---
@@ -221,8 +221,8 @@ export function validateNestedExecution(sessionPath: string): void {
 
   // Check if this is legitimate bug fix recursion
   const isBugfixRecursion =
-    process.env.SKIP_BUG_FINDING === 'true' &&  // EXACT string match
-    sessionPath.toLowerCase().includes('bugfix');  // Case-insensitive check
+    process.env.SKIP_BUG_FINDING === 'true' && // EXACT string match
+    sessionPath.toLowerCase().includes('bugfix'); // Case-insensitive check
 
   if (isBugfixRecursion) {
     // Legitimate recursion - allow it
@@ -246,6 +246,7 @@ export function validateNestedExecution(sessionPath: string): void {
 ## Summary
 
 The environment variable patterns in this codebase follow these principles:
+
 - **Exact string matching** for boolean-like variables (`SKIP_BUG_FINDING === 'true'`)
 - **Case-insensitive path checks** for substring matching
 - **Clear error messages** with context information

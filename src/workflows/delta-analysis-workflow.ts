@@ -124,11 +124,21 @@ export class DeltaAnalysisWorkflow extends Workflow {
       );
 
       // Execute analysis with retry logic
-      // PATTERN: Type assertion needed for agent.prompt() return
-      const result = (await retryAgentPrompt(
-        () => qaAgent.prompt(prompt) as Promise<DeltaAnalysis>,
+      const agentResponse = await retryAgentPrompt(
+        () => qaAgent.prompt(prompt),
         { agentType: 'QA', operation: 'deltaAnalysis' }
-      )) as DeltaAnalysis;
+      );
+
+      // Extract DeltaAnalysis from AgentResponse
+      if (agentResponse.status !== 'success' || agentResponse.data === null) {
+        const errorMessage =
+          agentResponse.status === 'error' && agentResponse.error
+            ? agentResponse.error.message
+            : 'Unknown error';
+        throw new Error(`QA agent failed: ${errorMessage}`);
+      }
+
+      const result: DeltaAnalysis = agentResponse.data;
 
       // Store result
       this.deltaAnalysis = result;

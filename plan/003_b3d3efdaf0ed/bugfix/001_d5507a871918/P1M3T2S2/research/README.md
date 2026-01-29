@@ -40,13 +40,13 @@ This research addresses the following objectives for the PRP Pipeline:
 
 ### Core Research Documents
 
-| Document | Description | Key Topics |
-|----------|-------------|------------|
+| Document                                                                             | Description                        | Key Topics                                                         |
+| ------------------------------------------------------------------------------------ | ---------------------------------- | ------------------------------------------------------------------ |
 | **[python-custom-error-best-practices.md](./python-custom-error-best-practices.md)** | Comprehensive best practices guide | Error codes, inheritance, formatting, gotchas, production examples |
-| **[quick-reference-python-errors.md](./quick-reference-python-errors.md)** | Quick reference guide | TL;DR patterns, common gotchas, testing examples |
-| **[python-error-examples.py](./python-error-examples.py)** | Production-ready code examples | Complete, executable Python code with all patterns |
-| **[python-error-testing-patterns.md](./python-error-testing-patterns.md)** | Comprehensive testing guide | pytest patterns, edge cases, integration testing |
-| **[typescript-python-comparison.md](./typescript-python-comparison.md)** | TypeScript vs Python comparison | Side-by-side comparison, translation guide |
+| **[quick-reference-python-errors.md](./quick-reference-python-errors.md)**           | Quick reference guide              | TL;DR patterns, common gotchas, testing examples                   |
+| **[python-error-examples.py](./python-error-examples.py)**                           | Production-ready code examples     | Complete, executable Python code with all patterns                 |
+| **[python-error-testing-patterns.md](./python-error-testing-patterns.md)**           | Comprehensive testing guide        | pytest patterns, edge cases, integration testing                   |
+| **[typescript-python-comparison.md](./typescript-python-comparison.md)**             | TypeScript vs Python comparison    | Side-by-side comparison, translation guide                         |
 
 ---
 
@@ -67,12 +67,14 @@ class ErrorCode(str, Enum):
 ```
 
 **Benefits:**
+
 - Type-safe with IDE autocomplete
 - String values for easy serialization
 - Enum members are singletons (memory efficient)
 - Easy to extend and maintain
 
 **Alternatives:**
+
 - Class attributes (simple, less type-safe)
 - Hierarchical code generation (good for large systems)
 - Integer codes (less readable, harder to debug)
@@ -89,6 +91,7 @@ class CustomError(Exception):
 ```
 
 **Why This Matters:**
+
 - Sets the error message for `str(error)`
 - Preserves stack trace information
 - Enables proper exception chaining
@@ -110,6 +113,7 @@ class PipelineError(ABC, Exception):
 ```
 
 **Benefits:**
+
 - Enforces interface across all error subclasses
 - Prevents instantiation of base class
 - Provides type safety with static analysis tools
@@ -135,6 +139,7 @@ class ErrorContext:
 ```
 
 **Benefits:**
+
 - Type-safe with IDE support
 - Clear field definitions
 - Default values for optional fields
@@ -154,12 +159,14 @@ except FileNotFoundError as e:
 ```
 
 **Why This Matters:**
+
 - Preserves original traceback for debugging
 - Shows both errors in stack trace
 - Makes root cause analysis easier
 - Matches Python exception chaining best practices
 
 **Anti-Pattern:**
+
 ```python
 # BAD: Loses original traceback
 try:
@@ -185,6 +192,7 @@ class PipelineError(Exception):
 ```
 
 **Benefits:**
+
 - Compatible with JSON loggers (pino, structlog)
 - Easy to parse log files
 - Supports monitoring and alerting
@@ -211,6 +219,7 @@ except Exception as e:
 ```
 
 **Benefits:**
+
 - Type-safe error handling
 - Better IDE autocomplete
 - Catches type errors at static analysis time
@@ -223,6 +232,7 @@ except Exception as e:
 ### Gotcha 1: Mutable Default Arguments
 
 **BAD:**
+
 ```python
 class BadError(Exception):
     def __init__(self, message: str, details: list = []):  # Dangerous!
@@ -230,6 +240,7 @@ class BadError(Exception):
 ```
 
 **GOOD:**
+
 ```python
 class GoodError(Exception):
     def __init__(self, message: str, details: list | None = None):
@@ -241,6 +252,7 @@ class GoodError(Exception):
 ### Gotcha 2: Forgetting `super().__init__()`
 
 **BAD:**
+
 ```python
 class BadError(Exception):
     def __init__(self, message: str):
@@ -248,6 +260,7 @@ class BadError(Exception):
 ```
 
 **GOOD:**
+
 ```python
 class GoodError(Exception):
     def __init__(self, message: str):
@@ -260,6 +273,7 @@ class GoodError(Exception):
 ### Gotcha 3: Breaking Exception Chaining
 
 **BAD:**
+
 ```python
 try:
     risky_operation()
@@ -268,6 +282,7 @@ except ValueError as e:
 ```
 
 **GOOD:**
+
 ```python
 try:
     risky_operation()
@@ -280,12 +295,14 @@ except ValueError as e:
 ### Gotcha 4: Shadowing Built-in Exception Names
 
 **BAD:**
+
 ```python
 class ValueError(Exception):  # Don't do this!
     pass
 ```
 
 **GOOD:**
+
 ```python
 class ValidationError(Exception):  # Much better!
     pass
@@ -296,6 +313,7 @@ class ValidationError(Exception):  # Much better!
 ### Gotcha 5: Not Supporting Pickling
 
 **BAD:**
+
 ```python
 class BadError(Exception):
     def __init__(self, message: str, callback: Callable):
@@ -303,6 +321,7 @@ class BadError(Exception):
 ```
 
 **GOOD:**
+
 ```python
 class GoodError(Exception):
     def __init__(self, message: str, context: dict):

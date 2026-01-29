@@ -38,7 +38,9 @@ export class BugfixSessionValidationError extends Error {
       message: this.message,
       code: this.code,
       context: this.context,
-      cause: this.cause ? { name: this.cause.name, message: this.cause.message } : undefined,
+      cause: this.cause
+        ? { name: this.cause.name, message: this.cause.message }
+        : undefined,
       stack: process.env.NODE_ENV === 'development' ? this.stack : undefined,
     };
   }
@@ -57,6 +59,7 @@ export function isBugfixSessionValidationError(
 ## Critical Rules (Must Follow)
 
 ### 1. Always Call Object.setPrototypeOf()
+
 ```typescript
 // ✓ CORRECT
 class CustomError extends Error {
@@ -76,6 +79,7 @@ class CustomError extends Error {
 ```
 
 ### 2. Always Set this.name
+
 ```typescript
 // ✓ CORRECT
 this.name = 'BugfixSessionValidationError';
@@ -85,6 +89,7 @@ this.name = 'BugfixSessionValidationError';
 ```
 
 ### 3. Use Error.captureStackTrace (Node.js)
+
 ```typescript
 // ✓ CORRECT
 if (Error.captureStackTrace) {
@@ -95,6 +100,7 @@ if (Error.captureStackTrace) {
 ```
 
 ### 4. Make Custom Properties readonly
+
 ```typescript
 // ✓ CORRECT
 constructor(
@@ -110,6 +116,7 @@ constructor(
 ```
 
 ### 5. Implement toJSON() for Logging
+
 ```typescript
 // ✓ CORRECT
 toJSON() {
@@ -130,11 +137,13 @@ toJSON() {
 ## Error Code Patterns
 
 ### Naming Convention
+
 ```
 [MODULE]_[CATEGORY]_[SPECIFIC_ERROR]
 ```
 
 ### Examples
+
 ```typescript
 enum BugfixSessionErrorCode {
   // Module: BUGFIX, Category: SESSION
@@ -147,6 +156,7 @@ enum BugfixSessionErrorCode {
 ```
 
 ### Usage
+
 ```typescript
 throw new BugfixSessionValidationError(
   'Session file not found',
@@ -160,6 +170,7 @@ throw new BugfixSessionValidationError(
 ## Type Guard Patterns
 
 ### Basic Type Guard
+
 ```typescript
 function isBugfixSessionValidationError(
   error: unknown
@@ -169,6 +180,7 @@ function isBugfixSessionValidationError(
 ```
 
 ### Error Code Type Guard
+
 ```typescript
 function hasErrorCode(
   error: unknown,
@@ -179,6 +191,7 @@ function hasErrorCode(
 ```
 
 ### Usage
+
 ```typescript
 try {
   // ... code that throws
@@ -200,6 +213,7 @@ try {
 ## Common Patterns
 
 ### File Not Found
+
 ```typescript
 if (!fs.existsSync(filePath)) {
   throw new BugfixSessionValidationError(
@@ -211,6 +225,7 @@ if (!fs.existsSync(filePath)) {
 ```
 
 ### Invalid JSON
+
 ```typescript
 try {
   JSON.parse(fileContent);
@@ -219,12 +234,13 @@ try {
     'Invalid JSON in session file',
     'BUGFIX_SESSION_INVALID_JSON',
     { filePath },
-    parseError as Error  // Include cause
+    parseError as Error // Include cause
   );
 }
 ```
 
 ### Missing Required Field
+
 ```typescript
 if (!session.sessionId) {
   throw new BugfixSessionValidationError(
@@ -236,6 +252,7 @@ if (!session.sessionId) {
 ```
 
 ### Type Validation
+
 ```typescript
 if (typeof session.steps !== 'number') {
   throw new BugfixSessionValidationError(
@@ -252,6 +269,7 @@ if (typeof session.steps !== 'number') {
 ```
 
 ### Multiple Validation Errors
+
 ```typescript
 const errors: ValidationErrorItem[] = [
   { field: 'sessionId', message: 'Required', value: undefined },
@@ -274,6 +292,7 @@ throw new BugfixSessionValidationError(
 ## Testing Checklist
 
 ### Must Test
+
 ```typescript
 describe('BugfixSessionValidationError', () => {
   // ✓ Test basic construction
@@ -303,6 +322,7 @@ describe('BugfixSessionValidationError', () => {
 ## Quick Reference: What to Include vs Exclude
 
 ### ✓ Include in Context
+
 - File paths (not contents)
 - Field names
 - Type information
@@ -311,6 +331,7 @@ describe('BugfixSessionValidationError', () => {
 - Session IDs (non-sensitive identifiers)
 
 ### ✗ Exclude from Context
+
 - Passwords
 - API keys
 - Tokens
@@ -324,6 +345,7 @@ describe('BugfixSessionValidationError', () => {
 ## Common Pitfalls
 
 ### Problem: instanceof Returns False
+
 ```typescript
 // Cause: Missing Object.setPrototypeOf()
 // Fix:
@@ -331,6 +353,7 @@ Object.setPrototypeOf(this, BugfixSessionValidationError.prototype);
 ```
 
 ### Problem: Stack Trace is Ugly
+
 ```typescript
 // Cause: Not using Error.captureStackTrace()
 // Fix:
@@ -340,6 +363,7 @@ if (Error.captureStackTrace) {
 ```
 
 ### Problem: Error Shows as "Error" in Logs
+
 ```typescript
 // Cause: Not setting this.name
 // Fix:
@@ -347,6 +371,7 @@ this.name = 'BugfixSessionValidationError';
 ```
 
 ### Problem: Can't Serialize Error
+
 ```typescript
 // Cause: Not implementing toJSON()
 // Fix:
@@ -356,6 +381,7 @@ toJSON() {
 ```
 
 ### Problem: Type Assertions Needed Everywhere
+
 ```typescript
 // Cause: Not using type guards
 // Fix:
@@ -371,7 +397,7 @@ if (isBugfixSessionValidationError(error)) {
 ```json
 {
   "compilerOptions": {
-    "target": "ES2015",  // or higher (ES2016, ES2018, ES2020, etc.)
+    "target": "ES2015", // or higher (ES2016, ES2018, ES2020, etc.)
     "lib": ["ES2015"]
   }
 }
@@ -384,6 +410,7 @@ if (isBugfixSessionValidationError(error)) {
 ## Environment-Specific Behavior
 
 ### Development (NODE_ENV=development)
+
 ```typescript
 {
   name: 'BugfixSessionValidationError',
@@ -395,6 +422,7 @@ if (isBugfixSessionValidationError(error)) {
 ```
 
 ### Production (NODE_ENV=production)
+
 ```typescript
 {
   name: 'BugfixSessionValidationError',
@@ -410,6 +438,7 @@ if (isBugfixSessionValidationError(error)) {
 ## Quick Usage Examples
 
 ### Throwing
+
 ```typescript
 throw new BugfixSessionValidationError(
   'Session validation failed',
@@ -419,6 +448,7 @@ throw new BugfixSessionValidationError(
 ```
 
 ### Catching
+
 ```typescript
 try {
   validateSession(session);
@@ -430,6 +460,7 @@ try {
 ```
 
 ### Logging
+
 ```typescript
 // Structured logging
 logger.error({

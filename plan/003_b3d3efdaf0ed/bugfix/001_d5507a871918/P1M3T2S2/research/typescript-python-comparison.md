@@ -42,7 +42,7 @@ export const ErrorCodes = {
   // ... more codes
 } as const;
 
-export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 ```
 
 #### Base Error Class
@@ -302,26 +302,26 @@ class ErrorContext:
 
 ## Feature Comparison Table
 
-| Feature | TypeScript | Python | Notes |
-|---------|-----------|--------|-------|
-| **Error Codes** | `const` with `as const` | `Enum(str, Enum)` | Both provide type safety |
-| **Code Type** | `typeof ErrorCodes[keyof typeof ErrorCodes]` | Enum value type | TypeScript: string literal union, Python: Enum |
-| **Base Class** | `extends Error` | `extends Exception` | Both inherit from standard error type |
-| **Abstract Property** | `abstract readonly code: ErrorCode` | `@property @abstractmethod def code(self)` | TypeScript uses class property, Python uses property decorator |
-| **Context Type** | `interface extends Record<string, unknown>` | `dataclass` or `dict[str, Any]` | TypeScript: interface, Python: dataclass (more structured) |
-| **Timestamp** | `new Date()` | `datetime.utcnow()` | Both use ISO 8601 format |
-| **Prototype Setup** | `Object.setPrototypeOf(this, new.target.prototype)` | Automatic via `super()` | Python handles this automatically |
-| **Stack Trace** | `Error.captureStackTrace(this, this.constructor)` | Automatic | Python preserves traceback automatically |
-| **Context Access** | `Object.assign(this, context)` | Loop with `setattr(self, key, value)` | Both copy context to instance |
-| **Exception Chaining** | `(this as unknown as { cause?: Error }).cause = cause` | `self.__cause__ = cause` | TypeScript: type assertion, Python: direct assignment |
-| **Serialization** | `toJSON(): object` | `to_dict(): dict` | TypeScript returns object, Python returns dict |
-| **Serialization Format** | Plain object (implicit JSON) | Dictionary (explicit JSON via `json.dumps()`) | Python requires explicit JSON conversion |
-| **Sensitive Data** | Custom sanitization in `sanitizeContext()` | Can be added to `to_dict()` | TypeScript has built-in sanitization |
-| **Type Guard** | `function isType(error: unknown): error is Type` | `def is_type(error: object) -> TypeGuard[Type]` | Both use type predicate syntax |
-| **Type Guard Check** | `error instanceof Type` | `isinstance(error, Type)` | Different syntax, same semantics |
-| **String Conversion** | Implicit via `message` property | Override `__str__()` method | TypeScript: automatic, Python: explicit |
-| **Property Access** | `this.context` | `self.context` | Different syntax for property access |
-| **Null/None Handling** | `context?: PipelineErrorContext` (optional) | `context: ErrorContext | dict | None` | TypeScript: optional property, Python: Union type |
+| Feature                  | TypeScript                                             | Python                                          | Notes                                                          |
+| ------------------------ | ------------------------------------------------------ | ----------------------------------------------- | -------------------------------------------------------------- | ----- | ------------------------------------------------- |
+| **Error Codes**          | `const` with `as const`                                | `Enum(str, Enum)`                               | Both provide type safety                                       |
+| **Code Type**            | `typeof ErrorCodes[keyof typeof ErrorCodes]`           | Enum value type                                 | TypeScript: string literal union, Python: Enum                 |
+| **Base Class**           | `extends Error`                                        | `extends Exception`                             | Both inherit from standard error type                          |
+| **Abstract Property**    | `abstract readonly code: ErrorCode`                    | `@property @abstractmethod def code(self)`      | TypeScript uses class property, Python uses property decorator |
+| **Context Type**         | `interface extends Record<string, unknown>`            | `dataclass` or `dict[str, Any]`                 | TypeScript: interface, Python: dataclass (more structured)     |
+| **Timestamp**            | `new Date()`                                           | `datetime.utcnow()`                             | Both use ISO 8601 format                                       |
+| **Prototype Setup**      | `Object.setPrototypeOf(this, new.target.prototype)`    | Automatic via `super()`                         | Python handles this automatically                              |
+| **Stack Trace**          | `Error.captureStackTrace(this, this.constructor)`      | Automatic                                       | Python preserves traceback automatically                       |
+| **Context Access**       | `Object.assign(this, context)`                         | Loop with `setattr(self, key, value)`           | Both copy context to instance                                  |
+| **Exception Chaining**   | `(this as unknown as { cause?: Error }).cause = cause` | `self.__cause__ = cause`                        | TypeScript: type assertion, Python: direct assignment          |
+| **Serialization**        | `toJSON(): object`                                     | `to_dict(): dict`                               | TypeScript returns object, Python returns dict                 |
+| **Serialization Format** | Plain object (implicit JSON)                           | Dictionary (explicit JSON via `json.dumps()`)   | Python requires explicit JSON conversion                       |
+| **Sensitive Data**       | Custom sanitization in `sanitizeContext()`             | Can be added to `to_dict()`                     | TypeScript has built-in sanitization                           |
+| **Type Guard**           | `function isType(error: unknown): error is Type`       | `def is_type(error: object) -> TypeGuard[Type]` | Both use type predicate syntax                                 |
+| **Type Guard Check**     | `error instanceof Type`                                | `isinstance(error, Type)`                       | Different syntax, same semantics                               |
+| **String Conversion**    | Implicit via `message` property                        | Override `__str__()` method                     | TypeScript: automatic, Python: explicit                        |
+| **Property Access**      | `this.context`                                         | `self.context`                                  | Different syntax for property access                           |
+| **Null/None Handling**   | `context?: PipelineErrorContext` (optional)            | `context: ErrorContext                          | dict                                                           | None` | TypeScript: optional property, Python: Union type |
 
 ---
 
@@ -330,27 +330,31 @@ class ErrorContext:
 ### 1. Error Constants
 
 **TypeScript:**
+
 ```typescript
 export const ErrorCodes = {
   SESSION_LOAD_FAILED: 'SESSION_LOAD_FAILED',
 } as const;
 
-export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 ```
 
 **Python:**
+
 ```python
 class ErrorCode(str, Enum):
     SESSION_LOAD_FAILED = "SESSION_LOAD_FAILED"
 ```
 
 **Why:**
+
 - TypeScript uses `const` assertion for type-safe string literals
 - Python uses `Enum` for type-safe constants with better IDE support
 
 ### 2. Abstract Base Class
 
 **TypeScript:**
+
 ```typescript
 export abstract class PipelineError extends Error {
   abstract readonly code: ErrorCode;
@@ -366,6 +370,7 @@ export abstract class PipelineError extends Error {
 ```
 
 **Python:**
+
 ```python
 class PipelineError(ABC, Exception):
     def __init__(
@@ -384,6 +389,7 @@ class PipelineError(ABC, Exception):
 ```
 
 **Why:**
+
 - TypeScript: Abstract property using `abstract readonly`
 - Python: Abstract property using `@property` and `@abstractmethod` decorators
 - Python requires explicit call to `super().__init__(message)` to set the error message
@@ -391,6 +397,7 @@ class PipelineError(ABC, Exception):
 ### 3. Context Interface
 
 **TypeScript:**
+
 ```typescript
 export interface PipelineErrorContext extends Record<string, unknown> {
   sessionPath?: string;
@@ -401,6 +408,7 @@ export interface PipelineErrorContext extends Record<string, unknown> {
 ```
 
 **Python:**
+
 ```python
 @dataclass
 class ErrorContext:
@@ -414,6 +422,7 @@ class ErrorContext:
 ```
 
 **Why:**
+
 - TypeScript: Interface with optional properties and index signature
 - Python: Dataclass with typed fields and default values
 - Python dataclasses provide better type safety and IDE autocomplete than plain dicts
@@ -421,6 +430,7 @@ class ErrorContext:
 ### 4. Specialized Error Class
 
 **TypeScript:**
+
 ```typescript
 export class SessionError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_SESSION_LOAD_FAILED;
@@ -437,6 +447,7 @@ export class SessionError extends PipelineError {
 ```
 
 **Python:**
+
 ```python
 class SessionError(PipelineError):
     _default_code = ErrorCode.SESSION_LOAD_FAILED
@@ -460,6 +471,7 @@ class SessionError(PipelineError):
 ```
 
 **Why:**
+
 - TypeScript: Direct property assignment with type inference
 - Python: Private attribute `_code` with `@property` getter
 - Python allows overriding code via constructor parameter (more flexible)
@@ -467,6 +479,7 @@ class SessionError(PipelineError):
 ### 5. Type Guard
 
 **TypeScript:**
+
 ```typescript
 export function isSessionError(error: unknown): error is SessionError {
   return error instanceof SessionError;
@@ -474,6 +487,7 @@ export function isSessionError(error: unknown): error is SessionError {
 ```
 
 **Python:**
+
 ```python
 from typing import TypeGuard
 
@@ -482,6 +496,7 @@ def is_session_error(error: object | None) -> TypeGuard[SessionError]:
 ```
 
 **Why:**
+
 - TypeScript: `error is Type` as return type annotation
 - Python: `TypeGuard[Type]` from typing module (Python 3.10+)
 - Both enable type narrowing in catch blocks
@@ -489,6 +504,7 @@ def is_session_error(error: object | None) -> TypeGuard[SessionError]:
 ### 6. Serialization
 
 **TypeScript:**
+
 ```typescript
 toJSON(): Record<string, unknown> {
   return {
@@ -502,6 +518,7 @@ toJSON(): Record<string, unknown> {
 ```
 
 **Python:**
+
 ```python
 def to_dict(self) -> dict[str, Any]:
     return {
@@ -517,6 +534,7 @@ def to_json(self) -> str:
 ```
 
 **Why:**
+
 - TypeScript: `toJSON()` returns plain object (implicitly JSON-serializable)
 - Python: `to_dict()` returns dict, `to_json()` returns JSON string
 - Python requires explicit JSON conversion via `json.dumps()`
@@ -524,6 +542,7 @@ def to_json(self) -> str:
 ### 7. Context Property Access
 
 **TypeScript:**
+
 ```typescript
 // In constructor
 if (context) {
@@ -531,11 +550,12 @@ if (context) {
 }
 
 // Usage
-const error = new SessionError("msg", { sessionPath: "/path" });
-console.log(error.sessionPath);  // Direct access
+const error = new SessionError('msg', { sessionPath: '/path' });
+console.log(error.sessionPath); // Direct access
 ```
 
 **Python:**
+
 ```python
 # In constructor
 for key, value in self.context.to_dict().items():
@@ -547,6 +567,7 @@ print(error.session_path)  # Direct access via setattr
 ```
 
 **Why:**
+
 - TypeScript: `Object.assign()` copies all properties to instance
 - Python: Loop with `setattr()` achieves same result
 - Both enable direct property access for convenience
@@ -554,6 +575,7 @@ print(error.session_path)  # Direct access via setattr
 ### 8. Exception Chaining
 
 **TypeScript:**
+
 ```typescript
 // Store cause in constructor
 if (cause) {
@@ -564,11 +586,12 @@ if (cause) {
 try {
   operation();
 } catch (e) {
-  throw new SessionError("Failed", undefined, e);
+  throw new SessionError('Failed', undefined, e);
 }
 ```
 
 **Python:**
+
 ```python
 # Store cause in constructor
 if cause is not None:
@@ -582,6 +605,7 @@ except Exception as e:
 ```
 
 **Why:**
+
 - TypeScript: Type assertion to access `cause` property (ES2022+)
 - Python: Direct assignment to `__cause__` attribute
 - Python's `from e` syntax provides better traceback preservation
@@ -593,12 +617,14 @@ except Exception as e:
 ### 1. Prototype Chain
 
 **TypeScript:**
+
 ```typescript
 // REQUIRED for instanceof to work
 Object.setPrototypeOf(this, new.target.prototype);
 ```
 
 **Python:**
+
 ```python
 // AUTOMATIC - no need for manual setup
 super().__init__(message)
@@ -609,6 +635,7 @@ super().__init__(message)
 ### 2. Stack Trace Capture
 
 **TypeScript:**
+
 ```typescript
 // REQUIRED for proper stack traces in V8/Node.js
 if (Error.captureStackTrace) {
@@ -617,6 +644,7 @@ if (Error.captureStackTrace) {
 ```
 
 **Python:**
+
 ```python
 // AUTOMATIC - tracebacks are preserved automatically
 // Use 'raise ... from e' to chain exceptions
@@ -635,12 +663,14 @@ if (Error.captureStackTrace) {
 ### 4. Null vs None
 
 **TypeScript:**
+
 ```typescript
 context?: PipelineErrorContext  // undefined or null
 if (context) { /* ... */ }
 ```
 
 **Python:**
+
 ```python
 context: ErrorContext | dict[str, Any] | None
 if context is not None:  # Explicit None check
@@ -652,11 +682,13 @@ if context is not None:  # Explicit None check
 ### 5. Optional Properties
 
 **TypeScript:**
+
 ```typescript
 readonly context?: PipelineErrorContext;  // Optional property
 ```
 
 **Python:**
+
 ```python
 self.context: ErrorContext = context or ErrorContext()  # Default value
 ```
@@ -666,12 +698,14 @@ self.context: ErrorContext = context or ErrorContext()  # Default value
 ### 6. String Conversion
 
 **TypeScript:**
+
 ```typescript
 // Automatic - uses message property
 super().__init__(message);
 ```
 
 **Python:**
+
 ```python
 # May need explicit override
 def __str__(self) -> str:
@@ -691,15 +725,17 @@ def __str__(self) -> str:
 ### 8. Enum Syntax
 
 **TypeScript:**
+
 ```typescript
 const ErrorCodes = {
   SESSION_LOAD_FAILED: 'SESSION_LOAD_FAILED',
 } as const;
 
-type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 ```
 
 **Python:**
+
 ```python
 class ErrorCode(str, Enum):
     SESSION_LOAD_FAILED = "SESSION_LOAD_FAILED"

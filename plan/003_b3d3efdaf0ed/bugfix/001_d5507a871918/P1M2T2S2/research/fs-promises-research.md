@@ -8,6 +8,7 @@
 ## Official Node.js Documentation URLs
 
 ### Core Documentation
+
 - **File System (fs/promises):** https://nodejs.org/api/fs.html#fspromises-api
 - **fs.promises.readFile:** https://nodejs.org/api/fs.html#fspromisesreadfilepath-options
 - **fs.promises.access:** https://nodejs.org/api/fs.html#fspromisesaccesspath-mode
@@ -19,6 +20,7 @@
 ## 1. fs/promises readFile Usage
 
 ### Basic Usage
+
 ```typescript
 import { readFile } from 'fs/promises';
 
@@ -31,6 +33,7 @@ try {
 ```
 
 ### Read as Buffer
+
 ```typescript
 import { readFile } from 'fs/promises';
 
@@ -43,13 +46,14 @@ try {
 ```
 
 ### With Options
+
 ```typescript
 import { readFile } from 'fs/promises';
 
 try {
   const data = await readFile('/path/to/file', {
     encoding: 'utf8',
-    flag: 'r'
+    flag: 'r',
   });
   console.log(data);
 } catch (error) {
@@ -62,6 +66,7 @@ try {
 ## 2. fs/promises access for File Existence Checks
 
 ### Basic File Existence Check
+
 ```typescript
 import { access, constants } from 'fs/promises';
 
@@ -76,6 +81,7 @@ async function fileExists(filePath: string): Promise<boolean> {
 ```
 
 ### Check Read Permission
+
 ```typescript
 import { access, constants } from 'fs/promises';
 
@@ -90,6 +96,7 @@ async function canReadFile(filePath: string): Promise<boolean> {
 ```
 
 ### Check Write Permission
+
 ```typescript
 import { access, constants } from 'fs/promises';
 
@@ -104,6 +111,7 @@ async function canWriteFile(filePath: string): Promise<boolean> {
 ```
 
 ### Multiple Permission Checks
+
 ```typescript
 import { access, constants } from 'fs/promises';
 
@@ -140,6 +148,7 @@ async function checkPermissions(filePath: string): Promise<{
 ## 3. Reading JSON Files with Error Handling
 
 ### Basic JSON File Reading
+
 ```typescript
 import { readFile } from 'fs/promises';
 
@@ -162,6 +171,7 @@ async function readJSONFile<T = unknown>(filePath: string): Promise<T> {
 ```
 
 ### Comprehensive JSON File Reading
+
 ```typescript
 import { readFile, access, constants } from 'fs/promises';
 
@@ -175,11 +185,7 @@ async function readJSONFile<T = unknown>(
   filePath: string,
   options: ReadJSONOptions = {}
 ): Promise<T> {
-  const {
-    encoding = 'utf8',
-    throwOnNotFound = true,
-    defaultValue
-  } = options;
+  const { encoding = 'utf8', throwOnNotFound = true, defaultValue } = options;
 
   // Check file existence
   try {
@@ -220,6 +226,7 @@ async function readJSONFile<T = unknown>(
 ```
 
 ### Type-Safe JSON Reading
+
 ```typescript
 import { readFile } from 'fs/promises';
 
@@ -265,6 +272,7 @@ async function readTypedJSONFile<T extends JSONValue>(
 ## 4. Path Construction with path.resolve
 
 ### Basic Usage
+
 ```typescript
 import path from 'path';
 
@@ -282,6 +290,7 @@ const normalizedPath = path.resolve('/home/user/projects/../app');
 ```
 
 ### Cross-Platform Path Construction
+
 ```typescript
 import path from 'path';
 
@@ -296,6 +305,7 @@ const configPath = getConfigPath('production');
 ```
 
 ### Safe Path Resolution
+
 ```typescript
 import path from 'path';
 import { resolve } from 'path';
@@ -316,13 +326,12 @@ const safePath = safeResolve('/var/data', '../etc/config.json');
 ```
 
 ### Path Construction with Validation
+
 ```typescript
 import path from 'path';
 import { stat } from 'fs/promises';
 
-async function resolveAndValidate(
-  ...segments: string[]
-): Promise<string> {
+async function resolveAndValidate(...segments: string[]): Promise<string> {
   const resolvedPath = path.resolve(...segments);
 
   try {
@@ -346,6 +355,7 @@ async function resolveAndValidate(
 ## 5. Error Message Patterns for File Operations
 
 ### Standard Error Codes Reference
+
 ```typescript
 // Common Node.js file system error codes:
 const ErrorCodes = {
@@ -361,6 +371,7 @@ const ErrorCodes = {
 ```
 
 ### Descriptive Error Messages
+
 ```typescript
 import { readFile } from 'fs/promises';
 import path from 'path';
@@ -375,38 +386,39 @@ async function readFileWithErrorContext(filePath: string): Promise<string> {
     if (error.code === 'ENOENT') {
       throw new Error(
         `File not found: ${fileName}\n` +
-        `  Expected location: ${directory}\n` +
-        `  Full path: ${filePath}`
+          `  Expected location: ${directory}\n` +
+          `  Full path: ${filePath}`
       );
     }
 
     if (error.code === 'EACCES') {
       throw new Error(
         `Permission denied: Cannot read file ${fileName}\n` +
-        `  Location: ${directory}\n` +
-        `  Full path: ${filePath}\n` +
-        `  Please check file permissions`
+          `  Location: ${directory}\n` +
+          `  Full path: ${filePath}\n` +
+          `  Please check file permissions`
       );
     }
 
     if (error.code === 'EISDIR') {
       throw new Error(
         `Path is a directory, not a file: ${fileName}\n` +
-        `  Location: ${directory}\n` +
-        `  Full path: ${filePath}`
+          `  Location: ${directory}\n` +
+          `  Full path: ${filePath}`
       );
     }
 
     throw new Error(
       `Failed to read file ${fileName}: ${error.message}\n` +
-      `  Location: ${directory}\n` +
-      `  Full path: ${filePath}`
+        `  Location: ${directory}\n` +
+        `  Full path: ${filePath}`
     );
   }
 }
 ```
 
 ### JSON-Specific Error Messages
+
 ```typescript
 import { readFile } from 'fs/promises';
 import path from 'path';
@@ -423,14 +435,14 @@ async function readJSONWithErrorContext(filePath: string): Promise<unknown> {
     if (error.code === 'ENOENT') {
       throw new Error(
         `Configuration file not found: ${fileName}\n` +
-        `  Expected at: ${filePath}\n` +
-        `  Please ensure the file exists before starting the application`
+          `  Expected at: ${filePath}\n` +
+          `  Please ensure the file exists before starting the application`
       );
     }
 
     throw new Error(
       `Failed to read configuration file ${fileName}: ${error.message}\n` +
-      `  Path: ${filePath}`
+        `  Path: ${filePath}`
     );
   }
 
@@ -463,6 +475,7 @@ async function readJSONWithErrorContext(filePath: string): Promise<unknown> {
 ```
 
 ### Custom Error Class
+
 ```typescript
 import path from 'path';
 
@@ -534,6 +547,7 @@ export class FileOperationError extends Error {
 ```
 
 ### Usage Example with Custom Error
+
 ```typescript
 import { readFile } from 'fs/promises';
 import { FileOperationError } from './errors';
@@ -684,6 +698,7 @@ try {
 ## Best Practices Summary
 
 ### 1. Always Use async/await with fs/promises
+
 ```typescript
 // Good
 import { readFile } from 'fs/promises';
@@ -695,6 +710,7 @@ const data = fs.readFileSync('file.txt', 'utf8');
 ```
 
 ### 2. Check File Existence Before Reading
+
 ```typescript
 import { access, constants, readFile } from 'fs/promises';
 
@@ -707,12 +723,13 @@ try {
 ```
 
 ### 3. Use Descriptive Error Messages
+
 ```typescript
 // Good
 throw new Error(
   `Configuration file not found: ${configName}\n` +
-  `  Expected at: ${expectedPath}\n` +
-  `  Please create the file or check the path`
+    `  Expected at: ${expectedPath}\n` +
+    `  Please create the file or check the path`
 );
 
 // Avoid
@@ -720,6 +737,7 @@ throw new Error('File not found');
 ```
 
 ### 4. Validate JSON Structure
+
 ```typescript
 const data = JSON.parse(content);
 
@@ -733,6 +751,7 @@ if (!Array.isArray(data.items)) {
 ```
 
 ### 5. Use Absolute Paths
+
 ```typescript
 import path from 'path';
 
@@ -740,6 +759,7 @@ const absolutePath = path.resolve(process.cwd(), 'config.json');
 ```
 
 ### 6. Handle Edge Cases
+
 ```typescript
 // Empty file
 if (content.trim().length === 0) {
@@ -755,16 +775,19 @@ content = content.replace(/^\uFEFF/, '');
 ## Additional Resources
 
 ### Node.js Documentation
+
 - **File System API:** https://nodejs.org/api/fs.html
 - **Path Module:** https://nodejs.org/api/path.html
 - **Error Codes:** https://nodejs.org/api/errors.html#errors_common_system_errors
 
 ### Related Modules
+
 - **fs-extra:** Popular utility package with additional file methods
 - **glob:** For pattern-based file matching
 - **dotenv:** For environment variable configuration
 
 ### TypeScript Considerations
+
 ```typescript
 // Install @types/node for TypeScript support
 npm install --save-dev @types/node

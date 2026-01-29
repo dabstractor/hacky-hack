@@ -7,6 +7,7 @@ Complete requirements from PRD §9.2.5 and architecture documents for guard cont
 ## PRD §9.2.5 - Debug Logging Requirements
 
 ### Guard Logic
+
 1. On pipeline start, check if `PRP_PIPELINE_RUNNING` is already set
 2. If set, only allow execution if BOTH conditions are true:
    - `SKIP_BUG_FINDING=true` (legitimate bug fix recursion)
@@ -15,6 +16,7 @@ Complete requirements from PRD §9.2.5 and architecture documents for guard cont
 4. On valid entry, set `PRP_PIPELINE_RUNNING` to current PID
 
 ### Session Creation Guards
+
 - In bug fix mode, prevent creating sessions in main `plan/` directory
 - Bug fix session paths must contain "bugfix" in the path
 - **Provides debug logging showing `PLAN_DIR`, `SESSION_DIR`, and `SKIP_BUG_FINDING` values**
@@ -26,6 +28,7 @@ From the task context (P1.M3.T2.S5):
 > "1. RESEARCH NOTE: PRD §9.2.5 requires debug logging showing PLAN_DIR, SESSION_DIR, and SKIP_BUG_FINDING. Essential for troubleshooting guard issues. See architecture/001_codebase_audit.md §Research Objective 4."
 
 ### Specific Requirement from Task
+
 > "In PRP Pipeline run() method, after validation passes, add debug log with: PLAN_DIR (from sessionManager.planDir or config), SESSION_DIR (from sessionManager.currentSession.metadata.path), SKIP_BUG_FINDING (process.env.SKIP_BUG_FINDING or 'false'), PRP_PIPELINE_RUNNING (process.env.PRP_PIPELINE_RUNNING or 'not set'). Use existing logger or console.debug with format: 'Guard Context: PLAN_DIR={planDir}, SESSION_DIR={sessionDir}, SKIP_BUG_FINDING={skipBugFinding}, PRP_PIPELINE_RUNNING={running}'. Only log if debug mode enabled."
 
 ## Architecture §4.4 - Debug Logging for Guards
@@ -52,11 +55,13 @@ export function logGuardContext(logger: Logger): void {
 ## Required Debug Logging Format
 
 ### Single-line format (from task specification)
+
 ```
 Guard Context: PLAN_DIR={planDir}, SESSION_DIR={sessionDir}, SKIP_BUG_FINDING={skipBugFinding}, PRP_PIPELINE_RUNNING={running}
 ```
 
 ### Required fields
+
 1. **PLAN_DIR**: From `sessionManager.planDir` (absolute path to plan directory)
 2. **SESSION_DIR**: From `sessionManager.currentSession.metadata.path` (session directory path)
 3. **SKIP_BUG_FINDING**: From `process.env.SKIP_BUG_FINDING` or 'false' if not set

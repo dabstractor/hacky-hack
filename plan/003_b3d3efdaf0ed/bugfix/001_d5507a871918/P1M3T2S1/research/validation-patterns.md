@@ -9,14 +9,17 @@
 ## 1. All Validation Functions Found
 
 ### Session Validation (`/src/utils/validation/session-validation.ts`)
+
 - `validateBugfixSession(sessionPath: string): void` - Validates that session path contains 'bugfix'
 
 ### Environment Validation (`/src/config/environment.ts`)
+
 - `configureEnvironment(): void` - Maps environment variables
 - `validateEnvironment(): void` - Validates required environment variables
 - `getModel(tier: ModelTier): string` - Gets model name based on tier
 
 ### State Validation (`/src/core/state-validator.ts`)
+
 - `validateSchema(backlog: Backlog): ZodError[]` - Validates backlog using Zod schema
 - `validateStatusConsistency(backlog: Backlog): StatusInconsistency[]` - Validates task status consistency
 - `validateBacklogState(backlog: Backlog): StateValidationResult` - Complete state validation
@@ -147,7 +150,8 @@ export const ErrorCodes = {
   PIPELINE_VALIDATION_INVALID_INPUT: 'PIPELINE_VALIDATION_INVALID_INPUT',
   PIPELINE_VALIDATION_MISSING_FIELD: 'PIPELINE_VALIDATION_MISSING_FIELD',
   PIPELINE_VALIDATION_SCHEMA_FAILED: 'PIPELINE_VALIDATION_SCHEMA_FAILED',
-  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY: 'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
+  PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY:
+    'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
 
   // Resource errors
   PIPELINE_RESOURCE_LIMIT_EXCEEDED: 'PIPELINE_RESOURCE_LIMIT_EXCEEDED',
@@ -161,13 +165,15 @@ export const ErrorCodes = {
 Each error class has a corresponding type guard:
 
 ```typescript
-export function isPipelineError(error: unknown): error is PipelineError
-export function isSessionError(error: unknown): error is SessionError
-export function isTaskError(error: unknown): error is TaskError
-export function isAgentError(error: unknown): error is AgentError
-export function isValidationError(error: unknown): error is ValidationError
-export function isEnvironmentError(error: unknown): error is EnvironmentError
-export function isBugfixSessionValidationError(error: unknown): error is BugfixSessionValidationError
+export function isPipelineError(error: unknown): error is PipelineError;
+export function isSessionError(error: unknown): error is SessionError;
+export function isTaskError(error: unknown): error is TaskError;
+export function isAgentError(error: unknown): error is AgentError;
+export function isValidationError(error: unknown): error is ValidationError;
+export function isEnvironmentError(error: unknown): error is EnvironmentError;
+export function isBugfixSessionValidationError(
+  error: unknown
+): error is BugfixSessionValidationError;
 ```
 
 ---
@@ -187,7 +193,7 @@ import {
 export { BugfixSessionValidationError, isBugfixSessionValidationError };
 
 // Main validation function
-export function validateBugfixSession(sessionPath: string): void
+export function validateBugfixSession(sessionPath: string): void;
 ```
 
 ### Environment Module Pattern
@@ -197,9 +203,9 @@ export function validateBugfixSession(sessionPath: string): void
 import { EnvironmentValidationError } from './types.js';
 
 // Functions
-export function configureEnvironment(): void
-export function validateEnvironment(): void
-export function getModel(tier: ModelTier): string
+export function configureEnvironment(): void;
+export function validateEnvironment(): void;
+export function getModel(tier: ModelTier): string;
 
 // Re-export types
 export type { ModelTier, EnvironmentConfig } from './types.js';
@@ -228,12 +234,14 @@ src/utils/errors.ts            # All error classes and type guards
 ## 8. Patterns for void Functions that Throw vs Return Silently
 
 **Void functions that throw (validation):**
+
 - Always return `void`
 - Throw errors on validation failure
 - Implicit success when function completes without throwing
 - Examples: `validateBugfixSession`, `validateEnvironment`
 
 **Functions that return results:**
+
 - Return array of errors/issues on failure
 - Return empty array on success
 - Example: `validateSchema`, `validateStatusConsistency`
@@ -274,7 +282,9 @@ export class NestedExecutionError extends PipelineError {
   }
 }
 
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
 
@@ -288,8 +298,7 @@ export function validateNestedExecution(sessionPath: string): void {
 
   // Check if this is legitimate bug fix recursion
   const isBugfixRecursion =
-    process.env.SKIP_BUG_FINDING === 'true' &&
-    sessionPath.includes('bugfix');
+    process.env.SKIP_BUG_FINDING === 'true' && sessionPath.includes('bugfix');
 
   if (isBugfixRecursion) {
     // Legitimate recursion - allow it
@@ -344,6 +353,7 @@ export {
 ## Summary
 
 The codebase follows consistent patterns:
+
 - **Validation functions** return `void` and throw on error
 - **Error classes** extend `PipelineError` with proper prototype chain
 - **Type guards** are provided for all error types

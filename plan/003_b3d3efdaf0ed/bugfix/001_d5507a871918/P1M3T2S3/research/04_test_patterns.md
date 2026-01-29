@@ -9,11 +9,13 @@
 **Configuration File:** `/home/dustin/projects/hacky-hack/vitest.config.ts`
 
 **Key Settings:**
+
 - 100% code coverage enforced globally
 - Node.js environment with ESM support
 - Setup file: `/home/dustin/projects/hacky-hack/tests/setup.ts`
 
 **Test Script in package.json:**
+
 ```json
 "test": "vitest"
 ```

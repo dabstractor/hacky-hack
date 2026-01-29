@@ -118,7 +118,9 @@ it('should support early validation pattern in constructor', () => {
   }
 
   expect(() => new TestWorkflow('valid/path/bugfix/001')).not.toThrow();
-  expect(() => new TestWorkflow('invalid/path/feature/001')).toThrow(BugfixSessionValidationError);
+  expect(() => new TestWorkflow('invalid/path/feature/001')).toThrow(
+    BugfixSessionValidationError
+  );
 });
 ```
 
@@ -129,7 +131,10 @@ it('should support early validation pattern in constructor', () => {
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 // Source imports (use .js extension for ES modules)
-import { validateBugfixSession, BugfixSessionValidationError } from '../../../../src/utils/validation/session-validation.js';
+import {
+  validateBugfixSession,
+  BugfixSessionValidationError,
+} from '../../../../src/utils/validation/session-validation.js';
 ```
 
 ## Assertion Patterns

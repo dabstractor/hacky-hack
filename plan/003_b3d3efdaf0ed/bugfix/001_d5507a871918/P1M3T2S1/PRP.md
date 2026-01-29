@@ -7,12 +7,14 @@
 **Feature Goal**: Implement `validateNestedExecution` function to prevent recursive PRP Pipeline execution while allowing legitimate bug fix session recursion.
 
 **Deliverable**:
+
 1. `NestedExecutionError` class in `src/utils/errors.ts`
 2. `validateNestedExecution` function in `src/utils/validation/execution-guard.ts` (or added to `session-validation.ts`)
 3. Unit tests in `tests/unit/utils/validation/execution-guard.test.ts`
 4. Integration in `src/workflows/prp-pipeline.ts` at line ~1710
 
 **Success Definition**:
+
 - Function throws `NestedExecutionError` when `PRP_PIPELINE_RUNNING` is set and conditions for legitimate recursion are NOT met
 - Function returns without error when `PRP_PIPELINE_RUNNING` is not set (first execution)
 - Function returns without error when `SKIP_BUG_FINDING='true'` AND session path contains 'bugfix' (legitimate recursion)
@@ -31,6 +33,7 @@
 - **Debug Logging**: Provides clear error messages with PID information for troubleshooting
 
 **Problems this solves**:
+
 - Agents accidentally invoking `run-prd.sh` during implementation
 - Validation scripts triggering pipeline execution
 - Bug fix sessions being blocked when they should be allowed
@@ -45,9 +48,11 @@
 No direct user-visible behavior - this is a pipeline safety mechanism. Users will experience:
 
 **Success Scenario**:
+
 - Bug fix sessions execute successfully when `SKIP_BUG_FINDING=true` and path contains 'bugfix'
 
 **Error Scenario**:
+
 - Nested execution attempt throws error: `"Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {existing_pid}"`
 - Pipeline execution stops before creating duplicate sessions or corrupting state
 
@@ -56,7 +61,7 @@ No direct user-visible behavior - this is a pipeline safety mechanism. Users wil
 #### Function Signature
 
 ```typescript
-export function validateNestedExecution(sessionPath: string): void
+export function validateNestedExecution(sessionPath: string): void;
 ```
 
 #### Logic Specification
@@ -79,9 +84,9 @@ Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: 
 
 ```typescript
 {
-  existingPid: string;  // From process.env.PRP_PIPELINE_RUNNING
-  currentPid: string;   // From process.pid.toString()
-  sessionPath: string;  // The session path being validated
+  existingPid: string; // From process.env.PRP_PIPELINE_RUNNING
+  currentPid: string; // From process.pid.toString()
+  sessionPath: string; // The session path being validated
 }
 ```
 
@@ -106,6 +111,7 @@ Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: 
 ### Context Completeness Check
 
 **"No Prior Knowledge" test**: ✅ This PRP provides everything needed to implement `validateNestedExecution` successfully:
+
 - Exact function signature and logic specification
 - Complete error class pattern to follow
 - Exact file locations and line numbers for integration
@@ -419,7 +425,9 @@ export class NestedExecutionError extends PipelineError {
 
 // Add type guard:
 
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
 
@@ -428,15 +436,9 @@ export function isNestedExecutionError(error: unknown): error is NestedExecution
 // ============================================================================
 // File: src/utils/validation/execution-guard.ts
 
-import {
-  PipelineError,
-  ErrorCodes,
-} from '../errors.js';
+import { PipelineError, ErrorCodes } from '../errors.js';
 
-import {
-  NestedExecutionError,
-  isNestedExecutionError,
-} from '../errors.js';
+import { NestedExecutionError, isNestedExecutionError } from '../errors.js';
 
 export function validateNestedExecution(sessionPath: string): void {
   const existingPid = process.env.PRP_PIPELINE_RUNNING;
@@ -448,8 +450,8 @@ export function validateNestedExecution(sessionPath: string): void {
 
   // Check if this is legitimate bug fix recursion
   const isBugfixRecursion =
-    process.env.SKIP_BUG_FINDING === 'true' &&  // EXACT string match
-    sessionPath.toLowerCase().includes('bugfix');  // Case-insensitive check
+    process.env.SKIP_BUG_FINDING === 'true' && // EXACT string match
+    sessionPath.toLowerCase().includes('bugfix'); // Case-insensitive check
 
   if (isBugfixRecursion) {
     // Legitimate recursion - allow it
@@ -503,7 +505,7 @@ import {
 describe('execution-guard', () => {
   describe('validateNestedExecution', () => {
     afterEach(() => {
-      vi.unstubAllEnvs();  // CRITICAL: Always restore environment
+      vi.unstubAllEnvs(); // CRITICAL: Always restore environment
     });
 
     describe('when PRP_PIPELINE_RUNNING is not set', () => {
@@ -534,13 +536,17 @@ describe('execution-guard', () => {
       it('should throw NestedExecutionError when SKIP_BUG_FINDING not set', () => {
         delete process.env.SKIP_BUG_FINDING;
         const sessionPath = 'plan/003_b3d3efdaf0ed/bugfix/001_test';
-        expect(() => validateNestedExecution(sessionPath)).toThrow(NestedExecutionError);
+        expect(() => validateNestedExecution(sessionPath)).toThrow(
+          NestedExecutionError
+        );
       });
 
       it('should throw NestedExecutionError when path does not contain bugfix', () => {
         vi.stubEnv('SKIP_BUG_FINDING', 'true');
         const sessionPath = 'plan/003_b3d3efdaf0ed/feature/001_test';
-        expect(() => validateNestedExecution(sessionPath)).toThrow(NestedExecutionError);
+        expect(() => validateNestedExecution(sessionPath)).toThrow(
+          NestedExecutionError
+        );
       });
     });
 
@@ -860,6 +866,7 @@ try {
 **Rating: 9/10** for one-pass implementation success likelihood
 
 **Rationale**:
+
 - ✅ Complete PRD requirements with exact error message format
 - ✅ Clear reference patterns from existing codebase (validateBugfixSession)
 - ✅ Exact file locations and line numbers for integration

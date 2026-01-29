@@ -9,6 +9,7 @@
 **Deliverable**: Updated test file with 'Retrying' added to all relevant test arrays, count assertions updated from 6 to 7, and all tests passing.
 
 **Success Definition**:
+
 - Test file `tests/unit/core/models.test.ts` is modified with 'Retrying' added to test arrays
 - Three specific tests are updated (lines 54, 85, 224, 227, 241, 242)
 - Count assertions changed from 6 to 7
@@ -23,6 +24,7 @@
 **Use Case**: Bug report Issue #3 from TEST_RESULTS.md claimed StatusEnum was missing 'Retrying' status. Previous verification tasks (P1.M4.T1.S1, P1.M4.T1.S2, P1.M4.T1.S3) confirmed the implementation is correct and includes 'Retrying'. This task updates the outdated test expectations to match the correct implementation.
 
 **User Journey**:
+
 1. Developer learns from verification tasks that StatusEnum actually includes 'Retrying'
 2. Developer identifies that tests are outdated, not implementation
 3. Developer updates test file to include 'Retrying' in test arrays
@@ -30,6 +32,7 @@
 5. Test suite now accurately validates complete status lifecycle
 
 **Pain Points Addressed**:
+
 - Failing tests due to outdated expectations (expected 6, got 7)
 - Tests not validating complete status lifecycle
 - Confusion about whether implementation or tests are wrong
@@ -51,6 +54,7 @@
 **No direct user-visible changes** - this is a test update task.
 
 **Observable behavior**:
+
 - `tests/unit/core/models.test.ts` file is modified
 - Three tests are updated to include 'Retrying' status
 - Running `npm test -- tests/unit/core/models.test.ts` shows all tests passing
@@ -75,6 +79,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to update the status model tests successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and line numbers for test updates
 - Complete before/after code examples for each change
 - Verification commands to confirm updates
@@ -305,24 +310,26 @@ validStatuses.forEach(status => {
 No new data models needed. This task updates tests to validate existing models:
 
 **Status Type** (from `src/core/models.ts` lines 175-182):
+
 ```typescript
 export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← Tests should validate this
+  | 'Retrying' // ← Tests should validate this
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
 ```
 
 **StatusEnum Zod Schema** (from `src/core/models.ts` lines 199-207):
+
 ```typescript
 export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← Tests should validate this
+  'Retrying', // ← Tests should validate this
   'Complete',
   'Failed',
   'Obsolete',
@@ -422,7 +429,7 @@ it('should accept valid status values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← MISSING 'Retrying'
+    'Complete', // ← MISSING 'Retrying'
     'Failed',
     'Obsolete',
   ] as const;
@@ -442,7 +449,7 @@ it('should accept valid status values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Retrying',      // ← ADD THIS LINE
+    'Retrying', // ← ADD THIS LINE
     'Complete',
     'Failed',
     'Obsolete',
@@ -468,7 +475,7 @@ it('should expose all enum values via options property', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← MISSING 'Retrying'
+    'Complete', // ← MISSING 'Retrying'
     'Failed',
     'Obsolete',
   ]);
@@ -480,7 +487,7 @@ it('should expose all enum values via options property', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Retrying',      // ← ADD THIS LINE
+    'Retrying', // ← ADD THIS LINE
     'Complete',
     'Failed',
     'Obsolete',
@@ -500,7 +507,7 @@ it('should document complete status lifecycle with all valid values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',      // ← MISSING 'Retrying'
+    'Complete', // ← MISSING 'Retrying'
     'Failed',
     'Obsolete',
   ];
@@ -510,8 +517,8 @@ it('should document complete status lifecycle with all valid values', () => {
     expect(result.success).toBe(true);
   });
 
-  expect(allValidStatuses.length).toBe(6);           // ← WRONG
-  expect(StatusEnum.options.length).toBe(6);         // ← WRONG
+  expect(allValidStatuses.length).toBe(6); // ← WRONG
+  expect(StatusEnum.options.length).toBe(6); // ← WRONG
   expect(StatusEnum.options).not.toContain('Ready');
 });
 
@@ -522,7 +529,7 @@ it('should document complete status lifecycle with all valid values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Retrying',      // ← ADD THIS LINE
+    'Retrying', // ← ADD THIS LINE
     'Complete',
     'Failed',
     'Obsolete',
@@ -533,8 +540,8 @@ it('should document complete status lifecycle with all valid values', () => {
     expect(result.success).toBe(true);
   });
 
-  expect(allValidStatuses.length).toBe(7);           // ← CHANGED FROM 6 TO 7
-  expect(StatusEnum.options.length).toBe(7);         // ← CHANGED FROM 6 TO 7
+  expect(allValidStatuses.length).toBe(7); // ← CHANGED FROM 6 TO 7
+  expect(StatusEnum.options.length).toBe(7); // ← CHANGED FROM 6 TO 7
   expect(StatusEnum.options).not.toContain('Ready');
 });
 
@@ -815,6 +822,7 @@ npm test -- --reporter=json | jq '.testResults[].assertionResults[] | select(.st
 **Confidence Score**: 10/10 for implementation success likelihood
 
 **Reasoning**:
+
 - Simple test updates with clear specifications
 - Exact file paths and line numbers provided
 - Complete before/after code examples
@@ -835,6 +843,7 @@ Bug report Issue #3 claimed that StatusEnum was missing the 'Retrying' status. P
 ### Solution
 
 Update `tests/unit/core/models.test.ts` to include 'Retrying' in all relevant test arrays and update count assertions from 6 to 7. This involves:
+
 1. Adding 'Retrying' to `validStatuses` array (line 54)
 2. Adding 'Retrying' to expected `.options` array (line 85)
 3. Adding 'Retrying' to `allValidStatuses` array (line 227)
@@ -844,6 +853,7 @@ Update `tests/unit/core/models.test.ts` to include 'Retrying' in all relevant te
 ### Expected Outcome
 
 After these updates:
+
 - All 3 StatusEnum tests will pass (currently 2 of 3 fail)
 - Test expectations will match the correct StatusEnum implementation
 - Tests will validate all 7 status values including 'Retrying'
@@ -854,6 +864,7 @@ After these updates:
 **NO IMPLEMENTATION CHANGES NEEDED**
 
 The StatusEnum implementation is **correct and complete**. Only the test file needs updating to reflect the correct implementation. The 'Retrying' status is already:
+
 - Defined in Status type (line 179)
 - Defined in StatusEnum Zod schema (line 203)
 - Mapped to display color (chalk.yellow)

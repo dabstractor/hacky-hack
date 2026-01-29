@@ -5,6 +5,7 @@
 ### Reference: `architecture/001_codebase_audit.md`
 
 **Research Objective 3** (from architecture audit) states:
+
 > "Status display code should handle 'Retrying' with appropriate color (yellow) and indicator (circular arrow)."
 
 This verification task (P1.M4.T1.S2) directly addresses this objective.
@@ -14,15 +15,18 @@ This verification task (P1.M4.T1.S2) directly addresses this objective.
 ### Requirement: Yellow Color for Retrying Status
 
 **Architecture Audit Expectation**:
+
 - Color: Yellow (`chalk.yellow`)
 
 **Implementation Verification**:
 ✅ **CONFIRMED** - `src/utils/display/status-colors.ts` line 49:
+
 ```typescript
 Retrying: chalk.yellow,
 ```
 
 **Rationale**:
+
 - Yellow indicates warning/caution state
 - Distinguishes from complete (green) and failed (red)
 - Appropriate for "in progress with known issues" state
@@ -30,15 +34,18 @@ Retrying: chalk.yellow,
 ### Requirement: Circular Arrow Indicator
 
 **Architecture Audit Expectation**:
+
 - Indicator: Circular arrow symbol
 
 **Implementation Verification**:
 ✅ **CONFIRMED** - `src/utils/display/status-colors.ts` line 83:
+
 ```typescript
 Retrying: '↻',  // U+21BB CLOCKWISE CIRCULAR ARROW
 ```
 
 **Rationale**:
+
 - '↻' represents cyclic/repeating action
 - Indicates continuation rather than restart
 - Visually distinct from other status symbols
@@ -95,6 +102,7 @@ Displayed in CLI Output (table/tree/inspect)
 **Update Commit**: `3659e55` (Added 'Retrying' support)
 
 **Pattern Structure**:
+
 ```typescript
 const mapping: Record<Status, T> = {
   Complete: /* value */,
@@ -111,15 +119,15 @@ const mapping: Record<Status, T> = {
 
 ### Semantic Consistency
 
-| Status | Color | Indicator | Semantic |
-|--------|-------|-----------|----------|
-| Planned | Gray | ○ | Not started |
-| Researching | Cyan | ◐ | Discovery |
-| Implementing | Blue | ◐ | Active work |
-| **Retrying** | **Yellow** | **↻** | **Retry loop** |
-| Complete | Green | ✓ | Success |
-| Failed | Red | ✗ | Error |
-| Obsolete | Dim | ⊘ | Deprecated |
+| Status       | Color      | Indicator | Semantic       |
+| ------------ | ---------- | --------- | -------------- |
+| Planned      | Gray       | ○         | Not started    |
+| Researching  | Cyan       | ◐         | Discovery      |
+| Implementing | Blue       | ◐         | Active work    |
+| **Retrying** | **Yellow** | **↻**     | **Retry loop** |
+| Complete     | Green      | ✓         | Success        |
+| Failed       | Red        | ✗         | Error          |
+| Obsolete     | Dim        | ⊘         | Deprecated     |
 
 **Verification**: 'Retrying' semantics are consistent with overall system ✅
 
@@ -147,6 +155,7 @@ const mapping: Record<Status, T> = {
 **Issue**: Inline copies of `indicatorMap` and `colorMap`
 
 **Should Be**:
+
 ```typescript
 import { getStatusColor, getStatusIndicator } from '../../utils/display/status-colors.js';
 
@@ -156,6 +165,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 ```
 
 **Impact**:
+
 - Maintenance: Updates require changes in 2 places
 - Risk: Mappings could diverge
 - Violation: DRY principle
@@ -179,6 +189,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 **Issue**: TSDoc comments don't mention 'Retrying' status
 
 **Current Comment** (lines 30-36):
+
 ```typescript
 /**
  * @remarks
@@ -201,6 +212,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 ### Contract Requirement 1: RESEARCH NOTE
 
 **From Work Item Description**:
+
 > "Status display code should handle 'Retrying' with appropriate color (yellow) and indicator (circular arrow). See architecture/001_codebase_audit.md §Research Objective 3."
 
 **Verification**: ✅ **SATISFIED**
@@ -212,6 +224,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 ### Contract Requirement 2: INPUT
 
 **From Work Item Description**:
+
 > "src/utils/display/status-colors.ts and similar files for status indicators. StatusEnum from S1."
 
 **Verification**: ✅ **VERIFIED**
@@ -223,6 +236,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 ### Contract Requirement 3: LOGIC
 
 **From Work Item Description**:
+
 > "Locate status color mapping file. Check if 'Retrying' status has a color mapping (should be chalk.yellow for retry state). If missing: add colorMap['Retrying'] = chalk.yellow. Locate status indicator mapping file. Check if 'Retrying' has an indicator (should be '↻' circular arrow). If missing: add indicatorMap['Retrying'] = '↻'. Verify mappings match the pattern from commit 63bed9c."
 
 **Verification**: ✅ **NO CHANGES NEEDED**
@@ -236,6 +250,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 ### Contract Requirement 4: OUTPUT
 
 **From Work Item Description**:
+
 > "Status color and indicator mappings include 'Retrying' with yellow color and circular arrow indicator. Display infrastructure supports retry status."
 
 **Verification**: ✅ **ACHIEVED**
@@ -287,6 +302,7 @@ import { getStatusColor, getStatusIndicator } from '../../utils/display/status-c
 ### Architecture Alignment: ✅ CONFIRMED
 
 The status display implementation for 'Retrying' status:
+
 - Follows established patterns from architecture audit
 - Uses appropriate color (yellow) and indicator (↻)
 - Integrates correctly with StatusEnum from P1.M4.T1.S1
@@ -295,11 +311,13 @@ The status display implementation for 'Retrying' status:
 ### Quality Assessment: ⚠️ GOOD WITH DEBT
 
 **Strengths**:
+
 - Correct implementation
 - Type-safe mappings
 - Consistent with existing patterns
 
 **Weaknesses**:
+
 - Duplicate code in inspect.ts
 - Missing test coverage
 - Outdated documentation
@@ -309,6 +327,7 @@ The status display implementation for 'Retrying' status:
 ### Contract Fulfillment: ✅ COMPLETE
 
 All contract requirements are satisfied:
+
 - ✅ Research requirement addressed
 - ✅ Input files verified
 - ✅ Logic checks performed

@@ -7,26 +7,29 @@ The contract definition for P1.M3.T2.S6 specifies 5 explicit test cases. This do
 ## Requirement 1: First Execution Test
 
 **Contract Specification:**
+
 > 'should allow first execution when PRP_PIPELINE_RUNNING not set' (env var undefined, expect no error)
 
 **Implementation Location:**
+
 - File: `/tests/unit/utils/validation/execution-guard.test.ts`
 - Lines: 47-74
 - Describe Block: `validateNestedExecution when PRP_PIPELINE_RUNNING is not set`
 
 **Test Cases:**
 
-| Test Case | Line | Description |
-|-----------|------|-------------|
-| should allow execution for any path | 48-51 | Tests with bugfix path |
-| should allow execution for feature path | 53-56 | Tests with feature path |
-| should allow execution for empty path | 58-61 | Tests with empty string |
-| should allow execution when SKIP_BUG_FINDING is not set | 63-67 | Tests with env var undefined |
-| should allow execution when SKIP_BUG_FINDING is false | 69-73 | Tests with env var set to 'false' |
+| Test Case                                               | Line  | Description                       |
+| ------------------------------------------------------- | ----- | --------------------------------- |
+| should allow execution for any path                     | 48-51 | Tests with bugfix path            |
+| should allow execution for feature path                 | 53-56 | Tests with feature path           |
+| should allow execution for empty path                   | 58-61 | Tests with empty string           |
+| should allow execution when SKIP_BUG_FINDING is not set | 63-67 | Tests with env var undefined      |
+| should allow execution when SKIP_BUG_FINDING is false   | 69-73 | Tests with env var set to 'false' |
 
 **Coverage Status:** ✅ COMPLETE
 
 **Test Code Example:**
+
 ```typescript
 it('should allow execution for any path', () => {
   const sessionPath = 'plan/003_b3d3efdaf0ed/bugfix/001_test';
@@ -41,24 +44,27 @@ it('should allow execution for any path', () => {
 ## Requirement 2: Nested Execution Error Test
 
 **Contract Specification:**
+
 > 'should throw error when nested execution without bugfix session' (set PRP_PIPELINE_RUNNING, call with main session path, expect NestedExecutionError)
 
 **Implementation Location:**
+
 - File: `/tests/unit/utils/validation/execution-guard.test.ts`
 - Lines: 126-156
 - Describe Block: `validateNestedExecution when PRP_PIPELINE_RUNNING is set without bug fix recursion`
 
 **Test Cases:**
 
-| Test Case | Line | Description | Session Path |
-|-----------|------|-------------|--------------|
-| should throw NestedExecutionError for bugfix path | 136-141 | Bugfix without flag | `plan/003_b3d3efdaf0ed/bugfix/001_test` |
-| should throw NestedExecutionError for feature path | 143-148 | Feature path | `plan/003_b3d3efdaf0ed/feature/001_test` |
-| should throw NestedExecutionError for empty path | 150-155 | Empty path | `''` |
+| Test Case                                          | Line    | Description         | Session Path                             |
+| -------------------------------------------------- | ------- | ------------------- | ---------------------------------------- |
+| should throw NestedExecutionError for bugfix path  | 136-141 | Bugfix without flag | `plan/003_b3d3efdaf0ed/bugfix/001_test`  |
+| should throw NestedExecutionError for feature path | 143-148 | Feature path        | `plan/003_b3d3efdaf0ed/feature/001_test` |
+| should throw NestedExecutionError for empty path   | 150-155 | Empty path          | `''`                                     |
 
 **Coverage Status:** ✅ COMPLETE
 
 **Test Code Example:**
+
 ```typescript
 describe('when SKIP_BUG_FINDING is not set', () => {
   beforeEach(() => {
@@ -95,28 +101,31 @@ describe('when SKIP_BUG_FINDING is not set', () => {
 ## Requirement 3: Bugfix Session Recursion Test
 
 **Contract Specification:**
+
 > 'should allow nested execution for bugfix session with SKIP_BUG_FINDING=true' (set PRP_PIPELINE_RUNNING and SKIP_BUG_FINDING, call with bugfix path, expect no error)
 
 **Implementation Location:**
+
 - File: `/tests/unit/utils/validation/execution-guard.test.ts`
 - Lines: 80-120
 - Describe Block: `validateNestedExecution when PRP_PIPELINE_RUNNING is set with bug fix recursion`
 
 **Test Cases:**
 
-| Test Case | Line | Description | Session Path |
-|-----------|------|-------------|--------------|
-| should allow execution for bugfix path | 86-89 | Standard bugfix path | `plan/003_b3d3efdaf0ed/bugfix/001_test` |
-| should allow execution for bugfix path at start | 91-94 | Bugfix at start | `bugfix/001_test` |
-| should allow execution for bugfix path at end | 96-99 | Bugfix at end | `plan/003_b3d3efdaf0ed/bugfix` |
-| should allow execution for BugFix with mixed case | 101-104 | Mixed case | `plan/003_b3d3efdaf0ed/BugFix/001_test` |
-| should allow execution for BUGFIX with uppercase | 106-109 | Uppercase | `plan/003_b3d3efdaf0ed/BUGFIX/001_test` |
-| should allow execution for bugFiX with random case | 111-114 | Random case | `plan/003_b3d3efdaf0ed/bugFiX/001_test` |
-| should allow execution for actual bugfix session from codebase | 116-119 | Real session | `plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918` |
+| Test Case                                                      | Line    | Description          | Session Path                                    |
+| -------------------------------------------------------------- | ------- | -------------------- | ----------------------------------------------- |
+| should allow execution for bugfix path                         | 86-89   | Standard bugfix path | `plan/003_b3d3efdaf0ed/bugfix/001_test`         |
+| should allow execution for bugfix path at start                | 91-94   | Bugfix at start      | `bugfix/001_test`                               |
+| should allow execution for bugfix path at end                  | 96-99   | Bugfix at end        | `plan/003_b3d3efdaf0ed/bugfix`                  |
+| should allow execution for BugFix with mixed case              | 101-104 | Mixed case           | `plan/003_b3d3efdaf0ed/BugFix/001_test`         |
+| should allow execution for BUGFIX with uppercase               | 106-109 | Uppercase            | `plan/003_b3d3efdaf0ed/BUGFIX/001_test`         |
+| should allow execution for bugFiX with random case             | 111-114 | Random case          | `plan/003_b3d3efdaf0ed/bugFiX/001_test`         |
+| should allow execution for actual bugfix session from codebase | 116-119 | Real session         | `plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918` |
 
 **Coverage Status:** ✅ COMPLETE
 
 **Test Code Example:**
+
 ```typescript
 describe('validateNestedExecution when PRP_PIPELINE_RUNNING is set with bug fix recursion', () => {
   beforeEach(() => {
@@ -148,24 +157,27 @@ describe('validateNestedExecution when PRP_PIPELINE_RUNNING is set with bug fix 
 ## Requirement 4: Non-Bugfix Path with Flag Test
 
 **Contract Specification:**
+
 > 'should throw error when SKIP_BUG_FINDING but non-bugfix path' (set env vars, call with main path, expect error)
 
 **Implementation Location:**
+
 - File: `/tests/unit/utils/validation/execution-guard.test.ts`
 - Lines: 171-196
 - Describe Block: `when path does not contain bugfix`
 
 **Test Cases:**
 
-| Test Case | Line | Description | Session Path |
-|-----------|------|-------------|--------------|
-| should throw NestedExecutionError for feature path | 176-181 | Feature path | `plan/003_b3d3efdaf0ed/feature/001_test` |
+| Test Case                                              | Line    | Description      | Session Path                                 |
+| ------------------------------------------------------ | ------- | ---------------- | -------------------------------------------- |
+| should throw NestedExecutionError for feature path     | 176-181 | Feature path     | `plan/003_b3d3efdaf0ed/feature/001_test`     |
 | should throw NestedExecutionError for enhancement path | 183-188 | Enhancement path | `plan/003_b3d3efdaf0ed/enhancement/001_test` |
-| should throw NestedExecutionError for refactor path | 190-195 | Refactor path | `plan/003_b3d3efdaf0ed/refactor/001_test` |
+| should throw NestedExecutionError for refactor path    | 190-195 | Refactor path    | `plan/003_b3d3efdaf0ed/refactor/001_test`    |
 
 **Coverage Status:** ✅ COMPLETE
 
 **Test Code Example:**
+
 ```typescript
 describe('when path does not contain bugfix', () => {
   beforeEach(() => {
@@ -202,26 +214,29 @@ describe('when path does not contain bugfix', () => {
 ## Requirement 5: Error Message PID Test
 
 **Contract Specification:**
+
 > 'should include PID in error message' (check error content)
 
 **Implementation Location:**
+
 - File: `/tests/unit/utils/validation/execution-guard.test.ts`
 - Lines: 237-298
 - Describe Block: `validateNestedExecution error properties`
 
 **Test Cases:**
 
-| Test Case | Line | Description | Verification |
-|-----------|------|-------------|--------------|
-| should include existing PID in error message | 242-252 | Error message contains PID | `expect(error.message).toContain('99999')` |
-| should include context with existingPid | 255-263 | Error context has existingPid | `expect(error.existingPid).toBe('99999')` |
-| should include context with currentPid | 265-275 | Error context has currentPid | `expect(error.currentPid).toBe(process.pid.toString())` |
-| should include context with sessionPath | 278-286 | Error context has sessionPath | `expect(error.sessionPath).toBe(sessionPath)` |
-| should have correct error code | 288-298 | Error code is correct | `expect(error.code).toBe('PIPELINE_VALIDATION_NESTED_EXECUTION')` |
+| Test Case                                    | Line    | Description                   | Verification                                                      |
+| -------------------------------------------- | ------- | ----------------------------- | ----------------------------------------------------------------- |
+| should include existing PID in error message | 242-252 | Error message contains PID    | `expect(error.message).toContain('99999')`                        |
+| should include context with existingPid      | 255-263 | Error context has existingPid | `expect(error.existingPid).toBe('99999')`                         |
+| should include context with currentPid       | 265-275 | Error context has currentPid  | `expect(error.currentPid).toBe(process.pid.toString())`           |
+| should include context with sessionPath      | 278-286 | Error context has sessionPath | `expect(error.sessionPath).toBe(sessionPath)`                     |
+| should have correct error code               | 288-298 | Error code is correct         | `expect(error.code).toBe('PIPELINE_VALIDATION_NESTED_EXECUTION')` |
 
 **Coverage Status:** ✅ COMPLETE
 
 **Test Code Example:**
+
 ```typescript
 describe('validateNestedExecution error properties', () => {
   beforeEach(() => {
@@ -277,6 +292,7 @@ describe('validateNestedExecution error properties', () => {
 ```
 
 **Verification:**
+
 - Error message contains the PID from PRP_PIPELINE_RUNNING
 - Error context object includes existingPid, currentPid, and sessionPath
 - Error code is set correctly
@@ -285,33 +301,37 @@ describe('validateNestedExecution error properties', () => {
 
 ## Summary Table
 
-| Contract Requirement | Test Coverage | Lines | Status |
-|---------------------|---------------|-------|--------|
-| 1. First execution (no PRP_PIPELINE_RUNNING) | 5 tests | 47-74 | ✅ COMPLETE |
-| 2. Nested execution error (main path) | 3 tests | 136-156 | ✅ COMPLETE |
-| 3. Bugfix recursion allowed (SKIP_BUG_FINDING=true) | 7 tests | 80-120 | ✅ COMPLETE |
-| 4. Non-bugfix path with flag (should error) | 3 tests | 171-196 | ✅ COMPLETE |
-| 5. Error message includes PID | 5 tests | 242-298 | ✅ COMPLETE |
+| Contract Requirement                                | Test Coverage | Lines   | Status      |
+| --------------------------------------------------- | ------------- | ------- | ----------- |
+| 1. First execution (no PRP_PIPELINE_RUNNING)        | 5 tests       | 47-74   | ✅ COMPLETE |
+| 2. Nested execution error (main path)               | 3 tests       | 136-156 | ✅ COMPLETE |
+| 3. Bugfix recursion allowed (SKIP_BUG_FINDING=true) | 7 tests       | 80-120  | ✅ COMPLETE |
+| 4. Non-bugfix path with flag (should error)         | 3 tests       | 171-196 | ✅ COMPLETE |
+| 5. Error message includes PID                       | 5 tests       | 242-298 | ✅ COMPLETE |
 
 ## Additional Coverage Beyond Contract
 
 The existing test file also includes comprehensive testing for:
 
 ### Case Sensitivity Testing (Lines 198-230)
+
 - SKIP_BUG_FINDING with wrong case: 'TRUE', 'True', '1', 'yes'
 - Verifies that only lowercase 'true' works
 
 ### Type Guard Testing (Lines 305-353)
+
 - isNestedExecutionError function tests
 - Tests with NestedExecutionError, generic Error, null, undefined
 - Tests type narrowing in catch blocks
 
 ### Instanceof Testing (Lines 359-392)
+
 - instanceof NestedExecutionError checks
 - instanceof Error checks
 - Error name property verification
 
 ### Edge Case Testing (Lines 398-434)
+
 - Very long session paths
 - Special characters in paths
 - Unicode characters in paths

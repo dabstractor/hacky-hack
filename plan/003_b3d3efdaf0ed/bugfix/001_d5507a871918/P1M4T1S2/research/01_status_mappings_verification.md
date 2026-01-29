@@ -15,13 +15,14 @@
 **Status**: ✅ VERIFIED - All mappings include 'Retrying'
 
 #### Color Mapping (Lines 44-54)
+
 ```typescript
 export function getStatusColor(status: Status): (text: string) => string {
   const colorMap: Record<Status, (text: string) => string> = {
     Complete: chalk.green,
     Implementing: chalk.blue,
     Researching: chalk.cyan,
-    Retrying: chalk.yellow,      // ✅ PRESENT - Line 49
+    Retrying: chalk.yellow, // ✅ PRESENT - Line 49
     Planned: chalk.gray,
     Failed: chalk.red,
     Obsolete: chalk.dim,
@@ -33,13 +34,14 @@ export function getStatusColor(status: Status): (text: string) => string {
 **Verification**: 'Retrying' mapped to `chalk.yellow` ✅
 
 #### Indicator Mapping (Lines 78-91)
+
 ```typescript
 export function getStatusIndicator(status: Status): string {
   const indicatorMap: Record<Status, string> = {
     Complete: '✓',
     Implementing: '◐',
     Researching: '◐',
-    Retrying: '↻',              // ✅ PRESENT - Line 83
+    Retrying: '↻', // ✅ PRESENT - Line 83
     Planned: '○',
     Failed: '✗',
     Obsolete: '⊘',
@@ -53,13 +55,14 @@ export function getStatusIndicator(status: Status): string {
 **Verification**: 'Retrying' mapped to '↻' (circular arrow) ✅
 
 #### Plain Indicator Mapping (Lines 108-119)
+
 ```typescript
 export function getPlainStatusIndicator(status: Status): string {
   const indicatorMap: Record<Status, string> = {
     Complete: '✓',
     Implementing: '◐',
     Researching: '◐',
-    Retrying: '↻',              // ✅ PRESENT - Line 113
+    Retrying: '↻', // ✅ PRESENT - Line 113
     Planned: '○',
     Failed: '✗',
     Obsolete: '⊘',
@@ -77,6 +80,7 @@ export function getPlainStatusIndicator(status: Status): string {
 **Status**: ⚠️ DUPLICATE - Contains inline copies of mappings
 
 #### Lines 758-780: #getStatusIndicator() Method
+
 ```typescript
 #getStatusIndicator(status: Status): string {
   const indicatorMap: Record<Status, string> = {
@@ -110,6 +114,7 @@ export function getPlainStatusIndicator(status: Status): string {
 ### 3. Related Display Components
 
 #### Table Formatter
+
 **File**: `src/utils/display/table-formatter.ts`
 
 **Status**: Uses `getStatusIndicator()` from `status-colors.ts`
@@ -117,6 +122,7 @@ export function getPlainStatusIndicator(status: Status): string {
 **Verification**: Inherits 'Retrying' mapping through import ✅
 
 #### Tree Renderer
+
 **File**: `src/utils/display/tree-renderer.ts`
 
 **Status**: Uses `getStatusIndicator()` from `status-colors.ts`
@@ -124,6 +130,7 @@ export function getPlainStatusIndicator(status: Status): string {
 **Verification**: Inherits 'Retrying' mapping through import ✅
 
 #### Artifacts Command
+
 **File**: `src/cli/commands/artifacts.ts`
 
 **Status**: Uses `getStatusIndicator()` from `status-colors.ts`
@@ -132,16 +139,18 @@ export function getPlainStatusIndicator(status: Status): string {
 
 ## Color and Indicator Semantics
 
-| Status | Color | Indicator | Semantic Meaning |
-|--------|-------|-----------|------------------|
-| **Retrying** | Yellow | ↻ | Retry attempt after failure |
+| Status       | Color  | Indicator | Semantic Meaning            |
+| ------------ | ------ | --------- | --------------------------- |
+| **Retrying** | Yellow | ↻         | Retry attempt after failure |
 
 The color yellow was chosen to indicate:
+
 - **Warning/Attention**: Something needs attention (retry required)
 - **In Progress**: Not a final state, still working toward completion
 - **Distinct from Failed**: Yellow vs red differentiates "trying again" from "gave up"
 
 The indicator symbol '↻' (U+21BB CLOCKWISE CIRCULAR ARROW) was chosen to indicate:
+
 - **Cyclic Action**: Represents the retry loop
 - **Continuation**: Shows work is continuing, not starting over
 - **Visual Distinctness**: Different from other status symbols
@@ -149,12 +158,14 @@ The indicator symbol '↻' (U+21BB CLOCKWISE CIRCULAR ARROW) was chosen to indic
 ## Historical Context
 
 ### Commit 3659e55: Add Retrying status support
+
 **Date**: Mon Jan 26 00:17:02 2026 -0500
 **Author**: Dustin Schultz <dustindschultz@gmail.com>
 
 This commit added 'Retrying' status display support across all display utilities:
 
 **Files Modified**:
+
 1. `src/cli/commands/inspect.ts` - Added inline mappings
 2. `src/utils/display/status-colors.ts` - Added to all three functions
 3. `src/utils/display/table-formatter.ts` - Updated to support new status
@@ -169,12 +180,14 @@ This commit added 'Retrying' status display support across all display utilities
 **Finding**: There are **no dedicated unit tests** for the `status-colors.ts` utility module.
 
 **Coverage Report**:
+
 - **0%** statement coverage (0/119 lines)
 - **0%** branch coverage (0/1 branches)
 - **0%** function coverage (0/3 functions)
 - **0%** line coverage (0/119 lines)
 
 **Implications**:
+
 - Status mappings are not explicitly tested
 - Relies on integration testing of CLI commands for indirect validation
 - No regression protection for status color/indicator changes
@@ -199,6 +212,7 @@ const indicatorMap: Record<Status, string> = {
 ```
 
 **Benefits**:
+
 - **Type Safety**: `Record<Status, T>` ensures all Status values are mapped
 - **Compile-time Validation**: TypeScript will error if any status is missing
 - **Runtime Safety**: Zod StatusEnum validates at runtime
@@ -222,6 +236,7 @@ The 'Retrying' status has **complete and correct** color and indicator mappings:
 **Duplicate Code**: `inspect.ts` contains inline copies of mappings instead of importing from `status-colors.ts`
 
 **Impact**:
+
 - Maintenance burden (updates must be made in two places)
 - Inconsistency risk (mappings could diverge)
 - Not a bug, but a code smell
@@ -233,6 +248,7 @@ The 'Retrying' status has **complete and correct** color and indicator mappings:
 **Finding**: No unit tests exist for `status-colors.ts`
 
 **Impact**:
+
 - No explicit validation of status mappings
 - Relies on indirect testing through CLI integration tests
 - No regression protection
@@ -247,6 +263,7 @@ This verification **confirms and extends** the findings from P1.M4.T1.S1:
 **P1.M4.T1.S2 Finding**: Status display infrastructure fully supports 'Retrying' status
 
 **Combined Assessment**:
+
 - ✅ Status definition is correct
 - ✅ Display mappings are correct
 - ✅ Visual representation is implemented
@@ -257,10 +274,12 @@ This verification **confirms and extends** the findings from P1.M4.T1.S1:
 ## Next Steps
 
 **For This Task (P1.M4.T1.S2)**:
+
 - ✅ Verification complete
 - ✅ Documentation created
 - ✅ PRP can be generated
 
 **For Subsequent Tasks**:
+
 - P1.M4.T1.S3: Verify TaskRetryManager uses 'Retrying' status
 - P1.M4.T1.S4: Update status model unit tests (addresses outdated test expectations)

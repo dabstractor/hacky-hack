@@ -19,6 +19,7 @@ This document provides the exact specifications for updating `tests/unit/core/mo
 **Location**: Lines 48-67
 
 **Current Code:**
+
 ```typescript
 it('should accept valid status values', () => {
   // SETUP: Valid status values
@@ -43,10 +44,12 @@ it('should accept valid status values', () => {
 ```
 
 **Required Changes:**
+
 1. Line 54: Insert `'Retrying',` after `'Implementing',`
 2. (Optional) Update comment on line 49 to mention "All 7 valid status values"
 
 **Updated Code:**
+
 ```typescript
 it('should accept valid status values', () => {
   // SETUP: Valid status values
@@ -54,7 +57,7 @@ it('should accept valid status values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Retrying',      // ← ADD THIS LINE
+    'Retrying', // ← ADD THIS LINE
     'Complete',
     'Failed',
     'Obsolete',
@@ -72,6 +75,7 @@ it('should accept valid status values', () => {
 ```
 
 **Validation:**
+
 - Array length: 7 (was 6)
 - 'Retrying' position: 4th (after 'Implementing', before 'Complete')
 - Test will pass (all 7 statuses parse successfully)
@@ -83,6 +87,7 @@ it('should accept valid status values', () => {
 **Location**: Lines 80-90
 
 **Current Code:**
+
 ```typescript
 it('should expose all enum values via options property', () => {
   // EXECUTE & VERIFY: Check .options property
@@ -98,9 +103,11 @@ it('should expose all enum values via options property', () => {
 ```
 
 **Required Changes:**
+
 1. Line 85: Insert `'Retrying',` after `'Implementing',`
 
 **Updated Code:**
+
 ```typescript
 it('should expose all enum values via options property', () => {
   // EXECUTE & VERIFY: Check .options property
@@ -108,7 +115,7 @@ it('should expose all enum values via options property', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Retrying',      // ← ADD THIS LINE
+    'Retrying', // ← ADD THIS LINE
     'Complete',
     'Failed',
     'Obsolete',
@@ -117,6 +124,7 @@ it('should expose all enum values via options property', () => {
 ```
 
 **Validation:**
+
 - Expected array length: 7 (was 6)
 - 'Retrying' position: 4th (matches actual enum order)
 - Test will pass (expected array matches actual `StatusEnum.options`)
@@ -128,6 +136,7 @@ it('should expose all enum values via options property', () => {
 **Location**: Lines 223-243
 
 **Current Code:**
+
 ```typescript
 it('should document complete status lifecycle with all valid values', () => {
   // SETUP: All 6 valid status values (not 7 as in outdated docs)
@@ -155,12 +164,14 @@ it('should document complete status lifecycle with all valid values', () => {
 ```
 
 **Required Changes:**
+
 1. Line 224: Update comment from "not 7 as in outdated docs" to "includes Retrying status"
 2. Line 227: Insert `'Retrying',` after `'Implementing',`
 3. Line 241: Change assertion from `toBe(6)` to `toBe(7)`
 4. Line 242: Change assertion from `toBe(6)` to `toBe(7)`
 
 **Updated Code:**
+
 ```typescript
 it('should document complete status lifecycle with all valid values', () => {
   // SETUP: All 7 valid status values including Retrying
@@ -189,6 +200,7 @@ it('should document complete status lifecycle with all valid values', () => {
 ```
 
 **Validation:**
+
 - Comment accuracy: Now correct (implementation has 7 values)
 - Array length: 7 (was 6)
 - Count assertions: 7 (was 6)
@@ -210,9 +222,9 @@ it('should document complete status lifecycle with all valid values', () => {
 it('should validate retry workflow progression: Implementing → Retrying → Implementing', () => {
   // SETUP: Define retry workflow progression
   const retryProgression = [
-    'Implementing',   // Initial attempt
-    'Retrying',       // Retry in progress
-    'Implementing',   // Retry attempt
+    'Implementing', // Initial attempt
+    'Retrying', // Retry in progress
+    'Implementing', // Retry attempt
   ] as const;
 
   // EXECUTE & VERIFY: Each status in retry workflow is valid
@@ -237,6 +249,7 @@ it('should validate retry workflow progression: Implementing → Retrying → Im
 ## Validation Commands
 
 ### Before Updates (Current State)
+
 ```bash
 # Run StatusEnum tests
 npm test -- -t "StatusEnum"
@@ -248,6 +261,7 @@ npm test -- -t "StatusEnum"
 ```
 
 ### After Updates (Target State)
+
 ```bash
 # Run StatusEnum tests
 npm test -- -t "StatusEnum"
@@ -259,6 +273,7 @@ npm test -- -t "StatusEnum"
 ```
 
 ### Verify Implementation Accuracy
+
 ```bash
 # Check StatusEnum.options length
 node -e "import('./src/core/models.js').then(m => console.log('StatusEnum.options.length:', m.StatusEnum.options.length))"
@@ -275,11 +290,11 @@ node -e "import('./src/core/models.js').then(m => console.log('StatusEnum.option
 
 ## Summary of Changes
 
-| Test Name | Lines | Change Type | Description |
-|-----------|-------|-------------|-------------|
-| "should accept valid status values" | 54 | Insert | Add 'Retrying' to validStatuses array |
-| "should expose all enum values via options property" | 85 | Insert | Add 'Retrying' to expected array |
-| "should document complete status lifecycle with all valid values" | 224, 227, 241, 242 | Multiple | Update comment, add 'Retrying', change counts |
+| Test Name                                                         | Lines              | Change Type | Description                                   |
+| ----------------------------------------------------------------- | ------------------ | ----------- | --------------------------------------------- |
+| "should accept valid status values"                               | 54                 | Insert      | Add 'Retrying' to validStatuses array         |
+| "should expose all enum values via options property"              | 85                 | Insert      | Add 'Retrying' to expected array              |
+| "should document complete status lifecycle with all valid values" | 224, 227, 241, 242 | Multiple    | Update comment, add 'Retrying', change counts |
 
 **Total Lines Modified**: 5 lines
 **Total Insertions**: 3 lines (adding 'Retrying')
@@ -290,11 +305,13 @@ node -e "import('./src/core/models.js').then(m => console.log('StatusEnum.option
 ## Test Coverage Impact
 
 ### Before Updates
+
 - StatusEnum tests: 2 of 3 passing (66.7% pass rate)
 - Missing validation for 'Retrying' status
 - Tests contradict actual implementation
 
 ### After Updates
+
 - StatusEnum tests: 3 of 3 passing (100% pass rate)
 - Complete validation for all 7 statuses
 - Tests accurately reflect implementation
@@ -324,6 +341,7 @@ node -e "import('./src/core/models.js').then(m => console.log('StatusEnum.option
 ## Conclusion
 
 These three targeted updates to `tests/unit/core/models.test.ts` will:
+
 1. ✅ Fix failing tests (Update 2 and Update 3)
 2. ✅ Improve test completeness (Update 1)
 3. ✅ Align test expectations with correct implementation

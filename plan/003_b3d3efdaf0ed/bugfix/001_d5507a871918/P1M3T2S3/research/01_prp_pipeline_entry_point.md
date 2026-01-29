@@ -59,7 +59,7 @@ async run(): Promise<PipelineResult> {
 The session path is retrieved through:
 
 ```typescript
-this.sessionManager.currentSession?.metadata.path
+this.sessionManager.currentSession?.metadata.path;
 ```
 
 **Session path structure:** `plan/{sequence}_{hash}` (e.g., `plan/001_14b9dc2a33c7`)
@@ -82,9 +82,11 @@ This is already imported at line 35 of prp-pipeline.ts
 ## Issue with Current Implementation
 
 The contract specifies:
+
 - "At the very beginning of PRP Pipeline run() method (before any other logic), call validateNestedExecution(sessionPath)"
 
 But the current implementation:
+
 - Sets `PRP_PIPELINE_RUNNING` at line 1707 (before validation)
 - Calls `validateNestedExecution` at line 1724 (after session initialization)
 
@@ -93,6 +95,7 @@ The validation cannot be called at the "very beginning" because it requires the 
 ## Correct Interpretation
 
 The contract likely means:
+
 - Call validation as early as possible AFTER session path is available
 - The current location (after session initialization) is correct
 - Need to ensure proper try-catch wrapping and debug logging

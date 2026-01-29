@@ -130,13 +130,13 @@ except PipelineError as e:
 
 ## Common Gotchas (Quick Reference)
 
-| Gotcha | Bad | Good |
-|--------|-----|------|
-| Missing super() | `self.message = message` | `super().__init__(message)` |
-| Mutable defaults | `def __init__(self, ctx={})` | `def __init__(self, ctx=None); self.ctx = ctx or {}` |
-| Lost traceback | `raise CustomError("msg")` | `raise CustomError("msg") from e` |
-| Wrong inheritance | `class E(BaseException)` | `class E(Exception)` |
-| Shadow built-ins | `class ValueError(Exception)` | `class ValidationError(Exception)` |
+| Gotcha            | Bad                           | Good                                                 |
+| ----------------- | ----------------------------- | ---------------------------------------------------- |
+| Missing super()   | `self.message = message`      | `super().__init__(message)`                          |
+| Mutable defaults  | `def __init__(self, ctx={})`  | `def __init__(self, ctx=None); self.ctx = ctx or {}` |
+| Lost traceback    | `raise CustomError("msg")`    | `raise CustomError("msg") from e`                    |
+| Wrong inheritance | `class E(BaseException)`      | `class E(Exception)`                                 |
+| Shadow built-ins  | `class ValueError(Exception)` | `class ValidationError(Exception)`                   |
 
 ## Error Code Patterns
 
@@ -218,17 +218,17 @@ def test_exception_chaining():
 
 ## Comparison: TypeScript vs Python
 
-| Feature | TypeScript | Python |
-|---------|------------|--------|
-| Error codes | `const ErrorCodes = { ... } as const` | `class ErrorCode(str, Enum)` |
-| Base class | `extends Error` | `extends Exception` |
-| Context | `interface Context extends Record` | `dict[str, Any]` or `dataclass` |
-| Prototype setup | `Object.setPrototypeOf(this, ...)` | Automatic via `super()` |
-| Serialization | `toJSON(): object` | `to_dict(): dict` |
-| Type guard | `function isType(error: unknown): error is Type` | `def is_type(error: object) -> TypeGuard[Type]` |
-| Property access | `this.context` | `self.context` |
-| Stack trace | `Error.captureStackTrace()` | Automatic |
-| Exception chaining | `new Error("msg", { cause })` | `raise ... from e` |
+| Feature            | TypeScript                                       | Python                                          |
+| ------------------ | ------------------------------------------------ | ----------------------------------------------- |
+| Error codes        | `const ErrorCodes = { ... } as const`            | `class ErrorCode(str, Enum)`                    |
+| Base class         | `extends Error`                                  | `extends Exception`                             |
+| Context            | `interface Context extends Record`               | `dict[str, Any]` or `dataclass`                 |
+| Prototype setup    | `Object.setPrototypeOf(this, ...)`               | Automatic via `super()`                         |
+| Serialization      | `toJSON(): object`                               | `to_dict(): dict`                               |
+| Type guard         | `function isType(error: unknown): error is Type` | `def is_type(error: object) -> TypeGuard[Type]` |
+| Property access    | `this.context`                                   | `self.context`                                  |
+| Stack trace        | `Error.captureStackTrace()`                      | Automatic                                       |
+| Exception chaining | `new Error("msg", { cause })`                    | `raise ... from e`                              |
 
 ## Checklist for New Error Classes
 

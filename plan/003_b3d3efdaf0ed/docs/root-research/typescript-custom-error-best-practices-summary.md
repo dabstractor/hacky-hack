@@ -39,6 +39,7 @@ export class CustomError extends Error {
 ```
 
 **Why This Matters:**
+
 - `Object.setPrototypeOf()` is required because TypeScript's default ES5 transpilation breaks prototype inheritance
 - `Error.captureStackTrace()` provides cleaner stack traces in V8/Node.js environments
 - Explicit `this.name` ensures error shows correctly in logs and debuggers
@@ -50,7 +51,7 @@ export class CustomError extends Error {
 ```json
 {
   "compilerOptions": {
-    "target": "ES2015",  // or higher (ES2016, ES2018, ES2020, ES2022)
+    "target": "ES2015", // or higher (ES2016, ES2018, ES2020, ES2022)
     "lib": ["ES2015"]
   }
 }
@@ -82,7 +83,7 @@ var CustomError = /** @class */ (function () {
   }
   // ...
   return CustomError;
-}());
+})();
 ```
 
 **Symptom:** `instanceof CustomError` returns `false`
@@ -167,6 +168,7 @@ throw new ValidationError('Invalid input', ErrorCodes.VALIDATION_INVALID_INPUT);
 ```
 
 **Benefits:**
+
 - Type-safe with `as const` assertion
 - TypeScript autocomplete in IDEs
 - Prevents typos at compile time
@@ -204,6 +206,7 @@ throw new ValidationError('Invalid input', ErrorCode.INVALID_INPUT);
 ```
 
 **Examples:**
+
 - `SESSION_LOAD_FAILED` - Module: SESSION, Error: LOAD_FAILED
 - `VALIDATION_INVALID_INPUT` - Module: VALIDATION, Error: INVALID_INPUT
 - `TASK_EXECUTION_TIMEOUT` - Module: TASK, Error: EXECUTION_TIMEOUT
@@ -218,9 +221,7 @@ throw new ValidationError('Invalid input', ErrorCode.INVALID_INPUT);
 **Purpose:** Narrow unknown error to specific error type
 
 ```typescript
-export function isValidationError(
-  error: unknown
-): error is ValidationError {
+export function isValidationError(error: unknown): error is ValidationError {
   return error instanceof ValidationError;
 }
 
@@ -262,8 +263,7 @@ if (hasErrorCode(error, ErrorCodes.VALIDATION_INVALID_INPUT)) {
 export function isCustomError(error: unknown): error is CustomError {
   return (
     error instanceof CustomError ||
-    (error instanceof Error &&
-      (error as any).name === 'CustomError')
+    (error instanceof Error && (error as any).name === 'CustomError')
   );
 }
 ```
@@ -442,18 +442,11 @@ class CustomError extends Error {
 **File validation error:**
 
 ```typescript
-throw new ValidationError(
-  'Session file not found',
-  'SESSION_FILE_NOT_FOUND',
-  {
-    filePath: '/path/to/session.json',
-    operation: 'load_session',
-    attemptedPaths: [
-      '/path/to/session.json',
-      '/path/to/session.json.bak',
-    ],
-  }
-);
+throw new ValidationError('Session file not found', 'SESSION_FILE_NOT_FOUND', {
+  filePath: '/path/to/session.json',
+  operation: 'load_session',
+  attemptedPaths: ['/path/to/session.json', '/path/to/session.json.bak'],
+});
 ```
 
 **Field validation error:**
@@ -504,35 +497,35 @@ throw new ValidationError(
 
 ```typescript
 // Specific + actionable
-'Session file not found at /path/to/session.json. Run init to create.'
+'Session file not found at /path/to/session.json. Run init to create.';
 
 // Clear about what went wrong
-'Field "sessionId" is required but was undefined.'
+'Field "sessionId" is required but was undefined.';
 
 // Shows expected vs actual
-'Expected "steps" to be number, got string "five".'
+'Expected "steps" to be number, got string "five".';
 
 // Includes context for debugging
-'Failed to parse session JSON at line 42: Unexpected token }'
+'Failed to parse session JSON at line 42: Unexpected token }';
 
 // Provides solution hint
-'Invalid session path format. Expected: plan/XXX/hhhhhhhh/bugfix/YYY/zzzzzzzz'
+'Invalid session path format. Expected: plan/XXX/hhhhhhhh/bugfix/YYY/zzzzzzzz';
 ```
 
 **Bad Messages:**
 
 ```typescript
 // Too generic
-'Error occurred'
+'Error occurred';
 
 // No context
-'Validation failed'
+'Validation failed';
 
 // Missing actionable info
-'Invalid input'
+'Invalid input';
 
 // Technically correct but unhelpful
-'Object is not of type Session'
+'Object is not of type Session';
 ```
 
 ### 6.3 Message Formatting Guidelines
@@ -812,24 +805,16 @@ class GoodError extends Error {
 
 ```typescript
 // ✗ WRONG
-throw new Error(
-  'Authentication failed',
-  'AUTH_ERROR',
-  {
-    password: 'userPassword123', // Don't log passwords!
-    apiKey: 'sk-1234567890', // Don't log API keys!
-  }
-);
+throw new Error('Authentication failed', 'AUTH_ERROR', {
+  password: 'userPassword123', // Don't log passwords!
+  apiKey: 'sk-1234567890', // Don't log API keys!
+});
 
 // ✓ CORRECT
-throw new Error(
-  'Authentication failed',
-  'AUTH_ERROR',
-  {
-    username: 'user@example.com', // OK - username is not sensitive
-    attempt: 3, // OK - attempt count
-  }
-);
+throw new Error('Authentication failed', 'AUTH_ERROR', {
+  username: 'user@example.com', // OK - username is not sensitive
+  attempt: 3, // OK - attempt count
+});
 ```
 
 ### 8.5 Throwing Non-Error Objects
@@ -865,8 +850,7 @@ try {
 try {
   validatePath(path);
 } catch (error) {
-  if (error instanceof ValidationError &&
-      error.code === 'PATH_TRAVERSAL') {
+  if (error instanceof ValidationError && error.code === 'PATH_TRAVERSAL') {
     // Handle path traversal
   }
 }
@@ -923,6 +907,7 @@ describe('CustomError', () => {
 ## 10. Sources and References
 
 ### Official Documentation
+
 1. **TypeScript Handbook**
    https://www.typescriptlang.org/docs/handbook/2/classes.html
 
@@ -939,6 +924,7 @@ describe('CustomError', () => {
    https://tc39.es/proposal-error-cause/
 
 ### Community Resources
+
 6. **TypeScript Deep Dive - Error Handling**
    https://basarat.gitbook.io/typescript/type-system/exceptions
 
@@ -949,6 +935,7 @@ describe('CustomError', () => {
    https://github.com/microsoft/TypeScript/wiki/Best-Practices
 
 ### Libraries for Reference
+
 9. **ts-custom-error**
    https://github.com/adrai/ts-custom-error
 

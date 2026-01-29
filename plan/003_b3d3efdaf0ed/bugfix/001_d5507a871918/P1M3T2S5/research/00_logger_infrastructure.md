@@ -9,6 +9,7 @@ The codebase uses **Pino** as the underlying logging library with a custom wrapp
 **File**: `src/utils/logger.ts`
 
 ### Key Features
+
 - **Log Levels**: TRACE (10), DEBUG (20), INFO (30), WARN (40), ERROR (50), FATAL (60)
 - **Pino Integration**: Uses `pino` with `pino-pretty` for development output
 - **Structured Logging**: JSON format with correlation ID and context
@@ -23,6 +24,7 @@ Debug mode is determined by:
 3. **CLI Option**: `--log-level debug` (overrides verbose)
 
 **Priority order**:
+
 1. `--log-level` command line argument
 2. `HACKY_LOG_LEVEL` environment variable
 3. `--verbose` flag (deprecated, but still works)
@@ -33,6 +35,7 @@ Debug mode is determined by:
 The PRP Pipeline has two logger instances:
 
 ### `this.logger` - Main Logger
+
 ```typescript
 // From prp-pipeline.ts (lines 32, 364)
 import { getLogger } from '../utils/logger.js';
@@ -43,6 +46,7 @@ this.logger = getLogger('PRPPipeline');
 ```
 
 ### `this.correlationLogger` - Correlation Logger
+
 ```typescript
 // From prp-pipeline.ts (lines 149, 364-366)
 this.correlationLogger = getLogger('PRPPipeline').child({
@@ -55,6 +59,7 @@ this.correlationLogger = getLogger('PRPPipeline').child({
 ## Existing Debug Logging Examples in PRP Pipeline
 
 ### Entry Point Debug Logging
+
 ```typescript
 // From prp-pipeline.ts (lines 1691-1699)
 this.correlationLogger.debug(
@@ -68,18 +73,18 @@ this.correlationLogger.debug(
 ```
 
 ### Session Initialization Debug
+
 ```typescript
 // From prp-pipeline.ts (lines 1714-1719)
 this.logger.debug(
   `[PRPPipeline] Checking for nested execution at ${sessionPath}`
 );
 validateNestedExecution(sessionPath);
-this.logger.debug(
-  '[PRPPipeline] No nested execution detected, proceeding'
-);
+this.logger.debug('[PRPPipeline] No nested execution detected, proceeding');
 ```
 
 ### Error Logging with Context
+
 ```typescript
 // From prp-pipeline.ts (lines 1722-1730)
 this.logger.error(

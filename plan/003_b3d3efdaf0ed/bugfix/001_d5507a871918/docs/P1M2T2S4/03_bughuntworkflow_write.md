@@ -119,6 +119,7 @@ const resultsPath = resolve(sessionPath, 'TEST_RESULTS.md');
 ```
 
 **Example**:
+
 - Input: `sessionPath = 'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918'`
 - Output: `'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918/TEST_RESULTS.md'`
 
@@ -127,6 +128,7 @@ const resultsPath = resolve(sessionPath, 'TEST_RESULTS.md');
 **Location**: `src/core/session-utils.ts:98-172`
 
 The `atomicWrite()` function:
+
 1. Writes to temp file first
 2. Atomic rename to target path
 3. Prevents corruption if process crashes
@@ -146,6 +148,7 @@ if (!hasCriticalOrMajor) {
 ```
 
 **Behavior**:
+
 - Only writes if critical or major bugs present
 - Minor and cosmetic bugs don't trigger write
 - Prevents unnecessary file writes
@@ -155,6 +158,7 @@ if (!hasCriticalOrMajor) {
 **Commit 8415df7** (Jan 26, 2026): "Update BugHuntWorkflow.run() to automatically write TEST_RESULTS.md when critical or major bugs are found"
 
 Changes:
+
 - Added `sessionPath?: string` parameter to `run()` method
 - Added conditional write logic after `generateReport()` phase
 - Enabled automatic TEST_RESULTS.md writing
@@ -173,13 +177,13 @@ const testResults = await bugHuntWorkflow.run(); // ❌ No sessionPath passed
 
 ## Comparison: PRP Pipeline vs BugHuntWorkflow
 
-| Aspect | BugHuntWorkflow | PRP Pipeline (Current) | Issue |
-|--------|----------------|----------------------|-------|
-| **sessionPath** | Optional parameter to `run()` | Available but NOT passed | ❌ Gap |
-| **Write Trigger** | Critical/major bugs only | Any bugs | ⚠️ Inconsistent |
-| **File Format** | JSON (2-space indent) | Markdown | ❌ Conflict |
-| **Write Method** | `atomicWrite()` | `writeFile()` | ⚠️ Safety |
-| **Validation** | Zod `TestResultsSchema.parse()` | None | ⚠️ Missing |
+| Aspect            | BugHuntWorkflow                 | PRP Pipeline (Current)   | Issue           |
+| ----------------- | ------------------------------- | ------------------------ | --------------- |
+| **sessionPath**   | Optional parameter to `run()`   | Available but NOT passed | ❌ Gap          |
+| **Write Trigger** | Critical/major bugs only        | Any bugs                 | ⚠️ Inconsistent |
+| **File Format**   | JSON (2-space indent)           | Markdown                 | ❌ Conflict     |
+| **Write Method**  | `atomicWrite()`                 | `writeFile()`            | ⚠️ Safety       |
+| **Validation**    | Zod `TestResultsSchema.parse()` | None                     | ⚠️ Missing      |
 
 ## Required Fix
 

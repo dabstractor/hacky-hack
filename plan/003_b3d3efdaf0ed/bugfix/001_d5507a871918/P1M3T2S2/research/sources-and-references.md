@@ -13,12 +13,14 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.python.org/3/library/exceptions.html
 
 **Key Insights:**
+
 - Exception hierarchy: `BaseException` → `Exception` → specific exceptions
 - Always inherit from `Exception`, not `BaseException` (unless building system-level exceptions)
 - Built-in exception types and their intended use cases
 - Exception context attributes: `__cause__`, `__context__`, `__suppress_context__`
 
 **Relevant Sections:**
+
 - Exception hierarchy
 - Exception context and chaining
 - Built-in exceptions
@@ -28,11 +30,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.python.org/3/reference/simple_stmts.html#the-raise-statement
 
 **Key Insights:**
+
 - `raise ... from e` syntax for exception chaining
 - Preserving original tracebacks
 - Exception cause vs context
 
 **Relevant Sections:**
+
 - Exception chaining syntax
 - Traceback preservation
 
@@ -41,11 +45,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.python.org/3/library/abc.html
 
 **Key Insights:**
+
 - Creating abstract base classes with `ABC` and `@abstractmethod`
 - Enforcing interface contracts across subclasses
 - `@property` decorator with `@abstractmethod` for abstract properties
 
 **Relevant Sections:**
+
 - `abc.ABC` class
 - `@abstractmethod` decorator
 - Abstract properties
@@ -55,12 +61,14 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.python.org/3/library/dataclasses.html
 
 **Key Insights:**
+
 - Using `@dataclass` for structured data containers
 - Type hints with default values
 - `field(default_factory=dict)` for mutable defaults
 - Converting dataclasses to dictionaries
 
 **Relevant Sections:**
+
 - `@dataclass` decorator
 - `field()` function
 - `asdict()` for serialization
@@ -70,12 +78,14 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.python.org/3/library/enum.html
 
 **Key Insights:**
+
 - Creating type-safe enums with `Enum`
 - String enums: `class MyEnum(str, Enum)`
 - Enum members as singletons
 - Type safety with IDE autocomplete
 
 **Relevant Sections:**
+
 - `Enum` class
 - String enums
 - Enum members and values
@@ -89,11 +99,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://peps.python.org/pep-0008/
 
 **Key Insights:**
+
 - Naming conventions: `CapWords` for exception classes
 - Docstring conventions for modules, classes, and methods
 - Import ordering and formatting
 
 **Relevant Sections:**
+
 - Class naming conventions
 - Docstring guidelines
 
@@ -102,11 +114,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://peps.python.org/pep-0484/
 
 **Key Insights:**
+
 - Type hint syntax for function signatures
 - Union types: `Type | None` (Python 3.10+) or `Optional[Type]`
 - Type hints for better IDE support and static analysis
 
 **Relevant Sections:**
+
 - Type hint basics
 - Union types
 - None handling
@@ -116,11 +130,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://peps.python.org/pep-0585/
 
 **Key Insights:**
+
 - Using built-in collections for type hints: `dict[str, Any]`
 - Replacing `typing.Dict` with built-in `dict`
 - Simpler, more readable type hints
 
 **Relevant Sections:**
+
 - Standard collection types
 - Migration from `typing` module
 
@@ -135,11 +151,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://github.com/django/django/tree/main/django/core/exceptions.py
 
 **Key Insights:**
+
 - Exception hierarchy with base classes and specialized subclasses
 - Context objects for additional debugging information
 - Clear separation between different error domains
 
 **Patterns Used:**
+
 - `ValidationError` with message dictionaries
 - Multiple exception types for different scenarios
 
@@ -148,6 +166,7 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://github.com/pallets/flask/blob/main/src/flask/exceptions.py
 
 **Key Insights:**
+
 - HTTP-specific exceptions with status codes
 - Exception handlers for web applications
 - Wrapper exceptions for underlying errors
@@ -157,6 +176,7 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://github.com/fastapi/fastapi/blob/main/fastapi/exceptions.py
 
 **Key Insights:**
+
 - Request validation exceptions
 - HTTP exception handling
 - Structured error responses
@@ -168,11 +188,13 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.pytest.org/
 
 **Key Insights:**
+
 - Testing exceptions with `pytest.raises()`
 - Fixture patterns for test data
 - Parameterized tests for multiple scenarios
 
 **Relevant Sections:**
+
 - Exception testing with `pytest.raises`
 - Fixture usage
 - Parameterization
@@ -188,6 +210,7 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://mypy.readthedocs.io/
 
 **Key Insights:**
+
 - Static type checking for Python
 - Type guard patterns (TypeGuard)
 - Abstract base class type checking
@@ -197,6 +220,7 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://github.com/microsoft/pyright
 
 **Key Insights:**
+
 - Microsoft's type checker for Python
 - Strict type checking mode
 - Type narrowing in catch blocks
@@ -208,6 +232,7 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://black.readthedocs.io/
 
 **Key Insights:**
+
 - Python code formatter
 - Consistent formatting across codebase
 - Integration with CI/CD
@@ -217,6 +242,7 @@ During the research period (January 27, 2026), web search services were temporar
 **URL:** https://docs.astral.sh/ruff/
 
 **Key Insights:**
+
 - Fast Python linter
 - PEP 8 compliance checking
 - Import sorting and formatting
@@ -230,6 +256,7 @@ During the research period (January 27, 2026), web search services were temporar
 **File:** `/home/dustin/projects/hacky-hack/src/utils/errors.ts`
 
 **Key Insights:**
+
 - Error code constants using `const` assertion
 - Abstract base class with `abstract readonly code`
 - Context objects using `interface`
@@ -238,6 +265,7 @@ During the research period (January 27, 2026), web search services were temporar
 - Sensitive data sanitization
 
 **Patterns Adapted for Python:**
+
 - Enum for error codes (vs `const` assertion)
 - `@property` decorator for abstract properties (vs `abstract readonly`)
 - Dataclass for context (vs `interface`)
@@ -329,6 +357,7 @@ During the research period (January 27, 2026), web search services were temporar
 ### Validation
 
 All patterns and code examples have been:
+
 - Verified against Python 3.10+ syntax
 - Cross-referenced with multiple sources
 - Tested for common gotchas
@@ -347,6 +376,7 @@ While web search was unavailable during the research period, this compilation dr
 - **Compatible**: Matching existing TypeScript implementation
 
 For the most current information and community discussions, consider consulting:
+
 - Python official documentation (always up-to-date)
 - Python discourse forums
 - Stack Overflow Python tag

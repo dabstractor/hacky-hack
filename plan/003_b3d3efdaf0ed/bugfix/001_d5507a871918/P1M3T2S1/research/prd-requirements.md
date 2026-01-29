@@ -9,9 +9,11 @@
 ## 1. Exact Requirement from PRD §9.2.5
 
 ### Problem Statement
+
 Agents could accidentally invoke `run-prd.sh` during implementation, causing recursive execution and corrupted pipeline state.
 
 ### Solution Specification
+
 The pipeline sets `PRP_PIPELINE_RUNNING` environment variable at script entry and validates it before proceeding.
 
 ### Guard Logic (Exact Specification)
@@ -24,6 +26,7 @@ The pipeline sets `PRP_PIPELINE_RUNNING` environment variable at script entry an
 4. **On valid entry**, set `PRP_PIPELINE_RUNNING` to current PID
 
 ### Error Message Format
+
 ```
 Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {existing_pid}
 ```
@@ -33,11 +36,13 @@ Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: 
 ## 2. Session Creation Guards
 
 ### In bug fix mode
+
 - Prevent creating sessions in main `plan/` directory
 - Bug fix session paths must contain "bugfix" in the path
 - Provides debug logging showing `PLAN_DIR`, `SESSION_DIR`, and `SKIP_BUG_FINDING` values
 
 ### Debug Logging Format
+
 ```typescript
 logger.debug(`[Guard] PLAN_DIR=${PLAN_DIR}`);
 logger.debug(`[Guard] SESSION_DIR=${SESSION_DIR}`);
@@ -49,13 +54,16 @@ logger.debug(`[Guard] SKIP_BUG_FINDING=${SKIP_BUG_FINDING}`);
 ## 3. Related Requirements About Nested Execution Prevention
 
 ### Functional Requirements (Section 5.1)
+
 - Must implement nested execution guard via `PRP_PIPELINE_RUNNING` environment variable
 
 ### Universal Forbidden Operations (Section 5.2)
+
 - Never run `prd`, `run-prd.sh`, or `tsk` commands (prevents recursive execution)
 - Never create session-pattern directories (`[0-9]*_*`) outside designated locations
 
 ### Agent Operational Boundaries
+
 All agent types are forbidden from accessing pipeline control files and directories that could lead to recursive execution.
 
 ---
@@ -79,9 +87,11 @@ All agent types are forbidden from accessing pipeline control files and director
 ### Legitimate vs Illegitimate Recursion
 
 **Legitimate:**
+
 - Bug fix sessions when `SKIP_BUG_FINDING=true` AND session path contains "bugfix"
 
 **Illegitimate:**
+
 - Any other scenario of accidental pipeline invocation
 
 ---
@@ -116,9 +126,11 @@ ANTHROPIC_BASE_URL:   # API endpoint
 ## 6. Session Path Validation Requirements
 
 ### Main Session
+
 - Must be in `plan/{sequence}_{hash}/`
 
 ### Bug Fix Session
+
 - Must be in `plan/{sequence}_{hash}/bugfix/{sequence}_{hash}/`
 - **Validation**: Session paths must contain "bugfix" in the path for bug fix mode
 
@@ -144,7 +156,7 @@ The following files must NEVER be modified or moved:
 ### Function Signature (from Work Item Contract)
 
 ```typescript
-export function validateNestedExecution(sessionPath: string): void
+export function validateNestedExecution(sessionPath: string): void;
 ```
 
 ### Logic Specification
@@ -161,6 +173,7 @@ export function validateNestedExecution(sessionPath: string): void
 ## Summary
 
 The PRP_PIPELINE_RUNNING guard is a **critical safety mechanism** that:
+
 - Prevents recursive pipeline execution
 - Allows legitimate bug fix recursion with specific conditions
 - Validates session paths

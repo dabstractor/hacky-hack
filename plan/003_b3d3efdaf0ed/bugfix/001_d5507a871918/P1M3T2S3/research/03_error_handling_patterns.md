@@ -19,13 +19,17 @@ try {
 
   // Check if error is fatal using isFatalError()
   if (isFatalError(error, this.#continueOnError)) {
-    this.logger.error(`[PRPPipeline] Fatal session initialization error: ${errorMessage}`);
+    this.logger.error(
+      `[PRPPipeline] Fatal session initialization error: ${errorMessage}`
+    );
     throw error; // Re-throw to abort pipeline
   }
 
   // Non-fatal: track failure and continue
   this.#trackFailure('initializeSession', error, { phase: this.currentPhase });
-  this.logger.warn(`[PRPPipeline] Non-fatal session initialization error, continuing: ${errorMessage}`);
+  this.logger.warn(
+    `[PRPPipeline] Non-fatal session initialization error, continuing: ${errorMessage}`
+  );
 }
 ```
 
@@ -93,7 +97,9 @@ export function isPipelineError(error: unknown): error is PipelineError {
   return error instanceof PipelineError;
 }
 
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
 ```
@@ -121,15 +127,20 @@ const correlationLogger = getLogger('PRPPipeline').child({ correlationId });
 // Basic debug logging
 this.logger.debug('[PRPPipeline] Session initialized', {
   sessionPath: this.sessionManager?.currentSession?.metadata.path,
-  hasExistingBacklog: (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0) > 0,
+  hasExistingBacklog:
+    (this.sessionManager?.currentSession?.taskRegistry?.backlog?.length ?? 0) >
+    0,
 });
 
 // With correlation ID
-this.correlationLogger.debug({
-  prdPath: this.#prdPath,
-  scope: this.#scope ?? 'all',
-  mode: this.mode,
-}, '[PRPPipeline] Starting PRP Pipeline workflow');
+this.correlationLogger.debug(
+  {
+    prdPath: this.#prdPath,
+    scope: this.#scope ?? 'all',
+    mode: this.mode,
+  },
+  '[PRPPipeline] Starting PRP Pipeline workflow'
+);
 
 // Debug logging for environment variables
 this.logger.debug(`[PRPPipeline] Set PRP_PIPELINE_RUNNING=${currentPid}`);
@@ -147,6 +158,7 @@ this.logger.debug(`[PRPPipeline] Set PRP_PIPELINE_RUNNING=${currentPid}`);
 ### Sensitive Data Redaction
 
 Automatic redaction of:
+
 - API keys
 - Tokens
 - Passwords
@@ -162,7 +174,7 @@ Handled at the logger level, no need to worry in business logic.
 export interface SessionMetadata {
   readonly id: string;
   readonly hash: string;
-  readonly path: string;  // plan/{sequence}_{hash}/
+  readonly path: string; // plan/{sequence}_{hash}/
 }
 ```
 
@@ -186,7 +198,10 @@ const sessionPath = this.sessionManager.currentSession?.metadata.path ?? '';
 
 ```typescript
 import { isPipelineError, isFatalError } from '../utils/errors.js';
-import { validateNestedExecution, isNestedExecutionError } from '../utils/validation/execution-guard.js';
+import {
+  validateNestedExecution,
+  isNestedExecutionError,
+} from '../utils/validation/execution-guard.js';
 import type { Logger } from '../utils/logger.js';
 import { getLogger } from '../utils/logger.js';
 ```
@@ -194,6 +209,7 @@ import { getLogger } from '../utils/logger.js';
 ## Key Gotchas
 
 1. **Always use type guards for error handling**
+
    ```typescript
    if (isNestedExecutionError(error)) {
      // Type narrowing: error is now NestedExecutionError
@@ -201,14 +217,16 @@ import { getLogger } from '../utils/logger.js';
    ```
 
 2. **Optional chaining for session path**
+
    ```typescript
-   this.sessionManager.currentSession?.metadata.path
+   this.sessionManager.currentSession?.metadata.path;
    ```
 
 3. **Context object in logger.debug() can be first or second parameter**
+
    ```typescript
-   this.logger.debug({ context }, 'Message');  // Object first
-   this.logger.debug('Message', { context });  // Or second
+   this.logger.debug({ context }, 'Message'); // Object first
+   this.logger.debug('Message', { context }); // Or second
    ```
 
 4. **Error context uses intersection types**

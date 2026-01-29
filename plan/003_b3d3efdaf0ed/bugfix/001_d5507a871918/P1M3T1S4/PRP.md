@@ -1,7 +1,6 @@
 ---
-name: "P1.M3.T1.S4: Verify and Document Bugfix Session Validation Unit Tests"
+name: 'P1.M3.T1.S4: Verify and Document Bugfix Session Validation Unit Tests'
 description: |
-
 ---
 
 ## Goal
@@ -11,6 +10,7 @@ description: |
 **Deliverable**: Verified and documented test suite for `validateBugfixSession` function and `BugfixSessionValidationError` class at `tests/unit/utils/validation/session-validation.test.ts`.
 
 **Success Definition**:
+
 - All existing tests for `validateBugfixSession` pass successfully
 - Test coverage includes valid paths, invalid paths, error messages, instanceof checks, and edge cases
 - Tests follow established codebase patterns (Vitest, describe/it structure, assertions)
@@ -31,6 +31,7 @@ description: |
 **IMPORTANT**: Research reveals that comprehensive unit tests already exist at `tests/unit/utils/validation/session-validation.test.ts`. These tests were created in P1.M3.T1.S1 as part of the `validateBugfixSession` function implementation.
 
 **Test Coverage Analysis**:
+
 - ✅ 45+ test cases covering all scenarios
 - ✅ Valid bugfix session paths (6 tests)
 - ✅ Invalid session paths (8 tests)
@@ -47,17 +48,20 @@ No user-visible behavior change. This is test verification and documentation wor
 ### Technical Requirements
 
 **Verification Tasks**:
+
 1. Run existing test suite to confirm all tests pass
 2. Review test coverage against work item requirements
 3. Document any gaps in coverage
 4. Ensure tests work with FixCycleWorkflow integration from P1.M3.T1.S3
 
 **Test Execution**:
+
 - Run: `npm test -- tests/unit/utils/validation/session-validation.test.ts`
 - Expected: All tests pass
 - If failures: Debug and fix implementation or tests
 
 **Documentation**:
+
 - Create summary of test coverage
 - Note any edge cases not covered
 - Document test patterns for future reference
@@ -79,6 +83,7 @@ No user-visible behavior change. This is test verification and documentation wor
 **"No Prior Knowledge" test**: If someone knew nothing about this codebase, would they have everything needed to verify the tests successfully?
 
 ✅ This PRP provides:
+
 - Exact test file location and structure
 - Complete test pattern reference from existing tests
 - Specific test commands to run
@@ -224,7 +229,9 @@ class BugfixSessionValidationError extends PipelineError {
 }
 
 // Type guard being tested
-function isBugfixSessionValidationError(error: unknown): error is BugfixSessionValidationError;
+function isBugfixSessionValidationError(
+  error: unknown
+): error is BugfixSessionValidationError;
 ```
 
 ### Implementation Tasks (ordered by dependencies)
@@ -344,12 +351,14 @@ it('should support early validation pattern in constructor', () => {
   }
 
   // Valid path should not throw
-  expect(() => new TestWorkflow('plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918'))
-    .not.toThrow();
+  expect(
+    () => new TestWorkflow('plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918')
+  ).not.toThrow();
 
   // Invalid path should throw
-  expect(() => new TestWorkflow('plan/003_b3d3efdaf0ed/feature/001_xyz'))
-    .toThrow(BugfixSessionValidationError);
+  expect(
+    () => new TestWorkflow('plan/003_b3d3efdaf0ed/feature/001_xyz')
+  ).toThrow(BugfixSessionValidationError);
 });
 
 // ============================================================================
@@ -375,9 +384,11 @@ it.each([
 // GOTCHA: Import Path Must Use .js Extension
 // ============================================================================
 
-import { validateBugfixSession, BugfixSessionValidationError }
-  from '../../../../src/utils/validation/session-validation.js';
-  // Note the .js extension even though source file is .ts
+import {
+  validateBugfixSession,
+  BugfixSessionValidationError,
+} from '../../../../src/utils/validation/session-validation.js';
+// Note the .js extension even though source file is .ts
 
 // ============================================================================
 // GOTCHA: Use expect.fail() for Test Logic Errors

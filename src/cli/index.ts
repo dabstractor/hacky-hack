@@ -724,14 +724,17 @@ export function parseCLIArgs():
   let validatedCacheTtl: number;
   if (options.cacheTtl !== undefined) {
     const cacheTtlStr = String(options.cacheTtl);
-    const cacheTtlMs = ms(cacheTtlStr) as number | undefined;
+    // Cast to StringValue type for ms function
+    const cacheTtlResult = ms(cacheTtlStr as ms.StringValue);
 
-    // CRITICAL: ms returns undefined for invalid formats
-    if (cacheTtlMs === undefined) {
+    // CRITICAL: ms returns number when passed a string
+    if (typeof cacheTtlResult !== 'number') {
       logger.error(`Invalid duration format: "${cacheTtlStr}"`);
       logger.error('Expected formats: 30s, 5m, 1h, 1d, etc.');
       process.exit(1);
     }
+
+    const cacheTtlMs = cacheTtlResult;
 
     // Validate minimum (1 minute)
     if (cacheTtlMs < 60000) {
@@ -740,7 +743,7 @@ export function parseCLIArgs():
     }
 
     // Validate maximum (30 days)
-    const maxTtl = ms('30d')!;
+    const maxTtl = ms('30d' as ms.StringValue);
     if (cacheTtlMs > maxTtl) {
       logger.error('--cache-ttl cannot exceed 30 days');
       process.exit(1);
@@ -749,7 +752,7 @@ export function parseCLIArgs():
     validatedCacheTtl = cacheTtlMs;
   } else {
     // Set default if not provided (24 hours)
-    validatedCacheTtl = ms('24h')!;
+    validatedCacheTtl = ms('24h' as ms.StringValue);
   }
 
   // Set default for cachePrune if not provided

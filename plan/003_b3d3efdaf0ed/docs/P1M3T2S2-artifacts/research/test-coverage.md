@@ -9,6 +9,7 @@
 **Lines**: 136-406 (NestedExecutionError tests)
 
 **Coverage**:
+
 - First execution scenarios (PRP_PIPELINE_RUNNING not set)
 - Legitimate bug fix recursion (SKIP_BUG_FINDING='true' + 'bugfix' in path)
 - Illegitimate nested execution (throws NestedExecutionError)
@@ -25,6 +26,7 @@
 **Lines**: 28-496
 
 **Coverage**:
+
 - Basic guard functionality
 - Bug fix recursion exception
 - Path validation
@@ -38,11 +40,13 @@
 **File**: `tests/unit/utils/errors.test.ts`
 
 **Lines**:
+
 - 676-744: BugfixSessionValidationError tests (reference pattern)
 - 807-856: Prototype chain tests
 - 994-1122: Type guard tests
 
 **Coverage**:
+
 - Error class creation and properties
 - Prototype chain setup
 - Type guard functions
@@ -70,7 +74,7 @@ it('should have correct error properties', () => {
   const context = {
     existingPid: '12345',
     currentPid: '67890',
-    sessionPath: '/test/path'
+    sessionPath: '/test/path',
   };
   const error = new NestedExecutionError('Nested execution detected', context);
 
@@ -96,7 +100,9 @@ it('should include existing PID in error message', () => {
     expect.fail('Should have thrown NestedExecutionError');
   } catch (error) {
     expect((error as Error).message).toContain('99999');
-    expect((error as Error).message).toContain('Nested PRP Pipeline execution detected');
+    expect((error as Error).message).toContain(
+      'Nested PRP Pipeline execution detected'
+    );
   }
 });
 ```
@@ -121,7 +127,10 @@ describe('isNestedExecutionError type guard', () => {
   });
 
   it('should return false for plain object', () => {
-    const plainObject = { message: 'error', code: 'PIPELINE_VALIDATION_NESTED_EXECUTION' };
+    const plainObject = {
+      message: 'error',
+      code: 'PIPELINE_VALIDATION_NESTED_EXECUTION',
+    };
     expect(isNestedExecutionError(plainObject)).toBe(false);
   });
 
@@ -146,7 +155,7 @@ it('should serialize to JSON correctly', () => {
   const context = {
     existingPid: '12345',
     currentPid: '67890',
-    sessionPath: '/test/path'
+    sessionPath: '/test/path',
   };
   const error = new NestedExecutionError('Test error', context);
 
@@ -167,7 +176,9 @@ it('should have correct prototype chain', () => {
   const error = new NestedExecutionError('Test');
 
   expect(Object.getPrototypeOf(error)).toBe(NestedExecutionError.prototype);
-  expect(Object.getPrototypeOf(Object.getPrototypeOf(error))).toBe(PipelineError.prototype);
+  expect(Object.getPrototypeOf(Object.getPrototypeOf(error))).toBe(
+    PipelineError.prototype
+  );
 });
 ```
 
@@ -178,7 +189,7 @@ it('should attach context properties to error instance', () => {
   const context = {
     existingPid: '12345',
     currentPid: process.pid.toString(),
-    sessionPath: 'plan/003/feature/001'
+    sessionPath: 'plan/003/feature/001',
   };
   const error = new NestedExecutionError('Test', context);
 

@@ -8,6 +8,7 @@
 **Coverage**: v8 with 100% coverage thresholds
 
 ### Test Scripts
+
 ```bash
 npm test              # Run tests in watch mode
 npm run test:run      # Run tests once
@@ -18,6 +19,7 @@ npm run test:bail     # Bail on first failure
 ## Test Files
 
 ### Unit Tests
+
 1. **`tests/unit/workflows/prp-pipeline.test.ts`** (1,184 lines)
    - Main unit tests for PRPPipeline class
    - Tests for all pipeline phases and error handling
@@ -31,6 +33,7 @@ npm run test:bail     # Bail on first failure
    - Bug fix iteration logic tests
 
 ### Integration Tests
+
 4. **`tests/integration/prp-pipeline-integration.test.ts`** (613 lines)
    - End-to-end PRPPipeline workflow tests
    - Real SessionManager and TaskOrchestrator (agents mocked)
@@ -42,6 +45,7 @@ npm run test:bail     # Bail on first failure
 ## Mocking Patterns for FixCycleWorkflow
 
 ### Pattern 1: Vitest vi.mock() Constructor Mocking
+
 ```typescript
 // Mock FixCycleWorkflow at module level
 vi.mock('../../../src/workflows/fix-cycle-workflow.js', () => ({
@@ -57,6 +61,7 @@ vi.mock('../../../src/workflows/fix-cycle-workflow.js', () => ({
 ```
 
 ### Pattern 2: Instance Method Mocking
+
 ```typescript
 // Create mock instance with specific return values
 const mockFixCycleWorkflow = {
@@ -72,10 +77,14 @@ MockFixCycleWorkflow.mockImplementation(() => mockFixCycleWorkflow);
 ```
 
 ### Pattern 3: Sequential Mock Returns
+
 ```typescript
 const mockBugHuntInstance = {
-  run: vi.fn()
-    .mockResolvedValueOnce(createTestResults(true, [bug1, bug2], 'Found 2 bugs', []))
+  run: vi
+    .fn()
+    .mockResolvedValueOnce(
+      createTestResults(true, [bug1, bug2], 'Found 2 bugs', [])
+    )
     .mockResolvedValueOnce(createTestResults(false, [], 'All bugs fixed', [])),
 };
 
@@ -85,10 +94,11 @@ mockBugHuntWorkflow.mockImplementation(() => mockBugHuntInstance);
 ## Session Path Test Patterns
 
 ### Pattern 1: Constructor Validation (Old Pattern)
+
 ```typescript
 // OLD PATTERN: Constructor accepted TestResults object
 const workflow = new FixCycleWorkflow(
-  initialResults,  // TestResults object
+  initialResults, // TestResults object
   '# Test PRD',
   mockOrchestrator,
   sessionManager
@@ -96,10 +106,11 @@ const workflow = new FixCycleWorkflow(
 ```
 
 ### Pattern 2: Session Path String (New Pattern)
+
 ```typescript
 // NEW PATTERN: Constructor accepts sessionPath string
 const workflow = new FixCycleWorkflow(
-  'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',  // sessionPath
+  'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918', // sessionPath
   '# Test PRD',
   mockOrchestrator,
   sessionManager
@@ -107,6 +118,7 @@ const workflow = new FixCycleWorkflow(
 ```
 
 ### Pattern 3: Session Path Mocking for File Operations
+
 ```typescript
 // Mock file system operations for loadBugReport
 vi.mock('node:fs/promises', () => ({
@@ -138,6 +150,7 @@ expect(mockedReadFile).toHaveBeenCalledWith(
 ## Workflow Execution Order Verification
 
 ### Pattern 1: Spy on Step Methods
+
 ```typescript
 // Spy on all workflow steps
 const initSpy = vi.spyOn(pipeline, 'initializeSession');
@@ -156,6 +169,7 @@ expect(qaSpy).toHaveBeenCalled();
 ```
 
 ### Pattern 2: Phase Transition Verification
+
 ```typescript
 // Execute workflow
 await pipeline.run();
@@ -172,6 +186,7 @@ expect(pipeline.currentPhase).toBe('prd_decomposed');
 ## Test Patterns for runQACycle Method
 
 ### Mode-Based Decision Testing
+
 ```typescript
 describe('runQACycle', () => {
   it('should skip QA in validate mode', async () => {
@@ -196,6 +211,7 @@ describe('runQACycle', () => {
 ```
 
 ### Bug Hunt and Fix Cycle Integration
+
 ```typescript
 it('should run FixCycleWorkflow when bugs are found', async () => {
   // SETUP
@@ -242,6 +258,7 @@ it('should run FixCycleWorkflow when bugs are found', async () => {
 ## Test Fixture Patterns
 
 ### Factory Functions
+
 ```typescript
 const createTestBug = (
   id: string,
@@ -295,6 +312,7 @@ const createMockSessionManager = (backlog?: Backlog): SessionManager =>
 ```
 
 ### Setup/Execute/Verify Pattern
+
 ```typescript
 describe('FixCycleWorkflow', () => {
   beforeEach(() => {
@@ -306,7 +324,12 @@ describe('FixCycleWorkflow', () => {
     const testResults = createTestResults(true, [bug1, bug2], 'Found bugs', []);
 
     // EXECUTE: Run method under test
-    const workflow = new FixCycleWorkflow(sessionPath, prdContent, orchestrator, sessionManager);
+    const workflow = new FixCycleWorkflow(
+      sessionPath,
+      prdContent,
+      orchestrator,
+      sessionManager
+    );
     await workflow.run();
 
     // VERIFY: Check expectations

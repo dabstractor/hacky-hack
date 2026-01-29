@@ -9,6 +9,7 @@
 **Deliverable**: Verification report confirming whether 'Retrying' status has complete color and indicator mappings in the display infrastructure, with documentation of the current state and identification of any gaps or inconsistencies.
 
 **Success Definition**:
+
 - Status color mapping file (`status-colors.ts`) is read and analyzed for 'Retrying' color mapping
 - Status indicator mapping file (`status-colors.ts`) is read and analyzed for 'Retrying' indicator symbol
 - All three mapping functions (color, indicator, plain indicator) are verified
@@ -25,6 +26,7 @@
 **Use Case**: Architecture audit (§Research Objective 3) requires verification that status display code handles 'Retrying' with appropriate visual representation. This verification task confirms the display infrastructure is complete and consistent.
 
 **User Journey**:
+
 1. Developer reads architecture audit noting requirement for 'Retrying' display support
 2. Developer runs verification task to check actual implementation
 3. Verification finds 'Retrying' HAS complete color and indicator mappings
@@ -32,6 +34,7 @@
 5. Developer has clear picture of display infrastructure state
 
 **Pain Points Addressed**:
+
 - Uncertainty about whether 'Retrying' has complete display support
 - Need to verify visual representation matches architecture requirements
 - Risk of inconsistent mappings across multiple files
@@ -53,6 +56,7 @@
 **No direct user-visible changes** - this is a verification and documentation task.
 
 **Observable behavior:**
+
 - Status color and indicator mappings are read and analyzed
 - Research documentation is created in work item directory
 - Verification report confirms 'Retrying' has complete display support
@@ -79,6 +83,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to verify status mappings successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and line numbers for status mapping functions
 - Complete mapping structures with expected values
 - Pattern references from relevant git commits
@@ -309,7 +314,7 @@ const colorMap: Record<Status, (text: string) => string> = {
   Complete: chalk.green,
   Implementing: chalk.blue,
   Researching: chalk.cyan,
-  Retrying: chalk.yellow,      // ← If missing, compile error
+  Retrying: chalk.yellow, // ← If missing, compile error
   Planned: chalk.gray,
   Failed: chalk.red,
   Obsolete: chalk.dim,
@@ -329,8 +334,8 @@ const colorMap: Record<Status, (text: string) => string> = {
 // GOTCHA: Chalk color function usage
 // chalk.yellow returns a FUNCTION, not a colored string
 // Must call the returned function to get colored output
-const yellow = chalk.yellow;           // Function
-const coloredText = yellow('text');    // 'text' in yellow
+const yellow = chalk.yellow; // Function
+const coloredText = yellow('text'); // 'text' in yellow
 
 // GOTCHA: Status indicator symbol is Unicode U+21BB
 // '↻' is CLOCKWISE CIRCULAR ARROW
@@ -370,24 +375,26 @@ import { getStatusColor } from './utils/display/status-colors.js';
 No new data models needed. This is a verification task that documents existing models and mappings:
 
 **Status Type** (from `src/core/models.ts` lines 175-182):
+
 ```typescript
 export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← The status being verified
+  | 'Retrying' // ← The status being verified
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
 ```
 
 **StatusEnum Zod Schema** (from `src/core/models.ts` lines 199-207):
+
 ```typescript
 export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← Verified in P1.M4.T1.S1
+  'Retrying', // ← Verified in P1.M4.T1.S1
   'Complete',
   'Failed',
   'Obsolete',
@@ -395,12 +402,13 @@ export const StatusEnum = z.enum([
 ```
 
 **Status Color Mapping** (from `src/utils/display/status-colors.ts` lines 44-54):
+
 ```typescript
 const colorMap: Record<Status, (text: string) => string> = {
   Complete: chalk.green,
   Implementing: chalk.blue,
   Researching: chalk.cyan,
-  Retrying: chalk.yellow,      // ← VERIFY THIS IS PRESENT
+  Retrying: chalk.yellow, // ← VERIFY THIS IS PRESENT
   Planned: chalk.gray,
   Failed: chalk.red,
   Obsolete: chalk.dim,
@@ -408,12 +416,13 @@ const colorMap: Record<Status, (text: string) => string> = {
 ```
 
 **Status Indicator Mapping** (from `src/utils/display/status-colors.ts` lines 78-91):
+
 ```typescript
 const indicatorMap: Record<Status, string> = {
   Complete: '✓',
   Implementing: '◐',
   Researching: '◐',
-  Retrying: '↻',              // ← VERIFY THIS IS PRESENT
+  Retrying: '↻', // ← VERIFY THIS IS PRESENT
   Planned: '○',
   Failed: '✗',
   Obsolete: '⊘',
@@ -948,6 +957,7 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 **Confidence Score**: 10/10 for verification success likelihood
 
 **Reasoning**:
+
 - Verification task (no implementation complexity)
 - Exact file paths and line numbers provided
 - Expected outcomes are well-defined (yellow color, '↻' indicator)
@@ -964,6 +974,7 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 ### ✅ DISPLAY INFRASTRUCTURE IS COMPLETE
 
 **Verified Facts:**
+
 1. `getStatusColor()` includes 'Retrying' with `chalk.yellow` (line 49)
 2. `getStatusIndicator()` includes 'Retrying' with '↻' (line 83)
 3. `getPlainStatusIndicator()` includes 'Retrying' with '↻' (line 113)
@@ -975,6 +986,7 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 ### ⚠️ CODE QUALITY ISSUES IDENTIFIED
 
 **Issue 1: Duplicate Code in inspect.ts**
+
 - Location: `src/cli/commands/inspect.ts` lines 758-780
 - Problem: Inline copies of mappings instead of importing from `status-colors.ts`
 - Impact: Maintenance burden, potential for inconsistency
@@ -982,12 +994,14 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 - Recommendation: Refactor to use shared utility (future work)
 
 **Issue 2: Missing Test Coverage**
+
 - Location: `tests/unit/utils/display/status-colors.test.ts` (doesn't exist)
 - Problem: 0% coverage for status-colors.ts
 - Impact: No regression protection, no explicit validation
 - Recommendation: Add unit tests (future work)
 
 **Issue 3: Outdated Documentation**
+
 - Location: `src/utils/display/status-colors.ts` TSDoc comments
 - Problem: Comments don't mention 'Retrying' status
 - Impact: Documentation doesn't reflect implementation
@@ -996,9 +1010,11 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 ### ✅ ARCHITECTURE ALIGNMENT CONFIRMED
 
 **Architecture Audit Requirement** (Research Objective 3):
+
 > "Status display code should handle 'Retrying' with appropriate color (yellow) and indicator (circular arrow)."
 
 **Verification Results:**
+
 - Color: `chalk.yellow` ✅ Matches requirement
 - Indicator: '↻' (circular arrow) ✅ Matches requirement
 - Display Infrastructure: Fully supports 'Retrying' ✅
@@ -1006,17 +1022,20 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 ### 📋 NEXT STEPS
 
 **This Task (P1.M4.T1.S2):**
+
 - ✅ Verification complete
 - ✅ Research documentation created
 - ✅ Findings clearly documented
 - ✅ Architecture alignment confirmed
 
 **Subsequent Tasks:**
+
 - P1.M4.T1.S3: Verify TaskRetryManager uses 'Retrying' status
 - P1.M4.T1.S4: Update status model unit tests (also consider adding status-colors.ts tests)
 - P1.M5: Continue with next milestone
 
 **Future Improvements** (outside scope):
+
 1. Refactor `inspect.ts` to import from `status-colors.ts`
 2. Add unit tests for `status-colors.ts`
 3. Update TSDoc comments to mention 'Retrying' status
@@ -1026,6 +1045,7 @@ grep "Retrying: '↻'" src/utils/display/status-colors.ts
 **NO CODE CHANGES NEEDED**
 
 This verification task confirms that the status color and indicator mappings for 'Retrying' status are **complete and correct**. The display infrastructure:
+
 - Properly defines color mapping (`chalk.yellow`)
 - Properly defines indicator symbol ('↻')
 - Includes mappings in all three functions

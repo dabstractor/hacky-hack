@@ -5,9 +5,11 @@ This directory contains comprehensive research on TypeScript and Node.js best pr
 ## Research Documents
 
 ### 1. [TypeScript Path Validation Best Practices](./typescript-path-validation-best-practices.md)
+
 **Focus:** Security, cross-platform compatibility, and validation patterns
 
 **Key Topics:**
+
 - Using Node.js `path` module effectively
 - Security considerations (directory traversal, null bytes, path injection)
 - Validation patterns and type guards
@@ -15,13 +17,16 @@ This directory contains comprehensive research on TypeScript and Node.js best pr
 - Common pitfalls and code examples
 
 **Code Example:**
+
 ```typescript
 function validatePathSecurity(basePath: string, userPath: string): string {
   const resolvedBase = path.resolve(basePath);
   const resolvedUser = path.resolve(basePath, userPath);
 
   if (!resolvedUser.startsWith(resolvedBase + path.sep)) {
-    throw new Error('Path validation failed: attempts to escape base directory');
+    throw new Error(
+      'Path validation failed: attempts to escape base directory'
+    );
   }
 
   return resolvedUser;
@@ -31,9 +36,11 @@ function validatePathSecurity(basePath: string, userPath: string): string {
 ---
 
 ### 2. [Custom Error Class Patterns in TypeScript](./typescript-custom-error-class-patterns.md)
+
 **Focus:** Proper error extension, error codes, and error handling patterns
 
 **Key Topics:**
+
 - Properly extending Error class with `Object.setPrototypeOf`
 - Error code patterns (string constants, enums)
 - Adding structured context to errors
@@ -42,6 +49,7 @@ function validatePathSecurity(basePath: string, userPath: string): string {
 - Common mistakes and how to avoid them
 
 **Code Example:**
+
 ```typescript
 class ValidationError extends Error {
   constructor(
@@ -59,9 +67,11 @@ class ValidationError extends Error {
 ---
 
 ### 3. [JSDoc Patterns for Validation Functions](./jsdoc-patterns-validation-functions.md)
+
 **Focus:** Documenting validation functions, error throwing, and type definitions
 
 **Key Topics:**
+
 - Basic JSDoc structure and tags
 - Documenting validation functions
 - Documenting functions that throw errors
@@ -70,6 +80,7 @@ class ValidationError extends Error {
 - Advanced patterns (cross-references, overloads)
 
 **Code Example:**
+
 ```typescript
 /**
  * Validates a session path format
@@ -92,9 +103,11 @@ function validateSessionPath(sessionPath: string): void {
 ---
 
 ### 4. [Testing Validation Functions](./testing-validation-functions.md)
+
 **Focus:** Testing error throwing, edge cases, and comprehensive test coverage
 
 **Key Topics:**
+
 - Testing error throwing with Jest
 - Testing validation functions (success and failure)
 - Edge cases (boundary values, security, platform-specific)
@@ -103,6 +116,7 @@ function validateSessionPath(sessionPath: string): void {
 - Test organization and helpers
 
 **Code Example:**
+
 ```typescript
 describe('validatePath', () => {
   it('should throw ValidationError for null bytes', () => {
@@ -125,6 +139,7 @@ describe('validatePath', () => {
 ## Key Insights Across All Topics
 
 ### Path Validation
+
 1. **Always use the `path` module** for cross-platform compatibility
 2. **Normalize paths** before validation to handle `.` and `..`
 3. **Check for null bytes** which can bypass security checks
@@ -132,6 +147,7 @@ describe('validatePath', () => {
 5. **Use type guards** for runtime type checking
 
 ### Custom Error Classes
+
 1. **Always use `Object.setPrototypeOf()`** when extending Error
 2. **Set the `name` property** explicitly for better debugging
 3. **Use error codes** for programmatic error handling
@@ -139,6 +155,7 @@ describe('validatePath', () => {
 5. **Preserve stack traces** with `Error.captureStackTrace()`
 
 ### JSDoc Documentation
+
 1. **Document all parameters** with types and descriptions
 2. **Use specific error types** in `@throws` tags with error codes
 3. **Provide concrete examples** showing both success and failure
@@ -146,6 +163,7 @@ describe('validatePath', () => {
 5. **Document type predicates** with `@returns {value is Type}`
 
 ### Testing
+
 1. **Test both success and failure** cases comprehensively
 2. **Use `it.each` for data-driven tests** to reduce duplication
 3. **Test specific error types and codes** not just that errors are thrown
@@ -180,7 +198,8 @@ Based on your codebase patterns, here's how to apply these practices:
  * }
  */
 export function validateSessionPath(sessionPath: string): void {
-  const SESSION_PATH_PATTERN = /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
+  const SESSION_PATH_PATTERN =
+    /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
 
   if (!SESSION_PATH_PATTERN.test(sessionPath)) {
     throw new ValidationError(
@@ -201,13 +220,15 @@ describe('validateSessionPath', () => {
     'plan/001_000000000000/bugfix/001_000000000000',
   ];
 
-  it.each(validPaths)('should accept valid path: %s', (path) => {
+  it.each(validPaths)('should accept valid path: %s', path => {
     expect(() => validateSessionPath(path)).not.toThrow();
   });
 
   it('should throw ValidationError for invalid format', () => {
     expect(() => validateSessionPath('invalid/path')).toThrow(ValidationError);
-    expect(() => validateSessionPath('invalid/path')).toThrow('INVALID_SESSION_PATH');
+    expect(() => validateSessionPath('invalid/path')).toThrow(
+      'INVALID_SESSION_PATH'
+    );
   });
 });
 ```
@@ -230,6 +251,7 @@ While web search services were rate-limited during this research, these document
 ## Quick Reference
 
 ### Common Error Codes
+
 ```typescript
 export const ErrorCode = {
   // Validation errors
@@ -243,6 +265,7 @@ export const ErrorCode = {
 ```
 
 ### Common JSDoc Tags
+
 ```typescript
 /**
  * @param {Type} name - Description
@@ -256,20 +279,26 @@ export const ErrorCode = {
 ```
 
 ### Common Jest Matchers
+
 ```typescript
 // Error throwing
 expect(() => func()).toThrow(ErrorType);
 expect(() => func()).toThrow('message');
 
 // Type guards
-if (isType(value)) { /* value is narrowed */ }
+if (isType(value)) {
+  /* value is narrowed */
+}
 
 // Async
 await expect(asyncFunc()).rejects.toThrow(Error);
 await expect(asyncFunc()).resolves.toBe(value);
 
 // Data-driven
-it.each([['input1', true], ['input2', false]])('%s', (input, expected) => {
+it.each([
+  ['input1', true],
+  ['input2', false],
+])('%s', (input, expected) => {
   expect(func(input)).toBe(expected);
 });
 ```
@@ -286,6 +315,7 @@ This research provides a comprehensive guide to implementing robust validation a
 4. **Testing strategies** for comprehensive coverage
 
 Apply these patterns to your codebase to improve:
+
 - **Security:** Prevent path traversal and injection attacks
 - **Type Safety:** Use TypeScript's type system effectively
 - **Developer Experience:** Clear error messages and documentation

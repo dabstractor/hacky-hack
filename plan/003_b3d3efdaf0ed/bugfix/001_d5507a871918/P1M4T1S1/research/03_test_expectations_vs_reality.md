@@ -25,7 +25,7 @@ const validStatuses = [
   'Planned',
   'Researching',
   'Implementing',
-  'Complete',      // ← MISSING 'Retrying'
+  'Complete', // ← MISSING 'Retrying'
   'Failed',
   'Obsolete',
 ];
@@ -41,7 +41,7 @@ expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
   'Implementing',
-  'Complete',      // ← MISSING 'Retrying'
+  'Complete', // ← MISSING 'Retrying'
   'Failed',
   'Obsolete',
 ]);
@@ -61,7 +61,7 @@ export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← PRESENT
+  | 'Retrying' // ← PRESENT
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -77,7 +77,7 @@ export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← PRESENT
+  'Retrying', // ← PRESENT
   'Complete',
   'Failed',
   'Obsolete',
@@ -93,29 +93,29 @@ export const StatusEnum = z.enum([
 
 ### Test Array 1 Comparison
 
-| Position | Test Expects | Implementation Has | Match? |
-|----------|--------------|-------------------|--------|
-| 1 | `'Planned'` | `'Planned'` | ✅ |
-| 2 | `'Researching'` | `'Researching'` | ✅ |
-| 3 | `'Implementing'` | `'Implementing'` | ✅ |
-| 4 | `'Complete'` | `'Retrying'` | ❌ |
-| 5 | `'Failed'` | `'Complete'` | ❌ |
-| 6 | `'Obsolete'` | `'Failed'` | ❌ |
-| 7 | *(none)* | `'Obsolete'` | ❌ |
+| Position | Test Expects     | Implementation Has | Match? |
+| -------- | ---------------- | ------------------ | ------ |
+| 1        | `'Planned'`      | `'Planned'`        | ✅     |
+| 2        | `'Researching'`  | `'Researching'`    | ✅     |
+| 3        | `'Implementing'` | `'Implementing'`   | ✅     |
+| 4        | `'Complete'`     | `'Retrying'`       | ❌     |
+| 5        | `'Failed'`       | `'Complete'`       | ❌     |
+| 6        | `'Obsolete'`     | `'Failed'`         | ❌     |
+| 7        | _(none)_         | `'Obsolete'`       | ❌     |
 
 **Result**: Test expects 6 values in wrong order. Implementation has 7 values in correct order.
 
 ### Test Array 2 Comparison
 
-| Position | Test Expects | Implementation Has | Match? |
-|----------|--------------|-------------------|--------|
-| 1 | `'Planned'` | `'Planned'` | ✅ |
-| 2 | `'Researching'` | `'Researching'` | ✅ |
-| 3 | `'Implementing'` | `'Implementing'` | ✅ |
-| 4 | `'Complete'` | `'Retrying'` | ❌ |
-| 5 | `'Failed'` | `'Complete'` | ❌ |
-| 6 | `'Obsolete'` | `'Failed'` | ❌ |
-| 7 | *(none)* | `'Obsolete'` | ❌ |
+| Position | Test Expects     | Implementation Has | Match? |
+| -------- | ---------------- | ------------------ | ------ |
+| 1        | `'Planned'`      | `'Planned'`        | ✅     |
+| 2        | `'Researching'`  | `'Researching'`    | ✅     |
+| 3        | `'Implementing'` | `'Implementing'`   | ✅     |
+| 4        | `'Complete'`     | `'Retrying'`       | ❌     |
+| 5        | `'Failed'`       | `'Complete'`       | ❌     |
+| 6        | `'Obsolete'`     | `'Failed'`         | ❌     |
+| 7        | _(none)_         | `'Obsolete'`       | ❌     |
 
 **Result**: Same mismatch as Test Array 1.
 
@@ -182,7 +182,7 @@ it('should accept valid status values', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',    // ← Missing 'Retrying'
+    'Complete', // ← Missing 'Retrying'
     'Failed',
     'Obsolete',
   ] as const;
@@ -209,7 +209,7 @@ it('should expose all enum values via options property', () => {
     'Planned',
     'Researching',
     'Implementing',
-    'Complete',    // ← Missing 'Retrying'
+    'Complete', // ← Missing 'Retrying'
     'Failed',
     'Obsolete',
   ]);
@@ -221,6 +221,7 @@ it('should expose all enum values via options property', () => {
 **Severity**: High - direct test failure.
 
 **Expected Test Output**:
+
 ```
 Expected: ["Planned", "Researching", "Implementing", "Complete", "Failed", "Obsolete"]
 Received: ["Planned", "Researching", "Implementing", "Retrying", "Complete", "Failed", "Obsolete"]
@@ -238,12 +239,12 @@ Received: ["Planned", "Researching", "Implementing", "Retrying", "Complete", "Fa
 
 ### Reality Check
 
-| Aspect | Bug Report Claim | Actual Reality |
-|--------|-----------------|----------------|
-| StatusEnum has 6 values | ✅ Claimed | ❌ FALSE (has 7) |
-| Tests expect 7 values | ✅ Claimed | ❌ FALSE (expect 6) |
-| 'Retrying' missing from StatusEnum | ✅ Claimed | ❌ FALSE (present) |
-| Root cause is implementation bug | ✅ Claimed | ❌ FALSE (test bug) |
+| Aspect                             | Bug Report Claim | Actual Reality      |
+| ---------------------------------- | ---------------- | ------------------- |
+| StatusEnum has 6 values            | ✅ Claimed       | ❌ FALSE (has 7)    |
+| Tests expect 7 values              | ✅ Claimed       | ❌ FALSE (expect 6) |
+| 'Retrying' missing from StatusEnum | ✅ Claimed       | ❌ FALSE (present)  |
+| Root cause is implementation bug   | ✅ Claimed       | ❌ FALSE (test bug) |
 
 ### Corrected Bug Report
 
@@ -259,20 +260,20 @@ Received: ["Planned", "Researching", "Implementing", "Retrying", "Complete", "Fa
 
 ### Test Impact
 
-| Test File | Test Name | Status | Impact |
-|-----------|-----------|--------|--------|
-| models.test.ts | should accept valid status values | Failing | Incomplete coverage |
+| Test File      | Test Name                                          | Status  | Impact                   |
+| -------------- | -------------------------------------------------- | ------- | ------------------------ |
+| models.test.ts | should accept valid status values                  | Failing | Incomplete coverage      |
 | models.test.ts | should expose all enum values via options property | Failing | Direct assertion failure |
 
 ### Implementation Impact
 
-| Component | Status | Impact |
-|-----------|--------|--------|
-| Status type union | ✅ Correct | None |
-| StatusEnum | ✅ Correct | None |
-| Display mappings | ✅ Correct | None |
-| TaskRetryManager | ✅ Correct | None |
-| Business logic | ✅ Correct | None |
+| Component         | Status     | Impact |
+| ----------------- | ---------- | ------ |
+| Status type union | ✅ Correct | None   |
+| StatusEnum        | ✅ Correct | None   |
+| Display mappings  | ✅ Correct | None   |
+| TaskRetryManager  | ✅ Correct | None   |
+| Business logic    | ✅ Correct | None   |
 
 **Overall Impact**: Tests fail, but application works correctly.
 
@@ -287,6 +288,7 @@ Received: ["Planned", "Researching", "Implementing", "Retrying", "Complete", "Fa
 #### Change 1: Update validStatuses array (lines 50-57)
 
 **Current Code**:
+
 ```typescript
 const validStatuses = [
   'Planned',
@@ -299,12 +301,13 @@ const validStatuses = [
 ```
 
 **Required Code**:
+
 ```typescript
 const validStatuses = [
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← ADD THIS
+  'Retrying', // ← ADD THIS
   'Complete',
   'Failed',
   'Obsolete',
@@ -314,6 +317,7 @@ const validStatuses = [
 #### Change 2: Update StatusEnum.options expectation (lines 82-89)
 
 **Current Code**:
+
 ```typescript
 expect(StatusEnum.options).toEqual([
   'Planned',
@@ -326,12 +330,13 @@ expect(StatusEnum.options).toEqual([
 ```
 
 **Required Code**:
+
 ```typescript
 expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← ADD THIS
+  'Retrying', // ← ADD THIS
   'Complete',
   'Failed',
   'Obsolete',
@@ -360,7 +365,7 @@ const validStatuses = [
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← NOW INCLUDED
+  'Retrying', // ← NOW INCLUDED
   'Complete',
   'Failed',
   'Obsolete',
@@ -384,7 +389,7 @@ expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← NOW INCLUDED
+  'Retrying', // ← NOW INCLUDED
   'Complete',
   'Failed',
   'Obsolete',
@@ -426,11 +431,13 @@ expect(StatusEnum.options).toEqual([
 ### Next Steps
 
 **This Task (P1.M4.T1.S1)**: ✅ COMPLETE
+
 - Verification complete
 - Research documentation created
 - Findings documented
 
 **Subsequent Task (P1.M4.T1.S4)**: ⏳ PENDING
+
 - Update `tests/unit/core/models.test.ts`
 - Add 'Retrying' to validStatuses array (line 54)
 - Add 'Retrying' to StatusEnum.options expectation (line 86)

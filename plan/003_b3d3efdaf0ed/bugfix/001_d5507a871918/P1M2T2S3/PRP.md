@@ -12,6 +12,7 @@
 **Feature Goal**: Modify FixCycleWorkflow.run() to load bug report from disk using the existing loadBugReport() method instead of relying on in-memory testResults.
 
 **Deliverable**: Updated FixCycleWorkflow.run() method that:
+
 1. Calls `this.#loadBugReport()` at the start of the method
 2. Stores result in a local `testResults` variable
 3. Replaces all references to `this.testResults` with the local `testResults` variable
@@ -20,6 +21,7 @@
 6. Preserves all existing error handling
 
 **Success Definition**:
+
 - FixCycleWorkflow.run() successfully loads TEST_RESULTS.md from disk using loadBugReport()
 - Bug fix tasks are generated based on file contents rather than in-memory object
 - All existing tests pass with updated behavior
@@ -33,6 +35,7 @@
 **Use Case**: During the bug fix cycle, FixCycleWorkflow needs to read the bug report from the persistent TEST_RESULTS.md file that was written by BugHuntWorkflow. This ensures the workflow can resume after interruptions and maintains a persistent audit trail.
 
 **User Journey**:
+
 1. BugHuntWorkflow completes and writes TEST_RESULTS.md to bugfix session directory
 2. FixCycleWorkflow is instantiated with sessionPath (not in-memory testResults)
 3. FixCycleWorkflow.run() is called
@@ -41,6 +44,7 @@
 6. Fix cycle proceeds as before
 
 **Pain Points Addressed**:
+
 - **Previous**: FixCycleWorkflow relied on in-memory testResults object passed from constructor, which prevented session resumption
 - **Fixed**: FixCycleWorkflow now loads from disk, enabling proper bugfix session persistence and resumption
 
@@ -231,7 +235,7 @@ interface TestResults {
 
 ### Implementation Tasks (ordered by dependencies)
 
-```yaml
+````yaml
 Task 1: MODIFY src/workflows/fix-cycle-workflow.ts - run() method
   - LOCATE: run() method at lines 298-365
   - ADD: After line 299 (this.setStatus('running')), add:
@@ -263,7 +267,7 @@ Task 4: VALIDATE with existing tests
   - RUN: Unit tests for FixCycleWorkflow
   - VERIFY: All run() method tests pass with new behavior
   - VERIFY: No regressions in createFixTasks(), executeFixes(), retest(), checkComplete()
-```
+````
 
 ### Implementation Patterns & Key Details
 
@@ -622,6 +626,7 @@ constructor(
 From PRD.md §4.4 (The QA & Bug Hunt Loop):
 
 > The Fix Cycle (Self-Contained Sessions):
+>
 > - If critical/major bugs are found, a self-contained "Bug Fix" sub-pipeline starts
 > - Each bug hunt iteration creates a new numbered session: `bugfix/001_hash/`
 > - Bug reports (`TEST_RESULTS.md`) and tasks are stored within the bugfix session directory
@@ -630,6 +635,7 @@ From PRD.md §4.4 (The QA & Bug Hunt Loop):
 From PRD.md §5.1 (State & File Management):
 
 > **Protected Files (NEVER delete or move):**
+>
 > - `$SESSION_DIR/TEST_RESULTS.md` - Bug report file
 
 ---
@@ -639,6 +645,7 @@ From PRD.md §5.1 (State & File Management):
 **Confidence Score**: 10/10 for one-pass implementation success
 
 **Validation**: This PRP provides complete context including:
+
 - Exact file paths and line numbers to modify
 - Complete existing code for reference
 - Specific pattern examples from the codebase

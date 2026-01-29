@@ -135,7 +135,8 @@ export const ValidationErrorCode = {
   INVALID_SESSION_PATH: 'INVALID_SESSION_PATH',
 } as const;
 
-export type ValidationErrorCode = typeof ValidationErrorCode[keyof typeof ValidationErrorCode];
+export type ValidationErrorCode =
+  (typeof ValidationErrorCode)[keyof typeof ValidationErrorCode];
 
 /**
  * Typed validation error
@@ -305,19 +306,14 @@ export function createPathError(
   reason: string,
   code: string
 ): ValidationError {
-  return new ValidationError(
-    `Path validation failed: ${reason}`,
-    code,
-    { path, timestamp: Date.now() }
-  );
+  return new ValidationError(`Path validation failed: ${reason}`, code, {
+    path,
+    timestamp: Date.now(),
+  });
 }
 
 // Usage
-throw createPathError(
-  userPath,
-  'contains null bytes',
-  'NULL_BYTE_DETECTED'
-);
+throw createPathError(userPath, 'contains null bytes', 'NULL_BYTE_DETECTED');
 ```
 
 ### Fluent Error Builder
@@ -416,16 +412,14 @@ export type Result<T, E extends Error = Error> =
 /**
  * Helper function to wrap functions in Result type
  */
-export async function tryResult<T>(
-  fn: () => Promise<T>
-): Promise<Result<T>> {
+export async function tryResult<T>(fn: () => Promise<T>): Promise<Result<T>> {
   try {
     const data = await fn();
     return { success: true, data };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error : new Error(String(error))
+      error: error instanceof Error ? error : new Error(String(error)),
     };
   }
 }
@@ -450,10 +444,9 @@ console.log(result.data);
 /**
  * Wraps an async function and converts thrown errors to ValidationError
  */
-export function withValidationErrors<T extends (...args: unknown[]) => Promise<unknown>>(
-  fn: T,
-  errorCode: string
-): T {
+export function withValidationErrors<
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(fn: T, errorCode: string): T {
   return (async (...args: Parameters<T>) => {
     try {
       return await fn(...args);
@@ -553,7 +546,9 @@ export class SerializableError extends Error {
     };
   }
 
-  static fromJSON(data: ReturnType<SerializableError['toJSON']>): SerializableError {
+  static fromJSON(
+    data: ReturnType<SerializableError['toJSON']>
+  ): SerializableError {
     const error = new SerializableError(data.message, data.code, data.context);
     error.name = data.name;
     return error;
@@ -589,7 +584,10 @@ function validateSessionPath(sessionPath: string): void {
 ```typescript
 // Base error class
 export class AppError extends Error {
-  constructor(message: string, public readonly code: string) {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
     super(message);
     this.name = 'AppError';
     Object.setPrototypeOf(this, AppError.prototype);
@@ -767,7 +765,7 @@ export const PathErrorCode = {
   INVALID_EXTENSION: 'INVALID_EXTENSION',
 } as const;
 
-export type PathErrorCode = typeof PathErrorCode[keyof typeof PathErrorCode];
+export type PathErrorCode = (typeof PathErrorCode)[keyof typeof PathErrorCode];
 
 /**
  * Path validation error with common codes
@@ -798,7 +796,9 @@ export class FileNotFoundError extends AppError {
 /**
  * Type guard for path validation errors
  */
-export function isPathValidationError(error: unknown): error is PathValidationError {
+export function isPathValidationError(
+  error: unknown
+): error is PathValidationError {
   return error instanceof PathValidationError;
 }
 

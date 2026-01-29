@@ -21,8 +21,8 @@ export function validateNestedExecution(sessionPath: string): void {
 
   // Check for legitimate bug fix recursion
   if (
-    process.env.SKIP_BUG_FINDING === 'true' &&  // EXACT string match
-    sessionPath.toLowerCase().includes('bugfix')  // Case-insensitive check
+    process.env.SKIP_BUG_FINDING === 'true' && // EXACT string match
+    sessionPath.toLowerCase().includes('bugfix') // Case-insensitive check
   ) {
     return; // Legitimate recursion - allow execution
   }
@@ -93,9 +93,11 @@ if (!process.env.PRP_PIPELINE_RUNNING) {
 }
 
 // Equivalent to:
-if (process.env.PRP_PIPELINE_RUNNING === undefined ||
-    process.env.PRP_PIPELINE_RUNNING === null ||
-    process.env.PRP_PIPELINE_RUNNING === '') {
+if (
+  process.env.PRP_PIPELINE_RUNNING === undefined ||
+  process.env.PRP_PIPELINE_RUNNING === null ||
+  process.env.PRP_PIPELINE_RUNNING === ''
+) {
   // No pipeline running
 }
 ```
@@ -131,7 +133,9 @@ export class NestedExecutionError extends PipelineError {
 ### Type Guard for Error Handling
 
 ```typescript
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
 ```
@@ -257,15 +261,18 @@ function assertNotNestedExecution(sessionPath: string): asserts void {
 ## 7. Authoritative Sources
 
 ### TypeScript Documentation
+
 - [Type Guards](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
 - [Assertion Functions](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#assertion-signatures)
 - [Error Handling](https://www.typescriptlang.org/docs/handbook/2/classes.html#inheritance)
 
 ### Node.js Documentation
+
 - [Process API](https://nodejs.org/api/process.html#processenv)
 - [Error Handling](https://nodejs.org/api/errors.html)
 
 ### Security Standards
+
 - [OWASP Configuration](https://owasp.org/www-project-application-security-verification-standard/)
 - [12-Factor App Config](https://12factor.net/config)
 

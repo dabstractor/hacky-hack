@@ -14,6 +14,7 @@ Analysis of existing validation-related logging in PRP Pipeline's run() method t
 1. **Line 1717**: `validateNestedExecution(sessionPath)` - Validation occurs before guard is set
 
 2. **Lines 1714-1716**: Debug logging **before** validation
+
 ```typescript
 this.logger.debug(
   `[PRPPipeline] Checking for nested execution at ${sessionPath}`
@@ -21,13 +22,13 @@ this.logger.debug(
 ```
 
 3. **Lines 1718-1720**: Debug logging **after** successful validation
+
 ```typescript
-this.logger.debug(
-  '[PRPPipeline] No nested execution detected, proceeding'
-);
+this.logger.debug('[PRPPipeline] No nested execution detected, proceeding');
 ```
 
 4. **Lines 1722-1730**: Error logging with context
+
 ```typescript
 this.logger.error(
   {
@@ -42,6 +43,7 @@ this.logger.error(
 ## Multi-field Debug Logging Patterns
 
 ### Object-based logging pattern (Lines 1723-1730)
+
 ```typescript
 this.logger.error(
   {
@@ -54,6 +56,7 @@ this.logger.error(
 ```
 
 ### Template literal pattern (Lines 1714-1716)
+
 ```typescript
 this.logger.debug(
   `[PRPPipeline] Checking for nested execution at ${sessionPath}`
@@ -61,6 +64,7 @@ this.logger.debug(
 ```
 
 ### Correlation Logger Pattern (Lines 1691-1699)
+
 ```typescript
 this.correlationLogger.debug(
   {
@@ -77,6 +81,7 @@ this.correlationLogger.debug(
 The new guard context logging should be placed **after line 1738** (where `PRP_PIPELINE_RUNNING` is set) and **before line 1742** (where workflow steps begin).
 
 This placement:
+
 1. Occurs AFTER validation passes (line 1717)
 2. Occurs AFTER guard is set (line ~1738, from P1.M3.T2.S4)
 3. Occurs BEFORE workflow execution begins (line ~1742)
@@ -99,10 +104,12 @@ Based on the existing patterns, the guard context logging should:
 4. **Place after line 1738** (after PRP_PIPELINE_RUNNING is set)
 
 ### Recommended implementation
+
 ```typescript
 // After line 1738 (PRP_PIPELINE_RUNNING is set)
 const planDir = this.sessionManager.planDir;
-const sessionDir = this.sessionManager.currentSession?.metadata.path ?? 'not set';
+const sessionDir =
+  this.sessionManager.currentSession?.metadata.path ?? 'not set';
 const skipBugFinding = process.env.SKIP_BUG_FINDING ?? 'false';
 const running = process.env.PRP_PIPELINE_RUNNING ?? 'not set';
 

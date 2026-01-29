@@ -12,6 +12,7 @@
 **Feature Goal**: Update FixCycleWorkflow constructor signature to accept `sessionPath` (string) instead of `testResults` (TestResults object), enabling the workflow to read TEST_RESULTS.md from disk as part of the bug fix cycle refactoring.
 
 **Deliverable**: Updated FixCycleWorkflow class with modified constructor signature that:
+
 1. Accepts `sessionPath: string` as first parameter (replacing `testResults: TestResults`)
 2. Stores `sessionPath` as instance property `this.sessionPath`
 3. Removes `testResults` parameter and in-memory storage
@@ -19,6 +20,7 @@
 5. Maintains existing constructor validation logic
 
 **Success Definition**:
+
 - Constructor signature changed from `constructor(testResults, prdContent, taskOrchestrator, sessionManager)` to `constructor(sessionPath, prdContent, taskOrchestrator, sessionManager)`
 - `this.sessionPath` is stored and accessible for later file reading (subtask P1.M2.T2.S2)
 - All existing unit tests are updated to pass `sessionPath` instead of `testResults`
@@ -46,6 +48,7 @@
 ### Constructor Signature Changes
 
 **BEFORE** (current at src/workflows/fix-cycle-workflow.ts:100-105):
+
 ```typescript
 constructor(
   testResults: TestResults,
@@ -56,6 +59,7 @@ constructor(
 ```
 
 **AFTER** (target):
+
 ```typescript
 constructor(
   sessionPath: string,
@@ -68,11 +72,13 @@ constructor(
 ### Instance Property Changes
 
 **REMOVE** (line 57):
+
 ```typescript
 testResults: TestResults;
 ```
 
 **ADD**:
+
 ```typescript
 /** Path to bugfix session directory for reading TEST_RESULTS.md */
 sessionPath: string;
@@ -81,6 +87,7 @@ sessionPath: string;
 ### Constructor Logic Changes
 
 **REMOVE** (lines 108-111):
+
 ```typescript
 // Validate inputs
 if (testResults.bugs.length === 0) {
@@ -89,11 +96,13 @@ if (testResults.bugs.length === 0) {
 ```
 
 **REMOVE** (line 113):
+
 ```typescript
 this.testResults = testResults;
 ```
 
 **ADD**:
+
 ```typescript
 // Validate sessionPath is non-empty string
 if (typeof sessionPath !== 'string' || sessionPath.trim() === '') {
@@ -105,6 +114,7 @@ this.sessionPath = sessionPath;
 ```
 
 **PRESERVE** (lines 114-132): All other constructor logic remains unchanged
+
 - `this.prdContent = prdContent;`
 - `this.taskOrchestrator = taskOrchestrator;`
 - `this.sessionManager = sessionManager;`
@@ -136,6 +146,7 @@ this.sessionPath = sessionPath;
 ### Context Completeness Check
 
 ✅ **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, they would have everything needed to:
+
 - Understand the current constructor signature
 - Know what to change and what to preserve
 - Update tests correctly
@@ -147,56 +158,56 @@ this.sessionPath = sessionPath;
 # MUST READ - Architecture context for this bug fix
 - url: plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918/architecture/003_system_context.md
   why: Bug 3 details (lines 144-196) - explains TEST_RESULTS.md workflow timing issue and expected flow
-  critical: "Expected flow: BugHuntWorkflow → Write TEST_RESULTS.md → FixCycleWorkflow reads file"
-  section: "Bug 3: TEST_RESULTS.md Workflow Timing"
+  critical: 'Expected flow: BugHuntWorkflow → Write TEST_RESULTS.md → FixCycleWorkflow reads file'
+  section: 'Bug 3: TEST_RESULTS.md Workflow Timing'
 
 # MUST READ - Current implementation to modify
 - file: src/workflows/fix-cycle-workflow.ts
   why: Target file for constructor update - lines 100-133 contain constructor logic
-  pattern: "Constructor stores testResults as instance property, validates bugs array is non-empty"
-  gotcha: "Constructor validation checks testResults.bugs.length - this must be removed since testResults no longer passed"
+  pattern: 'Constructor stores testResults as instance property, validates bugs array is non-empty'
+  gotcha: 'Constructor validation checks testResults.bugs.length - this must be removed since testResults no longer passed'
 
 # MUST READ - Test patterns to update
 - file: tests/unit/workflows/fix-cycle-workflow.test.ts
   why: All constructor tests pass testResults - need updating to pass sessionPath instead
-  pattern: "Factory functions createTestResults, createMockTaskOrchestrator, createMockSessionManager"
-  gotcha: "Tests mock BugHuntWorkflow - constructor test validation needs to change from bug count to sessionPath validation"
+  pattern: 'Factory functions createTestResults, createMockTaskOrchestrator, createMockSessionManager'
+  gotcha: 'Tests mock BugHuntWorkflow - constructor test validation needs to change from bug count to sessionPath validation'
 
 # MUST READ - Calling code (updated in future subtask)
 - file: src/workflows/prp-pipeline.ts
   why: Lines 1165-1170 instantiate FixCycleWorkflow - will need sessionPath in P1.M2.T2.S4
-  pattern: "new FixCycleWorkflow(testResults, prdContent, this.taskOrchestrator, this.sessionManager)"
-  gotcha: "sessionPath comes from this.sessionManager.currentSession.metadata.path"
+  pattern: 'new FixCycleWorkflow(testResults, prdContent, this.taskOrchestrator, this.sessionManager)'
+  gotcha: 'sessionPath comes from this.sessionManager.currentSession.metadata.path'
 
 # REFERENCE - File reading pattern for next subtask
 - file: src/core/session-utils.ts
   why: Lines 197-208 show readUTF8FileStrict() pattern for reading files with validation
-  pattern: "readUTF8FileStrict(path, operation) throws SessionFileError on failure"
+  pattern: 'readUTF8FileStrict(path, operation) throws SessionFileError on failure'
   gotcha: "Use readFile() with 'utf-8' encoding for JSON files, then JSON.parse() and Zod validate"
 
 # REFERENCE - JSON reading pattern
 - file: src/core/session-utils.ts
   why: Lines 492-534 show readTasksJSON() pattern for reading and validating JSON from disk
   pattern: "readFile(path, 'utf-8') → JSON.parse() → Schema.parse() → return validated"
-  gotcha: "Always wrap readFile in try/catch and throw SessionFileError with descriptive operation name"
+  gotcha: 'Always wrap readFile in try/catch and throw SessionFileError with descriptive operation name'
 
 # REFERENCE - TestResults schema for validation
 - file: src/core/models.ts
   why: Lines 1902-1907 define TestResultsSchema for Zod validation
-  pattern: "z.object({ hasBugs: z.boolean(), bugs: z.array(BugSchema), summary: z.string(), recommendations: z.array(z.string()) })"
-  gotcha: "TestResultsSchema will be used in next subtask (P1.M2.T2.S2) to validate loaded JSON"
+  pattern: 'z.object({ hasBugs: z.boolean(), bugs: z.array(BugSchema), summary: z.string(), recommendations: z.array(z.string()) })'
+  gotcha: 'TestResultsSchema will be used in next subtask (P1.M2.T2.S2) to validate loaded JSON'
 
 # REFERENCE - BugHuntWorkflow write pattern
 - file: src/workflows/bug-hunt-workflow.ts
   why: Lines 323-385 show writeBugReport() method that writes TEST_RESULTS.md
   pattern: "JSON.stringify(testResults, null, 2) → atomicWrite(resolve(sessionPath, 'TEST_RESULTS.md'), content)"
-  gotcha: "File is JSON format, not markdown format despite .md extension"
+  gotcha: 'File is JSON format, not markdown format despite .md extension'
 
 # REFERENCE - Groundswell Workflow base class
 - file: node_modules/groundswell/dist/Workflow.js
   why: FixCycleWorkflow extends Workflow - must call super('FixCycleWorkflow') in constructor
-  pattern: "super(className) initializes status, timing tracking from Groundswell"
-  gotcha: "No changes needed to super() call - preserve existing line 106"
+  pattern: 'super(className) initializes status, timing tracking from Groundswell'
+  gotcha: 'No changes needed to super() call - preserve existing line 106'
 ```
 
 ### Current Codebase Tree
@@ -275,17 +286,18 @@ tests/unit/workflows/fix-cycle-workflow.test.ts  # MODIFIED: Tests updated
 No new data models in this subtask. We are modifying an existing class constructor.
 
 **Type Changes**:
+
 ```typescript
 // FixCycleWorkflow class - BEFORE
 export class FixCycleWorkflow extends Workflow {
-  testResults: TestResults;  // REMOVE
+  testResults: TestResults; // REMOVE
   // ... other properties
 }
 
 // FixCycleWorkflow class - AFTER
 export class FixCycleWorkflow extends Workflow {
   /** Path to bugfix session directory for reading TEST_RESULTS.md */
-  sessionPath: string;  // ADD
+  sessionPath: string; // ADD
   // ... other properties
 }
 ```
@@ -418,16 +430,11 @@ this.logger.info('[FixCycleWorkflow] Initialized', {
 // Pattern 5: Test constructor call update
 // FILE: tests/unit/workflows/fix-cycle-workflow.test.ts
 // BEFORE:
-new FixCycleWorkflow(
-  testResults,
-  'PRD content',
-  orchestrator,
-  sessionManager
-);
+new FixCycleWorkflow(testResults, 'PRD content', orchestrator, sessionManager);
 
 // AFTER:
 new FixCycleWorkflow(
-  'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918',  // Mock session path
+  'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918', // Mock session path
   'PRD content',
   orchestrator,
   sessionManager
@@ -439,7 +446,9 @@ new FixCycleWorkflow(
 expect(workflow.testResults).toEqual(testResults);
 
 // AFTER:
-expect(workflow.sessionPath).toBe('plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918');
+expect(workflow.sessionPath).toBe(
+  'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918'
+);
 
 // GOTCHA: testResults property used in createFixTasks() method
 // Lines 151-152 reference this.testResults.bugs.length
@@ -677,6 +686,7 @@ grep "new FixCycleWorkflow(" tests/unit/workflows/fix-cycle-workflow.test.ts | g
 During research, identified the standard pattern for reading JSON files from disk in this codebase:
 
 **Pattern from `src/core/session-utils.ts:492-534` (readTasksJSON)**:
+
 ```typescript
 const tasksPath = resolve(sessionPath, 'tasks.json');
 const content = await readFile(tasksPath, 'utf-8');
@@ -690,6 +700,7 @@ This pattern will be used in P1.M2.T2.S2 when implementing `loadBugReport()` met
 ### Constructor Validation Pattern
 
 Current validation pattern in FixCycleWorkflow:
+
 ```typescript
 if (testResults.bugs.length === 0) {
   throw new Error('FixCycleWorkflow requires testResults with bugs to fix');
@@ -697,6 +708,7 @@ if (testResults.bugs.length === 0) {
 ```
 
 This validation is REMOVED because:
+
 1. File not read in constructor (deferred to loadBugReport method)
 2. Cannot validate bugs without reading file first
 3. Constructor only validates sessionPath is non-empty string
@@ -706,6 +718,7 @@ Bug count validation will occur in P1.M2.T2.S2 (loadBugReport method).
 ### Test Mock Pattern
 
 Discovered test mocking pattern from `tests/unit/workflows/fix-cycle-workflow.test.ts`:
+
 - Factory functions create test data: `createTestBug()`, `createMockTaskOrchestrator()`, `createMockSessionManager()`
 - BugHuntWorkflow is mocked globally: `vi.mock('../../../src/workflows/bug-hunt-workflow.js')`
 - All tests avoid real I/O through mocking
@@ -715,6 +728,7 @@ This pattern preserved - tests still use mocks, just pass different constructor 
 ### Groundswell Workflow Base Class
 
 FixCycleWorkflow extends Groundswell's Workflow class:
+
 - Requires `super('FixCycleWorkflow')` call in constructor
 - Provides status tracking, step decorators, timing tracking
 - No changes needed to super() call
@@ -728,6 +742,7 @@ Verified: Constructor changes do not affect base class integration.
 **Confidence Score**: 9/10 for one-pass implementation success
 
 **Validation**:
+
 - Constructor signature change is straightforward parameter swap
 - Test updates are mechanical (find/replace with validation)
 - No complex logic changes in this subtask
@@ -735,12 +750,14 @@ Verified: Constructor changes do not affect base class integration.
 - File reading deferred to next subtask (reduces complexity)
 
 **Risk Mitigation**:
+
 - Clear scope boundary: ONLY constructor, NO file reading
 - Comprehensive test coverage to catch regressions
 - Dependent subtasks clearly sequenced
 - Architecture context provides complete picture
 
 **Expected Duration**: 30-45 minutes
+
 - 15 min: Update constructor in fix-cycle-workflow.ts
 - 20 min: Update all tests in fix-cycle-workflow.test.ts
 - 10 min: Run tests and fix any issues

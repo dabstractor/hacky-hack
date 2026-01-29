@@ -9,6 +9,7 @@
 **Deliverable**: Modified `PRPPipeline.run()` method that sets `PRP_PIPELINE_RUNNING` environment variable on entry and clears it on exit, even when errors occur.
 
 **Success Definition**:
+
 - Environment variable `PRP_PIPELINE_RUNNING` is set to current process PID after validation passes
 - Environment variable is cleared in finally block, only if it matches our PID
 - Debug logging occurs on both set and clear operations
@@ -22,6 +23,7 @@
 **Use Case**: Prevent infinite recursion when PRP Pipeline executes tasks that themselves trigger pipeline execution, while allowing legitimate bug fix workflows.
 
 **User Journey**:
+
 1. PRP Pipeline starts and validates nested execution (previous subtask)
 2. After validation passes, set `PRP_PIPELINE_RUNNING=<PID>`
 3. Execute pipeline workflow (decompose PRD, execute tasks, QA cycle)
@@ -29,6 +31,7 @@
 5. Always run cleanup regardless of success/failure
 
 **Pain Points Addressed**:
+
 - Prevents infinite loops from recursive pipeline execution
 - Allows controlled recursion for bug fix sessions
 - Ensures cleanup happens even on crashes/errors
@@ -47,6 +50,7 @@
 **No direct user-visible changes** - this is infrastructure-level behavior.
 
 **Observable behavior:**
+
 - Environment variable `PRP_PIPELINE_RUNNING` appears during pipeline execution
 - Debug logs show guard being set and cleared
 - Nested execution is blocked with appropriate error message
@@ -69,6 +73,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file location and method to modify
 - Specific line numbers and patterns to follow
 - Complete code examples for implementation
@@ -248,6 +253,7 @@ afterEach(() => {
 ### Data Models and Structure
 
 No new data models needed. Implementation uses:
+
 - `process.env.PRP_PIPELINE_RUNNING` - String environment variable
 - `process.pid` - Number, converted to string
 - `this.logger` - Logger instance from base Workflow class
@@ -516,6 +522,7 @@ node -e "
 **Confidence Score**: 9/10 for one-pass implementation success likelihood
 
 **Reasoning**:
+
 - Exact file location and line numbers provided
 - Complete code examples with proper patterns
 - All dependencies documented

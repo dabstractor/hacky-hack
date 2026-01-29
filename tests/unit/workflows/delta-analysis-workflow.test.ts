@@ -139,9 +139,17 @@ describe('DeltaAnalysisWorkflow', () => {
       const workflow = new DeltaAnalysisWorkflow('old PRD', 'new PRD', []);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          changes: [],
-          patchInstructions: 'No changes',
-          taskIds: [],
+          status: 'success',
+          data: {
+            changes: [],
+            patchInstructions: 'No changes',
+            taskIds: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -166,9 +174,17 @@ describe('DeltaAnalysisWorkflow', () => {
       );
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          changes: [],
-          patchInstructions: 'No changes',
-          taskIds: [],
+          status: 'success',
+          data: {
+            changes: [],
+            patchInstructions: 'No changes',
+            taskIds: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -191,9 +207,17 @@ describe('DeltaAnalysisWorkflow', () => {
       const prompt = { user: 'test prompt', system: 'system' };
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          changes: [],
-          patchInstructions: 'No changes',
-          taskIds: [],
+          status: 'success',
+          data: {
+            changes: [],
+            patchInstructions: 'No changes',
+            taskIds: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -222,7 +246,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -251,7 +283,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1', 'P2.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -307,7 +347,15 @@ describe('DeltaAnalysisWorkflow', () => {
       const workflow = new DeltaAnalysisWorkflow('old PRD', 'new PRD', []);
       const expectedResult = createTestDeltaAnalysis([], 'No changes', []);
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -336,7 +384,15 @@ describe('DeltaAnalysisWorkflow', () => {
         []
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -366,7 +422,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -387,9 +451,17 @@ describe('DeltaAnalysisWorkflow', () => {
       const workflow = new DeltaAnalysisWorkflow('old PRD', 'new PRD', []);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          changes: [],
-          patchInstructions: 'No changes',
-          taskIds: [],
+          status: 'success',
+          data: {
+            changes: [],
+            patchInstructions: 'No changes',
+            taskIds: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -411,9 +483,17 @@ describe('DeltaAnalysisWorkflow', () => {
       const workflow = new DeltaAnalysisWorkflow('old PRD', 'new PRD', []);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          changes: [],
-          patchInstructions: 'No changes',
-          taskIds: [],
+          status: 'success',
+          data: {
+            changes: [],
+            patchInstructions: 'No changes',
+            taskIds: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -458,7 +538,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1', 'P1.M2.T1', 'P2.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -490,7 +578,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -521,7 +617,15 @@ describe('DeltaAnalysisWorkflow', () => {
         taskIds
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -591,7 +695,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -624,7 +736,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -657,7 +777,15 @@ describe('DeltaAnalysisWorkflow', () => {
         ['P1.M1.T1']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateDeltaAnalysisPrompt.mockReturnValue({});
@@ -679,9 +807,17 @@ describe('DeltaAnalysisWorkflow', () => {
       );
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          changes: [],
-          patchInstructions: 'No changes',
-          taskIds: [],
+          status: 'success',
+          data: {
+            changes: [],
+            patchInstructions: 'No changes',
+            taskIds: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);

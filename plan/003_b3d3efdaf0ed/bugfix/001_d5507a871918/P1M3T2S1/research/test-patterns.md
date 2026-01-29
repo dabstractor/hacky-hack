@@ -33,6 +33,7 @@ describe('module-name', () => {
 ### Nested Describe Structure
 
 The codebase uses deeply nested `describe` blocks to organize tests logically:
+
 - **Top level**: Module/function being tested
 - **Second level**: Main test categories (e.g., "Valid path tests", "Invalid path tests")
 - **Third level**: Specific test scenarios
@@ -102,9 +103,7 @@ expect(result).toBeUndefined(); // For functions that return nothing on success
 
 ```typescript
 // Test error message content
-expect(() => validateFunction(invalidInput)).toThrow(
-  'Expected error message'
-);
+expect(() => validateFunction(invalidInput)).toThrow('Expected error message');
 
 // Test specific error message using try-catch
 try {
@@ -208,8 +207,10 @@ vi.mock('../../src/utils/logger.js', () => ({
 
 ```typescript
 // Import the module being tested
-import { validateBugfixSession, BugfixSessionValidationError }
-  from '../../../../src/utils/validation/session-validation.js';
+import {
+  validateBugfixSession,
+  BugfixSessionValidationError,
+} from '../../../../src/utils/validation/session-validation.js';
 ```
 
 ---
@@ -427,7 +428,9 @@ describe('execution-guard', () => {
           } catch (error) {
             expect((error as NestedExecutionError).existingPid).toBe('12345');
             expect((error as NestedExecutionError).currentPid).toBeDefined();
-            expect((error as NestedExecutionError).sessionPath).toBe(sessionPath);
+            expect((error as NestedExecutionError).sessionPath).toBe(
+              sessionPath
+            );
           }
         });
       });
@@ -441,6 +444,7 @@ describe('execution-guard', () => {
 ## Summary
 
 This testing pattern provides comprehensive coverage of validation functions with:
+
 - Clear organization with nested describe() blocks
 - Proper mocking of environment variables
 - Thorough error testing

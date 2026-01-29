@@ -11,9 +11,9 @@ This document covers best practices for testing validation functions in TypeScri
 3. [Testing Edge Cases](#testing-edge-cases)
 4. [Testing Type Guards](#testing-type-guards)
 5. [Testing Async Validation](#testing-async-validation)
-5. [Test Organization](#test-organization)
-6. [Best Practices](#best-practices)
-7. [Complete Examples](#complete-examples)
+6. [Test Organization](#test-organization)
+7. [Best Practices](#best-practices)
+8. [Complete Examples](#complete-examples)
 
 ## Testing Error Throwing
 
@@ -55,20 +55,15 @@ describe('validatePath error cases', () => {
       'null byte',
       '/path/\0file',
       'NULL_BYTE_DETECTED',
-      'Path contains null bytes'
+      'Path contains null bytes',
     ],
     [
       'directory traversal',
       '../../../etc/passwd',
       'PATH_TRAVERSAL_DETECTED',
-      'Path attempts to escape base directory'
+      'Path attempts to escape base directory',
     ],
-    [
-      'empty string',
-      '',
-      'EMPTY_PATH',
-      'Path cannot be empty'
-    ],
+    ['empty string', '', 'EMPTY_PATH', 'Path cannot be empty'],
   ])('should throw %s error', (_, input, expectedCode, expectedMessage) => {
     expect(() => validatePath(input)).toThrow(ValidationError);
 
@@ -369,11 +364,7 @@ describe('validatePath platform-specific', () => {
 ```typescript
 describe('isValidPath type guard', () => {
   it('should return true for valid path strings', () => {
-    const validPaths = [
-      '/src/index.ts',
-      './relative/path.txt',
-      'file.txt',
-    ];
+    const validPaths = ['/src/index.ts', './relative/path.txt', 'file.txt'];
 
     validPaths.forEach(path => {
       expect(isValidPath(path)).toBe(true);
@@ -381,14 +372,7 @@ describe('isValidPath type guard', () => {
   });
 
   it('should return false for non-strings', () => {
-    const invalidInputs = [
-      null,
-      undefined,
-      123,
-      {},
-      [],
-      true,
-    ];
+    const invalidInputs = [null, undefined, 123, {}, [], true];
 
     invalidInputs.forEach(input => {
       expect(isValidPath(input)).toBe(false);
@@ -423,10 +407,7 @@ describe('isValidPath type guard', () => {
 ```typescript
 describe('assertValidPath assertion function', () => {
   it('should not throw for valid paths', () => {
-    const validPaths = [
-      '/src/index.ts',
-      './relative/path.txt',
-    ];
+    const validPaths = ['/src/index.ts', './relative/path.txt'];
 
     validPaths.forEach(path => {
       expect(() => assertValidPath(path)).not.toThrow();
@@ -434,11 +415,7 @@ describe('assertValidPath assertion function', () => {
   });
 
   it('should throw ValidationError for invalid paths', () => {
-    const invalidPaths = [
-      '',
-      '/path/\0file',
-      '../../../etc/passwd',
-    ];
+    const invalidPaths = ['', '/path/\0file', '../../../etc/passwd'];
 
     invalidPaths.forEach(path => {
       expect(() => assertValidPath(path)).toThrow(ValidationError);
@@ -464,13 +441,13 @@ describe('assertValidPath assertion function', () => {
 ```typescript
 describe('loadBugReport async validation', () => {
   it('should throw ValidationError for invalid session path', async () => {
-    await expect(
-      loadBugReport('invalid/path/format')
-    ).rejects.toThrow(ValidationError);
+    await expect(loadBugReport('invalid/path/format')).rejects.toThrow(
+      ValidationError
+    );
 
-    await expect(
-      loadBugReport('invalid/path/format')
-    ).rejects.toThrow('INVALID_SESSION_PATH');
+    await expect(loadBugReport('invalid/path/format')).rejects.toThrow(
+      'INVALID_SESSION_PATH'
+    );
   });
 
   it('should throw ValidationError with specific error code', async () => {
@@ -487,10 +464,13 @@ describe('loadBugReport async validation', () => {
     // Setup: Create test data
     const sessionPath = createTestSession();
     const testResultsPath = path.join(sessionPath, 'TEST_RESULTS.md');
-    fs.writeFileSync(testResultsPath, JSON.stringify({
-      description: 'Test bug',
-      steps: [],
-    }));
+    fs.writeFileSync(
+      testResultsPath,
+      JSON.stringify({
+        description: 'Test bug',
+        steps: [],
+      })
+    );
 
     const report = await loadBugReport(sessionPath);
     expect(report.description).toBe('Test bug');
@@ -690,14 +670,22 @@ it('should throw error', () => {
 ```typescript
 // ✅ GOOD: Explicit edge case tests
 describe('Edge cases', () => {
-  it('should handle maximum path length', () => { /* ... */ });
-  it('should handle null bytes', () => { /* ... */ });
-  it('should handle unicode characters', () => { /* ... */ });
+  it('should handle maximum path length', () => {
+    /* ... */
+  });
+  it('should handle null bytes', () => {
+    /* ... */
+  });
+  it('should handle unicode characters', () => {
+    /* ... */
+  });
 });
 
 // ❌ BAD: No edge case coverage
 describe('validatePath', () => {
-  it('should validate normal paths', () => { /* ... */ });
+  it('should validate normal paths', () => {
+    /* ... */
+  });
 });
 ```
 
@@ -744,9 +732,7 @@ it('should load bug report', async () => {
 });
 
 it('should throw for invalid path', async () => {
-  await expect(
-    loadBugReport('invalid/path')
-  ).rejects.toThrow(ValidationError);
+  await expect(loadBugReport('invalid/path')).rejects.toThrow(ValidationError);
 });
 
 // ❌ BAD: Not awaiting promises
@@ -793,8 +779,12 @@ describe('PathValidator', () => {
     });
 
     it('should throw for directory traversal', () => {
-      expect(() => validatePath('../../../etc/passwd')).toThrow(ValidationError);
-      expect(() => validatePath('../../../etc/passwd')).toThrow('PATH_TRAVERSAL');
+      expect(() => validatePath('../../../etc/passwd')).toThrow(
+        ValidationError
+      );
+      expect(() => validatePath('../../../etc/passwd')).toThrow(
+        'PATH_TRAVERSAL'
+      );
     });
 
     it('should throw for empty paths', () => {
@@ -893,7 +883,7 @@ describe('validateSessionPath', () => {
       'plan/999_ffffffffffff/bugfix/999_ffffffffffff',
     ];
 
-    it.each(validPaths)('should accept %s', (path) => {
+    it.each(validPaths)('should accept %s', path => {
       expect(() => validateSessionPath(path)).not.toThrow();
     });
   });
@@ -986,10 +976,7 @@ describe('loadBugReport', () => {
       };
 
       const testResultsPath = path.join(sessionPath, 'TEST_RESULTS.md');
-      fs.writeFileSync(
-        testResultsPath,
-        JSON.stringify(bugReport)
-      );
+      fs.writeFileSync(testResultsPath, JSON.stringify(bugReport));
 
       const result = await loadBugReport(sessionPath);
 
@@ -1006,10 +993,7 @@ describe('loadBugReport', () => {
       };
 
       const testResultsPath = path.join(sessionPath, 'TEST_RESULTS.md');
-      fs.writeFileSync(
-        testResultsPath,
-        JSON.stringify(bugReport)
-      );
+      fs.writeFileSync(testResultsPath, JSON.stringify(bugReport));
 
       const result = await loadBugReport(sessionPath);
 
@@ -1019,13 +1003,13 @@ describe('loadBugReport', () => {
 
   describe('validation errors', () => {
     it('should reject invalid session path', async () => {
-      await expect(
-        loadBugReport('invalid/path/format')
-      ).rejects.toThrow(ValidationError);
+      await expect(loadBugReport('invalid/path/format')).rejects.toThrow(
+        ValidationError
+      );
 
-      await expect(
-        loadBugReport('invalid/path/format')
-      ).rejects.toThrow('INVALID_SESSION_PATH');
+      await expect(loadBugReport('invalid/path/format')).rejects.toThrow(
+        'INVALID_SESSION_PATH'
+      );
     });
 
     it('should reject missing TEST_RESULTS.md', async () => {
@@ -1033,26 +1017,22 @@ describe('loadBugReport', () => {
       const validSessionPath = 'plan/003_b3d3efdaf0ed/bugfix/001_d5507a871918';
       fs.mkdirSync(validSessionPath, { recursive: true });
 
-      await expect(
-        loadBugReport(validSessionPath)
-      ).rejects.toThrow(ValidationError);
+      await expect(loadBugReport(validSessionPath)).rejects.toThrow(
+        ValidationError
+      );
 
-      await expect(
-        loadBugReport(validSessionPath)
-      ).rejects.toThrow('PATH_NOT_FOUND');
+      await expect(loadBugReport(validSessionPath)).rejects.toThrow(
+        'PATH_NOT_FOUND'
+      );
     });
 
     it('should reject invalid JSON', async () => {
       const testResultsPath = path.join(sessionPath, 'TEST_RESULTS.md');
       fs.writeFileSync(testResultsPath, 'invalid json{');
 
-      await expect(
-        loadBugReport(sessionPath)
-      ).rejects.toThrow(ValidationError);
+      await expect(loadBugReport(sessionPath)).rejects.toThrow(ValidationError);
 
-      await expect(
-        loadBugReport(sessionPath)
-      ).rejects.toThrow('INVALID_JSON');
+      await expect(loadBugReport(sessionPath)).rejects.toThrow('INVALID_JSON');
     });
 
     it('should reject missing required fields', async () => {
@@ -1062,18 +1042,13 @@ describe('loadBugReport', () => {
       };
 
       const testResultsPath = path.join(sessionPath, 'TEST_RESULTS.md');
-      fs.writeFileSync(
-        testResultsPath,
-        JSON.stringify(incompleteReport)
+      fs.writeFileSync(testResultsPath, JSON.stringify(incompleteReport));
+
+      await expect(loadBugReport(sessionPath)).rejects.toThrow(ValidationError);
+
+      await expect(loadBugReport(sessionPath)).rejects.toThrow(
+        'MISSING_REQUIRED_FIELD'
       );
-
-      await expect(
-        loadBugReport(sessionPath)
-      ).rejects.toThrow(ValidationError);
-
-      await expect(
-        loadBugReport(sessionPath)
-      ).rejects.toThrow('MISSING_REQUIRED_FIELD');
     });
   });
 });

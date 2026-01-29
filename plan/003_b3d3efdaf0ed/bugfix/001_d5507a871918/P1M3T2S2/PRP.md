@@ -13,6 +13,7 @@
 **IMPORTANT FINDING**: The `NestedExecutionError` class **already exists** and is fully implemented in the codebase at `/home/dustin/projects/hacky-hack/src/utils/errors.ts` (lines 522-538). This PRP documents the existing implementation and verifies it meets the contract requirements.
 
 The existing implementation is **more sophisticated** than the contract specification:
+
 - Extends `PipelineError` base class (not `Error`) for consistency with error hierarchy
 - Accepts `message`, `context`, and `cause` parameters (not just `runningPid`)
 - Has comprehensive JSDoc documentation with usage examples
@@ -29,6 +30,7 @@ The existing implementation is **more sophisticated** than the contract specific
 **Deliverable**: Verification documentation confirming `NestedExecutionError` class is fully implemented and meets functional requirements.
 
 **Success Definition**:
+
 - [x] `NestedExecutionError` class exists in `src/utils/errors.ts`
 - [x] Class has proper error code `PIPELINE_VALIDATION_NESTED_EXECUTION`
 - [x] Class extends `PipelineError` base class
@@ -45,12 +47,14 @@ The existing implementation is **more sophisticated** than the contract specific
 **Target User**: PRP Pipeline developers and error handling systems
 
 **Use Case**: When PRP Pipeline execution is attempted while already running (nested execution), the system needs to throw a specific, identifiable error that:
+
 1. Indicates nested execution was detected
 2. Provides the PID of the already-running pipeline
 3. Includes guidance on legitimate recursion (bugfix sessions with SKIP_BUG_FINDING=true)
 4. Can be programmatically caught and handled via error code or type guard
 
 **User Journey**:
+
 1. Developer initiates PRP Pipeline
 2. `validateNestedExecution()` checks if `PRP_PIPELINE_RUNNING` env var is set
 3. If set and not legitimate bugfix recursion → throws `NestedExecutionError`
@@ -58,6 +62,7 @@ The existing implementation is **more sophisticated** than the contract specific
 5. System logs error and prevents nested execution
 
 **Pain Points Addressed**:
+
 - Prevents accidental recursive pipeline execution that could corrupt state
 - Provides clear error messaging about what went wrong
 - Allows legitimate bugfix session recursion with proper env vars
@@ -68,18 +73,21 @@ The existing implementation is **more sophisticated** than the contract specific
 ## Why
 
 **Business value and user impact**:
+
 - Prevents state corruption from nested pipeline executions
 - Protects against infinite recursion loops
 - Enables legitimate bugfix session workflows (recursive execution for fixing bugs)
 - Provides clear, actionable error messages
 
 **Integration with existing features**:
+
 - Part of P1.M3 (Session Validation Guards) milestone
 - Works with `validateNestedExecution()` function from P1.M3.T2.S1
 - Integrates with `PRP_PIPELINE_RUNNING` environment variable guard
 - Supports `SKIP_BUG_FINDING=true` for legitimate recursion
 
 **Problems this solves**:
+
 1. **Nested execution prevention**: Stops recursive pipeline execution that could corrupt session state
 2. **Legitimate recursion support**: Allows bugfix sessions to recurse when `SKIP_BUG_FINDING=true`
 3. **Clear error messaging**: Tells developers exactly what went wrong and how to fix it
@@ -90,11 +98,13 @@ The existing implementation is **more sophisticated** than the contract specific
 ## What
 
 **User-visible behavior**: When attempting to run PRP Pipeline while already running (without legitimate bugfix recursion), a `NestedExecutionError` is thrown with:
+
 - Message: `"Nested PRP Pipeline execution detected. Only bug fix sessions can recurse. PID: {existingPid}"`
 - Context object with `existingPid`, `currentPid`, `sessionPath`
 - Error code: `PIPELINE_VALIDATION_NESTED_EXECUTION`
 
 **Technical requirements**:
+
 - Error class extending `PipelineError`
 - Type guard for type narrowing
 - Integration with validation function
@@ -222,13 +232,13 @@ class CustomError extends Error {
 
 ```typescript
 // CRITICAL: SKIP_BUG_FINDING must use EXACT string match (case-sensitive)
-process.env.SKIP_BUG_FINDING = 'true';   // ✓ Correct
-process.env.SKIP_BUG_FINDING = 'True';   // ✗ Wrong (won't work)
-process.env.SKIP_BUG_FINDING = 'TRUE';   // ✗ Wrong (won't work)
+process.env.SKIP_BUG_FINDING = 'true'; // ✓ Correct
+process.env.SKIP_BUG_FINDING = 'True'; // ✗ Wrong (won't work)
+process.env.SKIP_BUG_FINDING = 'TRUE'; // ✗ Wrong (won't work)
 
 // CRITICAL: Path check for 'bugfix' is case-insensitive
-sessionPath.includes('bugfix');          // ✗ Wrong (case-sensitive)
-sessionPath.toLowerCase().includes('bugfix');  // ✓ Correct
+sessionPath.includes('bugfix'); // ✗ Wrong (case-sensitive)
+sessionPath.toLowerCase().includes('bugfix'); // ✓ Correct
 ```
 
 ```typescript
@@ -278,7 +288,9 @@ export abstract class PipelineError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
   }
 
-  toJSON(): Record<string, unknown> { /* serialization */ }
+  toJSON(): Record<string, unknown> {
+    /* serialization */
+  }
 }
 ```
 
@@ -356,11 +368,11 @@ export class NestedExecutionError extends PipelineError {
     message: string,
     // Context extends base PipelineErrorContext with error-specific properties
     context?: PipelineErrorContext & {
-      existingPid?: string;   // PID of already-running pipeline
-      currentPid?: string;    // PID of current execution attempt
-      sessionPath?: string;   // Session path being validated
+      existingPid?: string; // PID of already-running pipeline
+      currentPid?: string; // PID of current execution attempt
+      sessionPath?: string; // Session path being validated
     },
-    cause?: Error  // Optional underlying error for chaining
+    cause?: Error // Optional underlying error for chaining
   ) {
     // Call parent constructor with all parameters
     super(message, context, cause);
@@ -372,7 +384,9 @@ export class NestedExecutionError extends PipelineError {
 }
 
 // Pattern: Type guard function for type narrowing
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
 
@@ -410,7 +424,9 @@ try {
 } catch (error) {
   if (isNestedExecutionError(error)) {
     // Type narrowing: error is now NestedExecutionError
-    console.error(`Nested execution detected. Running PID: ${error.context?.existingPid}`);
+    console.error(
+      `Nested execution detected. Running PID: ${error.context?.existingPid}`
+    );
     console.error(`Current PID: ${error.context?.currentPid}`);
     console.error(`Session path: ${error.context?.sessionPath}`);
     // Handle nested execution error
@@ -632,12 +648,12 @@ class NestedExecutionError extends PipelineError {
 // ❌ DON'T: Use mutable error codes
 // Error codes should be readonly constants
 class NestedExecutionError extends PipelineError {
-  code = 'NESTED_EXECUTION';  // WRONG: Should use ErrorCodes constant
+  code = 'NESTED_EXECUTION'; // WRONG: Should use ErrorCodes constant
 }
 
 // ❌ DON'T: Throw generic Error instead of NestedExecutionError
 // This defeats the purpose of having a specific error type
-throw new Error('Nested execution detected');  // WRONG
+throw new Error('Nested execution detected'); // WRONG
 
 // ✓ DO: Use the existing NestedExecutionError class
 throw new NestedExecutionError(
@@ -654,14 +670,14 @@ throw new NestedExecutionError(
 
 The `NestedExecutionError` class is **fully implemented** and exceeds the contract requirements:
 
-| Contract Requirement | Implementation Status | Notes |
-|---------------------|----------------------|-------|
-| Create class extending Error | ✓ EXCEEDS | Extends `PipelineError` (better) |
-| Constructor accept runningPid | ✓ EXCEEDS | Accepts message, context (with PIDs), cause |
-| Set error message | ✓ COMPLETE | Message includes PID and guidance |
-| Set error name | ✓ COMPLETE | Inherited from class name |
-| Add error code property | ✓ COMPLETE | `PIPELINE_VALIDATION_NESTED_EXECUTION` |
-| Include SKIP_BUG_FINDING guidance | ✓ COMPLETE | In JSDoc and usage examples |
+| Contract Requirement              | Implementation Status | Notes                                       |
+| --------------------------------- | --------------------- | ------------------------------------------- |
+| Create class extending Error      | ✓ EXCEEDS             | Extends `PipelineError` (better)            |
+| Constructor accept runningPid     | ✓ EXCEEDS             | Accepts message, context (with PIDs), cause |
+| Set error message                 | ✓ COMPLETE            | Message includes PID and guidance           |
+| Set error name                    | ✓ COMPLETE            | Inherited from class name                   |
+| Add error code property           | ✓ COMPLETE            | `PIPELINE_VALIDATION_NESTED_EXECUTION`      |
+| Include SKIP_BUG_FINDING guidance | ✓ COMPLETE            | In JSDoc and usage examples                 |
 
 ### Files Involved
 
@@ -680,6 +696,7 @@ The `NestedExecutionError` class is **fully implemented** and exceeds the contra
 ### Conclusion
 
 **NO IMPLEMENTATION REQUIRED**. The `NestedExecutionError` class is complete, tested, and integrated. This PRP serves as:
+
 1. **Verification documentation** confirming implementation completeness
 2. **Reference documentation** for future developers
 3. **Pattern documentation** for error class creation in this codebase
@@ -692,7 +709,7 @@ The implementation is production-ready and follows all codebase conventions and 
 
 ### NestedExecutionError Class (src/utils/errors.ts:522-538)
 
-```typescript
+````typescript
 /**
  * Nested PRP Pipeline execution errors
  *
@@ -727,11 +744,11 @@ export class NestedExecutionError extends PipelineError {
     Object.setPrototypeOf(this, NestedExecutionError.prototype);
   }
 }
-```
+````
 
 ### Type Guard Function (src/utils/errors.ts:708-730)
 
-```typescript
+````typescript
 /**
  * Type guard for NestedExecutionError
  *
@@ -749,10 +766,12 @@ export class NestedExecutionError extends PipelineError {
  * }
  * ```
  */
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
-```
+````
 
 ### Validation Function Usage (src/utils/validation/execution-guard.ts:56-85)
 

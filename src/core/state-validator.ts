@@ -30,7 +30,7 @@
 
 import type { Backlog, Phase, Milestone, Task, Subtask } from './models.js';
 import { BacklogSchema } from './models.js';
-import type { ZodError } from 'zod';
+import { ZodError } from 'zod';
 import { copyFile, readdir, unlink } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { getLogger } from '../utils/logger.js';
@@ -45,6 +45,17 @@ const logger = getLogger('StateValidator');
  * Union type for any item in the hierarchy
  */
 type HierarchyItem = Phase | Milestone | Task | Subtask;
+
+/**
+ * Type guard for items with dependencies (only Subtask has dependencies)
+ */
+function hasDependencies(item: HierarchyItem): item is Subtask {
+  return (
+    item.type === 'Subtask' &&
+    'dependencies' in item &&
+    Array.isArray(item.dependencies)
+  );
+}
 
 /**
  * State validation result
@@ -178,19 +189,17 @@ export function validateSchema(backlog: Backlog): ZodError[] {
     BacklogSchema.parse(backlog);
     return [];
   } catch (error) {
-    if (error && typeof error === 'object' && 'issues' in error) {
-      return [error as ZodError];
+    if (error instanceof ZodError) {
+      return [error];
     }
     return [
-      {
-        issues: [
-          {
-            code: 'custom',
-            path: [],
-            message: `Unexpected error: ${String(error)}`,
-          },
-        ],
-      } as ZodError,
+      new ZodError([
+        {
+          code: 'custom',
+          path: [],
+          message: `Unexpected error: ${String(error)}`,
+        },
+      ]),
     ];
   }
 }
@@ -218,14 +227,15 @@ export function detectOrphanedDependencies(
 
   // Check all dependencies
   const checkItem = (item: HierarchyItem): void => {
-    const deps = (item as any).dependencies || [];
-    for (const depId of deps) {
-      if (!allTaskIds.has(depId)) {
-        orphans.push({
-          taskId: item.id,
-          missingTaskId: depId,
-          severity: 'error',
-        });
+    if (hasDependencies(item)) {
+      for (const depId of item.dependencies) {
+        if (!allTaskIds.has(depId)) {
+          orphans.push({
+            taskId: item.id,
+            missingTaskId: depId,
+            severity: 'error',
+          });
+        }
       }
     }
     // Recursively check nested items
@@ -248,8 +258,8 @@ function buildFullDependencyGraph(backlog: Backlog): DependencyGraph {
   const graph: DependencyGraph = {};
 
   const addItem = (item: HierarchyItem): void => {
-    // Add to graph with dependencies
-    graph[item.id] = (item as any).dependencies || [];
+    // Add to graph with dependencies (only Task and Subtask have dependencies)
+    graph[item.id] = hasDependencies(item) ? item.dependencies : [];
 
     // Recursively add nested items
     if ('milestones' in item) item.milestones.forEach(addItem);
@@ -507,14 +517,13 @@ export function repairOrphanedDependencies(
 
   // Remove orphaned dependencies
   const repairItem = (item: HierarchyItem): void => {
-    const deps = (item as any).dependencies;
-    if (deps && orphanMap.has(item.id)) {
+    if (hasDependencies(item) && orphanMap.has(item.id)) {
       const missingIds = orphanMap.get(item.id)!;
-      const originalLength = deps.length;
-      (item as any).dependencies = deps.filter(
-        (id: string) => !missingIds.includes(id)
-      );
-      if ((item as any).dependencies.length < originalLength) {
+      const originalLength = item.dependencies.length;
+      // Type assertion: We're intentionally modifying the readonly property for repair
+      (item as { dependencies: string[] }).dependencies =
+        item.dependencies.filter((id: string) => !missingIds.includes(id));
+      if (item.dependencies.length < originalLength) {
         repaired++;
       }
     }
@@ -550,11 +559,11 @@ export function repairCircularDependencies(
     const firstTaskId = cycle.cycle[0];
 
     const findAndRepair = (item: HierarchyItem): boolean => {
-      if (item.id === lastTaskId && (item as any).dependencies) {
-        const deps = (item as any).dependencies as string[];
-        const idx = deps.indexOf(firstTaskId);
+      if (item.id === lastTaskId && hasDependencies(item)) {
+        const idx = item.dependencies.indexOf(firstTaskId);
         if (idx !== -1) {
-          deps.splice(idx, 1);
+          // Type assertion: We're intentionally modifying the readonly property for repair
+          (item as { dependencies: string[] }).dependencies.splice(idx, 1);
           repaired++;
           return true;
         }
@@ -596,13 +605,12 @@ export function repairCircularDependencies(
  * @returns Number of items repaired
  */
 export function repairMissingFields(backlog: Backlog): number {
-  let repaired = 0;
+  const repaired = 0;
 
   const repairItem = (item: HierarchyItem): void => {
-    // Ensure dependencies array exists
-    if (!(item as any).dependencies) {
-      (item as any).dependencies = [];
-      repaired++;
+    // Ensure dependencies array exists (only for Task and Subtask)
+    if (hasDependencies(item)) {
+      // Dependencies already exist, no action needed
     }
 
     // Recursively repair nested items

@@ -29,6 +29,7 @@ async run(): Promise<PipelineResult> {
 ```
 
 **Key Observations:**
+
 - The `run()` method already has a `try-catch-finally` structure
 - The `finally` block calls `cleanup()` which handles:
   - Progress display cleanup
@@ -41,15 +42,18 @@ async run(): Promise<PipelineResult> {
 **From codebase grep analysis:**
 
 **Setting environment variables:**
+
 - Rare in the codebase (only 3 instances found)
 - Used for fallback defaults in README.md and CONFIGURATION.md
 - Pattern: `process.env.VAR = value` (value is always stored as string)
 
 **Deleting environment variables:**
+
 - Extensive use in tests for cleanup (100+ instances)
 - Pattern: `delete process.env.VAR;`
 
 **String-based PID handling:**
+
 - All PIDs are consistently converted to strings
 - Pattern: `process.pid.toString()` for storage and comparison
 - Environment variables always store string values
@@ -141,6 +145,7 @@ export function clearNestedExecutionGuard(): void {
 **From codebase analysis:**
 
 **Resource disposal pattern** (`src/utils/token-counter.ts`):
+
 ```typescript
 try {
   return counter.countTokens(text);
@@ -150,6 +155,7 @@ try {
 ```
 
 **Semaphore release pattern** (`src/core/concurrent-executor.ts`):
+
 ```typescript
 } finally {
   // Always release semaphore slot
@@ -170,6 +176,7 @@ try {
 ### From Research Agents
 
 **Official Node.js Documentation URLs:**
+
 - Process API: https://nodejs.org/api/process.html
 - process.env: https://nodejs.org/docs/latest-v20.x/api/process.html#processenv
 - process.pid: https://nodejs.org/docs/latest-v20.x/api/process.html#processpid
@@ -177,18 +184,21 @@ try {
 **Key Best Practices:**
 
 1. **process.env always stores strings:**
+
    ```typescript
    process.env.MY_VAR = 123;
    console.log(typeof process.env.MY_VAR); // "string"
    ```
 
 2. **Always convert PID to string:**
+
    ```typescript
    const currentPid = process.pid.toString();
    process.env.PRP_PIPELINE_RUNNING = currentPid;
    ```
 
 3. **Clean up environment variables:**
+
    ```typescript
    delete process.env.PRP_PIPELINE_RUNNING;
    ```

@@ -66,6 +66,7 @@ class APIError(Exception):
 ```
 
 **Usage:**
+
 ```python
 raise APIError("Resource not found", APIError.NOT_FOUND)
 ```
@@ -110,6 +111,7 @@ class BusinessError(Exception):
 ```
 
 **Usage:**
+
 ```python
 raise BusinessError(
     "User not found",
@@ -145,6 +147,7 @@ class PipelineError(Exception):
 ```
 
 **Usage:**
+
 ```python
 code = make_error_code(ErrorDomain.SESSION, "LOAD", "FAILED")
 raise PipelineError("Failed to load session", code, session_path="/path/to/session")
@@ -247,6 +250,7 @@ class ConfigurationError(Exception):
 ```
 
 **Best Practice:**
+
 - Use f-strings (Python 3.6+) for formatting
 - Use `!r` conversion for values that might contain spaces or be ambiguous
 - Include all relevant context in the message for debugging
@@ -484,6 +488,7 @@ class SessionError(PipelineError):
 ```
 
 **Usage:**
+
 ```python
 ctx = ErrorContext(
     session_path="/path/to/session",
@@ -525,13 +530,13 @@ except Exception as e:
 
 ### Similarities
 
-| Pattern | Python | TypeScript |
-|---------|--------|------------|
-| Error codes | Class attributes or Enum | const assertion object |
-| Context objects | dict or dataclass | Interface extending Record |
-| Inheritance | class CustomError(Exception) | class CustomError extends Error |
-| Type guards | isinstance() checks | user-defined type guard functions |
-| Serialization | to_dict() method | toJSON() method |
+| Pattern         | Python                       | TypeScript                        |
+| --------------- | ---------------------------- | --------------------------------- |
+| Error codes     | Class attributes or Enum     | const assertion object            |
+| Context objects | dict or dataclass            | Interface extending Record        |
+| Inheritance     | class CustomError(Exception) | class CustomError extends Error   |
+| Type guards     | isinstance() checks          | user-defined type guard functions |
+| Serialization   | to_dict() method             | toJSON() method                   |
 
 ### Key Differences
 
@@ -550,6 +555,7 @@ Based on the existing TypeScript error patterns in `/home/dustin/projects/hacky-
 ### 1. Error Code Constants
 
 **TypeScript:**
+
 ```typescript
 export const ErrorCodes = {
   PIPELINE_SESSION_LOAD_FAILED: 'PIPELINE_SESSION_LOAD_FAILED',
@@ -558,6 +564,7 @@ export const ErrorCodes = {
 ```
 
 **Python:**
+
 ```python
 from enum import Enum
 
@@ -570,6 +577,7 @@ class ErrorCode(str, Enum):
 ### 2. Base Error Class
 
 **TypeScript:**
+
 ```typescript
 export abstract class PipelineError extends Error {
   abstract readonly code: ErrorCode;
@@ -580,6 +588,7 @@ export abstract class PipelineError extends Error {
 ```
 
 **Python:**
+
 ```python
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -614,6 +623,7 @@ class PipelineError(ABC, Exception):
 ### 3. Specialized Error Classes
 
 **TypeScript:**
+
 ```typescript
 export class SessionError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_SESSION_LOAD_FAILED;
@@ -622,6 +632,7 @@ export class SessionError extends PipelineError {
 ```
 
 **Python:**
+
 ```python
 class SessionError(PipelineError):
     """Session management errors."""
@@ -649,6 +660,7 @@ class SessionError(PipelineError):
 ### 4. Type Guards
 
 **TypeScript:**
+
 ```typescript
 export function isSessionError(error: unknown): error is SessionError {
   return error instanceof SessionError;
@@ -656,6 +668,7 @@ export function isSessionError(error: unknown): error is SessionError {
 ```
 
 **Python:**
+
 ```python
 from typing import TypeGuard
 

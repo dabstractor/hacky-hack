@@ -266,11 +266,22 @@ export class BugHuntWorkflow extends Workflow {
       const prompt = createBugHuntPrompt(this.prdContent, this.completedTasks);
       this.correlationLogger.info('[BugHuntWorkflow] Bug hunt prompt created');
 
-      // PATTERN: Execute QA agent with retry logic and cast results to TestResults
-      const results = (await retryAgentPrompt(
-        () => qaAgent.prompt(prompt) as Promise<TestResults>,
+      // PATTERN: Execute QA agent with retry logic and extract results from AgentResponse
+      const agentResponse = await retryAgentPrompt(
+        () => qaAgent.prompt(prompt),
         { agentType: 'QA', operation: 'bugHunt' }
-      )) as TestResults;
+      );
+
+      // Extract TestResults from AgentResponse
+      if (agentResponse.status !== 'success' || agentResponse.data === null) {
+        const errorMessage =
+          agentResponse.status === 'error' && agentResponse.error
+            ? agentResponse.error.message
+            : 'Unknown error';
+        throw new Error(`QA agent failed: ${errorMessage}`);
+      }
+
+      const results: TestResults = agentResponse.data;
 
       // Store results for observability
       this.testResults = results;

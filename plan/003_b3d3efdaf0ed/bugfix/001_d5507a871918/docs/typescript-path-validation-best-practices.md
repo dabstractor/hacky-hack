@@ -109,7 +109,10 @@ function validateFilePath(filePath: string): void {
   try {
     const stats = statSync(normalized);
     if (stats.isDirectory()) {
-      throw new ValidationError('Expected file but got directory', 'IS_DIRECTORY');
+      throw new ValidationError(
+        'Expected file but got directory',
+        'IS_DIRECTORY'
+      );
     }
   } catch (error) {
     if (error instanceof ValidationError) throw error;
@@ -155,7 +158,7 @@ function validatePath(
     if (options.mustBeAbsolute && !path.isAbsolute(normalized)) {
       return {
         isValid: false,
-        error: 'Path must be absolute'
+        error: 'Path must be absolute',
       };
     }
 
@@ -165,7 +168,7 @@ function validatePath(
       if (!options.allowedExtensions.includes(ext)) {
         return {
           isValid: false,
-          error: `Extension ${ext} not allowed. Allowed: ${options.allowedExtensions.join(', ')}`
+          error: `Extension ${ext} not allowed. Allowed: ${options.allowedExtensions.join(', ')}`,
         };
       }
     }
@@ -175,7 +178,7 @@ function validatePath(
       if (!existsSync(normalized)) {
         return {
           isValid: false,
-          error: 'Path does not exist'
+          error: 'Path does not exist',
         };
       }
 
@@ -185,7 +188,7 @@ function validatePath(
         if (stats.isDirectory()) {
           return {
             isValid: false,
-            error: 'Path is a directory, not a file'
+            error: 'Path is a directory, not a file',
           };
         }
       }
@@ -193,12 +196,12 @@ function validatePath(
 
     return {
       isValid: true,
-      normalizedPath: normalized
+      normalizedPath: normalized,
     };
   } catch (error) {
     return {
       isValid: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -237,7 +240,8 @@ function isValidPath(value: unknown): value is string {
 Based on your codebase, here's a pattern for validating session paths:
 
 ```typescript
-const SESSION_PATH_PATTERN = /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
+const SESSION_PATH_PATTERN =
+  /^plan\/\d{3}_[a-f0-9]{12}\/bugfix\/\d{3}_[a-f0-9]{12}$/;
 
 /**
  * Validates a session path format
@@ -250,7 +254,7 @@ function validateSessionPath(sessionPath: string): void {
   if (!SESSION_PATH_PATTERN.test(sessionPath)) {
     throw new ValidationError(
       `Invalid session path format: ${sessionPath}. ` +
-      `Expected format: plan/XXX_<hash>/bugfix/XXX_<hash>`,
+        `Expected format: plan/XXX_<hash>/bugfix/XXX_<hash>`,
       'INVALID_SESSION_PATH'
     );
   }
@@ -305,13 +309,12 @@ const goodFunc = (userPath: string, baseDir: string) => {
 ```typescript
 import { z } from 'zod';
 
-const PathSchema = z.string().refine(
-  (val) => !val.includes('..'),
-  { message: "Path cannot contain '..'" }
-).refine(
-  (val) => !val.includes('\0'),
-  { message: "Path cannot contain null bytes" }
-);
+const PathSchema = z
+  .string()
+  .refine(val => !val.includes('..'), { message: "Path cannot contain '..'" })
+  .refine(val => !val.includes('\0'), {
+    message: 'Path cannot contain null bytes',
+  });
 
 const result = PathSchema.safeParse(userPath);
 if (!result.success) {
@@ -340,18 +343,22 @@ if (error) {
 ```typescript
 import { body, validationResult } from 'express-validator';
 
-app.post('/upload', [
-  body('path')
-    .trim()
-    .notEmpty()
-    .custom((value) => !value.includes('..'))
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+app.post(
+  '/upload',
+  [
+    body('path')
+      .trim()
+      .notEmpty()
+      .custom(value => !value.includes('..')),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    // Process valid path
   }
-  // Process valid path
-});
+);
 ```
 
 ## Code Examples
@@ -396,8 +403,10 @@ export class PathValidator {
   }
 
   private checkSecurity(resolvedPath: string): void {
-    if (!resolvedPath.startsWith(this.basePath + path.sep) &&
-        resolvedPath !== this.basePath) {
+    if (
+      !resolvedPath.startsWith(this.basePath + path.sep) &&
+      resolvedPath !== this.basePath
+    ) {
       throw new ValidationError(
         'Path attempts to escape base directory',
         'PATH_TRAVERSAL_DETECTED'
@@ -407,10 +416,7 @@ export class PathValidator {
 
   private checkExistence(resolvedPath: string): void {
     if (!existsSync(resolvedPath)) {
-      throw new ValidationError(
-        'Path does not exist',
-        'PATH_NOT_FOUND'
-      );
+      throw new ValidationError('Path does not exist', 'PATH_NOT_FOUND');
     }
   }
 }

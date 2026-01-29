@@ -9,6 +9,7 @@
 **Deliverable**: Verified test suite at `/tests/unit/utils/validation/execution-guard.test.ts` that covers all 5 contract scenarios and passes with the `validateNestedExecution` implementation.
 
 **Success Definition**:
+
 - All 5 contract test scenarios are covered by existing tests
 - All tests pass when run with the implementation from P1.M3.T2.S1-S4
 - No test failures or errors
@@ -21,12 +22,14 @@
 **Use Case**: After implementing the nested execution guard (P1.M3.T2.S1-S2) and setting the environment variable (P1.M3.T2.S4), verify that the guard works correctly across all scenarios
 
 **User Journey**:
+
 1. Developer completes implementation of `validateNestedExecution` function and `NestedExecutionError` class
 2. Developer sets `PRP_PIPELINE_RUNNING` environment variable in PRP Pipeline
 3. Developer runs unit tests to verify guard functionality
 4. Tests pass, confirming guard works as specified
 
 **Pain Points Addressed**:
+
 - Ensures nested execution guard actually prevents recursive pipeline execution
 - Validates that legitimate bugfix recursion is allowed
 - Confirms error messages include proper context for debugging
@@ -47,6 +50,7 @@
 **No direct user-visible changes** - this is test validation for infrastructure-level functionality.
 
 **Observable behavior:**
+
 - Running `npm test -- tests/unit/utils/validation/execution-guard.test.ts` executes all guard tests
 - All tests pass with green checkmarks
 - Test output shows coverage for all scenarios
@@ -71,6 +75,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to validate the tests successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact location of existing test file with line numbers
 - Complete mapping of contract requirements to test cases
 - Implementation logic being tested
@@ -215,12 +220,12 @@ tests/
 ```typescript
 // CRITICAL: SKIP_BUG_FINDING is case-sensitive
 // Only lowercase 'true' works, 'TRUE', 'True', '1', 'yes' do NOT work
-process.env.SKIP_BUG_FINDING === 'true'  // ✅ Works
-process.env.SKIP_BUG_FINDING === 'TRUE'  // ❌ Does NOT work
+process.env.SKIP_BUG_FINDING === 'true'; // ✅ Works
+process.env.SKIP_BUG_FINDING === 'TRUE'; // ❌ Does NOT work
 
 // CRITICAL: Path check is case-insensitive
 // Matches 'bugfix', 'BUGFIX', 'BugFix', 'bugFiX', etc.
-sessionPath.toLowerCase().includes('bugfix')
+sessionPath.toLowerCase().includes('bugfix');
 
 // CRITICAL: Must use vi.unstubAllEnvs() in afterEach
 // Otherwise environment variables leak between tests
@@ -636,6 +641,7 @@ npm test -- tests/unit/utils/validation/execution-guard.test.ts -t "validateNest
 **Confidence Score**: 10/10 for one-pass validation success likelihood
 
 **Reasoning**:
+
 - Tests already exist and are comprehensive
 - All 5 contract requirements are covered
 - Test file has 436 lines with ~40 test cases

@@ -282,10 +282,18 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow('PRD content', []);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          hasBugs: false,
-          bugs: [],
-          summary: 'No bugs found',
-          recommendations: [],
+          status: 'success',
+          data: {
+            hasBugs: false,
+            bugs: [],
+            summary: 'No bugs found',
+            recommendations: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -308,10 +316,18 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow(prdContent, completedTasks);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          hasBugs: false,
-          bugs: [],
-          summary: 'No bugs found',
-          recommendations: [],
+          status: 'success',
+          data: {
+            hasBugs: false,
+            bugs: [],
+            summary: 'No bugs found',
+            recommendations: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -333,10 +349,18 @@ describe('BugHuntWorkflow', () => {
       const prompt = { user: 'test prompt', system: 'system' };
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          hasBugs: false,
-          bugs: [],
-          summary: 'No bugs found',
-          recommendations: [],
+          status: 'success',
+          data: {
+            hasBugs: false,
+            bugs: [],
+            summary: 'No bugs found',
+            recommendations: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -367,7 +391,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix auth']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -389,7 +421,15 @@ describe('BugHuntWorkflow', () => {
         []
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -416,7 +456,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix all']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -487,7 +535,15 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow('PRD content', []);
       const expectedResult = createTestResults(false, [], 'No bugs found', []);
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -512,7 +568,15 @@ describe('BugHuntWorkflow', () => {
         []
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -543,7 +607,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -560,10 +632,18 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow('PRD content', []);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          hasBugs: false,
-          bugs: [],
-          summary: 'No bugs',
-          recommendations: [],
+          status: 'success',
+          data: {
+            hasBugs: false,
+            bugs: [],
+            summary: 'No bugs',
+            recommendations: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -585,10 +665,18 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow('PRD content', []);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          hasBugs: false,
-          bugs: [],
-          summary: 'No bugs',
-          recommendations: [],
+          status: 'success',
+          data: {
+            hasBugs: false,
+            bugs: [],
+            summary: 'No bugs',
+            recommendations: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -675,7 +763,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -697,7 +793,15 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow('PRD content', completedTasks);
       const expectedResult = createTestResults(false, [], 'All good', []);
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -723,7 +827,15 @@ describe('BugHuntWorkflow', () => {
         []
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -746,10 +858,18 @@ describe('BugHuntWorkflow', () => {
       const workflow = new BugHuntWorkflow(prdContent, completedTasks);
       const mockAgent = {
         prompt: vi.fn().mockResolvedValue({
-          hasBugs: false,
-          bugs: [],
-          summary: 'No bugs',
-          recommendations: [],
+          status: 'success',
+          data: {
+            hasBugs: false,
+            bugs: [],
+            summary: 'No bugs',
+            recommendations: [],
+          },
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
         }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
@@ -773,7 +893,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -797,7 +925,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -823,7 +959,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -850,7 +994,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -878,7 +1030,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -900,7 +1060,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -928,7 +1096,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -954,7 +1130,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(expectedResult),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: expectedResult,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});
@@ -980,7 +1164,15 @@ describe('BugHuntWorkflow', () => {
         ['Fix all']
       );
       const mockAgent = {
-        prompt: vi.fn().mockResolvedValue(testResults),
+        prompt: vi.fn().mockResolvedValue({
+          status: 'success',
+          data: testResults,
+          error: null,
+          metadata: {
+            agentId: 'test-qa-agent',
+            timestamp: Date.now(),
+          },
+        }),
       };
       mockCreateQAAgent.mockReturnValue(mockAgent);
       mockCreateBugHuntPrompt.mockReturnValue({});

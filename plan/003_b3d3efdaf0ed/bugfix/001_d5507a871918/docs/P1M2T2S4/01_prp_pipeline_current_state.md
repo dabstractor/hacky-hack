@@ -11,9 +11,10 @@ The PRP Pipeline at `/home/dustin/projects/hacky-hack/src/workflows/prp-pipeline
 **Location**: `src/workflows/prp-pipeline.ts:1165-1170`
 
 ### Current Code (OUTDATED):
+
 ```typescript
 const fixCycleWorkflow = new FixCycleWorkflow(
-  testResults,        // ❌ OLD: TestResults object
+  testResults, // ❌ OLD: TestResults object
   prdContent,
   this.taskOrchestrator,
   this.sessionManager
@@ -21,9 +22,10 @@ const fixCycleWorkflow = new FixCycleWorkflow(
 ```
 
 ### Required Code (NEW):
+
 ```typescript
 const fixCycleWorkflow = new FixCycleWorkflow(
-  sessionPath,        // ✅ NEW: string path to session directory
+  sessionPath, // ✅ NEW: string path to session directory
   prdContent,
   this.taskOrchestrator,
   this.sessionManager
@@ -35,12 +37,14 @@ const fixCycleWorkflow = new FixCycleWorkflow(
 **Location**: `src/workflows/prp-pipeline.ts:1145-1146`
 
 ### Current Code:
+
 ```typescript
 const bugHuntWorkflow = new BugHuntWorkflow(prdContent, completedTasks);
 const testResults = await bugHuntWorkflow.run();
 ```
 
 ### Required Code:
+
 ```typescript
 const bugHuntWorkflow = new BugHuntWorkflow(prdContent, completedTasks);
 const sessionPath = this.sessionManager.currentSession?.metadata.path;
@@ -52,6 +56,7 @@ const testResults = await bugHuntWorkflow.run(sessionPath);
 **Location**: `src/workflows/prp-pipeline.ts:1214-1285`
 
 The PRP Pipeline currently writes TEST_RESULTS.md in Markdown format after the fix cycle. This needs to be removed because:
+
 1. BugHuntWorkflow now writes TEST_RESULTS.md automatically when sessionPath is provided
 2. BugHuntWorkflow writes JSON format (required by FixCycleWorkflow)
 3. PRP Pipeline writes Markdown format (incompatible)
@@ -60,11 +65,13 @@ The PRP Pipeline currently writes TEST_RESULTS.md in Markdown format after the f
 ## Session Path Access Pattern
 
 **Standard pattern used throughout the codebase:**
+
 ```typescript
 const sessionPath = this.sessionManager.currentSession?.metadata.path;
 ```
 
 **Usage examples in PRP Pipeline:**
+
 - Line 783: `this.sessionManager.currentSession!.metadata.path`
 - Line 1215: `const sessionPath = this.sessionManager.currentSession?.metadata.path;`
 - Line 1326: `const sessionPath = this.sessionManager.currentSession?.metadata.path;`
@@ -97,16 +104,17 @@ Phase 5: Print Console Summary (Lines 1287-1333)
 
 ## Required Changes Summary
 
-| Change | Location | Action |
-|--------|----------|--------|
-| BugHuntWorkflow.run() call | Lines 1145-1146 | Add sessionPath parameter |
+| Change                       | Location        | Action                               |
+| ---------------------------- | --------------- | ------------------------------------ |
+| BugHuntWorkflow.run() call   | Lines 1145-1146 | Add sessionPath parameter            |
 | FixCycleWorkflow constructor | Lines 1165-1170 | Replace testResults with sessionPath |
-| TEST_RESULTS.md write | Lines 1214-1285 | Remove entire section |
-| Phase comments | Lines 1203-1285 | Renumber after removal |
+| TEST_RESULTS.md write        | Lines 1214-1285 | Remove entire section                |
+| Phase comments               | Lines 1203-1285 | Renumber after removal               |
 
 ## Dependencies
 
 **Imports already present (no changes needed):**
+
 ```typescript
 import { BugHuntWorkflow } from './bug-hunt-workflow.js';
 import { FixCycleWorkflow } from './fix-cycle-workflow.js';

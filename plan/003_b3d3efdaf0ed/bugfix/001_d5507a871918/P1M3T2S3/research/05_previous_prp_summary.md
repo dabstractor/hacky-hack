@@ -15,6 +15,7 @@ Add NestedExecutionError class
 **Location:** `src/utils/errors.ts` (lines 522-538)
 
 **Implementation:**
+
 ```typescript
 export class NestedExecutionError extends PipelineError {
   readonly code = ErrorCodes.PIPELINE_VALIDATION_NESTED_EXECUTION;
@@ -39,7 +40,9 @@ export class NestedExecutionError extends PipelineError {
 **Location:** `src/utils/errors.ts` (lines 708-730)
 
 ```typescript
-export function isNestedExecutionError(error: unknown): error is NestedExecutionError {
+export function isNestedExecutionError(
+  error: unknown
+): error is NestedExecutionError {
   return error instanceof NestedExecutionError;
 }
 ```
@@ -66,7 +69,7 @@ throw new NestedExecutionError(
 **Location:** `src/utils/validation/execution-guard.ts` (line 88)
 
 ```typescript
-export { NestedExecutionError, isNestedExecutionError }
+export { NestedExecutionError, isNestedExecutionError };
 ```
 
 This provides a convenient import location for consumers of the validation module.
@@ -76,6 +79,7 @@ This provides a convenient import location for consumers of the validation modul
 **Location:** `tests/unit/utils/validation/execution-guard.test.ts`
 
 Tests cover:
+
 - First execution (PRP_PIPELINE_RUNNING not set)
 - Legitimate bugfix recursion (SKIP_BUG_FINDING=true + bugfix path)
 - Illegitimate nested execution (throws NestedExecutionError)
@@ -92,7 +96,7 @@ Tests cover:
 import {
   validateNestedExecution,
   NestedExecutionError,
-  isNestedExecutionError
+  isNestedExecutionError,
 } from '../utils/validation/execution-guard.js';
 ```
 
@@ -121,7 +125,9 @@ try {
 } catch (error) {
   if (isNestedExecutionError(error)) {
     // Type narrowing: error is now NestedExecutionError
-    console.error(`Nested execution detected. Running PID: ${error.context?.existingPid}`);
+    console.error(
+      `Nested execution detected. Running PID: ${error.context?.existingPid}`
+    );
     console.error(`Current PID: ${error.context?.currentPid}`);
     console.error(`Session path: ${error.context?.sessionPath}`);
   }

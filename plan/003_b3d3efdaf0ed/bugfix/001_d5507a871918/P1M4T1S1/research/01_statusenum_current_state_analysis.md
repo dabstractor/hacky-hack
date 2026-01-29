@@ -13,22 +13,25 @@
 ## 1. Status Type Union (src/core/models.ts:175-182)
 
 ### Location
+
 **File**: `src/core/models.ts`
 **Lines**: 175-182
 
 ### Definition
+
 ```typescript
 export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← LINE 179: PRESENT
+  | 'Retrying' // ← LINE 179: PRESENT
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
 ```
 
 ### Verification
+
 - Total values: **7**
 - 'Retrying' position: **4th of 7**
 - 'Retrying' presence: **CONFIRMED** ✅
@@ -38,16 +41,18 @@ export type Status =
 ## 2. StatusEnum Zod Schema (src/core/models.ts:199-207)
 
 ### Location
+
 **File**: `src/core/models.ts`
 **Lines**: 199-207
 
 ### Definition
+
 ```typescript
 export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← LINE 203: PRESENT
+  'Retrying', // ← LINE 203: PRESENT
   'Complete',
   'Failed',
   'Obsolete',
@@ -55,6 +60,7 @@ export const StatusEnum = z.enum([
 ```
 
 ### Verification
+
 - Total values: **7**
 - 'Retrying' position: **4th of 7**
 - 'Retrying' presence: **CONFIRMED** ✅
@@ -73,7 +79,7 @@ const colorMap: Record<Status, (text: string) => string> = {
   Complete: chalk.green,
   Implementing: chalk.blue,
   Researching: chalk.cyan,
-  Retrying: chalk.yellow,      // ← LINE 49: PRESENT
+  Retrying: chalk.yellow, // ← LINE 49: PRESENT
   Planned: chalk.gray,
   Failed: chalk.red,
   Obsolete: chalk.dim,
@@ -91,7 +97,7 @@ const indicatorMap: Record<Status, string> = {
   Complete: '✓',
   Implementing: '◐',
   Researching: '◐',
-  Retrying: '↻',      // ← LINE 83: PRESENT
+  Retrying: '↻', // ← LINE 83: PRESENT
   Planned: '○',
   Failed: '✗',
   Obsolete: '⊘',
@@ -109,7 +115,7 @@ const indicatorMap: Record<Status, string> = {
   Complete: '✓',
   Implementing: '◐',
   Researching: '◐',
-  Retrying: '↻',      // ← LINE 113: PRESENT
+  Retrying: '↻', // ← LINE 113: PRESENT
   Planned: '○',
   Failed: '✗',
   Obsolete: '⊘',
@@ -123,20 +129,23 @@ const indicatorMap: Record<Status, string> = {
 ## 4. Active Usage in TaskRetryManager (src/core/task-retry-manager.ts)
 
 ### Location
+
 **File**: `src/core/task-retry-manager.ts`
 **Lines**: 311-316
 
 ### Code
+
 ```typescript
 // Update status to 'Retrying'
 await this.#sessionManager.updateItemStatus(
   subtask.id,
-  'Retrying' as Status      // ← LINE 314: ACTIVELY USED
+  'Retrying' as Status // ← LINE 314: ACTIVELY USED
 );
 await this.#sessionManager.flushUpdates();
 ```
 
 ### Verification
+
 - 'Retrying' status is **ACTIVELY USED** in retry logic ✅
 - Status update occurs during retry attempts ✅
 - Proper type casting with `as Status` ✅
@@ -153,13 +162,14 @@ await this.#sessionManager.flushUpdates();
 
 ### Reality (Verified)
 
-| Claim | Reality | Status |
-|-------|---------|--------|
-| StatusEnum only defines 6 values | StatusEnum defines **7 values** | ❌ FALSE |
-| 'Retrying' is missing | 'Retrying' is **PRESENT** at line 203 | ❌ FALSE |
-| Tests expect 7 values | Tests expect **6 values** (lines 50-57, 82-89) | ⚠️ TRUE |
+| Claim                            | Reality                                        | Status   |
+| -------------------------------- | ---------------------------------------------- | -------- |
+| StatusEnum only defines 6 values | StatusEnum defines **7 values**                | ❌ FALSE |
+| 'Retrying' is missing            | 'Retrying' is **PRESENT** at line 203          | ❌ FALSE |
+| Tests expect 7 values            | Tests expect **6 values** (lines 50-57, 82-89) | ⚠️ TRUE  |
 
 **Conclusion**: Bug report has the situation **backwards**:
+
 - **Implementation**: CORRECT (has 7 values including 'Retrying')
 - **Tests**: OUTDATED (expect 6 values, missing 'Retrying')
 
@@ -172,24 +182,26 @@ await this.#sessionManager.flushUpdates();
 **Location**: `tests/unit/core/models.test.ts`
 
 #### Test Array 1 (lines 50-57)
+
 ```typescript
 const validStatuses = [
   'Planned',
   'Researching',
   'Implementing',
-  'Complete',      // ← MISSING 'Retrying'
+  'Complete', // ← MISSING 'Retrying'
   'Failed',
   'Obsolete',
 ];
 ```
 
 #### Test Array 2 (lines 82-89)
+
 ```typescript
 expect(StatusEnum.options).toEqual([
   'Planned',
   'Researching',
   'Implementing',
-  'Complete',      // ← MISSING 'Retrying'
+  'Complete', // ← MISSING 'Retrying'
   'Failed',
   'Obsolete',
 ]);
@@ -203,7 +215,7 @@ export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← PRESENT
+  | 'Retrying' // ← PRESENT
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -213,7 +225,7 @@ export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← PRESENT
+  'Retrying', // ← PRESENT
   'Complete',
   'Failed',
   'Obsolete',
@@ -222,11 +234,11 @@ export const StatusEnum = z.enum([
 
 ### Discrepancy Summary
 
-| Aspect | Test Expectation | Actual Implementation |
-|--------|-----------------|----------------------|
-| Total count | 6 values | 7 values |
-| 'Retrying' present | NO | YES |
-| Test status | FAILING ✗ | PASSING ✅ |
+| Aspect             | Test Expectation | Actual Implementation |
+| ------------------ | ---------------- | --------------------- |
+| Total count        | 6 values         | 7 values              |
+| 'Retrying' present | NO               | YES                   |
+| Test status        | FAILING ✗        | PASSING ✅            |
 
 ---
 
@@ -255,15 +267,18 @@ grep -c "'" src/core/models.ts | sed -n '199,207p'
 ## 8. Git History Evidence
 
 ### Commit 3659e55
+
 **Message**: "Add Retrying status support with yellow indicator and color formatting"
 
 **Files Modified**:
+
 - `src/cli/commands/inspect.ts`
 - `src/utils/display/status-colors.ts`
 - `src/utils/display/table-formatter.ts`
 - `src/utils/display/tree-renderer.ts`
 
 **Analysis**:
+
 - This commit added **display support** for 'Retrying' status
 - It **assumed** 'Retrying' already existed in StatusEnum
 - It did NOT add the status value itself (that was already present)
@@ -287,6 +302,7 @@ grep -c "'" src/core/models.ts | sed -n '199,207p'
 **Issue #3 from TEST_RESULTS.md is INACCURATE** ❌
 
 The bug report claims:
+
 > "StatusEnum only defines 6 values"
 
 **Reality**: StatusEnum defines **7 values** including 'Retrying'.
@@ -309,15 +325,15 @@ The StatusEnum implementation is **correct and complete**.
 
 ## 10. Evidence Summary
 
-| Evidence Type | Location | 'Retrying' Present | Status |
-|--------------|----------|-------------------|--------|
-| Type union | src/core/models.ts:179 | YES | ✅ |
-| Zod enum | src/core/models.ts:203 | YES | ✅ |
-| Color mapping | src/utils/display/status-colors.ts:49 | YES | ✅ |
-| Indicator mapping | src/utils/display/status-colors.ts:83 | YES | ✅ |
-| Plain indicator | src/utils/display/status-colors.ts:113 | YES | ✅ |
-| Active usage | src/core/task-retry-manager.ts:314 | YES | ✅ |
-| Test expectation | tests/unit/core/models.test.ts:50-57 | NO | ❌ OUTDATED |
-| Test expectation | tests/unit/core/models.test.ts:82-89 | NO | ❌ OUTDATED |
+| Evidence Type     | Location                               | 'Retrying' Present | Status      |
+| ----------------- | -------------------------------------- | ------------------ | ----------- |
+| Type union        | src/core/models.ts:179                 | YES                | ✅          |
+| Zod enum          | src/core/models.ts:203                 | YES                | ✅          |
+| Color mapping     | src/utils/display/status-colors.ts:49  | YES                | ✅          |
+| Indicator mapping | src/utils/display/status-colors.ts:83  | YES                | ✅          |
+| Plain indicator   | src/utils/display/status-colors.ts:113 | YES                | ✅          |
+| Active usage      | src/core/task-retry-manager.ts:314     | YES                | ✅          |
+| Test expectation  | tests/unit/core/models.test.ts:50-57   | NO                 | ❌ OUTDATED |
+| Test expectation  | tests/unit/core/models.test.ts:82-89   | NO                 | ❌ OUTDATED |
 
 **Conclusion**: Implementation is correct across all 6 code locations. Only 2 test locations need updating.

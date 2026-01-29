@@ -58,15 +58,15 @@ The 'Retrying' status is correctly positioned in the status lifecycle between 'I
 
 ### Status Positioning Analysis
 
-| Position | Status | Type | Description |
-|----------|--------|------|-------------|
-| 1st | `Planned` | Initial | Not yet started |
-| 2nd | `Researching` | Active | Discovery phase |
-| 3rd | `Implementing` | Active | Work in progress |
-| **4th** | **`Retrying`** | **Active** | **Retry attempt** ← |
-| 5th | `Complete` | Terminal | Successfully finished |
-| 6th | `Failed` | Terminal | Permanently failed |
-| 7th | `Obsolete` | Terminal | No longer relevant |
+| Position | Status         | Type       | Description           |
+| -------- | -------------- | ---------- | --------------------- |
+| 1st      | `Planned`      | Initial    | Not yet started       |
+| 2nd      | `Researching`  | Active     | Discovery phase       |
+| 3rd      | `Implementing` | Active     | Work in progress      |
+| **4th**  | **`Retrying`** | **Active** | **Retry attempt** ←   |
+| 5th      | `Complete`     | Terminal   | Successfully finished |
+| 6th      | `Failed`       | Terminal   | Permanently failed    |
+| 7th      | `Obsolete`     | Terminal   | No longer relevant    |
 
 ---
 
@@ -77,6 +77,7 @@ The 'Retrying' status is correctly positioned in the status lifecycle between 'I
 **Location**: Between `Implementing` and terminal states
 
 **Rationale**:
+
 1. **Logical Flow**: Retries only occur during implementation
 2. **Precondition**: Task must be in 'Implementing' before it can be retried
 3. **Transition Flexibility**: From 'Retrying', task can:
@@ -107,23 +108,23 @@ The 'Retrying' status is correctly positioned in the status lifecycle between 'I
 
 ### Valid Transitions
 
-| From | To | Valid? | Context |
-|------|----|--------|---------|
-| Planned | Researching | ✅ | Task ready for research |
-| Planned | Obsolete | ✅ | Task cancelled before start |
-| Researching | Implementing | ✅ | Research complete, start work |
-| Researching | Planned | ✅ | Needs more planning |
-| Researching | Obsolete | ✅ | Task cancelled |
-| **Implementing** | **Retrying** | ✅ | **Failed, retry initiated** |
-| **Implementing** | **Complete** | ✅ | **Work finished** |
-| **Implementing** | **Failed** | ✅ | **Permanently failed** |
-| **Implementing** | **Obsolete** | ✅ | **Task cancelled** |
-| **Retrying** | **Implementing** | ✅ | **Retry in progress** |
-| **Retrying** | **Complete** | ✅ | **Succeeded on retry** |
-| **Retrying** | **Failed** | ✅ | **Retries exhausted** |
-| **Retrying** | **Obsolete** | ✅ | **Cancelled during retry** |
-| Complete | Obsolete | ✅ | Superseded by new work |
-| Failed | Obsolete | ✅ | No longer relevant |
+| From             | To               | Valid? | Context                       |
+| ---------------- | ---------------- | ------ | ----------------------------- |
+| Planned          | Researching      | ✅     | Task ready for research       |
+| Planned          | Obsolete         | ✅     | Task cancelled before start   |
+| Researching      | Implementing     | ✅     | Research complete, start work |
+| Researching      | Planned          | ✅     | Needs more planning           |
+| Researching      | Obsolete         | ✅     | Task cancelled                |
+| **Implementing** | **Retrying**     | ✅     | **Failed, retry initiated**   |
+| **Implementing** | **Complete**     | ✅     | **Work finished**             |
+| **Implementing** | **Failed**       | ✅     | **Permanently failed**        |
+| **Implementing** | **Obsolete**     | ✅     | **Task cancelled**            |
+| **Retrying**     | **Implementing** | ✅     | **Retry in progress**         |
+| **Retrying**     | **Complete**     | ✅     | **Succeeded on retry**        |
+| **Retrying**     | **Failed**       | ✅     | **Retries exhausted**         |
+| **Retrying**     | **Obsolete**     | ✅     | **Cancelled during retry**    |
+| Complete         | Obsolete         | ✅     | Superseded by new work        |
+| Failed           | Obsolete         | ✅     | No longer relevant            |
 
 ### Transitions Involving 'Retrying'
 
@@ -167,14 +168,15 @@ The 'Retrying' status is correctly positioned in the status lifecycle between 'I
 
 ```typescript
 // Color: chalk.yellow (warning/caution)
-getStatusColor('Retrying') // → chalk.yellow
+getStatusColor('Retrying'); // → chalk.yellow
 
 // Indicator: '↻' (refresh/redo symbol)
-getStatusIndicator('Retrying') // → '↻' (yellow)
-getPlainStatusIndicator('Retrying') // → '↻' (plain)
+getStatusIndicator('Retrying'); // → '↻' (yellow)
+getPlainStatusIndicator('Retrying'); // → '↻' (plain)
 ```
 
 **Semantic Meaning**: The yellow color and ↻ symbol convey:
+
 - Caution (previous attempt failed)
 - Action in progress (retrying)
 - Not yet terminal (outcome uncertain)
@@ -188,9 +190,9 @@ getPlainStatusIndicator('Retrying') // → '↻' (plain)
 ```typescript
 // Task progresses through lifecycle without issues
 let status: Status = 'Planned';
-status = 'Researching';  // Research complete
+status = 'Researching'; // Research complete
 status = 'Implementing'; // Work started
-status = 'Complete';     // Work finished
+status = 'Complete'; // Work finished
 ```
 
 ### Example 2: Retry Flow
@@ -202,10 +204,10 @@ status = 'Researching';
 status = 'Implementing';
 
 // Task fails
-status = 'Retrying';     // ← Entered retry state
+status = 'Retrying'; // ← Entered retry state
 
 // Retry attempt succeeds
-status = 'Complete';     // ← Exited retry state to success
+status = 'Complete'; // ← Exited retry state to success
 ```
 
 ### Example 3: Exhausted Retries
@@ -224,7 +226,7 @@ status = 'Implementing'; // Retry 2
 
 // Third failure (exhausted)
 status = 'Retrying';
-status = 'Failed';       // ← Exited retry state to failure
+status = 'Failed'; // ← Exited retry state to failure
 ```
 
 ---
@@ -240,10 +242,7 @@ status = 'Failed';       // ← Exited retry state to failure
 
 ```typescript
 // Update status to 'Retrying'
-await this.#sessionManager.updateItemStatus(
-  subtask.id,
-  'Retrying' as Status
-);
+await this.#sessionManager.updateItemStatus(subtask.id, 'Retrying' as Status);
 await this.#sessionManager.flushUpdates();
 ```
 
@@ -273,7 +272,7 @@ type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← Properly included
+  | 'Retrying' // ← Properly included
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -290,7 +289,7 @@ function handleStatus(status: Status): void {
     case 'Implementing':
       // ...
       break;
-    case 'Retrying':    // ← Properly handled
+    case 'Retrying': // ← Properly handled
       // ...
       break;
     case 'Complete':
@@ -342,12 +341,12 @@ StatusEnum.options; // ['Planned', 'Researching', 'Implementing', 'Retrying', 'C
 
 The bug report has the situation completely backwards:
 
-| Aspect | Bug Report Claim | Reality |
-|--------|-----------------|---------|
-| StatusEnum count | 6 values | 7 values ✅ |
-| 'Retrying' in StatusEnum | Missing | Present ✅ |
-| Test expectations | 7 values | 6 values ❌ |
-| Root cause | Implementation bug | Test bug ❌ |
+| Aspect                   | Bug Report Claim   | Reality     |
+| ------------------------ | ------------------ | ----------- |
+| StatusEnum count         | 6 values           | 7 values ✅ |
+| 'Retrying' in StatusEnum | Missing            | Present ✅  |
+| Test expectations        | 7 values           | 6 values ❌ |
+| Root cause               | Implementation bug | Test bug ❌ |
 
 ---
 
@@ -364,6 +363,7 @@ The bug report has the situation completely backwards:
 ### Status Lifecycle: COMPLETE AND LOGICAL ✅
 
 The 7-status lifecycle provides a complete workflow:
+
 1. **Initial states**: Planned, Researching, Implementing
 2. **Retry state**: Retrying (during implementation only)
 3. **Terminal states**: Complete, Failed, Obsolete
@@ -382,7 +382,7 @@ Tests need updating in P1.M4.T1.S4 to include 'Retrying' in expected status arra
 
 ```
                     TASK STATUS LIFECYCLE
-                    
+
     ┌──────────────────────────────────────────────────┐
     │                                                  │
     │  Planned ─► Researching ─► Implementing ─┐       │
@@ -406,6 +406,7 @@ Tests need updating in P1.M4.T1.S4 to include 'Retrying' in expected status arra
 ```
 
 **Key Points**:
+
 - 'Retrying' is positioned after 'Implementing' (execution failure)
 - 'Retrying' can return to 'Implementing' (continue retry)
 - 'Retrying' can go to terminal states (Complete/Failed)

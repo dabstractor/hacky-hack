@@ -3,8 +3,9 @@
 ## Primary Access Pattern
 
 **Standard pattern throughout codebase:**
+
 ```typescript
-sessionManager.currentSession.metadata.path
+sessionManager.currentSession.metadata.path;
 ```
 
 ## SessionManager Structure
@@ -36,9 +37,9 @@ export interface SessionState {
 }
 
 export interface SessionMetadata {
-  readonly id: string;        // Format: "001_14b9dc2a33c7"
-  readonly hash: string;      // First 12 chars of SHA-256
-  readonly path: string;      // Session directory path
+  readonly id: string; // Format: "001_14b9dc2a33c7"
+  readonly hash: string; // First 12 chars of SHA-256
+  readonly path: string; // Session directory path
   readonly createdAt: Date;
   readonly parentSession: string | null;
 }
@@ -47,6 +48,7 @@ export interface SessionMetadata {
 ## Usage Examples by Component
 
 ### PRPGenerator
+
 **Location**: `src/agents/prp-generator.ts:213`
 
 ```typescript
@@ -60,6 +62,7 @@ constructor(sessionManager: SessionManager, ...) {
 ```
 
 ### PRPRuntime
+
 **Location**: `src/agents/prp-runtime.ts:139`
 
 ```typescript
@@ -74,6 +77,7 @@ constructor(orchestrator: TaskOrchestrator, ...) {
 ```
 
 ### PRPPipeline
+
 **Location**: `src/workflows/prp-pipeline.ts`
 
 ```typescript
@@ -91,6 +95,7 @@ const sessionPath = this.sessionManager.currentSession?.metadata.path;
 ```
 
 ### TaskOrchestrator
+
 **Location**: `src/core/task-orchestrator.ts:763`
 
 ```typescript
@@ -100,6 +105,7 @@ const sessionPath = this.sessionManager.currentSession?.metadata.path;
 ## Null Check Patterns
 
 ### Pattern 1: Throw if no session
+
 ```typescript
 const currentSession = sessionManager.currentSession;
 if (!currentSession) {
@@ -109,11 +115,13 @@ const sessionPath = currentSession.metadata.path;
 ```
 
 ### Pattern 2: Optional chaining with default
+
 ```typescript
 const sessionPath = this.sessionManager.currentSession?.metadata.path ?? '';
 ```
 
 ### Pattern 3: Optional chaining (unsafe)
+
 ```typescript
 const sessionPath = this.sessionManager.currentSession?.metadata.path;
 ```
@@ -121,11 +129,12 @@ const sessionPath = this.sessionManager.currentSession?.metadata.path;
 ## Workflow Constructor Patterns
 
 ### FixCycleWorkflow Pattern
+
 **Location**: `src/workflows/fix-cycle-workflow.ts`
 
 ```typescript
 export class FixCycleWorkflow extends Workflow {
-  sessionPath: string;  // Public field
+  sessionPath: string; // Public field
 
   constructor(
     sessionPath: string,
@@ -146,6 +155,7 @@ export class FixCycleWorkflow extends Workflow {
 ```
 
 **Key observations:**
+
 - Accepts `sessionPath` as separate constructor parameter
 - Stores it as public field
 - Does NOT extract from `sessionManager` internally
@@ -154,6 +164,7 @@ export class FixCycleWorkflow extends Workflow {
 ## Other Classes Using sessionPath as Constructor Parameter
 
 ### PRPExecutor
+
 **Location**: `src/agents/prp-executor.ts`
 
 ```typescript
@@ -170,6 +181,7 @@ export class PRPExecutor {
 ```
 
 ### CheckpointManager
+
 **Location**: `src/core/checkpoint-manager.ts`
 
 ```typescript
@@ -183,6 +195,7 @@ export class CheckpointManager {
 ```
 
 ### CacheManager
+
 **Location**: `src/utils/cache-manager.ts`
 
 ```typescript
@@ -199,6 +212,7 @@ export class CacheManager {
 ## Path Construction Patterns
 
 ### Session-relative paths
+
 ```typescript
 // PRP path
 const prpPath = join(this.#sessionPath, 'prps', `${sanitizedId}.md`);
@@ -211,6 +225,7 @@ const resultsPath = resolve(this.sessionPath, 'TEST_RESULTS.md');
 ```
 
 ### Standard subdirectories
+
 ```
 sessionPath/
 ├── prps/
@@ -226,22 +241,24 @@ sessionPath/
 ## Type Definitions
 
 ### SessionMetadata
+
 ```typescript
 export interface SessionMetadata {
   readonly id: string;
   readonly hash: string;
-  readonly path: string;      // Filesystem path to session directory
+  readonly path: string; // Filesystem path to session directory
   readonly createdAt: Date;
   readonly parentSession: string | null;
 }
 ```
 
 ### PipelineResult
+
 ```typescript
 export interface PipelineResult {
   success: boolean;
   hasFailures: boolean;
-  sessionPath: string;        // Path to session directory
+  sessionPath: string; // Path to session directory
   totalTasks: number;
   completedTasks: number;
 }
@@ -250,11 +267,13 @@ export interface PipelineResult {
 ## Best Practice Recommendation
 
 **For internal use within PRPPipeline:**
+
 - Extract `sessionPath` once in constructor
 - Store as private readonly field
 - Use consistent null checking pattern
 
 **For passing to workflows:**
+
 - Follow FixCycleWorkflow pattern: accept as separate parameter
 - Allows flexibility for testing
 - Makes dependency explicit

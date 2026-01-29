@@ -106,8 +106,7 @@ export const ErrorCodes = {
   PIPELINE_VALIDATION_SCHEMA_FAILED: 'PIPELINE_VALIDATION_SCHEMA_FAILED',
   PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY:
     'PIPELINE_VALIDATION_CIRCULAR_DEPENDENCY',
-  PIPELINE_VALIDATION_NESTED_EXECUTION:
-    'PIPELINE_VALIDATION_NESTED_EXECUTION',
+  PIPELINE_VALIDATION_NESTED_EXECUTION: 'PIPELINE_VALIDATION_NESTED_EXECUTION',
 
   // Resource errors
   PIPELINE_RESOURCE_LIMIT_EXCEEDED: 'PIPELINE_RESOURCE_LIMIT_EXCEEDED',
@@ -119,6 +118,7 @@ export const ErrorCodes = {
 **Pattern**: `PIPELINE_{DOMAIN}_{CATEGORY}_{SPECIFIC}`
 
 Examples:
+
 - `PIPELINE_SESSION_LOAD_FAILED` - Domain: SESSION, Category: LOAD, Specific: FAILED
 - `PIPELINE_VALIDATION_NESTED_EXECUTION` - Domain: VALIDATION, Category: NESTED, Specific: EXECUTION
 
@@ -178,7 +178,7 @@ describe('NestedExecutionError class', () => {
     const context = {
       existingPid: '12345',
       currentPid: '67890',
-      sessionPath: '/test/path'
+      sessionPath: '/test/path',
     };
     const error = new NestedExecutionError('Test message', context);
 
@@ -251,11 +251,13 @@ readonly code = ErrorCodes.PIPELINE_VALIDATION_NESTED_EXECUTION;
 ### 3. Context Assignment
 
 **Pattern 1**: Standard context (BugfixSessionValidationError)
+
 ```typescript
 context?: PipelineErrorContext
 ```
 
 **Pattern 2**: Extended context with type safety (NestedExecutionError)
+
 ```typescript
 context?: PipelineErrorContext & {
   existingPid?: string;
@@ -265,6 +267,7 @@ context?: PipelineErrorContext & {
 ```
 
 **Use Pattern 2 when**:
+
 - Error has specific context properties
 - You want type safety for those properties
 - Properties are always the same type
@@ -276,6 +279,7 @@ cause?: Error
 ```
 
 **Usage**:
+
 ```typescript
 try {
   riskyOperation();
@@ -283,7 +287,7 @@ try {
   throw new NestedExecutionError(
     'Nested execution detected',
     { sessionPath: '/path' },
-    originalError  // <-- cause
+    originalError // <-- cause
   );
 }
 ```
@@ -301,6 +305,7 @@ The codebase follows a **consistent, well-tested pattern** for custom error clas
 7. **Add JSDoc** documentation (missing in NestedExecutionError)
 
 **NestedExecutionError follows this pattern perfectly**, with the addition of:
+
 - Extended context interface for type safety
 - Specific context properties for debugging
 

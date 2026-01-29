@@ -13,12 +13,14 @@ This research verifies that the `TaskRetryManager` class correctly sets task sta
 ### Key Findings
 
 ✅ **VERIFIED**: `TaskRetryManager` **ALREADY** correctly sets status to `'Retrying'` when initiating retries
+
 - Location: `src/core/task-retry-manager.ts` lines 311-316
 - Method: `executeWithRetry()` calls `sessionManager.updateItemStatus(subtask.id, 'Retrying' as Status)`
 - Followed by: `sessionManager.flushUpdates()` for immediate persistence
 - Pattern: `'Implementing' → 'Failed' → 'Retrying' → 'Implementing'` lifecycle is correctly implemented
 
 ✅ **VERIFIED**: Unit tests confirm the behavior
+
 - Location: `tests/unit/task-retry-manager.test.ts` lines 682-704
 - Test: "should update status to Retrying with message containing attempt info"
 - Expects: `updateItemStatus` to be called with `'Retrying'` status
@@ -48,6 +50,7 @@ This research verifies that the `TaskRetryManager` class correctly sets task sta
 **Purpose:** Manages retry logic for subtask execution with intelligent error classification and exponential backoff
 
 **Key Features:**
+
 - Error classification (transient vs permanent vs unknown)
 - Exponential backoff with jitter (1s → 2s → 4s → 8s, capped at 30s)
 - Configurable max attempts (default: 3)
@@ -71,6 +74,7 @@ constructor(
 ```
 
 **Key Points:**
+
 - Accepts `SessionManager` as required dependency (no default)
 - Stores as private field `#sessionManager` for status updates
 - Merges config with defaults using spread operator
@@ -81,6 +85,7 @@ constructor(
 **Lines:** 203-338
 
 **Flow:**
+
 1. If retry disabled, execute directly without retry logic
 2. Initialize retry state (attempt count, timestamps)
 3. For each attempt:
@@ -106,16 +111,14 @@ constructor(
 
 ```typescript
 // Update status to 'Retrying'
-await this.#sessionManager.updateItemStatus(
-  subtask.id,
-  'Retrying' as Status
-);
+await this.#sessionManager.updateItemStatus(subtask.id, 'Retrying' as Status);
 await this.#sessionManager.flushUpdates();
 ```
 
 **Analysis:**
 
 ✅ **Correct Implementation:**
+
 1. Calls `sessionManager.updateItemStatus()` with subtask ID and `'Retrying'` status
 2. Uses type assertion `'Retrying' as Status` for type safety
 3. Immediately calls `flushUpdates()` to persist state atomically
@@ -123,6 +126,7 @@ await this.#sessionManager.flushUpdates();
 5. Only executes for retryable errors (after transient error check)
 
 **Why This Position is Correct:**
+
 - Status is updated **before** the sleep delay
 - This ensures UI/logging shows 'Retrying' status during the wait period
 - State is persisted immediately via `flushUpdates()` for crash recovery
@@ -150,6 +154,7 @@ async updateItemStatus(itemId: string, status: Status): Promise<Backlog> {
 ```
 
 **Key Points:**
+
 - Accepts `Status` type (which includes 'Retrying')
 - Returns updated `Backlog` for chaining
 - Used by both `TaskRetryManager` and `TaskOrchestrator`
@@ -166,6 +171,7 @@ await this.#sessionManager.flushUpdates(); // CRITICAL: Atomic batch write
 ```
 
 **Why `flushUpdates()` is Critical:**
+
 - Ensures retry state is persisted immediately
 - Enables crash recovery during retry delay
 - Prevents lost state if process crashes during sleep
@@ -184,6 +190,7 @@ According to architecture requirements and contract definition:
 ```
 
 **Breakdown:**
+
 1. **'Implementing'**: Set by `TaskOrchestrator` before calling `executeWithRetry()`
 2. **'Failed'**: Transient error occurs, caught in retry loop
 3. **'Retrying'**: Set by `TaskRetryManager` after deciding to retry (line 311-315)
@@ -283,6 +290,7 @@ try {
 **Lines:** 1-728
 
 **Test Suite Coverage:**
+
 - ✅ Retry on transient errors (network issues, timeouts)
 - ✅ No retry on permanent errors (validation, parse failures)
 - ✅ Max attempts enforcement
@@ -391,12 +399,14 @@ it('should throw immediately for ValidationError', async () => {
 **Pattern:** TaskOrchestrator creates TaskRetryManager and delegates retry logic
 
 **Integration Flow:**
+
 1. TaskOrchestrator constructs `TaskRetryManager` with SessionManager
 2. Calls `executeWithRetry()` wrapping PRPRuntime execution
 3. TaskRetryManager handles retries and status updates
 4. TaskOrchestrator handles final success/failure status
 
 **Status Management Split:**
+
 - **TaskRetryManager**: Manages 'Retrying' status during retry attempts
 - **TaskOrchestrator**: Manages 'Implementing', 'Complete', 'Failed' status
 
@@ -406,6 +416,7 @@ it('should throw immediately for ValidationError', async () => {
 **Method:** `updateItemStatus(itemId: string, status: Status): Promise<Backlog>`
 
 **Usage Pattern:**
+
 ```typescript
 // TaskRetryManager uses SessionManager for status updates
 await this.#sessionManager.updateItemStatus(subtask.id, 'Retrying' as Status);
@@ -413,6 +424,7 @@ await this.#sessionManager.flushUpdates();
 ```
 
 **Batch Write Pattern:**
+
 - `updateItemStatus()` updates in-memory state
 - `flushUpdates()` persists to disk atomically
 - Ensures crash recovery works correctly
@@ -427,7 +439,7 @@ export type Status =
   | 'Planned'
   | 'Researching'
   | 'Implementing'
-  | 'Retrying'      // ← Verified in P1.M4.T1.S1
+  | 'Retrying' // ← Verified in P1.M4.T1.S1
   | 'Complete'
   | 'Failed'
   | 'Obsolete';
@@ -436,7 +448,7 @@ export const StatusEnum = z.enum([
   'Planned',
   'Researching',
   'Implementing',
-  'Retrying',      // ← Verified in P1.M4.T1.S1
+  'Retrying', // ← Verified in P1.M4.T1.S1
   'Complete',
   'Failed',
   'Obsolete',
@@ -456,6 +468,7 @@ export const StatusEnum = z.enum([
 **Requirement:** "Status display code should handle 'Retrying' with appropriate color (yellow) and indicator (circular arrow)."
 
 **Verification:**
+
 - ✅ Status enum includes 'Retrying' (P1.M4.T1.S1)
 - ✅ Status color mapping includes 'Retrying' → `chalk.yellow` (P1.M4.T1.S2)
 - ✅ Status indicator mapping includes 'Retrying' → '↻' (P1.M4.T1.S2)
@@ -473,24 +486,22 @@ export const StatusEnum = z.enum([
 // 4. Persist via SessionManager
 await sessionManager.updateItemStatus(
   subtask.id,
-  "Implementing",
-  "Retry attempt " + attempt + "/" + maxAttempts
+  'Implementing',
+  'Retry attempt ' + attempt + '/' + maxAttempts
 );
-await sessionManager.flushUpdates()  // CRITICAL: Atomic batch write
+await sessionManager.flushUpdates(); // CRITICAL: Atomic batch write
 ```
 
 **Actual Implementation:**
 
 ```typescript
 // Update status to 'Retrying'
-await this.#sessionManager.updateItemStatus(
-  subtask.id,
-  'Retrying' as Status
-);
+await this.#sessionManager.updateItemStatus(subtask.id, 'Retrying' as Status);
 await this.#sessionManager.flushUpdates();
 ```
 
 **Comparison:**
+
 - ✅ Both use `sessionManager.updateItemStatus()`
 - ✅ Both call `flushUpdates()` immediately after
 - ⚠️ Design doc shows `"Implementing"` but implementation uses `'Retrying'`
@@ -512,6 +523,7 @@ await this.#sessionManager.flushUpdates();
 **Answer:** ✅ **YES - ALREADY IMPLEMENTED CORRECTLY**
 
 **Evidence:**
+
 1. **Code Analysis:** Lines 311-316 in `src/core/task-retry-manager.ts` explicitly set status to 'Retrying'
 2. **Unit Tests:** Lines 682-704 in `tests/unit/task-retry-manager.test.ts` verify the behavior
 3. **Type Safety:** Uses `'Retrying' as Status` for compile-time verification
@@ -525,6 +537,7 @@ await this.#sessionManager.flushUpdates();
 **Actual:** ✅ **MATCHES EXPECTED LIFECYCLE**
 
 **Flow:**
+
 1. TaskOrchestrator sets 'Implementing' before calling retry manager
 2. Transient error occurs, caught in retry loop
 3. TaskRetryManager sets 'Retrying' (line 311-315)
@@ -537,6 +550,7 @@ await this.#sessionManager.flushUpdates();
 ### 7.3 Code Quality Assessment
 
 **Strengths:**
+
 - ✅ Type-safe status updates with `'Retrying' as Status`
 - ✅ Immediate persistence via `flushUpdates()`
 - ✅ Comprehensive unit test coverage
@@ -545,6 +559,7 @@ await this.#sessionManager.flushUpdates();
 - ✅ Status only updated for retryable errors (not permanent)
 
 **No Issues Found:**
+
 - No code smells
 - No anti-patterns
 - No missing error handling
@@ -558,6 +573,7 @@ await this.#sessionManager.flushUpdates();
 The current implementation is **production-quality** and **correctly implements** the architecture requirements. No changes are necessary.
 
 **Optional Enhancements** (not required):
+
 1. Add integration test for full status lifecycle (TaskOrchestrator + TaskRetryManager)
 2. Add metrics tracking for 'Retrying' status duration
 3. Add alerting for tasks stuck in 'Retrying' for too long
@@ -616,10 +632,7 @@ retryState.lastError = {
 retryState.lastAttemptAt = new Date();
 
 // Update status to 'Retrying'
-await this.#sessionManager.updateItemStatus(
-  subtask.id,
-  'Retrying' as Status
-);
+await this.#sessionManager.updateItemStatus(subtask.id, 'Retrying' as Status);
 await this.#sessionManager.flushUpdates();
 
 // Log retry attempt
@@ -697,7 +710,7 @@ describe('status updates and logging', () => {
 
 ## Appendix B: Status Type Definition
 
-```typescript
+````typescript
 // File: src/core/models.ts
 // Lines: 175-207
 
@@ -750,7 +763,7 @@ export const StatusEnum = z.enum([
   'Failed',
   'Obsolete',
 ]);
-```
+````
 
 ---
 
