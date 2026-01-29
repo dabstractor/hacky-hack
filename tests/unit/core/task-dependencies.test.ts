@@ -274,6 +274,7 @@ describe('TaskOrchestrator - Dependency Resolution', () => {
           'Planned',
           'Researching',
           'Implementing',
+          'Retrying',
           'Failed',
           'Obsolete',
         ];
